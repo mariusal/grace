@@ -274,7 +274,8 @@ String fallbackResources[] = {
 #define MENU_OPEN	204
 #define MENU_SAVE	205
 #define MENU_SAVEAS	206
-#define MENU_PRINT	207
+#define MENU_REVERT	207
+#define MENU_PRINT	208
 
 
 int initialize_gui(int *argc, char **argv)
@@ -318,6 +319,8 @@ static void do_drawgraph(Widget w, XtPointer client_data, XtPointer call_data)
 
 static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    char *s;
+    
     switch ((int) client_data) {
     case MENU_EXIT:
 	bailout();
@@ -344,6 +347,19 @@ static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data)
 	break;
     case MENU_SAVEAS:
 	create_saveproject_popup();
+	break;
+    case MENU_REVERT:
+	set_wait_cursor();
+	s = copy_string(NULL, docname);
+	if (strcmp (s, NONAME) != 0) {
+            load_project(s);
+        } else {
+	    new_project(NULL);
+        }
+        free(s);
+	update_all();
+        xdrawgraph();
+	unset_wait_cursor();
 	break;
     case MENU_PRINT:
 	set_wait_cursor();
@@ -573,6 +589,8 @@ static Widget CreateMainMenuBar(Widget parent)
     	(XtCallbackProc) MenuCB, (XtPointer) MENU_SAVE, "file.html#save");
     CreateMenuButton(menupane, "saveAs", "Save as...", 'a',
     	(XtCallbackProc) MenuCB, (XtPointer) MENU_SAVEAS, "file.html#saveas");
+    CreateMenuButton(menupane, "revertToSaved", "Revert to saved", 'v',
+    	(XtCallbackProc) MenuCB, (XtPointer) MENU_REVERT, NULL);
     CreateMenuButton(menupane, "describe", "Describe...", 'D',
     	(XtCallbackProc) create_describe_popup, NULL, "file.html#describe");
 
