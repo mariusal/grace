@@ -36,6 +36,11 @@ $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) : $(TOP)/include/config.h
 
 include Make.dep
 
+Make.dep : $(GRSRCS) $(GUISRCS) $(PARS_C) buildinfo.c
+	echo "# Generated automatically by \`make depend'" > $@
+	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) buildinfo.c \
+		| sed 's/\.o:/\$$(O)\ :/g' >> $@
+
 xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(CEPHES_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB)
 	$(CC) $(CFLAGS) $(GROBJS) $(GUIOBJS) -o $@ $(LDFLAGS) $(LIBS)
 
@@ -86,10 +91,7 @@ distclean : clean
 devclean : distclean
 	$(RM) $(PARS_C)
 
-depend :
-	echo "# Generated automatically by \`make depend'" > Make.dep
-	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) buildinfo.c \
-		| sed 's/\.o:/\$$(O)\ :/g' >> Make.dep
+depend : Make.dep
 
 tags : $(GRSRCS) $(GUISRCS) $(PARS_Y)
 	ctags $(GRSRCS) $(GUISRCS) $(PARS_Y)
