@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.1.11)
   <author>by the Grace Team
-  <date>07.12.2002
+  <date>19.01.2003
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -134,7 +134,7 @@
 
           <item> <url url="http://www.moshier.net/" name="Cephes math library">
 
-          <item> <url url="http://www.neuroinformatik.ruhr-uni-bochum.de/ini/PEOPLE/rmz/t1lib.html" name="T1lib">
+          <item> <url url="http://metalab.unc.edu/pub/Linux/libs/graphics/" name="T1lib">
           
           <item> <url url="http://www.lesstif.org/Xbae.html" name="Xbae">
           
@@ -150,14 +150,6 @@
         At the Grace home page
         (see question <ref id="homepage" name="Home Page">), all
         these versions are available.
-
-    <sect1>Who maintains the FAQ?
-      <p>
-
-        Until recently, the FAQ had been maintained by <url name="Heiko
-        Selber" url="mailto:selber@fhi-berlin.mpg.de">. There is no
-        "official" maintainer right now. If you'd like to take the job,
-        please let us know.
 
 <!-- **************************************** -->
 
@@ -549,9 +541,12 @@
            <label id="binaries">
       <p>
 
-        You will find binaries for several flavours of UNIX and probably
-        a Win32 package at
-        <url url="ftp://plasma-gate.weizmann.ac.il/pub/grace/bin/">.
+        We do not officially support binary packages. When contributed by
+        volunteers they're put in under the <url name="contrib"
+        url="ftp://plasma-gate.weizmann.ac.il/pub/grace/contrib/"> area. Again,
+        these are NOT supported (bug reports like "I can't install that RPM"
+        will be silently ignored), but feel free using the Grace mailing list
+        for relevant discussions.
 
     <sect1>Is there a Windows&verbar;OS/2&verbar;VMS port of Grace?
       <p>
@@ -682,7 +677,7 @@ T1_InitLib(): Fatal error scanning Font Database File
         If you get this message after installing a prebuilt package,
         then you have either forgotten to download the platform-independent
         part of the installation (named like grace-x.y.zz.common.tar.gz) or
-        not set the <tt>GRACE_HOME</tt> environment variable, see few lines 
+        not set the <tt>GRACE_HOME</tt> environment variable, see a few lines 
         above.
 
     <sect1>Grace can not find help files.
@@ -699,10 +694,10 @@ T1_InitLib(): Fatal error scanning Font Database File
       <p>
 
         This is a known bug in Motif-2.1. Most vendors have fixed it in their
-        ports and/or have a patch ready, but not all, a notable exception
-        being Motif libraries shipped by Red Hat for GNU/Linux for Intel
-        hardware. Grace has a workaround for this bug. In order to enable it,
-        add the following lines to the X resources:
+        ports and/or have a patch ready, but not all, a notable exception being
+        Motif libraries shipped by Red Hat for GNU/Linux for Intel hardware
+        (versions 6.*). Grace has a workaround for this bug. In order to enable
+        it, add the following lines to the X resources:
  
         <tscreen><code>
 XMgrace*XmDrawingArea.translations: #override\n\
