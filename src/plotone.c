@@ -1970,15 +1970,11 @@ int drawxysym(Canvas *canvas, const VPoint *vp, const Symbol *sym)
     return RETURN_SUCCESS;
 }
 
-static void drawlegbarsym(Canvas *canvas,
-    const VPoint *vp, double size, const Pen *sympen, const Pen *symfillpen)
+static void drawlegbarsym(Canvas *canvas, const VPoint *vp,
+    double width, double height, const Pen *sympen, const Pen *symfillpen)
 {
-    double width, height;
     VPoint vps[4];
 
-    width  = 0.02*size;
-    height = 0.02*getcharsize(canvas);
-    
     vps[0].x = vps[1].x = vp->x - width/2;
     vps[2].x = vps[3].x = vp->x + width/2;
     vps[0].y = vps[3].y = vp->y - height/2;
@@ -2208,10 +2204,11 @@ void draw_legend_syms(Quark *pset,
         if (!singlesym) {
             if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                 p->type == SET_BARDY || p->type == SET_BARDYDY) {
-                drawlegbarsym(canvas,
-                    &vp1, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
-                drawlegbarsym(canvas,
-                    &vp2, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
+
+                drawlegbarsym(canvas, &vp1, 0.02*p->sym.size, 0.02*l->charsize,
+                    &p->sym.line.pen, &p->sym.fillpen);
+                drawlegbarsym(canvas, &vp2, 0.02*p->sym.size, 0.02*l->charsize,
+                    &p->sym.line.pen, &p->sym.fillpen);
             } else {
                 drawxysym(canvas, &vp1, &p->sym);
                 drawxysym(canvas, &vp2, &p->sym);
@@ -2223,8 +2220,8 @@ void draw_legend_syms(Quark *pset,
 
             if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                 p->type == SET_BARDY || p->type == SET_BARDYDY) {
-                drawlegbarsym(canvas,
-                    &vptmp, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
+                drawlegbarsym(canvas, &vptmp, 0.02*p->sym.size, 0.02*l->charsize,
+                    &p->sym.line.pen, &p->sym.fillpen);
             } else {
                 drawxysym(canvas, &vptmp, &p->sym);
             }
