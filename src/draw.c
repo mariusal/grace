@@ -1777,7 +1777,7 @@ int points_overlap(VPoint vp1, VPoint vp2)
 }
 
 
-static max_path_length = 4000;
+static max_path_length = MAX_DRAWING_PATH;
 
 void set_max_path_limit(int limit)
 {

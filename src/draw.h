@@ -115,6 +115,9 @@ typedef struct {
     view fv;
 } BBox_type;
 
+/* The default max drawing path limit */
+#define MAX_DRAWING_PATH  20000
+
 void setpen(Pen pen);
 Pen getpen(void);
 
