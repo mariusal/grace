@@ -105,6 +105,8 @@ Dictionary *dict_new(void);
 void dict_free(Dictionary *dict);
 Dictionary *dict_new_from_array(unsigned int nentries, const DictEntry *entries,
     const DictEntry *defaults);
+int dict_resize(Dictionary *dict, unsigned int size);
+int dict_entry_copy(DictEntry *dest, const DictEntry *src);
 
 #define DICT_NEW_STATIC(arr, defs) \
     dict_new_from_array(sizeof(arr)/sizeof(DictEntry), arr, defs)
