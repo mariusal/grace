@@ -883,7 +883,6 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
 		    return RETURN_FAILURE;
                 }
                 
-		ssd_set_label(q, label);
                 breakon = FALSE;
 	    }
 	    if (nrows % BUFSIZE == 0) {

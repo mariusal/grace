@@ -435,7 +435,6 @@ int create_set_fromblock(Quark *pset, int type,
     Quark *ss = get_parent_ssd(pset);
     ss_data *blockdata = ssd_get_data(ss);
     int i, ncols, blockncols, blocklen, column;
-    char buf[256], *s;
 
     if (!blockdata || !dsp) {
         return RETURN_FAILURE;
@@ -492,11 +491,6 @@ int create_set_fromblock(Quark *pset, int type,
             dsp->scol = scol;
         }
     }
-
-    s = cols_to_field_string(nc, coli, scol);
-    sprintf(buf, "%s, cols %s", blockdata->label, s);
-    xfree(s);
-    set_set_comment(pset, buf);
 
     return RETURN_SUCCESS;
 }
