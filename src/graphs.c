@@ -1184,9 +1184,11 @@ char *get_project_description(void)
     return project_description;
 }
 
+extern plotstr *pstr;
+
 void postprocess_project(int version)
 {
-    int gno, setno, naxis;
+    int gno, setno, naxis, strno;
     double ext_x, ext_y;
     
     if (version >= bi_version_id()) {
@@ -1303,6 +1305,13 @@ void postprocess_project(int version)
 	        }
 	        g[gno].t[naxis].label.y *= -1;
 	    }
+        }
+    }
+    
+    if (version >= 40200 && version <= 50005) {
+        /* BBox type justification was erroneously set */
+        for (strno = 0; strno < number_of_strings(); strno++) {
+            pstr[strno].just |= JUST_MIDDLE;
         }
     }
 }
