@@ -68,7 +68,7 @@ then
     case "${host}" in
       alpha*-dec-osf4.*) CONF_FILE="alpha-osf4";;
       hppa*-hp-hpux*) CONF_FILE="hppa-hpux";;
-      mips-sgi-irix6.[4-9]*) CONF_FILE="mips-irix6.4";;
+      mips-sgi-irix6.[[4-9]]*) CONF_FILE="mips-irix6.4";;
       mips-sgi-irix*) CONF_FILE="mips-irix";;
       rs6000-ibm-aix3*) CONF_FILE="rs6000-aix3";;
       rs6000-ibm-aix4*) CONF_FILE="rs6000-aix4";;
