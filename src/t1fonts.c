@@ -44,7 +44,7 @@
 int init_t1(Canvas *canvas)
 {
     int i;
-    char buf[GR_MAXPATHLEN], *bufp;
+    char buf[GR_MAXPATHLEN], abuf[GR_MAXPATHLEN], fbuf[GR_MAXPATHLEN], *bufp;
     FILE *fd;
     
     /* Set search paths: */
@@ -92,12 +92,13 @@ int init_t1(Canvas *canvas)
     grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
     for (i = 0; i < canvas->nfonts; i++) {
         grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
-        if (sscanf(buf, "%s %s %*s", canvas->FontDBtable[i].alias, 
-                                     canvas->FontDBtable[i].fallback) != 2) {
+        if (sscanf(buf, "%s %s %*s", abuf, fbuf) != 2) {
             fclose(fd);
             return (RETURN_FAILURE);
         }
         canvas->FontDBtable[i].mapped_id = i;
+        canvas->FontDBtable[i].alias     = copy_string(NULL, abuf);
+        canvas->FontDBtable[i].fallback  = copy_string(NULL, fbuf);
     }
     fclose(fd);
     

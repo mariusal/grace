@@ -231,8 +231,8 @@ typedef struct {
 
 typedef struct {
     int mapped_id;
-    char alias[32];
-    char fallback[32];
+    char *alias;
+    char *fallback;
     char used;
     char chars_used[256];
 } FontDB;
