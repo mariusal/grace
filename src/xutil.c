@@ -462,3 +462,97 @@ char *display_name(void)
 {
     return DisplayString(disp);
 }
+
+#define BUFSIZE 1024
+static int HandleXError(Display *dpy, XErrorEvent *event)
+{
+    char buffer[BUFSIZE], mesg[BUFSIZE], *output;
+
+    char *mtype = "XlibMessage";
+
+    XGetErrorDatabaseText(dpy, mtype, "XError", "X Error", buffer, BUFSIZE);
+    output = copy_string(NULL, buffer);
+    output = concat_strings(output, ":");
+    
+    XGetErrorText(dpy, event->error_code, buffer, BUFSIZE);
+    output = concat_strings(output, buffer);
+    output = concat_strings(output, "\n");
+    
+    XGetErrorDatabaseText(dpy, mtype, "MajorCode", "Request Major code %d", mesg,
+                          BUFSIZE);
+    sprintf(buffer, mesg, event->request_code);
+    output = concat_strings(output, buffer);
+
+    if (event->request_code < 128) {
+        char number[32];
+        sprintf(number, "%d", event->request_code);
+        XGetErrorDatabaseText(dpy, "XRequest", number, "", mesg, BUFSIZE);
+        sprintf(buffer, " (%s)\n", mesg);
+        output = concat_strings(output, buffer);
+    }
+
+    switch (event->error_code) {
+    case (BadWindow):
+    case (BadPixmap):
+    case (BadCursor):
+    case (BadFont):
+    case (BadDrawable):
+    case (BadColor):
+    case (BadGC):
+    case (BadIDChoice):
+    case (BadValue):
+    case (BadAtom):
+        if (event->error_code == BadValue) {
+           XGetErrorDatabaseText(dpy, mtype, "Value", "Value 0x%x", mesg,
+                                 BUFSIZE);
+        } else if (event->error_code == BadAtom) {
+           XGetErrorDatabaseText(dpy, mtype, "AtomID", "AtomID 0x%x", mesg,
+                                 BUFSIZE);
+        } else {
+           XGetErrorDatabaseText(dpy, mtype, "ResourceID", "ResourceID 0x%x",
+                                 mesg, BUFSIZE);
+        }
+        output = concat_strings(output, "  ");
+        sprintf(buffer, mesg, event->resourceid);
+        output = concat_strings(output, buffer);
+        output = concat_strings(output, "\n");
+        break;
+    } /* switch() */
+
+    XGetErrorDatabaseText(dpy, mtype, "ErrorSerial", "Error Serial #%d", mesg,
+                           BUFSIZE);
+    sprintf(buffer, mesg, event->serial);
+    output = concat_strings(output, "  ");
+    output = concat_strings(output, buffer);
+    output = concat_strings(output, ".");
+    
+    emergency_exit(TRUE, output);
+    xfree(output);
+    
+    /* return value is ignored anyway */
+    return 0;
+}
+
+/*
+ * Interrupt handler for X IO errors
+ */
+static int HandleXIOError(Display *d)
+{
+    char msg[BUFSIZE];      
+    if (errno == EPIPE) {
+        sprintf(msg, "X connection to %s broken (server error - EPIPE).",
+               DisplayString(d));
+    } else {
+        sprintf(msg, "Fatal IO error on X server %s.", DisplayString(d));
+    }
+
+    emergency_exit(FALSE, msg);
+    
+    exit(1);
+}
+
+void installXErrorHandler(void)
+{
+    XSetErrorHandler(HandleXError);
+    XSetIOErrorHandler(HandleXIOError);
+}

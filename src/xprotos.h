@@ -191,4 +191,6 @@ void update_all_cb(void *data);
 
 void set_barebones(int onoff);
 
+void installXErrorHandler(void);
+
 #endif /* __XPROTOS_H_ */
