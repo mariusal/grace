@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.3)
 <author>by the Grace Team
-<date>22.06.1999
+<date>17.07.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -21,20 +21,26 @@
 
 <sect1>What is Grace?
   <p>
-     Grace is a tool to make two-dimensional plots of scientific data. It runs
-     under various (if not all) flavours of UNIX with X11 and Motif. Its
-     capabilities are roughly similar to GUI-based programs like Sigmaplot or
-     Microcal Origin plus script-based tools like Gnuplot or Genplot.  Its
-     strength lies in the fact that it combines the convenience of a graphical
-     user interface with the power of a scripting language which enables it to
-     do sophisticated calculations or perform automated tasks.
+     Grace is a tool to make two-dimensional plots of scientific
+     data. It runs under various (if not all) flavours of UNIX with
+     X11 and Motif (LessTif). It also runs under VMS, OS/2, and Windows
+     (95/98/NT). Its capabilities are roughly similar to GUI-based
+     programs like Sigmaplot or Microcal Origin plus script-based
+     tools like Gnuplot or Genplot.  Its strength lies in the fact
+     that it combines the convenience of a graphical user interface
+     with the power of a scripting language which enables it to do
+     sophisticated calculations or perform automated tasks.
 
      Grace is derived from Xmgr (a.k.a. ACE/gr), originally written by <url
      name="Paul Turner" url="mailto:pturner@teleport.com">.
 
-     From version number 4.00, the development was taken over by a team of
-     volunteers under the coordination of <url name="Evgeny Stambulchik"
-     url="mailto:fnevgeny@plasma-gate.weizmann.ac.il">.
+     From version number 4.00, the development was taken over by a
+     team of volunteers under the coordination of <url name="Evgeny
+     Stambulchik" url="mailto:fnevgeny@plasma-gate.weizmann.ac.il">.
+     You can get the newest information about Grace and download the
+     latest version at the <url
+     url="http://plasma-gate.weizmann.ac.il/Grace/"
+     name="Grace home page">.
 
      When its copyright was changed to GPL, the name was changed to Grace,
      which stands for ``GRaphing, Advanced Computation and Exploration of
@@ -84,7 +90,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <sect1>Installing from sources
     <p>
       <enum>
-        <item> Configuration
+        <item> Configuration <label id="configuration">
         <itemize>
           <item> Extra libraries. Some features will be available only if
                  additional libraries are installed. Those are:
@@ -104,13 +110,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                      distribution tree. Sorry, there is no way to detect it
                      automagically.
               <item> All backends of the raster driver (GIF/GD/PNM/JPEG) use the
-                     GD-1.3 library of Thomas Boutell. The home page of the
+                     GD-1.4 library of Thomas Boutell. The home page of the
                      library is 
                      <url name="http://www.boutell.com/gd/" url="http://www.boutell.com/gd/">.
-                     Prior to the library compilation, you must apply the patch
-                     which can be found in the "patches" directory of the Grace
-                     distribution tree; otherwise, complex polygons will be
-                     filled incorrectly. In addition, the JPEG backend needs
+                     In addition, the JPEG backend needs
                      the IJG (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">).
               <item> If your computer has the FFTW library installed when
                      Grace is compiled, Grace will link itself to this, and
@@ -167,6 +170,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                  <tt>doc</tt> directory).
         </itemize>
         <item> Testing
+    
         <itemize>
           <item> <tt>make tests</tt>
         </itemize>
@@ -203,7 +207,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <sect1>General concepts
     <p>
 
-      <sect2>Project files
+      <sect2>Project files <label id="project-file">
 	<p>
 
           A project file contains all information necessary to restore a plot
@@ -211,28 +215,28 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           represented on a single page, but may have an unlimited number of
           graphs.
 
-      <sect2>Graphs
+      <sect2>Graphs <label id="graph">
 	<p>
 
           A graph consists of (every element is optional): a graph frame, axes,
           a title and a subtitle, a number of sets and additional annotative
           objects (time stamp string, text strings, lines, boxes and ellipses).
 
-      <sect2>Sets
+      <sect2>Sets <label id="sets">
 	<p>
 
 	  A set is a way of representing numerical data (datasets). It consists
           of a pointer to a dataset plus a collection of parameters describing
           the visual appearance of the data (like color, line dash pattern etc).
 
-      <sect2>Datasets
+      <sect2>Datasets <label id="datasets">
 	<p>
 
           A dataset is a collection of points with x and y coordinates, up to
           four optional data values (which, depending on the set type, can be
           displayed as error bars or like) and one optional character string.
 
-      <sect2>Regions
+      <sect2>Regions <label id="regions">
 	<p>
 
           Regions are sections of the graph defined by the interior or exterior
@@ -286,9 +290,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <tag> -dpipe <it>descriptor</it> </tag>
                 Read data from descriptor (anonymous pipe) on startup
 
-          <tag> -hdevice <it>hardcopy_device_name</it> </tag>
-                Set default hardcopy device
-
           <tag> -fixed <it>width</it> <it>height</it> </tag>
                 Set canvas size fixed to width*height
 
@@ -302,6 +303,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
           <tag> -hardcopy </tag>
                 No interactive session, just print and quit
+
+          <tag> -hdevice <it>hardcopy_device_name</it> </tag>
+                Set default hardcopy device
 
           <tag> -install </tag>
                 Install private colormap
@@ -434,21 +438,22 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <sect2>Init file<label id="gracerc">
       <p>
         Upon start-up, Grace loads its init file, <tt>gracerc</tt>. The file
-        is searched for in the <ref id="magic-path" name="magic path">; once
-        found, the rest of the path is ignored. It's recommended that in the
-        <tt>gracerc</tt> file, one doesn't use statements which are part of
-        a project file - such defaults, if needed, should be set in the
-        <ref id="default-template" name="default template">.
+        is searched for in the magic path (see
+        <ref id="magic-path" name="magic path">); once found, the rest of the
+        path is ignored. It's recommended that in the <tt>gracerc</tt> file,
+        one doesn't use statements which are part of a project file - such
+        defaults, if needed, should be set in the default template (see 
+        <ref id="default-template" name="default template">).
 
     <sect2>Default template<label id="default-template">
       <p>
         Whenever a new project is started, Grace loads the default template,
-        <tt>templates/Default.agr</tt>. The file
-        is searched for in the <ref id="magic-path" name="magic path">; once
-        found, the rest of the path is ignored. It's recommended that in the
-        default template, one doesn't use statements which are NOT part of
-        a project file - such defaults, if needed, should be set in the
-        <tt>gracerc</tt> <ref id="gracerc" name="init file">.
+        <tt>templates/Default.agr</tt>. The file is searched for in the magic
+        path (see  <ref id="magic-path" name="magic path">); once found, the
+        rest of the path is ignored. It's recommended that in the default
+        template, one doesn't use statements which are NOT part of a project
+        file - such defaults, if needed, should be set in the
+        <tt>gracerc</tt> (see <ref id="gracerc" name="init file">).
 
     <sect2>X resources
       <p>
@@ -492,14 +497,23 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         It is also possible to customize menus by assigning key accelerators to
         any item.
 
-        The list below describes the menu X resources. For
-        example, in order to make Grace popup the Non-linear curve fitting by
-        pressing Control+F, you would add the following two lines
+        You'll need to derive the item's X resource name from the respective
+        menu label, which is easily done following these rules:
+        <itemize>
+          <item> All non-alphanumeric characters are skipped
+          <item> Start with lower case; each new word (if any) continues from
+                 the capital letter
+          <item> Add the item's type to the end - "Menu" for pulldown menus,
+                 "Button" for menu buttons.
+        </itemize>
+        
+        For example, in order to make Grace popup the Non-linear curve fitting
+        by pressing Control+F, you would add the following two lines
 
         <tt>
-          XMgrace*transformationsMenu.nonLinearFit.acceleratorText: Ctrl+F
+          XMgrace*transformationsMenu.nonLinearCurveFitttingButton.acceleratorText: Ctrl+F
           <newline>
-          XMgrace*transformationsMenu.nonLinearFit.accelerator: Ctrl&lt;Key&gt;f
+          XMgrace*transformationsMenu.nonLinearCurveFitttingButton.accelerator: Ctrl&lt;Key&gt;f
         </tt>
 
 
@@ -507,118 +521,377 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         session starts; it could be <tt>.Xdefaults</tt>, <tt>.Xsession</tt> or
         some other file - ask your system administrator when in doubt). 
 
-<tscreen><verb>
--> fileMenu
-	* open
-	* save
-	* saveAs
-	* describe
-	-------------
-	-> readMenu
-		* sets
-		* parameters
-		* blockData
-	-> writeMenu
-		* sets
-		* parameters
-	-------------
-	* clearAll
-	-------------
-	* print
-	* deviceSetup
-	-------------
-	* workingDirectory
-	-------------
-	* exit
--> editMenu
-	* dataSets
-	* setOperations
-	-------------
-	* arrangeGraphs
-	* overlayGraphs
-	* autoscale
-	-------------
-	-> regionsMenu
-		* status
-		* define
-		* clear
-		* reportOn
-	* hotLinks
-	-------------
-	* setLocatorFixedPoint
-	* clearLocatorFixedPoint
-	* locatorProps
-	-------------
-	* preferences
--> dataMenu
-	-> dataSetOperationsMenu
-		* Sort
-		* reverse
-		-------------
-		* dropPoints
-		* pruneData
-		* geometricTransforms
-	-> regionOperationsMenu
-		* evaluate
-		* extractPoints
-		* extractSets
-		* deletePoints
-		* killSets
-	-------------
-	-> transformationsMenu
-		* join
-		* split
-		* evaluateExpression
-		* histograms
-		* fourierTransforms
-		* regression
-		* nonLinearFit
-		* runningAverages
-		* differences
-		* seasonalDifferences
-		* integration
-		* correlation
-		* interpolation
-		* splines
-		* samplePoints
-		* digitalFilter
-		* linearConvolution
-		* featureExtraction
--> plotMenu
-	* plotAppearance
-	* graphAppearance
-	* setAppearance
-	* axisProperties
--> viewMenu
-	() showLocatorBar
-	() showStatusBar
-	() showToolBar
-	-------------
-	* redraw
--> windowMenu
-	* commands
-	* pointTracking
-	* drawingObjects
-	* fontTool
-	* results
--> helpMenu
-	* onContext
-	* userGiude
-	* tutorial
-	* faq
-	* changes
-	* comments
-	-------------
-	* licenseTerms
-	* about
-</verb></tscreen>
-
-
 <!-- **************************************** -->
 <sect>Guide to menus and popups
-  <p>
+<p>
 
-      Not written yet... Read the <url name="Tutorial" url="Tutorial.html">.
+(Not finished yet... Read the <url name="Tutorial" url="Tutorial.html"> as well).
+
+   <sect1> File menu <label id="file-menu">
+   <p>
+   The file menu contains all entries related to the input/output features of Grace.
+
+      <sect2> New <label id="new">
+      <p>
+      Reset the state of Grace as if it had just started (one empty
+      graph ranging from 0 to 1 along both axises). If some work has
+      been done and not yet saved, a warning popup is displayed to
+      allow cancelling the operation.
+
+      <sect2> Open <label id="open">
+      <p>
+      Open an existing <ref id="project-file" name="project file">. A
+      popup is displayed that allow to browse the filesystem.
+
+      <sect2> Save <label id="save">
+      <p>
+      Save the current work in a project file, using the name that was
+      used for the last open or save. If no name has been set (i.e.,
+      if the project has been created from scratch) act as <ref
+      id="save-as" name="save as">.
+
+      <sect2> Save as <label id="save-as">
+      <p>
+      Save the current work in a project file with a new name. A popup
+      allows to browse the filesystem and set the name and the format
+      to use for saving data points (the default value is "%16.8g"). A
+      warning is displayed if a file with the same name already
+      exists.
+
+      <sect2> Revert to saved <label id="revert-to-saved">
+      <p>
+      Abandon all modifications performed on the project since the
+      last save. A confirmation popup is fired to allow the user
+      cancelling the operation.
+
+      <sect2> Describe <label id="describe">
+      <p>
+      Open an editable text panel where you can store (or read) a
+      description of the project.
+
+      <sect2> Read menu <label id="read-menu">
+      <p>
+         <sect3> Sets <label id="read-sets">
+         <p>
+         Read new sets of data in a graph. A <ref id="graph-selector"
+         name="graph selector"> is used to specify the graph where the
+         data should go (except when reading block data, which are
+         copied to graphs later-on).
+
+         Reading as "Single set" means that if the source contains
+         only one column of numeric data, one set will be created
+         using the indices (from 1 to the total number of points) as
+         abscissas and read values as ordinates and that if the source
+         contains more than one column of data, the first two numeric
+         columns will be used. Reading as "NXY" means that the first
+         numeric column will provide the abscissas and all remaining
+         columns will provide the ordinates of several sets. Reading
+         as "Block data" means all column will be read and stored and
+         that another popup will allow to select the abscissas and
+         ordinates at will. It should be noted that block data are
+         stored as long as you do not override them by a new read. You
+         can still retrieve data from a block long after having cloed
+         all popups, using the <ref id="set-selector" name="set
+         selector">.
+
+         The set type can be any of :
+         <itemize>
+            <item> XY
+            <item> XYDX
+            <item> XYDY
+            <item> XYDXDX
+            <item> XYDYDY
+            <item> XYDXDY
+            <item> XYDXDXDYDY
+            <item> BAR
+            <item> BARDY
+            <item> BARDYDY
+            <item> XYSTRING
+            <item> XYHILO
+            <item> XYZ
+            <item> XYR
+         </itemize>
+
+         The data source can be selected as "Disk" or "Pipe". In the
+         first case the text in the "Selection" field is considered to
+         be a file name (it can be automatically set by the file
+         selector at the top of the popup). In the latter case the
+         text is considered to be a command which is executed and
+         should produce the data on its standard output. On systems
+         that allows is, the command can be a complete sequence of
+         programs glued together with pipes.
+
+         If the source contains date fields, they can be
+         specified. Several formats are recognized (see appendix <ref
+         id="dates" name="dates in grace">). Calendar dates are
+         converted to numerical dates upon reading. The user can give
+         an hint about the format ("ISO8601", "european", "us") or let
+         Grace find the format by itself. If the date is spread over
+         several columns (for example first column displying dates
+         like 1999-07-14 and second column displaying hours like
+         21:42:36), you can specify these date fields as "1:2". All
+         such fields will be joined with spaces and parsed. After
+         successful parsing the first field will be overwritten with
+         the numeric date (thus allowing the user to use it as
+         abscissa for the sets for example). The remaining date fields
+         are forced as strings.
+
+         <sect3> NetCDF <label id="read-netCDF">
+         <p>
+         This entry exists only if Grace has been installed with
+         support for the NetCDF data format (see <ref
+         id="configuration" name="configuration">).
+
+         <sect3> Parameters <label id="read-parameters">
+         <p>
+         Retrieve settings previously saved.
+
+      <sect2> Write menu <label id="write-menu">
+      <p>
+         <sect3> Sets <label id="write-sets">
+         <p>
+         Save data sets in a file. A <ref id="set-selector" name="set
+         selector"> is used to specify the set to be saved. The format
+         to use for saving data points can be specified (the default
+         value is "%16.8g"). A warning is displayed if a file with the
+         same name already exists.
+
+         <sect3> Parameters <label id="write-parameters">
+         <p>
+         Save the parameters either for only the current graph or for
+         all graphs.
+
+      <sect2> Print <label id="print">
+      <p>
+      Print the project using the current printer settings
+
+      <sect2> Device setup <label id="device-setup">
+      <p>
+      Set the properties of the printing device. Each device has its
+      own set of specific options (for example the PostScript device
+      allows to choose between grayscale or PostScript level 2 output
+      and to change the page offset in case the printer is
+      shifted). According to the device, the output can be sent either
+      directly to a printer or directed to a file. The global settings
+      available for all devices are the sizing parameters.
+
+      <sect2> Exit <label id="exit">
+      <p>
+      Exit from Grace. If some work has been done and not saved, a
+      warning popup will be displayed to allow the user to cancel the
+      operation.
+
+   <sect1> Edit menu <label id="edit-menu">
+   <p>
+      <sect2> Data sets <label id="data-sets">
+      <p>
+      <sect2> Set operations <label id="set-operations">
+      <p>
+      <sect2> Arrange graphs <label id="arrange-graphs">
+      <p>
+      <sect2> Overlay graphs <label id="overlay-graphs">
+      <p>
+      <sect2> Autoscale <label id="autoscale">
+      <p>
+      <sect2> Regions menu <label id="regions-menu">
+      <p>
+         <sect3> Status <label id="status">
+         <p>
+         <sect3> Define <label id="define">
+         <p>
+         <sect3> Clear <label id="clear">
+         <p>
+      <sect2> Hot links <label id="hot-links">
+      <p>
+      <sect2> Set locator fixed point <label id="set-locator-fixed-point">
+      <p>
+      <sect2> Clear locator fixed point <label id="clear-locator-fixed-point">
+      <p>
+      <sect2> Locator props <label id="locator-props">
+      <p>
+      <sect2> Preferences <label id="preferences">
+      <p>
+
+   <sect1> Data menu <label id="data-menu">
+   <p>
+      <sect2> Data set operations <label id="data-set-operations">
+      <p>
+      <sect2> Region operations menu <label id="region-operations-menu">
+      <p>
+         <sect3> Extract sets <label id="extract-sets">
+         <p>
+         <sect3> Kill sets <label id="kill-sets">
+         <p>
+         <sect3> Report on <label id="report-on">
+         <p>
+      <sect2> Transformations menu <label id="transformations-menu">
+      <p>
+         <sect3> Evaluate expression <label id="evaluate-expression">
+         <p>
+         <sect3> Evaluate in region <label id="evaluate-in-region">
+         <p>
+         <sect3> Histograms <label id="histograms">
+         <p>
+         <sect3> Fourier transforms <label id="fourier-transforms">
+         <p>
+         <sect3> Running averages <label id="running-averages">
+         <p>
+         <sect3> Differences <label id="differences">
+         <p>
+         <sect3> Seasonal differences <label id="seasonal-differences">
+         <p>
+         <sect3> Integration <label id="integration">
+         <p>
+         <sect3> Interpolation <label id="interpolation">
+         <p>
+         <sect3> Splines <label id="splines">
+         <p>
+         <sect3> Regression <label id="regression">
+         <p>
+         <sect3> Non linear fit <label id="non-linear-fit">
+         <p>
+         <sect3> Cross/auto correlation <label id="cross/auto-correlation">
+         <p>
+         <sect3> Digital filter <label id="digital-filter">
+         <p>
+         <sect3> Linear convolution <label id="linear-convolution">
+         <p>
+         <sect3> Geometric transforms <label id="geometric-transforms">
+         <p>
+         <sect3> Sample points <label id="sample-points">
+         <p>
+         <sect3> Extract points in region <label id="extract-points-in-region">
+         <p>
+         <sect3> Delete points in region <label id="delete-points-in-region">
+         <p>
+         <sect3> Feature extraction <label id="feature-extraction">
+         <p>
+         <sect3> Prune data <label id="prune-data">
+         <p>
+
+   <sect1> Plot menu <label id="plot-menu">
+   <p>
+      <sect2> Plot appearance <label id="plot-appearance">
+      <p>
+      <sect2> Graph appearance <label id="graph-appearance">
+      <p>
+      <sect2> Set appearance <label id="set-appearance">
+      <p>
+      <sect2> Axis properties <label id="axis-properties">
+      <p>
+
+   <sect1> View menu <label id="view-menu">
+   <p>
+      <sect2> Show locator bar <label id="show-locator-bar">
+      <p>
+      <sect2> Show status bar <label id="show-status-bar">
+      <p>
+      <sect2> Show tool bar <label id="show-tool-bar">
+      <p>
+      <sect2> Redraw <label id="redraw">
+      <p>
+      <sect2> Update all <label id="update-all">
+      <p>
+
+   <sect1> Window menu <label id="window-menu">
+   <p>
+      <sect2> Commands <label id="commands">
+      <p>
+      <sect2> Point tracking <label id="point-tracking">
+      <p>
+      <sect2> Drawing objects <label id="drawing-objects">
+      <p>
+      <sect2> Font tool <label id="font-tool">
+      <p>
+      <sect2> Results <label id="results">
+      <p>
+
+   <sect1> Help menu <label id="help-menu">
+   <p>
+      <sect2> On context <label id="on-context">
+      <p>
+      <sect2> User guide <label id="user-guide">
+      <p>
+      <sect2> Tutorial <label id="tutorial">
+      <p>
+      <sect2> FAQ <label id="faq">
+      <p>
+      <sect2> Changes <label id="changes">
+      <p>
+      <sect2> Comments <label id="comments">
+      <p>
+      <sect2> License terms <label id="license-terms">
+      <p>
+      <sect2> About <label id="about">
+      <p>
+
+<!-- **************************************** -->
+<sect>GUI controls
+  <p>
+    <sect1>List selectors
+       <p>
+       Various selectors are available in several popups. They all display
+       lists of objects (graphs, sets, ...) and can be used to perform
+       simple operations on this objects (copying, deleting, ...). The
+       operations are triggered by a popup menu that appear when pressing
+       the right mouse button on them.
+
+       <sect1> Graph selector <label id="graph-selector">
+       <p>
+       The operations that can be performed on graphs through the graph
+       selector's menu popup are :
+       <itemize>
+         <item> focus to
+         <item> hide
+         <item> show
+         <item> duplicate
+         <item> kill
+         <item> swap
+         <item> create new
+       </itemize>
+       All this operations are not available in every instance of the
+       selector. For example in the "read sets" popup only one graph can
+       be selected at a time, and the swap operation is disabled.
+       
+       Double-clicking on a list entry will switch the focus to that graph.
+
+       <sect1> Set selector <label id="set-selector">
+       <p>
+       The operationss that can be performed on sets through the set
+       selector are :
+       <itemize>
+         <item> hide
+         <item> show
+         <item> bring to front
+         <item> send to back
+         <item> duplicate
+         <item> kill
+         <item> kill data
+         <item> swap
+         <item> edit
+         <itemize>
+           <item> in spreadsheet
+           <item> in text editor
+         </itemize>
+         <item> create new
+         <itemize>
+           <item> by formula
+           <item> in spreadsheet
+           <item> in text editor
+           <item> from block data
+         </itemize>
+         <item> pack all sets
+         <item> selectors operations
+         <itemize>
+           <item> show data-less
+           <item> show hidden
+           <item> select all
+           <item> unselect all
+           <item> invert selection
+           <item> update
+         </itemize>
+       </itemize>
+
 
 <!-- **************************************** -->
 <sect>Canvas actions
@@ -696,8 +969,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
               <hline>
               Command                                       | Description   @
               <hline>
-              PAGE SIZE xdim ydim                           | set page dimensions (in pixels) of terminal device (Display)   @
-              DEVICE <it/"devname"/ PAGE SIZE xdim ydim     | set page dimensions (in pixels) of device <it/devname/  @
+              PAGE SIZE xdim, ydim                          | set page dimensions (in pp) of all devices  @
+              DEVICE <it/"devname"/ PAGE SIZE xdim, ydim    | set page dimensions (in pp) of device <it/devname/  @
               DEVICE <it/"devname"/ DPI dpi                 | set device's dpi (dots per pixel) @
               DEVICE <it/"devname"/ FONT onoff              | enable/disable usage of built-in fonts for device <it/devname/ @
               DEVICE <it/"devname"/ FONT ANTIALIASING onoff | enable/disable font aliasing for device <it/devname/ @
@@ -840,9 +1113,9 @@ register a user function <it>f</it> to display library errors @
       interpret them as if they were given in a batch file. You can
       send any command you like (redraw, autoscale, ...). If you want
       to send data, you should include them in a command like "g0.s0
-      point 3.5 4.2".
+      point 3.5, 4.2".
 
-      Apart from the fact it monitors the data sent via the anonymous
+      Apart from the fact it monitors the data sent via an anonymous
       pipe, the Grace subprocess is a normal process. You can interact
       with it through the GUI. Note that no error can be sent back to
       the parent process. If your application send erroneous commands,
@@ -856,7 +1129,7 @@ register a user function <it>f</it> to display library errors @
       Here is an example use of the library, you will find this
       program in the distribution.
 
-<tscreen><verb>
+<tscreen><code>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -876,63 +1149,62 @@ void my_error_function(const char *msg)
 }
 
 int
-main (int argc, char* argv[])
+main(int argc, char* argv[])
 {
     int i;
 
-    GraceRegisterErrorFunction (my_error_function);
+    GraceRegisterErrorFunction(my_error_function);
 
     /* Start Grace with a buffer size of 2048 and open the pipe */
     if (GraceOpen(2048) == -1) {
-        fprintf (stderr, "Can't run Grace. \n");
-        exit (EXIT_FAILURE);
+        fprintf(stderr, "Can't run Grace. \n");
+        exit(EXIT_FAILURE);
     }
     
     /* Send some initialization commands to Grace */
-    GracePrintf ("world xmax 100");
-    GracePrintf ("world ymax 10000");
-    GracePrintf ("xaxis tick major 20");
-    GracePrintf ("xaxis tick minor 10");
-    GracePrintf ("yaxis tick major 2000");
-    GracePrintf ("yaxis tick minor 1000");
-    GracePrintf ("s0 on");
-    GracePrintf ("s0 symbol 1");
-    GracePrintf ("s0 symbol size 0.3");
-    GracePrintf ("s0 symbol fill pattern 1");
-    GracePrintf ("s1 on");
-    GracePrintf ("s1 symbol 1");
-    GracePrintf ("s1 symbol size 0.3");
-    GracePrintf ("s1 symbol fill pattern 1");
+    GracePrintf("world xmax 100");
+    GracePrintf("world ymax 10000");
+    GracePrintf("xaxis tick major 20");
+    GracePrintf("xaxis tick minor 10");
+    GracePrintf("yaxis tick major 2000");
+    GracePrintf("yaxis tick minor 1000");
+    GracePrintf("s0 on");
+    GracePrintf("s0 symbol 1");
+    GracePrintf("s0 symbol size 0.3");
+    GracePrintf("s0 symbol fill pattern 1");
+    GracePrintf("s1 on");
+    GracePrintf("s1 symbol 1");
+    GracePrintf("s1 symbol size 0.3");
+    GracePrintf("s1 symbol fill pattern 1");
 
     /* Display sample data */
     for (i = 1; i <= 100 && GraceIsOpen(); i++) {
-        GracePrintf ("g0.s0 point %d, %d", i, i);
-        GracePrintf ("g0.s1 point %d, %d", i, i * i);
+        GracePrintf("g0.s0 point %d, %d", i, i);
+        GracePrintf("g0.s1 point %d, %d", i, i * i);
         /* Update the Grace display after every ten steps */
         if (i % 10 == 0) {
-            GracePrintf ("redraw");
+            GracePrintf("redraw");
             /* Wait a second, just to simulate some time needed for
                calculations. Your real application shouldn't wait. */
-            sleep (1);
+            sleep(1);
         }
     }
 
     if (GraceIsOpen()) {
         /* Tell Grace to save the data */
-        GracePrintf ("saveall \"sample.agr\"");
+        GracePrintf("saveall \"sample.agr\"");
 
         /* Flush the output buffer and close Grace */
         GraceClose();
 
         /* We are done */
-        exit (EXIT_SUCCESS);
+        exit(EXIT_SUCCESS);
     } else {
-        exit (EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
-
 }
 
-</verb></tscreen>
+</code></tscreen>
 
   <sect1>FFTW tuning
     <p>
@@ -1197,7 +1469,7 @@ main (int argc, char* argv[])
 
     <p>
 
-    <sect1>Dates in Grace
+    <sect1>Dates in Grace <label id="dates">
     
     <p>
       We use two calendars in Grace : the one that was established in
@@ -1284,7 +1556,7 @@ main (int argc, char* argv[])
       as follows : "0001-03-04" is unambiguously March the 4th, year
       1. However using two digits only is not recommended (we
       introduce a 2050 bug here so this feature should be removed at
-      some point in the future.
+      some point in the future).
       
       Numerical dates (days and seconds formats) can be specified
       using integral, real or exponential formats (the 'd' and 'D'
@@ -1352,6 +1624,7 @@ main (int argc, char* argv[])
       <item> Default page layout switched from free (allowing to resize canvas
              with mouse) to fixed. For the old behaviour, put "PAGE LAYOUT FREE"
              in the Grace resource file or use the "-free" command line switch.
+             The use of the "free" page layout is in general deprecated, though.
  
       <item> System variables GR_* renamed to GRACE_*
  

@@ -437,8 +437,8 @@
 	  <p>
 
             Grace usually compiles out of the box on a regular UNIX machine.
-            You need an ANSI C compiler (gcc is just fine), the X11 libraries, 
-            and Motif-1.2 or above (see question <ref id="motif"
+            You need an ANSI C compiler (gcc is just fine), the X11 libraries
+            and headers, and Motif-1.2 or above (see question <ref id="motif"
             name="Motif">).
 
 	    You also need certain libraries if you want to export
@@ -859,7 +859,7 @@ XMgrace*background: ...
 	    documents) are implemented by default.
 
 	    In order to produce GIF (and GD) output you need the
-	    GD-1.3 library of Thomas Boutell. It is available at <url
+	    GD-1.4 library of Thomas Boutell. It is available at <url
 	    name="the GD home page"
 	    url="http://www.boutell.com/gd/">. Read the file
 	    <tt/README.GIF/ for details
