@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2002,2003 Grace Development Team
+ * Copyright (c) 2002-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -58,6 +58,9 @@ typedef struct {
     unsigned int nchoices;
     Quark_LabelingProc labeling_proc;
 } TreeItemData;
+
+static void highlight_selected(Widget w, ListTreeItem *parent,
+    int nsquarks, Quark **squarks);
 
 static ListTreeItem *q_create(Widget w,
     ListTreeItem *parent, char *string, void *udata);
@@ -138,6 +141,17 @@ ListTreeItem *CreateQuarkTree(Widget tree, ListTreeItem *parent,
     UpdateQuarkTree(item);
     
     return item;
+}
+
+void SelectQuarkTreeItem(Widget w, ListTreeItem *parent, Quark *q)
+{
+    ListTreeMultiReturnStruct ret;
+
+    ListTreeClearHighlighted(w);
+    highlight_selected(w, parent, 1, &q);
+    
+    ListTreeGetHighlighted(w, &ret);
+    XtCallCallbacks(w, XtNhighlightCallback, (XtPointer) &ret);
 }
 
 static int explorer_apply(ExplorerUI *ui, void *caller);
@@ -514,7 +528,7 @@ static int explorer_aac(void *data)
 static void highlight_selected(Widget w, ListTreeItem *parent,
     int nsquarks, Quark **squarks)
 {
-    ListTreeItem *item, *sibling;
+    ListTreeItem *item;
 
     item = parent;
     while (item) {
@@ -528,8 +542,7 @@ static void highlight_selected(Widget w, ListTreeItem *parent,
         if (item->firstchild) {
             highlight_selected(w, item->firstchild, nsquarks, squarks);
         }
-        sibling = item->nextsibling;
-        item = sibling;
+        item = item->nextsibling;
     }
 }
 
@@ -736,10 +749,8 @@ static void add_object_cb(Widget but, void *udata)
     }
 }
 
-
-void define_explorer_popup(Widget but, void *data)
+void raise_explorer(GUI *gui, Quark *q)
 {
-    GUI *gui = (GUI *) data;
     Grace *grace = gui->P;
 
     set_wait_cursor();
@@ -864,8 +875,18 @@ void define_explorer_popup(Widget but, void *data)
     }
 
     RaiseWindow(GetParent(gui->eui->top));
+    
+    if (q) {
+        SelectQuarkTreeItem(gui->eui->tree, gui->eui->project, q);
+    }
 
     unset_wait_cursor();
+}
+
+void define_explorer_popup(Widget but, void *data)
+{
+    GUI *gui = (GUI *) data;
+    raise_explorer(gui, NULL);
 }
 
 

@@ -127,6 +127,7 @@ void create_points_frame(Widget but, void *data);
 void create_arrange_frame(Widget but, void *data);
 void create_autos_frame(Widget but, void *data);
 
+void raise_explorer(GUI *gui, Quark *q);
 void define_explorer_popup(Widget but, void *data);
 void update_explorer(ExplorerUI *ui, int reselect);
 
