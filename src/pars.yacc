@@ -60,7 +60,7 @@
 #include "objutils.h"
 #include "plotone.h"
 #include "dlmodule.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "ssdata.h"
 #include "protos.h"
 #include "parser.h"
