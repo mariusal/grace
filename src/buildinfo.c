@@ -28,7 +28,7 @@
 #endif
 
 #ifndef GRACE_HELPVIEWER
-#  define GRACE_HELPVIEWER "netscape -remote openURL\\\\(%s,new-window\\\\) >>/dev/null 2>&1 || netscape %s"
+#  define GRACE_HELPVIEWER "mozilla -remote openURL\\\\(%s,new-window\\\\) >>/dev/null 2>&1 || mozilla %s"
 #endif
 
 
