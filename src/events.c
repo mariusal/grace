@@ -452,12 +452,13 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 set_action(PLACE_TIMESTAMP_1ST);
                 break;
 	    case SEL_POINT:
-		get_graph_locator(cg, &locator);
-		view2world(vp.x, vp.y, &locator.dsx, &locator.dsy);
-                locator.pointset = TRUE;
-		set_graph_locator(cg, &locator);
-		update_locator_items(cg);
-                xdrawgraph();
+		if (get_graph_locator(cg, &locator) == GRACE_EXIT_SUCCESS) {
+		    view2world(vp.x, vp.y, &locator.dsx, &locator.dsy);
+                    locator.pointset = TRUE;
+		    set_graph_locator(cg, &locator);
+		    update_locator_items(cg);
+                    xdrawgraph();
+                }
 		set_action(DO_NOTHING);
 		break;
 	    case DEF_REGION1ST:
@@ -841,7 +842,11 @@ void getpoints(VPoint vp)
     GLocator locator;
 
     view2world(vp.x, vp.y, &wx, &wy);
-    get_graph_locator(cg, &locator);
+    if (get_graph_locator(cg, &locator) != GRACE_EXIT_SUCCESS) {
+        SetLabel(loclab, "[No graphs]");
+        return;
+    }
+    
     if (locator.pointset) {
 	dsx = locator.dsx;
 	dsy = locator.dsy;
