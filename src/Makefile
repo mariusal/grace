@@ -79,7 +79,7 @@ devclean :
 
 depend : Make.dep
 
-Make.dep : $(GRSRCS) $(GUISRCS) $(PARS_C) buildinfo.c
+Make.dep :
 	echo "# Generated automatically by \`make depend'" > $@
 	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) buildinfo.c \
 	| sed 's/\.o:/\$$(O)\ :/g' >> $@
