@@ -159,6 +159,7 @@ static char *label_to_resname(const char *s, const char *suffix)
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items)
 {
+    Arg args[2];
     XmString str;
     OptionStructure *retval;
 
@@ -178,13 +179,14 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
     retval->options = NULL;
     UpdateOptionChoice(retval, nchoices, items);
 
-    retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
     str = XmStringCreateLocalized(labelstr);
-    XtVaSetValues(retval->menu,
-		  XmNlabelString, str,
-		  XmNsubMenuId, retval->pulldown,
-                  NULL);
+    XtSetArg(args[0], XmNlabelString, str);
+    XtSetArg(args[1], XmNsubMenuId, retval->pulldown);
+
+    retval->menu = XmCreateOptionMenu(parent, "optionMenu", args, 2);
+
     XmStringFree(str);
+
     XtManageChild(retval->menu);
     
     return retval;
@@ -206,10 +208,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 
     for (i = nold; i < nchoices; i++) {
         optp->options[i].widget = 
-                  XmCreatePushButton(optp->pulldown, "None", NULL, 0);
-    }
-    for (i = nold; i < nchoices; i++) {
-        XtManageChild(optp->options[i].widget);
+                  XmCreatePushButton(optp->pulldown, "button", NULL, 0);
     }
     for (i = 0; i < nchoices; i++) {
 	optp->options[i].value = items[i].value;
@@ -218,6 +217,9 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
             XtVaSetValues(optp->options[i].widget, XmNlabelString, str, NULL);
             XmStringFree(str);
         }
+    }
+    for (i = nold; i < nchoices; i++) {
+        XtManageChild(optp->options[i].widget);
     }
 }
 
