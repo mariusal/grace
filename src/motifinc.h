@@ -215,6 +215,23 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
                                         int type, int standalone);
 void UpdateSetChoice(ListStructure *listp, int gno);
 
+void hide_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void show_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void duplicate_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void kill_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void killd_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void copy12_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void copy21_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void move12_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void move21_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void swap_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void newF_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void newS_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void newE_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void newB_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void editS_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void editE_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+
 SpinStructure *CreateLineWidthChoice(Widget parent, char *s);
 
 

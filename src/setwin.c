@@ -165,7 +165,7 @@ void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 
 void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Widget panel, dialog, rc, fr;
+    Widget panel, menubar, menupane, submenupane, cascade, dialog, rc, fr;
     int i, j;
 
     set_wait_cursor();
@@ -182,13 +182,64 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
                                              };
 	tui.top = XmCreateDialogShell(app_shell, "Data set props", NULL, 0);
 	handle_close(tui.top);
-        panel = XtVaCreateWidget("panel",
+        panel = XtVaCreateWidget("dataSetPanel",
             xmFormWidgetClass, tui.top, NULL, 0);
+
+        menubar = CreateMenuBar(panel, "dataSetMenuBar", NULL);
+        
+        XtManageChild(menubar);
+        XtVaSetValues(menubar,
+                      XmNtopAttachment, XmATTACH_FORM,
+                      XmNleftAttachment, XmATTACH_FORM,
+                      XmNrightAttachment, XmATTACH_FORM,
+                      NULL);
+
 	dialog = XmCreateRowColumn(panel, "dialog_rc", NULL, 0);
 
 	tui.sel = CreateSetChoice(dialog,
             "Data sets:", LIST_TYPE_MULTIPLE, TRUE);
 	AddListChoiceCB(tui.sel, changetypeCB);
+
+
+        menupane = CreateMenu(menubar, "dataSetFileMenu", "File", 'F', NULL, NULL);
+        CreateMenuButton(menupane, "close", "Close", 'C',
+            (XtCallbackProc) dataset_aac_cb, (XtPointer) AAC_CLOSE, NULL);
+
+        menupane = CreateMenu(menubar, "dataSetDataMenu", "Edit", 'E', NULL, NULL);
+
+        CreateMenuButton(menupane, "duplicate", "Duplicate", 'D',
+            duplicate_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(menupane, "killData", "Kill data", 'a',
+            killd_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuSeparator(menupane);
+        submenupane = CreateMenu(menupane, "editData", "Edit data", 'E', NULL, NULL);
+        CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
+            editS_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
+            editE_set_proc, (XtPointer) tui.sel, 0);
+        submenupane = CreateMenu(menupane, "createNew", "Create new", 'n', NULL, NULL);
+        CreateMenuButton(submenupane, "byFormula", "By formula", 'f',
+            newF_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
+            newS_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
+            newE_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(submenupane, "fromBlockData", "From block data", 'b',
+            newB_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuSeparator(menupane);
+        CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
+            (XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
+        CreateMenuButton(menupane, "setOperations", "Set operations...", 'o',
+                (XtCallbackProc) create_swap_popup, (XtPointer) NULL, 0);
+ 
+
+        menupane = CreateMenu(menubar, "nonlHelpMenu", "Help", 'H', &cascade, NULL);
+        XtVaSetValues(menubar, XmNmenuHelpWidget, cascade, NULL);
+        CreateMenuButton(menupane, "onDataSets", "On data sets", 's',
+            (XtCallbackProc) HelpCB, (XtPointer) NULL, 0);
+        CreateMenuButton(menupane, "onContext", "On context", 'x',
+            (XtCallbackProc) ContextHelpCB, (XtPointer) NULL, 0);
+
 	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 	tui.datatype_item = CreateSetTypeChoice(rc, "Type:");
@@ -230,7 +281,8 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtManageChild(dialog);
         XtVaSetValues(dialog,
-            XmNtopAttachment, XmATTACH_FORM,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, menubar,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             NULL);
