@@ -33,7 +33,7 @@
 #endif
 
 #ifndef GRACE_HELPVIEWER
-#  define GRACE_HELPVIEWER "netscape -noraise -remote openURL\\\\(%s,newwindow\\\\) >>/dev/null 2>&1 || netscape %s"
+#  define GRACE_HELPVIEWER "netscape -remote openURL\\\\(%s,new-window\\\\) >>/dev/null 2>&1 || netscape %s"
 #endif
 
 
