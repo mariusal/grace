@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000-2003 Grace Development Team
+ * Copyright (c) 2000-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -156,15 +156,95 @@ void draw_object(Canvas *canvas, Quark *q)
                 VPoint vp1, vp2;
                 
                 get_string_bbox(canvas, &anchor, o->angle, s->just, s->s, &bbox);
-                view_extend(&bbox, 0.01);
-                vp1.x = bbox.xv1;
-                vp1.y = bbox.yv1;
-                vp2.x = bbox.xv2;
-                vp2.y = bbox.yv2;
-                setpen(canvas, &s->fillpen);
-                FillRect(canvas, &vp1, &vp2);
-                setline(canvas, &s->line);
-                DrawRect(canvas, &vp1, &vp2);
+                view_extend(&bbox, s->frame_offset);
+                switch (s->frame_decor) {
+                case FRAME_DECOR_LINE:
+                    vp1.x = bbox.xv1;
+                    vp1.y = bbox.yv1;
+                    vp2.x = bbox.xv2;
+                    vp2.y = bbox.yv1;
+                    setline(canvas, &s->line);
+                    DrawLine(canvas, &vp1, &vp2);
+                    break;
+                case FRAME_DECOR_RECT:
+                    vp1.x = bbox.xv1;
+                    vp1.y = bbox.yv1;
+                    vp2.x = bbox.xv2;
+                    vp2.y = bbox.yv2;
+                    setpen(canvas, &s->fillpen);
+                    FillRect(canvas, &vp1, &vp2);
+                    setline(canvas, &s->line);
+                    DrawRect(canvas, &vp1, &vp2);
+                    break;
+                case FRAME_DECOR_OVAL:
+                    vp1.x = bbox.xv1 - (M_SQRT2 - 1)/2*(bbox.xv2 - bbox.xv1);
+                    vp1.y = bbox.yv1 - (M_SQRT2 - 1)/2*(bbox.yv2 - bbox.yv1);
+                    vp2.x = bbox.xv2 + (M_SQRT2 - 1)/2*(bbox.xv2 - bbox.xv1);
+                    vp2.y = bbox.yv2 + (M_SQRT2 - 1)/2*(bbox.yv2 - bbox.yv1);
+                    setpen(canvas, &s->fillpen);
+                    DrawFilledEllipse(canvas, &vp1, &vp2);
+                    setline(canvas, &s->line);
+                    DrawEllipse(canvas, &vp1, &vp2);
+                    break;
+                }
+                
+                if (s->arrow_flag && s->line.style) {
+                    vp2.x = anchor.x - o->offset.x;
+                    vp2.y = anchor.y - o->offset.y;
+                    switch (s->frame_decor) {
+                    case FRAME_DECOR_LINE:
+                        if (vp2.x < bbox.xv1) {
+                            vp1.x = bbox.xv1;
+                        } else
+                        if (vp2.x > bbox.xv2) {
+                            vp1.x = bbox.xv2;
+                        } else {
+                            vp1.x = vp2.x;
+                        }
+                        vp1.y = bbox.yv1;
+                        break;
+                    case FRAME_DECOR_OVAL:
+                        if (vp2.x < bbox.xv1) {
+                            vp1.x = bbox.xv1;
+                        } else
+                        if (vp2.x > bbox.xv2) {
+                            vp1.x = bbox.xv2;
+                        } else {
+                            vp1.x = (bbox.xv1 + bbox.xv2)/2;
+                        }
+                        if (vp2.y < bbox.yv1) {
+                            vp1.y = bbox.yv1;
+                        } else
+                        if (vp2.y > bbox.yv2) {
+                            vp1.y = bbox.yv2;
+                        } else {
+                            vp1.y = (bbox.yv1 + bbox.yv2)/2;
+                        }
+                        break;
+                    default:
+                        if (vp2.x < bbox.xv1) {
+                            vp1.x = bbox.xv1;
+                        } else
+                        if (vp2.x > bbox.xv2) {
+                            vp1.x = bbox.xv2;
+                        } else {
+                            vp1.x = vp2.x;
+                        }
+                        if (vp2.y < bbox.yv1) {
+                            vp1.y = bbox.yv1;
+                        } else
+                        if (vp2.y > bbox.yv2) {
+                            vp1.y = bbox.yv2;
+                        } else {
+                            vp1.y = vp2.y;
+                        }
+                    }
+
+                    setline(canvas, &s->line);
+                    DrawLine(canvas, &vp1, &vp2);
+                    draw_arrowhead(canvas, &vp1, &vp2, &s->arrow,
+                        &s->line.pen, &s->line.pen);
+                }
             }
 
             setpen(canvas, &o->line.pen);

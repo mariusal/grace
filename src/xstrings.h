@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000-2003 Grace Development Team
+ * Copyright (c) 2000-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -112,6 +112,7 @@
 #define AStrDataRef             "data-ref"
 #define AStrDlFf                "dl-ff"
 #define AStrLlFf                "ll-ff"
+#define AStrDrawArrow           "draw-arrow"
 #define AStrDrawBaseline        "draw-baseline"
 #define AStrDrawDroplines       "draw-droplines"
 #define AStrExtentAngle         "extent-angle"
@@ -123,6 +124,8 @@
 #define AStrFontId              "font-id"
 #define AStrFontSize            "font-size"
 #define AStrFormat              "format"
+#define AStrFrameDecor          "frame-decor"
+#define AStrFrameOffset         "frame-offset"
 #define AStrGridLines           "grid-lines"
 #define AStrHeight              "height"
 #define AStrHgap                "hgap"

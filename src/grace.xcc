@@ -1641,11 +1641,32 @@ char *utf2iso(const char *s)
         <attribute name="#AStrJustification" type="ival">
             $$->just = $?;
         </attribute>
+        <attribute name="#AStrFrameDecor" type="ival">
+            $$->frame_decor = $?;
+        </attribute>
+        <attribute name="#AStrFrameOffset" type="dval">
+            $$->frame_offset = $?;
+        </attribute>
+        <attribute name="#AStrDrawArrow" type="bval">
+            $$->arrow_flag = $?;
+        </attribute>
         
         <!-- Child elements -->
         <child name="#EStrText">
             $$->s = copy_string($$->s, $?->s);
             xcc_string_free($?);
+        </child>
+        <child name="#EStrLineSpec">
+            $$->line = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrFillSpec">
+            $$->fillpen = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrArrow">
+            $$->arrow = *($?);
+            xfree($?);
         </child>
     </element>
     <element name="#EStrArrow" type="arrow">

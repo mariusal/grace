@@ -2002,7 +2002,7 @@ void draw_arrowhead(Canvas *canvas,
     double L, l, d, vlength;
     VVector vnorm;
     VPoint vpc, vpl, vpr, vps[4];
-    
+
     vlength = hypot((vp2->x - vp1->x), (vp2->y - vp1->y));
     if (vlength == 0.0) {
         return;
@@ -2041,6 +2041,12 @@ void draw_arrowhead(Canvas *canvas,
         DrawPolygon(canvas, vps, 4);
         setpen(canvas, pen);
         DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
+        break;
+    case ARROW_TYPE_CIRCLE:
+        setpen(canvas, fill);
+        DrawFilledCircle(canvas, vp2, d/2);
+        setpen(canvas, pen);
+        DrawCircle(canvas, vp2, d/2);
         break;
     default:
         errmsg("Internal error in draw_arrowhead()");

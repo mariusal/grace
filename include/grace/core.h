@@ -115,6 +115,16 @@
 #define AVALUE_TYPE_STRING      4
 #define AVALUE_TYPE_Z           5
 
+/* Arrow types */
+#define ARROW_TYPE_LINE     0
+#define ARROW_TYPE_FILLED   1
+#define ARROW_TYPE_CIRCLE   2
+
+#define FRAME_DECOR_NONE    0
+#define FRAME_DECOR_LINE    1
+#define FRAME_DECOR_RECT    2
+#define FRAME_DECOR_OVAL    3
+
 /* Data source type */
 #define SOURCE_DISK     0
 #define SOURCE_PIPE     1
@@ -123,10 +133,6 @@
 #define REGION_POLYGON  0
 #define REGION_BAND     1
 #define REGION_FORMULA  2
-
-/* arrow types */
-#define ARROW_TYPE_LINE     0
-#define ARROW_TYPE_FILLED   1
 
 /* types of coordinate frames */
 #define COORDINATES_XY      0       /* Cartesian coordinates */
@@ -752,8 +758,12 @@ typedef struct _DOStringData {
     double size;
     int just;
     
+    int frame_decor;
+    double frame_offset;
     Line line;
     Pen fillpen;
+    int arrow_flag;
+    Arrow arrow;
 } DOStringData;
 
 

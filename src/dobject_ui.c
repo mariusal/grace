@@ -182,9 +182,10 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
     ui->a_type = CreatePanelChoice(rc1, "Type:",
-				   3,
+				   4,
 				   "Line",
 				   "Filled",
+				   "Circle",
 				   NULL);
     AddOptionChoiceCB(ui->a_type, oc_explorer_cb, eui);
     ui->a_length = CreateSpinChoice(rc1, "Length:",
