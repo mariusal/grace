@@ -299,6 +299,23 @@ double get_overline_pos(int font)
     return (double) T1_GetLinePosition(font, T1_OVERLINE)/1000.0;
 }
 
+double *get_kerning_vector(char *str, int len, int font)
+{
+    if (len < 2 || T1_GetNoKernPairs(font) <= 0) {
+        return NULL;
+    } else {
+        int i;
+        double *kvector;
+        
+        kvector = xmalloc((len - 1)*SIZEOF_DOUBLE);
+        for (i = 0; i < len - 1; i++) {
+            kvector[i] = (double) T1_GetKerning(font, str[i], str[i + 1])/1000;
+        }
+        
+        return kvector;
+    }
+}
+
 static int tm_scale(TextMatrix *tm, double s)
 {
     if (s != 0.0) {

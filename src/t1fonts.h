@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -128,6 +128,7 @@ char **get_default_encoding(void);
 double get_textline_width(int font);
 double get_underline_pos(int font);
 double get_overline_pos(int font);
+double *get_kerning_vector(char *str, int len, int font);
 
 int get_font_by_name(char *fname);
 int get_font_mapped_id(int font);
