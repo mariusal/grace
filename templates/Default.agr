@@ -1,7 +1,7 @@
 # Grace project file
 #
-@version 50002
-@page size 792 612
+@version 50003
+@page size 792, 612
 @page scroll 5%
 @page inout 5%
 @link page off
@@ -35,6 +35,9 @@
 @map color 13 to (103, 7, 72), "maroon"
 @map color 14 to (64, 224, 208), "turquoise"
 @map color 15 to (0, 139, 0), "green4"
+@reference date 0
+@date wrap on
+@date wrap year 1900
 @default linewidth 1.0
 @default linestyle 1
 @default color 1
@@ -42,6 +45,7 @@
 @default font 0
 @default char size 1.000000
 @default symbol size 1.000000
+@default sformat "%16.8g"
 @background color 0
 @page background fill on
 @timestamp off
@@ -50,7 +54,7 @@
 @timestamp rot 0
 @timestamp font 0
 @timestamp char size 1.000000
-@timestamp def "-----"
+@timestamp def "*** *** -- --:--:-- ----"
 @r0 type above
 @r0 linestyle 1
 @r0 linewidth 1.0
@@ -121,7 +125,7 @@
 @    xaxis  label char size 1.000000
 @    xaxis  label font 0
 @    xaxis  label color 1
-@    xaxis  label op bottom
+@    xaxis  label place normal
 @    xaxis  tick on
 @    xaxis  tick major 0.5
 @    xaxis  tick minor ticks 1
@@ -146,7 +150,7 @@
 @    xaxis  ticklabel angle 0
 @    xaxis  ticklabel skip 0
 @    xaxis  ticklabel stagger 0
-@    xaxis  ticklabel op bottom
+@    xaxis  ticklabel place normal
 @    xaxis  ticklabel offset auto
 @    xaxis  ticklabel offset 0.000000 , 0.010000
 @    xaxis  ticklabel sign normal
@@ -157,7 +161,7 @@
 @    xaxis  ticklabel char size 1.000000
 @    xaxis  ticklabel font 0
 @    xaxis  ticklabel color 1
-@    xaxis  tick op both
+@    xaxis  tick place both
 @    xaxis  ticklabel type auto
 @    xaxis  tick type auto
 @    yaxis  on
@@ -173,7 +177,7 @@
 @    yaxis  label char size 1.000000
 @    yaxis  label font 0
 @    yaxis  label color 1
-@    yaxis  label op left
+@    yaxis  label place normal
 @    yaxis  tick on
 @    yaxis  tick major 0.5
 @    yaxis  tick minor ticks 1
@@ -198,7 +202,7 @@
 @    yaxis  ticklabel angle 0
 @    yaxis  ticklabel skip 0
 @    yaxis  ticklabel stagger 0
-@    yaxis  ticklabel op left
+@    yaxis  ticklabel place normal
 @    yaxis  ticklabel offset auto
 @    yaxis  ticklabel offset 0.000000 , 0.010000
 @    yaxis  ticklabel sign normal
@@ -209,7 +213,7 @@
 @    yaxis  ticklabel char size 1.000000
 @    yaxis  ticklabel font 0
 @    yaxis  ticklabel color 1
-@    yaxis  tick op both
+@    yaxis  tick place both
 @    yaxis  ticklabel type auto
 @    yaxis  tick type auto
 @    altxaxis  off
