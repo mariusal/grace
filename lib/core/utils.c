@@ -270,3 +270,36 @@ int ssd_delete_rows(Quark *q, unsigned int startno, unsigned int endno)
     
     return RETURN_SUCCESS;
 }
+
+int ssd_reverse(Quark *q)
+{
+    ss_data *ssd = ssd_get_data(q);
+    int nrows, ncols, i, j, k;
+
+    if (!ssd) {
+	return RETURN_FAILURE;
+    }
+    
+    nrows = ssd_get_nrows(q);
+    ncols = ssd_get_ncols(q);
+
+    for (k = 0; k < ncols; k++) {
+        ss_column *col = &ssd->cols[k];
+	if (col->format == FFORMAT_STRING) {
+            char **s = col->data;
+	    for (i = 0; i < nrows/2; i++) {
+	        j = (nrows - 1) - i;
+	        sswap(&s[i], &s[j]);
+	    }
+        } else {
+            double *x = col->data;
+	    for (i = 0; i < nrows/2; i++) {
+	        j = (nrows - 1) - i;
+	        fswap(&x[i], &x[j]);
+	    }
+        }
+    }
+    quark_dirtystate_set(q, TRUE);
+    
+    return RETURN_SUCCESS;
+}
