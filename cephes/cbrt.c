@@ -58,8 +58,16 @@ double x;
 int e, rem, sign;
 double z;
 
+#ifdef NANS
+if( isnan(x) )
+  return x;
+#endif
+#ifdef INFINITIES
+if( !isfinite(x) )
+  return x;
+#endif
 if( x == 0 )
-	return( 0.0 );
+	return( x );
 if( x > 0 )
 	sign = 1;
 else

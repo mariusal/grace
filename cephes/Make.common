@@ -9,7 +9,7 @@ SRCS =	airy.c beta.c chbevl.c chdtr.c const.c dawsn.c ellie.c ellik.c \
 	jn.c jv.c k0.c k1.c kn.c log2.c mtherr.c ndtri.c pdtr.c polevl.c \
 	polyn.c psi.c revers.c rgamma.c round.c shichi.c sici.c \
 	spence.c stdtr.c struve.c unity.c yn.c zeta.c zetac.c \
-	acosh.c asinh.c atanh.c ndtr.c isfinite.c cbrt.c
+	acosh.c asinh.c atanh.c ndtr.c isfinite.c cbrt.c isnan.c
 
 OBJS =	airy$(O) beta$(O) chbevl$(O) chdtr$(O) const$(O) dawsn$(O) ellie$(O) \
         ellik$(O) ellpe$(O) ellpk$(O) expn$(O) fac$(O) fdtr$(O) fresnl$(O) \
@@ -19,5 +19,5 @@ OBJS =	airy$(O) beta$(O) chbevl$(O) chdtr$(O) const$(O) dawsn$(O) ellie$(O) \
 	polevl$(O) polyn$(O) psi$(O) revers$(O) rgamma$(O) round$(O) \
 	shichi$(O) sici$(O) spence$(O) stdtr$(O) struve$(O) \
 	unity$(O) yn$(O) zeta$(O) zetac$(O) \
-	acosh$(O) asinh$(O) atanh$(O) ndtr$(O) isfinite$(O) cbrt$(O)
+	acosh$(O) asinh$(O) atanh$(O) ndtr$(O) isfinite$(O) cbrt$(O) isnan$(O)
 

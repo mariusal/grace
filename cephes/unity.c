@@ -12,6 +12,10 @@
 #include "mconf.h"
 #include "cephes.h"
 
+#ifdef INFINITIES
+extern double INFINITY;
+#endif
+
 /* log1p(x) = log(1 + x)  */
 
 /* Coefficients for log(1+x) = x - x**2/2 + x**3 P(x)/Q(x)
@@ -78,6 +82,16 @@ double x;
 {
 double r, xx;
 
+#ifdef NANS
+if( isnan(x) )
+	return(x);
+#endif
+#ifdef INFINITIES
+if( x == INFINITY )
+	return(INFINITY);
+if( x == -INFINITY )
+	return(-1.0);
+#endif
 if( (x < -0.5) || (x > 0.5) )
 	return( exp(x) - 1.0 );
 xx = x * x;

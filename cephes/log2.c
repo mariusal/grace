@@ -217,9 +217,13 @@ VOLATILE double z;
 short *q;
 #endif
 
+#ifdef NANS
+if( isnan(x) )
+	return(x);
+#endif
 #ifdef INFINITIES
 if( x == INFINITY )
-  return(x);
+	return(x);
 #endif
 /* Test for domain */
 if( x <= 0.0 )
