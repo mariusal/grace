@@ -43,7 +43,7 @@ GUISRCS =  Tab.c ListTree.c motifutils.c \
 	compwin.c eblockwin.c \
 	editpwin.c events.c fileswin.c \
 	helpwin.c \
-	locatewin.c miscwin.c monwin.c \
+	miscwin.c monwin.c \
 	nonlwin.c printwin.c ptswin.c regionwin.c \
 	setwin.c objwin.c setappwin.c \
 	explorer.c project_ui.c graph_ui.c frame_ui.c \
@@ -53,7 +53,7 @@ GUIOBJS =  Tab$(O) ListTree$(O) motifutils$(O) \
 	compwin$(O) eblockwin$(O) \
 	editpwin$(O) events$(O) fileswin$(O) \
 	helpwin$(O) \
-	locatewin$(O) miscwin$(O) monwin$(O) \
+	miscwin$(O) monwin$(O) \
 	nonlwin$(O) printwin$(O) ptswin$(O) regionwin$(O) \
 	setwin$(O) objwin$(O) setappwin$(O) \
 	explorer$(O) project_ui$(O) graph_ui$(O) frame_ui$(O) \

@@ -130,9 +130,6 @@ void create_autos_frame(Widget but, void *data);
 void define_objects_popup(Widget but, void *data);
 void object_edit_popup(Quark *gr, int id);
 
-void update_locator_items(Quark *gr);
-void create_locator_frame(Widget but, void *data);
-
 void create_monitor_frame_cb(Widget but, void *data);
 void define_explorer_popup(Widget but, void *data);
 void stufftextwin(char *s);

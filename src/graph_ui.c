@@ -124,6 +124,46 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     AddSpinButtonCB(ui->bargap, sp_explorer_cb, eui);
 
 
+    /* ------------ Locator tab -------------- */
+
+    ui->locator_tp = CreateTabPage(tab, "Locator");
+    ui->delta = CreatePanelChoice(ui->locator_tp, "Locator display type:",
+	                          7,
+	                          "[X, Y]",
+	                          "[DX, DY]",
+	                          "[DISTANCE]",
+	                          "[Phi, Rho]",
+	                          "[VX, VY]",
+	                          "[SX, SY]",
+	                          NULL,
+	                          NULL);
+    AddOptionChoiceCB(ui->delta, oc_explorer_cb, eui);
+
+    fr = CreateFrame(ui->locator_tp, "X properties");
+    rc = CreateVContainer(fr);
+    ui->loc_formatx = CreateFormatChoice(rc, "Format:");
+    AddOptionChoiceCB(ui->loc_formatx, oc_explorer_cb, eui);
+    ui->loc_precx = CreatePrecisionChoice(rc, "Precision:");
+    AddOptionChoiceCB(ui->loc_precx, oc_explorer_cb, eui);
+
+    fr = CreateFrame(ui->locator_tp, "Y properties");
+    rc = CreateVContainer(fr);
+    ui->loc_formaty = CreateFormatChoice(rc, "Format:");
+    AddOptionChoiceCB(ui->loc_formaty, oc_explorer_cb, eui);
+    ui->loc_precy = CreatePrecisionChoice(rc, "Precision:");
+    AddOptionChoiceCB(ui->loc_precy, oc_explorer_cb, eui);
+
+    fr = CreateFrame(ui->locator_tp, "Fixed point");
+    rc = CreateVContainer(fr);
+    ui->fixedp = CreateToggleButton(rc, "Enable");
+    AddToggleButtonCB(ui->fixedp, tb_explorer_cb, eui);
+    rc1 = CreateHContainer(rc);
+    ui->locx = CreateTextItem2(rc1, 10, "X:");
+    AddTextItemCB(ui->locx, titem_explorer_cb, eui);
+    ui->locy = CreateTextItem2(rc1, 10, "Y:");
+    AddTextItemCB(ui->locy, titem_explorer_cb, eui);
+
+
     SelectTabPage(tab, ui->main_tp);
 
     ui->top = tab;
@@ -138,8 +178,10 @@ void update_graph_ui(GraphUI *ui, Quark *q)
     if (g) {
         char buf[32];
         world w;
+        GLocator *locator;
         
         get_graph_world(q, &w);
+        locator = get_graph_locator(q);
 
         SetOptionChoice(ui->graph_type, get_graph_type(q));
         SetToggleButtonState(ui->stacked, is_graph_stacked(q));
@@ -163,6 +205,18 @@ void update_graph_ui(GraphUI *ui, Quark *q)
         xv_setstr(ui->znorm, buf);
 
         SetSpinChoice(ui->bargap, get_graph_bargap(q));
+
+
+	SetToggleButtonState(ui->fixedp, locator->pointset);
+	SetOptionChoice(ui->delta, locator->pt_type);
+	SetOptionChoice(ui->loc_formatx, locator->fx);
+	SetOptionChoice(ui->loc_formaty, locator->fy);
+	SetOptionChoice(ui->loc_precx, locator->px);
+	SetOptionChoice(ui->loc_precy, locator->py);
+	sprintf(buf, "%g", locator->dsx);
+	xv_setstr(ui->locx, buf);
+	sprintf(buf, "%g", locator->dsy);
+	xv_setstr(ui->locy, buf);
     }
 }
 
@@ -173,8 +227,10 @@ int set_graph_data(GraphUI *ui, Quark *q, void *caller)
     if (g) {
         double axislim, znorm;
         world w;
+        GLocator *locator;
 
         get_graph_world(q, &w);
+        locator = get_graph_locator(q);
 
         if (!caller || caller == ui->graph_type) {
             set_graph_type(q, GetOptionChoice(ui->graph_type));
@@ -240,6 +296,32 @@ int set_graph_data(GraphUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->znorm) {
             xv_evalexpr(ui->znorm, &znorm);
             set_graph_znorm(q, znorm);
+        }
+
+
+        if (!caller || caller == ui->delta) {
+            locator->pt_type = GetOptionChoice(ui->delta);
+        }
+        if (!caller || caller == ui->loc_formatx) {
+            locator->fx = GetOptionChoice(ui->loc_formatx);
+        }
+        if (!caller || caller == ui->loc_formaty) {
+            locator->fy = GetOptionChoice(ui->loc_formaty);
+        }
+        if (!caller || caller == ui->loc_precx) {
+            locator->px = GetOptionChoice(ui->loc_precx);
+        }
+        if (!caller || caller == ui->loc_precy) {
+            locator->py = GetOptionChoice(ui->loc_precy);
+        }
+        if (!caller || caller == ui->fixedp) {
+            locator->pointset = GetToggleButtonState(ui->fixedp);
+        }
+        if (!caller || caller == ui->locx) {
+            xv_evalexpr(ui->locx, &locator->dsx); 
+        }
+        if (!caller || caller == ui->locy) {
+            xv_evalexpr(ui->locy, &locator->dsy); 
         }
 
         quark_dirtystate_set(q, TRUE);

@@ -894,28 +894,6 @@ helpwin$(O) : helpwin.c ../include/config.h globals.h grace.h \
   /usr/X11R6/include/Xm/Manager.h /usr/X11R6/include/Xm/Gadget.h \
   /usr/X11R6/include/Xm/TxtPropCv.h /usr/X11R6/include/Xm/VendorS.h \
   /usr/X11R6/include/Xm/XmIm.h motifinc.h
-locatewin$(O) : locatewin.c ../include/config.h globals.h grace.h \
-  ../include/grace/baseP.h ../include/grace/base.h defines.h \
-  ../include/grace/canvas.h storage.h dict3.h graphs.h ctrans.h protos.h \
-  noxprotos.h xprotos.h /usr/X11R6/include/Xm/Xm.h \
-  /usr/X11R6/include/X11/Intrinsic.h /usr/X11R6/include/X11/Xlib.h \
-  /usr/X11R6/include/X11/X.h /usr/X11R6/include/X11/Xfuncproto.h \
-  /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h \
-  /usr/X11R6/include/X11/Xresource.h /usr/X11R6/include/X11/Core.h \
-  /usr/X11R6/include/X11/Composite.h /usr/X11R6/include/X11/Constraint.h \
-  /usr/X11R6/include/X11/Object.h /usr/X11R6/include/X11/RectObj.h \
-  /usr/X11R6/include/X11/Shell.h /usr/X11R6/include/X11/SM/SMlib.h \
-  /usr/X11R6/include/X11/SM/SM.h /usr/X11R6/include/X11/ICE/ICElib.h \
-  /usr/X11R6/include/X11/ICE/ICE.h /usr/X11R6/include/X11/Xatom.h \
-  /usr/X11R6/include/X11/extensions/Print.h \
-  /usr/X11R6/include/X11/Xauth.h /usr/X11R6/include/X11/Xfuncs.h \
-  /usr/X11R6/include/Xm/XmStrDefs.h /usr/X11R6/include/X11/StringDefs.h \
-  /usr/X11R6/include/Xm/VirtKeys.h /usr/X11R6/include/Xm/Transfer.h \
-  /usr/X11R6/include/Xm/DragC.h /usr/X11R6/include/Xm/Display.h \
-  /usr/X11R6/include/Xm/DropSMgr.h /usr/X11R6/include/Xm/Primitive.h \
-  /usr/X11R6/include/Xm/Manager.h /usr/X11R6/include/Xm/Gadget.h \
-  /usr/X11R6/include/Xm/TxtPropCv.h /usr/X11R6/include/Xm/VendorS.h \
-  /usr/X11R6/include/Xm/XmIm.h motifinc.h
 miscwin$(O) : miscwin.c ../include/config.h globals.h grace.h \
   ../include/grace/baseP.h ../include/grace/base.h defines.h \
   ../include/grace/canvas.h storage.h dict3.h utils.h graphs.h ctrans.h \

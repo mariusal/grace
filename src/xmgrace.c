@@ -746,7 +746,6 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(menupane, "Set locator fixed point", 'f', set_actioncb, (void *) SEL_POINT);
     CreateMenuButton(menupane, "Clear locator fixed point", 'C', do_clear_point, NULL);
-    CreateMenuButton(menupane, "Locator props...", 'p', create_locator_frame, NULL);
     
     CreateMenuSeparator(menupane);
 

@@ -94,6 +94,7 @@ typedef struct {
     Widget          top;
     
     Widget          main_tp;
+    Widget          locator_tp;
 
     OptionStructure *graph_type;
     Widget          stacked;
@@ -110,6 +111,15 @@ typedef struct {
     Widget          flip_xy;
     SpinStructure   *bargap;
     Widget          znorm;
+
+    OptionStructure *delta;
+    OptionStructure *loc_formatx;
+    OptionStructure *loc_formaty;
+    OptionStructure *loc_precx;
+    OptionStructure *loc_precy;
+    Widget          locx;
+    Widget          locy;
+    Widget          fixedp;
     
 } GraphUI;
 
