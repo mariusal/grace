@@ -743,23 +743,36 @@ AC_DEFUN(ACX_CHECK_FFTW,
     fftw_library=-lfftw
   fi
 
-  AC_CACHE_CHECK( "for FFTW", acx_cv_fftw,
+  AC_CACHE_CHECK( "for FFTW library \>= $1", acx_cv_fftw,
     AC_CACHE_VAL(acx_cv_fftw_library, acx_cv_fftw_library=$fftw_library)
     ACX_SAVE_STATE
     LIBS="$acx_cv_fftw_library $LIBS"
-    AC_TRY_LINK([#include <fftw.h>],[main();],
+    AC_TRY_RUN([
+#include <fftw.h>
+#include <string.h>
+      int main(void) {
+        char *vlib = (char *) fftw_version;
+        if (strcmp(vlib, "[$1]") < 0) {
+          exit(1);
+        }
+        exit(0);
+      }
+      ],
+
       acx_cv_fftw="yes",
+      acx_cv_fftw="no",
       acx_cv_fftw="no"
     )
+
     ACX_RESTORE_STATE
   )
   if test "$acx_cv_fftw" = "yes"
   then
     FFTW_LIB="$acx_cv_fftw_library"
-    $1
+    $2
   else
     FFTW_LIB=
-    $2
+    $3
   fi
 ])dnl
 
