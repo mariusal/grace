@@ -448,7 +448,6 @@ symtab_entry *key;
 %token <ival> UP
 %token <ival> UPDATEALL
 %token <ival> USE
-%token <ival> UNLINK
 %token <ival> VERSION
 %token <ival> VERTI
 %token <ival> VERTICAL
@@ -4902,7 +4901,6 @@ symtab_entry ikey[] = {
 	{"TRIANGULAR", TRIANGULAR, NULL},
 	{"TRUE", ON, NULL},
 	{"TYPE", TYPE, NULL},
-	{"UNLINK", UNLINK, NULL},
 	{"UNIT", KEY_UNIT, NULL},
 	{"UP", UP, NULL},
 	{"UPDATEALL", UPDATEALL, NULL},
