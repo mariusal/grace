@@ -215,7 +215,7 @@ void autotick_axis(int gno, int axis)
 
 void autoscale_byset(int gno, int setno, int autos_type)
 {
-    if (setno == ALL_SETS || is_set_active(gno, setno)) {
+    if ((setno == ALL_SETS && is_valid_gno(gno)) || is_set_active(gno, setno)) {
 	autorange_byset(gno, setno, autos_type);
 	switch (autos_type) {
         case AUTOSCALE_X:

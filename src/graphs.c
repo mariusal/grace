@@ -365,6 +365,10 @@ int set_graph_active(int gno, int flag)
 
 void set_graph_framep(int gno, framep * f)
 {
+    if (is_valid_gno(gno) != TRUE) {
+        return;
+    }
+    
     memcpy(&g[gno].f, f, sizeof(framep));
     
     set_dirtystate();
@@ -372,11 +376,19 @@ void set_graph_framep(int gno, framep * f)
 
 void set_graph_locator(int gno, GLocator *locator)
 {
+    if (is_valid_gno(gno) != TRUE) {
+        return;
+    }
+
     memcpy(&g[gno].locator, locator, sizeof(GLocator));
 }
 
 void set_graph_world(int gno, world w)
 {
+    if (is_valid_gno(gno) != TRUE) {
+        return;
+    }
+
     g[gno].w = w;
     
     set_dirtystate();
@@ -384,6 +396,10 @@ void set_graph_world(int gno, world w)
 
 void set_graph_viewport(int gno, view v)
 {
+    if (is_valid_gno(gno) != TRUE) {
+        return;
+    }
+
     g[gno].v = v;
     
     set_dirtystate();
@@ -391,6 +407,10 @@ void set_graph_viewport(int gno, view v)
 
 void set_graph_labels(int gno, labels * labs)
 {
+    if (is_valid_gno(gno) != TRUE) {
+        return;
+    }
+
     memcpy(&g[gno].labs, labs, sizeof(labels));
     
     set_dirtystate();
@@ -398,6 +418,10 @@ void set_graph_labels(int gno, labels * labs)
 
 void set_graph_plotarr(int gno, int i, plotarr * p)
 {
+    if (is_valid_gno(gno) != TRUE) {
+        return;
+    }
+
     memcpy(&g[gno].p[i], p, sizeof(plotarr));
     
     set_dirtystate();
@@ -441,12 +465,24 @@ int set_graph_tickmarks(int gno, tickmarks *t, int a)
 
 void set_graph_legend(int gno, legend *leg)
 {
+    if (is_valid_gno(gno) != TRUE) {
+        return;
+    }
+
     memcpy(&g[gno].l, leg, sizeof(legend));
+
+    set_dirtystate();
 }
 
 void set_graph_legend_active(int gno, int flag)
 {
+    if (is_valid_gno(gno) != TRUE) {
+        return;
+    }
+
     g[gno].l.active = flag;
+
+    set_dirtystate();
 }
 
 
@@ -456,11 +492,13 @@ void set_graph_legend_active(int gno, int flag)
 int nactive(int gno)
 {
     int i, cnt = 0;
-    for (i = 0; i < g[gno].maxplot; i++) {
+
+    for (i = 0; i < number_of_sets(gno); i++) {
 	if (is_set_active(gno, i)) {
 	    cnt++;
 	}
     }
+
     return cnt;
 }
 
