@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -120,6 +120,8 @@ typedef struct {
     Widget showh_item;
     Widget hide_item;
     Widget show_item;
+    Widget bringf_item;
+    Widget sendb_item;
     Widget duplicate_item;
     Widget kill_item;
     Widget killd_item;
@@ -134,6 +136,8 @@ typedef struct {
 typedef enum {
     SetMenuHideCB,
     SetMenuShowCB,
+    SetMenuBringfCB,
+    SetMenuSendbCB,
     SetMenuDuplicateCB,
     SetMenuKillCB,
     SetMenuKillDCB,

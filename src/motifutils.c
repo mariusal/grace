@@ -1353,6 +1353,20 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
             err = TRUE;
         }
         break;
+    case SetMenuBringfCB:
+        if (n == 1) {
+            pushset(gno, values[0], PUSH_SET_TOFRONT);
+        } else {
+            err = TRUE;
+        }
+        break;
+    case SetMenuSendbCB:
+        if (n == 1) {
+            pushset(gno, values[0], PUSH_SET_TOBACK);
+        } else {
+            err = TRUE;
+        }
+        break;
     case SetMenuDuplicateCB:
         if (n > 0) {
             for (i = 0; i < n; i++) {
@@ -1498,6 +1512,16 @@ void show_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_menu_cb((ListStructure *) client_data, SetMenuShowCB);
 }
 
+void bringf_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    set_menu_cb((ListStructure *) client_data, SetMenuBringfCB);
+}
+
+void sendb_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    set_menu_cb((ListStructure *) client_data, SetMenuSendbCB);
+}
+
 void duplicate_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     set_menu_cb((ListStructure *) client_data, SetMenuDuplicateCB);
@@ -1600,6 +1624,11 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     	hide_set_proc, (XtPointer) listp, 0);
     set_popup_menu->show_item = CreateMenuButton(popup, "show", "Show", 'S',
     	show_set_proc, (XtPointer) listp, 0);
+    set_popup_menu->bringf_item = CreateMenuButton(popup, "bringToFront", "Bring to front", '\0',
+    	bringf_set_proc, (XtPointer) listp, 0);
+    set_popup_menu->sendb_item = CreateMenuButton(popup, "sendToBack", "Send to back", '\0',
+    	sendb_set_proc, (XtPointer) listp, 0);
+    CreateMenuSeparator(popup);
     set_popup_menu->duplicate_item = CreateMenuButton(popup, "duplicate", "Duplicate", 'D',
     	duplicate_set_proc, (XtPointer) listp, 0);
     set_popup_menu->kill_item = CreateMenuButton(popup, "kill", "Kill", 'K',
@@ -1704,8 +1733,12 @@ void set_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event)
         XtSetSensitive(set_popup_menu->killd_item, True);
     }
     if (n == 1) {
+        XtSetSensitive(set_popup_menu->bringf_item, True);
+        XtSetSensitive(set_popup_menu->sendb_item, True);
         XtSetSensitive(set_popup_menu->edit_item, True);
     } else {
+        XtSetSensitive(set_popup_menu->bringf_item, False);
+        XtSetSensitive(set_popup_menu->sendb_item, False);
         XtSetSensitive(set_popup_menu->edit_item, False);
     }
     if (n == 2) {
