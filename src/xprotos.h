@@ -135,9 +135,6 @@ void object_edit_popup(Quark *gr, int id);
 void update_locator_items(Quark *gr);
 void create_locator_frame(Widget but, void *data);
 
-void create_graphapp_frame(Quark *gr);
-void create_graphapp_frame_cb(Widget but, void *data);
-
 void create_monitor_frame_cb(Widget but, void *data);
 void define_explorer_popup(Widget but, void *data);
 void stufftextwin(char *s);
@@ -146,9 +143,6 @@ void HelpCB(Widget w, void *data);
 
 void create_nonl_frame(Widget but, void *data);
 
-void update_misc_items(void);
-void create_plot_frame(void);
-void create_plot_frame_cb(Widget but, void *data);
 void create_props_frame(Widget but, void *data);
 
 void create_fonttool(Widget w);

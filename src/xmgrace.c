@@ -795,8 +795,6 @@ static Widget CreateMainMenuBar(Widget parent)
 /* Plot menu */
     menupane = CreateMenu(menubar, "Plot", 'P', FALSE);
 
-    CreateMenuButton(menupane, "Plot appearance...", 'p', create_plot_frame_cb, NULL);
-    CreateMenuButton(menupane, "Graph appearance...", 'G', create_graphapp_frame_cb, (void *) -1);
     CreateMenuButton(menupane, "Set appearance...", 'S', define_symbols_popup, (void *) -1);
     CreateMenuButton(menupane, "Axis properties...", 'x', create_axes_dialog_cb, NULL);
     CreateMenuButton(menupane, "Drawing objects...", 'o', define_objects_popup, NULL);

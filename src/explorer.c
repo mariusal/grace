@@ -32,10 +32,9 @@
 #include "dicts.h"
 #include "objutils.h"
 
-#include "motifinc.h"
+#include "explorer.h"
 #include <Xm/ScrolledW.h>
 #include <Xm/Form.h>
-#include "ListTree.h"
 
 #include "protos.h"
 
@@ -137,24 +136,6 @@ ListTreeItem *CreateQuarkTree(Widget tree, ListTreeItem *parent,
     return item;
 }
 
-
-typedef struct {
-    Widget top;
-    OptionStructure *bg_color;
-    Widget bg_fill;
-} ProjectUI;
-
-typedef struct {
-    Widget top;
-    Widget tree;
-    Widget instantupdate;
-    WidgetList aacbuts;
-    Widget scrolled_window;
-    ListTreeItem *project;
-    
-    ProjectUI *project_ui;
-} ExplorerUI;
-
 static int explorer_apply(ExplorerUI *ui, void *caller);
 
 static char *q_labeling(Quark *q)
@@ -222,67 +203,6 @@ static ListTreeItem *q_create(Widget w,
     return item;
 }
 
-static void oc_project_cb(OptionStructure *opt, int a, void *data)
-{
-    ExplorerUI *eui = (ExplorerUI *) data;
-    explorer_apply(eui, opt);
-}
-static void tb_project_cb(Widget but, int a, void *data)
-{
-    ExplorerUI *eui = (ExplorerUI *) data;
-    explorer_apply(eui, but);
-}
-
-static ProjectUI *create_project_ui(ExplorerUI *eui)
-{
-    ProjectUI *ui;
-    Widget form, fr, rc;
-    
-    form = eui->scrolled_window;
-    
-    ui = xmalloc(sizeof(ProjectUI));
-    
-    fr = CreateFrame(form, "Page background");
-    AddDialogFormChild(form, fr);
-    rc = CreateHContainer(fr);
-    ui->bg_color = CreateColorChoice(rc, "Color:");
-    AddOptionChoiceCB(ui->bg_color, oc_project_cb, eui);
-    ui->bg_fill = CreateToggleButton(rc, "Fill");
-    AddToggleButtonCB(ui->bg_fill, tb_project_cb, eui);
-    
-    ui->top = fr;
-    
-    return ui;
-}
-
-static void update_project_ui(ProjectUI *ui, Quark *q)
-{
-    Project *pr = project_get_data(q);
-    if (pr) {
-        SetOptionChoice(ui->bg_color, pr->bgcolor);
-        SetToggleButtonState(ui->bg_fill, pr->bgfill);
-    }
-}
-
-static int set_project_data(ProjectUI *ui, Quark *q, void *caller)
-{
-    Project *pr = project_get_data(q);
-    if (pr) {
-        if (!caller || caller == ui->bg_color) {
-            pr->bgcolor = GetOptionChoice(ui->bg_color);
-        }
-        if (!caller || caller == ui->bg_fill) {
-            pr->bgfill = GetToggleButtonState(ui->bg_fill);
-        }
-
-        set_dirtystate();
-        
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
 
 static void highlight_cb(Widget w, XtPointer client, XtPointer call)
 {
@@ -327,9 +247,27 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             update_project_ui(ui->project_ui, q);
             
             ManageChild(ui->project_ui->top);
+            UnmanageChild(ui->frame_ui->top);
+            UnmanageChild(ui->graph_ui->top);
+            break;
+        case QFlavorFrame:
+            update_frame_ui(ui->frame_ui, q);
+            
+            UnmanageChild(ui->project_ui->top);
+            ManageChild(ui->frame_ui->top);
+            UnmanageChild(ui->graph_ui->top);
+            break;
+        case QFlavorGraph:
+            update_graph_ui(ui->graph_ui, q);
+            
+            UnmanageChild(ui->project_ui->top);
+            UnmanageChild(ui->frame_ui->top);
+            ManageChild(ui->graph_ui->top);
             break;
         default:
             UnmanageChild(ui->project_ui->top);
+            UnmanageChild(ui->frame_ui->top);
+            UnmanageChild(ui->graph_ui->top);
             break;
         }
     }
@@ -347,7 +285,7 @@ static void destroy_cb(Widget w, XtPointer client, XtPointer call)
 static int explorer_apply(ExplorerUI *ui, void *caller)
 {
     ListTreeMultiReturnStruct ret;
-    int count, i;
+    int count, i, res = RETURN_SUCCESS;
     
     if (caller && !GetToggleButtonState(ui->instantupdate)) {
         return RETURN_FAILURE;
@@ -356,7 +294,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     ListTreeGetHighlighted(ui->tree, &ret);
     count = ret.count;
 
-    for (i = 0; i < count; i++) {
+    for (i = 0; i < count && res == RETURN_SUCCESS; i++) {
         ListTreeItem *item = ret.items[i];
         TreeItemData *ti_data = (TreeItemData *) item->user_data;
         Quark *q = ti_data->q;
@@ -364,17 +302,28 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
         switch (q->fid) {
         case QFlavorProject:
             if (set_project_data(ui->project_ui, q, caller) != RETURN_SUCCESS) {
-                return RETURN_FAILURE;
+                res = RETURN_FAILURE;
+            }
+            break;
+        case QFlavorFrame:
+            if (set_frame_data(ui->frame_ui, q, caller) != RETURN_SUCCESS) {
+                res = RETURN_FAILURE;
+            }
+            break;
+        case QFlavorGraph:
+            if (set_graph_data(ui->graph_ui, q, caller) != RETURN_SUCCESS) {
+                res = RETURN_FAILURE;
             }
             break;
         default:
-            return RETURN_FAILURE;
+            res = RETURN_FAILURE;
             break;
         }
     }
     
     xdrawgraph();
-    return RETURN_SUCCESS;
+    
+    return res;
 }
 
 static int explorer_aac(void *data)
@@ -448,6 +397,12 @@ void define_explorer_popup(Widget but, void *data)
 	eui->project_ui = create_project_ui(eui);
         UnmanageChild(eui->project_ui->top);
 
+	eui->frame_ui = create_frame_ui(eui);
+        UnmanageChild(eui->frame_ui->top);
+
+	eui->graph_ui = create_graph_ui(eui);
+        UnmanageChild(eui->graph_ui->top);
+
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
         eui->project = CreateQuarkTree(eui->tree, NULL,
@@ -456,4 +411,36 @@ void define_explorer_popup(Widget but, void *data)
 
     RaiseWindow(GetParent(eui->top));
     unset_wait_cursor();
+}
+
+
+void oc_explorer_cb(OptionStructure *opt, int a, void *data)
+{
+    ExplorerUI *eui = (ExplorerUI *) data;
+    explorer_apply(eui, opt);
+}
+void tb_explorer_cb(Widget but, int a, void *data)
+{
+    ExplorerUI *eui = (ExplorerUI *) data;
+    explorer_apply(eui, but);
+}
+void scale_explorer_cb(Widget scale, int a, void *data)
+{
+    ExplorerUI *eui = (ExplorerUI *) data;
+    explorer_apply(eui, scale);
+}
+void sp_explorer_cb(SpinStructure *spinp, double a, void *data)
+{
+    ExplorerUI *eui = (ExplorerUI *) data;
+    explorer_apply(eui, spinp);
+}
+void text_explorer_cb(TextStructure *cst, char *s, void *data)
+{
+    ExplorerUI *eui = (ExplorerUI *) data;
+    explorer_apply(eui, cst);
+}
+void titem_explorer_cb(Widget w, char *s, void *data)
+{
+    ExplorerUI *eui = (ExplorerUI *) data;
+    explorer_apply(eui, w);
 }
