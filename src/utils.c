@@ -346,9 +346,9 @@ static void please_report_the_bug(void)
 {
     fprintf(stderr, "\nPlease use \"Help/Comments\" to report the bug.\n");
 #ifdef HAVE_LESSTIF
-    fprintf(stderr, "NB. This version of Grace was compiled with LessTif.\n");
+    fprintf(stderr, "NB: This version of Grace was compiled with LessTif.\n");
     fprintf(stderr, "    Make sure to read the FAQ carefully prior to\n");
-    fprintf(stderr, "    reporting the bug, ESPECIALLY is the problem is\n");
+    fprintf(stderr, "    reporting the bug, ESPECIALLY if the problem is\n");
     fprintf(stderr, "    related to the graphical interface.\n");
 #endif
 }
@@ -357,7 +357,7 @@ static void please_report_the_bug(void)
  * Warn about a possible bug displaying the passed message, try to save
  * any unsaved work and abort
  */
-static void bugwarn(char *msg)
+void emergency_exit(int is_my_bug, char *msg)
 {
 /*
  *  Since we got so far, memory is probably corrupted so it's better to use
@@ -390,7 +390,9 @@ static void bugwarn(char *msg)
                 fprintf(stderr, "oh, no luck :-(\n");
             }
         }
-        please_report_the_bug();
+        if (is_my_bug) {
+            please_report_the_bug();
+        }
         abort();
     }
 }
@@ -443,7 +445,7 @@ static RETSIGTYPE actOnSignal(int signo)
         signame = "SIGSYS";
 #endif
         sprintf(buf, "Got fatal signal %s!", signame);
-        bugwarn(buf);
+        emergency_exit(TRUE, buf);
         break;
     default:
         /* ignore the rest */

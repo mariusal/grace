@@ -74,6 +74,7 @@ double mytrunc(double a);
 void bailout(void);
 
 void installSignal(void);
+void emergency_exit(int is_my_bug, char *msg);
 
 int bin_dump(char *value, int i, int pad);
 unsigned char reversebits(unsigned char inword);
