@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -199,12 +199,7 @@ int copy_graph(int from, int to)
         return RETURN_FAILURE;
     }
     for (i = 0; i < g[from].maxplot; i++) {
-	for (j = 0; j < MAX_SET_COLS; j++) {
-	    g[to].p[i].data.ex[j] = NULL;
-	}
-	if (is_set_active(from, i)) {
-	    do_copyset(from, i, to, i);
-	}
+        do_copyset(from, i, to, i);
     }
     g[to].labs.title.s = copy_string(NULL, g[from].labs.title.s);
     g[to].labs.stitle.s = copy_string(NULL, g[from].labs.stitle.s);
