@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.17)</title>
+<title>Grace User's Guide (for Grace-5.1.18)</title>
 <author>by the Grace Team</author>
-<date>13.08.2004</date>
+<date>28.12.2004</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -1854,9 +1854,9 @@ integral     | cumulative sum @
         indx |
           Non-negative iexpr |
           &nbsp; @
-        qstr |
-          Quoted string |
-          "a string" @
+        sexpr |
+          String expression |
+          "a string", "a " . "string", "square root of 4 = " . sqrt(4) @
         vexpr |
           Vector expression |
           "2*x" @
@@ -2412,7 +2412,7 @@ integral     | cumulative sum @
           EXIT @
         HELP <it>url</it> |
           open a HTML document pointed to by <it>url</it> |
-          qstr <it>url</it> |
+          sexpr <it>url</it> |
           HELP "doc/FAQ.html" @
         HELP |
           open User's Guide |
@@ -2456,11 +2456,11 @@ integral     | cumulative sum @
           UPDATEALL @
         SAVEALL <it>"file"</it> |
           save project to <it>file</it> |
-          qstr <it>file</it> |
+          sexpr <it>file</it> |
           SAVEALL "foo.agr" @
         LOAD <it>"file"</it> |
           load project <it>file</it> |
-          qstr <it>file</it> |
+          sexpr <it>file</it> |
           LOAD "foo.agr" @
         <hline>
       </tabular>
@@ -2634,7 +2634,7 @@ integral     | cumulative sum @
         Statement | Description | Types | Example @
         <hline>
 	 TITLE <it>title</it>       | Sets the title of current graph |
-	          qstr <it>title</it> | TITLE "Foo" @
+	          sexpr <it>title</it> | TITLE "Foo" @
 	 TITLE FONT <it>font</it>  | Selects font of title string |
 	          fontsel <it>font</it> | TITLE FONT 1 @
 	 TITLE SIZE <it>size</it>  | Sets size of title string |
@@ -2642,7 +2642,7 @@ integral     | cumulative sum @
 	 TITLE COLOR <it>color</it> | Sets color of title string | 
 	          colorsel <it>color</it> | TITLE COLOR 1 @
 	 SUBTITLE <it>subtitle</it> | Sets the subtitle of current graph |
-	          qstr <it>subtitle</it> | SUBTITLE "Bar" @
+	          sexpr <it>subtitle</it> | SUBTITLE "Bar" @
 	 SUBTITLE FONT <it>font</it>  | Selects font of subtitle string |
 	          fontsel <it>font</it> | SUBTITLE FONT "Times-Italic" @
 	 SUBTITLE SIZE <it>size</it>  | Sets size of subtitle string |
@@ -2713,23 +2713,23 @@ integral     | cumulative sum @
         Statement | Description | Types | Example @
         <hline>
     	READ <it>"file"</it> | Reads <it>file</it> as a single set |
-	                     qstr <it>file</it> | READ "foo.dat" @
+	                     sexpr <it>file</it> | READ "foo.dat" @
     	READ <it>settype</it> <it>"file"</it> | Reads <it>file</it> into a single set of type <it>settype</it> |
-		     xytype <it>settype</it>, qstr <it>file</it> | READ xydy "bar.dat" @
+		     xytype <it>settype</it>, sexpr <it>file</it> | READ xydy "bar.dat" @
 	READ NXY <it>"file"</it> | Reads <it>file</it> as NXY data |
-	                     qstr <it>file</it> | READ NXY "gad.dat" @
+	                     sexpr <it>file</it> | READ NXY "gad.dat" @
 	READ BLOCK <it>"file"</it> | Reads <it>file</it> as block data |
-	                     qstr <it>file</it> | READ BLOCK "zooks.dat" @
+	                     sexpr <it>file</it> | READ BLOCK "zooks.dat" @
 	BLOCK <it>settype</it> <it>columns</it> | Forms a data set of type <it>settype</it> using <it>columns</it> from current block data file. |
-	             xytype <it>settype</it>, qstr <it>columns</it> | BLOCK xydxdy "0:2:1:3" @
+	             xytype <it>settype</it>, sexpr <it>columns</it> | BLOCK xydxdy "0:2:1:3" @
     	WRITE <it>set</it> | writes <it>set</it> to stdout|
 		     setsel <it>set</it> | WRITE G0.S1 @
     	WRITE <it>set</it> FORMAT <it>"formatstring"</it> | writes <it>set</it> to stdout using format specification <it>formatstring</it> |
-		     setsel <it>set</it> qstr <it>formatstring</it> | WRITE G0.S1 FORMAT "%18.8g" @
+		     setsel <it>set</it> sexpr <it>formatstring</it> | WRITE G0.S1 FORMAT "%18.8g" @
     	WRITE <it>set</it> FILE <it>"file"</it> | writes <it>set</it> to <it>file</it> |
-		     setsel <it>set</it> qstr <it>file</it> | WRITE G0.S1 FILE "data.dat" @
+		     setsel <it>set</it> sexpr <it>file</it> | WRITE G0.S1 FILE "data.dat" @
     	WRITE <it>set</it> FILE <it>"file"</it> FORMAT <it>"formatstring"</it> | writes <it>set</it> to <it>file</it> using format specification <it>formatstring</it> |
-		     setsel <it>set</it> qstr <it>file</it> qstr <it>formatstring</it> | WRITE G0.S1 FILE "data.dat" FORMAT "%18.8g" @
+		     setsel <it>set</it> sexpr <it>file</it> sexpr <it>formatstring</it> | WRITE G0.S1 FILE "data.dat" FORMAT "%18.8g" @
       </tabular>
       <caption>
         <label id="set-io">
