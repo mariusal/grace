@@ -49,11 +49,6 @@
 #include "protos.h"
 
 #ifndef NONE_GUI
-#  include <Xm/Xm.h>
-#  include <Xm/Form.h>
-#  include <Xm/RowColumn.h>
-#  include <Xm/DialogS.h>
-
 #  include "motifinc.h"
 #endif
 
@@ -922,7 +917,7 @@ int eps_op_parser(char *opstring)
 #ifndef NONE_GUI
 
 static void update_ps_setup_frame(void);
-static void set_ps_setup_proc(void *data);
+static int set_ps_setup_proc(void *data);
 
 static Widget ps_setup_frame;
 static Widget ps_setup_grayscale_item;
@@ -934,52 +929,42 @@ static Widget ps_setup_hwres_item;
 
 void ps_gui_setup(void)
 {
-    Widget ps_setup_panel, ps_setup_rc, fr, rc;
-    
     set_wait_cursor();
+    
     if (ps_setup_frame == NULL) {
+        Widget ps_setup_rc, fr, rc;
         OptionItem op_items[3] = {
             {MEDIA_FEED_AUTO,   "Automatic" },
             {MEDIA_FEED_MATCH,  "Match size"},
             {MEDIA_FEED_MANUAL, "Manual"    }
         };
         
-	ps_setup_frame = XmCreateDialogShell(app_shell, "PS options", NULL, 0);
-	handle_close(ps_setup_frame);
-        ps_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
-                                        ps_setup_frame, NULL, 0);
-        ps_setup_rc = XmCreateRowColumn(ps_setup_panel, "psetup_rc", NULL, 0);
+	ps_setup_frame = CreateDialogForm(app_shell, "PS options");
+
+        ps_setup_rc = CreateVContainer(ps_setup_frame);
 
 	fr = CreateFrame(ps_setup_rc, "PS options");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc = CreateVContainer(fr);
 	ps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
 	ps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
-	ManageChild(rc);
 
 	fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        rc = CreateHContainer(fr);
 	ps_setup_offset_x_item = CreateSpinChoice(rc,
             "X: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
 	ps_setup_offset_y_item = CreateSpinChoice(rc,
             "Y: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
-	ManageChild(rc);
 
 	fr = CreateFrame(ps_setup_rc, "Hardware");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc = CreateVContainer(fr);
 	ps_setup_feed_item = CreateOptionChoice(rc, "Media feed:", 1, 3, op_items);
 	ps_setup_hwres_item = CreateToggleButton(rc, "Set hardware resolution");
-	ManageChild(rc);
 
-	CreateSeparator(ps_setup_rc);
-
-	CreateAACButtons(ps_setup_rc, ps_setup_panel, set_ps_setup_proc);
-        
-	ManageChild(ps_setup_rc);
-	ManageChild(ps_setup_panel);
+	CreateAACDialog(ps_setup_frame, ps_setup_rc, set_ps_setup_proc, NULL);
     }
-    RaiseWindow(ps_setup_frame);
     update_ps_setup_frame();
+    
+    RaiseWindow(GetParent(ps_setup_frame));
     unset_wait_cursor();
 }
 
@@ -995,16 +980,8 @@ static void update_ps_setup_frame(void)
     }
 }
 
-static void set_ps_setup_proc(void *data)
+static int set_ps_setup_proc(void *data)
 {
-    int aac_mode;
-    aac_mode = (int) data;
-    
-    if (aac_mode == AAC_CLOSE) {
-        UnmanageChild(ps_setup_frame);
-        return;
-    }
-    
     ps_setup_grayscale = GetToggleButtonState(ps_setup_grayscale_item);
     ps_setup_level2    = GetToggleButtonState(ps_setup_level2_item);
     ps_setup_offset_x  = (int) GetSpinChoice(ps_setup_offset_x_item);
@@ -1012,13 +989,11 @@ static void set_ps_setup_proc(void *data)
     ps_setup_feed      = GetOptionChoice(ps_setup_feed_item);
     ps_setup_hwres     = GetToggleButtonState(ps_setup_hwres_item);
     
-    if (aac_mode == AAC_ACCEPT) {
-        UnmanageChild(ps_setup_frame);
-    }
+    return RETURN_SUCCESS;
 }
 
 static void update_eps_setup_frame(void);
-static void set_eps_setup_proc(void *data);
+static int set_eps_setup_proc(void *data);
 static Widget eps_setup_frame;
 static Widget eps_setup_grayscale_item;
 static Widget eps_setup_level2_item;
@@ -1026,32 +1001,24 @@ static Widget eps_setup_tight_bb_item;
 
 void eps_gui_setup(void)
 {
-    Widget eps_setup_panel, eps_setup_rc, fr, rc;
-    
     set_wait_cursor();
+    
     if (eps_setup_frame == NULL) {
-	eps_setup_frame = XmCreateDialogShell(app_shell, "EPS options", NULL, 0);
-	handle_close(eps_setup_frame);
-        eps_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
-                                        eps_setup_frame, NULL, 0);
-        eps_setup_rc = XmCreateRowColumn(eps_setup_panel, "psetup_rc", NULL, 0);
+        Widget fr, rc;
+	
+        eps_setup_frame = CreateDialogForm(app_shell, "EPS options");
 
-	fr = CreateFrame(eps_setup_rc, "EPS options");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        fr = CreateFrame(eps_setup_frame, "EPS options");
+        rc = CreateVContainer(fr);
 	eps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
 	eps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
 	eps_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
-	ManageChild(rc);
 
-	CreateSeparator(eps_setup_rc);
-
-	CreateAACButtons(eps_setup_rc, eps_setup_panel, set_eps_setup_proc);
-        
-	ManageChild(eps_setup_rc);
-	ManageChild(eps_setup_panel);
+	CreateAACDialog(eps_setup_frame, fr, set_eps_setup_proc, NULL);
     }
-    RaiseWindow(eps_setup_frame);
     update_eps_setup_frame();
+    RaiseWindow(GetParent(eps_setup_frame));
+    
     unset_wait_cursor();
 }
 
@@ -1064,23 +1031,13 @@ static void update_eps_setup_frame(void)
     }
 }
 
-static void set_eps_setup_proc(void *data)
+static int set_eps_setup_proc(void *data)
 {
-    int aac_mode;
-    aac_mode = (int) data;
-    
-    if (aac_mode == AAC_CLOSE) {
-        UnmanageChild(eps_setup_frame);
-        return;
-    }
-    
     eps_setup_grayscale = GetToggleButtonState(eps_setup_grayscale_item);
     eps_setup_level2 = GetToggleButtonState(eps_setup_level2_item);
     eps_setup_tight_bb = GetToggleButtonState(eps_setup_tight_bb_item);
     
-    if (aac_mode == AAC_ACCEPT) {
-        UnmanageChild(eps_setup_frame);
-    }
+    return RETURN_SUCCESS;
 }
 
 #endif

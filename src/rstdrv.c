@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -27,7 +27,7 @@
  */
 
 /*
- * GRACE generic raster format driver
+ * Grace generic raster format driver
  */
 
 #include <config.h>
@@ -57,11 +57,6 @@
 #endif
 
 #ifndef NONE_GUI
-#  include <Xm/Xm.h>
-#  include <Xm/Form.h>
-#  include <Xm/RowColumn.h>
-#  include <Xm/DialogS.h>
-
 #  include "motifinc.h"
 #endif
 
@@ -998,14 +993,14 @@ int png_op_parser(char *opstring)
 #ifndef NONE_GUI
 
 static void update_pnm_setup_frame(void);
-static void set_pnm_setup_proc(void *data);
+static int set_pnm_setup_proc(void *data);
 static Widget pnm_setup_frame;
 static Widget pnm_setup_rawbits_item;
 static Widget *pnm_setup_format_item;
 
 #ifdef HAVE_LIBPNG
 static void update_png_setup_frame(void);
-static void set_png_setup_proc(void *data);
+static int set_png_setup_proc(void *data);
 
 static Widget png_setup_frame;
 static Widget png_setup_interlaced_item;
@@ -1014,34 +1009,26 @@ static SpinStructure *png_setup_compression_item;
 
 void png_gui_setup(void)
 {
-    Widget png_setup_panel, png_setup_rc, fr, rc;
-    
     set_wait_cursor();
+    
     if (png_setup_frame == NULL) {
-	png_setup_frame = XmCreateDialogShell(app_shell, "PNG options", NULL, 0);
-	handle_close(png_setup_frame);
-        png_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
-                                        png_setup_frame, NULL, 0);
-        png_setup_rc = XmCreateRowColumn(png_setup_panel, "psetup_rc", NULL, 0);
+        Widget fr, rc;
+        
+	png_setup_frame = CreateDialogForm(app_shell, "PNG options");
 
-	fr = CreateFrame(png_setup_rc, "PNG options");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	fr = CreateFrame(png_setup_frame, "PNG options");
+        rc = CreateVContainer(fr);
 	png_setup_interlaced_item = CreateToggleButton(rc, "Interlaced");
 	png_setup_transparent_item = CreateToggleButton(rc, "Transparent");
 	png_setup_compression_item = CreateSpinChoice(rc,
             "Compression:", 1, SPIN_TYPE_INT,
             (double) Z_NO_COMPRESSION, (double) Z_BEST_COMPRESSION, 1.0);
-	ManageChild(rc);
 
-	CreateSeparator(png_setup_rc);
-
-	CreateAACButtons(png_setup_rc, png_setup_panel, set_png_setup_proc);
-        
-	ManageChild(png_setup_rc);
-	ManageChild(png_setup_panel);
+	CreateAACDialog(png_setup_frame, fr, set_png_setup_proc, NULL);
     }
-    RaiseWindow(png_setup_frame);
     update_png_setup_frame();
+    
+    RaiseWindow(GetParent(png_setup_frame));
     unset_wait_cursor();
 }
 
@@ -1054,40 +1041,27 @@ static void update_png_setup_frame(void)
     }
 }
 
-static void set_png_setup_proc(void *data)
+static int set_png_setup_proc(void *data)
 {
-    int aac_mode;
-    aac_mode = (int) data;
-    
-    if (aac_mode == AAC_CLOSE) {
-        UnmanageChild(png_setup_frame);
-        return;
-    }
-    
     png_setup_interlaced = GetToggleButtonState(png_setup_interlaced_item);
     png_setup_transparent = GetToggleButtonState(png_setup_transparent_item);
     png_setup_compression = GetSpinChoice(png_setup_compression_item);
     
-    if (aac_mode == AAC_ACCEPT) {
-        UnmanageChild(png_setup_frame);
-    }
+    return RETURN_SUCCESS;
 }
 #endif
 
 void pnm_gui_setup(void)
 {
-    Widget pnm_setup_panel, pnm_setup_rc, fr, rc;
-    
     set_wait_cursor();
+    
     if (pnm_setup_frame == NULL) {
-	pnm_setup_frame = XmCreateDialogShell(app_shell, "PNM options", NULL, 0);
-	handle_close(pnm_setup_frame);
-        pnm_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
-                                        pnm_setup_frame, NULL, 0);
-        pnm_setup_rc = XmCreateRowColumn(pnm_setup_panel, "psetup_rc", NULL, 0);
+        Widget fr, rc;
+        
+	pnm_setup_frame = CreateDialogForm(app_shell, "PNM options");
 
-	fr = CreateFrame(pnm_setup_rc, "PNM options");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	fr = CreateFrame(pnm_setup_frame, "PNM options");
+        rc = CreateVContainer(fr);
 	pnm_setup_format_item = CreatePanelChoice(rc, "Format: ",
 					 4,
 					 "1-bit mono (PBM)",
@@ -1095,17 +1069,12 @@ void pnm_gui_setup(void)
 					 "8-bit color (PPM)",
                                          0, 0);
 	pnm_setup_rawbits_item = CreateToggleButton(rc, "\"Rawbits\"");
-	ManageChild(rc);
 
-	CreateSeparator(pnm_setup_rc);
-
-	CreateAACButtons(pnm_setup_rc, pnm_setup_panel, set_pnm_setup_proc);
-        
-	ManageChild(pnm_setup_rc);
-	ManageChild(pnm_setup_panel);
+	CreateAACDialog(pnm_setup_frame, fr, set_pnm_setup_proc, NULL);
     }
-    RaiseWindow(pnm_setup_frame);
     update_pnm_setup_frame();
+
+    RaiseWindow(GetParent(pnm_setup_frame));
     unset_wait_cursor();
 }
 
@@ -1117,27 +1086,17 @@ static void update_pnm_setup_frame(void)
     }
 }
 
-static void set_pnm_setup_proc(void *data)
+static int set_pnm_setup_proc(void *data)
 {
-    int aac_mode;
-    aac_mode = (int) data;
-    
-    if (aac_mode == AAC_CLOSE) {
-        UnmanageChild(pnm_setup_frame);
-        return;
-    }
-    
     pnm_setup_format = GetChoice(pnm_setup_format_item);
     pnm_setup_rawbits = GetToggleButtonState(pnm_setup_rawbits_item);
     
-    if (aac_mode == AAC_ACCEPT) {
-        UnmanageChild(pnm_setup_frame);
-    }
+    return RETURN_SUCCESS;
 }
 
 #ifdef HAVE_LIBJPEG
 static void update_jpg_setup_frame(void);
-static void set_jpg_setup_proc(void *data);
+static int set_jpg_setup_proc(void *data);
 
 static Widget jpg_setup_frame;
 static Widget jpg_setup_grayscale_item;
@@ -1150,27 +1109,25 @@ static Widget *jpg_setup_dct_item;
 
 void jpg_gui_setup(void)
 {
-    Widget jpg_setup_panel, jpg_setup_rc, fr, rc;
-    
     set_wait_cursor();
+    
     if (jpg_setup_frame == NULL) {
-	jpg_setup_frame = XmCreateDialogShell(app_shell, "JPEG options", NULL, 0);
-	handle_close(jpg_setup_frame);
-        jpg_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
-                                        jpg_setup_frame, NULL, 0);
-        jpg_setup_rc = XmCreateRowColumn(jpg_setup_panel, "psetup_rc", NULL, 0);
+        Widget jpg_setup_rc, fr, rc;
+        
+	jpg_setup_frame = CreateDialogForm(app_shell, "JPEG options");
+
+        jpg_setup_rc = CreateVContainer(jpg_setup_frame);
 
 	fr = CreateFrame(jpg_setup_rc, "JPEG options");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc = CreateVContainer(fr);
 	jpg_setup_quality_item = CreateSpinChoice(rc,
             "Quality:", 3, SPIN_TYPE_INT, 0.0, 100.0, 5.0);
 	jpg_setup_optimize_item = CreateToggleButton(rc, "Optimize");
 	jpg_setup_progressive_item = CreateToggleButton(rc, "Progressive");
 	jpg_setup_grayscale_item = CreateToggleButton(rc, "Grayscale");
-	ManageChild(rc);
 
 	fr = CreateFrame(jpg_setup_rc, "JPEG advanced options");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc = CreateVContainer(fr);
 	jpg_setup_smoothing_item = CreateSpinChoice(rc,
             "Smoothing:", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
 	jpg_setup_baseline_item = CreateToggleButton(rc, "Force baseline");
@@ -1180,17 +1137,12 @@ void jpg_gui_setup(void)
 					 "Slow integer",
 					 "Float",
                                          0, 0);
-	ManageChild(rc);
 
-	CreateSeparator(jpg_setup_rc);
-
-	CreateAACButtons(jpg_setup_rc, jpg_setup_panel, set_jpg_setup_proc);
-        
-	ManageChild(jpg_setup_rc);
-	ManageChild(jpg_setup_panel);
+	CreateAACDialog(jpg_setup_frame, jpg_setup_rc, set_jpg_setup_proc, NULL);
     }
-    RaiseWindow(jpg_setup_frame);
     update_jpg_setup_frame();
+
+    RaiseWindow(GetParent(jpg_setup_frame));
     unset_wait_cursor();
 }
 
@@ -1207,16 +1159,8 @@ static void update_jpg_setup_frame(void)
     }
 }
 
-static void set_jpg_setup_proc(void *data)
+static int set_jpg_setup_proc(void *data)
 {
-    int aac_mode;
-    aac_mode = (int) data;
-    
-    if (aac_mode == AAC_CLOSE) {
-        UnmanageChild(jpg_setup_frame);
-        return;
-    }
-    
     jpg_setup_grayscale = GetToggleButtonState(jpg_setup_grayscale_item);
     jpg_setup_baseline = GetToggleButtonState(jpg_setup_baseline_item);
     jpg_setup_optimize = GetToggleButtonState(jpg_setup_optimize_item);
@@ -1225,9 +1169,7 @@ static void set_jpg_setup_proc(void *data)
     jpg_setup_smoothing = (int) GetSpinChoice(jpg_setup_smoothing_item);
     jpg_setup_dct = GetChoice(jpg_setup_dct_item);
     
-    if (aac_mode == AAC_ACCEPT) {
-        UnmanageChild(jpg_setup_frame);
-    }
+    return RETURN_SUCCESS;
 }
 #endif
 

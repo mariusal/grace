@@ -41,6 +41,8 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include <pdflib.h>
+
 #include "defines.h"
 #include "utils.h"
 #include "draw.h"
@@ -51,14 +53,7 @@
 
 #include "protos.h"
 
-#include <pdflib.h>
-
 #ifndef NONE_GUI
-#  include <Xm/Xm.h>
-#  include <Xm/Form.h>
-#  include <Xm/RowColumn.h>
-#  include <Xm/DialogS.h>
-
 #  include "motifinc.h"
 #endif
 
@@ -593,7 +588,7 @@ int pdf_op_parser(char *opstring)
 #ifndef NONE_GUI
 
 static void update_pdf_setup_frame(void);
-static void set_pdf_setup_proc(void *data);
+static int set_pdf_setup_proc(void *data);
 
 static Widget pdf_setup_frame;
 static Widget pdf_setup_pdf1_3_item;
@@ -601,33 +596,23 @@ static SpinStructure *pdf_setup_compression_item;
 
 void pdf_gui_setup(void)
 {
-    Widget pdf_setup_panel, pdf_setup_rc, fr, rc;
-    
     set_wait_cursor();
+    
     if (pdf_setup_frame == NULL) {
-	pdf_setup_frame = XmCreateDialogShell(app_shell, "PDF options", NULL, 0);
-	handle_close(pdf_setup_frame);
-        pdf_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
-                                        pdf_setup_frame, NULL, 0);
-        pdf_setup_rc = XmCreateRowColumn(pdf_setup_panel, "rc", NULL, 0);
+        Widget fr, rc;
+    
+	pdf_setup_frame = CreateDialogForm(app_shell, "PDF options");
 
-	fr = CreateFrame(pdf_setup_rc, "PDF options");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	fr = CreateFrame(pdf_setup_frame, "PDF options");
+        rc = CreateVContainer(fr);
 	pdf_setup_pdf1_3_item = CreateToggleButton(rc, "PDF-1.3");
 	pdf_setup_compression_item = CreateSpinChoice(rc,
             "Compression:", 1, SPIN_TYPE_INT, 0.0, 9.0, 1.0);
 
-	ManageChild(rc);
-
-	CreateSeparator(pdf_setup_rc);
-
-	CreateAACButtons(pdf_setup_rc, pdf_setup_panel, set_pdf_setup_proc);
-        
-	ManageChild(pdf_setup_rc);
-	ManageChild(pdf_setup_panel);
+	CreateAACDialog(pdf_setup_frame, fr, set_pdf_setup_proc, NULL);
     }
-    RaiseWindow(pdf_setup_frame);
     update_pdf_setup_frame();
+    RaiseWindow(GetParent(pdf_setup_frame));
     unset_wait_cursor();
 }
 
@@ -639,22 +624,12 @@ static void update_pdf_setup_frame(void)
     }
 }
 
-static void set_pdf_setup_proc(void *data)
+static int set_pdf_setup_proc(void *data)
 {
-    int aac_mode;
-    aac_mode = (int) data;
-    
-    if (aac_mode == AAC_CLOSE) {
-        UnmanageChild(pdf_setup_frame);
-        return;
-    }
-    
     pdf_setup_pdf1_3 = GetToggleButtonState(pdf_setup_pdf1_3_item);
     pdf_setup_compression = (int) GetSpinChoice(pdf_setup_compression_item);
     
-    if (aac_mode == AAC_ACCEPT) {
-        UnmanageChild(pdf_setup_frame);
-    }
+    return RETURN_SUCCESS;
 }
 
 #endif
