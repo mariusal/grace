@@ -47,8 +47,8 @@ texts : CHANGES ChangeLog
 CHANGES : doc/CHANGES.html
 	@lynx -dump $? > CHANGES
 
-ChangeLog : 
-	./scripts/cvs2cl.pl
+ChangeLog : dummy
+	./scripts/cvs2cl.pl -F trunk
 
 Make.conf : ac-tools/Make.conf.in configure
 	@echo
