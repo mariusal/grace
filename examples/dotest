@@ -90,6 +90,9 @@ $GRACE -rvideo -p test1.par -autoscale xy test.dat
 #
 $GRACE test2.agr 
 #
+# explanation of arrow shape parameters
+$GRACE arrows.agr 
+#
 # multiple graphs with a parameter file
 $GRACE mlo.dat -graph 1 brw.dat -p co2.par 
 #
