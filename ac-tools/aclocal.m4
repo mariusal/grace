@@ -545,6 +545,29 @@ AC_DEFINE(HAVE_LESSTIF)
 fi
 ])dnl
 
+
+dnl ACX_CHECK_XMVERSIONSTRING
+dnl --------------
+AC_DEFUN(ACX_CHECK_XMVERSIONSTRING,
+[
+  AC_CACHE_CHECK( "whether _XmVersionString[] can be referred to",
+    acx_cv__xmversionstring,
+    AC_TRY_LINK([#include <stdio.h>],
+                [extern char _XmVersionString[[]]; printf("%s\n", _XmVersionString);],
+                [acx_cv__xmversionstring="yes"],
+                [acx_cv__xmversionstring="no"]
+    )
+    if test "$acx_cv__xmversionstring" = "yes"
+    then
+      AC_DEFINE(HAVE__XMVERSIONSTRING)
+      $1
+    else
+      :
+      $2
+    fi
+  )
+])dnl
+
 dnl ACX_CHECK_T1LIB
 dnl --------------
 AC_DEFUN(ACX_CHECK_T1LIB,
@@ -585,9 +608,18 @@ dnl ACX_CHECK_ZLIB
 dnl --------------
 AC_DEFUN(ACX_CHECK_ZLIB,
 [
+  AC_ARG_WITH(zlib_library,
+  [  --with-zlib-library=OBJ      use OBJ as ZLIB library [-lz]],
+  zlib_library="$withval")
+  if test "x$zlib_library" = "x"
+  then
+    zlib_library=-lzlib
+  fi
+
   AC_CACHE_CHECK( "for zlib \>= $1", acx_cv_zlib,
+    AC_CACHE_VAL(acx_cv_zlib_library, acx_cv_zlib_library=$zlib_library)
     ACX_SAVE_STATE
-    LIBS="-lz $LIBS"
+    LIBS="$acx_cv_zlib_library $LIBS"
     AC_TRY_RUN([
 #include <string.h>
 #include <zlib.h>
@@ -613,7 +645,7 @@ AC_DEFUN(ACX_CHECK_ZLIB,
   )
   if test "$acx_cv_zlib" = "yes"
   then
-    Z_LIB="-lz"
+    Z_LIB="$acx_cv_zlib_library"
     $2
   else
     Z_LIB=
@@ -625,9 +657,18 @@ dnl ACX_CHECK_JPEG
 dnl --------------
 AC_DEFUN(ACX_CHECK_JPEG,
 [
+  AC_ARG_WITH(jpeg_library,
+  [  --with-jpeg-library=OBJ      use OBJ as JPEG library [-ljpeg]],
+  jpeg_library="$withval")
+  if test "x$jpeg_library" = "x"
+  then
+    jpeg_library=-ljpeg
+  fi
+  
   AC_CACHE_CHECK( "for IJG JPEG software \>= $1", acx_cv_jpeg,
+    AC_CACHE_VAL(acx_cv_jpeg_library, acx_cv_jpeg_library=$jpeg_library)
     ACX_SAVE_STATE
-    LIBS="-ljpeg $LIBS"
+    LIBS="$acx_cv_jpeg_library $LIBS"
     AC_TRY_RUN([
 #include <stdio.h>
 #include <jpeglib.h>
@@ -649,7 +690,7 @@ AC_DEFUN(ACX_CHECK_JPEG,
   )
   if test "$acx_cv_jpeg" = "yes"
   then
-    JPEG_LIB="-ljpeg"
+    JPEG_LIB=$acx_cv_jpeg_library
     $2
   else
     JPEG_LIB=
@@ -661,9 +702,18 @@ dnl ACX_CHECK_PNG
 dnl --------------
 AC_DEFUN(ACX_CHECK_PNG,
 [
+  AC_ARG_WITH(png_library,
+  [  --with-png-library=OBJ       use OBJ as PNG library [-lpng]],
+  png_library="$withval")
+  if test "x$png_library" = "x"
+  then
+    png_library=-lpng
+  fi
+
   AC_CACHE_CHECK( "for libpng \>= $1", acx_cv_png,
+    AC_CACHE_VAL(acx_cv_png_library, acx_cv_png_library=$png_library)
     ACX_SAVE_STATE
-    LIBS="-lpng $Z_LIB $LIBS"
+    LIBS="$acx_cv_png_library $Z_LIB $LIBS"
     AC_TRY_RUN([
 #include <string.h>
 #include <png.h>
@@ -689,7 +739,7 @@ AC_DEFUN(ACX_CHECK_PNG,
   )
   if test "$acx_cv_png" = "yes"
   then
-    PNG_LIB="-lpng"
+    PNG_LIB="$acx_cv_png_library"
     $2
   else
     PNG_LIB=
@@ -701,9 +751,18 @@ dnl ACX_CHECK_TIFF
 dnl --------------
 AC_DEFUN(ACX_CHECK_TIFF,
 [
+  AC_ARG_WITH(tiff_library,
+  [  --with-tiff-library=OBJ      use OBJ as TIFF library [-ltiff]],
+  tiff_library="$withval")
+  if test "x$tiff_library" = "x"
+  then
+    tiff_library=-ltiff
+  fi
+
   AC_CACHE_CHECK( "for libtiff \>= $1", acx_cv_tiff,
+    AC_CACHE_VAL(acx_cv_tiff_library, acx_cv_tiff_library=$tiff_library)
     ACX_SAVE_STATE
-    LIBS="-ltiff $JPEG_LIB $Z_LIB -lm $LIBS"
+    LIBS="$acx_cv_tiff_library $JPEG_LIB $Z_LIB -lm $LIBS"
     AC_TRY_RUN([
 #include <tiffio.h>
       int main(void) {
@@ -725,7 +784,7 @@ AC_DEFUN(ACX_CHECK_TIFF,
   )
   if test "$acx_cv_tiff" = "yes"
   then
-    TIFF_LIB="-ltiff"
+    TIFF_LIB="$acx_cv_tiff_library"
     $2
   else
     TIFF_LIB=
@@ -737,9 +796,18 @@ dnl ACX_CHECK_PDFLIB
 dnl --------------
 AC_DEFUN(ACX_CHECK_PDFLIB,
 [
+  AC_ARG_WITH(pdf_library,
+  [  --with-pdf-library=OBJ       use OBJ as PDFlib library [-lpdf]],
+  pdf_library="$withval")
+  if test "x$pdf_library" = "x"
+  then
+    pdf_library=-lpdf
+  fi
+
   AC_CACHE_CHECK( "for PDFlib \>= $1", acx_cv_pdflib,
+    AC_CACHE_VAL(acx_cv_pdf_library, acx_cv_pdf_library=$pdf_library)
     ACX_SAVE_STATE
-    LIBS="-lpdf $TIFF_LIB $JPEG_LIB $PNG_LIB $Z_LIB $LIBS"
+    LIBS="$acx_cv_pdf_library $TIFF_LIB $JPEG_LIB $PNG_LIB $Z_LIB $LIBS"
     AC_TRY_RUN([
 #include <pdflib.h>
       int main(void) {
@@ -766,32 +834,10 @@ AC_DEFUN(ACX_CHECK_PDFLIB,
   )
   if test "$acx_cv_pdflib" = "yes"
   then
-    PDF_LIB="-lpdf"
+    PDF_LIB="$acx_cv_pdf_library"
     $2
   else
     PDF_LIB=
     $3
   fi
-])dnl
-
-dnl ACX_CHECK_XMVERSIONSTRING
-dnl --------------
-AC_DEFUN(ACX_CHECK_XMVERSIONSTRING,
-[
-  AC_CACHE_CHECK( "whether _XmVersionString[] can be referred to",
-    acx_cv__xmversionstring,
-    AC_TRY_LINK([#include <stdio.h>],
-                [extern char _XmVersionString[[]]; printf("%s\n", _XmVersionString);],
-                [acx_cv__xmversionstring="yes"],
-                [acx_cv__xmversionstring="no"]
-    )
-    if test "$acx_cv__xmversionstring" = "yes"
-    then
-      AC_DEFINE(HAVE__XMVERSIONSTRING)
-      $1
-    else
-      :
-      $2
-    fi
-  )
 ])dnl
