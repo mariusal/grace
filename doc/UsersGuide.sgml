@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.2.0)</title>
 <author>by the Grace Team</author>
-<date>28.05.2002</date>
+<date>16.08.2002</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -23,7 +23,7 @@
      Grace is a WYSIWYG tool to make two-dimensional plots of scientific
      data. It runs under various (if not all) flavors of Unix with X11
      and M*tif (LessTif or Motif). It also runs under VMS, OS/2, and
-     Windows (95/98/NT). Its capabilities are roughly similar to
+     Windows (95/98/NT/Xp). Its capabilities are roughly similar to
      GUI-based programs like Sigmaplot or Microcal Origin plus
      script-based tools like Gnuplot or Genplot. Its strength lies in the
      fact that it combines the convenience of a graphical user interface
@@ -944,9 +944,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
       <itemize> 
         <item> <tt>  Draw</tt>: This will redraw the canvas and sets.
-	  Useful if "Auto Redraw" has been deselected in the Edit|Preferences
-	  dialog or after executing commands directly from the Window|Commands
-	  interpreter.
+	  Useful if "Auto Redraw" has been deselected in the "Edit/Preferences"
+	  dialog or after executing commands directly from the "Tools/Console"
+	  dialog.
           <p>
 
         <item> <tt>  Lens</tt>: A zoom lens.  Click on the lens, then select the
@@ -1670,6 +1670,11 @@ integral     | cumulative sum @
       graphs). Beware that you always apply the properties of all
       tabs, not only the selected one.
 
+      <sect2> Drawing objects <label id="drawing-objects">
+      <p>
+        Not written yet...
+      </p>
+
    <sect1> View menu <label id="view-menu">
    <p>
       <sect2> Show locator bar <label id="show-locator-bar">
@@ -1699,26 +1704,12 @@ integral     | cumulative sum @
       <p>
       This menu item causes an update of all GUI controls. Usually, everything
       is updated automatically, unless one makes modifications by entering
-      commands in the <ref name="Command" id="commands"> tool.
+      commands in the <ref name="Console" id="console"> tool.
 
 
-   <sect1> Window menu <label id="window-menu">
+   <sect1> Tools menu <label id="tools-menu">
     <p>
-      <sect2> Commands <label id="commands">
-      <p>
-        Command driven version of the interface to Grace. Here, commands
-        are typed at the "Command:" text item and executed when
-        &lt;Return&gt; is pressed. The command will be parsed and executed,
-        and the command line is placed in the history list. Items in the
-        history list can be recalled by simply clicking on them with the
-        left mouse button. For a reference on the Grace command interpreter,
-        see <ref id="command-interpreter" name="Command interpreter">.
-      </p>
       <sect2> Point tracking <label id="point-tracking">
-      <p>
-        Not written yet...
-      </p>
-      <sect2> Drawing objects <label id="drawing-objects">
       <p>
         Not written yet...
       </p>
@@ -1733,6 +1724,19 @@ integral     | cumulative sum @
         name="Non-linear fit">). The window is popped up automatically
         whenever an error occurs or new result messages appear. This can
         be altered by checking the "Options/Popup only on errors" option.
+      </p>
+      <p>
+        The dialog also provides an interface to the command driven version
+        of Grace. Here, commands
+        can be typed in the "Command:" text item and executed when
+        &lt;Return&gt; is pressed. The command will be parsed and executed,
+        and the command line is placed in the history list. Items in the
+        history list can be recalled by using the keyboard arrow buttons.
+        Depending on the state of the "Options/Auto redraw" and
+        "Options/Auto update" checkboxes, each command entered will cause
+        an immediate resync of the canvas and/or the GUI, respectively.
+        For a reference on the Grace command interpreter,
+        see <ref id="command-interpreter" name="Command interpreter">.
       </p>
 
    <sect1> Help menu <label id="help-menu">
@@ -3223,7 +3227,7 @@ C
        NOTE:
        Characters from the upper half of the char table can be entered directly
        from the keyboard, using appropriate <tt>xmodmap(1)</tt> settings, or
-       with the help of the font tool ("Window/Font tool").
+       with the help of the font tool ("Tools/Font tool").
       <p>
 
   <sect1>Device-specific limitations<label id="device-limitations">
