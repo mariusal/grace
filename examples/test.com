@@ -15,13 +15,13 @@ g2.s1 length 1024
 echo "Set g0.s0.x = set index"
 sleep 1
 with g0
-s0.x = index
+s0.x = mesh(1024)
 with g1
 echo "Set g1.s0.x = g1.s1.x = set index"
 sleep 1
-s0.x = index
-s1.x = index
-g2.s1.x = index
+s0.x = mesh(1024)
+s1.x = mesh(1024)
+g2.s1.x = mesh(1024)
 with g0
 echo "Back to graph g0 to load s0.y"
 sleep 1
