@@ -904,12 +904,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     }
     if (CSglyph->bits == NULL) {
         /* a string containing only spaces or unrasterizable chars */
-        /*
-         *  Ideally, we should call here T1_FreeGlyph(). However,
-         *  the current t1lib does NOT check whether the "bits" field
-         *  is NULL - so we use a hack
-         */
-        free(CSglyph);
+        T1_FreeGlyph(CSglyph);
         return;
     }
     
