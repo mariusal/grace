@@ -352,6 +352,7 @@ void create_datasetop_popup(void *data)
         optype_items[4].label = "Drop points";
         
 	datasetopui.top = CreateDialogForm(app_shell, "Data set operations");
+        SetDialogFormResizable(datasetopui.top, TRUE);
 
         menubar = CreateMenuBar(datasetopui.top);
         ManageChild(menubar);
