@@ -336,8 +336,8 @@ static int is_motif_compatible(void)
     /* Finally, if LessTif is used, check for a reasonably new release */
     if (rt_lesstif) {
         s = strstr(_XmVersionString, "Version");
-        if (s == NULL || (strcmp(s, "Version 0.90.0") < 0)) {
-            errmsg("An old version of LessTif, please upgrade to 0.90.0 at least");
+        if (s == NULL || (strcmp(s, "Version 0.92.0") < 0)) {
+            errmsg("An old version of LessTif, please upgrade to 0.92.0 at least");
         }
     }
 #endif
