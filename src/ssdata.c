@@ -240,11 +240,9 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
             (*formats)[ncols] = FFORMAT_NUMBER;
             (*nncols)++;
         } else {
-            *nscols = 0;
-            *nncols = 0;
-            cxfree(*formats);
-            free(buf);
-            return GRACE_EXIT_FAILURE;
+            /* last resort - treat the field as string, even if not quoted */
+            (*formats)[ncols] = FFORMAT_STRING;
+            (*nscols)++;
         }
     }
     free(buf);
