@@ -249,7 +249,7 @@ int get_hotlink_src(int gno, int setno);
 
 void sortset(int gno, int setno, int sorton, int stype);
 void do_seasonal_diff(int setno, int period);
-int do_nonlfit(int gno, int setno, int nsteps);
+int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps);
 void do_interp(int ygno, int yset, int xgno, int xset, int method);
 int get_restriction_array(int gno, int setno,
     int rtype, int negate, char **rarray);
