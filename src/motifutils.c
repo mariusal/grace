@@ -2118,6 +2118,10 @@ static void init_xvlibcolors(void)
     Project *pr = project_get_data(grace->project);
     unsigned int i;
     
+    if (!pr) {
+        return;
+    }
+    
     for (i = 0; i < pr->ncolors; i++) {
         long pixel;
         Colordef *c = &pr->colormap[i];
