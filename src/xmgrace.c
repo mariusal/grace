@@ -715,16 +715,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Autoscale graph...", 'A', create_autos_frame, NULL);
     CreateMenuSeparator(menupane);
 
-    submenupane = CreateMenu(menupane, "Regions", 'i', FALSE);
-    CreateMenuButton(submenupane, "Status...", 'S', define_status_popup, NULL);
-    CreateMenuButton(submenupane, "Define...", 'D', create_define_frame, NULL);
-    CreateMenuButton(submenupane, "Clear...", 'C', create_clear_frame, NULL);
-    CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "Report on...", 'R', create_reporton_frame, NULL);
-
-
-    CreateMenuSeparator(menupane);
-
     CreateMenuButton(menupane, "Set locator fixed point", 'f', set_actioncb, (void *) SEL_POINT);
     CreateMenuButton(menupane, "Clear locator fixed point", 'C', do_clear_point, NULL);
     

@@ -91,28 +91,14 @@ void create_lconv_frame(Widget but, void *data);
 void create_leval_frame(Widget but, void *data);
 
 void create_write_popup(Widget but, void *data);
-void create_hotlinks_popup(Widget but, void *data);
-void update_hotlinks(void);
-void create_saveall_popup(Widget but, void *data);
 
 void create_points_frame(Widget but, void *data);
 
-void create_region_frame(Widget but, void *data);
-void create_define_frame(Widget but, void *data);
-void create_clear_frame(Widget but, void *data);
-void create_reporton_frame(Widget but, void *data);
-void create_area_frame(Widget but, void *data);
-
-void define_region(int nr, int rtype);
-
-void define_status_popup(Widget but, void *data);
 void create_about_grtool(Widget but, void *data);
 
 void update_set_lists(Quark *gr);
 
 void update_ticks(Quark *gr);
-
-void create_graph_frame(Widget but, void *data);
 
 void create_world_frame(Widget but, void *data);
 void create_arrange_frame(Widget but, void *data);
