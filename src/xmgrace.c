@@ -156,15 +156,16 @@ static void world_stack_proc(Widget w, XtPointer client_data, XtPointer call_dat
 static XtActionsRec canvas_actions[] = {
 	{ "autoscale", (XtActionProc) autoscale_action },	
 	{ "autoscale_on_near", (XtActionProc) autoscale_on_near_action },	
-	{ "draw_box_action", (XtActionProc) draw_box_action },	
+	{ "draw_line", (XtActionProc) draw_line_action },	
+	{ "draw_box", (XtActionProc) draw_box_action },	
+	{ "draw_ellipse", (XtActionProc) draw_ellipse_action },	
+	{ "write_string", (XtActionProc) write_string_action },	
 	{ "delete_object", (XtActionProc) delete_object_action },	
 	{ "place_legend", (XtActionProc) place_legend_action },	
 	{ "place_timestamp", (XtActionProc) place_timestamp_action },	
 	{ "move_object", (XtActionProc) move_object_action },	
-	{ "draw_line_action", (XtActionProc) draw_line_action },	
 	{ "refresh_hotlink", (XtActionProc) refresh_hotlink_action },
 	{ "set_viewport", (XtActionProc) set_viewport_action },	
-	{ "write_string", (XtActionProc) write_string_action },	
 	{ "enable_zoom", (XtActionProc) enable_zoom_action }
 };
 
@@ -178,17 +179,18 @@ static XtActionsRec cstext_actions[] = {
 };
 
 static char canvas_table[] = "#override\n\
-	Ctrl <Key>A: autoscale()\n\
-	Ctrl <Key>B: draw_box_action()\n\
-	Ctrl <Key>D: delete_object()\n\
-	Ctrl <Key>L: place_legend()\n\
-	Ctrl <Key>M: move_object()\n\
-	Ctrl <Key>P: draw_line_action()\n\
-	Ctrl <Key>T: place_timestamp()\n\
-	Ctrl <Key>U: refresh_hotlink()\n\
-	Ctrl <Key>V: set_viewport()\n\
-	Ctrl <Key>W: write_string()\n\
-	Ctrl <Key>Z: enable_zoom()";
+	Ctrl Alt <Key>l: draw_line()\n\
+	Ctrl Alt <Key>b: draw_box()\n\
+	Ctrl Alt <Key>e: draw_ellipse()\n\
+	Ctrl Alt <Key>t: write_string()\n\
+	Ctrl <Key>a: autoscale()\n\
+	Ctrl <Key>d: delete_object()\n\
+	Ctrl <Key>l: place_legend()\n\
+	Ctrl <Key>m: move_object()\n\
+	Ctrl <Key>t: place_timestamp()\n\
+	Ctrl <Key>u: refresh_hotlink()\n\
+	Ctrl <Key>v: set_viewport()\n\
+	Ctrl <Key>z: enable_zoom()";
 
 /*
  * establish resource stuff
