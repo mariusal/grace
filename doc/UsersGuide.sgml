@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.3)
 <author>by the Grace Team
-<date>17.07.1999
+<date>18.07.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -95,26 +95,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> Extra libraries. Some features will be available only if
                  additional libraries are installed. Those are:
             <itemize>
-              <item> The PDF driver requires the PDFlib-0.6 library of Thomas
+              <item> The PDF driver requires the PDFlib-2.0 library of Thomas
                      Merz to be installed, which is available
-                     <url name="here" url="http://www.ifconnection.de/~tm/software/pdflib/index.html">.
-                     Furthermore, prior to the library compilation, you must
-                     apply the patch which can be found in the "patches"
-                     directory of the Grace distribution tree.
-
-                     Please pay attention to the following: the library can be
-                     compiled with or without the support for TIFF images. If
-                     you enable the TIFF support (off by default), make sure to
-                     uncomment the "define USE_TIFF" line at the top of the
-                     pdfdrv.c file in the "src" directory of the Grace
-                     distribution tree. Sorry, there is no way to detect it
-                     automagically.
-              <item> All backends of the raster driver (GIF/GD/PNM/JPEG) use the
-                     GD-1.4 library of Thomas Boutell. The home page of the
-                     library is 
-                     <url name="http://www.boutell.com/gd/" url="http://www.boutell.com/gd/">.
-                     In addition, the JPEG backend needs
-                     the IJG (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">).
+                     <url name="here" url="http://www.ifconnection.de/~tm/pdflib/">.
+              <item> The JPEG backend needs
+                     the IJG's (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">).
+              <item> The PNG backend needs
+                     the (<url name="libpng" url="http://www.cdrom.com/pub/png/">) library.
               <item> If your computer has the FFTW library installed when
                      Grace is compiled, Grace will link itself to this, and
                      drop all conventional FFT's and DFT's. All transforms
@@ -1323,7 +1310,7 @@ main(int argc, char* argv[])
       "-version" command line switch.
       <itemize>
         <item> X11, PostScript and EPS are full-featured devices
-        <item> Raster drivers (GIF/PNM/JPEG):
+        <item> Raster drivers (PNM/JPEG/PNG):
                <itemize>
                  <item> patterned fills of ellipses cause crash
                  <item> only even-odd fill rule is supported
@@ -1391,44 +1378,6 @@ main(int argc, char* argv[])
       <table LOC=htbp>
       <tabular CA="ll">
               <hline>
-              Command      | Description        @
-              <hline>
-              binary       | set binary output  @
-              binary:on    | same               @
-              ascii:off    | same               @
-              ascii        | set ASCII output   @
-              ascii:on     | same               @
-              binary:off   | same               @
-              <hline>
-      </tabular>
-      <caption>
-              PDF driver options
-      </caption>
-      </table>
-
-    <p>
-
-      <table LOC=htbp>
-      <tabular CA="ll">
-              <hline>
-              Command           | Description                       @
-              <hline>
-              interlaced:on     | make interlaced image             @
-              interlaced:off    | don't make interlaced image       @
-              transparent:on    | produce transparent image         @
-              transparent:off   | don't produce transparent image   @
-              <hline>
-      </tabular>
-      <caption>
-              GIF driver options
-      </caption>
-      </table>
-
-    <p>
-
-      <table LOC=htbp>
-      <tabular CA="ll">
-              <hline>
               Command           | Description               @
               <hline>
               format:pbm        | output in PBM format      @
@@ -1468,6 +1417,26 @@ main(int argc, char* argv[])
       </table>
 
     <p>
+
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+              Command           | Description                       @
+              <hline>
+              interlaced:on     | make interlaced image             @
+              interlaced:off    | don't make interlaced image       @
+              transparent:on    | produce transparent image         @
+              transparent:off   | don't produce transparent image   @
+              compression:value | set compression level (0 - 9)     @
+              <hline>
+      </tabular>
+      <caption>
+              PNG driver options
+      </caption>
+      </table>
+
+    <p>
+
 
     <sect1>Dates in Grace <label id="dates">
     

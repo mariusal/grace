@@ -6,7 +6,7 @@
 
       <title>Grace FAQ (v0.5)
       <author>by the Grace Team
-      <date>29.06.1999
+      <date>18.07.1999
       <abstract>
 	This document contains Frequently Asked Questions (FAQ) about
 	<bf/Grace/, the free 2d plotting tool for scientific data.
@@ -437,9 +437,9 @@
 	  <p>
 
             Grace usually compiles out of the box on a regular UNIX machine.
-            You need an ANSI C compiler (gcc is just fine), the X11 libraries
-            and headers, and Motif-1.2 or above (see question <ref id="motif"
-            name="Motif">).
+            You need an ANSI C compiler (gcc is just fine), the X11R5 or above
+            libraries and headers, and Motif-1.2 or above (see question
+            <ref id="motif" name="Motif">).
 
 	    You also need certain libraries if you want to export
 	    special file formats (see question <ref id="export"
@@ -848,34 +848,40 @@ XMgrace*background: ...
 	<sect2>Can I import bitmap graphics into Grace?
 	  <p>
 
-	    Well, not yet. The import of GIF files will be implemented
+	    Well, not yet. The import of images will be implemented
 	    in a future release.
 
-	<sect2>Can I export Grace graphs to GIF&verbar;TIFF&verbar;PostScript&verbar;PDF etc? <label id="export">
+	<sect2>Can I export Grace graphs to GIF&verbar;TIFF&verbar;
+               PostScript&verbar;PDF etc? <label id="export">
 	  <p>
 
-	    Postscript (for printing) and EPS (encapsulated
-	    postscript; for the inclusion of graphics into e.g. LaTeX
-	    documents) are implemented by default.
+	    PostScript (for printing), EPS (encapsulated
+	    PostScript; for the inclusion of graphics into e.g. LaTeX
+	    documents) and PNM (PBM/PGM/PPM) are implemented by default.
 
-	    In order to produce GIF (and GD) output you need the
-	    GD-1.4 library of Thomas Boutell. It is available at <url
-	    name="the GD home page"
-	    url="http://www.boutell.com/gd/">. Read the file
-	    <tt/README.GIF/ for details
-
-	    The support for the PNM (PBM/PGM/PPM) format (both ASCII
-	    and rawbits) depends on GD, too. Additionally, if the 
-            <url name="IJG's JPEG library 6.x"
+	    Additionally, if the <url name="IJG's JPEG library 6.x"
             url="ftp://ftp.uu.net/graphics/jpeg/">
             is installed, the JPEG backend will be built as well.
 
-	    For PDF output, you need pdflib-0.6. The PDFlib
+	    Additionally, the PNG driver can be built if the
+            <url name="libpng library"
+            url="http://www.cdrom.com/pub/png/"> is installed.
+            
+	    For PDF output, you need pdflib-2.0. The PDFlib
 	    distribution is available at <url name="the PDFlib home
-	    page" url="http://www.ifconnection.de/~tm/">. Read the
-	    file <tt/README.PDF/ before trying to compile pdflib.
+	    page" url="http://www.ifconnection.de/~tm/pdflib">.
 
 	    You can get various other formats using netpbm and pstoedit.
+
+	    Bitmaps: Using the PNM device + the <tt/netpbm/ utils
+	    (available at e.g. <url
+	    url="ftp://ftp.x.org/contrib/utilities/"> one can get
+	    TIFF, GIF, G3, BMP, PCX,...  (conversion can be done on
+	    the fly with appropriate filter definitions).
+
+            Notice that the direct support of the GIF format is impossible
+            due to the copyright policy of Unisys - it's not a technical
+            problem.
 
 	    One can use <tt/pstoedit/ (available at several places,
 	    e.g. <url
@@ -883,12 +889,6 @@ XMgrace*background: ...
 	    convert PS to a lot of other vector formats: MIF, CGM,
 	    xfig's, tgif's, Windoze and OS/2 metafiles,... even Java
 	    applets!
-
-	    Bitmaps: Using PNM device + the <tt/netpbm/ utils
-	    (available at e.g. <url
-	    url="ftp://ftp.x.org/contrib/utilities/"> one can get
-	    TIFF, G3, BMP, PCX,...  (conversion can be done on
-	    the fly with appropriate filter definitions).
 
 
 <!-- **************************************** -->
@@ -1081,7 +1081,7 @@ XMgrace*background: ...
 
 	  Among the many features planned to be introduced in the
 	  future are 3D plots, a spreadsheet-like frontend for set
-	  operations, contour plots and XPM/GIF/JPEG image import and
+	  operations, contour plots and XPM/JPEG/... image import and
 	  manipulations.
 
       <sect1>Are there things that Grace can't do?
@@ -1122,8 +1122,8 @@ XMgrace*background: ...
 	  For certain tasks, Grace needs external libraries which are
 	  neither provided by Grace nor the operating system. You will
 	  need to install these libraries yourself. This applies to
-	  Motif (see question <ref id="motif" name="Motif">), PDF and
-	  GIF (see question <ref id="export" name="Output Devices">)
+	  Motif (see question <ref id="motif" name="Motif">), PDF
+	  (see question <ref id="export" name="Output Devices">)
 	  and probably other libraries.
 
 	<sect2>Can't find library libXm.so (on Linux)
@@ -1266,7 +1266,7 @@ Database File Initialization of t1-library failed!
 	    a1 constraints off
 	    a2 = 1
 	    a2 constraints off
-	    nonlfit (s0,100)
+	    nonlfit (s0, 100)
 	  </verb>
 
 	  This assumes that your original curve is in set s0 and that
@@ -1279,9 +1279,10 @@ Database File Initialization of t1-library failed!
 	  Plot a set, e.g.:
 
 	  <verb>
-	    activate s3 100
-	    s3.x=s0.x
-	    s3.y= a0 + a1 * sin (a2 + x * pi / 180)
+	    s3 on
+	    s3 length s0.length
+	    s3.x = s0.x
+	    s3.y = a0 + a1 * sin (a2 + x * pi / 180)
 	  </verb>
 
 	  Use for another fit as the initial values, or just ECHO them
