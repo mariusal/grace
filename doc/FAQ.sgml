@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.2.0)
+  <title>Grace FAQ (for Grace-5.99.0)
   <author>by the Grace Team
-  <date>30.04.2002
+  <date>24.06.2004
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -38,9 +38,6 @@
         From version number 4.00, the development was taken over by
         a team of volunteers under the coordination of Evgeny Stambulchik.
 
-        See question <ref id="mailinglist" name="Mailing Lists"> on
-        how to contact the developers.
-        
         When its copyright was changed to GPL, the name was changed to Grace,
         which stands for ``GRaphing, Advanced Computation and Exploration of
         data'' or ``Grace Revamps ACE/gr''. The first version of Grace
@@ -134,7 +131,7 @@
 
           <item> <url url="http://www.moshier.net/" name="Cephes math library">
 
-          <item> <url url="http://www.neuroinformatik.ruhr-uni-bochum.de/ini/PEOPLE/rmz/t1lib.html" name="T1lib">
+          <item> <url url="http://metalab.unc.edu/pub/Linux/libs/graphics/" name="T1lib">
           
           <item> <url url="http://www.lesstif.org/Xbae.html" name="Xbae">
           
@@ -150,14 +147,6 @@
         At the Grace home page
         (see question <ref id="homepage" name="Home Page">), all
         these versions are available.
-
-    <sect1>Who maintains the FAQ?
-      <p>
-
-        Until recently, the FAQ had been maintained by <url name="Heiko
-        Selber" url="mailto:selber@fhi-berlin.mpg.de">. There is no
-        "official" maintainer right now. If you'd like to take the job,
-        please let us know.
 
 <!-- **************************************** -->
 
@@ -221,8 +210,8 @@
           <item>Have a look at the Grace home page (question <ref
               id="homepage" name="Home Page">).
 
-          <item>On the Grace mailing list (see question 
-              <ref id="mailinglist" name="Mailing Lists"> for details)
+          <item>On the Grace forums (see question 
+              <ref id="forums" name="Forums"> for details)
               you can easily get in contact with users and
               developers of Grace. However be aware that people
               here are trying to help in their spare time -
@@ -233,94 +222,28 @@
     <sect1>Is there a newsgroup devoted to Grace?
       <p>
 
-        No, there isn't. We feel that a mailing list (see question
-        <ref id="mailinglist" name="Mailing Lists">) is more
-        appropriate to discuss the topics related to Grace as long
-        the volume of the lists stays low enough.
+        No, there isn't. We feel that a bulletin board (see question
+        <ref id="forums" name="Forums">) is more
+        appropriate to discuss the topics related to Grace.
 
-    <sect1>Is there a mailing list for Grace?<label id="mailinglist">
+    <sect1>Is there a mailing list for Grace?
       <p>
 
-        Yes.  Grace has three mailing lists: <tt>grace</tt>,
-        <tt>grace-announce</tt> and <tt>grace-dev</tt>.
+        There used to be a few, but now they are replaced with
+        bulletin-board-style forums (see question
+        <ref id="forums" name="Forums">).
 
-        See question <ref id="subscription" name="Subscription"> for
-        details on how to subscribe.
+        The <url name="mailing list archives"
+        url="http://plasma-gate.weizmann.ac.il/Grace/maillists/grace/"> are
+        still available for browsing.
 
-        <descrip>
-
-          <tag>grace</tag> The first one, unmoderated, serves for general
-            discussions about Grace. This is the list your message
-            should go to if you have a question about
-            Grace. Currently, the volume of this list is about a
-            dozen messages per week.
-
-            If you want to write an email to the list, use the
-            address <htmlurl name="grace@plasma-gate.weizmann.ac.il"
-            url="mailto:grace@plasma-gate.weizmann.ac.il">. This
-            address is <bf>not</bf> for subscription or unsubscription.
-
-            Virtually all developers and most users of Grace have
-            subscribed to this list. So you can be pretty sure that
-            there will be at least one who can help you.
-
-            <bf>But:</bf> no one likes to read the same questions over
-            and over again. So, please refer to other sources of
-            help (see question <ref id="support" name="Support">)
-            before asking something that can be found in the
-            documentation.
-
-            Instead of subscribing to the list itself you may wish
-            to subscribe to the digest of the list. The digest is
-            sent once in three days or when its size exceeds 32K.
-
-          <tag>grace-announce</tag> The moderated grace-announce list is
-            for new version or serious bug fix announcements only
-            (which are automatically relayed to the first mailing
-            list, too). The volume of this list is very low, like
-            once a month or less.
-
-          <tag>grace-dev</tag> The grace-dev mailing list is for
-            developers. It serves for discussions about the future
-            development or details which are usually not interesting
-            to mere users.
-
-        </descrip>
-
-        There are <url name="mailing list archives"
-          url="http://plasma-gate.weizmann.ac.il/Grace/maillists/grace/">
-        available for browsing.
-
-    <sect1>How do I subscribe to the mailing lists?<label id="subscription">
+    <sect1>Is there a forum for Grace? <label id="forums">
       <p>
 
-        You can subscribe to any of the Grace mailing lists by
-        sending an email to
-        <tt>&lt;LISTNAME>-request@plasma-gate.weizmann.ac.il</tt> with
-        no subject line and the only word <tt>`Subscribe'</tt> (without
-        quotes, of course) in the body of the message.
-
-        <tt>&lt;LISTNAME></tt> stands for the name of the list you wish
-        to subscribe to, i.e. <tt>grace</tt>, <tt>grace-digest</tt>,
-        <tt>grace-announce</tt> or <tt>grace-devel</tt>
-
-        So the respective addresses are:
-
-        <htmlurl name="grace-request@plasma-gate.weizmann.ac.il"
-          url="mailto:grace-request@plasma-gate.weizmann.ac.il">
-
-        <htmlurl name="grace-digest-request@plasma-gate.weizmann.ac.il"
-          url="mailto:grace-digest-request@plasma-gate.weizmann.ac.il">
-
-        <htmlurl name="grace-announce-request@plasma-gate.weizmann.ac.il"
-          url="mailto:grace-announce-request@plasma-gate.weizmann.ac.il">
-
-        <htmlurl name="grace-dev-request@plasma-gate.weizmann.ac.il"
-          url="mailto:grace-dev-request@plasma-gate.weizmann.ac.il">
-
-        To unsubscribe from a list, same instructions apply, with
-        <tt>`Subscribe'</tt> being replaced by <tt>`Unsubscribe'</tt>.
-
+        Yes. Just follow this link: <url name="forums"
+        url="http://plasma-gate.weizmann.ac.il/Grace/phpbb/">. It has its
+        own FAQ.
+        
 <!-- **************************************** -->
 
   <sect>Providing Help: Finding and Reporting Bugs
@@ -379,7 +302,7 @@
         wishes.
         <p>
         Some bugs and fixes may not appear in w3todo, but are
-        covered on the <ref id="mailinglist" name="mailinglists">.
+        covered on the <ref id="forums" name="forums">.
 
     <sect1>The bug report #xxx is marked as "Fixed" in the w3todo, but I
            checked the last version of Grace and the bug is still there!
@@ -417,7 +340,7 @@
         Fine! There are always things to do.
 
         If you are a C programmer, you can almost certainly find
-        something useful to do. Just ask the mailing list.
+        something useful to do. Just ask on the forums.
         The same applies if you are a technical writer. The documentation
         will certainly need to be updated, corrected or completed.
         Every small contribution is appreciated!
@@ -433,11 +356,10 @@
         Specify exactly against which version the diff is
         supposed to work.
         Finally send them to
-        <url url="mailto:fnevgeny@plasma-gate.weizmann.ac.il">
+        <url url="mailto:fnevgeny at weizmann dot ac dot il">
         
-        In case you plan to help this way more than once
-        you should join the
-        <ref id="mailinglist" name="developer mailinglist">
+        In case you plan to help this way more than once you should join
+        the <ref id="forums" name="forums">.
 
     <sect1>I like Grace! Should I donate anything to its authors?
       <p>
@@ -455,7 +377,8 @@
       <p>
     
       You have the choice: either you compile the sources yourself
-      or you download precompiled binaries. You can get both from
+      or you download precompiled binaries (we strongly suggest you take
+      the first route). You can get both from
       the <url url="http://plasma-gate.weizmann.ac.il/Grace/"
       name="Grace Home Page">. Whether binaries for your platforms
       are available (see question <ref id="binaries" name="Binaries">)
@@ -502,7 +425,7 @@
           </item>
         </itemize>
 
-    <sect1>When I type './configure' I get: ``configure: error:
+    <sect1>When I type './configure' I get: ``configure: error
         M*tif has not been found''
       <p>
 
@@ -519,9 +442,9 @@
       <p>
 
         Throughout the Grace docs, saying "M*tif" we actually refer to
-        the M*tif <it>API</it>, defining a set of functions for building
+        the Motif <it>API</it>, defining a set of functions for building
         graphical user interfaces (GUI) via numerous widgets
-        (buttons, labels, etc). Grace makes heavy use of the M*tif API. 
+        (buttons, labels, etc). Grace makes a heavy use of the M*tif API. 
         
         There are several <it>implementations</it> of the interface. The
         original OSF Motif (see <url url="http://www.opengroup.org">)
@@ -536,8 +459,7 @@
         of LessTif (at least 0.92.6 and above). The LessTif people usually
         receive many bug reports from the Grace developers, so you might hope
         that a few remaining bugs in LessTif will be fixed rather quickly.
-        
-        
+             
     <sect1>`configure' stops telling it can't find "ar".
       <p>
 
@@ -545,33 +467,42 @@
         libraries like libFoo.a). You should have it in your path. Under
         Solaris, for example, this can be found in /usr/ccs/bin.
 
-
     <sect1>Are there Grace binaries available? For which platforms?
            <label id="binaries">
       <p>
 
-        You will find binaries for several flavours of UNIX and probably
-        a Win32 package at
-        <url url="ftp://plasma-gate.weizmann.ac.il/pub/grace/bin/">.
+        We do not officially support binary packages. When contributed by
+        volunteers they're put in under the <url name="contrib"
+        url="ftp://plasma-gate.weizmann.ac.il/pub/grace/contrib/"> area. Again,
+        these are NOT supported (bug reports like "I can't install that RPM"
+        will be silently ignored), but feel free using the Grace forums
+        for relevant discussions.
 
     <sect1>Is there a Windows&verbar;OS/2&verbar;VMS port of Grace?
       <p>
 
         Yes, Grace runs on VMS. Just compile it there.
 
-        As for Win32 (Windows 95/98/NT) and OS/2, there are ports for these
-        platforms, though they are not "native", i.e. in order to run them,
-        one needs an X server for the respective platform.
+        As for Win32 (Windows 95/98/NT/2000/XP) and OS/2, there are ports for
+        these platforms, though they are not "native", i.e. in order to run
+        them, one needs an X server for the respective platform.
         
         Both OS/2 and Win32 ports may lack some of the functionality (notably,
         support for "direct"/native printing; probably you will have to use
         the Postscript output for printing).
 
-        A port to OS/2 made by <url name="Alexander Mai"
-          url="mailto:st002279@hrzpub.tu-darmstadt.de"> can be found
+        A port to OS/2 made by Alexander Mai can be found
         at <url url="http://www.tu-darmstadt.de/~st002279/os2/">.
         It requires the XFree86 libraries and an X Server (e.g. XFree86,
 	Hob X11, Exceed, etc.).
+
+    <sect1>Compilation with gcc fails on Solaris complaining about unresolved symbols.
+      <p>
+        
+        If you get such a message at the linkage stage, telling about
+        .LL794 (or similar) unresolved symbols, try compiling with native
+        cc compiler instead (./configure --with-cc=cc).
+        
 
 <!-- **************************************** -->
 
@@ -683,17 +614,8 @@ T1_InitLib(): Fatal error scanning Font Database File
         If you get this message after installing a prebuilt package,
         then you have either forgotten to download the platform-independent
         part of the installation (named like grace-x.y.zz.common.tar.gz) or
-        not set the <tt>GRACE_HOME</tt> environment variable, see few lines 
+        not set the <tt>GRACE_HOME</tt> environment variable, see a few lines 
         above.
-
-    <sect1>Grace can not find help files.
-      <p>
-
-        Set the <tt>GRACE_HOME</tt> environment variable to your Grace
-        directory. The help files are in
-        <tt>$GRACE_HOME/doc</tt>. See question <ref
-        id="environment" name="Environment Variables"> on how to
-        set environment variables.
 
     <sect1>Pressing Ctrl and clicking with the left mouse button on the
            canvas or dialog panels make Grace crash.
@@ -725,6 +647,31 @@ XMgrace*XmCommand.translations: #override\n\
 XMgrace*XmMessageBox.translations: #override\n\
       Ctrl <Btn1Down>: do_nothing()
         </code></tscreen>
+
+    <sect1>The size of the canvas is huge.
+      <p>
+
+        It should be exactly the size of the hardcopy (A4/US letter). If
+        not, check your X server settings (run `xdpyinfo' and watch the
+        "dimensions:" line; check the numbers with a ruler).
+
+
+    <sect1>Extended ASCII characters do not appear and/or appear as incorrect
+           control characters in text input fields.
+      <p>
+
+        Are you using OpenMotif 2.2 (see Help/About)? It's known to behave
+        wrongly with several locale settings. Try setting the shell variable
+        LANG to a safe value, e.g. "C". The proper solution, though, is to
+        either downgrade to OpenMotif 2.1.30 or use LessTif instead
+        (see <ref id="motif" name="M*tif">).
+
+
+    <sect1>File selection dialogs are unusable.
+      <p>
+
+        It happens with OpenMotif 2.2 and some locale settings. See the
+        previous entry for a remedy.
 
 
 <!-- **************************************** -->
@@ -962,9 +909,19 @@ XMgrace*background: ...
         in an init resource file (see question <ref id="custom"
           name="Customization">) with formatstring being in the
         <tt>printf(3)</tt> format.
+        
+        As well, you can set the precision on a per-project basis. When you
+        save a project for the first time (or use "File/Save as"), there is
+        a relevant "Data format" field in the popup you are presented with.
 
-    <sect1>How do I read in project files created by Xmgr or older versions
-           of Grace?
+    <sect1>When I save a project and then re-open it, the julian date values
+           appear to be rounded to the nearest half day.
+      <p>
+        
+        For time plots, the default precision may be insufficient. See the
+        previous question on how to alter it.
+
+    <sect1>How do I read in project files created by Xmgr?
       <p>
 
         From Xmgr-4.1.2 on, each project file starts with a string
@@ -1146,6 +1103,56 @@ XMgrace*background: ...
         Grace about locale. Either you want the localization or not. Setting
         by default LANG to anything but C/POSIX assumes you do.
 
+    <sect1>Is it possible to use the dB (decibel) axis scale?
+      <p>
+        
+        In "Plot/Axis props", enable logarithmic axis scaling, then go to
+        the "Tick labels" tab of this dialog, find the "Axis transform"
+        input field in the "Extra" frame, and enter there "10*log10(10*$t)"
+        (w/o quotes, of course).
+ 
+    <sect1>In "Data set properties", I don't see a possibility to view the
+           more essential part of the mantissa; it's swallowed in the black
+           triangle.
+      <p>
+        
+        If you find some columns are too narrow to show all significant
+        digits, you can drag the vertical rules using Shift+Button 2.
+ 
+    <sect1>When making use of <it>-param</it> via the command line to set
+           the parameters, the world scaling is not correctly set (it just
+           auto-scales).
+      <p>
+        
+        The <it>-param</it> flag and its argument should be placed on the
+        command line <bf>after</bf> the data filenames. Alternatively,
+        disable the autoscale with <it>-autoscale none</it> - but
+        <bf>before</bf> your data is read in.
+ 
+    <sect1>I am unable to find "Load &amp; Evaluate" which I used quite a
+           lot with Xmgr.
+      <p>
+        
+        Use "Create new-&gt;By formula" from any set selector popup menu.
+ 
+    <sect1>How can I specify a template other than the default one on the
+           command line? In the scripts?
+      <p>
+        
+        Template is just an empty (in the sense that there are no data sets)
+        but otherwise a valid project file. So just put your favorite
+        template's filename as the first argument on the command line. If
+        your script creates several plots, use 'new from "filename"' to
+        initialize a new project from the non-default template.
+ 
+
+    <sect1>How can I save my 'preferences' options?
+      <p>
+        
+        A part of them are saved with the project; most of the rest are
+        available via command-line options and/or X resources. A more
+        homogeneous approach will be implemented in a future version. 
+
 
 <!-- **************************************** -->
 
@@ -1259,10 +1266,16 @@ XMgrace*background: ...
     <sect1>Are there things that Grace can't do?
       <p>
 
-        Probably. If you have an idea for improvement, send mail to
-        the mailing list (question <ref id="mailinglist"
-        name="Mailing Lists">) or post it as a wish to the w3todo web
-        page (see question <ref id="w3todo" name="Known Bugs">).
+        Probably. If you have an idea for improvement, post it as a wish to
+        the w3todo web page (see question <ref id="w3todo" name="Known Bugs">).
+
+    <sect1>How should Grace be acknowledged when it
+           is used to prepare a publication?
+      <p>
+
+        You are not required to, but you if wish, refer to the home page link
+        (see <url url="http://plasma-gate.weizmann.ac.il/Grace/" name="Grace
+        home page">).
 
 </article>
 
