@@ -62,7 +62,7 @@ parenright           	  	 /* '051  041  "29 */
 asterisk             	  	 /* '052  042  "2A */
 plus                 	  	 /* '053  043  "2B */
 comma                	  	 /* '054  044  "2C */
-hyphen               	  	 /* '055  045  "2D */
+minus               	  	 /* '055  045  "2D */
 period               	  	 /* '056  046  "2E */
 slash                	  	 /* '057  047  "2F */
 zero                 	  	 /* '060  048  "30 */
