@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -64,8 +64,7 @@ static TextStructure *string_item = NULL;
 static Widget cstext_parent = NULL;
 
 static int FontID;
-static BBox bbox;
-static float Size = 16.8;
+static int csize;
 
 static int enable_edit_cb;
 
@@ -79,25 +78,6 @@ void create_fonttool_cb(Widget but, void *data)
 {
     create_fonttool((Widget) data);
 }
-
-#ifdef NEW_CODE
-static void enlarge_glyph(Widget parent,
-    XtPointer closure, XEvent *event, Boolean* doit)
-{
-    XButtonPressedEvent *e = (XButtonPressedEvent *) event;
-    if (e->button == 3) {
-        int row, col;
-        int x0, y0, x1, y1, cwidth, cheight;
-        XbaeMatrixRowColToXY(parent, 0, 0, &x0, &y0);
-        XbaeMatrixRowColToXY(parent, 1, 1, &x1, &y1);
-        cwidth  = x1 - x0;
-        cheight = y0 - y1;
-        col = (e->x - xleft)/cwidth;
-        row = (yupper - e->y)/cheight;
-        printf("%d %d\n", col, row);
-    }
-}
-#endif
 
 void create_fonttool(Widget cstext)
 {
@@ -156,10 +136,6 @@ void create_fonttool(Widget cstext)
             
         XtAddCallback(font_table, XmNdrawCellCallback, (XtCallbackProc) DrawCB, NULL);
         XtAddCallback(font_table, XmNenterCellCallback, (XtCallbackProc) EnterCB, NULL);
-#ifdef NEW_CODE
-        XtAddEventHandler(font_table, ButtonPressMask, False, 
-                            enlarge_glyph, NULL);
-#endif
         AddOptionChoiceCB(font_select_item, update_fonttool_cb, font_table);
 
         string_item = CreateCSText(fonttool_panel, "CString:");
@@ -171,26 +147,6 @@ void create_fonttool(Widget cstext)
         XtAddCallback(string_item->text,
             XmNmodifyVerifyCallback, (XtCallbackProc) EditStringCB, font_table);
         
-#ifdef NEW_CODE
-        scrolled_window = XtVaCreateManagedWidget("scrolled_window",
-	    xmScrolledWindowWidgetClass, fonttool_panel,
-	    XmNscrollingPolicy, XmAUTOMATIC,
-	    XmNvisualPolicy, XmVARIABLE,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, GetParent(string_item),
-            XmNbottomAttachment, XmATTACH_FORM,
-	    NULL);
-
-        glyph_item = XtVaCreateManagedWidget("glyph",
-            xmDrawingAreaWidgetClass, scrolled_window,
-	    XmNheight, (Dimension) 100,
-	    XmNwidth, (Dimension) 600,
-	    XmNresizePolicy, XmRESIZE_ANY,
-	    NULL);
-#endif
-
         aac_buts = CreateAACButtons(fonttool_panel,
             fonttool_panel, fonttool_aac_cb);
         XtVaSetValues(aac_buts,
@@ -226,13 +182,11 @@ void create_fonttool(Widget cstext)
     RaiseWindow(fonttool_frame);
 }
 
-static T1_TMATRIX UNITY_MATRIX = {1.0, 0.0, 0.0, 1.0};
-
 static void DrawCB(Widget w, XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
     unsigned char c;
-    GLYPH *glyph;
+    CPixmap *pm;
     int height, width, hshift, vshift;
     Pixmap pixmap, ptmp;
     char dummy_bits[1] = {0};
@@ -243,27 +197,34 @@ static void DrawCB(Widget w, XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs
     c = 16*cbs->row + cbs->column;
         
     if (FontID == BAD_FONT_ID) {
-        glyph = NULL;
+        pm = NULL;
     } else {
-        glyph = T1_SetChar(FontID, c, Size, &UNITY_MATRIX);
+        float fsize = 0.8*(float)csize;
+        pm = canvas_raster_char(FontID, c, fsize, &vshift, &hshift);
+        vshift = csize - vshift - 4;
     }
        
-    if (glyph != NULL && glyph->bits != NULL) {
+    if (pm != NULL && pm->bits != NULL) {
         valid_char = TRUE;
-        height = glyph->metrics.ascent - glyph->metrics.descent;
-        width = glyph->metrics.rightSideBearing - glyph->metrics.leftSideBearing;
-        hshift = MAX2(glyph->metrics.leftSideBearing - bbox.llx, 0);
-        vshift = MAX2(bbox.ury - glyph->metrics.ascent, 0);
+        height = pm->height;
+        width = pm->width;
+        
+        ptmp = XCreateBitmapFromData(xstuff->disp, xstuff->root,
+                    pm->bits, width, height);
+        pixmap = XCreatePixmap(xstuff->disp, xstuff->root,
+            csize, csize, xstuff->depth);
+        
         XtVaGetValues(w, XmNbackground, &bg, XmNforeground, &fg, NULL);
         XSetForeground(xstuff->disp, xstuff->gc, bg);
-        ptmp = XCreateBitmapFromData(xstuff->disp, xstuff->root,
-                    (char *) glyph->bits, width, height);
+        XFillRectangle(xstuff->disp, pixmap, xstuff->gc, 0, 0, csize, csize);
+        
         XSetBackground(xstuff->disp, xstuff->gc, bg);
-        pixmap = XCreatePixmap(xstuff->disp, xstuff->root, bbox.urx - bbox.llx, bbox.ury - bbox.lly, xstuff->depth);
-        XFillRectangle(xstuff->disp, pixmap, xstuff->gc, 0, 0, bbox.urx - bbox.llx, bbox.ury - bbox.lly);
         XSetForeground(xstuff->disp, xstuff->gc, fg);
-        XCopyPlane(xstuff->disp, ptmp, pixmap, xstuff->gc, 0, 0, width, height, hshift, vshift, 1);
+        XCopyPlane(xstuff->disp, ptmp, pixmap, xstuff->gc, 0, 0,
+            width, height, hshift, vshift, 1);
+        
         XFreePixmap(xstuff->disp, ptmp);
+        canvas_cpixmap_free(pm);
     } else {
         if (c == ' ') {
             valid_char = TRUE;
@@ -316,40 +277,11 @@ static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *c
 
 static void update_fonttool_cb(OptionStructure *opt, int value, void *data)
 {
-    char *buf;
-    int x0, y0, x1, y1, cwidth, cheight;
-    int csize, bsize;
     Widget font_table = (Widget) data;
-    
+    int x0, y0, x1, y1, cwidth, cheight;
+    char *buf;
     FontID = value;
-    switch (T1_CheckForFontID(FontID)) {
-    case 0:
-        T1_LoadFont(FontID);
-        break;
-    case -1:
-        errmsg("Couldn't load font");
-        FontID = BAD_FONT_ID;
-        return;
-        break;
-    default:
-        break;
-    }
-
-    bbox = T1_GetFontBBox(FontID);
-
-    /* check if bbox is zero or invalid and then calculate it ourselves */
-    if (bbox.llx >= bbox.urx || bbox.lly >= bbox.ury) {
-        int c;
-        memset(&bbox, 0, sizeof(bbox));
-        for (c = 0; c < 256; c++) {
-            BBox bbox_tmp = T1_GetCharBBox(FontID, c);
-            bbox.llx = MIN2(bbox.llx, bbox_tmp.llx);
-            bbox.lly = MIN2(bbox.lly, bbox_tmp.lly);
-            bbox.urx = MAX2(bbox.urx, bbox_tmp.urx);
-            bbox.ury = MAX2(bbox.ury, bbox_tmp.ury);
-        }
-    }
-
+    
     XbaeMatrixRowColToXY(font_table, 0, 0, &x0, &y0);
     XbaeMatrixRowColToXY(font_table, 1, 1, &x1, &y1);
     cwidth  = x1 - x0;
@@ -357,20 +289,14 @@ static void update_fonttool_cb(OptionStructure *opt, int value, void *data)
     
     /* 6 = 2*cellShadowThickness + 2 */
     csize = MIN2(cwidth, cheight) - 6;
-    bsize = MAX2(bbox.urx - bbox.llx, bbox.ury - bbox.lly);
-    Size  = floor(1000.0*csize/bsize);
-    
-    bbox.llx = bbox.llx*Size/1000;
-    bbox.lly = bbox.lly*Size/1000;
-    bbox.urx = bbox.urx*Size/1000;
-    bbox.ury = bbox.ury*Size/1000;
-    
-    XbaeMatrixRefresh(font_table);
+
     buf = copy_string(NULL, "\\f{");
     buf = concat_strings(buf, get_fontalias(grace->rt->canvas, FontID));
     buf = concat_strings(buf, "}");
     insert_into_string(buf);
     xfree(buf);
+
+    XbaeMatrixRefresh(font_table);
 }
 
 
