@@ -1500,7 +1500,7 @@ void do_update_hotlink(int gno, int setno)
     if (is_valid_setno(gno, setno) != TRUE) {
         return;
     } else {
-        read_set_fromfile(gno, setno, g[gno].p[setno].hotfile, 
+        read_xyset_fromfile(gno, setno, g[gno].p[setno].hotfile, 
 			g[gno].p[setno].hotsrc, g[gno].p[setno].hotlink);
     }
 }

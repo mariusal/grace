@@ -824,11 +824,11 @@ int getdata(int gno, char *fn, int src, int type)
 
 
 /*
- * read a set from a file
+ * read an XY set from a file
  * assume the first column is x and take y form the col'th column
  * if only 1 column, use index for x
  */
-int read_set_fromfile(int gno, int setno, char *fn, int src, int col)
+int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
 {
     FILE *fp;
     int readline = 0;
@@ -836,6 +836,11 @@ int read_set_fromfile(int gno, int setno, char *fn, int src, int col)
     double *x, *y, tmp;
     char *scstr;                    /* scanf string */
 
+    if (is_set_active(gno, setno) && dataset_cols(gno, setno) != 2) {
+        errmsg("Only two-column sets are supported in read_xyset_fromfile()");
+	return 0;
+    }
+    
     fp = grace_openr(fn, src);
     if (fp == NULL) {
 	return 0;

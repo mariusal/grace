@@ -48,7 +48,7 @@ FILE *grace_openr(char *fn, int src);
 void grace_close(FILE *fp);
 
 int getdata(int gno, char *fn, int src, int type);
-int read_set_fromfile(int gno, int setno, char *fn, int src, int col);
+int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col);
 
 int readblockdata(int gno, char *fn, FILE * fp);
 void create_set_fromblock(int gno, int type, char *cols);
