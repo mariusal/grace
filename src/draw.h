@@ -602,6 +602,9 @@ void map_fonts(Canvas *canvas, int map);
 
 unsigned int number_of_fonts(const Canvas *canvas);
 char *get_fontname(const Canvas *canvas, int font);
+char *get_fontfullname(const Canvas *canvas, int font);
+char *get_fontfamilyname(const Canvas *canvas, int font);
+char *get_fontweight(const Canvas *canvas, int font);
 char *get_fontfilename(const Canvas *canvas, int font, int abspath);
 char *get_afmfilename(const Canvas *canvas, int font, int abspath);
 char *get_fontalias(const Canvas *canvas, int font);
@@ -611,6 +614,7 @@ char **get_default_encoding(const Canvas *canvas);
 double get_textline_width(const Canvas *canvas, int font);
 double get_underline_pos(const Canvas *canvas, int font);
 double get_overline_pos(const Canvas *canvas, int font);
+double get_italic_angle(const Canvas *canvas, int font);
 double *get_kerning_vector(const Canvas *canvas,
     const char *str, int len, int font);
 

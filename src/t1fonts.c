@@ -264,6 +264,21 @@ char *get_fontname(const Canvas *canvas, int font)
     return (T1_GetFontName(font));
 }
 
+char *get_fontfullname(const Canvas *canvas, int font)
+{
+    return (T1_GetFullName(font));
+}
+
+char *get_fontfamilyname(const Canvas *canvas, int font)
+{
+    return (T1_GetFamilyName(font));
+}
+
+char *get_fontweight(const Canvas *canvas, int font)
+{
+    return (T1_GetWeight(font));
+}
+
 char *get_fontalias(const Canvas *canvas, int font)
 {
     return (canvas->FontDBtable[font].alias);
@@ -297,6 +312,11 @@ double get_underline_pos(const Canvas *canvas, int font)
 double get_overline_pos(const Canvas *canvas, int font)
 {
     return (double) T1_GetLinePosition(font, T1_OVERLINE)/1000.0;
+}
+
+double get_italic_angle(const Canvas *canvas, int font)
+{
+    return (double) T1_GetItalicAngle(font);
 }
 
 double *get_kerning_vector(const Canvas *canvas,
