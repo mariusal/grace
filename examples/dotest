@@ -105,9 +105,6 @@ $GRACE -p altaxis.par test.dat -autoscale xy
 # a graph with error bars
 $GRACE terr.agr
 #
-# another graph with error bars
-$GRACE terr2.agr
-#
 # a fixed graph with XY RADIUS format
 $GRACE txyr.agr 
 #
