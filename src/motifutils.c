@@ -73,6 +73,7 @@
 #include "globals.h"
 #include "draw.h"
 #include "patterns.h"
+#include "jbitmaps.h"
 #include "t1fonts.h"
 #include "graphs.h"
 #include "plotone.h"
@@ -167,7 +168,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
 
     if (ncols > 0) {
         XtVaSetValues(retval->pulldown,
-                      XmNorientation, XmVERTICAL,
+                      XmNorientation, XmHORIZONTAL,
                       XmNpacking, XmPACK_COLUMN,
                       XmNnumColumns, ncols,
                       NULL);
@@ -249,7 +250,7 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
 
     if (ncols > 0) {
         XtVaSetValues(retval->pulldown,
-                      XmNorientation, XmVERTICAL,
+                      XmNorientation, XmHORIZONTAL,
                       XmNpacking, XmPACK_COLUMN,
                       XmNnumColumns, ncols,
                       NULL);
@@ -1161,7 +1162,7 @@ OptionStructure *CreateFontChoice(Widget parent, char *s)
 
 OptionStructure *CreatePatternChoice(Widget parent, char *s)
 {
-    return (CreateBitmapOptionChoice(parent, s, 4, number_of_patterns(), 
+    return (CreateBitmapOptionChoice(parent, s, 8, number_of_patterns(), 
                                      16, 16, pattern_option_items));
 }
 
@@ -1175,6 +1176,28 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 {
     return (CreateOptionChoice(parent,
         s, 0, NUMBER_OF_SETTYPES, settype_option_items));
+}
+
+static BitmapOptionItem just_option_items[12] =
+{
+    {JUST_LEFT  |JUST_BLINE , j_lm_o_bits},
+    {JUST_CENTER|JUST_BLINE , j_cm_o_bits},
+    {JUST_RIGHT |JUST_BLINE , j_rm_o_bits},
+    {JUST_LEFT  |JUST_BOTTOM, j_lb_b_bits},
+    {JUST_CENTER|JUST_BOTTOM, j_cb_b_bits},
+    {JUST_RIGHT |JUST_BOTTOM, j_rb_b_bits},
+    {JUST_LEFT  |JUST_MIDDLE, j_lm_b_bits},
+    {JUST_CENTER|JUST_MIDDLE, j_cm_b_bits},
+    {JUST_RIGHT |JUST_MIDDLE, j_rm_b_bits},
+    {JUST_LEFT  |JUST_TOP   , j_lt_b_bits},
+    {JUST_CENTER|JUST_TOP   , j_ct_b_bits},
+    {JUST_RIGHT |JUST_TOP   , j_rt_b_bits}
+};
+
+OptionStructure *CreateJustChoice(Widget parent, char *s)
+{
+    return (CreateBitmapOptionChoice(parent, s, 4,
+        12, JBITMAP_WIDTH, JBITMAP_HEIGHT, just_option_items));
 }
 
 RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)
