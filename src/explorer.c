@@ -413,6 +413,7 @@ static void update_explorer(ExplorerUI *ui)
     ui->project = CreateQuarkTree(ui->tree, NULL,
         grace->project, NULL, q_labeling);
     ListTreeRefreshOn(ui->tree);
+    ListTreeRefresh(ui->tree);
 }
 
 static void update_explorer_cb(Widget but, void *data)
@@ -490,9 +491,12 @@ void define_explorer_popup(Widget but, void *data)
             grace->project, NULL, q_labeling);
         
         ManageChild(eui->tree);
+        ListTreeRefreshOn(eui->tree);
+        ListTreeRefresh(eui->tree);
     }
 
     RaiseWindow(GetParent(eui->top));
+
     unset_wait_cursor();
 }
 
