@@ -3058,7 +3058,7 @@ int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
     }
     
     /* check for mutually exclusive selections */
-    if (exclusive && *gsrc != *gdest && *nsdest != 0) {
+    if (exclusive && *gsrc == *gdest && *nsdest != 0) {
         int i;
         for (i = 0; i < *nssrc; i++) {
             if (*svaluessrc[i] == *svaluesdest[i]) {
