@@ -1394,11 +1394,38 @@ int definewindow(world w, view v, int gtype,
                         int xscale, int yscale,
                         int invx, int invy)
 {
+    double dx, dy;
+    
+    /* Safety checks */
+    if (isvalid_viewport(v) == FALSE) {
+        errmsg("Invalid viewport coordinates");
+        return RETURN_FAILURE;
+    }
+    
+    dx = w.xg2 - w.xg1;
+    if (dx <= 0.0) {
+        errmsg("World DX <= 0.0");
+        return RETURN_FAILURE;
+    }
+    dy = w.yg2 - w.yg1;
+    if (dy <= 0.0) {
+        errmsg("World DY <= 0.0");
+        return RETURN_FAILURE;
+    }
+
     switch (gtype) {
     case GRAPH_POLAR:
+        if (w.yg2 <= 0.0) {
+            errmsg("World Rho-max <= 0.0");
+            return RETURN_FAILURE;
+        } else
         if ((xscale != SCALE_NORMAL) ||
-            (yscale != SCALE_NORMAL) ||
-            (invy == TRUE)) {
+            (yscale != SCALE_NORMAL)) {
+            errmsg("Only linear scales are supported in Polar plots");
+            return RETURN_FAILURE;
+        } else
+        if (invy == TRUE) {
+            errmsg("Can't set Y scale inverted in Polar plot");
             return RETURN_FAILURE;
         } else {
             coordinates = COORDINATES_POLAR;
@@ -1421,6 +1448,7 @@ int definewindow(world w, view v, int gtype,
     case GRAPH_FIXED:
         if ((xscale != SCALE_NORMAL) ||
             (yscale != SCALE_NORMAL)) {
+            errmsg("Only linear axis scale is allowed in Fixed graphs");
             return RETURN_FAILURE;
         } else {
             coordinates = COORDINATES_XY;
@@ -1448,132 +1476,84 @@ int definewindow(world w, view v, int gtype,
         }
         break;
     default:
-        if ((xscale == SCALE_LOG && (w.xg1 <= 0.0 || w.xg2 <= 0.0)) ||
-            (yscale == SCALE_LOG && (w.yg1 <= 0.0 || w.yg2 <= 0.0)) ||
-            (xscale == SCALE_REC && (w.xg1 == 0.0 || w.xg2 == 0.0)) ||
-            (yscale == SCALE_REC && (w.yg1 == 0.0 || w.yg2 == 0.0)) ||
-            (xscale == SCALE_LOGIT && (w.xg1 <= 0.0 || w.xg2 >= 1.0)) ||
-            (yscale == SCALE_LOGIT && (w.yg1 <= 0.0 || w.yg2 >= 1.0))) {
-            return RETURN_FAILURE;
-        } else {
-            coordinates = COORDINATES_XY;
-            worldwin = w;
-            viewport = v;
- 
-            scaletypex = xscale;
-            xv_med = (v.xv1 + v.xv2)/2;
-            fxg_med = (fscale(w.xg1, xscale) + fscale(w.xg2, xscale))/2;
-            if (invx == FALSE) {
-                xv_rc = (v.xv2 - v.xv1)/(fscale(w.xg2, xscale) - fscale(w.xg1, xscale));
-            } else {
-                xv_rc = - (v.xv2 - v.xv1)/(fscale(w.xg2, xscale) - fscale(w.xg1, xscale));
-            }
-
-            scaletypey = yscale;
-            yv_med = (v.yv1 + v.yv2)/2;
-            fyg_med = (fscale(w.yg1, yscale) + fscale(w.yg2, yscale))/2;
-            if (invy == FALSE) {
-                yv_rc = (v.yv2 - v.yv1)/(fscale(w.yg2, yscale) - fscale(w.yg1, yscale));
-            } else {
-                yv_rc = - (v.yv2 - v.yv1)/(fscale(w.yg2, yscale) - fscale(w.yg1, yscale));
-            }
- 
-           return RETURN_SUCCESS;
-        }
-        break;
-    }
-}
-
-int checkon_world(int gno)
-{
-    double dx, dy;
-    world w;
-    
-    get_graph_world(gno, &w);
-    dx = w.xg2 - w.xg1;
-    dy = w.yg2 - w.yg1;
-
-    if (get_graph_type(gno) == GRAPH_POLAR) {
-        if (w.yg2 <= 0.0) {
-            errmsg("World Rho-max <= 0.0");
-            return FALSE;
-        } else {
-            return TRUE;
-        }
-    } else {
-        if (dx <= 0.0) {
-            errmsg("World DX <= 0.0");
-            return FALSE;
-        }
-        if (dy <= 0.0) {
-            errmsg("World DY <= 0.0");
-            return FALSE;
-        }
-        
-        if (get_graph_type(gno) == GRAPH_FIXED) {
-            if ((get_graph_xscale(gno) != SCALE_NORMAL) ||
-                (get_graph_yscale(gno) != SCALE_NORMAL)) {
-                errmsg("Only linear axis scale is allowed in Fixed graphs");
-                return FALSE;
-            } 
-        }
-        
-        if (get_graph_xscale(gno) == SCALE_LOG) {
+        if (xscale == SCALE_LOG) {
             if (w.xg1 <= 0) {
                 errmsg("World X-min <= 0.0");
-                return FALSE;
+                return RETURN_FAILURE;
             }
             if (w.xg2 <= 0) {
                 errmsg("World X-max <= 0.0");
-                return FALSE;
+                return RETURN_FAILURE;
             }
-        } else if (get_graph_xscale(gno) == SCALE_REC) {
+        } else if (xscale == SCALE_REC) {
             if (sign(w.xg1) != sign(w.xg2)) {
                 errmsg("X-axis contains 0");
-                return FALSE;
+                return RETURN_FAILURE;
             }
 	    
         }
-        if (get_graph_xscale(gno) == SCALE_LOGIT) {
+        if (xscale == SCALE_LOGIT) {
             if (w.xg1 <= 0) {
                 errmsg("World X-min <= 0.0");
-                return FALSE;
+                return RETURN_FAILURE;
             }
             if (w.xg2 >= 1) {
                 errmsg("World X-max >= 1.0");
-                return FALSE;
+                return RETURN_FAILURE;
             }
 	}    
         
-        if (get_graph_yscale(gno) == SCALE_LOG) {
+        if (yscale == SCALE_LOG) {
             if (w.yg1 <= 0.0) {
                 errmsg("World Y-min <= 0.0");
-                return FALSE;
+                return RETURN_FAILURE;
             }
             if (w.yg2 <= 0.0) {
                 errmsg("World Y-max <= 0.0");
-                return FALSE;
+                return RETURN_FAILURE;
             }
-        } else if (get_graph_yscale(gno) == SCALE_REC) {
+        } else if (yscale == SCALE_REC) {
             if (sign(w.yg1) != sign(w.yg2)) {
                 errmsg("Y-axis contains 0");
-                return FALSE;
+                return RETURN_FAILURE;
             }
         }
-	if (get_graph_yscale(gno) == SCALE_LOGIT) {
+	if (yscale == SCALE_LOGIT) {
             if (w.yg1 <= 0) {
                 errmsg("World Y-min <= 0.0");
-                return FALSE;
+                return RETURN_FAILURE;
             }
             if (w.yg2 >= 1) {
                 errmsg("World Y-max >= 1.0");
-                return FALSE;
+                return RETURN_FAILURE;
             }
 	}    
-        
-        return TRUE;
-    }
 
+        coordinates = COORDINATES_XY;
+        worldwin = w;
+        viewport = v;
+
+        scaletypex = xscale;
+        xv_med = (v.xv1 + v.xv2)/2;
+        fxg_med = (fscale(w.xg1, xscale) + fscale(w.xg2, xscale))/2;
+        if (invx == FALSE) {
+            xv_rc = (v.xv2 - v.xv1)/(fscale(w.xg2, xscale) - fscale(w.xg1, xscale));
+        } else {
+            xv_rc = - (v.xv2 - v.xv1)/(fscale(w.xg2, xscale) - fscale(w.xg1, xscale));
+        }
+
+        scaletypey = yscale;
+        yv_med = (v.yv1 + v.yv2)/2;
+        fyg_med = (fscale(w.yg1, yscale) + fscale(w.yg2, yscale))/2;
+        if (invy == FALSE) {
+            yv_rc = (v.yv2 - v.yv1)/(fscale(w.yg2, yscale) - fscale(w.yg1, yscale));
+        } else {
+            yv_rc = - (v.yv2 - v.yv1)/(fscale(w.yg2, yscale) - fscale(w.yg1, yscale));
+        }
+ 
+        return RETURN_SUCCESS;
+        break;
+    }
 }
 
 int isvalid_viewport(view v)
@@ -1584,21 +1564,6 @@ int isvalid_viewport(view v)
         return TRUE;
     }
 }
-
-/* check viewport (min < max) */
-int checkon_viewport(int gno)
-{
-    view v;
-    
-    get_graph_viewport(gno, &v);
-    if (isvalid_viewport(v) == FALSE) {
-        errmsg("Invalid viewport coordinates");
-        return FALSE;
-    } else {
-        return TRUE;
-    }
-}
-
 
 /*
  * ---------------- bbox utilities --------------------

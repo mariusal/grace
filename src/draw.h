@@ -223,8 +223,6 @@ int is_video_reversed(void);
 
 char *scale_types(int it);
 
-int checkon_world(int gno);
-int checkon_viewport(int gno);
 int isvalid_viewport(view v);
 
 double fscale(double wc, int scale);

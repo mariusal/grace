@@ -97,7 +97,9 @@ void drawgraph(void)
 
     draw_timestamp();
 
-    select_graph(saveg);
+    if (get_cg() != saveg) {
+        select_graph(saveg);
+    }
 
     leavegraphics();
 }
@@ -177,20 +179,13 @@ void plotone(int gno)
         return;
     }
 
-    /* sanity checks */
-    if (checkon_world(gno) == FALSE) {
-        return;
-    }
-    
-    if (checkon_viewport(gno) == FALSE) {
-        return;
-    }
-   
     setclipping(TRUE);
     
     set_draw_mode(TRUE);
     
-    select_graph(gno);
+    if (select_graph(gno) != RETURN_SUCCESS) {
+        return;
+    }
     
     /* fill frame */
     fillframe(gno);
