@@ -527,7 +527,7 @@ int ps_initgraphics(const Canvas *canvas, void *data,
                     psfonts[i].name);
                 fwrite(fontdata, 1, datalen, canvas->prstream);
                 fprintf(canvas->prstream, "%%%%EndResource\n");
-                free(fontdata);
+                xfree(fontdata);
             } else {
                 errmsg("Font subsetting failed");
             }

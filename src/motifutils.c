@@ -3403,7 +3403,7 @@ OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,.
 
     nchoices--;
 
-    oi = (OptionItem *)calloc( nchoices, sizeof(OptionItem) );
+    oi = xcalloc(nchoices, sizeof(OptionItem));
     va_start(var, nchoices);
     i = 0;
     while ((s = va_arg(var, char *)) != NULL) {
