@@ -180,6 +180,7 @@ String fallbackResourcesCommon[] = {
     "XMgrace*XmToggleButton.selectColor: #ff0000",
     "XMgrace*XmToggleButton.fillOnSelect: true",
     "XMgrace*XmSeparator.margin: 0",
+    "XMgrace*XmSash.HighlightColor: #b0c4de",
 #ifdef WITH_XMHTML
     "XMgrace*XmHTML.background: #ffffff",
     "XMgrace*XmHTML.foreground: #000000",

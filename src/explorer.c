@@ -36,6 +36,12 @@
 #include <Xm/ScrolledW.h>
 #include <Xm/Form.h>
 #include <Xm/RowColumn.h>
+#if XmVersion >= 2000
+# define USE_PANEDW 1
+#  include <Xm/PanedW.h>
+#else
+# define USE_PANEDW 0
+#endif
 
 #include "protos.h"
 
@@ -884,41 +890,63 @@ void raise_explorer(GUI *gui, Quark *q)
         CreateMenuHelpButton(menupane, "On explorer", 'e',
             eui->top, "doc/UsersGuide.html#explorer");
 
+#if USE_PANEDW
+        panel = XtVaCreateWidget("panedWindow",
+            xmPanedWindowWidgetClass, eui->top,
+            XmNorientation, XmHORIZONTAL,
+            NULL);
+#else
         panel = CreateGrid(eui->top, 2, 1);
-        eui->tree = XmCreateScrolledListTree(panel, "tree", NULL, 0);
+#endif
+
+        form = XmCreateForm(panel, "form", NULL, 0);
+
+        eui->tree = XmCreateScrolledListTree(form, "tree", NULL, 0);
         XtAddCallback(eui->tree, XtNhighlightCallback, highlight_cb, eui);
         XtAddCallback(eui->tree, XtNmenuCallback, menu_cb, eui);
         XtAddCallback(eui->tree, XtNdestroyItemCallback, destroy_cb, eui);
         XtAddCallback(eui->tree, XtNdropCallback, drop_cb, eui);
-        PlaceGridChild(panel, GetParent(eui->tree), 0, 0);
 
-        form = XmCreateForm(panel, "form", NULL, 0);
-        PlaceGridChild(panel, form, 1, 0);
         fr = CreateFrame(form, NULL);
         eui->idstr = CreateTextInput(fr, "ID string:");
         AddTextInputCB(eui->idstr, text_explorer_cb, eui);
-        XtVaSetValues(fr,
+
+        XtVaSetValues(GetParent(eui->tree),
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNtopAttachment, XmATTACH_FORM,
-            XmNbottomAttachment, XmATTACH_NONE,
+            XmNbottomAttachment, XmATTACH_WIDGET,
+            XmNbottomWidget, fr,
+            NULL);
+        XtVaSetValues(fr,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNtopAttachment, XmATTACH_NONE,
+            XmNbottomAttachment, XmATTACH_FORM,
             NULL);
         
+	ManageChild(form);
+        
+#if !USE_PANEDW
+        PlaceGridChild(panel, form, 0, 0);
+#endif
+
         eui->scrolled_window = XtVaCreateManagedWidget("scrolled_window",
-	    xmScrolledWindowWidgetClass, form,
+	    xmScrolledWindowWidgetClass, panel,
             XmNscrollingPolicy, XmAUTOMATIC,
 	    XmNscrollBarDisplayPolicy, XmSTATIC,
 	    NULL);
-        XtVaSetValues(eui->scrolled_window,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, fr,
-            XmNbottomAttachment, XmATTACH_FORM,
-            NULL);
 
-	ManageChild(form);
-        
+#if USE_PANEDW
+	ManageChild(panel);
+        XtVaSetValues(form,
+            XmNpaneMinimum, 150,
+            XmNwidth, 250,
+            NULL);
+#else
+        PlaceGridChild(panel, eui->scrolled_window, 1, 0);
+#endif
+
         eui->project_ui = create_project_ui(eui);
         UnmanageChild(eui->project_ui->top);
 
