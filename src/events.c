@@ -786,13 +786,13 @@ void set_action(CanvasAction act)
 }
 
 
-
 void track_point(int gno, int setno, int *loc, int shift)
 {
     int len;
     double *xtmp, *ytmp;
     WPoint wp;
     VPoint vp;
+    world w;
     
     if ((len = getsetlength(gno, setno)) > 0) {
         *loc += shift;
@@ -806,6 +806,11 @@ void track_point(int gno, int setno, int *loc, int shift)
         wp.x = xtmp[*loc];
         wp.y = ytmp[*loc];
        
+        get_graph_world(gno, &w);
+        wp.x = MAX2(wp.x, w.xg1);
+        wp.x = MIN2(wp.x, w.xg2);
+        wp.y = MAX2(wp.y, w.yg1);
+        wp.y = MIN2(wp.y, w.yg2);
         vp = Wpoint2Vpoint(wp);
         setpointer(vp);
 

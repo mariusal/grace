@@ -499,7 +499,14 @@ void setpointer(VPoint vp)
     int x, y;
     
     xlibVPoint2dev(vp, &x, &y);
-    XWarpPointer(disp, None, xwin, 0, None, win_w, win_h, x, y);
+    
+    /* Make sure we remain inside the DA widget dimensions */
+    x = MAX2(x, 0);
+    x = MIN2(x, win_w);
+    y = MAX2(y, 0);
+    y = MIN2(y, win_h);
+    
+    XWarpPointer(disp, None, xwin, 0, 0, 0, 0, x, y);
 }
 
 char *display_name(void)
