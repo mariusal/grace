@@ -70,6 +70,9 @@ $GRACE -autoscale none -p logtest.par log.dat -graph 1 log.dat
 # more log plots
 $GRACE tlog.agr 
 #
+# a log2 example
+$GRACE log2.agr 
+#
 # display fonts and font mappings
 $GRACE tfonts.agr 
 #
