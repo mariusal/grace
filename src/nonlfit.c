@@ -82,14 +82,6 @@ void reset_nonl(void)
 void initialize_nonl(void)
 {
     reset_nonl();
-    
-    nonl_prefs.autoload = TRUE;
-    nonl_prefs.load = LOAD_VALUES;
-    nonl_prefs.npoints = 10;
-    nonl_prefs.start = 0.0;
-    nonl_prefs.stop = 1.0;
-    
-    return;
 }
 
 void a_to_parms (double *a)

@@ -367,11 +367,6 @@ typedef enum {
 #define TICK_TYPE_MAJOR     0
 #define TICK_TYPE_MINOR     1
 
-/* nonlprefs.load possible values */
-#define LOAD_VALUES         0
-#define LOAD_RESIDUALS      1
-#define LOAD_FUNCTION       2
-
 /* push set direction */
 #define PUSH_SET_TOFRONT    0
 #define PUSH_SET_TOBACK     1
@@ -719,16 +714,6 @@ typedef struct {
     int parnum;         /* # of fit parameters */
     double tolerance;   /* tolerance */
 } nonlopts;
-
-/* prefs for non-linear fit */
-typedef struct {
-    int autoload;       /* do autoload */
-    int load;           /* load to... */
-    int npoints;        /* # of points to evaluate function at */
-    double start;       /* start... */
-    double stop;        /* stop ... */
-} nonlprefs;
-
 
 /* real time inputs */
 typedef struct _Input_buffer {

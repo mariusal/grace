@@ -56,7 +56,6 @@ defaults grdefaults;
 /* parameters for non-linear fit */
 nonlparms nonl_parms[MAXPARM];
 nonlopts nonl_opts;
-nonlprefs nonl_prefs;
 
 /* region definition */
 region rg[MAXREGION];
@@ -71,7 +70,6 @@ extern plotstr timestamp;
 
 extern nonlparms nonl_parms[];
 extern nonlopts nonl_opts;
-extern nonlprefs nonl_prefs;
 
 extern region rg[];
 
