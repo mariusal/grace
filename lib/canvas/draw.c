@@ -1229,6 +1229,18 @@ static int fRGB2RGB(const fRGB *frgb, RGB *rgb)
     }
 }
 
+static int RGB2fRGB(const RGB *rgb, fRGB *frgb)
+{
+    if (frgb && rgb) {
+        frgb->red   = (double) rgb->red   / (MAXCOLORS - 1);
+        frgb->green = (double) rgb->green / (MAXCOLORS - 1);
+        frgb->blue  = (double) rgb->blue  / (MAXCOLORS - 1);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 static Color cmap_init[] = {
     /* white  */
     {{255, 255, 255}, "white", COLOR_MAIN},
@@ -1537,10 +1549,7 @@ int get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb)
 {
     RGB rgb;
     if (frgb && get_rgb(canvas, cindex, &rgb) == RETURN_SUCCESS) {
-        frgb->red   = (double) rgb.red   / (MAXCOLORS - 1);
-        frgb->green = (double) rgb.green / (MAXCOLORS - 1);
-        frgb->blue  = (double) rgb.blue  / (MAXCOLORS - 1);
-        return RETURN_SUCCESS;
+        return RGB2fRGB(&rgb, frgb);
     } else {
         return RETURN_FAILURE;
     }
@@ -1634,16 +1643,21 @@ int make_color_scale(Canvas *canvas,
 {
     int i;
     fRGB fg_frgb, bg_frgb, delta_frgb;
+    Color *fg_color, *bg_color;
 
     if (ncolors < 2 || !colors) {
         return RETURN_FAILURE;
     }
     
-    if (get_frgb(canvas, fg, &fg_frgb) != RETURN_SUCCESS ||
-        get_frgb(canvas, bg, &bg_frgb) != RETURN_SUCCESS) {
+    fg_color = get_color_def(canvas, fg);
+    bg_color = get_color_def(canvas, bg);
+    if (!bg_color || !fg_color) {
         return RETURN_FAILURE;
     }
 
+    RGB2fRGB(&fg_color->rgb, &fg_frgb);
+    RGB2fRGB(&bg_color->rgb, &bg_frgb);
+    
     delta_frgb.red   = (fg_frgb.red   - bg_frgb.red)  /(ncolors - 1);
     delta_frgb.green = (fg_frgb.green - bg_frgb.green)/(ncolors - 1);
     delta_frgb.blue  = (fg_frgb.blue  - bg_frgb.blue) /(ncolors - 1);
