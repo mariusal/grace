@@ -879,9 +879,7 @@ static void ss_any_cb(StorageStructure *ss, int type)
     
     if (n > 0) {
         xfree(values);
-        UpdateStorageChoice(ss);
         update_all();
-        set_dirtystate();
         xdrawgraph();
     }
 }
@@ -931,8 +929,7 @@ static void ss_paste_cb(void *udata)
     StorageStructure *ss = (StorageStructure *) udata;
     quark_reparent_children(ss->clipboard, ss->q);
 
-    UpdateStorageChoice(ss);
-    set_dirtystate();
+    update_all();
     xdrawgraph();
 }
 
@@ -2293,8 +2290,7 @@ static void gss_any_cb(void *udata, int cbtype)
     
     if (n > 0) {
         xfree(values);
-        UpdateStorageChoice(ss);
-        set_dirtystate();
+        update_all();
         xdrawgraph();
     }
 }
@@ -2325,11 +2321,8 @@ static void g_popup_cb(StorageStructure *ss, int nselected)
 
 static void g_new_cb(void *udata)
 {
-    StorageStructure *ss = (StorageStructure *) udata;
-
     graph_next(grace->project);
-    UpdateStorageChoice(ss);
-    set_dirtystate();
+    update_all();
     xdrawgraph();
 }
 
@@ -2509,8 +2502,7 @@ static void sss_any_cb(void *udata, int cbtype)
         xfree(values);
     }
     
-    UpdateStorageChoice(ss);
-    set_dirtystate();
+    update_all();
     xdrawgraph();
 }
 
@@ -4218,6 +4210,7 @@ void update_all(void)
     update_locator_items(gr);
     set_stack_message();
     set_left_footer(NULL);
+    update_app_title(grace->project);
 }
 
 void update_all_cb(void *data)
