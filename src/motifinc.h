@@ -273,6 +273,7 @@ OptionStructure *CreatePatternChoice(Widget parent, char *s);
 OptionStructure *CreateLineStyleChoice(Widget parent, char *s);
 OptionStructure *CreateSetTypeChoice(Widget parent, char *s);
 OptionStructure *CreateColorChoice(Widget parent, char *s);
+OptionStructure *CreateFormatChoice(Widget parent, char *s);
 
 ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);
 
@@ -322,7 +323,6 @@ Widget CreateScrollTextItem2(Widget parent, int hgt, char *s);
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
 Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);
 
-Widget *CreateFormatChoice(Widget parent, char *s);
 Widget *CreatePrecisionChoice(Widget parent, char *s);
 
 void SetLabel(Widget w, char *s);

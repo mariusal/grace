@@ -2445,48 +2445,48 @@ int GetChoice(Widget * w)
     return i;
 }
 
-Widget *CreateFormatChoice(Widget parent, char *s)
+static OptionItem fmt_option_items[31] =
 {
-    Widget *w;
+    {FORMAT_DECIMAL,        "Decimal"             },
+    {FORMAT_EXPONENTIAL,    "Exponential"         },
+    {FORMAT_GENERAL,        "General"             },
+    {FORMAT_POWER,          "Power"               },
+    {FORMAT_SCIENTIFIC,     "Scientific"          },
+    {FORMAT_ENGINEERING,    "Engineering"         },
+    {FORMAT_DDMMYY,         "DD-MM-YY"            },
+    {FORMAT_MMDDYY,         "MM-DD-YY"            },
+    {FORMAT_YYMMDD,         "YY-MM-DD"            },
+    {FORMAT_MMYY,           "MM-YY"               },
+    {FORMAT_MMDD,           "MM-DD"               },
+    {FORMAT_MONTHDAY,       "Month-DD"            },
+    {FORMAT_DAYMONTH,       "DD-Month"            },
+    {FORMAT_MONTHS,         "Month (abrev.)"      },
+    {FORMAT_MONTHSY,        "Month (abrev.)-YY"   },
+    {FORMAT_MONTHL,         "Month"               },
+    {FORMAT_DAYOFWEEKS,     "Day of week (abrev.)"},
+    {FORMAT_DAYOFWEEKL,     "Day of week"         },
+    {FORMAT_DAYOFYEAR,      "Day of year"         },
+    {FORMAT_HMS,            "HH:MM:SS.s"          },
+    {FORMAT_MMDDHMS,        "MM-DD HH:MM:SS.s"    },
+    {FORMAT_MMDDYYHMS,      "MM-DD-YY HH:MM:SS.s" },
+    {FORMAT_YYMMDDHMS,      "YY-MM-DD HH:MM:SS.s" },
+    {FORMAT_DEGREESLON,     "Degrees (lon)"       },
+    {FORMAT_DEGREESMMLON,   "DD MM' (lon)"        },
+    {FORMAT_DEGREESMMSSLON, "DD MM' SS.s\" (lon)" },
+    {FORMAT_MMSSLON,        "MM' SS.s\" (lon)"    },
+    {FORMAT_DEGREESLAT,     "Degrees (lat)"       },
+    {FORMAT_DEGREESMMLAT,   "DD MM' (lat)"        },
+    {FORMAT_DEGREESMMSSLAT, "DD MM' SS.s\" (lat)" },
+    {FORMAT_MMSSLAT,        "MM' SS.s\" (lat)"    }
+};
+
+OptionStructure *CreateFormatChoice(Widget parent, char *s)
+{
+    OptionStructure *retval;
     
-    w = CreatePanelChoice0(parent,
-                       s, 4,
-                       32,
-                       "Decimal",
-                       "Exponential",
-                       "General",
-                       "Power",
-                       "Scientific",
-                       "Engineering",
-                       "DD-MM-YY",
-                       "MM-DD-YY",
-                       "YY-MM-DD",
-                       "MM-YY",
-                       "MM-DD",
-                       "Month-DD",
-                       "DD-Month",
-                       "Month (abrev.)",
-                       "Month (abrev.)-YY",
-                       "Month",
-                       "Day of week (abrev.)",
-                       "Day of week",
-                       "Day of year",
-                       "HH:MM:SS.s",
-                       "MM-DD HH:MM:SS.s",
-                       "MM-DD-YY HH:MM:SS.s",
-                       "YY-MM-DD HH:MM:SS.s",
-                       "Degrees (lon)",
-                       "DD MM' (lon)",
-                       "DD MM' SS.s\" (lon)",
-                       "MM' SS.s\" (lon)",
-                       "Degrees (lat)",
-                       "DD MM' (lat)",
-                       "DD MM' SS.s\" (lat)",
-                       "MM' SS.s\" (lat)", 
-                       NULL,
-                       0);
+    retval = CreateOptionChoice(parent, s, 4, 31, fmt_option_items);
     
-    return(w);
+    return(retval);
 }
 
 Widget *CreatePrecisionChoice(Widget parent, char *s)
