@@ -1323,6 +1323,20 @@ void postprocess_project(int version)
                     set_graph_xinvert(gno, FALSE);
                 }
             }
+            if (version < 50107) {
+                /* Starting with 5.1.7, symskip is honored for all set types */
+                switch (g[gno].p[setno].type) {
+                case SET_BAR:
+                case SET_BARDY:
+                case SET_BARDYDY:
+                case SET_XYHILO:
+                case SET_XYR:
+                case SET_XYVMAP:
+                case SET_BOXPLOT:
+                    g[gno].p[setno].symskip = 0;
+                    break;
+                }
+            }
         }
         for (naxis = 0; naxis < MAXAXES; naxis++) {
 	    tickmarks *t = get_graph_tickmarks(gno, naxis);

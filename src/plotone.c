@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1195,7 +1195,7 @@ void drawsetsyms(int gno, int setno, plotarr *p,
     VPoint vp;
     WPoint wp;
     double *x, *y, *z, *c;
-    int skip = p->symskip;
+    int skip = p->symskip + 1;
     int stacked_chart;
     double znorm = get_graph_znorm(gno);
     
@@ -1228,8 +1228,6 @@ void drawsetsyms(int gno, int setno, plotarr *p,
     } else {
         c = NULL;
     }
-    
-    skip++;
     
     setclipping(FALSE);
     
@@ -1287,7 +1285,7 @@ void drawsetavalues(int gno, int setno, plotarr *p,
     double *x, *y, *z;
     WPoint wp;
     VPoint vp;
-    int skip = p->symskip;
+    int skip = p->symskip + 1;
     AValue avalue;
     char str[MAX_STRING_LENGTH];
     int stacked_chart;
@@ -1297,8 +1295,6 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         return;
     }
 
-    skip++;
-    
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
         setlen = MIN2(p->data.len, refn);
@@ -1393,6 +1389,7 @@ void drawseterrbars(int gno, int setno, plotarr *p,
     WPoint wp1, wp2;
     VPoint vp1, vp2;
     int stacked_chart;
+    int skip = p->symskip + 1;
     
     if (p->errbar.active != TRUE) {
         return;
@@ -1469,7 +1466,7 @@ void drawseterrbars(int gno, int setno, plotarr *p,
     
     setclipping(TRUE);
     
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; i += skip) {
         wp1.x = x[i];
         wp1.y = y[i];
         if (stacked_chart == TRUE) {
@@ -1522,6 +1519,7 @@ void drawsethilo(plotarr *p)
     double *x = p->data.ex[0], *y1 = p->data.ex[1];
     double *y2 = p->data.ex[2], *y3 = p->data.ex[3], *y4 = p->data.ex[4];
     double ilen = 0.02*p->symsize;
+    int skip = p->symskip + 1;
     WPoint wp;
     VPoint vp1, vp2;
 
@@ -1529,7 +1527,7 @@ void drawsethilo(plotarr *p)
         setpen(p->sympen);
         setlinewidth(p->symlinew);
         setlinestyle(p->symlines);
-        for (i = 0; i < p->data.len; i++) {
+        for (i = 0; i < p->data.len; i += skip) {
             wp.x = x[i];
             wp.y = y1[i];
             vp1 = Wpoint2Vpoint(wp);
@@ -1559,6 +1557,7 @@ void drawsetbars(int gno, int setno, plotarr *p,
     int i, n;
     double *x, *y;
     double lw, bw = 0.01*p->symsize;
+    int skip = p->symskip + 1;
     double ybase;
     WPoint wp;
     VPoint vp1, vp2;
@@ -1598,7 +1597,7 @@ void drawsetbars(int gno, int setno, plotarr *p,
 
     if (p->symfillpen.pattern != 0) {
 	setpen(p->symfillpen);
-        for (i = 0; i < n; i++) {
+        for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y = refy[i];
@@ -1627,7 +1626,7 @@ void drawsetbars(int gno, int setno, plotarr *p,
     }
     if (p->symlines != 0 && p->sympen.pattern != 0) {
         setpen(p->sympen);
-        for (i = 0; i < n; i++) {
+        for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y = refy[i];
@@ -1660,6 +1659,7 @@ void drawcirclexy(plotarr *p)
 {
     int i, setlen;
     double *x, *y, *r;
+    int skip = p->symskip + 1;
     WPoint wp;
     VPoint vp1, vp2;
 
@@ -1674,7 +1674,7 @@ void drawcirclexy(plotarr *p)
     setlinewidth(p->linew);
     setlinestyle(p->lines);
 
-    for (i = 0; i < setlen; i++) {
+    for (i = 0; i < setlen; i += skip) {
         wp.x = x[i];
         wp.y = y[i];
         /* TODO: remove once ellipse clipping works */
@@ -1701,6 +1701,7 @@ void drawsetvmap(int gno, plotarr *p)
 {
     int i, setlen;
     double znorm = get_graph_znorm(gno);
+    int skip = p->symskip + 1;
     double *x, *y, *vx, *vy;
     WPoint wp;
     VPoint vp1, vp2;
@@ -1724,7 +1725,7 @@ void drawsetvmap(int gno, plotarr *p)
 
     setpen(p->errbar.pen);
 
-    for (i = 0; i < setlen; i++) {
+    for (i = 0; i < setlen; i += skip) {
         wp.x = x[i];
         wp.y = y[i];
         if (!is_validWPoint(wp)){
@@ -1749,6 +1750,7 @@ void drawsetboxplot(plotarr *p)
     int i;
     double *x, *md, *lb, *ub, *lw, *uw;
     double size = 0.01*p->symsize;
+    int skip = p->symskip + 1;
     WPoint wp;
     VPoint vp1, vp2;
 
@@ -1761,7 +1763,7 @@ void drawsetboxplot(plotarr *p)
 
     setclipping(TRUE);
 
-    for (i = 0; i < p->data.len; i++) {
+    for (i = 0; i < p->data.len; i += skip) {
         wp.x =  x[i];
 
         wp.y = lb[i];
