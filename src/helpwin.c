@@ -401,7 +401,7 @@ static void create_find_dialog(void *data)
     if (!dialog) {
         Widget rc, rc2;
         
-        dialog = CreateDialogForm(app_shell, "Find Dialog");
+        dialog = CreateDialogForm(ui->html, "Find Dialog");
         
         rc = CreateVContainer(dialog);
         ui->input = CreateTextInput(rc, "Find:");
