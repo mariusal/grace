@@ -43,7 +43,6 @@
 #include "defines.h"
 #include "globals.h"
 #include "graphs.h"
-#include "objutils.h"
 #include "utils.h"
 #include "protos.h"
 
@@ -84,8 +83,6 @@ void set_program_defaults(void)
     
     target_set.gno = -1;
     target_set.setno = -1;
-    
-    objects = storage_new(object_free, NULL);
 }
 
 void set_region_defaults(int rno)
@@ -139,10 +136,49 @@ void set_default_string(plotstr * s)
 
 void set_default_arrow(Arrow *arrowp)
 {
-    arrowp->type = 0;
-    arrowp->length = 1.0;
-    arrowp->dL_ff = 1.0;
-    arrowp->lL_ff = 1.0;
+    arrowp->type = line_atype;
+    arrowp->length = line_asize;
+    arrowp->dL_ff = line_a_dL_ff;
+    arrowp->lL_ff = line_a_lL_ff;
+}
+
+void set_default_line(linetype * l)
+{
+    l->active = FALSE;
+    l->loctype = COORD_VIEW;
+    l->gno = -1;
+    l->x1 = l->y1 = l->x2 = l->y2 = 0.0;
+    l->lines = grdefaults.lines;
+    l->linew = grdefaults.linew;
+    l->color = grdefaults.color;
+    l->arrow_end = 0;
+    set_default_arrow(&l->arrow);
+}
+
+void set_default_box(boxtype * b)
+{
+    b->active = FALSE;
+    b->loctype = COORD_VIEW;
+    b->gno = -1;
+    b->x1 = b->y1 = b->x2 = b->y2 = 0.0;
+    b->lines = grdefaults.lines;
+    b->linew = grdefaults.linew;
+    b->color = grdefaults.color;
+    b->fillcolor = grdefaults.color;
+    b->fillpattern = grdefaults.pattern;
+}
+
+void set_default_ellipse(ellipsetype * e)
+{
+    e->active = FALSE;
+    e->loctype = COORD_VIEW;
+    e->gno = -1;
+    e->x1 = e->y1 = e->x2 = e->y2 = 0.0;
+    e->lines = grdefaults.lines;
+    e->linew = grdefaults.linew;
+    e->color = grdefaults.color;
+    e->fillcolor = grdefaults.color;
+    e->fillpattern = grdefaults.pattern;
 }
 
 void set_default_legend(int gno, legend * l)
@@ -162,8 +198,9 @@ void set_default_legend(int gno, legend * l)
     l->boxpen.pattern = grdefaults.pattern;
     l->boxfillpen.color = 0;
     l->boxfillpen.pattern = grdefaults.pattern;
-    l->boxlinew = grdefaults.linew;     /* set plot sym line width */
-    l->boxlines = grdefaults.lines;     /* set plot sym line style */
+    l->boxlinew = grdefaults.linew;
+    l->boxlines = grdefaults.lines;
+    l->bb.xv1 = l->bb.xv2 = l->bb.yv1 = l->bb.yv2 = 0.0;
 }
 
 void set_default_plotarr(plotarr * p)
