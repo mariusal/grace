@@ -1619,7 +1619,7 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 {
     TextStructure *retval;
     XmString str;
-    Arg args[4];
+    Arg args[3];
     int ac;
 	
     retval = xmalloc(sizeof(TextStructure));
@@ -1640,7 +1640,6 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
         XtSetArg(args[ac], XmNrows, nrows); ac++;
     }
     XtSetArg(args[ac], XmNeditMode, XmMULTI_LINE_EDIT); ac++;
-    XtSetArg(args[ac], XmNwordWrap, True); ac++;
     XtSetArg(args[ac], XmNvisualPolicy, XmVARIABLE); ac++;
     retval->text = XmCreateScrolledText(retval->form, "text", args, ac);
     XtVaSetValues(XtParent(retval->text),
