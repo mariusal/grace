@@ -38,20 +38,16 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
-#include <Xm/RowColumn.h>
 #include <Xm/List.h>
 
-#include "globals.h"
+#include "utils.h"
 #include "graphs.h"
 #include "parser.h"
 #include "motifinc.h"
 #include "protos.h"
 
 static Widget hotlink_frame = (Widget) NULL;
-static SetChoiceItem hotlink_set_item;
+static ListStructure *hotlink_set_item;
 static Widget hotlink_list_item;
 static Widget hotlink_file_item;
 static Widget *hotlink_source_item;
@@ -65,47 +61,49 @@ void create_hotfiles_popup(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void do_hotlink_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int i, numset, src, *sets;
+    int i, numset, src, *sets, gno = get_cg();
     char fname[256];
     char buf[256];
     XmString xms;
 
     set_wait_cursor();
 
-    numset = GetSelectedSets(hotlink_set_item, &sets);
+    numset = GetListChoices(hotlink_set_item, &sets);
     src = GetChoice(hotlink_source_item);
     strcpy(fname, xv_getstr(hotlink_file_item));
 
-    if (numset == SET_SELECT_ERROR) {
-        errwin("No set selected");
+    if (numset == 0) {
+        errmsg("No set selected");
         unset_wait_cursor();
         return;
     }
     if (fname[0] == '\0') {
-        errwin("No source selected");
+        errmsg("No source selected");
         unset_wait_cursor();
         return;
     }
 
-	for( i=0; i<numset; i++ ) {
-		if( numset == 1 )
-			sprintf(buf, "G%d.S%d -> %s -> %s", get_cg(), sets[i],
-								src==0 ? "DISK" : "PIPE", fname );
-		else
-			sprintf(buf, "G%d.S%d -> %s -> %s:%d", get_cg(), sets[i], 
-						src == 0 ? "DISK" : "PIPE", fname, i+1);
-
-		xms = XmStringCreateLocalized(buf);
-		XmListAddItemUnselected(hotlink_list_item, xms, 0);
-    	        XmStringFree(xms);
-		set_hotlink(get_cg(), sets[i], i+1, fname, src==0?SOURCE_DISK:SOURCE_PIPE);
-		if( numset == 1 )
-			setcomment( get_cg(), sets[i], fname );
-		else {
-			sprintf( buf, "%s:%d", fname, i+1 );
-			setcomment( get_cg(), sets[i], buf );
-		}
+    for (i = 0; i < numset; i++) {
+	if (numset == 1) {
+	    sprintf(buf, "G%d.S%d -> %s -> %s",
+                gno, sets[i], src==0 ? "DISK" : "PIPE", fname);
+	} else {
+	    sprintf(buf, "G%d.S%d -> %s -> %s:%d",
+                gno, sets[i], src == 0 ? "DISK" : "PIPE", fname, i + 1);
+        }
+	xms = XmStringCreateLocalized(buf);
+	XmListAddItemUnselected(hotlink_list_item, xms, 0);
+    	XmStringFree(xms);
+	set_hotlink(gno, sets[i], i + 1, fname, src == 0 ? SOURCE_DISK:SOURCE_PIPE);
+	if (numset == 1 ) {
+	    setcomment(gno, sets[i], fname );
+	} else {
+	    sprintf(buf, "%s:%d", fname, i + 1);
+	    setcomment(gno, sets[i], buf);
 	}
+    }
+    
+    xfree(sets);
 
     unset_wait_cursor();
 }
@@ -219,7 +217,7 @@ void create_hotlinks_popup(void *data)
 	label1[4] = "Close";
 	top = XmCreateDialogShell(app_shell, "Hot links", NULL, 0);
 	handle_close(top);
-	dialog = XmCreateRowColumn(top, "dialog_rc", NULL, 0);
+	dialog = CreateVContainer(top);
 
 	XtSetArg(args[0], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
 	XtSetArg(args[1], XmNvisibleItemCount, 5);
@@ -227,11 +225,8 @@ void create_hotlinks_popup(void *data)
 	hotlink_list_item = XmCreateScrolledList(dialog, "list", args, 3);
 	ManageChild(hotlink_list_item);
 
-        hotlink_set_item = CreateSetSelector(dialog, "Link set:",
-                SET_SELECT_ACTIVE,
-                FILTER_SELECT_ALL,
-                GRAPH_SELECT_CURRENT,
-                SELECTION_TYPE_MULTIPLE);
+        hotlink_set_item = CreateSetChoice(dialog,
+            "Link set:", LIST_TYPE_MULTIPLE, TRUE);
 
 	hotlink_file_item = CreateTextItem2(dialog, 30, "To file or SOURCE_PIPE:");
 	hotlink_source_item = CreatePanelChoice(dialog, "Source: ", 3,
@@ -256,7 +251,6 @@ void create_hotlinks_popup(void *data)
 	XtAddCallback(but1[4], XmNactivateCallback, (XtCallbackProc) destroy_dialog,
 		      (XtPointer) top);
 
-	ManageChild(dialog);
 	hotlink_frame = top;
     }
     RaiseWindow(top);
