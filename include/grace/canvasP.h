@@ -193,7 +193,6 @@ int make_color_scale(Canvas *canvas,
 int canvas_set_pattern(Canvas *canvas, unsigned int n, const Pattern *pat);
 int canvas_set_linestyle(Canvas *canvas, unsigned int n, const LineStyle *ls);
 
-void initialize_cmap(Canvas *canvas);
 int init_t1(Canvas *canvas);
 void initialize_patterns(Canvas *canvas);
 void initialize_linestyles(Canvas *canvas);
