@@ -219,6 +219,7 @@ void create_about_grtool(void *data)
 typedef struct _html_ui {
     Widget top;
     Widget html;
+    TextStructure *track;
     TextStructure *input;
     Widget case_sensitive;
     Widget find_backwards;
@@ -290,6 +291,24 @@ static void anchorCB(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
+static void trackCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    XmHTMLAnchorPtr href_data = (XmHTMLAnchorPtr) call_data;
+    html_ui *ui = (html_ui *) client_data;
+
+    /* see if we have been called with a valid reason */
+    if (href_data->reason != XmCR_HTML_ANCHORTRACK) {
+        return;
+    }
+
+    if (href_data->href) {
+        /* a valid anchor, eg, moving into an anchor */
+        SetTextString(ui->track, href_data->href);
+    } else {
+        /* a valid anchor, eg, moving away from an anchor */
+        SetTextString(ui->track, "");
+    }
+}
 
 static int find_cb(void *data)
 {
@@ -424,6 +443,14 @@ void create_helper_frame(char *fname)
         
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
         CreateMenuButton(menupane, "Find", 'F', create_find_dialog, ui);
+
+        menupane = CreateMenu(menubar, "Help", 'H', TRUE);
+        CreateMenuButton(menupane, "User's Guide", 'G', HelpCB, "UsersGuide.html");
+        CreateMenuButton(menupane, "Tutorial", 'T', HelpCB, "Tutorial.html");
+        CreateMenuButton(menupane, "FAQ", 'Q', HelpCB, "FAQ.html");
+        CreateMenuButton(menupane, "Changes", 'C', HelpCB, "CHANGES.html");
+        CreateMenuSeparator(menupane);
+        CreateMenuButton(menupane, "License terms", 'L', HelpCB, (void *) "GPL.html");
         
         panel = CreateVContainer(ui->top);
         AddDialogFormChild(ui->top, panel);
@@ -440,6 +467,12 @@ void create_helper_frame(char *fname)
 	   NULL);
 
 	XtAddCallback(ui->html, XmNactivateCallback, anchorCB, NULL);
+        XtAddCallback(ui->html, XmNanchorTrackCallback, trackCB, ui);
+
+	fr = CreateFrame(panel, NULL);
+        ui->track = CreateTextInput(fr, "Link:");
+        XtVaSetValues(ui->track->text, XmNeditable, False, NULL);
+        SetTextString(ui->track, "Welcome to Gracilla!");
 	
         ManageChild(ui->top);
         
