@@ -192,10 +192,10 @@ int Wpoint2Vpoint(const Quark *q, const WPoint *wp, VPoint *vp)
  */
 int Fpoint2Vpoint(const Quark *f, const FPoint *fp, VPoint *vp)
 {
-    view *v = frame_get_view(f);
-    if (v) {
-        vp->x = v->xv1 + (v->xv2 - v->xv1)*fp->x;
-        vp->y = v->yv1 + (v->yv2 - v->yv1)*fp->y;
+    view v;
+    if (frame_get_view(f, &v) == RETURN_SUCCESS) {
+        vp->x = v.xv1 + (v.xv2 - v.xv1)*fp->x;
+        vp->y = v.yv1 + (v.yv2 - v.yv1)*fp->y;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -271,10 +271,10 @@ int Vpoint2Wpoint(const Quark *q, const VPoint *vp, WPoint *wp)
 int update_graph_ccache(Quark *gr)
 {
     graph *g = graph_get_data(gr);
-    view *v = frame_get_view(get_parent_frame(gr));
+    view v;
     int ctrans_type, xyfixed;
 
-    if (!g || !v) {
+    if (!g || frame_get_view(get_parent_frame(gr), &v) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
     
@@ -295,25 +295,25 @@ int update_graph_ccache(Quark *gr)
     
     switch (ctrans_type) {
     case COORDINATES_POLAR:
-        g->ccache.xv_med = (v->xv1 + v->xv2)/2;
+        g->ccache.xv_med = (v.xv1 + v.xv2)/2;
         if (g->xinvert == FALSE) {
             g->ccache.xv_rc = +1.0;
         } else {
             g->ccache.xv_rc = -1.0;
         }
 
-        g->ccache.yv_med = (v->yv1 + v->yv2)/2;
-        g->ccache.yv_rc = (MIN2(v->xv2 - v->xv1, v->yv2 - v->yv1)/2.0)/g->w.yg2;
+        g->ccache.yv_med = (v.yv1 + v.yv2)/2;
+        g->ccache.yv_rc = (MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2.0)/g->w.yg2;
         break;
     case COORDINATES_XY:
         if (xyfixed) {
-            g->ccache.xv_med = (v->xv1 + v->xv2)/2;
+            g->ccache.xv_med = (v.xv1 + v.xv2)/2;
             g->ccache.fxg_med = (g->w.xg1 + g->w.xg2)/2;
-            g->ccache.yv_med = (v->yv1 + v->yv2)/2;
+            g->ccache.yv_med = (v.yv1 + v.yv2)/2;
             g->ccache.fyg_med = (g->w.yg1 + g->w.yg2)/2;
 
-            g->ccache.xv_rc = MIN2((v->xv2 - v->xv1)/(g->w.xg2 - g->w.xg1),
-                         (v->yv2 - v->yv1)/(g->w.yg2 - g->w.yg1));
+            g->ccache.xv_rc = MIN2((v.xv2 - v.xv1)/(g->w.xg2 - g->w.xg1),
+                         (v.yv2 - v.yv1)/(g->w.yg2 - g->w.yg1));
             g->ccache.yv_rc = g->ccache.xv_rc;
             if (g->xinvert == TRUE) {
                 g->ccache.xv_rc = -g->ccache.xv_rc;
@@ -322,25 +322,25 @@ int update_graph_ccache(Quark *gr)
                 g->ccache.yv_rc = -g->ccache.yv_rc;
             }
         } else {
-            g->ccache.xv_med = (v->xv1 + v->xv2)/2;
+            g->ccache.xv_med = (v.xv1 + v.xv2)/2;
             g->ccache.fxg_med =
                 (fscale(g->w.xg1, g->xscale) + fscale(g->w.xg2, g->xscale))/2;
             if (g->xinvert == FALSE) {
-                g->ccache.xv_rc = (v->xv2 - v->xv1)/
+                g->ccache.xv_rc = (v.xv2 - v.xv1)/
                     (fscale(g->w.xg2, g->xscale) - fscale(g->w.xg1, g->xscale));
             } else {
-                g->ccache.xv_rc = - (v->xv2 - v->xv1)/
+                g->ccache.xv_rc = - (v.xv2 - v.xv1)/
                     (fscale(g->w.xg2, g->xscale) - fscale(g->w.xg1, g->xscale));
             }
 
-            g->ccache.yv_med = (v->yv1 + v->yv2)/2;
+            g->ccache.yv_med = (v.yv1 + v.yv2)/2;
             g->ccache.fyg_med =
                 (fscale(g->w.yg1, g->yscale) + fscale(g->w.yg2, g->yscale))/2;
             if (g->yinvert == FALSE) {
-                g->ccache.yv_rc = (v->yv2 - v->yv1)/
+                g->ccache.yv_rc = (v.yv2 - v.yv1)/
                     (fscale(g->w.yg2, g->yscale) - fscale(g->w.yg1, g->yscale));
             } else {
-                g->ccache.yv_rc = - (v->yv2 - v->yv1)/
+                g->ccache.yv_rc = - (v.yv2 - v.yv1)/
                     (fscale(g->w.yg2, g->yscale) - fscale(g->w.yg1, g->yscale));
             }
         }

@@ -133,13 +133,14 @@ frame *frame_get_data(const Quark *q)
     }
 }
 
-view *frame_get_view(const Quark *q)
+int frame_get_view(const Quark *q, view *v)
 {
     frame *f = frame_get_data(q);
     if (f) {
-        return &f->v;
+        *v = f->v;
+        return RETURN_SUCCESS;
     } else {
-        return NULL;
+        return RETURN_FAILURE;
     }
 }
 

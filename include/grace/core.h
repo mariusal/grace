@@ -829,7 +829,7 @@ Quark *frame_new(Quark *project);
 int frame_is_active(const Quark *q);
 int frame_set_active(Quark *q, int flag);
 
-view *frame_get_view(const Quark *q);
+int frame_get_view(const Quark *q, view *v);
 int frame_set_view(Quark *q, const view *v);
 
 int frame_set_type(Quark *q, int type);
