@@ -23,7 +23,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Matrix.h,v 1.1 1999-09-11 01:25:38 fnevgeny Exp $
+ * $Id: Matrix.h,v 1.1.2.1 2001-12-26 21:42:27 fnevgeny Exp $
  */
 
 #ifndef _Xbae_Matrix_h
@@ -788,10 +788,6 @@ typedef struct _XbaeMatrixEnterCellCallbackStruct
     int row;
     int column;
     int position;
-    String pattern;
-    Boolean auto_fill;
-    Boolean convert_case;
-    Boolean overwrite_mode;
     Boolean select_text;
     Boolean map;
     Cardinal num_params;

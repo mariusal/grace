@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Methods.c,v 1.1 1999-09-11 01:25:38 fnevgeny Exp $
+ * $Id: Methods.c,v 1.1.2.1 2001-12-26 21:42:27 fnevgeny Exp $
  */
 
 /*
@@ -42,7 +42,6 @@
 #include <Xbae/Draw.h>
 #include <Xbae/Create.h>
 #include <Xbae/ClipP.h>
-#include <Xbae/Input.h>
 #include <Xm/XmP.h>
 #include <Xm/Text.h>
 #include <Xm/TextP.h>
@@ -1852,14 +1851,7 @@ Cardinal nparams;
     call_data.map = True;
     call_data.doit = True;
     call_data.position = -1;
-    call_data.pattern = NULL;
     
-    XtVaGetValues(TextChild(mw),
-		  XmNoverwriteMode, &call_data.overwrite_mode,
-		  XmNautoFill, &call_data.auto_fill,
-		  XmNconvertCase, &call_data.convert_case,
-		  NULL);
-
     call_data.select_text = False;
 
     if (mw->matrix.enter_cell_callback)
@@ -2072,10 +2064,6 @@ Cardinal nparams;
 		      XmNcursorPositionVisible, call_data.doit,
 		      XmNbackground, bgcolor,
 		      XmNforeground, fgcolor,
-		      XmNpattern, call_data.pattern,
-		      XmNoverwriteMode, call_data.overwrite_mode,
-		      XmNautoFill, call_data.auto_fill,
-		      XmNconvertCase, call_data.convert_case,
 		      NULL);
 
 	XtVaSetValues(TextChild(mw), XmNvalue, string, NULL);
