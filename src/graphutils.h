@@ -43,7 +43,6 @@
 #define GZOOM_SHRINK    0
 #define GZOOM_EXPAND    1
 
-int get_format_index(int f);
 char *get_format_types(int f);
 
 int wipeout(void);
@@ -52,8 +51,6 @@ void scroll_proc(int value);
 void scrollinout_proc(int value);
 int graph_scroll(int type);
 int graph_zoom(int type);
-
-void make_format(int gno);
 
 void arrange_graphs(int grows, int gcols);
 int arrange_graphs2(int grows, int gcols, double vgap, double hgap,

@@ -50,16 +50,6 @@ extern char print_file[];
 
 static void auto_ticks(int gno, int axis);
 
-int get_format_index(int f)
-{
-    int i = 0;
-
-    while (f != format_types[i] && format_types[i] != FORMAT_INVALID) {
-	i++;
-    }
-    return i;
-}
-
 char *get_format_types(int f)
 {
     static char s[128];
@@ -563,64 +553,6 @@ int graph_zoom(int type)
     } else {
 	errmsg("Zooming is not implemented for LOG plots");
         return GRACE_EXIT_FAILURE;
-    }
-}
-
-/*
- * set format string for locator
- */
-static char *fchar[3] = {"lf", "le", "g"};
-static char *typestr[6] = {"X, Y",
-                           "DX, DY",
-			   "DIST",
-			   "Phi, Rho",
-			   "VX, VY",
-                           "SX, SY"};
-char locator_format[128] = {"G%1d: X, Y = [%.6g, %.6g]"};
-
-void make_format(int gno)
-{
-    int type, locpx, locfx, locpy, locfy;
-    GLocator locator;
-
-    get_graph_locator(gno, &locator);
-    
-    type = locator.pt_type;
-    locfx = get_format_index(locator.fx);
-    locfy = get_format_index(locator.fy);
-    locpx = locator.px;
-    locpy = locator.py;
-    switch (type) {
-    case 0:
-	if (locfx < 3 && locfy < 3) {
-	    sprintf(locator_format, "G%%1d: %s = [%%.%d%s, %%.%d%s]",
-	            typestr[type], locpx, fchar[locfx], locpy, fchar[locfy]);
-	} else {
-	    locator_format[0] = 0;
-	}
-	break;
-    case 2:
-	locfx = locfx == FORMAT_DECIMAL ? 0 :
-		locfx == FORMAT_EXPONENTIAL ? 1 :
-		locfx == FORMAT_GENERAL ? 2 : 0;
-	sprintf(locator_format, "G%%1d: %s = [%%.%d%s]", typestr[type], locpx,
-	        fchar[locfx]);
-	break;
-    case 1:
-    case 3:
-    case 4:
-	locfx = locfx == FORMAT_DECIMAL ? 0 :
-		locfx == FORMAT_EXPONENTIAL ? 1 :
-		locfx == FORMAT_GENERAL ? 2 : 0;
-	locfy = locfy == FORMAT_DECIMAL ? 0 :
-		locfy == FORMAT_EXPONENTIAL ? 1 :
-		locfy == FORMAT_GENERAL ? 2 : 0;
-	sprintf(locator_format, "G%%1d: %s = [%%.%d%s, %%.%d%s]", typestr[type],
-	        locpx, fchar[locfx], locpy, fchar[locfy]);
-	break;
-    case 5:
-	sprintf(locator_format, "G%%1d: %s = [%%d, %%d]", typestr[type]);
-	break;
     }
 }
 
