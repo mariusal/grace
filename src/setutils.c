@@ -277,7 +277,7 @@ int getsetminmax(int gno, int setno,
                 }
             }
         }
-    } else if (setno >= 0) {
+    } else if (is_valid_setno(gno, setno)) {
         minmax(g[gno].p[setno].ex[0], g[gno].p[setno].len, xmin, xmax, &imin, &imax);
         minmax(g[gno].p[setno].ex[1], g[gno].p[setno].len, ymin, ymax, &imin, &imax);
         first = FALSE;
@@ -314,7 +314,7 @@ int getsetminmax_c(int gno, int setno,
     if (setno == ALL_SETS) {
         start = 0;
         stop  = number_of_sets(gno) - 1;
-    } else if (setno >= 0) {
+    } else if (is_valid_setno(gno, setno)) {
         start = setno;
         stop  = setno;
     } else {
@@ -456,21 +456,30 @@ double vmax(double *x, int n)
     return xmax;
 }
 
-void set_point(int gno, int setn, int seti, double wx, double wy)
+void set_point(int gno, int setno, int seti, double wx, double wy)
 {
-    g[gno].p[setn].ex[0][seti] = wx;
-    g[gno].p[setn].ex[1][seti] = wy;
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
+    g[gno].p[setno].ex[0][seti] = wx;
+    g[gno].p[setno].ex[1][seti] = wy;
     set_dirtystate();
 }
 
-void get_point(int gno, int setn, int seti, double *wx, double *wy)
+void get_point(int gno, int setno, int seti, double *wx, double *wy)
 {
-    *wx = g[gno].p[setn].ex[0][seti];
-    *wy = g[gno].p[setn].ex[1][seti];
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
+    *wx = g[gno].p[setno].ex[0][seti];
+    *wy = g[gno].p[setno].ex[1][seti];
 }
 
 void setcol(int gno, double *x, int setno, int len, int col)
 {
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
     g[gno].p[setno].ex[col] = x;
     g[gno].p[setno].len = len;
     set_dirtystate();
@@ -479,6 +488,10 @@ void setcol(int gno, double *x, int setno, int len, int col)
 int getncols(int gno, int setno)
 {
     int i;
+
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return 0;
+    }
 
     for (i = 0; i < MAX_SET_COLS; i++) {
         if (g[gno].p[setno].ex[i] == NULL) {
@@ -495,6 +508,10 @@ void setxy(int gno, double **ex, int setno, int len, int ncols)
 {
     int i;
 
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
+
     for (i = 0; i < ncols; i++) {
 	g[gno].p[setno].ex[i] = ex[i];
     }
@@ -504,6 +521,9 @@ void setxy(int gno, double **ex, int setno, int len, int ncols)
 
 int setlength(int gno, int setno, int length)
 {
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return GRACE_EXIT_FAILURE;
+    }
     return allocxy(&g[gno].p[setno], length);
 }
 
@@ -512,6 +532,10 @@ void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
     int i, n;
     double *x1, *x2;
 
+    if (is_valid_setno(gfrom, setfrom) != TRUE ||
+        is_valid_setno(gto, setto) != TRUE) {
+        return;
+    }
     n = g[gfrom].p[setfrom].len;
     x1 = getcol(gfrom, setfrom, col);
     x2 = getcol(gto, setto, col);
@@ -661,14 +685,6 @@ void packsets(int gno)
     }
 }
 
-/*
- * action proc for menu item
- */
-void do_packsets(void)
-{
-    packsets(get_cg());
-}
-
 int allocate_set(int gno, int setno)
 {
     if (is_valid_setno(gno, setno)) {
@@ -787,6 +803,9 @@ int activeset(int gno)
 {
     int i;
 
+    if (is_valid_gno(gno) != TRUE) {
+        return FALSE;
+    }
     for (i = 0; i < g[gno].maxplot; i++) {
 	if (is_set_active(gno, i) == TRUE) {
 	    return TRUE;
@@ -802,6 +821,10 @@ void droppoints(int gno, int setno, int startno, int endno, int dist)
 {
     double *x;
     int i, j, len, ncols;
+
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
 
     len = getsetlength(gno, setno);
     ncols = getncols(gno, setno);
@@ -822,6 +845,11 @@ void joinsets(int g1, int j1, int g2, int j2)
     int i, j, len1, len2, ncols1, ncols2, ncols;
     double *x1, *x2;
 
+    if (is_valid_setno(g1, j1) != TRUE ||
+        is_valid_setno(g2, j2) != TRUE) {
+        return;
+    }
+    
     len1 = getsetlength(g1, j1);
     len2 = getsetlength(g2, j2);
     setlength(g2, j2, len1 + len2);
@@ -837,6 +865,25 @@ void joinsets(int g1, int j1, int g2, int j2)
     }
 }
 
+void reverse_set(int gno, int setno)
+{
+    int n, i, j, k, ncols;
+    double *x;
+
+    if (!is_valid_setno(gno, setno)) {
+	return;
+    }
+    n = getsetlength(gno, setno);
+    ncols = getncols(gno, setno);
+    for (k = 0; k < ncols; k++) {
+	x = getcol(gno, setno, k);
+	for (i = 0; i < n / 2; i++) {
+	    j = (n - 1) - i;
+	    fswap(&x[i], &x[j]);
+	}
+    }
+    set_dirtystate();
+}
 /*
  * sort a set
  */
@@ -846,34 +893,39 @@ static double *vptr;
  * for ascending and descending sorts
  */
  
-int compare_points1(const void *p1, const void *p2)
+static int compare_points1(const void *p1, const void *p2)
 {
-    const double *a, *b;
-    a = (const double *)p1;
-    b = (const double *)p2;
-    if (*a < *b) {
+    const int *i1, *i2;
+    double a, b;
+    i1 = (const int *)p1;
+    i2 = (const int *)p2;
+    a = vptr[*i1];
+    b = vptr[*i2];
+    if (a < b) {
 	return -1;
     }
-    if (*a > *b) {
+    if (a > b) {
 	return 1;
     }
     return 0;
 }
 
-int compare_points2(const void *p1, const void *p2)
+static int compare_points2(const void *p1, const void *p2)
 {
-    const double *a, *b;
-    a = (const double *)p1;
-    b = (const double *)p2;
-    if (*a > *b) {
+    const int *i1, *i2;
+    double a, b;
+    i1 = (const int *)p1;
+    i2 = (const int *)p2;
+    a = vptr[*i1];
+    b = vptr[*i2];
+    if (a > b) {
 	return -1;
     }
-    if (*a < *b) {
+    if (a < b) {
 	return 1;
     }
     return 0;
 }
-
 
 void sortset(int gno, int setno, int sorton, int stype)
 {
@@ -888,15 +940,15 @@ void sortset(int gno, int setno, int sorton, int stype)
 	errmsg("NULL vector in sort, operation cancelled, check set type");
 	return;
     }
+
     len = getsetlength(gno, setno);
     if (len <= 1) {
-	errmsg("Setlength <= 1, nothing to do!");
 	return;
     }
 /*
  * allocate memory for permuted indices
  */
-    ind = (int *) calloc(len, sizeof(int));
+    ind = calloc(len, SIZEOF_INT);
     if (ind == NULL) {
 	errmsg("Unable to allocate memory for sort");
 	return;
@@ -904,7 +956,7 @@ void sortset(int gno, int setno, int sorton, int stype)
 /*
  * allocate memory for temporary array
  */
-    dtmp = (double *) calloc(len, SIZEOF_DOUBLE);
+    dtmp = calloc(len, SIZEOF_DOUBLE);
     if (dtmp == NULL) {
 	free(ind);
 	errmsg("Unable to allocate memory for sort");
@@ -920,7 +972,7 @@ void sortset(int gno, int setno, int sorton, int stype)
 /*
  * sort
  */
-    qsort(ind, len, sizeof(int),  stype ? compare_points2 : compare_points1);
+    qsort(ind, len, SIZEOF_INT,  stype ? compare_points2 : compare_points1);
 
 /*
  * straighten things out - done one vector at a time for storage.
@@ -942,7 +994,7 @@ void sortset(int gno, int setno, int sorton, int stype)
 }
 
 /*
- * sort a set - only does type SET_XY
+ * sort two arrays
  */
 void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype)
 {
@@ -998,6 +1050,10 @@ void findpoint(int gno, double x, double y, double *xs, double *ys, int *setno, 
     int i, j, len;
 
     *setno = -1;
+    if (is_valid_gno(gno) != TRUE) {
+        return;
+    }
+    
     for (i = 0; i < g[gno].maxplot; i++) {
 	if (is_set_active(gno, i)) {
 	    xtmp = getx(gno, i);
@@ -1048,6 +1104,10 @@ void del_point(int gno, int setno, int pt)
     int i, j, len, ncols;
     double *tmp;
 
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
+    
     ncols = getncols(gno, setno);
     len = getsetlength(gno, setno);
     if (pt > len) {
@@ -1153,6 +1213,11 @@ void delete_byindex(int gno, int setno, int *ind)
 {
     int i, j, cnt = 0;
     int ncols = getncols(gno, setno);
+
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
+    
     for (i = 0; i < getsetlength(gno, setno); i++) {
 	if (ind[i]) {
 	    cnt++;
@@ -1536,31 +1601,6 @@ void do_join_sets(int gfrom, int j1, int gto, int j2)
 /*
  * reverse the order of a set
  */
-void do_reverse_sets(int setno)
-{
-    int n, i, j, k, ncols;
-    double *x;
-
-    if (!is_set_active(get_cg(), setno)) {
-	sprintf(buf, "Set %d not active", setno);
-	errmsg(buf);
-	return;
-    }
-    n = getsetlength(get_cg(), setno);
-    ncols = getncols(get_cg(), setno);
-    for (k = 0; k < ncols; k++) {
-	x = getcol(get_cg(), setno, k);
-	for (i = 0; i < n / 2; i++) {
-	    j = (n - 1) - i;
-	    fswap(&x[i], &x[j]);
-	}
-    }
-    set_dirtystate();
-#ifndef NONE_GUI
-    update_set_status(get_cg(), setno);
-#endif
-}
-
 /*
  * kill a set
  */
@@ -1568,6 +1608,10 @@ void do_kill(int gno, int setno, int soft)
 {
     int i;
 
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
+    
     if (setno == g[gno].maxplot || setno == -1) {
 	for (i = 0; i < g[gno].maxplot; i++) {
 	    if (is_set_active(gno, i)) {
@@ -1606,38 +1650,31 @@ void do_kill(int gno, int setno, int soft)
  */
 void do_sort(int setno, int sorton, int stype)
 {
-    int i;
+    int i, gno = get_cg();
 
     if (setno == -1) {
-	for (i = 0; i < g[get_cg()].maxplot; i++) {
-	    if (is_set_active(get_cg(), i)) {
-		sort_set(i, sorton, stype);
+	for (i = 0; i < g[gno].maxplot; i++) {
+	    if (is_set_active(gno, i)) {
+		sortset(gno, i, sorton, stype);
 	    }
 	}
     } else {
-	if (!is_set_active(get_cg(), setno)) {
+	if (!is_set_active(gno, setno)) {
 	    sprintf(buf, "Set %d not active", setno);
 	    errmsg(buf);
 	    return;
 	} else {
-	    sort_set(setno, sorton, stype);
+	    sortset(gno, setno, sorton, stype);
 	}
     }
 }
 
-void sort_set(int setno, int sorton, int stype)
-{
-    int up;
-
-    up = getsetlength(get_cg(), setno);
-    if (up < 2) {
-	return;
-    }
-    sortset(get_cg(), setno, sorton, stype);
-}
-
 void set_hotlink(int gno, int setno, int onoroff, char *fname, int src)
 {
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
+    
     g[gno].p[setno].hotlink = onoroff;
     if (onoroff && fname != NULL) {
 	strcpy(g[gno].p[setno].hotfile, fname);
@@ -1648,26 +1685,43 @@ void set_hotlink(int gno, int setno, int onoroff, char *fname, int src)
 
 int is_hotlinked(int gno, int setno)
 {
-    if ( g[gno].p[setno].hotlink && strlen(g[gno].p[setno].hotfile) )
-   		return g[gno].p[setno].hotlink;
-	else 
-		return 0;
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return FALSE;
+    }
+    
+    if (g[gno].p[setno].hotlink && strlen(g[gno].p[setno].hotfile)) {
+        return g[gno].p[setno].hotlink;
+    } else { 
+        return FALSE;
+    }
 }
 
 char *get_hotlink_file(int gno, int setno)
 {
-    return g[gno].p[setno].hotfile;
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return NULL;
+    } else {
+        return g[gno].p[setno].hotfile;
+    }
 }
 
 int get_hotlink_src(int gno, int setno)
 {
-    return g[gno].p[setno].hotsrc;
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return -1;
+    } else {
+        return g[gno].p[setno].hotsrc;
+    }
 }
 
 void do_update_hotlink(int gno, int setno)
 {
-    read_set_fromfile(gno, setno, g[gno].p[setno].hotfile, 
-			g[gno].p[setno].hotsrc,g[gno].p[setno].hotlink );
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    } else {
+        read_set_fromfile(gno, setno, g[gno].p[setno].hotfile, 
+			g[gno].p[setno].hotsrc, g[gno].p[setno].hotlink);
+    }
 }
 
 static int wp = 0;
@@ -1687,6 +1741,10 @@ int work_pending(void)
  */
 double *getvptr(int gno, int setno, int v)
 {
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return NULL;
+    }
+    
     switch (v) {
     case DATA_X:
 	return g[gno].p[setno].ex[0];
@@ -1717,6 +1775,10 @@ double setybase(int gno, int setno)
 {
     double ybase = 0.0;
     double xmin, xmax, ymin, ymax;
+
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return 0.0;
+    }
     
     getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
     switch (g[gno].p[setno].baseline_type) {
