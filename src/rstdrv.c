@@ -442,8 +442,6 @@ void rst_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
     gdPoint gdp1, gdp2, gdc;
     int w, h;
     
-    int border;
-    
     gdp1 = VPoint2gdPoint(vp1);
     gdp2 = VPoint2gdPoint(vp2);
     gdc.x = (gdp1.x + gdp2.x)/2;
@@ -451,15 +449,8 @@ void rst_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
     w = (gdp2.x - gdp1.x);
     h = (gdp2.y - gdp1.y);
     
-    /* TODO: all this is a dirty trick... */
-    border = rst_colors[rstpen.color];
-    gdImageArc(ihandle, gdc.x, gdc.y, w, h, a1, a2, border);
-    
     rst_setfillbrush();
-    gdImageFillToBorder(ihandle, gdc.x + w/4, gdc.y, border, rst_fillbrush);
-    gdImageFillToBorder(ihandle, gdc.x, gdc.y + h/4, border, rst_fillbrush);
-    gdImageFillToBorder(ihandle, gdc.x - w/4, gdc.y, border, rst_fillbrush);
-    gdImageFillToBorder(ihandle, gdc.x, gdc.y - h/4, border, rst_fillbrush);
+    gdImageFilledArc(ihandle, gdc.x, gdc.y, w, h, a1, a2, rst_fillbrush);
 }
 
 void rst_putpixmap(VPoint vp, int width, int height, 
