@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1trans.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-06-04
+  ----- Date:        1999-12-14
   ----- Description: This file is part of the t1-library. It contains
                      functions for transforming fonts and setting
 		     line-parameters.
@@ -33,7 +33,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
+#if defined(_MSC_VER)
+# include <io.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+#else
+# include <unistd.h>
+#endif
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>

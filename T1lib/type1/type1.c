@@ -69,7 +69,7 @@ typedef struct xobject xobject;
 #define MAXPSFAKESTACK 32  /* Max depth of fake PostScript stack (local) */
 #define MAXSTRLEN 512      /* Max length of a Type 1 string (local) */
 #define MAXLABEL 256       /* Maximum number of new hints */
-#define MAXSTEMS 256       /* Maximum number of VSTEM and HSTEM hints */
+#define MAXSTEMS 512       /* Maximum number of VSTEM and HSTEM hints */
 #define EPS 0.001          /* Small number for comparisons */
  
 /************************************/
@@ -987,7 +987,15 @@ static int DoRead(CodeP)
   int *CodeP;
 {
   if (strindex >= CharStringP->len) return(FALSE); /* end of string */
-  *CodeP = Decrypt((unsigned char) CharStringP->data.stringP[strindex++]);
+  /* We handle the non-documented Adobe convention to use lenIV=-1 to
+     suppress charstring encryption. */
+  if (blues->lenIV==-1) {
+    *CodeP = (unsigned char) CharStringP->data.stringP[strindex++];
+  }
+  else { 
+    *CodeP = Decrypt((unsigned char) CharStringP->data.stringP[strindex++]);
+  }
+  
   return(TRUE);
 }
  

@@ -82,7 +82,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/types.h>  /* this seems to be necessary on some SCO-systems */
-#include <sys/file.h>
+#if !defined(_MSC_VER)
+#  include <sys/file.h>
+#endif
 #include <math.h>
 #include <string.h>
 #include "parseAFM.h"

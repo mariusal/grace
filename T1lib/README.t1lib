@@ -4,7 +4,7 @@
   --------------------------------------------------------------------------
 
 /*--------------------------------------------------------------------------
-  ----- File:        REAMDE.t1lib-1.0
+  ----- File:        REAMDE.t1lib-1.0.1
   ----- Author:      Rainer Menzner 
 		     (Rainer.Menzner@neuroinformatik.ruhr-uni-bochum.de)
 
@@ -12,7 +12,7 @@
 		     from:
                                 Raph Levien (raph@acm.org) and 
 				Fred L. Drake, Jr. (fdrake@acm.org)
-  ----- Date:        1999-11-08
+  ----- Date:        2000-03-20
   ----- Description: This is file README.t1lib of the t1lib-package. It
                      contains an overview and brief installation
                      instructions for the t1-library.
@@ -102,7 +102,8 @@ Installation:
 
 -----------------------------------------------------------------------------
 Note: VMS-users should examine configure.com in the toplevel directory, which
-      is a configure-script for VMS, kindly contributed by John Hasstedt.
+      is a configure-script for VMS, kindly contributed by John Hasstedt
+      and updated by Martin Zinser.
       This file contains notes on how to compile t1lib on VMS.
 -----------------------------------------------------------------------------
 
@@ -177,11 +178,11 @@ How to get it:
 
 t1lib is available at
 
-ftp://ftp.neuroinformatik.ruhr-uni-bochum.de/pub/software/t1lib/t1lib-1.0.tar.gz
+ftp://ftp.neuroinformatik.ruhr-uni-bochum.de/pub/software/t1lib/t1lib-1.0.1.tar.gz
 
 and 
 
-ftp://sunsite.unc.edu/pub/Linux/libs/graphics/t1lib-1.0.tar.gz
+ftp://sunsite.unc.edu/pub/Linux/libs/graphics/t1lib-1.0.1.tar.gz
 
 
 Closing:

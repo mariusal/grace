@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1env.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-11-29
+  ----- Date:        2000-01-12
   ----- Description: This file is part of the t1-library. It implements
                      the reading of a configuration file and path-searching
 		     of type1-, afm- and encoding files.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2000. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -33,7 +33,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#if defined(_MSC_VER)
+# include <io.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+#else
+# include <unistd.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ctype.h>
@@ -47,6 +53,7 @@
 #include "../type1/fontfcn.h"
 #include "../type1/fontmisc.h"
 
+#include "sysconf.h"
 #include "t1types.h"
 #include "t1extern.h"
 #include "t1env.h"
@@ -63,7 +70,7 @@ int ScanConfigFile( char **pfabenv_ptr,
 		    char **fontdatabase_ptr)
 {
   
-  char *environ;
+  char *env_str;
   char *linebuf;
   char *usershome;
   char *cnffilepath;
@@ -78,10 +85,10 @@ int ScanConfigFile( char **pfabenv_ptr,
   
   
   /* First, get the string stored in the environment variable: */
-  environ=getenv(ENV_CONF_STRING);
+  env_str=getenv(ENV_CONF_STRING);
   linecnt=1;
 
-  if (environ==NULL) {
+  if (env_str==NULL) {
     /* environment variable not set, try to open default file
        in user's home directory and afterwards global config file */
     if ((usershome=getenv("HOME"))!=NULL) {
@@ -144,7 +151,7 @@ int ScanConfigFile( char **pfabenv_ptr,
   }
   else{
     /* open specified file for reading the configuration */
-    if ((cfg_fp=fopen(environ,"r"))==NULL){
+    if ((cfg_fp=fopen(env_str,"r"))==NULL){
       T1_PrintLog( "ScanConfigFile()",
 		   "Configfile as specified by Environment has not been found",
 		   T1LOG_WARNING);
@@ -153,7 +160,7 @@ int ScanConfigFile( char **pfabenv_ptr,
     }
     else{
       sprintf( err_warn_msg_buf, "Using %s as Configfile (environment)",
-	       environ);
+	       env_str);
       T1_PrintLog( "ScanConfigFile()", err_warn_msg_buf, T1LOG_STATISTIC);
     }
   }
@@ -315,6 +322,9 @@ char *Env_GetCompletePath( char *FileName,
 #ifdef __EMX__
        ||
        ((isalpha(FileName[0])) && (FileName[1]==':'))
+#endif
+#ifdef VMS
+       || (strchr(FileName,':') != NULL)
 #endif
        )
     {

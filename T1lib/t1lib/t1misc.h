@@ -67,16 +67,19 @@
 #define T1_CONFIGFILENAME    ".t1librc"
 #define ENV_CONF_STRING      "T1LIB_CONFIG"
 #define GLOBAL_CONFIG_FILE   "t1lib.config"
-#ifndef VMS
-#define DIRECTORY_SEP        "/"
-#define DIRECTORY_SEP_CHAR   '/'
+#if defined(VMS)
+# define DIRECTORY_SEP        "]"
+# define DIRECTORY_SEP_CHAR   ']'
+#elif defined(_MSC_VER)
+# define DIRECTORY_SEP        "\\"
+# define DIRECTORY_SEP_CHAR   '\\'
 #else
-#define DIRECTORY_SEP        "]"
-#define DIRECTORY_SEP_CHAR   ']'
+# define DIRECTORY_SEP        "/"
+# define DIRECTORY_SEP_CHAR   '/'
 #endif
 /* For EMX-environment, we define the default path separator to
    be ';' instead of ':' */
-#if defined(__EMX__) || defined(VMS)
+#if defined(__EMX__) || defined(VMS) || defined(_MSC_VER)
 #define PATH_SEP             ";"
 #define PATH_SEP_CHAR        ';'
 #else
@@ -175,7 +178,9 @@
 #define USES_STANDARD_ENCODING    (short)0x0008
 #define FONT_NOCACHING            (short)0x0100
 
+#ifndef _MSC_VER
 extern int errno;
+#endif
 
 #ifndef PI
 #define PI 3.1415927

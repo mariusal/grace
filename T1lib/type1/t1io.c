@@ -37,7 +37,13 @@
 #define STATIC static
 #endif
  
-#include <unistd.h>
+#if defined(_MSC_VER)
+# include <io.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+#else
+# include <unistd.h>
+#endif
 #include <stdio.h>
 #include <fcntl.h>
 
