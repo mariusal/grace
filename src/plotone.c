@@ -974,7 +974,7 @@ void drawsetfill(int gno, int setno, set *p,
         if (stacked_chart == TRUE) {
             polylen = len;
         } else {
-            getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
+            getsetminmax(gno, &setno, 1, &xmin, &xmax, &ymin, &ymax);
             ybase = setybase(gno, setno);
             polylen = len + 2;
             wptmp.x = MIN2(xmax, w.xg2);
@@ -1233,7 +1233,7 @@ void drawsetline(int gno, int setno, set *p,
         }
     }
     
-    getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
+    getsetminmax(gno, &setno, 1, &xmin, &xmax, &ymin, &ymax);
        
     if (p->baseline == TRUE && stacked_chart != TRUE) {
         wp.x = xmin;

@@ -78,7 +78,7 @@ int arrange_graphs_simple(int nrows, int ncols,
     int order, double offset, double hgap, double vgap);
 
 void autotick_axis(int gno, int axis);
-void autoscale_byset(int gno, int setno, int autos_type);
+void autoscale_bysets(int gno, int *sets, int nsets, int autos_type);
 int autoscale_graph(int gno, int autos_type);
 
 void move_legend(int gno, VVector shift);

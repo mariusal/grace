@@ -384,7 +384,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 break;
             case AUTO_NEAREST:
                 if (find_point(cg, vp, &track_setno, &loc) == RETURN_SUCCESS) {
-                    autoscale_byset(cg, track_setno, AUTOSCALE_XY);
+                    autoscale_bysets(cg, &track_setno, 1, AUTOSCALE_XY);
                     update_ticks(cg);
                     xdrawgraph();
                     set_action(DO_NOTHING);

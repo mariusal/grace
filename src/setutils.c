@@ -898,7 +898,7 @@ void do_update_hotlink(int gno, int setno)
 /*
  * get the min/max fields of a set
  */
-int getsetminmax(int gno, int setno, 
+int getsetminmax(int gno, int *sets, int nsets, 
                     double *xmin, double *xmax, double *ymin, double *ymax)
 {
     double *x, *y;
@@ -906,20 +906,13 @@ int getsetminmax(int gno, int setno,
     double x1, x2, y1, y2;
     int i, first = TRUE;
     int imin, imax; /* dummy */
-    int nsets, *sids;
 
-
-    if (setno == ALL_SETS) {
-        nsets = get_set_ids(gno, &sids);
-    } else if (is_valid_setno(gno, setno)) {
-        nsets = 1;
-        sids = &setno;
-    } else {
+    if (nsets < 1 || !sets) {
         return RETURN_FAILURE;
     }
-
+    
     for (i = 0; i < nsets; i++) {
-        int cs = sids[i];
+        int cs = sets[i];
         if (is_set_drawable(gno, cs)) {
             x = getcol(gno, cs, DATA_X);
             y = getcol(gno, cs, DATA_Y);
@@ -951,12 +944,16 @@ int getsetminmax(int gno, int setno,
 /*
  * get the min/max fields of a set with fixed x/y range
  */
-int getsetminmax_c(int gno, int setno, 
+int getsetminmax_c(int gno, int *sets, int nsets, 
             double *xmin, double *xmax, double *ymin, double *ymax, int ivec)
 {
     double vmin_t, vmax_t, *vmin, *vmax, bvmin, bvmax, *vec, *bvec;
-    int i, nsets, *sids, n;
+    int i, n;
     int first = TRUE, hits;
+
+    if (nsets < 1 || !sets) {
+        return RETURN_FAILURE;
+    }
 
     if (ivec == 1) {    
         bvmin = *xmin;
@@ -969,17 +966,9 @@ int getsetminmax_c(int gno, int setno,
         vmin  = xmin;
         vmax  = xmax;
     }
-    if (setno == ALL_SETS) {
-        nsets = get_set_ids(gno, &sids);
-    } else if (is_valid_setno(gno, setno)) {
-        nsets = 1;
-        sids = &setno;
-    } else {
-        return RETURN_FAILURE;
-    }
     
     for (i = 0; i < nsets; i++) {
-        int cs = sids[i];
+        int cs = sets[i];
         if (is_set_drawable(gno, cs)) {
             
             if (ivec == 1) {
@@ -1346,10 +1335,10 @@ int nextset(int gno)
 	grace->rt->target_set.gno = -1;
 	grace->rt->target_set.setno = -1;
     } else {
-        int i, nsets, *sids;
-        nsets = get_set_ids(gno, &sids);
+        int i, nsets, *sets;
+        nsets = get_set_ids(gno, &sets);
         for (i = 0; i < nsets; i++) {
-            int setno1 = sids[i];
+            int setno1 = sets[i];
             if (!is_set_active(gno, setno1)) {
                 setno = setno1;
                 break;
@@ -2025,7 +2014,7 @@ double setybase(int gno, int setno)
         return 0.0;
     }
     
-    getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
+    getsetminmax(gno, &setno, 1, &xmin, &xmax, &ymin, &ymax);
     switch (p->baseline_type) {
     case BASELINE_TYPE_0:
         ybase = 0.0;

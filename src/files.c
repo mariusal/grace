@@ -1491,7 +1491,7 @@ int write_netcdf(char *fname)
 		    sprintf(buf, "g%d_s%d_n", i, j);
 		    n_dim = ncdimdef(ncid, buf, getsetlength(i, j));
 		    dims[0] = n_dim;
-		    getsetminmax(i, j, &x1, &x2, &y1, &y2);
+		    getsetminmax(i, &j, 1, &x1, &x2, &y1, &y2);
 		    sprintf(buf, "g%d_s%d_x", i, j);
 		    x_id = ncvardef(ncid, buf, NC_DOUBLE, 1, dims);
 		    ncattput(ncid, x_id, "min", NC_DOUBLE, 1, (void *) &x1);

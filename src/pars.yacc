@@ -2933,7 +2933,7 @@ actions:
 	    }
 	}
 	| AUTOSCALE selectset {
-	    autoscale_byset($2->gno, $2->setno, AUTOSCALE_XY);
+	    autoscale_bysets($2->gno, &($2->setno), 1, AUTOSCALE_XY);
 	}
         | AUTOTICKS {
             autotick_axis(whichgraph, ALL_AXES);

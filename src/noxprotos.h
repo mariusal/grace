@@ -108,12 +108,10 @@ void put_fitparms(FILE * pp, int embed);
 
 void pop_world(void);
 
-void define_autos(int aon, int au, int ap);
-
 int find_item(int gno, VPoint vp, view *bb, int *id);
 
-int getsetminmax(int gno, int setno, double *x1, double *x2, double *y1, double *y2);
-int getsetminmax_c(int gno, int setno, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
+int getsetminmax(int gno, int *sets, int nsets, double *x1, double *x2, double *y1, double *y2);
+int getsetminmax_c(int gno, int *sets, int nsets, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
 void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
 int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
               	   double *vmin, double *vmax);

@@ -180,7 +180,7 @@ int wipeout(void)
 
 /* The following routines determine default axis range and tickmarks */
 
-static void autorange_byset(int gno, int setno, int autos_type);
+static void autorange_bysets(int gno, int *sets, int nsets, int autos_type);
 static double nicenum(double x, int nrange, int round);
 
 #define NICE_FLOOR   0
@@ -210,28 +210,29 @@ void autotick_axis(int gno, int axis)
     }
 }
 
-void autoscale_byset(int gno, int setno, int autos_type)
+void autoscale_bysets(int gno, int *sets, int nsets, int autos_type)
 {
-    if ((setno == ALL_SETS && is_valid_gno(gno)) || is_set_active(gno, setno)) {
-	autorange_byset(gno, setno, autos_type);
-	switch (autos_type) {
-        case AUTOSCALE_X:
-            autotick_axis(gno, ALL_X_AXES);
-            break;
-        case AUTOSCALE_Y:
-            autotick_axis(gno, ALL_Y_AXES);
-            break;
-        case AUTOSCALE_XY:
-            autotick_axis(gno, ALL_AXES);
-            break;
-        }
+    autorange_bysets(gno, sets, nsets, autos_type);
+    switch (autos_type) {
+    case AUTOSCALE_X:
+        autotick_axis(gno, ALL_X_AXES);
+        break;
+    case AUTOSCALE_Y:
+        autotick_axis(gno, ALL_Y_AXES);
+        break;
+    case AUTOSCALE_XY:
+        autotick_axis(gno, ALL_AXES);
+        break;
     }
 }
 
 int autoscale_graph(int gno, int autos_type)
 {
-    if (number_of_active_sets(gno) > 0) {
-        autoscale_byset(gno, ALL_SETS, autos_type);
+    int nsets, *sets;
+    nsets = get_set_ids(gno, &sets);
+    if (nsets) {
+        autoscale_bysets(gno, sets, nsets, autos_type);
+        xfree(sets);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -317,7 +318,7 @@ static void round_axis_limits(double *amin, double *amax, int scale)
     }
 }
 
-static void autorange_byset(int gno, int setno, int autos_type)
+static void autorange_bysets(int gno, int *sets, int nsets, int autos_type)
 {
     world w;
     double xmax, xmin, ymax, ymin;
@@ -347,11 +348,11 @@ static void autorange_byset(int gno, int setno, int autos_type)
     ymin=w.yg1;
     ymax=w.yg2;
     if (autos_type == AUTOSCALE_XY) {
-        getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
+        getsetminmax(gno, sets, nsets, &xmin, &xmax, &ymin, &ymax);
     } else if (autos_type == AUTOSCALE_X) {
-        getsetminmax_c(gno, setno, &xmin, &xmax, &ymin, &ymax, 2);
+        getsetminmax_c(gno, sets, nsets, &xmin, &xmax, &ymin, &ymax, 2);
     } else if (autos_type == AUTOSCALE_Y) {
-        getsetminmax_c(gno, setno, &xmin, &xmax, &ymin, &ymax, 1);
+        getsetminmax_c(gno, sets, nsets, &xmin, &xmax, &ymin, &ymax, 1);
     }
 
     if (autos_type == AUTOSCALE_X || autos_type == AUTOSCALE_XY) {
