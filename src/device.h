@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -60,9 +60,6 @@ typedef enum {
     PAGE_FORMAT_A4     
 } PageFormat;
 
-#define FONTSRC_BITMAP  0
-#define FONTSRC_DEVICE  1
-
 typedef struct {
     unsigned long width;
     unsigned long height;
@@ -76,8 +73,8 @@ typedef struct {
     int (*parser)(char *);  /* function to parse device-specific commands */
     void (*setup)(void);    /* function (GUI interface) to setup device */
     char *fext;		    /* filename extension */
-    int devfonts;           /* Bitmap fonts or provided by device */
-    int fontaa;             /* Font antialiasing */
+    int devfonts;           /* device has its own fonts */
+    int fontaa;             /* font antialiasing */
     Page_geometry pg;       /* device defaults */
     void *data;             /* device private data */
 } Device_entry;

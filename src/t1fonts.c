@@ -1020,7 +1020,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         /* No patterned texts */
         setpattern(1);
     
-        if (dev.devfonts == FONTSRC_BITMAP) {
+        if (dev.devfonts == FALSE) {
             (*devputpixmap) (vptmp, pwidth, pheight, CSglyph->bits, 
                                 CSglyph->bpp, bitmap_pad, PIXMAP_TRANSPARENT);
         } else {
