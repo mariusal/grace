@@ -196,6 +196,14 @@ void uswap(unsigned int *x, unsigned int *y)
     *y = tmp;
 }
 
+void sswap(char **x, char **y)
+{
+    char *tmp;
+    tmp = *x;
+    *x = *y;
+    *y = tmp;
+}
+
 /*
  * compute the mins and maxes of a vector x
  */
