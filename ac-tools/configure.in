@@ -702,7 +702,7 @@ dnl **** Check for Motif
 fi
 
 dnl **** Final list of subdirs
-SUBDIRS="cephes ${t1lib_dir} ${xbae_dir} lib/base src ${grconvert_dir} grace_np fonts templates doc examples auxiliary"
+SUBDIRS="cephes ${t1lib_dir} ${xbae_dir} lib/base lib/canvas src ${grconvert_dir} grace_np fonts templates doc examples auxiliary"
 
 dnl **** Create Make.conf
 AC_OUTPUT(Make.conf:ac-tools/Make.conf.in)
