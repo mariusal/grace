@@ -297,6 +297,7 @@ static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
         (XbaeMatrixEnterCellCallbackStruct *) call_data;
     
     cbs->doit = False;
+    cbs->map  = False;
 }
 
 /*
