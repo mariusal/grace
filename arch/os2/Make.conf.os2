@@ -25,9 +25,6 @@ GRACE=xmgrace.exe
 # Location of the Grace home
 GRACE_HOME=$(X11ROOT)/xfree86/lib/grace
 
-# Relocatable that contains misc missing functions_
-MISSING_O=
-
 # Relocatable that contains alloca()
 ALLOCA=
 
@@ -62,6 +59,9 @@ PDFDRV_O=pdfdrv.o
 
 # GD library
 GD_LIB=-lgd
+
+# JPEG library
+JPEG_LIB=-ljpeg
 
 # Generic raster driver
 RSTDRV_O=rstdrv.o

@@ -1,5 +1,5 @@
                            (XM)GRACE for XFree86 OS/2
-                                   (19990427)
+                                   (19990602)
 
 
                           Contents of this document:
@@ -40,22 +40,21 @@
   - XFree86 for OS/2 ("X/2"), including its development package
     (http://borneo.gmd.de/~veit/os2/xf86os2.html)
 
-  - Lesstif for X/2
-    (http://borneo.gmd.de/~veit/os2/xf86os2.html)
+  - Lesstif for XFree/2
+    (http://www.ime.rwth-aachen.de/~michael/os2/lt/lesstif.html)
 
   Additional useful utilities:
 
   - the "usual" GNU utilities (text, shell, file).
   - un*x shell (sh)
 
-  To actually build grace I use additional libraries which may or
-  may not be public available in binary form (grace _can_ be built
-  without these packages!). If you can't find them on my webpage,
-  I'll provide them as binaries upon request.
+  To actually build grace I use additional libraries which are
+  not integral parts of grace, in fact it can be built without using them.
+  If you can't find them on my webpage, I'll provide them as binary versions
+  upon request.
 
     - libhelp and it's little application xmhelp
       (used to display the online help written in HTML)
-      Their sources can be found at:
          ftp://ftp.uni-stuttgart.de/pub/libhelp/
     - libgd: processing GIF files
          http://www.boutell.com
@@ -66,12 +65,14 @@
 
   By now the supplied configure (shell-) script may not work under OS/2
   (even using the existing Autoconf port). 
-  As a small replacement I offer a small REXX-script 'configos2.cmd' which will
+  As a small replacement I offer a small REXX-script 'configos2.cmd' which
+  should
 
-    - copy a standard OS/2 configuration files (config.h and Make.conf)
+    - copy standard OS/2 configuration files (config.h and Make.conf)
       from .\arch\os2 to the toplevel source directory
     - build dlfcn.a in \arch\os2 (support for user-supplied mathemtical
       functions in dynamic load libraries)
+    - build the complete package
 
   configos2.cmd is located in .\arch\os2 and has to be copied
   to the toplevel source directory before executing it.
@@ -79,8 +80,8 @@
   whether they suit your system and modify them if necessary.
 
   Finally 'x11make.exe' will be called. Note that calling the 'make'
-  script from X/2 won't work cause the generic Makefile is using
-  shell commands which is disabled by make.cmd.
+  script from XFree/2 won't work, because the generic Makefile is using
+  shell commands which are disabled by "make.cmd".
 
 
 3) How to install
@@ -91,7 +92,7 @@
 
   The binary distribution archive can just be unpacked and will
   extract in $(X11ROOT)\. I supply a small REXX-script 'xmgrace1.cmd'
-  which will set the necessary environment variable(s) so that xmgrace
+  which sets up the necessary environment variable(s) so that xmgrace
   can run within this setup.
   
   In future I plan to include some instructions how to access your installed
@@ -100,8 +101,8 @@
   I'm using lpr and lpd to access my local Postscript printer (via a
   loopback interface).
   Check out the printing tools on LEO/Hobbes for useful utiities!
-  Or you may 'just' print to a file and do the further processing
-  (e.g. running Ghostview/gvpm) of it manually.
+  Or just print to a file and do the further processing
+  (e.g. running Ghostview/gvpm) manually.
   
 
 ---
