@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -49,6 +49,15 @@
 #define GOVERLAY_SMART_AXES_Y         3
 #define GOVERLAY_SMART_AXES_XY        4
 
+/* Order of matrix fill (inversion mask bits) */
+#define GA_ORDER_V_INV  1
+#define GA_ORDER_H_INV  2
+#define GA_ORDER_HV_INV 4
+
+/* Default page offsets and gaps for graph arranging */
+#define GA_OFFSET_DEFAULT    0.15
+#define GA_GAP_DEFAULT       0.2
+
 char *get_format_types(int f);
 
 int wipeout(void);
@@ -60,11 +69,12 @@ int graph_zoom(int type);
 
 int overlay_graphs(int gsec, int gpri, int type);
 
-void arrange_graphs(int grows, int gcols);
-int arrange_graphs2(int grows, int gcols, double vgap, double hgap,
-		    double sx, double sy, double wx, double wy);
-void define_arrange(int nrows, int ncols, int pack,
-       double vgap, double hgap, double sx, double sy, double wx, double wy);
+int arrange_graphs(int *graphs, int ngraphs,
+                   int nrows, int ncols, int order,
+                   double loff, double roff, double toff, double boff,
+                   double vgap, double hgap,
+                   int hpack, int vpack);
+int arrange_graphs_simple(int grows, int gcols);
 
 void autotick_axis(int gno, int axis);
 void autoscale_byset(int gno, int setno, int autos_type);

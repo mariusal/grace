@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -569,129 +569,135 @@ int graph_zoom(int type)
 }
 
 /*
- *  Arrange procedures
+ *  Arrange graphs
  */
-void arrange_graphs(int grows, int gcols)
+int arrange_graphs(int *graphs, int ngraphs,
+                   int nrows, int ncols, int order,
+                   double loff, double roff, double toff, double boff,
+                   double vgap, double hgap,
+                   int hpack, int vpack)
 {
-    double hgap, vgap; /* inter-graph gaps*/
-    double sx, sy; /* offsets */
-    double wx, wy;
-    double vx, vy;
-
-    if (gcols < 1 ||  grows < 1) {
-        return;
-    }
-    
-    get_page_viewport(&vx, &vy);
-    sx = 0.1;
-    sy = 0.1;
-    hgap = 0.07;
-    vgap = 0.07;
-    wx = ((vx - 2*sx) - (gcols - 1)*hgap)/gcols;
-    wy = ((vy - 2*sy) - (grows - 1)*vgap)/grows;
-    
-    arrange_graphs2(grows, gcols, hgap, vgap, sx, sy, wx, wy);
-}
-
-int arrange_graphs2(int grows, int gcols, double vgap, double hgap,
-		    double sx, double sy, double wx, double wy)
-{
-    int i, j;
-    int gtmp = 0;
+    int i, imax, j, jmax, iw, ih, ng, gno;
+    double pw, ph, w, h;
     view v;
 
-    if (gcols < 1 || grows < 1) {
+    if (hpack) {
+        hgap = 0.0;
+    }
+    if (vpack) {
+        vgap = 0.0;
+    }
+    if (ncols < 1 || nrows < 1) {
+	errmsg("# of rows and columns must be > 0");
+        return RETURN_FAILURE;
+    }
+    if (hgap < 0.0 || vgap < 0.0) {
+	errmsg("hgap and vgap must be >= 0");
         return RETURN_FAILURE;
     }
     
-    for (i = 0; i < gcols; i++) {
-        for (j = 0; j < grows; j++) {
-            if (!is_graph_active(gtmp)) {
-                set_graph_active(gtmp, TRUE);
+    get_page_viewport(&pw, &ph);
+    w = (pw - loff - roff)/(ncols + (ncols - 1)*hgap);
+    h = (ph - toff - boff)/(nrows + (nrows - 1)*vgap);
+    if (h <= 0.0 || w <= 0.0) {
+	errmsg("Page offsets are too large");
+        return RETURN_FAILURE;
+    }
+    
+    ng = 0;
+    if (order & GA_ORDER_HV_INV) {
+        imax = ncols;
+        jmax = nrows;
+    } else {
+        imax = nrows;
+        jmax = ncols;
+    }
+    for (i = 0; i < imax && ng < ngraphs; i++) {
+        for (j = 0; j < jmax && ng < ngraphs; j++) {
+            gno = graphs[ng];
+            set_graph_active(gno, TRUE);
+            
+            if (order & GA_ORDER_HV_INV) {
+                iw = i;
+                ih = j;
+            } else {
+                iw = j;
+                ih = i;
             }
-            v.xv1 = sx + i*(hgap + wx);
-            v.xv2 = v.xv1 + wx;
-            v.yv1 = sy + j*(vgap + wy);
-            v.yv2 = v.yv1 + wy;
-            set_graph_viewport(gtmp, v);
-            gtmp++;
+            if (order & GA_ORDER_H_INV) {
+                iw = ncols - iw - 1;
+            }
+            /* viewport y coord goes bottom -> top ! */
+            if (!(order & GA_ORDER_V_INV)) {
+                ih = nrows - ih - 1;
+            }
+            
+            v.xv1 = loff + iw*w*(1.0 + hgap);
+            v.xv2 = v.xv1 + w;
+            v.yv1 = boff + ih*h*(1.0 + vgap);
+            v.yv2 = v.yv1 + h;
+            set_graph_viewport(gno, v);
+            
+            if (hpack) {
+                if (iw == 0) {
+	            tickmarks *t = get_graph_tickmarks(gno, Y_AXIS);
+	            if (!t) {
+                        continue;
+                    }
+                    t->active = TRUE;
+	            t->label_op = PLACEMENT_NORMAL;
+	            t->t_op = PLACEMENT_NORMAL;
+	            t->tl_op = PLACEMENT_NORMAL;
+                } else {
+                    activate_tick_labels(gno, Y_AXIS, FALSE);
+                }
+            }
+            if (vpack) {
+                if (ih == 0) {
+	            tickmarks *t = get_graph_tickmarks(gno, X_AXIS);
+	            if (!t) {
+                        continue;
+                    }
+	            t->active = TRUE;
+	            t->label_op = PLACEMENT_NORMAL;
+	            t->t_op = PLACEMENT_NORMAL;
+	            t->tl_op = PLACEMENT_NORMAL;
+                } else {
+                    activate_tick_labels(gno, X_AXIS, FALSE);
+                }
+            }
+            
+            ng++;
         }
     }
     return RETURN_SUCCESS;
 }
 
-void define_arrange(int nrows, int ncols, int pack,
-       double vgap, double hgap, double sx, double sy, double wx, double wy)
+int arrange_graphs_simple(int nrows, int ncols)
 {
-    int i, j, k, gno;
-
-    if (arrange_graphs2(nrows, ncols, vgap, hgap, sx, sy, wx, wy) != RETURN_SUCCESS) {
-	return;
+    int *graphs, i, ngraphs, retval;
+    
+    ngraphs = nrows*ncols;
+    graphs = xmalloc(ngraphs*SIZEOF_INT);
+    if (graphs == NULL) {
+        return RETURN_FAILURE;
     }
     
-    switch (pack) {
-    case 0:
-	for (j = 0; j < ncols; j++) {
-	    for (i = 0; i < nrows; i++) {
-		gno = i + j * nrows;
-		for (k = 0; k < MAXAXES; k++) {
-		    activate_tick_labels(gno, k, TRUE);
-		}
-	    }
-	}
-	break;
-    case 1:
-	hgap = 0.0;
-	for (j = 1; j < ncols; j++) {
-	    for (i = 0; i < nrows; i++) {
-		gno = i + j * nrows;
-		for (k = 0; k < MAXAXES; k++) {
-		    if (is_yaxis(k) == TRUE) {
-                        activate_tick_labels(gno, k, FALSE);
-                    }
-		}
-	    }
-	}
-	break;
-    case 2:
-	vgap = 0.0;
-	for (j = 0; j < ncols; j++) {
-	    for (i = 1; i < nrows; i++) {
-		gno = i + j * nrows;
-		for (k = 0; k < MAXAXES; k++) {
-		    if (is_xaxis(k) == TRUE) {
-		        activate_tick_labels(gno, k, FALSE);
-                    }
-		}
-	    }
-	}
-	break;
-    case 3:
-	hgap = 0.0;
-	vgap = 0.0;
-	for (j = 1; j < ncols; j++) {
-	    for (i = 0; i < nrows; i++) {
-		gno = i + j * nrows;
-		for (k = 0; k < MAXAXES; k++) {
-		    if (is_yaxis(k) == TRUE) {
-		        activate_tick_labels(gno, k, FALSE);
-                    }
-		}
-	    }
-	}
-	for (j = 0; j < ncols; j++) {
-	    for (i = 1; i < nrows; i++) {
-		gno = i + j * nrows;
-		for (k = 0; k < MAXAXES; k++) {
-		    if (is_xaxis(k) == TRUE) {
-		        activate_tick_labels(gno, k, FALSE);
-                    }
-		}
-	    }
-	}
-	break;
+    for (i = 0; i < ngraphs; i++) {
+        graphs[i] = i;
     }
-    set_dirtystate();
+    
+    for (i = number_of_graphs() - 1; i >= ngraphs; i--) {
+        kill_graph(i);
+    }
+    
+    retval = arrange_graphs(graphs, ngraphs, nrows, ncols, 0,
+        GA_OFFSET_DEFAULT, GA_OFFSET_DEFAULT, GA_OFFSET_DEFAULT, GA_OFFSET_DEFAULT,
+        GA_GAP_DEFAULT, GA_GAP_DEFAULT, FALSE, FALSE);
+    
+    xfree(graphs);
+    
+    return retval;
 }
 
 void move_legend(int gno, VVector shift)
