@@ -463,6 +463,7 @@ void xyplot(int gno)
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_BOXPLOT:
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetboxplot(&p);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
