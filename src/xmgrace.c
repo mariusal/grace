@@ -376,6 +376,9 @@ int initialize_gui(int *argc, char **argv)
     unsigned int i, n_common, n_resol;
     char *display_name = NULL;
 
+    /* Locale settings for GUI */
+    XtSetLanguageProc(NULL, NULL, NULL);
+    
     XtToolkitInitialize();
     app_con = XtCreateApplicationContext();
     
