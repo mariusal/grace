@@ -27,7 +27,7 @@
 
 #include "defines.h"
 
-int dummyinitgraphics(Canvas *canvas);
+int dummyinitgraphics(const Canvas *canvas);
 
 void dummy_drawpixel(const Canvas *canvas, const VPoint *vp);
 void dummy_drawpolyline(const Canvas *canvas,

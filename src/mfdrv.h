@@ -29,7 +29,7 @@
 
 #define GMF_VERSION "0.9"
 
-int mfinitgraphics(Canvas *canvas);
+int mfinitgraphics(const Canvas *canvas);
 
 void mf_drawpixel(const Canvas *canvas, const VPoint *vp);
 void mf_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);

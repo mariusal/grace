@@ -27,7 +27,7 @@
 
 #include "defines.h"
 
-int svginitgraphics(Canvas *canvas);
+int svginitgraphics(const Canvas *canvas);
 
 void svg_drawpixel(const Canvas *canvas, const VPoint *vp);
 void svg_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);

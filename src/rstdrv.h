@@ -64,30 +64,30 @@ void rst_putpixmap(const Canvas *canvas,
     int pixmap_bpp, int bitmap_pad, int pixmap_type);
 void rst_leavegraphics(const Canvas *canvas);
 
-int pnminitgraphics(Canvas *canvas);
-int pnm_op_parser(Canvas *canvas, const char *opstring);
+int pnminitgraphics(const Canvas *canvas);
+int pnm_op_parser(const Canvas *canvas, const char *opstring);
 #ifdef NONE_GUI
 #  define pnm_gui_setup NULL
 #else
-void pnm_gui_setup(Canvas *canvas);
+void pnm_gui_setup(const Canvas *canvas);
 #endif
 
 #ifdef HAVE_LIBJPEG
-int jpginitgraphics(Canvas *canvas);
-int jpg_op_parser(Canvas *canvas, const char *opstring);
+int jpginitgraphics(const Canvas *canvas);
+int jpg_op_parser(const Canvas *canvas, const char *opstring);
 #  ifdef NONE_GUI
 #    define jpg_gui_setup NULL
 #  else
-void jpg_gui_setup(Canvas *canvas);
+void jpg_gui_setup(const Canvas *canvas);
 #  endif
 #endif
 
 #ifdef HAVE_LIBPNG
-int pnginitgraphics(Canvas *canvas);
-int png_op_parser(Canvas *canvas, const char *opstring);
+int pnginitgraphics(const Canvas *canvas);
+int png_op_parser(const Canvas *canvas, const char *opstring);
 #  ifdef NONE_GUI
 #    define png_gui_setup NULL
 #  else
-void png_gui_setup(Canvas *canvas);
+void png_gui_setup(const Canvas *canvas);
 #  endif
 #endif

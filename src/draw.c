@@ -296,10 +296,25 @@ int get_max_path_limit(const Canvas *canvas)
 }
 
 
+int initgraphics(Canvas *canvas)
+{
+    int retval;
+    
+    retval = canvas->curdevice->init(canvas);
+    
+    if (retval == RETURN_SUCCESS) {
+        canvas->device_ready = TRUE;
+    } else {
+        canvas->device_ready = FALSE;
+    }
+    
+    return retval;
+}
 
 void leavegraphics(Canvas *canvas)
 {
-    canvas->devleavegraphics(canvas);
+    canvas->curdevice->leavegraphics(canvas);
+    canvas->device_ready = FALSE;
 }
 
 
@@ -310,7 +325,7 @@ void DrawPixel(Canvas *canvas, const VPoint *vp)
 {
      if (is_validVPoint(canvas, vp)) {
          if (canvas->draw_mode) {
-             canvas->devdrawpixel(canvas, vp);
+             canvas->curdevice->drawpixel(canvas, vp);
          }
          update_bboxes(canvas, vp);
      }
@@ -385,7 +400,7 @@ void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
                         } else {
                             npurged = nc;
                         }
-                        canvas->devdrawpolyline(canvas, vpsc, npurged, mode);
+                        canvas->curdevice->drawpolyline(canvas, vpsc, npurged, mode);
                     }
                     
                     nc = 0;
@@ -405,10 +420,10 @@ void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
                     return;
                 }
                 purge_dense_points(vps, n, vpsc, &npurged);
-                canvas->devdrawpolyline(canvas, vpsc, npurged, mode);
+                canvas->curdevice->drawpolyline(canvas, vpsc, npurged, mode);
                 xfree(vpsc);
             } else {
-                canvas->devdrawpolyline(canvas, vps, n, mode);
+                canvas->curdevice->drawpolyline(canvas, vps, n, mode);
             }
         }
     }
@@ -451,7 +466,7 @@ void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
                     } else {
                         npurged = nc;
                     }
-                    canvas->devfillpolygon(canvas, vptmp, npurged);
+                    canvas->curdevice->fillpolygon(canvas, vptmp, npurged);
                 }
             }
             xfree(vptmp);
@@ -468,10 +483,10 @@ void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
                     return;
                 }
                 purge_dense_points(vps, n, vptmp, &npurged);
-                canvas->devfillpolygon(canvas, vptmp, npurged);
+                canvas->curdevice->fillpolygon(canvas, vptmp, npurged);
                 xfree(vptmp);
             } else {
-                canvas->devfillpolygon(canvas, vps, n);
+                canvas->curdevice->fillpolygon(canvas, vps, n);
             }
         }
     }
@@ -491,7 +506,7 @@ void DrawArc(Canvas *canvas,
     
     /* TODO: clipping!!!*/
     if (get_draw_mode(canvas) == TRUE) {
-        canvas->devdrawarc(canvas, vp1, vp2, angle1, angle2);
+        canvas->curdevice->drawarc(canvas, vp1, vp2, angle1, angle2);
     }
     
     /* TODO: consider open arcs! */
@@ -517,7 +532,7 @@ void DrawFilledArc(Canvas *canvas,
         
     /* TODO: clipping!!!*/
     if (get_draw_mode(canvas) == TRUE) {
-        canvas->devfillarc(canvas, vp1, vp2, angle1, angle2, mode);
+        canvas->curdevice->fillarc(canvas, vp1, vp2, angle1, angle2, mode);
     }
     /* TODO: consider open arcs! */
     update_bboxes(canvas, vp1);
@@ -1193,8 +1208,8 @@ int store_color(Canvas *canvas, int n, const CMap_entry *cmap)
         canvas->cmap_table[n].tstamp = 1;
                 
         /* inform current device of changes in the cmap database */
-        if (canvas->devupdatecmap != NULL) {
-            canvas->devupdatecmap(canvas);
+        if (canvas->device_ready && canvas->curdevice->updatecmap != NULL) {
+            canvas->curdevice->updatecmap(canvas);
         }
         if (cmap->ctype == COLOR_MAIN) {
             ReqUpdateColorSel = TRUE;

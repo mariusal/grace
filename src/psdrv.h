@@ -49,8 +49,8 @@ typedef enum {
 #define DOCDATA_8BIT    1  
 #define DOCDATA_BINARY  2  
 
-int psprintinitgraphics(Canvas *canvas);
-int epsinitgraphics(Canvas *canvas);
+int psprintinitgraphics(const Canvas *canvas);
+int epsinitgraphics(const Canvas *canvas);
 
 void ps_drawpixel(const Canvas *canvas, const VPoint *vp);
 void ps_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
@@ -68,17 +68,17 @@ void ps_puttext(const Canvas *canvas,
 
 void ps_leavegraphics(const Canvas *canvas);
 
-int ps_op_parser(Canvas *canvas, const char *opstring);
-int eps_op_parser(Canvas *canvas, const char *opstring);
+int ps_op_parser(const Canvas *canvas, const char *opstring);
+int eps_op_parser(const Canvas *canvas, const char *opstring);
 
 #if defined(NONE_GUI)
 #  define ps_gui_setup NULL
 #else
-void ps_gui_setup(Canvas *canvas);
+void ps_gui_setup(const Canvas *canvas);
 #endif
 
 #if defined(NONE_GUI)
 #  define eps_gui_setup NULL
 #else
-void eps_gui_setup(Canvas *canvas);
+void eps_gui_setup(const Canvas *canvas);
 #endif

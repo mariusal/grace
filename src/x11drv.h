@@ -36,7 +36,7 @@
 
 int xlibinit(const Canvas *canvas);
 void xlibredraw(Window window, int x, int y, int widht, int height);
-int xlibinitgraphics(Canvas *canvas);
+int xlibinitgraphics(const Canvas *canvas);
 void drawxlib(int x, int y, int mode);
 void xlibupdatecmap(const Canvas *canvas);
 void xlibinitcmap(const Canvas *canvas);

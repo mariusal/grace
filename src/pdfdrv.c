@@ -82,13 +82,24 @@ static PDF *phandle;
 
 static Device_entry dev_pdf = {DEVICE_FILE,
           "PDF",
-          pdfinitgraphics,
-          pdf_op_parser,
-          pdf_gui_setup,
           "pdf",
           TRUE,
           FALSE,
           {612, 792, 72.0},
+
+          pdfinitgraphics,
+          pdf_op_parser,
+          pdf_gui_setup,
+          NULL,
+          pdf_leavegraphics,
+          pdf_drawpixel,
+          pdf_drawpolyline,
+          pdf_fillpolygon,
+          pdf_drawarc,
+          pdf_fillarc,
+          pdf_putpixmap,
+          pdf_puttext,
+
           NULL
          };
 
@@ -98,25 +109,12 @@ int register_pdf_drv(Canvas *canvas)
     return register_device(canvas, &dev_pdf);
 }
 
-int pdfinitgraphics(Canvas *canvas)
+int pdfinitgraphics(const Canvas *canvas)
 {
     int i;
     Page_geometry *pg;
     char *s;
    
-    /* device-dependent routines */
-    canvas->devupdatecmap    = NULL;
-    
-    canvas->devdrawpixel     = pdf_drawpixel;
-    canvas->devdrawpolyline  = pdf_drawpolyline;
-    canvas->devfillpolygon   = pdf_fillpolygon;
-    canvas->devdrawarc       = pdf_drawarc;
-    canvas->devfillarc       = pdf_fillarc;
-    canvas->devputpixmap     = pdf_putpixmap;
-    canvas->devputtext       = pdf_puttext;
-    
-    canvas->devleavegraphics = pdf_leavegraphics;
-    
     pg = get_page_geometry(canvas);
     
     page_scale = MIN2(pg->height, pg->width);
@@ -689,7 +687,7 @@ static void pdf_error_handler(PDF *p, int type, const char *msg)
     }
 }
 
-int pdf_op_parser(Canvas *canvas, const char *opstring)
+int pdf_op_parser(const Canvas *canvas, const char *opstring)
 {
     if (!strcmp(opstring, "compatibility:PDF-1.2")) {
         pdf_setup_compat = PDF_1_2;
@@ -761,7 +759,7 @@ static SpinStructure *pdf_setup_fpprec_item;
 static Widget pdf_setup_tight_bb_item;
 static OptionStructure *pdf_setup_colorspace_item;
 
-void pdf_gui_setup(Canvas *canvas)
+void pdf_gui_setup(const Canvas *canvas)
 {
     set_wait_cursor();
     

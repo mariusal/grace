@@ -90,13 +90,23 @@ Pixmap resize_bufpixmap(unsigned int w, unsigned int h);
 
 static Device_entry dev_x11 = {DEVICE_TERM,
           "X11",
-          xlibinitgraphics,
-          NULL,
-          NULL,
           "",
           FALSE,
           TRUE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+          
+          xlibinitgraphics,
+          NULL,
+          NULL,
+          xlibupdatecmap,
+          xlibleavegraphics,
+          xlibdrawpixel,
+          xlibdrawpolyline,
+          xlibfillpolygon,
+          xlibdrawarc,
+          xlibfillarc,
+          xlibputpixmap,
+          
           NULL
          };
 
@@ -275,7 +285,7 @@ void xlibinitcmap(const Canvas *canvas)
     }
 }
 
-int xlibinitgraphics(Canvas *canvas)
+int xlibinitgraphics(const Canvas *canvas)
 {
     int i, j;
     double step;
@@ -295,18 +305,6 @@ int xlibinitgraphics(Canvas *canvas)
     xliblinecap   = -1;
     xliblinejoin  = -1;
     
-    /* device-dependent routines */    
-    canvas->devupdatecmap = xlibupdatecmap;
-    
-    canvas->devdrawpixel     = xlibdrawpixel;
-    canvas->devdrawpolyline  = xlibdrawpolyline;
-    canvas->devfillpolygon   = xlibfillpolygon;
-    canvas->devdrawarc       = xlibdrawarc;
-    canvas->devfillarc       = xlibfillarc;
-    canvas->devputpixmap     = xlibputpixmap;
-    
-    canvas->devleavegraphics = xlibleavegraphics;
-
     /* init settings specific to X11 driver */    
     
     if (get_pagelayout() == PAGE_FIXED) {

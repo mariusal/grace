@@ -51,7 +51,7 @@ int is_valid_page_geometry(const Page_geometry *pg)
 int set_page_geometry(Canvas *canvas, const Page_geometry *pg)
 {
     if (is_valid_page_geometry(pg) == TRUE) {
-        canvas->device_table[canvas->curdevice]->pg = *pg;
+        canvas->curdevice->pg = *pg;
 	return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -60,7 +60,7 @@ int set_page_geometry(Canvas *canvas, const Page_geometry *pg)
 
 Page_geometry *get_page_geometry(const Canvas *canvas)
 {
-    return &canvas->device_table[canvas->curdevice]->pg;
+    return &canvas->curdevice->pg;
 }
 
 int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
@@ -143,7 +143,7 @@ int select_device(Canvas *canvas, int dindex)
     if (dindex >= canvas->ndevices || dindex < 0) {
         return RETURN_FAILURE;
     } else {
-        canvas->curdevice = dindex;
+        canvas->curdevice = canvas->device_table[dindex];
 	return RETURN_SUCCESS;
     }
 }
@@ -194,11 +194,6 @@ int get_device_by_name(const Canvas *canvas, const char *dname)
     }
 }
 
-int initgraphics(Canvas *canvas)
-{
-    return canvas->device_table[canvas->curdevice]->init(canvas);
-}
-
 Device_entry *get_device_props(const Canvas *canvas, int device)
 {
     return canvas->device_table[device];
@@ -206,7 +201,7 @@ Device_entry *get_device_props(const Canvas *canvas, int device)
 
 Device_entry *get_curdevice_props(const Canvas *canvas)
 {
-    return canvas->device_table[canvas->curdevice];
+    return canvas->curdevice;
 }
 
 char *get_device_name(const Canvas *canvas, int device)
@@ -216,7 +211,7 @@ char *get_device_name(const Canvas *canvas, int device)
 
 void *get_curdevice_data(const Canvas *canvas)
 {
-    return canvas->device_table[canvas->curdevice]->data;
+    return canvas->curdevice->data;
 }
 
 int parse_device_options(Canvas *canvas, int dindex, char *options)
@@ -250,8 +245,8 @@ int number_of_devices(const Canvas *canvas)
 
 void get_page_viewport(const Canvas *canvas, double *vx, double *vy)
 {
-    *vx = canvas->device_table[canvas->curdevice]->pg.width/canvas->device_table[canvas->curdevice]->pg.dpi;
-    *vy = canvas->device_table[canvas->curdevice]->pg.height/canvas->device_table[canvas->curdevice]->pg.dpi;
+    *vx = canvas->curdevice->pg.width/canvas->curdevice->pg.dpi;
+    *vy = canvas->curdevice->pg.height/canvas->curdevice->pg.dpi;
     if (*vx < *vy) {
         *vy /= *vx;
         *vx = 1.0;
@@ -263,7 +258,7 @@ void get_page_viewport(const Canvas *canvas, double *vx, double *vy)
 
 int terminal_device(const Canvas *canvas)
 {
-    if (canvas->device_table[canvas->curdevice]->type == DEVICE_TERM) {
+    if (canvas->curdevice->type == DEVICE_TERM) {
         return TRUE;
     } else {
         return FALSE;

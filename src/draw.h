@@ -230,6 +230,13 @@ typedef struct {
 
 typedef struct _Canvas Canvas;
 
+/* function to initialize device */
+typedef int (*DevInitProc)(const Canvas *canvas);
+/* function to parse device-specific commands */
+typedef int (*DevParserProc)(const Canvas *canvas, const char *s);
+/* function (GUI interface) to setup device */
+typedef void (*DevSetupProc)(const Canvas *canvas);
+
 /* device pixel routine */
 typedef void (*DevDrawPixelProc)(const Canvas *canvas, const VPoint *vp);
 /* device polyline routine */
@@ -297,13 +304,25 @@ typedef struct {
 typedef struct {
     int type;
     char *name;		                   /* name of device */
-    int (*init)(Canvas *);	           /* function to initialize device */
-    int (*parser)(Canvas *, const char *); /* function to parse device-specific commands */
-    void (*setup)(Canvas *);               /* function (GUI interface) to setup device */
     char *fext;		                   /* filename extension */
     int devfonts;                          /* device has its own fonts */
     int fontaa;                            /* font antialiasing */
     Page_geometry pg;                      /* device defaults */
+
+    /* low-level device routines */
+    DevInitProc          init;
+    DevParserProc        parser;
+    DevSetupProc         setup;
+    DevUpdateCmapProc    updatecmap;
+    DevLeaveGraphicsProc leavegraphics;
+    DevDrawPixelProc     drawpixel;
+    DevDrawPolyLineProc  drawpolyline;
+    DevFillPolygonProc   fillpolygon;
+    DevDrawArcProc       drawarc;
+    DevFillArcProc       fillarc;
+    DevPutPixmapProc     putpixmap;
+    DevPutTextProc       puttext;
+    
     void *data;                            /* device private data */
 } Device_entry;
 
@@ -332,21 +351,15 @@ struct _Canvas {
 
     int max_path_length;
 
-    /* devices */
+    /* device array */
     unsigned int ndevices;
-    int curdevice;
     Device_entry **device_table;
     
-    /* low-level device routines */
-    DevDrawPixelProc     devdrawpixel;
-    DevDrawPolyLineProc  devdrawpolyline;
-    DevFillPolygonProc   devfillpolygon;
-    DevDrawArcProc       devdrawarc;
-    DevFillArcProc       devfillarc;
-    DevPutPixmapProc     devputpixmap;
-    DevPutTextProc       devputtext;
-    DevUpdateCmapProc    devupdatecmap;
-    DevLeaveGraphicsProc devleavegraphics;
+    /* current device */
+    Device_entry *curdevice;
+    
+    /* "device ready" flag */
+    int device_ready;
     
     /* output stream */
     FILE *prstream;
@@ -395,6 +408,7 @@ double getlinewidth(const Canvas *canvas);
 double getcharsize(const Canvas *canvas);
 int getfont(const Canvas *canvas);
 
+int initgraphics(Canvas *canvas);
 void leavegraphics(Canvas *canvas);
 
 void DrawPixel(Canvas *canvas, const VPoint *vp);

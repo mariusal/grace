@@ -44,13 +44,25 @@
 
 static Device_entry dev_mf = {DEVICE_FILE,
           "Metafile",
-          mfinitgraphics,
-          NULL,
-          NULL,
           "gmf",
           TRUE,
           FALSE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+          
+          mfinitgraphics,
+          NULL,
+          NULL,
+          NULL,
+          mf_leavegraphics,
+
+          mf_drawpixel,
+          mf_drawpolyline,
+          mf_fillpolygon,
+          mf_drawarc,
+          mf_fillarc,
+          mf_putpixmap,
+          mf_puttext,
+    
           NULL
          };
 
@@ -59,23 +71,11 @@ int register_mf_drv(Canvas *canvas)
     return register_device(canvas, &dev_mf);
 }
 
-int mfinitgraphics(Canvas *canvas)
+int mfinitgraphics(const Canvas *canvas)
 {
     int i, j;
     Page_geometry *pg;
     
-    /* device-dependent routines */
-    canvas->devupdatecmap    = NULL;
-    
-    canvas->devdrawpixel     = mf_drawpixel;
-    canvas->devdrawpolyline  = mf_drawpolyline;
-    canvas->devfillpolygon   = mf_fillpolygon;
-    canvas->devdrawarc       = mf_drawarc;
-    canvas->devfillarc       = mf_fillarc;
-    canvas->devputpixmap     = mf_putpixmap;
-    canvas->devputtext       = mf_puttext;
-    
-    canvas->devleavegraphics = mf_leavegraphics;
 
     fprintf(canvas->prstream, "#GMF-%s\n", GMF_VERSION);
 

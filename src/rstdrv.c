@@ -99,65 +99,6 @@ static int png_setup_transparent = FALSE;
 static int png_setup_compression = 4;
 #endif
 
-static Device_entry dev_pnm = {DEVICE_FILE,
-          "PNM",
-          pnminitgraphics,
-          pnm_op_parser,
-          pnm_gui_setup,
-          "pnm",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-          NULL
-         };
-
-#ifdef HAVE_LIBJPEG
-static Device_entry dev_jpg = {DEVICE_FILE,
-          "JPEG",
-          jpginitgraphics,
-          jpg_op_parser,
-          jpg_gui_setup,
-          "jpg",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-          NULL
-         };
-#endif
-
-#ifdef HAVE_LIBPNG
-static Device_entry dev_png = {DEVICE_FILE,
-          "PNG",
-          pnginitgraphics,
-          png_op_parser,
-          png_gui_setup,
-          "png",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-          NULL
-         };
-#endif
-
-int register_pnm_drv(Canvas *canvas)
-{
-    return register_device(canvas, &dev_pnm);
-}
-
-#ifdef HAVE_LIBJPEG
-int register_jpg_drv(Canvas *canvas)
-{
-    return register_device(canvas, &dev_jpg);
-}
-#endif
-
-#ifdef HAVE_LIBPNG
-int register_png_drv(Canvas *canvas)
-{
-    return register_device(canvas, &dev_png);
-}
-#endif
-
 static void rst_updatecmap(const Canvas *canvas)
 {
     int i, c;
@@ -182,6 +123,95 @@ static void rst_updatecmap(const Canvas *canvas)
         }
     }
 }
+
+static Device_entry dev_pnm = {DEVICE_FILE,
+          "PNM",
+          "pnm",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+
+          pnminitgraphics,
+          pnm_op_parser,
+          pnm_gui_setup,
+          rst_updatecmap,
+          rst_leavegraphics,
+          rst_drawpixel,
+          rst_drawpolyline,
+          rst_fillpolygon,
+          rst_drawarc,
+          rst_fillarc,
+          rst_putpixmap,
+
+          NULL
+         };
+
+#ifdef HAVE_LIBJPEG
+static Device_entry dev_jpg = {DEVICE_FILE,
+          "JPEG",
+          "jpg",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+
+          jpginitgraphics,
+          jpg_op_parser,
+          jpg_gui_setup,
+          rst_updatecmap,
+          rst_leavegraphics,
+          rst_drawpixel,
+          rst_drawpolyline,
+          rst_fillpolygon,
+          rst_drawarc,
+          rst_fillarc,
+          rst_putpixmap,
+
+          NULL
+         };
+#endif
+
+#ifdef HAVE_LIBPNG
+static Device_entry dev_png = {DEVICE_FILE,
+          "PNG",
+          "png",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+          
+          pnginitgraphics,
+          png_op_parser,
+          png_gui_setup,
+          rst_updatecmap,
+          rst_leavegraphics,
+          rst_drawpixel,
+          rst_drawpolyline,
+          rst_fillpolygon,
+          rst_drawarc,
+          rst_fillarc,
+          rst_putpixmap,
+
+          NULL
+         };
+#endif
+
+int register_pnm_drv(Canvas *canvas)
+{
+    return register_device(canvas, &dev_pnm);
+}
+
+#ifdef HAVE_LIBJPEG
+int register_jpg_drv(Canvas *canvas)
+{
+    return register_device(canvas, &dev_jpg);
+}
+#endif
+
+#ifdef HAVE_LIBPNG
+int register_png_drv(Canvas *canvas)
+{
+    return register_device(canvas, &dev_png);
+}
+#endif
 
 static void VPoint2gdPoint(const Canvas *canvas, const VPoint *vp, gdPoint *gdp)
 {
@@ -331,23 +361,11 @@ void rst_setfillbrush(const Canvas *canvas)
     }
 }
 
-static int rst_initgraphics(Canvas *canvas, int format)
+static int rst_initgraphics(const Canvas *canvas, int format)
 {
     Page_geometry *pg;
     
     curformat = format;
-    
-    /* device-dependent routines */
-    canvas->devupdatecmap    = rst_updatecmap;
-    
-    canvas->devdrawpixel     = rst_drawpixel;
-    canvas->devdrawpolyline  = rst_drawpolyline;
-    canvas->devfillpolygon   = rst_fillpolygon;
-    canvas->devdrawarc       = rst_drawarc;
-    canvas->devfillarc       = rst_fillarc;
-    canvas->devputpixmap     = rst_putpixmap;
-    
-    canvas->devleavegraphics = rst_leavegraphics;
     
     pg = get_page_geometry(canvas);
     
@@ -542,7 +560,7 @@ void rst_leavegraphics(const Canvas *canvas)
     ihandle = NULL;
 }
 
-int pnminitgraphics(Canvas *canvas)
+int pnminitgraphics(const Canvas *canvas)
 {
     int result;
     
@@ -655,7 +673,7 @@ static void rstImagePnm(const Canvas *canvas,
 
 
 #ifdef HAVE_LIBJPEG
-int jpginitgraphics(Canvas *canvas)
+int jpginitgraphics(const Canvas *canvas)
 {
     int result;
     
@@ -766,7 +784,7 @@ static void rstImageJpg(const Canvas *canvas,
     jpeg_destroy_compress(&cinfo);
 }
 
-int jpg_op_parser(Canvas *canvas, const char *opstring)
+int jpg_op_parser(const Canvas *canvas, const char *opstring)
 {
     char *bufp;
     
@@ -827,7 +845,7 @@ int jpg_op_parser(Canvas *canvas, const char *opstring)
 }
 #endif
 
-int pnm_op_parser(Canvas *canvas, const char *opstring)
+int pnm_op_parser(const Canvas *canvas, const char *opstring)
 {
     if (!strcmp(opstring, "rawbits:on")) {
         pnm_setup_rawbits = TRUE;
@@ -850,7 +868,7 @@ int pnm_op_parser(Canvas *canvas, const char *opstring)
 }
 
 #ifdef HAVE_LIBPNG
-int pnginitgraphics(Canvas *canvas)
+int pnginitgraphics(const Canvas *canvas)
 {
     int result;
     
@@ -969,7 +987,7 @@ static void rstImagePng(const Canvas *canvas,
     xfree(palette);
 }
 
-int png_op_parser(Canvas *canvas, const char *opstring)
+int png_op_parser(const Canvas *canvas, const char *opstring)
 {
     char *bufp;
 
@@ -1017,7 +1035,7 @@ static Widget png_setup_interlaced_item;
 static Widget png_setup_transparent_item;
 static SpinStructure *png_setup_compression_item;
 
-void png_gui_setup(Canvas *canvas)
+void png_gui_setup(const Canvas *canvas)
 {
     set_wait_cursor();
     
@@ -1061,7 +1079,7 @@ static int set_png_setup_proc(void *data)
 }
 #endif
 
-void pnm_gui_setup(Canvas *canvas)
+void pnm_gui_setup(const Canvas *canvas)
 {
     set_wait_cursor();
     
@@ -1117,7 +1135,7 @@ static SpinStructure *jpg_setup_quality_item;
 static SpinStructure *jpg_setup_smoothing_item;
 static OptionStructure *jpg_setup_dct_item;
 
-void jpg_gui_setup(Canvas *canvas)
+void jpg_gui_setup(const Canvas *canvas)
 {
     set_wait_cursor();
     

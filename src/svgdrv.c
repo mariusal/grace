@@ -64,13 +64,24 @@ typedef struct {
 static Device_entry dev_svg = {
     DEVICE_FILE,
     "SVG",
-    svginitgraphics,
-    NULL,
-    NULL,
     "svg",
     TRUE,
     FALSE,
     {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+
+    svginitgraphics,
+    NULL,
+    NULL,
+    NULL,
+    svg_leavegraphics,
+    svg_drawpixel,
+    svg_drawpolyline,
+    svg_fillpolygon,
+    svg_drawarc,
+    svg_fillarc,
+    svg_putpixmap,
+    svg_puttext,
+
     NULL
 };
 
@@ -228,23 +239,10 @@ static char *escape_specials(unsigned char *s, int len)
     return (es);
 }
 
-int svginitgraphics(Canvas *canvas)
+int svginitgraphics(const Canvas *canvas)
 {
     Svg_data *data;
     int i;
-
-    /* device-dependent routines */
-    canvas->devupdatecmap    = NULL;
-    
-    canvas->devdrawpixel     = svg_drawpixel;
-    canvas->devdrawpolyline  = svg_drawpolyline;
-    canvas->devfillpolygon   = svg_fillpolygon;
-    canvas->devdrawarc       = svg_drawarc;
-    canvas->devfillarc       = svg_fillarc;
-    canvas->devputpixmap     = svg_putpixmap;
-    canvas->devputtext       = svg_puttext;
-
-    canvas->devleavegraphics = svg_leavegraphics;
 
     data = get_curdevice_data(canvas);
     
@@ -276,7 +274,6 @@ int svginitgraphics(Canvas *canvas)
     data->linestyle     = 0;
     data->draw          = FALSE;
     data->fill          = FALSE;
-
 
     fprintf(canvas->prstream, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
     fprintf(canvas->prstream, "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20000303 Stylable//EN\"");

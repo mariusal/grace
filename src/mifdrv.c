@@ -50,13 +50,24 @@ static double page_side = 0.0;
 
 static Device_entry dev_mif = {DEVICE_FILE,
                                "MIF",
-                               mifinitgraphics,
-                               NULL,
-                               NULL,
                                "mif",
                                TRUE,
                                FALSE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+    
+                               mifinitgraphics,
+                               NULL,
+                               NULL,
+                               NULL,
+                               mif_leavegraphics,
+                               mif_drawpixel,
+                               mif_drawpolyline,
+                               mif_fillpolygon,
+                               mif_drawarc,
+                               mif_fillarc,
+                               mif_putpixmap,
+                               mif_puttext,
+
                                (void *) &page_side
                               };
 
@@ -229,25 +240,12 @@ int register_mif_drv(Canvas *canvas)
     return register_device(canvas, &dev_mif);
 }
 
-int mifinitgraphics(Canvas *canvas)
+int mifinitgraphics(const Canvas *canvas)
 {
     int i;
     double c, m, y, k;
     double *side;
     fRGB frgb;
-
-    /* device-dependent routines */
-    canvas->devupdatecmap    = NULL;
-    
-    canvas->devdrawpixel     = mif_drawpixel;
-    canvas->devdrawpolyline  = mif_drawpolyline;
-    canvas->devfillpolygon   = mif_fillpolygon;
-    canvas->devdrawarc       = mif_drawarc;
-    canvas->devfillarc       = mif_fillarc;
-    canvas->devputpixmap     = mif_putpixmap;
-    canvas->devputtext       = mif_puttext;
-
-    canvas->devleavegraphics = mif_leavegraphics;
 
     side = (double *) get_curdevice_data(canvas);
     *side = MIN2(page_width_pp(canvas), page_height_pp(canvas));

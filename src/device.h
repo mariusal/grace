@@ -56,7 +56,6 @@
 
 int register_device(Canvas *canvas, Device_entry *device);
 int select_device(Canvas *canvas, int dindex);
-int initgraphics(Canvas *canvas);
 
 Device_entry *get_device_props(const Canvas *canvas, int device);
 Device_entry *get_curdevice_props(const Canvas *canvas);

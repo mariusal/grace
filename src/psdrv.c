@@ -92,25 +92,47 @@ static int tight_bb;
 
 static Device_entry dev_ps = {DEVICE_PRINT,
           "PostScript",
-          psprintinitgraphics,
-          ps_op_parser,
-          ps_gui_setup,
           "ps",
           TRUE,
           FALSE,
           {3300, 2550, 300.0},
+
+          psprintinitgraphics,
+          ps_op_parser,
+          ps_gui_setup,
+          NULL,
+          ps_leavegraphics,
+          ps_drawpixel,
+          ps_drawpolyline,
+          ps_fillpolygon,
+          ps_drawarc,
+          ps_fillarc,
+          ps_putpixmap,
+          ps_puttext,
+
           NULL
          };
 
 static Device_entry dev_eps = {DEVICE_FILE,
           "EPS",
-          epsinitgraphics,
-          eps_op_parser,
-          eps_gui_setup,
           "eps",
           TRUE,
           FALSE,
           {2500, 2500, 300.0},
+
+          epsinitgraphics,
+          eps_op_parser,
+          eps_gui_setup,
+          NULL,
+          ps_leavegraphics,
+          ps_drawpixel,
+          ps_drawpolyline,
+          ps_fillpolygon,
+          ps_drawarc,
+          ps_fillarc,
+          ps_putpixmap,
+          ps_puttext,
+
           NULL
          };
 
@@ -124,7 +146,7 @@ int register_eps_drv(Canvas *canvas)
     return register_device(canvas, &dev_eps);
 }
 
-static int ps_initgraphics(Canvas *canvas, int format)
+static int ps_initgraphics(const Canvas *canvas, int format)
 {
     int i, j;
     Page_geometry *pg;
@@ -135,19 +157,6 @@ static int ps_initgraphics(Canvas *canvas, int format)
     
     curformat = format;
     
-    /* device-dependent routines */
-    canvas->devupdatecmap = NULL;
-    
-    canvas->devdrawpixel     = ps_drawpixel;
-    canvas->devdrawpolyline  = ps_drawpolyline;
-    canvas->devfillpolygon   = ps_fillpolygon;
-    canvas->devdrawarc       = ps_drawarc;
-    canvas->devfillarc       = ps_fillarc;
-    canvas->devputpixmap     = ps_putpixmap;
-    canvas->devputtext       = ps_puttext;
-    
-    canvas->devleavegraphics = ps_leavegraphics;
-
     pg = get_page_geometry(canvas);
     
     page_scale = MIN2(pg->height, pg->width);
@@ -982,7 +991,7 @@ static void put_string(FILE *fp, const char *s, int len)
     fputc(')', fp);
 }
 
-int psprintinitgraphics(Canvas *canvas)
+int psprintinitgraphics(const Canvas *canvas)
 {
     int result;
     
@@ -998,7 +1007,7 @@ int psprintinitgraphics(Canvas *canvas)
     return (result);
 }
 
-int epsinitgraphics(Canvas *canvas)
+int epsinitgraphics(const Canvas *canvas)
 {
     int result;
     
@@ -1014,7 +1023,7 @@ int epsinitgraphics(Canvas *canvas)
     return (result);
 }
 
-int ps_op_parser(Canvas *canvas, const char *opstring)
+int ps_op_parser(const Canvas *canvas, const char *opstring)
 {
     if (!strcmp(opstring, "level2")) {
         ps_setup_level2 = TRUE;
@@ -1066,7 +1075,7 @@ int ps_op_parser(Canvas *canvas, const char *opstring)
     }
 }
 
-int eps_op_parser(Canvas *canvas, const char *opstring)
+int eps_op_parser(const Canvas *canvas, const char *opstring)
 {
     if (!strcmp(opstring, "level2")) {
         eps_setup_level2 = TRUE;
@@ -1134,7 +1143,7 @@ static void colorspace_cb(int onoff, void *data)
     }
 }
 
-void ps_gui_setup(Canvas *canvas)
+void ps_gui_setup(const Canvas *canvas)
 {
     set_wait_cursor();
     
@@ -1225,7 +1234,7 @@ static OptionStructure *eps_setup_colorspace_item;
 static Widget eps_setup_tight_bb_item;
 static OptionStructure *eps_setup_docdata_item;
 
-void eps_gui_setup(Canvas *canvas)
+void eps_gui_setup(const Canvas *canvas)
 {
     set_wait_cursor();
     

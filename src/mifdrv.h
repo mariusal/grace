@@ -27,7 +27,7 @@
 
 #include "defines.h"
 
-int mifinitgraphics(Canvas *canvas);
+int mifinitgraphics(const Canvas *canvas);
 
 void mif_drawpixel(const Canvas *canvas, const VPoint *vp);
 void mif_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);

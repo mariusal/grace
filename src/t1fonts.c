@@ -1269,10 +1269,10 @@ void WriteString(Canvas *canvas,
                 } else {
                     vptmp = cs->start;
                 }
-                if (canvas->devputtext == NULL) {
+                if (canvas->curdevice->puttext == NULL) {
                     errmsg("Device has no built-in fonts");
                 } else {
-                    canvas->devputtext(canvas, &vptmp, cs->s, cs->len, cs->font,
+                    canvas->curdevice->puttext(canvas, &vptmp, cs->s, cs->len, cs->font,
                         &cs->tm, cs->underline, cs->overline, cs->kerning);
                 }
             } else {
@@ -1281,7 +1281,7 @@ void WriteString(Canvas *canvas,
                 vptmp.x += (double) glyph->metrics.leftSideBearing/page_dpv;
                 vptmp.y += (double) glyph->metrics.ascent/page_dpv;
 
-                canvas->devputpixmap(canvas, &vptmp, pwidth, pheight, glyph->bits, 
+                canvas->curdevice->putpixmap(canvas, &vptmp, pwidth, pheight, glyph->bits, 
                     glyph->bpp, T1_DEFAULT_BITMAP_PAD, PIXMAP_TRANSPARENT);
             }
         }

@@ -41,7 +41,7 @@ typedef enum {
 
 #define DEFAULT_COLORSPACE  COLORSPACE_RGB
 
-int pdfinitgraphics(Canvas *canvas);
+int pdfinitgraphics(const Canvas *canvas);
 
 void pdf_drawpixel(const Canvas *canvas, const VPoint *vp);
 void pdf_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
@@ -59,10 +59,10 @@ void pdf_puttext(const Canvas *canvas,
 
 void pdf_leavegraphics(const Canvas *canvas);
 
-int pdf_op_parser(Canvas *canvas, const char *opstring);
+int pdf_op_parser(const Canvas *canvas, const char *opstring);
 
 #if defined(NONE_GUI)
 #  define pdf_gui_setup NULL
 #else
-void pdf_gui_setup(Canvas *canvas);
+void pdf_gui_setup(const Canvas *canvas);
 #endif
