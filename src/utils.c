@@ -1066,6 +1066,21 @@ char *copy_string(char *dest, const char *src)
     return(dest);
 }
 
+char *concat_strings(char *dest, const char *src)
+{
+    if (src != NULL) {
+        if (dest == NULL) {
+            dest = copy_string(NULL, src);
+        } else {
+            dest = xrealloc(dest, (strlen(dest) + strlen(src) + 1)*SIZEOF_CHAR);
+            if (dest != NULL) {
+                strcat(dest, src);
+            }
+        }
+    }
+    return(dest);
+}
+
 void reverse_string(char *s)
 {
     char cbuf;

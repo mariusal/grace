@@ -81,6 +81,7 @@ int bin_dump(char *value, int i, int pad);
 unsigned char reversebits(unsigned char inword);
 
 char *copy_string(char *dest, const char *src);
+char *concat_strings(char *dest, const char *src);
 void reverse_string(char *s);
 
 char *get_grace_home(void);
