@@ -188,7 +188,7 @@ static char defaultTranslations[] = "\
 <Btn3Down>:             menu()\n\
 <Key>Return:            keypress()\n\
 <Key>osfUp:             keypress()\n\
-Shift <Btn1Down>:	extend-select-start()\n\
+Ctrl <Btn1Down>:	extend-select-start()\n\
 <Btn1Down>:		select-start()\n\
 <Btn1Up>:		notify()\n\
 Button1 <Btn1Motion>:	extend-select()\n\

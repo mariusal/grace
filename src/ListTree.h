@@ -1,5 +1,4 @@
 /*-----------------------------------------------------------------------------
- * $Header: /usr/shome/cvsroot/grace/src/ListTree.h,v 1.2 2001-07-21 17:45:05 fnevgeny Exp $
  *
  * ListTree	A list widget that displays a file manager style tree
  *
