@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -40,8 +40,10 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
-#include <Xm/Label.h>
+#include <Xm/Form.h>
 #include <Xm/RowColumn.h>
+
+#include "mbitmaps.h"
 
 #include "globals.h"
 #include "graphutils.h"
@@ -52,9 +54,6 @@
 #include "protos.h"
 
 
-static Widget arrange_frame;
-static Widget arrange_panel;
-
 static Widget overlay_frame;
 static Widget overlay_panel;
 
@@ -62,181 +61,278 @@ static Widget overlay_panel;
  * Panel item declarations
  */
 
-static Widget *arrange_rows_item;
-static Widget *arrange_cols_item;
-static Widget arrange_vgap_item;
-static Widget arrange_hgap_item;
-static Widget arrange_startx_item;
-static Widget arrange_starty_item;
-static Widget arrange_widthx_item;
-static Widget arrange_widthy_item;
-static Widget *arrange_packed_item;
-
 static ListStructure *graph_overlay1_choice_item;
 static ListStructure *graph_overlay2_choice_item;
 static OptionStructure *graph_overlaytype_item;
 
 static Widget but1[2];
 
-static void define_arrange_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int define_arrange_proc(void *data);
 static void define_overlay_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void define_autos_proc(Widget w, XtPointer client_data, XtPointer call_data);
+
+
+typedef struct {
+    int ncols;
+    int nrows;
+} GridData;
+
+Widget CreateGrid(Widget parent, int ncols, int nrows)
+{
+    Widget w;
+    int nfractions;
+    GridData *gd;
+    
+    if (ncols <= 0 || nrows <= 0) {
+        errmsg("Wrong call to CreateGrid()");
+        ncols = 1;
+        nrows = 1;
+    }
+    
+    nfractions = 0;
+    do {
+        nfractions++;
+    } while (nfractions % ncols || nfractions % nrows);
+    
+    gd = xmalloc(sizeof(GridData));
+    gd->ncols = ncols;
+    gd->nrows = nrows;
+    
+    w = XmCreateForm(parent, "grid_form", NULL, 0);
+    XtVaSetValues(w,
+        XmNfractionBase, nfractions,
+        XmNuserData, gd,
+        NULL);
+
+    XtManageChild(w);
+    return w;
+}
+
+void PlaceGridChild(Widget grid, Widget w, int col, int row)
+{
+    int nfractions, w1, h1;
+    GridData *gd;
+    
+    XtVaGetValues(grid,
+        XmNfractionBase, &nfractions,
+        XmNuserData, &gd,
+        NULL);
+    
+    if (gd == NULL) {
+        errmsg("PlaceGridChild() called with a non-grid widget");
+        return;
+    }
+    if (col < 0 || col >= gd->ncols) {
+        errmsg("PlaceGridChild() called with wrong `col' argument");
+        return;
+    }
+    if (row < 0 || row >= gd->nrows) {
+        errmsg("PlaceGridChild() called with wrong `row' argument");
+        return;
+    }
+    
+    w1 = nfractions/gd->ncols;
+    h1 = nfractions/gd->nrows;
+    
+    XtVaSetValues(w,
+        XmNleftAttachment  , XmATTACH_POSITION,
+        XmNleftPosition    , col*w1           ,
+        XmNrightAttachment , XmATTACH_POSITION,
+        XmNrightPosition   , (col + 1)*w1     ,
+        XmNtopAttachment   , XmATTACH_POSITION,
+        XmNtopPosition     , row*h1           ,
+        XmNbottomAttachment, XmATTACH_POSITION,
+        XmNbottomPosition  , (row + 1)*h1     ,
+        NULL);
+}
+
+
+typedef struct _Arrange_ui {
+    Widget top;
+    ListStructure *graphs;
+    SpinStructure *nrows;
+    SpinStructure *ncols;
+    OptionStructure *order;
+    SpinStructure *toff;
+    SpinStructure *loff;
+    SpinStructure *roff;
+    SpinStructure *boff;
+    SpinStructure *hgap;
+    SpinStructure *vgap;
+    Widget hpack;
+    Widget vpack;
+    Widget add;
+    Widget kill;
+} Arrange_ui;
 
 
 /*
  * Arrange graphs popup routines
  */
-static void define_arrange_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int define_arrange_proc(void *data)
 {
-    int nrows, ncols, pack;
-    double vgap, hgap, sx, sy, wx, wy;
+    Arrange_ui *ui = (Arrange_ui *) data;
+    int ngraphs, *graphs;
+    int nrows, ncols, order;
+    int hpack, vpack, add, kill;
+    double toff, loff, roff, boff, vgap, hgap;
 
-    nrows = GetChoice(arrange_rows_item) + 1;
-    ncols = GetChoice(arrange_cols_item) + 1;
+    nrows = (int) GetSpinChoice(ui->nrows);
+    ncols = (int) GetSpinChoice(ui->ncols);
     if (nrows < 1 || ncols < 1) {
-	return;
+	errmsg("# of rows and columns must be > 0");
+	return RETURN_FAILURE;
     }
+    
+    ngraphs = GetListChoices(ui->graphs, &graphs);
+    if (ngraphs == 0) {
+        graphs = NULL;
+    }
+    
+    order = GetOptionChoice(ui->order);
+    
+    toff = GetSpinChoice(ui->toff);
+    loff = GetSpinChoice(ui->loff);
+    roff = GetSpinChoice(ui->roff);
+    boff = GetSpinChoice(ui->boff);
 
-    pack = GetChoice(arrange_packed_item);
-	xv_evalexpr(arrange_vgap_item, &vgap);
-	xv_evalexpr(arrange_hgap_item, &hgap);
-	xv_evalexpr(arrange_startx_item, &sx);
-	xv_evalexpr(arrange_starty_item, &sy);
-	xv_evalexpr(arrange_widthx_item, &wx);
-	xv_evalexpr(arrange_widthy_item, &wy);
-    if (wx <= 0.0) {
-	errwin("Graph width must be > 0.0");
-	return;
+    hgap = GetSpinChoice(ui->hgap);
+    vgap = GetSpinChoice(ui->vgap);
+    
+    add  = GetToggleButtonState(ui->add);
+    kill = GetToggleButtonState(ui->kill);
+    
+    hpack = GetToggleButtonState(ui->hpack);
+    vpack = GetToggleButtonState(ui->vpack);
+
+    if (add && ngraphs < nrows*ncols) {
+        int gno;
+        graphs = xrealloc(graphs, nrows*ncols*SIZEOF_INT);
+        for (gno = number_of_graphs(); ngraphs < nrows*ncols; ngraphs++, gno++) {
+            graphs[ngraphs] = gno;
+        }
     }
-    if (wy <= 0.0) {
-	errwin("Graph height must be > 0.0");
-	return;
+    
+    if (kill && ngraphs > nrows*ncols) {
+        for (; ngraphs > nrows*ncols; ngraphs--) {
+            kill_graph(graphs[ngraphs - 1]);
+        }
     }
-    define_arrange(nrows, ncols, pack, vgap, hgap, sx, sy, wx, wy);
+    
+    arrange_graphs(graphs, ngraphs,
+        nrows, ncols, order,
+        loff, roff, toff, boff, vgap, hgap,
+        hpack, vpack);
+    
     update_all();
     
-    drawgraph();
+    SelectListChoices(ui->graphs, ngraphs, graphs);
+    xfree(graphs);
+    
+    xdrawgraph();
+    
+    return RETURN_SUCCESS;
 }
 
-void row_arrange_cb(Widget w, XtPointer client_data, XtPointer call_data)
+void hpack_cb(int onoff, void *data)
 {
-    int nrow = (int)client_data,pack;
-    double height, vgap, starty;
-    double vx, vy;
-    char buf[32];
-
-    get_page_viewport(&vx, &vy);
-    xv_evalexpr(arrange_starty_item, &starty);
-    if ( (pack = GetChoice(arrange_packed_item)) == 2 || pack == 3 ) {
-        vgap = 0.0;
-        xv_setstr(arrange_vgap_item, "0.0");
-    } else {
-        xv_evalexpr(arrange_vgap_item, &vgap);
-    }
-    height = (vy - 2*starty - (nrow-1)*vgap)/nrow;
-    sprintf( buf, "%g", height );
-    xv_setstr(arrange_widthy_item, buf );
+    Arrange_ui *ui = (Arrange_ui *) data;
+    SetSensitive(ui->hgap->rc, !onoff);
 }
-
-void col_arrange_cb(Widget w, XtPointer client_data, XtPointer call_data)
+void vpack_cb(int onoff, void *data)
 {
-    int ncol = (int)client_data, pack;
-    double width, hgap, startx;
-    double vx, vy;
-    char buf[32];
-
-    get_page_viewport(&vx, &vy);
-    xv_evalexpr(arrange_startx_item, &startx);
-    if ( (pack = GetChoice(arrange_packed_item)) == 1 || pack == 3 ) {
-        hgap = 0.0;
-        xv_setstr(arrange_hgap_item, "0.0");
-    } else {
-        xv_evalexpr(arrange_hgap_item, &hgap);
-    }
-    width = (vx - 2*startx - (ncol-1)*hgap)/ncol;
-    sprintf( buf, "%g", width );
-    xv_setstr(arrange_widthx_item, buf );
+    Arrange_ui *ui = (Arrange_ui *) data;
+    SetSensitive(ui->vgap->rc, !onoff);
 }
-
 
 void create_arrange_frame(void *data)
 {
-    Widget rc;
-    int i;
-    
+    static Arrange_ui *ui = NULL;
     set_wait_cursor();
-    if (arrange_frame == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	arrange_frame = XmCreateDialogShell(app_shell, "Arrange graphs", NULL, 0);
-	handle_close(arrange_frame);
-	arrange_panel = XmCreateRowColumn(arrange_frame, "arrange_rc", NULL, 0);
 
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, arrange_panel,
-			      XmNpacking, XmPACK_COLUMN,
-			      XmNnumColumns, 9,	/* nitems / 2 */
-			      XmNorientation, XmHORIZONTAL,
-			      XmNisAligned, True,
-			      XmNadjustLast, False,
-			      XmNentryAlignment, XmALIGNMENT_END,
-			      NULL);
-
-	XtVaCreateManagedWidget("Rows: ", xmLabelWidgetClass, rc, NULL);
-	arrange_rows_item = CreatePanelChoice(rc, " ",
-					      11,
-			  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
-					      NULL, NULL);
-	for( i=2; i<12; i++ )
-	XtAddCallback(arrange_rows_item[i], XmNactivateCallback, 
-			row_arrange_cb, (XtPointer) (i-1));
-			
-	XtVaCreateManagedWidget("Columns: ", xmLabelWidgetClass, rc, NULL);
-	arrange_cols_item = CreatePanelChoice(rc, " ",
-					      11,
-			  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
-					      NULL, NULL);
-	for( i=2; i<12; i++ )
-	XtAddCallback(arrange_cols_item[i], XmNactivateCallback, 
-			col_arrange_cb, (XtPointer) (i-1));
-
-	XtVaCreateManagedWidget("Packing: ", xmLabelWidgetClass, rc, NULL);
-	arrange_packed_item = CreatePanelChoice(rc, " ",
-						5,
-                                                "None",
-                                                "Horizontal",
-                                                "Vertical",
-                                                "Both",
-						NULL, NULL);
-
-	arrange_vgap_item = CreateTextItem4(rc, 10, "Vertical gap:");
-	arrange_hgap_item = CreateTextItem4(rc, 10, "Horizontal gap:");
-	arrange_startx_item = CreateTextItem4(rc, 10, "Start at X =");
-	arrange_starty_item = CreateTextItem4(rc, 10, "Start at Y =");
-	arrange_widthx_item = CreateTextItem4(rc, 10, "Graph width:");
-	arrange_widthy_item = CreateTextItem4(rc, 10, "Graph height:");
-
-        xv_setstr(arrange_vgap_item, "0.07");
-        xv_setstr(arrange_hgap_item, "0.07");
-        xv_setstr(arrange_startx_item, "0.1");
-        xv_setstr(arrange_starty_item, "0.1");
-        xv_setstr(arrange_widthx_item, "0.8");
-        xv_setstr(arrange_widthy_item, "0.8");
+    if (ui == NULL) {
+        Widget arrange_panel, fr, gr, rc;
+        BitmapOptionItem opitems[8] = {
+            {0               | 0              | 0             , m_hv_lr_tb_bits},
+            {0               | 0              | GA_ORDER_V_INV, m_hv_lr_bt_bits},
+            {0               | GA_ORDER_H_INV | 0             , m_hv_rl_tb_bits},
+            {0               | GA_ORDER_H_INV | GA_ORDER_V_INV, m_hv_rl_bt_bits},
+            {GA_ORDER_HV_INV | 0              | 0             , m_vh_lr_tb_bits},
+            {GA_ORDER_HV_INV | 0              | GA_ORDER_V_INV, m_vh_lr_bt_bits},
+            {GA_ORDER_HV_INV | GA_ORDER_H_INV | 0             , m_vh_rl_tb_bits},
+            {GA_ORDER_HV_INV | GA_ORDER_H_INV | GA_ORDER_V_INV, m_vh_rl_bt_bits}
+        };
         
-	ManageChild(rc);
+        ui = xmalloc(sizeof(Arrange_ui));
+    
+	ui->top = CreateDialogForm(app_shell, "Arrange graphs");
 
-	CreateSeparator(arrange_panel);
+	arrange_panel = CreateVContainer(ui->top);
+        
+	fr = CreateFrame(arrange_panel, NULL);
+        rc = CreateVContainer(fr);
+        ui->graphs = CreateGraphChoice(rc,
+            "Arrange graphs:", LIST_TYPE_MULTIPLE);
+        ui->add = CreateToggleButton(rc,
+            "Add graphs as needed to fill the matrix");
+        ui->kill = CreateToggleButton(rc, "Kill extra graphs");
 
-	CreateCommandButtons(arrange_panel, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, define_arrange_proc, (XtPointer) NULL);
-	XtAddCallback(but1[1], XmNactivateCallback, destroy_dialog, (XtPointer) arrange_frame);
+        fr = CreateFrame(arrange_panel, "Matrix");
+        gr = CreateGrid(fr, 3, 1);
+        ui->ncols = CreateSpinChoice(gr,
+            "Cols:", 2, SPIN_TYPE_INT, (double) 1, (double) 99, (double) 1);
+        PlaceGridChild(gr, ui->ncols->rc, 0, 0);
+        ui->nrows = CreateSpinChoice(gr,
+            "Rows:", 2, SPIN_TYPE_INT, (double) 1, (double) 99, (double) 1);
+        PlaceGridChild(gr, ui->nrows->rc, 1, 0);
+        ui->order = CreateBitmapOptionChoice(gr,
+            "Order:", 2, 8, MBITMAP_WIDTH, MBITMAP_HEIGHT, opitems);
+        PlaceGridChild(gr, ui->order->menu, 2, 0);
 
-	ManageChild(arrange_panel);
+	fr = CreateFrame(arrange_panel, "Page offsets");
+        gr = CreateGrid(fr, 3, 3);
+        ui->toff = CreateSpinChoice(gr, "", 4, SPIN_TYPE_FLOAT, 0.0, 1.0, 0.05);
+        PlaceGridChild(gr, ui->toff->rc, 1, 0);
+        ui->loff = CreateSpinChoice(gr, "", 4, SPIN_TYPE_FLOAT, 0.0, 1.0, 0.05);
+        PlaceGridChild(gr, ui->loff->rc, 0, 1);
+        ui->roff = CreateSpinChoice(gr, "", 4, SPIN_TYPE_FLOAT, 0.0, 1.0, 0.05);
+        PlaceGridChild(gr, ui->roff->rc, 2, 1);
+        ui->boff = CreateSpinChoice(gr, "", 4, SPIN_TYPE_FLOAT, 0.0, 1.0, 0.05);
+        PlaceGridChild(gr, ui->boff->rc, 1, 2);
+
+	fr = CreateFrame(arrange_panel, "Spacing");
+        gr = CreateGrid(fr, 2, 1);
+        rc = CreateHContainer(gr);
+        ui->hgap = CreateSpinChoice(rc,
+            "Hgap/width", 3, SPIN_TYPE_FLOAT, 0.0, 9.0, 0.1);
+        ui->hpack = CreateToggleButton(rc, "Pack");
+        AddToggleButtonCB(ui->hpack, hpack_cb, ui);
+        PlaceGridChild(gr, rc, 0, 0);
+        rc = CreateHContainer(gr);
+        ui->vgap = CreateSpinChoice(rc,
+            "Vgap/height", 3, SPIN_TYPE_FLOAT, 0.0, 9.0, 0.1);
+        ui->vpack = CreateToggleButton(rc, "Pack");
+        AddToggleButtonCB(ui->vpack, vpack_cb, ui);
+        PlaceGridChild(gr, rc, 1, 0);
+        
+	CreateAACDialog(ui->top, arrange_panel, define_arrange_proc, ui);
+        
+        SetSpinChoice(ui->nrows, (double) 1);
+        SetSpinChoice(ui->ncols, (double) 1);
+        
+        SetSpinChoice(ui->toff, GA_OFFSET_DEFAULT);
+        SetSpinChoice(ui->loff, GA_OFFSET_DEFAULT);
+        SetSpinChoice(ui->roff, GA_OFFSET_DEFAULT);
+        SetSpinChoice(ui->boff, GA_OFFSET_DEFAULT);
+
+        SetSpinChoice(ui->hgap, GA_GAP_DEFAULT);
+        SetSpinChoice(ui->vgap, GA_GAP_DEFAULT);
+        
+        SetToggleButtonState(ui->add, TRUE);
     }
-/*
- *     update_arrange();
- */
-    RaiseWindow(arrange_frame);
+
+    RaiseWindow(GetParent(ui->top));
+    
     unset_wait_cursor();
 }
 
