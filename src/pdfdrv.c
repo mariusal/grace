@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -64,6 +64,7 @@ static float pixel_size;
 static float page_scalef;
 
 static int *pdf_font_ids;
+static int *pdf_pattern_ids;
 
 static int pdf_color;
 static int pdf_pattern;
@@ -73,6 +74,7 @@ static int pdf_linecap;
 static int pdf_linejoin;
 
 static int pdf_setup_pdf1_3 = TRUE;
+static int pdf_setup_pdfpattern = FALSE;
 static int pdf_setup_compression = 4;
 
 extern FILE *prstream;
@@ -95,6 +97,30 @@ int register_pdf_drv(void)
 {
     PDF_boot();
     return register_device(dev_pdf);
+}
+
+void pdfinitpatterns(void)
+      /* Define Patterns for subsequent calls to PDF_setcolor(). */
+{
+    int i;
+    
+    if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern) {
+        pdf_pattern_ids = xmalloc(number_of_patterns()*SIZEOF_INT);
+        for (i = 1; i < number_of_patterns(); i++) {
+            int j, k, l;
+            pdf_pattern_ids[i] = PDF_begin_pattern(phandle, 16, 16, 16, 16, 2);
+            for (j = 0; j < 256; j++) {
+                k = j%16;
+                l = 15 - j/16;
+                if ((pat_bits[i][j/8] >> (j%8)) & 0x01) {
+                    /* the bit is set */
+                    PDF_rect(phandle, (float) k, (float) l, 1.0, 1.0);
+                    PDF_fill(phandle);
+                }
+            }
+            PDF_end_pattern(phandle);
+        }
+    }
 }
 
 int pdfinitgraphics(void)
@@ -157,6 +183,8 @@ int pdfinitgraphics(void)
         pdf_font_ids[i] = -1;
     }
     
+    pdfinitpatterns();
+
     PDF_begin_page(phandle, pg.width*72.0/pg.dpi, pg.height*72.0/pg.dpi);
 
     if ((s = get_project_description())) {
@@ -181,9 +209,15 @@ void pdf_setpen(void)
     pen = getpen();
     if (pen.color != pdf_color || pen.pattern != pdf_pattern) {
         frgb = get_frgb(pen.color);
-        PDF_setrgbcolor(phandle,
-                    (float) frgb->red, (float) frgb->green,(float) frgb->blue);     
-        /* TODO: patterns */
+        PDF_setcolor(phandle, "both", "rgb",
+            (float) frgb->red, (float) frgb->green,(float) frgb->blue, 0.0);     
+
+        if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern &&
+            pen.pattern > 1 && pen.pattern < number_of_patterns()) {
+            PDF_setcolor(phandle, "both", "pattern",
+                (float) pdf_pattern_ids[pen.pattern], 0.0, 0.0, 0.0);     
+        }
+        
         pdf_color = pen.color;
         pdf_pattern = pen.pattern;
     }
@@ -540,6 +574,7 @@ void pdf_leavegraphics(void)
     PDF_close(phandle);
     PDF_delete(phandle);
     xfree(pdf_font_ids);
+    XCFREE(pdf_pattern_ids);
 }
 
 static void pdf_error_handler(PDF *p, int type, const char *msg)
@@ -568,6 +603,12 @@ int pdf_op_parser(char *opstring)
     } else if (!strcmp(opstring, "PDF1.2")) {
         pdf_setup_pdf1_3 = FALSE;
         return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "patterns:on")) {
+        pdf_setup_pdfpattern = TRUE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "patterns:off")) {
+        pdf_setup_pdfpattern = FALSE;
+        return RETURN_SUCCESS;
     } else if (!strncmp(opstring, "compression:", 12)) {
         char *bufp;
         bufp = strchr(opstring, ':');
@@ -590,6 +631,7 @@ static int set_pdf_setup_proc(void *data);
 
 static Widget pdf_setup_frame;
 static Widget pdf_setup_pdf1_3_item;
+static Widget pdf_setup_pdfpattern_item;
 static SpinStructure *pdf_setup_compression_item;
 
 void pdf_gui_setup(void)
@@ -604,6 +646,7 @@ void pdf_gui_setup(void)
 	fr = CreateFrame(pdf_setup_frame, "PDF options");
         rc = CreateVContainer(fr);
 	pdf_setup_pdf1_3_item = CreateToggleButton(rc, "PDF-1.3");
+	pdf_setup_pdfpattern_item = CreateToggleButton(rc, "Use patterns");
 	pdf_setup_compression_item = CreateSpinChoice(rc,
             "Compression:", 1, SPIN_TYPE_INT, 0.0, 9.0, 1.0);
 
@@ -618,6 +661,7 @@ static void update_pdf_setup_frame(void)
 {
     if (pdf_setup_frame) {
         SetToggleButtonState(pdf_setup_pdf1_3_item, pdf_setup_pdf1_3);
+        SetToggleButtonState(pdf_setup_pdfpattern_item, pdf_setup_pdfpattern);
         SetSpinChoice(pdf_setup_compression_item, (double) pdf_setup_compression);
     }
 }
@@ -625,6 +669,7 @@ static void update_pdf_setup_frame(void)
 static int set_pdf_setup_proc(void *data)
 {
     pdf_setup_pdf1_3 = GetToggleButtonState(pdf_setup_pdf1_3_item);
+    pdf_setup_pdfpattern = GetToggleButtonState(pdf_setup_pdfpattern_item);
     pdf_setup_compression = (int) GetSpinChoice(pdf_setup_compression_item);
     
     return RETURN_SUCCESS;
