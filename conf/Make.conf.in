@@ -48,6 +48,9 @@ DL_LIB=@DL_LIB@
 # FFTW library
 FFTW_LIB=@FFTW_LIB@
 
+# netCDF libraries
+NETCDF_LIBS=@NETCDF_LIBS@
+
 # PDFlib library
 PDF_LIB=@PDF_LIB@
 
@@ -110,7 +113,4 @@ PRINT_CMD=@PRINT_CMD@
 
 # HTML help viewer command
 HELPVIEWER=@HELPVIEWER@
-
-# netCDF libraries
-NETCDF_LIBS=@NETCDF_LIBS@
 
