@@ -629,6 +629,9 @@ char *create_fstring(int form, int prec, double loc, int type)
     int exponent;
     double mantissa;
 
+    /* for locale decimal points */
+    set_locale_num(TRUE);
+
     strcpy(format, "%.*lf");
     switch (form) {
     case FORMAT_DECIMAL:
@@ -997,6 +1000,9 @@ char *create_fstring(int form, int prec, double loc, int type)
 	sprintf(s, format, prec, loc);
 	break;
     }
+
+    /* revert to POSIX */
+    set_locale_num(FALSE);
     
     return(s);
 }

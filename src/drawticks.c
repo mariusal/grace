@@ -658,9 +658,6 @@ void calculate_tickgrid(int gno)
     world w;
     tickmarks t;
     
-    /* for locale decimal points */
-    set_locale_num(TRUE);
-    
 reenter:
     get_graph_world(gno, &w);
     
@@ -771,7 +768,4 @@ reenter:
         set_graph_tickmarks(gno, &t, caxis);
         free_ticklabels(&t);
     }
-
-    /* revert to POSIX */
-    set_locale_num(FALSE);
 }
