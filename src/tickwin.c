@@ -802,7 +802,8 @@ static int axes_aac_cb(void *data)
                 ot->tl_skip = GetOptionChoice(tlskip);
             }
             if (data == tlformula || data == NULL) {
-                SetTextString(tlformula, ot->tl_formula);
+                ot->tl_formula =
+                    copy_string(ot->tl_formula, GetTextString(tlformula));
             }
             if (data == tlprestr || data == NULL) {
                 strcpy(ot->tl_prestr, xv_getstr(tlprestr));
