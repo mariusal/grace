@@ -139,7 +139,7 @@ void create_locator_frame(void *data);
 void create_graphapp_frame(int gno);
 void create_graphapp_frame_cb(void *data);
 
-void create_monitor_frame(void *data);
+void create_monitor_frame_cb(void *data);
 void stufftextwin(char *s);
 
 void HelpCB(void *data);
