@@ -797,12 +797,13 @@ void create_leval_frame(void *data)
         char **cells[MAX_SET_COLS];
         char *rowlabels[MAX_SET_COLS];
         short column_widths[1] = {50};
+        int column_maxlengths[1] = {256};
 
 	levalui.top = XmCreateDialogShell(app_shell, "Load & evaluate", NULL, 0);
 	handle_close(levalui.top);
 	panel = XmCreateForm(levalui.top, "form", NULL, 0);
 
-	fr = CreateFrame(panel, "Parameter mesh");
+	fr = CreateFrame(panel, "Parameter mesh ($t)");
         rc1 = XtVaCreateWidget("rc1",
             xmRowColumnWidgetClass, fr,
             XmNorientation, XmHORIZONTAL,
@@ -847,6 +848,7 @@ void create_leval_frame(void *data)
             XmNvisibleRows, MAX_SET_COLS,
             XmNvisibleColumns, 1,
             XmNcolumnWidths, column_widths,
+            XmNcolumnMaxLengths, column_maxlengths,
             XmNrowLabels, rowlabels,
 	    XmNrowLabelWidth, 6,
             XmNrowLabelAlignment, XmALIGNMENT_CENTER,
