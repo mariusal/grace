@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -227,6 +227,9 @@ Quark *graph_new(Quark *project)
             quark_free(g);
             return NULL;
         }
+#ifndef NONE_GUI
+        quark_cb_set(g, clean_set_selectors, NULL);
+#endif
     }
     return g;
 }

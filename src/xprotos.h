@@ -180,6 +180,8 @@ void update_ss_editors(Quark *gr);
 void do_ext_editor(Quark *pset);
 
 void set_graph_selectors(Quark *gr);
+int clean_graph_selectors(Quark *gr, int etype, void *data);
+int clean_set_selectors(Quark *gr, int etype, void *data);
 
 void update_props_items(void);
 void update_all(void);

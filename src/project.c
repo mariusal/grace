@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001,2002 Grace Development Team
+ * Copyright (c) 2001-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -48,7 +48,14 @@ static void *wrap_graph_copy(void *data)
 
 Quark *project_new(Grace *grace)
 {
-    return quark_root(grace, QFlavorProject);
+    Quark *q;
+    q = quark_root(grace, QFlavorProject);
+#ifndef NONE_GUI
+    if (q) {
+        quark_cb_set(q, clean_graph_selectors, NULL);
+    }
+#endif
+    return q;
 }
 
 Project *project_data_new(void)

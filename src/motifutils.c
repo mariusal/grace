@@ -2397,7 +2397,12 @@ void update_graph_selectors(void)
 {
     int i;
     for (i = 0; i < ngraph_selectors; i++) {
-        UpdateStorageChoice(graph_selectors[i]);
+        StorageStructure *ss = graph_selectors[i];
+        if (!ss->sto) {
+            Project *pr = (Project *) grace->project->data;
+            ss->sto = pr->graphs;
+        }
+        UpdateStorageChoice(ss);
     }
 }
 
@@ -4219,4 +4224,34 @@ void update_all(void)
 void update_all_cb(void *data)
 {
     update_all();
+}
+
+int clean_graph_selectors(Quark *gr, int etype, void *data)
+{
+    if (etype == QUARK_ETYPE_DELETE) {
+        int i;
+        for (i = 0; i < ngraph_selectors; i++) {
+            SetStorageChoiceStorage(graph_selectors[i], NULL);
+        }
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int clean_set_selectors(Quark *gr, int etype, void *data)
+{
+    if (etype == QUARK_ETYPE_DELETE) {
+        int i;
+        for (i = 0; i < nset_selectors; i++) {
+            Quark *cg;
+            StorageStructure *ss = set_selectors[i];
+
+            cg = get_set_choice_gr(ss);
+            if (!gr || cg == gr) {
+                SetStorageChoiceStorage(ss, NULL);
+            }
+        }
+    }
+    
+    return RETURN_SUCCESS;
 }
