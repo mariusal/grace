@@ -2261,6 +2261,10 @@ int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data)
         canvas_stats_reset(canvas);
         
         if (!canvas->drypass) {
+            if (cstats && !is_valid_bbox(&cstats->bbox)) {
+                errmsg("Nothing to draw?!");
+                return RETURN_FAILURE;
+            }
             if (initgraphics(canvas, cstats) != RETURN_SUCCESS) {
                 errmsg("Device wasn't properly initialized");
                 return RETURN_FAILURE;
