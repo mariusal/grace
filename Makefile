@@ -41,10 +41,10 @@ distclean : clean
 devclean : distclean
 	$(RM) configure
 
-texts : CHANGES ChangeLog
+texts : NEWS ChangeLog
 
-CHANGES : doc/CHANGES.html
-	@lynx -dump $? > CHANGES
+NEWS : doc/NEWS.html
+	@lynx -dump $? > $@
 
 ChangeLog : dummy
 	./scripts/cvs2cl.pl -F trunk

@@ -1,0 +1,115 @@
+<HTML>
+<HEAD>
+ <TITLE>Grace: List of changes</TITLE>
+</HEAD>
+
+<BODY>
+
+<H1>Grace list of changes (since 5.1.*) </H1>
+
+<PRE>
+
+<H2>5.99.0</H2>
+
+<H3>Functionality</H3>
+ !  [ES] objects (including #1336)
+ !  [ES] Storage for graphs/sets -&gt; #806, #894, #960
+ !  [ES] transformation dialogs: act on all columns (including #659), provide
+         destination selectors (rep. #837), use new set selectors everywhere
+         (reps. #885, #1195)
+ !  [ES] feature extraction (including rep. #1130)
+ !  [ES] Fourier transforms (including reps. #554, #630, #684, #1216, #1319)
+ !  [ES] diff/derivatives (including rep. #436)
+ !  [ES] removed geom. trans.
+ !  [ES] running properties
+ !  [ES] integration
+ !  [ES] removed regression
+ !  [ES] removed digital filter
+ !  [ES] convolution (including #496, #954)
+ !  [ES] correlation - now via FT
+ !  [ES] sampling
+ !  [ES] prune data (including reps. #1140, #1342)
+ !  [AM/ES] X error handler
+ *  [ES] dropped the "-remove" command line flag
+ *  [AG] netCDF: parse and use calibration attributes add_offset, scale_factor
+         and understand 1 byte variables
+ !  [ES] macro expansion in cstrings (timestamp and filename) (including rep.
+         #20)
+ *  [ES] include filename when creating sets from block data (rep. #346)
+ !  [ES] color transformations per device (including rep. #690)
+ !  [ES] changed legend length/vgap/hgap params to be defined in the
+         viewport coordinates
+ !  [ES] no more world coordinates for the legend placement
+ !  [ES] allow legend entries to contain a single symbol instead of two
+ !  [ES] define legend frame placement via anchor corner + offset vector
+         (including rep. #833)
+ !  [ES] "Cumulative properties"...
+ !  [ES] Set filling in legends...
+ !  [ES] quarks/tree structure (including reps. #226, #1005, #1177, #1229,
+         #1255)
+ !  [ES] titles/subtitles are separate objects (thus solving rep. #1075)
+ !  [ES] frame/pointer for texts (including rep. #1109)
+ !  [ES] justification for annotated values (rep. #1382)
+
+<H3>Interface</H3>
+ !  [ES] explorer (including rep. #635, #1374)
+ !  [EV/ES] instant update (rep. #861, also solving #1105)
+ !  [ES] about any transformation dialog
+ !  [ES] drawing object dialog... (including rep. #1227)
+ *  [ES] -timestamp option removed
+ !  [ES] get rid of the hotlink popup. The functionality is moved to the
+         "Edit dataset" dialog
+ !  [ES] color transformations and font rastering in device setup popup
+ !  [ES] high/low/smart font AA
+ !  [ES] added "Command" line functionality to Console. Got rid of the old
+         "Commands" dialog + (rep. #1246)
+ !  [ES] page zoom (including rep. #712)
+ !  [ES] sync zoom of overlaid graphs (rep. #692)
+ !  [ES] sym char in set presentation (rep. #1284)
+
+<H3>Drivers</H3>
+ *  [ES] implemented (optional) CMYK colorspace in the (E)PS output (rep. #928)
+ *  [ES] implemented Grayscale/RGB/CMYK option in the PDF driver
+ *  [ES] PDF-1.3/1.4/1.5 selection
+ *  [ES] tight bbox in PDF (rep. #714)
+ *  [ES] patterns in PDF
+ *  [ES] fp precision in PDF
+ *  [ES] two-pass drivers
+ *  [ES] BBox and resources at the top of PS output
+ *  [ES] font embedding/subsetting in PS (rep. #927)
+ *  [ES] PS output optimization
+ *  [ES] HiResBoundingBox in PS
+ *  [ES] rewritten raster drivers to use the Xmi library instead of GD. This
+         made the raster drivers full featured: previously missing features -
+	 winding fillrule, patterned lines are implemented and many weird
+	 things fixed (including rep. #1275)
+ *  [ES] added "printable" option for EPS
+ *  [ES] implemented kerning in PDF (when supported by PDFlib)
+
+<H3>Portability/Compilation</H3>
+ *  [RB] VMS updates
+ *  [ES] dropped support for libhelp
+
+<H3>Bug fixes</H3>
+ *  [ES] polygon regions were displayed incorrectly for non-linear scales
+         (rep. #729)
+ *  [ES] background fill exceeded postscript bounding box (rep. #992)
+ *  [ES] fixed fonttool resizing (rep. #1168)
+ *  [ES] fixed crash in PDF driver when using fonts lacking .afm files
+         (rep. #1287)
+
+
+ <B>Legend:</B>
+
+    [EV]  - Ed Vigmond &lt;vigmonde@IGB.UMontreal.CA&gt;
+    [AM]  - Alexander Mai &lt;st002279@hrzpub.tu-darmstadt.de&gt;
+    [AG]  - Alexey Goldin &lt;Alexey.Goldin@jpl.nasa.gov&gt;
+    [RB]  - Richard Brodie &lt;R.Brodie@rl.ac.uk&gt;
+    [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
+
+    "!" means no documentation provided (yet)
+ 
+</PRE>
+
+</BODY>
+</HTML>
