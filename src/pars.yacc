@@ -105,6 +105,8 @@ static int check_err;
 
 static int filltype_obs;
 
+static int index_shift = 0;     /* 0 for C, 1 for F77 index notation */
+
 double rnorm(double mean, double sdev);
 double fx(double x);
 double vmin(double *x, int n);
