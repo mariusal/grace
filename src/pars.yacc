@@ -307,7 +307,7 @@ symtab_entry *key;
 %token <ival> HBAR
 %token <ival> HGAP
 %token <ival> HIDDEN
-%token <ival> HISTO
+%token <ival> HISTOGRAM
 %token <ival> HMS
 %token <ival> HORIZI
 %token <ival> HORIZONTAL
@@ -2968,9 +2968,9 @@ actions:
             do_interp($3->gno, $3->setno, igno, iset,
                 $5->data, $5->length, $7, $9);
 	}
-	| HISTO '(' selectset ',' expr ',' expr ',' nexpr ')' {
+	| HISTOGRAM '(' selectset ',' array ',' onoff ',' onoff ')' {
             do_histo($3->gno, $3->setno, get_cg(), SET_SELECT_NEXT,
-                $5, $5 + $9*$7, $9, HISTOGRAM_TYPE_ORDINARY);
+                $5->data, $5->length, $7, $9);
 	}
 	| DIFFERENCE '(' selectset ',' nexpr ')' {
 	    do_differ($3->gno, $3->setno, $5);
@@ -4498,7 +4498,7 @@ symtab_entry ikey[] = {
 	{"HBAR", HBAR, NULL},
 	{"HGAP", HGAP, NULL},
 	{"HIDDEN", HIDDEN, NULL},
-	{"HISTO", HISTO, NULL},
+	{"HISTOGRAM", HISTOGRAM, NULL},
 	{"HMS", HMS, NULL},
 	{"HORIZI", HORIZI, NULL},
 	{"HORIZO", HORIZO, NULL},
