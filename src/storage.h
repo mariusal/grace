@@ -75,6 +75,8 @@ Storage *storage_new(Storage_data_free data_free, Storage_data_copy data_copy,
                      Storage_exception_handler exception_handler);
 void storage_free(Storage *sto);
 
+Storage *storage_copy(Storage *sto);
+
 void storage_empty(Storage *sto);
 
 int storage_count(Storage *sto);

@@ -499,6 +499,39 @@ int storage_duplicate(Storage *sto, int id)
     }
 }
 
+Storage *storage_copy(Storage *sto)
+{
+    Storage *sto_new;
+    
+    STORAGE_SAFETY_CHECK(sto, return NULL)
+    
+    sto_new = storage_new(sto->data_free,
+                          sto->data_copy,
+                          sto->exception_handler);
+    
+    if (sto_new) {
+        LLNode *llnode = sto->start;
+        while (llnode) {
+            void *data_new;
+            data_new = sto->data_copy(llnode->data);
+            if (llnode->data && !data_new) {
+                storage_free(sto_new);
+                return NULL;
+            } else {
+                if (storage_add(sto_new, llnode->id, data_new) !=
+                    RETURN_SUCCESS) {
+                    sto->data_free(data_new);
+                    storage_free(sto_new);
+                    return NULL;
+                }
+            }
+            llnode = llnode->next;
+        }
+    }
+    
+    return sto_new;
+}
+
 /**** convenience functions ****/
 int storage_get_data_next(Storage *sto, void **datap)
 {
