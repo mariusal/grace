@@ -1208,7 +1208,7 @@ void postprocess_project(int version)
         set_wrap_year(1900);
     }
     
-    if (version <= 40102 && get_pagelayout() == PAGE_FIXED) {
+    if (version <= 40102) {
         get_page_viewport(&ext_x, &ext_y);
         rescale_viewport(ext_x, ext_y);
     }
