@@ -34,9 +34,6 @@ $GRACE axes.agr
 # display the symbols and line styles
 $GRACE symslines.agr 
 #
-# display more symbols
-$GRACE moresyms.agr 
-#
 # display various fill styles
 $GRACE fills.agr 
 #

@@ -13,7 +13,7 @@ DOTEST = dotest$(BAT)
 EXAMPLES = altaxis.par logtest.par times.agr \
 	au.agr manygraphs.agr terr.agr tinset.agr \
 	axes.agr mlo.dat tlog.agr log2.agr \
-	bar.agr explain.agr moresyms.agr test.com tmc.c \
+	bar.agr explain.agr test.com tmc.c \
 	fills.agr props.agr test.dat \
 	chartebar.agr charts.agr graphs.par regions.par test1.par tstack.agr \
 	brw.dat hilo.agr test2.agr arrows.agr txyr.agr \
