@@ -958,12 +958,12 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
 }
 
 
-int getdata(Grace *grace, Quark *gr, char *fn, int src, int load_type)
+int getdata(Quark *pr, char *fn, int src, int load_type)
 {
     FILE *fp;
     int retval;
     int save_version, cur_version;
-    Quark *pr = grace->project;
+    Grace *grace = grace_from_quark(pr);
 
     fp = grace_openr(grace, fn, src);
     if (fp == NULL) {
@@ -973,7 +973,7 @@ int getdata(Grace *grace, Quark *gr, char *fn, int src, int load_type)
     save_version = project_get_version_id(pr);
     project_set_version_id(pr, 0);
 
-    set_parser_gno(gr);
+    parser_state_reset(pr);
     
     retval = uniread(pr, fp, load_type, fn);
 
@@ -985,7 +985,7 @@ int getdata(Grace *grace, Quark *gr, char *fn, int src, int load_type)
         project_postprocess(pr);
     } else if (load_type != LOAD_BLOCK) {
         /* just a few sets */
-        autoscale_graph(gr, grace->rt->autoscale_onread);
+        autoscale_graph(graph_get_current(pr), grace->rt->autoscale_onread);
     }
     project_set_version_id(pr, save_version);
 
@@ -1081,14 +1081,18 @@ extern int load_xgr_project(Grace *grace, char *fn);
 
 int load_agr_project(Grace *grace, char *fn)
 {
-    quark_free(grace->project);
-    grace->project = project_new(grace->rt->qfactory);
+    Quark *project = project_new(grace->rt->qfactory);
 
     grace->rt->print_file[0] = '\0';
     grace->rt->curtype = SET_XY;
 
-    parser_state_reset();
-    return getdata(grace, NULL, fn, SOURCE_DISK, LOAD_SINGLE);
+    if (getdata(project, fn, SOURCE_DISK, LOAD_SINGLE) == RETURN_SUCCESS) {
+        return grace_set_project(grace, project);
+    } else {
+        quark_free(project);
+        
+        return RETURN_FAILURE;
+    }
 }
 
 int load_project_file(Grace *grace, char *fn, int as_template)

@@ -50,7 +50,7 @@ FILE *filter_read(Grace *grace, char *fn);
 FILE *filter_write(Grace *grace, char *fn);
 
 int getparms(Grace *grace, char *plfile);
-int getdata(Grace *grace, Quark *gr, char *fn, int src, int type);
+int getdata(Quark *pr, char *fn, int src, int type);
 int update_set_from_file(Quark *pset);
 
 int readblockdata(Quark *gr, char *fn, FILE * fp);
