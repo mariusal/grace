@@ -140,7 +140,7 @@ void create_graphapp_frame(int gno);
 void create_graphapp_frame_cb(void *data);
 
 void create_monitor_frame(void *data);
-void stufftextwin(char *s, int sp);
+void stufftextwin(char *s);
 
 void HelpCB(void *data);
 void ContextHelpCB(void *data);
