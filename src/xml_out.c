@@ -709,7 +709,8 @@ int save_object(XFile *xf, Attributes *attrs, DObject *o)
     {
         char buf[32];
         xmlio_write_location(xf, attrs, o->loctype, o->ap.x, o->ap.y);
-        xmlio_write_line_spec(xf, attrs, &(o->pen), o->linew, o->lines);
+        xmlio_write_line_spec(xf, attrs,
+            &(o->line.pen), o->line.width, o->line.style);
         xmlio_write_fill_spec(xf, attrs, &(o->fillpen));
         attributes_reset(attrs);
         switch (o->type) {

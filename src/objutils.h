@@ -54,9 +54,7 @@ typedef struct _DObject {
     VPoint offset;
     double angle;
     
-    Pen pen;
-    int lines;
-    double linew;
+    Line line;
     Pen fillpen;
 
     OType type;     /* object type */

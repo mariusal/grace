@@ -2218,21 +2218,21 @@ parmset:
 	    if (!curobject) {
                 yyerror("No active object");
 	    } else {
-	        curobject->lines = $2;
+	        curobject->line.style = $2;
             }
 	}
 	| objecttype linew_select {
 	    if (!curobject) {
                 yyerror("No active object");
 	    } else {
-	        curobject->linew = $2;
+	        curobject->line.width = $2;
             }
 	}
 	| objecttype color_select {
 	    if (!curobject) {
                 yyerror("No active object");
 	    } else {
-	        curobject->pen.color = $2;
+	        curobject->line.pen.color = $2;
             }
 	}
 	| objecttype FILL color_select {

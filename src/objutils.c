@@ -113,10 +113,10 @@ DObject *object_new(void)
         o->offset.y = 0.0;
         o->angle = 0.0;
     
-        o->pen.color = 1;
-        o->pen.pattern = 1;
-        o->lines = 1;
-        o->linew = 1.0;
+        o->line.pen.color = 1;
+        o->line.pen.pattern = 1;
+        o->line.style = 1;
+        o->line.width = 1.0;
         o->fillpen.color = 1;
         o->fillpen.pattern = 1;
         

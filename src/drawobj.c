@@ -82,9 +82,7 @@ static void draw_object(int gno, DObject *o)
             setpen(o->fillpen);
             FillRect(vp1, vp2);
 
-            setpen(o->pen);
-            setlinewidth(o->linew);
-            setlinestyle(o->lines);
+            setline(&o->line);
             DrawRect(vp1, vp2);
         }
         break;
@@ -101,9 +99,7 @@ static void draw_object(int gno, DObject *o)
             setpen(o->fillpen);
             DrawFilledArc(vp1, vp2, (int) e->angle1, (int) e->angle2, e->fillmode);
 
-            setpen(o->pen);
-            setlinewidth(o->linew);
-            setlinestyle(o->lines);
+            setline(&o->line);
             DrawArc(vp1, vp2, (int) e->angle1, (int) e->angle2);
         }
         break;
@@ -113,7 +109,7 @@ static void draw_object(int gno, DObject *o)
             
             /* FIXME AA background setpen(o->fillpen); */
 
-            setpen(o->pen);
+            setpen(o->line.pen);
             setcharsize(s->size);
             setfont(s->font);
 
@@ -128,9 +124,7 @@ static void draw_object(int gno, DObject *o)
             vp.x = anchor.x + l->length*cos(o->angle);
             vp.y = anchor.y + l->length*sin(o->angle);
 
-            setpen(o->pen);
-            setlinewidth(o->linew);
-            setlinestyle(o->lines);
+            setline(&o->line);
             DrawLine(anchor, vp);
 
             switch (l->arrow_end) {

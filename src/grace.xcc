@@ -153,12 +153,6 @@ Scale *scale_new()
 }
 
 typedef struct {
-    Pen pen;
-    int style;
-    double width;
-} Line;
-
-typedef struct {
     int type;
     APoint ap;
 } Location;
@@ -1488,9 +1482,7 @@ RiserLine *riserline_new(void)
         
         <!-- Child elements -->
         <child name="#EStrLineSpec">
-            $$->pen   = $?->pen;
-            $$->linew = $?->width;
-            $$->lines = $?->style;
+            $$->line  = *($?);
             xfree($?);
         </child>
         <child name="#EStrLocation">
