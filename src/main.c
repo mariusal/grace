@@ -222,7 +222,11 @@ int main(int argc, char *argv[])
 	set_grace_home(s);
     }
     
-    set_workingdir(NULL);	/* set the starting directory */
+    /* define the user's name */
+    init_username();
+        
+    /* set the starting directory */
+    set_workingdir(NULL);
 
     /*
      * print command
