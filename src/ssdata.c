@@ -192,7 +192,7 @@ int init_ss_data(ss_data *ssd, int ncols, int *formats, const char *label)
     ssd->ncols = ncols;
     ssd->nrows = 0;
     
-    ssd->label = copy_string(NULL, label);
+    ssd->label = copy_string(ssd->label, label);
 
     return RETURN_SUCCESS;
 }
@@ -451,6 +451,7 @@ int store_data(ss_data *ssd, int load_type)
         }
         
         XCFREE(ssd->data);
+        XCFREE(ssd->label);
         break;
     case LOAD_NXY:
         if (nscols != 0) {
@@ -480,6 +481,7 @@ int store_data(ss_data *ssd, int load_type)
         }
     
         XCFREE(ssd->data);
+        XCFREE(ssd->label);
         break;
     case LOAD_BLOCK:
         set_blockdata(ssd);
