@@ -6,10 +6,10 @@
 
       <title>Grace FAQ (v0.5)
       <author>by the Grace Team
-      <date>18.07.1999
+      <date>17.08.1999
       <abstract>
 	This document contains Frequently Asked Questions (FAQ) about
-	<bf/Grace/, the free 2d plotting tool for scientific data.
+	<bf/Grace/, a WYSIWYG 2D plotting tool for scientific data.
       </abstract>
 
     <toc>
@@ -517,7 +517,7 @@
             100% source(!) compatible replacement for Motif, but is still under
             development, so don't expect everything to work exactly as it
             should. For the purposes of Grace, try using the latest version of
-            LessTif (at least 0.88 and above) - if you don't
+            LessTif (at least 0.88.9 and above) - if you don't
             mind that it might be a bit slower than commercial versions of Motif
 	    and graphical details may be different. Be aware, however, that
             occasional crashes might occur under certain circumstances. The
@@ -582,7 +582,8 @@
 
 	  A port to OS/2 made by <url name="Alexander Mai"
 	    url="mailto:st002279@hrzpub.tu-darmstadt.de"> can be found
-	  at <url url="http://www.tu.darmstadt.de/~st002279/os2stuff.html">.
+	  at <url url="http://www.tu.darmstadt.de/~st002279/os2">.
+	  It requires XFree86.
 
 <!-- **************************************** -->
 

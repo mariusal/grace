@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.3)
 <author>by the Grace Team
-<date>04.08.1999
+<date>17.08.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -262,16 +262,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           numeric (fortran 'd' and 'D' exponant markers are supported)
           or alphanumeric (with or without quotes). Several calendar
           date formats are recognized automatically and you can
-          specify your own reference for numeric dates formats. You
-          can select several fields upon reading and even concatenate
-          several fields into one (see <ref id="field-selection"
-          name="field selection"> in the GUI description). Grace also
+          specify your own reference for numeric dates formats. Grace also
           has a command language (see <ref id="command-interpreter"
           name="command interpreter">), you can include commands in
           data files using lines having "@" as their first non-blank
           character. Depending on configuration, Grace can also read
-          NetCDF files (see <ref id="configuration"
-          name="configuration">).
+          NetCDF files (see <ref id="configuration" name="configuration">).
 
       <sect2>Devices<label id="devices">
 	<p>
@@ -284,10 +280,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> PostScript (level 1 and level 2)
           <item> EPS
           <item> Metafile (which is Grace format)
-          <item> PDF
+          <item> PDF (depends on extra libraries,
+                      see <ref name="configuration" id="configuration">)
           <item> PNM
-          <item> JPEG
-          <item> PNG
+          <item> JPEG (depends on extra libraries,
+                      see <ref name="configuration" id="configuration">)
+          <item> PNG (depends on extra libraries,
+                      see <ref name="configuration" id="configuration">)
           </itemize>
 
         <p>
@@ -306,6 +305,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           relative <tt>pathname</tt>, it searches for the file along the
           following path:
           <tt>./pathname:./.grace/pathname:~/.grace/pathname:$GRACE_HOME/pathname</tt>
+
+      <sect2>Dynamic modules<label id="dynamic-modules">
+	<p>
+        Grace can access external functions present in either system
+        or third-party shared libraries or modules specially compiled
+        for use with it. The term dynamic refers to the possibility
+        Grace has to open the library at run time to find the code of
+        the external function, there is no need to recompile Grace
+        itself (the functions already compiled in Grace are
+        "statically linked").
 
   <sect1>Invocation
     <p>
@@ -463,7 +472,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
   <sect1>Customization
     <p>
-    <sect2>Environment variables
+    <sect2>Environment variables <label id="environment-variables">
       <p>
         <itemize>
         <item> GRACE&lowbar;HOME
@@ -679,24 +688,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          that allows is, the command can be a complete sequence of
          programs glued together with pipes.
 
-         The "Fields"<label id="field-selection"> entry allows you to
-         select some of the fields you want. The default value is "*"
-         to select all fields (the same effect is achieved using an
-         empty entry). Apart from these special values, the syntax to
-         use is a colon separated list of fields numbers, ranges, or
-         concatenation sequences. A range is specified like this "1~5"
-         and a concatenation sequence like this "9&7&8". Beware that
-         fields are joined with intervening spaces! Concatenation is
-         mainly useful when your input files contains calendar dates
-         scattered in several columns.
-
          If the source contains date fields, they should be
          automatically detected. Several formats are recognized (see
          appendix <ref id="dates" name="dates in grace">). Calendar
-         dates are converted to numerical dates upon reading. The user
-         can give an hint about the format ("ISO8601", "european",
-         "us") using the "Dates hint" choice or let Grace find the
-         format by itself.
+         dates are converted to numerical dates upon reading.
 
          <sect3> NetCDF <label id="read-netCDF">
          <p>
@@ -730,12 +725,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <sect2> Device setup <label id="device-setup">
       <p>
       Set the properties of the printing device. Each device has its
-      own set of specific options (for example the PostScript device
-      allows to choose between grayscale or PostScript level 2 output
-      and to change the page offset in case the printer is
-      shifted). According to the device, the output can be sent either
-      directly to a printer or directed to a file. The global settings
-      available for all devices are the sizing parameters.
+      own set of specific options (see <ref name="Device-specific
+      settings" id="device-settings">). According to the device, the
+      output can be sent either directly to a printer or directed to a
+      file. The global settings available for all devices are the
+      sizing parameters.
 
       <sect2> Exit <label id="exit">
       <p>
@@ -747,24 +741,25 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    <p>
       <sect2> Data sets <label id="data-sets">
       <p>
-      Open the data set popup where you can view or change the
-      properties of datasets. This include its type, length,
-      associated comment and main some statistics (min, max, mean,
-      standard deviation). An horizontal scrollbar at bottom alloaws
-      to get the two last properties, they are not displayed by
-      default. Also note that if you find some columns are two narrow
-      to show all significant digits, you can drag the vertical rules
-      using Shift-Button 2.
+      Using the data set popup, you can view the properties of
+      datasets. This include its type, length, associated comment and
+      main some statistics (min, max, mean, standard deviation). An
+      horizontal scrollbar at bottom allows to get the two last
+      properties, they are not displayed by default. Also note that if
+      you find some columns are two narrow to show all significant
+      digits, you can drag the vertical rules using Shift-Button 2.
 
       <sect2> Set operations <label id="set-operations">
       <p>
       The set operations popup allows you to interact with sets as a
-      whole (and not data within the sets). The popup allows you to
-      select a source (one set within one graph) and a destination and
-      perform some action upon them (copy, move, swap). This popup
-      also give you a quick access to several graph and set selectors
-      if you want to perform some other operation like hiding a graph
-      or creating a new set from block data.
+      whole. If you want to operate on the data orderinf of the sets,
+      you should use the <ref name="data set operations"
+      id="data-set-operations"> popup from the Data menu. The popup
+      allows you to select a source (one set within one graph) and a
+      destination and perform some action upon them (copy, move,
+      swap). This popup also give you a quick access to several graph
+      and set selectors if you want to perform some other operation
+      like hiding a graph or creating a new set from block data.
 
       <sect2> Arrange graphs <label id="arrange-graphs">
       <p>
@@ -788,11 +783,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
       <sect2> Overlay graphs <label id="overlay-graphs">
       <p>
-      You can also overlay a graph on top of another one. The main use
-      of this feature is to plot several curves using different scales
-      on the same (apparently) graph. The main difficulty is to be
-      sure you operate on the graph you want at all times (you can
-      hide one for a moment if this becomes too difficult).
+      You can overlay a graph on top of another one. The main use of
+      this feature is to plot several curves using different scales on
+      the same (apparently) graph. The main difficulty is to be sure
+      you operate on the graph you want at all times (you can hide one
+      for a moment if this becomes too difficult).
 
       <sect2> Autoscale <label id="autoscale">
       <p>
@@ -853,7 +848,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <p>
       After having selected this menu entry, you can select a point on
       a graph that will be used as the origin of the locator display
-      (just below the menu bar).
+      (just below the menu bar). The fixed point is taken into account
+      only when the display type of the locator is set to [DX,DY].
 
       <sect2> Clear locator fixed point <label id="clear-locator-fixed-point">
       <p>
@@ -878,82 +874,416 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    <p>
       <sect2> Data set operations <label id="data-set-operations">
       <p>
-      <sect2> Region operations menu <label id="region-operations-menu">
-      <p>
-         <sect3> Extract sets <label id="extract-sets">
-         <p>
-         <sect3> Kill sets <label id="kill-sets">
-         <p>
-         <sect3> Report on <label id="report-on">
-         <p>
+       This popup gathers all operations that are related to the
+      ordering of data points inside a set or between sets. If you
+      want to operate on the sets as a whole, you should use the <ref
+      name="set operations" id="set-operations"> popup from the Edit
+      menu. You can sort according to any coordinate (X, Y, DX, ...)
+      in ascending or descending order, reverse the order of the
+      points, join several sets into one, split one set into several
+      others of equal lengths, or drop a range of points from a
+      set. The <ref name="set selector" id="set-selector"> of the
+      popup shows the number of points in each set in square brackets
+      like this : G0.S0[63], the points are numbered from 0 to n-1.
+
       <sect2> Transformations menu <label id="transformations-menu">
       <p>
+      The transformations submenu gives you access to all data-mining
+      features of Grace.
+
          <sect3> Evaluate expression <label id="evaluate-expression">
          <p>
-         <sect3> Evaluate in region <label id="evaluate-in-region">
-         <p>
+         Using evaluate expression allows you to create a set by
+         applying an explicit formula to another set, or to parts of
+         another set if you use regions restrictions.
+
+         All the classical mathematical functions are available (cos,
+         sin, but also lgamma, j1, erf, ...). As usual all
+         trigonometric functions use radians by default but you can
+         specify a unit if you prefer to say cos (x rad) or sin (3 * y
+         deg). Other predefined names include pi (for the constant)
+         and a, b, c and d for scratch arrays you can use to store
+         data between evaluations.
+
+         In the formula, you can use X, Y, Y1, ..., Y4 to denote any
+         coordinate you like from the source set. An implicit loop
+         will be used around your formula so if you say :
+
+         <tscreen><verb>
+         x = x - 4966.5
+         </verb></tscreen>
+
+         you will shift all points of your set 4966.5 units to the left.
+
+         You can use more than one set in the same formula, like this :
+
+         <tscreen><verb>
+         y = y - 0.653 * sin (x deg) + s2.y
+         </verb></tscreen>
+
+         which means you use both X and Y from the source set but also
+         the Y coordinate of set 2. Beware that the loop is a simple
+         loop over the indices, all the sets you use in such an hybrid
+         expression should therefore have the same number of points
+         and point i of one set should really be related to point i of
+         the other set. If your sets do not follow these requirements,
+         you should homogeneize them before using <ref
+         name="interpolation" id="interpolation">.
+
          <sect3> Histograms <label id="histograms">
          <p>
+         The histograms popup allows you to compute either standard
+         histograms and cumulative histograms from the Y coordinate of
+         your data. You can select only a range using the start and
+         end fields and you can specify the bin width.
+
          <sect3> Fourier transforms <label id="fourier-transforms">
          <p>
+         This popup is devoted to direct and inverse Fourier
+         transforms. The default is to perform a direct transform on
+         unfiltered data and to produce a set with the index as
+         abscissa and magnitude as ordinate. You can filter the input
+         data window through triangular, Hanning, Welch, Hamming,
+         Blackman and Parzen filters. You can load magnitude, phase or
+         coefficients and use either index, frequency or period as
+         abscissas. You can choose between direct and inverse Fourier
+         transforms. If you specify real input data, X is assumed to
+         be equally spaced and ignored; if you specify complex input
+         data X is taken as the real part and Y as the imaginary part.
+
+         If Grace was configured with the FFTW library (see <ref
+         name="configuration" id="configuration">), then the DFT and
+         FFT buttons really perform the same transform (so there is no
+         speed-up in using FFT in this case). If you want Grace can to
+         use FFTW <it>wisdom</it> files, you should set several <ref
+         name="environment variables" id="environment-variables"> to
+         name them.
+
          <sect3> Running averages <label id="running-averages">
          <p>
+         The running average popup allows you to compute some values
+         on a sliding window over your data. You choose both the value
+         you need (average, median, minimum, maximum, standard
+         deviation) and the length of the window and perform the
+         operation. You can restrict the operation to the points
+         belonging to (or outside of) a region.
+
          <sect3> Differences <label id="differences">
          <p>
+         The differences popup is used to compute approximations of
+         the first derivative of a function with finite
+         differences. The only choice (apart from the source set of
+         course) is the type of differences to use : forward, backward
+         or centered.
+
          <sect3> Seasonal differences <label id="seasonal-differences">
          <p>
+         The seasonal differences popup is used to substract data from
+         a period to data of the preceding period (namely y[i] - y[i +
+         period]). Beware that the period is entered in terms of index
+         in the set and not in terms of abscissa!
+
          <sect3> Integration <label id="integration">
          <p>
+         The integration popup is used to compute the integral of a
+         set and optionaly to load it. The numerical value of the
+         integral is shown in the text field after
+         computation. Selecting "cumulative sum" in the choice item
+         will create and load a new set with the integral and compute
+         the end value, selecting "sum only" will only compute the end
+         value.
+
          <sect3> Interpolation <label id="interpolation">
          <p>
+         The interpolation popup is used to force the abscissas of one
+         set to correspond exactly to the abscissas of another
+         set. This is mainly used before performing some complex
+         operations between the two sets with the <ref name="evaluate
+         expression" id="evaluate-expression"> popup. Several
+         interpolation methods can be used : linear, spline or Akima
+         splines. Note that if the interpolated set is not wider than
+         the reference set, some extremal points will be missing. You
+         can check this with the number of points of each set (it
+         appears in the set selectors of the popup). In this case you
+         can perform a second run interpolating the reference set at
+         the abscissas of the newly created set, this will removbe the
+         extra points.
+
          <sect3> Splines <label id="splines">
          <p>
+         Using the splines popup you can fit a part of a set with
+         cubic or Akima splines. You select which part you want to
+         operate on with the start and stop fields, they are both
+         expressed in abscissa units. The number of points refer to
+         the spline you want to create.
+
          <sect3> Regression <label id="regression">
          <p>
+         The regression popup can be used to fit a set against
+         polynomials or some specific functions (y=A*x^B,
+         y=A*exp(B*x), y=A+B*ln(x) and y=1/(A+Bx)) for which a simple
+         transformation of input data can be used to apply linear
+         regression formulas.
+
+         You can load either the fitted values, the residuals or the
+         function itself. Choosing to load fitted values or residuals
+         leads to a set of the same length and abscissas as the
+         initial set. Choosing to load the function is almost similar
+         to load the fitted values except that you choose yourself the
+         boundaries and the number of points. This can be used for
+         example to draw the curve outside of the data sample range or
+         to produce an evenly spaced set from an irregular one.
+
          <sect3> Non linear fit <label id="non-linear-fit">
          <p>
+         The non linear fit popup can be used for functions outside of
+         the simple regression methods scope. With this popup you
+         provide the expression yourself using a0, a1, ..., an to
+         denote the unknowns (as an example you can say y = a0 * cos
+         (a1 * x + a2)). You specify a tolerance, starting values and
+         optional bounds and run several steps before loading the
+         results.
+
+         The fit characteristics (number of parameters, formula, ...)
+         can be saved in a file and retrieved as needed using the file
+         menu of the popup.
+
+         You can load either the fitted values, the residuals or the
+         function itself (the choice is in the option menu of the
+         popup). Choosing to load fitted values or residuals leads to
+         a set of the same length and abscissas as the initial
+         set. Choosing to load the function is almost similar to load
+         the fitted values except that you choose yourself the
+         boundaries and the number of points. This can be used for
+         example to draw the curve outside of the data sample range or
+         to produce an evenly spaced set from an irregular one.
+
          <sect3> Cross/auto correlation <label id="cross/auto-correlation">
          <p>
+         The correlation popup can be used to compute autocorrelation
+         of one set or cross correlation between two sets. You only
+         select the set (or sets) and specify the maximum lag.
+
          <sect3> Digital filter <label id="digital-filter">
          <p>
+         You can use a set as a weight to filter another set. Only the
+         Y part and the length of the weighting set are important, the
+         X part is ignored.
+
          <sect3> Linear convolution <label id="linear-convolution">
          <p>
+         The convolution popup is used to ... convolve two sets. You
+         only select the sets and apply.
+
          <sect3> Geometric transforms <label id="geometric-transforms">
          <p>
+         You can rotate, scale or translate sets using the geometric
+         transformations popup. You specify the characteristics of
+         each transform and the application order.
+
          <sect3> Sample points <label id="sample-points">
          <p>
-         <sect3> Extract points in region <label id="extract-points-in-region">
-         <p>
-         <sect3> Delete points in region <label id="delete-points-in-region">
-         <p>
-         <sect3> Feature extraction <label id="feature-extraction">
-         <p>
+         This popups provides two sampling methods. The first one is
+         to choose a starting point and a step, the second one is to
+         select only the points that verify a boolean expression you
+         specify.
+
          <sect3> Prune data <label id="prune-data">
          <p>
+         This popup is devoted to reducing huge sets (and then saving
+         both computation time and disk space).
+
+         The interpolation method can be applied only to ordered sets:
+         it is based on the assumption that if a real point and an
+         interpolation based on neighboring points are closer than a
+         specified threshold, then the point is redundant and can be
+         eliminated.
+
+         The geometric methods (circle, ellipse, rectangle) can be
+         applied to any set, they test each point in turn and keep
+         only those that are not in the neighborhood of previous
+         points.
+         <p>
+
+      <sect2> Feature extraction <label id="feature-extraction">
+      <p>
+      Given a set of curves in a graph, extract a feature from each
+      curve and use the values of the feature to provide the Y values
+      for a new curve.
+
+      <p>
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+              Feature           | Description                       @
+              <hline>
+Y minimum |  Minimum Y value of set @
+Y maximum | Maximum Y value of set @
+Y average | Average Y value of set @
+Y std. dev. | Standard deviation of Y values @
+Y median | Median Y value @
+X minimum | Minimum X value of set @
+X maximum | Maximum X value of set @
+X average | Average X value of set @
+X std. dev. | Standard deviation of X values @
+X median | Median X value @
+Frequency | Perform DFT (FFT if set length a power of 2) to find largest frequency component @
+Period | Inverse of above  @
+Zero crossing | Time of the first zero crossing, + or - going @
+Rise time | Assume curve starts at the minimum and rises to the maximum, get time to go from 10% to 90% of rise. For single exponential curves, this is 2.2*time constant @
+Fall time | Assume curve starts at the maximum and drops to the minimum, get time to go from 90% to 10% of fall @
+Slope | Perform linear regression to obtain slope @
+Y intercept | Perform linear regression to obtain Y-intercept @
+Set length | Number of data points in set @
+Half maximal width | Assume curve starts from the minimum, rises to the maximum and drops to the minimum again. Determine the time for which the curve is elevated more than 50% of the maximum rise. @
+Barycenter X | Barycenter along X axis @
+Barycenter Y | Barycenter along Y axis @
+X (Y max)    | X of Maximum Y @
+Y (X max)    | Y of Maximum X @
+integral     | cumulative sum @
+              <hline>
+      </tabular>
+      <caption>
+              Extractable features
+      </caption>
+      </table>
+
 
    <sect1> Plot menu <label id="plot-menu">
    <p>
       <sect2> Plot appearance <label id="plot-appearance">
       <p>
+      The plot appearance popup let you set the time stamp properties
+      and the background color of the page. The color is used outside
+      of graphs and also on graphs were no specific background color
+      is set. The time stamp is taken each time you click on the
+      accept button.
+
       <sect2> Graph appearance <label id="graph-appearance">
       <p>
+      The graph appearance popup can be displayed from both the plot
+      menu and by double-clicking on a legend, title, or subtitle of a
+      graph (see <ref name="Clicks and double clicks"
+      id="clicks">). The graph selector at the top allows to choose
+      the graph you want to operate on, it also allows certain common
+      actions through its popup menu (see <ref name="graph selector"
+      id="graph-selector">). The main tab gathers the properties you
+      will need the more often (title for example), the other tabs are
+      used to fine tune some less frequently used options (fonts,
+      sizes, colors, placements).
+
+      If you need special characters or special formatting in your
+      title or subtitle, you can use grace escape sequences (the
+      sequence will appear verbatim in the text field but will be
+      rendered on the graph), see <ref name="typesetting"
+      id="typesetting">. If you don't remember the mapping between
+      alphabetic characters and the glyph you need in some specific
+      fonts (mainly symbol and zapfdingbats), you can invoque the font
+      tool from the texte field by typing CTRL-e. You can change fonts
+      and select characters from there, they will be copied back in
+      the text field when you will press the accept button. Beware of
+      the position of the cursor as you enter text or change font in
+      the font tool, the character or command will be inserted at this
+      position, not at the end of the string !
+
       <sect2> Set appearance <label id="set-appearance">
       <p>
+      The set appearance popup can be displayed from both the plot
+      menu and by double-clicking anywhere in a graph (see <ref
+      name="Clicks and double clicks" id="clicks">). The set selector
+      at the top allows to choose the set you want to operate on, it
+      also allows certain common actions through its popup menu (see
+      <ref name="set selector" id="set-selector">). The main tab
+      gathers the properties you will need the more often (line and
+      symbol properties or legend string for example), the other tabs
+      are used to fine tune some less frequently used options (drop
+      lines, fill properties, annotated values and error bars
+      properties for example).
+
+      You should note that despite the legend string related to
+      <em/one/ set is entered in the set appearance popup, this is not
+      sufficient to display it. Displaying <em/all/ legends is a graph
+      level decision, so the toggle is in the main tab of the <ref
+      name="graph appearance" id="graph-appearance"> popup.
+
+      If you need special characters or special formatting in your
+      legend, you can use grace escape sequences (the sequence will
+      appear verbatim in the text field but will be rendered on the
+      graph), see <ref name="typesetting" id="typesetting">. If you
+      don't remember the mapping between alphabetic characters and the
+      glyph you need in some specific fonts (mainly symbol and
+      zapfdingbats), you can invoque the font tool from the texte
+      field by typing CTRL-e. You can change fonts and select
+      characters from there, they will be copied back in the text
+      field when you will press the accept button. Beware of the
+      position of the cursor as you enter text or change font in the
+      font tool, the character or command will be inserted at this
+      position, not at the end of the string !
+
       <sect2> Axis properties <label id="axis-properties">
       <p>
+      The axis properties popup can be displayed from both the plot
+      menu and by double-clicking exactly on an axis (see <ref
+      name="Clicks and double clicks" id="clicks">). The choice button
+      at the top allows to select the axis you want to operate on. The
+      active toggle globally activates or deactivates the axis (all
+      GUI elements are unselectable on deactivated axes). The start
+      and stop fields depicts the displayed range. Three types of
+      scales are available : linear, logarithmic or reciprocal, and
+      you can invert the axis (which normally increases from left to
+      right and from bottom to top).  The main tab gathers the
+      properties you will need the more often (axis label, tick
+      spacing and format for example), the other tabs are used to fine
+      tune some less frequently used options (fonts, sizes, colors,
+      placements, stagger, grid lines, special ticks, ...).
+
+      If you need special characters or special formatting in your
+      label, you can use grace escape sequences (the
+      sequence will appear verbatim in the text field but will be
+      rendered on the graph), see <ref name="typesetting"
+      id="typesetting">. If you don't remember the mapping between
+      alphabetic characters and the glyph you need in some specific
+      fonts (mainly symbol and zapfdingbats), you can invoque the font
+      tool from the texte field by typing CTRL-e. You can change fonts
+      and select characters from there, they will be copied back in
+      the text field when you will press the accept button. Beware of
+      the position of the cursor as you enter text or change font in
+      the font tool, the character or command will be inserted at this
+      position, not at the end of the string !
+
+      Once you have set the options as you want, you can apply
+      them. One usefull feature is that you can set several axes at
+      once with the bottom choice button (current axis, all axes
+      current graph, current axis all graphs, all axes all
+      graphs). Beware that you always apply the properties of all
+      tabs, not anly the selected one.
 
    <sect1> View menu <label id="view-menu">
    <p>
       <sect2> Show locator bar <label id="show-locator-bar">
       <p>
+      This toggle item show or hides the locator below the menu bar.
+
       <sect2> Show status bar <label id="show-status-bar">
       <p>
-      <sect2> Show tool bar <label id="show-tool-bar">
+       This toggle item show or hides the status string below the
+       canvas.
+
+     <sect2> Show tool bar <label id="show-tool-bar">
       <p>
+      This toggle item show or hides the tool bar at the left of the
+      canvas.
+
       <sect2> Redraw <label id="redraw">
       <p>
+      This menu item triggers a redrawing of the canvas.
+
       <sect2> Update all <label id="update-all">
       <p>
+      This menu item triggers an update of all data that could need
+      resynchronizing (hotlinks, set and graph selectors in some
+      popups, ...).
+
 
    <sect1> Window menu <label id="window-menu">
    <p>
@@ -996,7 +1326,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
        lists of objects (graphs, sets, ...) and can be used to perform
        simple operations on this objects (copying, deleting, ...). The
        operations are triggered by a popup menu that appear when pressing
-       the right mouse button on them.
+       mouse button 3 on them.
 
        <sect1> Graph selector <label id="graph-selector">
        <p>
@@ -1368,7 +1698,7 @@ main(int argc, char* argv[])
 
 </code></tscreen>
 
-  <sect1>FFTW tuning
+ <sect1>FFTW tuning
     <p>
      When the FFTW capabilities are compiled in, Grace looks at two environment
      variables to decide what to do with the FFTW 'wisdom' capabilities. 
@@ -1400,8 +1730,211 @@ main(int argc, char* argv[])
      writing it to disk, but if you do, you can use this flag to enable it.
     <p>
 
-  <sect1>DL modules
+  <sect1>DL modules <label id="dl-modules">
     <p>
+    Since version 4.1.1, Grace can access external functions present
+    in either system or third-party shared libraries or modules
+    specially compiled for use with Grace.
+
+    <sect2>Function types
+    <p>
+    One must make sure, however, that the external function is of one
+    of supported by Grace types:
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+      Grace type | Description   @
+              <hline>
+f&lowbar;of&lowbar;i    | a function of 1 <tt/int/ variable                                 @
+f&lowbar;of&lowbar;d    | a function of 1 <tt/double/ variable                              @
+f&lowbar;of&lowbar;nn   | a function of 2 <tt/int/ parameters                               @
+f&lowbar;of&lowbar;nd   | a function of 1 <tt/int/ parameter and 1 <tt/double/ variable     @
+f&lowbar;of&lowbar;dd   | a function of 2 <tt/double/ variables                             @
+f&lowbar;of&lowbar;nnd  | a function of 2 <tt/int/ parameters and 1 <tt/double/ variable    @
+f&lowbar;of&lowbar;ppd  | a function of 2 <tt/double/ parameters and 1 <tt/double/ variable @
+f&lowbar;of&lowbar;pppd | a function of 3 <tt/double/ parameters and 1 <tt/double/ variable @
+              <hline>
+      </tabular>
+      <caption>
+              <label id="grace-types">
+              Grace types for external functions
+      </caption>
+      </table>
+
+      The return values of functions are assumed to be of the
+      <tt/double/ type.
+
+       Note, that there is no difference from the point of view of
+       function prototype between parameters and variables; the
+       difference is in the way Grace treats them - an attempt to use
+       a vector expression as a parameter argument will result in a
+       parse error.
+
+       Let us consider few examples.
+
+       <sect2>Examples
+       <p>
+       Caution: the examples provided below (paths and compiler flags)
+       are valid for Linux/ELF with gcc. On other operating systems,
+       you may need to refer to compiler/linker manuals or ask a guru.
+
+       <sect3>Example 1
+       <p>
+       Suppose I want to use function <tt/pow(x,y)/ from the Un*x math
+       library (libm). Of course, you can use the "^" operator defined
+       in the Grace language, but here, for the sake of example, we
+       want to access the function directly.
+
+       The command to make it accessible by Grace is
+       <tscreen>
+       USE "pow" TYPE f_of_dd FROM "/usr/lib/libm.so"
+       </tscreen>
+
+       Try to plot y = pow(x,2) and y = x^2 graphs (using, for
+       example, "create new -&gt; Formula" from any <ref name="set
+       selector" id="set-selector">) and compare.
+
+       <sect3>Example 2
+       <p>
+       Now, let us try to write a function ourselves. We will define
+       function <tt/my_function/ which simply returns its (second)
+       argument multiplied by integer parameter transferred as the
+       first argument.
+
+       In a text editor, type in the following C code and save it as
+       "my_func.c":
+
+       <tscreen><code>
+       double my_function (int n, double x)
+       {
+           double retval;
+           retval = (double) n * x;
+           return (retval);
+       }
+       </code></tscreen>
+
+       OK, now compile it:
+
+       <tscreen><code>
+       $gcc -c -fPIC my_func.c
+       $gcc -shared my_func.o -o /tmp/my_func.so
+       </code></tscreen>
+
+       (You may strip it to save some disk space):
+
+       <tscreen><code>
+       $strip /tmp/my_func.so
+       </code></tscreen>
+
+       That's all! Ready to make it visible to Grace as "myf" - we are
+       too lazy to type the very long string "my_function" many times.
+
+       <tscreen>
+       USE "my_function" TYPE f_of_nd FROM "/tmp/my_func.so" ALIAS "myf"
+       </tscreen>
+
+
+       <sect3>Example 3
+       <p>
+       A more serious example. There is a special third-party library
+       available on your system which includes a very important for
+       you yet very difficult-to-program from the scratch function
+       that you want to use with Grace.  But, the function prototype
+       is NOT one of any predefined <ref name="types"
+       id="grace-types">.  The solution is to write a simple function
+       wrapper. Here is how:
+
+       Suppose, the name of the library is "special_lib" and the
+       function you are interested in is called "special_func" and
+       according to the library manual, should be accessed as <tt/void
+       special_func(double *input, double *output, int parameter)/.
+       The wrapper would look like this:
+
+       <tscreen><code>
+       double my_wrapper(int n, double x)
+       {
+           extern void special_func(double *x, double *y, int n);
+           double retval;
+           (void) special_func(&amp;x, &amp;retval, n);
+           return (retval);
+       }
+       </code></tscreen>
+
+       Compile it:
+
+       <tscreen><code>
+       $gcc -c -fPIC my_wrap.c
+       $gcc -shared my_wrap.o -o /tmp/my_wrap.so -lspecial_lib -lblas
+       $strip /tmp/my_wrap.so
+       </code></tscreen>
+
+       Note that I added <tt/-lblas/ assuming that the special_lib
+       library uses some functions from the BLAS. Generally, you have
+       to add <it>all</it> libraries which your module depends on (and
+       all libraries those libraries rely upon etc.), as if you wanted
+       to compile a plain executable.
+
+       Fine, make Grace aware of the new function
+
+       <tscreen>
+       USE "my_wrapper" TYPE f_of_nd FROM "/tmp/my_wrap.so" ALIAS "special_func"
+       </tscreen>
+
+       so we can use it with its original name.
+
+       <sect3>Example 4
+       <p>
+       An example of using Fortran modules.
+
+       Here we will try to achieve the same functionality as in
+       Example 2, but with the help of F77.
+
+       <tscreen><code>
+       DOUBLE PRECISION FUNCTION MYFUNC (N, X)
+       IMPLICIT NONE
+       INTEGER N
+       DOUBLE PRECISION X
+C
+       MYFUNC = N * X
+C
+       RETURN
+       END
+       </code></tscreen>
+
+       As opposite to C, there is no way to call such a function from
+       Grace directly - the problem is that in Fortran all arguments
+       to a function (or subroutine) are passed by reference. So, we
+       need a wrapper:
+
+       <tscreen><code>
+       double myfunc_wrapper(int n, double x)
+       {
+           extern double myfunc_(int *, double *);
+           double retval;
+           retval = myfunc_(&amp;n, &amp;x);
+           return (retval);
+       }
+       </code></tscreen>
+
+       Note that most of f77 compilers by default add underscore to
+       the function names and convert all names to the lower case,
+       hence I refer to the Fortran function <tt/MYFUNC/ from my C
+       wrapper as <tt/myfunc_/, but in your case it can be different!
+
+       Let us compile the whole stuff:
+
+       <tscreen><code>
+       $g77 -c -fPIC myfunc.f
+       $gcc -c -fPIC myfunc_wrap.c
+       $gcc -shared myfunc.o myfunc_wrap.o -o /tmp/myfunc.so -lf2c -lm
+       $strip /tmp/myfunc.so
+       </code></tscreen>
+
+       And finally, inform Grace about this new function:
+
+       <tscreen>
+       USE "myfunc_wrapper" TYPE f_of_nd FROM "/tmp/myfunc.so" ALIAS "myfunc"
+       </tscreen>
 
 <!-- ****** Appendicies/references ************ -->
 <sect> References
@@ -1656,16 +2189,26 @@ main(int argc, char* argv[])
       
       These calendars allow to represent any date from the mist of the
       past to the fog of the future, but they are not convenient for
-      computation. Another time scale is of possible : counting only
-      the days from a reference. Such a time scale was introduced by
+      computation. Another time scale is possible : counting only the
+      days from a reference. Such a time scale was introduced by
       Joseph-Juste Scaliger (Josephus Justus Scaliger) in 1583. He
       decided to use "-4713-01-01 12:00:00" as a reference date
       because it was at the same time a monday, first of January of a
       leap year, there was an exact number of 19 years Meton cycle
       between this date and year 1 (for Easter computation), and it
       was at the beginning of a 15 years <it>roman indiction</it>
-      cycle. The day number is called <it>julian day</it>, but it has
-      really nothing to do with the julian calendar.
+      cycle. The day number counted from this reference is
+      traditionally called <it>julian day</it>, but it has really
+      nothing to do with the julian calendar.
+
+      Grace stores dates internally as reals numbers counted from a
+      reference date. The default reference date is the one chosen by
+      Scaliger but can modified either for a single session (using the
+      -dateref command line flag, the <ref name="Edit->Preferences"
+      id="preferences"> popup of the GUI). If you often work with a
+      specific reference date you can set it in a REFERENCE DATE
+      command in your configuration file (see <ref name="Default
+      template" id="default-template">).
       
       The following date formats are supported (hour, minutes and
       seconds are always optional):
@@ -1677,44 +2220,57 @@ main(int argc, char* argv[])
       <item>Julian    : 123456.789
       </enum>
       
-      The formats are tried in the following order : iso, european and
-      us (there is no ambiguity between calendar formats and numerical
-      formats and therefore no order is specified for them). The
-      separators between various fields can be any characters in the
-      set : " :/.-" (one or more spaces act as one separator, other
-      characters can not be repeated), so the string "1999-12
-      31:23-59" is allowed (but not recommended).  The '-' character
-      is used both as a separator (it is traditionally used in iso8601
-      format) and as the unary minus (for dates in the far past or for
-      numerical dates). By default years are left untouched, so 99 is
-      a date far away in the past. This behaviour can be changed with
-      the "Edit->preferences" popup, or with the <tt>Y2KWRAP
-      on</tt> command. In such a situation, if the year is between 0
-      and 99 and is written with two or less digits, it is mapped to
-      the present era as follows :
+      You can also provide an hint about the format ("ISO8601",
+      "european", "us") using the -datehint command line flag or the
+      ref name="Edit->Preferences" id="preferences"> popup of the GUI.
+      The formats are tried in the following order: first the hint
+      given by the user, then iso, european and us (there is no
+      ambiguity between calendar formats and numerical formats and
+      therefore no order is specified for them). The separators
+      between various fields can be any characters in the set : "
+      :/.-" (one or more spaces act as one separator, other characters
+      can not be repeated), so the string "1999-12 31:23/59" is
+      allowed (but not recommended).  The '-' character is used both
+      as a separator (it is traditionally used in iso8601 format) and
+      as the unary minus (for dates in the far past or for numerical
+      dates). By default years are left untouched, so 99 is a date far
+      away in the past. This behaviour can be changed with the <ref
+      name="Edit->preferences" id="preferences"> popup, or with the
+      <tt>DATE WRAP on</tt> and <tt>DATE WRAP YEAR year</tt> commands. Suppose
+      for example that the wrap year is chosen as 1950, if the year is
+      between 0 and 99 and is written with two or less digits, it is
+      mapped to the present era as follows :
 
        range [00 ; 49] is mapped to [2000 ; 2049]
+
        range [50 ; 99] is mapped to [1950 ; 1999]
 
-      this is reasonably Y2K compliant and is consistent with current use.
-      Specifying year 1 is still possible using more than two digits
-      as follows : "0001-03-04" is unambiguously March the 4th, year
-      1. The inverse transform is applied for dates written by Grace,
-      for example as tick labels. Using two digits only for years is
-      not recommended, we introduce a 2050 bug here so this feature
-      should be removed at some point in the future ...
+      with a wrap year set to 1970, the mapping would have been :
+
+       range [00 ; 69] is mapped to [2000 ; 2069]
+
+       range [70 ; 99] is mapped to [1970 ; 1999]
+
+      this is reasonably Y2K compliant and is consistent with current
+      use.  Specifying year 1 is still possible using more than two
+      digits as follows : "0001-03-04" is unambiguously March the 4th,
+      year 1. The inverse transform is applied for dates written by
+      Grace, for example as tick labels. Using two digits only for
+      years is not recommended, we introduce a <it>wrap year +
+      100</it> bug here so this feature should be removed at some
+      point in the future ...
       
-      Numerical (julian) dates are computed according to a customizable
-      reference date.  The default value is given by the REFDATE
-      command (you can set it in your configuration files). The
-      default value is "-4713-01-01 12:00:00",
-      it is a classical reference for astronomical events (note that
-      the '-' is used here both as a unary minus and as a separator).
+      Numerical (julian) dates are computed according to a
+      customizable reference date.  The default value is given by the
+      REFERENCE DATE command (you can set it in your configuration
+      files). The default value is "-4713-01-01 12:00:00", it is a
+      classical reference for astronomical events (note that the '-'
+      is used here both as a unary minus and as a separator).
       
-      The date parser can be used either for Denys's and gregorian
+      The date scanner can be used either for Denys's and gregorian
       calendars. Inexistant dates are detected, they include year 0,
       dates between 1582-10-05 and 1582-10-14, February 29th of non
-      leap years, months below 1 or above 12, ...  the parser does not
+      leap years, months below 1 or above 12, ...  the scanner does not
       take into account leap seconds : you can think it works only in
       International Atomic Time (IAT) and not in Unified Time
       Coordinate (UTC). If you find yourself in a situation were you
@@ -1733,7 +2289,7 @@ main(int argc, char* argv[])
       just play with Grace to test new features and controls.
  
       <enum>
-      <item> DOCUMENTATION IS VERY SPARSE YET!!!
+      <item> DOCUMENTATION IS VERY SPARSE YET!
  
       <item> Grace must be explicitly told the version number of the software
              used to create a file. You can manually put "@version VERSIONID"

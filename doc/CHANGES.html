@@ -11,105 +11,145 @@
 
 <H2>5.0.3</H2>
 
- *  [ES] configure honours $CC
- *  [AM/ES] buildinfo
- !  [ES] "Fixed" graphs
+<H3>New functionality</H3>
+ !  [ES] added "Fixed" graph type (rep. #556)
  *  [ES] XYR set is back
- !  [ES] #206
- *  [ES] set split was broken in 5.0.2
- *  [EV] frequency/period feature extraction fix (#?)
- *  [MR] #563
- *  [ES] #575
+ !  [ES] filled circles in XYR (rep. #206)
+ *  [ES] RtoL text advancing (not yet if using device fonts)
+ !  [ES] extended options for line arrows - see "examples/arrows.agr"
+ *  [ES] automatic allocation of drawing objects; -maxlines and like
+         command line options removed
+ *  [LM] millisecond resolution of timer
+ !  [ES] added XYdXdXdYdY set type
+ !  [ES] color &amp; pattern of error bars can be selected independently from
+         symbols
+ !  [ES] arrow clipping of error bars (rep. #451)
+ *  [ES] no limit on number of columns in block and nxy data reads anymore
+         (reps. #357, #596)
+ *  [ES] empty line works as set delimiter (#540)
+ *  [ES] added JPEG backend
+ *  [ES] added PNG backend
+ !  [ES] any set type now may have an additional column of text strings
+         associated; as a result, the XYSTRING set type removed
+ *  [ES] canvas page dimensions, as saved in the project file, set the
+         page dimensions of all devices (which afterwards can be adjusted
+         separately)
+
+<H3>Interface</H3>
+ *  [ES] start in the command line interface (CLI) mode if the exec's 
+         name is "grace"
+ !  [ES] dataset operations GUI re-worked
+ *  [ES] new canvas hotkeys for drawing objects (rep. #585)
+ *  [ES] changind axis scale to Log updates world min if necessary
+         (rep. #625)
+ !  [ES] all file selection box (FSB) dialogs replaced (fixing reps. #465,
+         #549, #568)
+ !  [ES] "File/Working dir" removed, since this option is in any FSB now
+ !  [ES] "File/Read/Block data" removed - it's in the "File/Read/Sets" now
+ *  [EV] in the non-linear fit popup, allow to use expressions when giving
+         bounds for the loaded function
+ !  [ES] applying changes in "Set appearance" for multiple sets selected
+         doesn't act on legends by default; this can be changed from the
+         "Options" menu (rep. #588)
+ !  [ES] added "File/Revert to saved" 
+ *  [ES] -nxy command line flag requires a filename immediately after it
+ *  [ES] use GXinvert rather than GXxor for rubberband lines by default
+ !  [ES] "Evaluate expression" rewritten
+ !  [HS] invert selection in set/graph lists
+ !  [ES] removed column width controls from SS editor; the spreadsheet 
+         columns may be resized with Shift+middle button
+ !  [ES] option to select set string column from block data
+ *  [LM] -datehint
+
+<H3>Documentation/Info</H3>
+ *  [AM/ES] buildinfo
+ *  [LM] added section to the UG on the grace_np usage
+ *  [ES] more details added to the -version output
+ *  [LM] docs
+ *  [AM/ES] grace.1
+ !  [ES] "Help/Examples"
+
+<H3>Parser</H3>
  *  [HS/ES] several logical constructs of mixed type arguments (vector and
          scalar) didn't work
  *  [ES] added '?' and ':' to the operator precedence list; no conflicts in the
          parser anymore
- *  [ES] in the PS driver, pattern fills were not opaque (rep. #567)
- *  [ES] #571
- *  [LM] added section to the UG on the grace_np usage
- *  [ES] #579
- *  [ES] #582
- !  [ES] dataset operations GUI
- *  [ES] motif find fix
- *  [ES] RtoL text advancing (not yet if using device fonts)
- *  [ES] error bar clipping enabled (as in Xmgr)
- !  [ES] line arrows - see "examples/arrows.agr"
  !  [ES] new color selection options: COLOR "name", COLOR (R, G, B)
- *  [ES] automatic allocation of objects; -maxlines etc removed
- *  [ES] new canvas hotkeys for drawing objects (#585)
  !  [ES] PRINT TO DEVICE added; PRINT TO "filename" doesn't actually
-         print, only sets the output to file
- *  [ES] settings from "Ellipse props..." were ignored
- *  [LM] millisecond resolution of timer
- !  [LM] the default value for the timer has been reduced from 1000 to
-         200ms 
+         print, only sets the output to file (rep. #605)
  !  [LM] TIMER NUMBER
- *  [ES] Bitmapped strings with no AA were broken in the PDF output
  !  [ES] op/placement in parser
- !  [ES] XYdXdXdYdY set type
- !  [ES] sformat is saved in projects
- *  [LM] RTI in CLI
- *  [ES] error bars are now drawn before symbols
- !  [ES] color & pattern of error bars
- !  [ES] arrow clipping of error bars
- *  [AM] #593
- *  [ES] locale + ann. values & PS output fixed
- *  [ES] JPEG backend
- *  [ES] configure checks for declarations of all math functions
- *  [ES] more details added to the -version output
- *  [AM/ES] #591
- *  [ES] changind axis scale to Log updates world min if necessary
- !  [ES] new FSB stuff
- !  [ES] "File/Read/Block data" removed - it's in the "File/Read/Sets" now
- !  [ES] "File/Working dir" removed
- !  [EV] REVERSE SETNUM
-         REVERSE GRAPHNO.SETNUM
-         APPEND SETNUM TO SETNUM
-         SPLIT SETNUM number
-         SPLIT GRAPHNO.SETNUM number
- *  [EV] in the non-linear fit popup, allow to use expressions when giving
-         bounds for the loaded function
- !  [ES] added "File/Revert to saved" 
- *  [LM] detect cases of accesses beyond array bounds of drawing objects
- *  [HS] "Start load at" of the regression window was ignored
- *  [ES] start in the CLI mode if the exec's name is "grace"
- !  [ES] #588
- *  [ES] non-linear fit didn't work in batch mode for any set but S0
- *  [ES] removed the remnants of support for Motif-1.1
- *  [ES] -nxy -&gt; -nxy filename
- *  [ES] no limit on number of columns in block and nxy data reads
- *  [ES] empty line works as set delimiter
+ !  [EV] REVERSE setselect
+         APPEND setselect TO setselect
+         SPLIT setselect number
  !  [ES] G.S can be used anywere
  *  [ES] no need for () around boolean expressions
  !  [ES] no setno.extremetype
  !  [ES] extremetype(vexpr)
  !  [ES] allow to use SET[index] amd GRAPH[index] for set &amp; graph selections
  !  [ES] NUMBER -&gt; expr
- !  [ES] JDAY -&gt; JDATE
- *  [LM] date/time jumbo patch
+ !  [ES] JDAY -&gt; DATE
  !  [ES] removed INDEX and LOAD SCRARRAY
  !  [ES] added MESH (a la linspace)
  !  [ES] several statements per line are allowed, separated by ';'
- *  [ES] use GXinvert rather than GXxor for rubberband lines by default
- !  [ES] "Evaluate expression" rewritten
- !  [HS] invert selection in set/graph lists
+ *  [ES] PAGE SIZE x y -&gt; PAGE SIZE x, y
+ !  [LM] REFERENCE DATE, DATE WRAP onoff, DATE WRAP YEAR iexpr
+ *  [ES] problems with operations with sets of different lengths (rep. #227)
+ !  [ES] strict length checks
+
+<H3>Defaults</H3>
+ !  [LM] the default value for the timer has been reduced from 1000 to
+         200ms 
+ !  [ES] sformat is saved in projects
+
+<H3>Portability</H3>
+ *  [ES] configure honours $CC
+ *  [ES] motif find fix
+ *  [ES] Irix-6.5 config fix (rep. #558)
+ *  [ES] compilation errors when using some weird old versions of make 
+         fixed (rep. #583)
+ *  [ES] configure checks for declarations of all math functions
+ *  [ES] removed the remnants of support for Motif-1.1
+ *  [ES] pdflib-2.01
+ *  [ES] Xbae-4.7 (which fixed rep. #560)
+ *  [ES] T1lib-0.9.1
+ *  [ES] no need for gdlib
  *  [AM] OS/2 updates
  *  [JH] VMS updates
- *  [LM] docs
- *  [LM] PAGE SIZE x y -&gt; PAGE SIZE x, y
- *  [AM/ES] grace.1
- !  [ES] "Help/Examples"
- *  [ES] pdflib-2.01
- *  [ES] no need for gdlib
- *  [ES] removed GD and GIF backends
- *  [ES] added PNG backend
- *  [ES] #616
- !  [ES] removed XYSTRING set type
- !  [ES] removed column width controls from SS editor
+
+<H3>Bug fixes</H3>
+ *  [MR] popping up PS GUI setup window caused crash (rep. #563)
+ *  [ES] set split was broken in 5.0.2
+ *  [EV] frequency/period feature extraction fix (#?)
+ *  [ES] in the PS driver, pattern fills were not opaque (rep. #567)
+ *  [ES] crosshairs were left as lines on canvas (rep. #571)
+ *  [ES] description length was limited to 2K (rep. #575)
+ *  [ES] setting negative offsets for PS driver was impossible via
+         GUI (rep. #579)
+ *  [ES] AA (by default) text strings were invisible on mono X terminals
+         (rep. #582)
+ *  [ES] join sets (rep. #513)
+ *  [ES] error bar clipping wasn't enabled
+ *  [ES] error bars were drawn after symbols
+ *  [ES] settings from "Ellipse props..." were ignored
+ *  [ES] Bitmapped strings with no AA were broken in the PDF output
+ *  [ES] locale + ann. values &amp; PS output fixed
+ *  [LM] detect cases of accesses beyond array bounds of drawing objects
+ *  [HS] "Start load at" of the regression window was ignored
+ *  [ES] non-linear fit didn't work in batch mode for any set but S0
+ *  [ES] fixed crashes with log axes (rep. #282, #525)
+ *  [AM/ES] fixed crashes when major tick spacing equal to 0 (rep. #591)
+ *  [AM] the default filename of hardcopy output was truncated at first
+         period (rep. #593)
+ *  [ES] locator properties didn't work; changing the locator format
+         caused chaotic behavior (rep. #621)
+ *  [ES] (rep. #616)
+
+<H3>Misc</H3>
+ *  [LM] date/time jumbo patch
  *  [LM] dates parsing
- *  [LM] -datehint, REFERENCE JDATE, Y2KWRAP onoff
- !  [ES] option to select set string column from block data
- *  [ES] #621 
+ *  [ES] removed GD and GIF backends
+ *  [LM] RTI in CLI
 
 
 <H2>5.0.2</H2>
@@ -331,7 +371,6 @@
  *  [AM] version string includes GUI toolkit (Motif/Lesstif/None)
  *  [AM] help screen updated
  *  [ES] font docs (doc/fonts.html) updated
-
 
 <H3>Portability</H3>
  *  [ES] configure should now be smarter about finding Motif (rep. #416)
