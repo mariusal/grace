@@ -890,7 +890,7 @@ jdate:  expr {
         | CHRSTR {
             double jul;
             Dates_format dummy;
-            if (parse_date($1, FMT_iso, FALSE, &jul, &dummy)
+            if (parse_date($1, get_date_hint(), FALSE, &jul, &dummy)
                 == RETURN_SUCCESS) {
                 xfree($1);
                 $$ = jul;
@@ -908,7 +908,7 @@ jrawdate:  expr {
         | CHRSTR {
             double jul;
             Dates_format dummy;
-            if (parse_date($1, FMT_iso, TRUE, &jul, &dummy)
+            if (parse_date($1, get_date_hint(), TRUE, &jul, &dummy)
                 == RETURN_SUCCESS) {
                 xfree($1);
                 $$ = jul;
