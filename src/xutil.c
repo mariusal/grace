@@ -333,6 +333,28 @@ void expose_resize(Widget w, XtPointer client_data,
     if (page_layout == PAGE_FREE) {
         get_canvas_size(&ww, &wh);
         pg = get_page_geometry();
+        if (wh*pg.width - ww*pg.height != 0) {
+            /* aspect ratio changed */
+            double ext_x, ext_y;
+            double old_aspectr, new_aspectr;
+            old_aspectr = (double) pg.width/pg.height;
+            new_aspectr = (double) ww/wh;
+            if (old_aspectr >= 1.0 && new_aspectr >= 1.0) {
+                ext_x = new_aspectr/old_aspectr;
+                ext_y = 1.0;
+            } else if (old_aspectr <= 1.0 && new_aspectr <= 1.0) {
+                ext_x = 1.0;
+                ext_y = old_aspectr/new_aspectr;
+            } else if (old_aspectr >= 1.0 && new_aspectr <= 1.0) {
+                ext_x = 1.0/old_aspectr;
+                ext_y = 1.0/new_aspectr;
+            } else {
+                ext_x = new_aspectr;
+                ext_y = old_aspectr;
+            }
+
+            rescale_viewport(ext_x, ext_y);
+        } 
         pg.width = (long) ww;
         pg.height = (long) wh;
         set_page_geometry(pg);
