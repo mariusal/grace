@@ -45,6 +45,7 @@ typedef struct _ss_data
     int nrows;
     int *formats;
     void **data;
+    char *label;
 } ss_data;
 
 double *copy_data_column(double *src, int nrows);
@@ -60,11 +61,11 @@ int *get_blockformats(void);
 
 int realloc_ss_data(ss_data *ssd, int nrows);
 void free_ss_data(ss_data *ssd);
-int init_ss_data(ss_data *ssd, int ncols, int *formats);
+int init_ss_data(ss_data *ssd, int ncols, int *formats, const  char *label);
 
 int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats);
 int insert_data_row(ss_data *ssd, int row, char *s);
-int store_data(ss_data *ssd, int load_type, char *label);
+int store_data(ss_data *ssd, int load_type);
 
 int create_set_fromblock(int gno, int setno,
     int type, int nc, int *coli, int scol, int autoscale);

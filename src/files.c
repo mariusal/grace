@@ -861,7 +861,7 @@ static int uniread(FILE *fp, int load_type, char *label)
                 realloc_ss_data(&ssd, nrows);
 
                 /* store accumulated data in set(s) */
-                if (store_data(&ssd, load_type, label) != RETURN_SUCCESS) {
+                if (store_data(&ssd, load_type) != RETURN_SUCCESS) {
 		    xfree(linebuf);
                     return RETURN_FAILURE;
                 }
@@ -901,7 +901,8 @@ static int uniread(FILE *fp, int load_type, char *label)
                 ncols = nncols + nscols;
 
                 /* init the data storage */
-                if (init_ss_data(&ssd, ncols, formats) != RETURN_SUCCESS) {
+                if (init_ss_data(&ssd, ncols, formats, label)
+                    != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
 		    xfree(linebuf);
 		    return 0;
@@ -942,7 +943,7 @@ static int uniread(FILE *fp, int load_type, char *label)
         realloc_ss_data(&ssd, nrows);
 
         /* store accumulated data in set(s) */
-        if (store_data(&ssd, load_type, label) != RETURN_SUCCESS) {
+        if (store_data(&ssd, load_type) != RETURN_SUCCESS) {
 	    xfree(linebuf);
 	    return RETURN_FAILURE;
         }

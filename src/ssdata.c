@@ -177,9 +177,10 @@ void free_ss_data(ss_data *ssd)
     XCFREE(ssd->formats);
     ssd->nrows = 0;
     ssd->ncols = 0;
+    XCFREE(ssd->label);
 }
 
-int init_ss_data(ss_data *ssd, int ncols, int *formats)
+int init_ss_data(ss_data *ssd, int ncols, int *formats, const char *label)
 {
     int i;
     
@@ -190,6 +191,8 @@ int init_ss_data(ss_data *ssd, int ncols, int *formats)
     ssd->formats = formats;
     ssd->ncols = ncols;
     ssd->nrows = 0;
+    
+    ssd->label = copy_string(NULL, label);
 
     return RETURN_SUCCESS;
 }
@@ -345,7 +348,7 @@ int insert_data_row(ss_data *ssd, int row, char *s)
 }
 
 
-int store_data(ss_data *ssd, int load_type, char *label)
+int store_data(ss_data *ssd, int load_type)
 {
     int ncols, nncols, nncols_req, nscols, nrows;
     int i, j;
@@ -413,7 +416,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
             }
         }
         if (!getcomment(gno, setno)) {
-            setcomment(gno, setno, label);
+            setcomment(gno, setno, ssd->label);
         }
         
         XCFREE(ssd->data);
@@ -442,7 +445,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
             set_dataset_type(gno, setno, SET_XY);
             setcol(gno, setno, DATA_X, xdata, nrows);
             setcol(gno, setno, DATA_Y, (double *) ssd->data[i + 1], nrows);
-            setcomment(gno, setno, label);
+            setcomment(gno, setno, ssd->label);
         }
     
         XCFREE(ssd->data);
@@ -617,7 +620,8 @@ int create_set_fromblock(int gno, int setno,
         }
     }
 
-    sprintf(buf, "Cols %s", cols_to_field_string(nc, coli));
+    sprintf(buf, "%s, cols %s",
+        blockdata.label, cols_to_field_string(nc, coli));
     setcomment(gno, setno, buf);
 
     autoscale_graph(gno, autoscale);
