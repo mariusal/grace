@@ -472,8 +472,10 @@ struct _Canvas {
     char *username;
     char *docname;
 
-    /* cached values of the grayscale AA levels */
+    /* cached values of the grayscale AA levels and validity flags */
+    int aacolors_low_ok;
     unsigned long aacolors_low[T1_AALEVELS_LOW];
+    int aacolors_high_ok;
     unsigned long aacolors_high[T1_AALEVELS_HIGH];
 };
 

@@ -1427,7 +1427,11 @@ int store_color(Canvas *canvas, int n, const Color *color)
         }
         cmap->color.rgb = color->rgb;
         cmap->color.ctype = color->ctype;
-                
+        
+        /* invalidate AA gray levels' cache */       
+        canvas->aacolors_low_ok  = FALSE;
+        canvas->aacolors_high_ok = FALSE;
+        
         /* inform current device of changes in the cmap database */
         if (canvas->device_ready) {
             canvas_color_trans(canvas, cmap);

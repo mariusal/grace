@@ -418,15 +418,18 @@ static void set_aa_gray_values(Canvas *canvas,
 {
     unsigned n;
     unsigned long *colors, last_bg, last_fg;
+    int *colors_ok;
     
     switch (t1aa) {
     case T1_AA_LOW:
         n = T1_AALEVELS_LOW;
         colors = canvas->aacolors_low;
+        colors_ok = &canvas->aacolors_low_ok;
         break;
     case T1_AA_HIGH:
         n = T1_AALEVELS_HIGH;
         colors = canvas->aacolors_high;
+        colors_ok = &canvas->aacolors_high_ok;
         break;
     default:
         return;
@@ -436,7 +439,7 @@ static void set_aa_gray_values(Canvas *canvas,
     last_bg = colors[0];
     last_fg = colors[n - 1];
     
-    if (last_fg != fg || last_bg != bg) {
+    if (last_fg != fg || last_bg != bg || !(*colors_ok)) {
         make_color_scale(canvas, fg, bg, n, colors);
 
         if (t1aa == T1_AA_LOW) {
@@ -448,6 +451,8 @@ static void set_aa_gray_values(Canvas *canvas,
         } else {
     	    T1_AAHSetGrayValues(colors);
         }
+        
+        *colors_ok = TRUE;
     }
 
     T1_AASetLevel(t1aa);
