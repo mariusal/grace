@@ -58,10 +58,10 @@
 
 typedef struct _Featext_ui {
     Widget top;
-    Widget *tograph;
+    ListStructure *tograph;
     Widget *feature_item;
     Widget *xval_item;
-    Widget *absic_graph;
+    ListStructure *absic_graph;
     SetChoiceItem absic_set;
     Widget legload_rc;
 } Featext_ui;
@@ -97,13 +97,6 @@ void do_fext_toggle (Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
-void do_gto_setsel_update(Widget w, XtPointer client_data, XtPointer call_data)
-{
-	feui.absic_set.gno = (int)client_data;
-	update_save_set_list( feui.absic_set, (int)client_data );
-}
-
-
 void create_featext_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int i;
@@ -117,7 +110,7 @@ void create_featext_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	handle_close(feui.top);
 	dialog = XmCreateRowColumn(feui.top, "dialog_rc", NULL, 0);
 
-	feui.tograph = CreateGraphChoice(dialog, "Results to graph: ", number_of_graphs() , 1);
+	feui.tograph = CreateGraphChoice(dialog, "Results to graph:", LIST_TYPE_SINGLE);
 	feui.feature_item = CreatePanelChoice0(dialog,
 					  "Feature:", 3, 25,
 					  "Y minimum", "Y maximum", "Y average", "Y std. dev.",
@@ -146,10 +139,7 @@ void create_featext_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	feui.legload_rc= XmCreateRowColumn(dialog, "fext_legload_rc", NULL, 0);
 	
 	feui.absic_graph = CreateGraphChoice(feui.legload_rc,
-								"Abscissa from graph: ",number_of_graphs() ,0);
-	for(i=0; i<number_of_graphs() ; i++ )
-	    XtAddCallback(feui.absic_graph[2 + i], XmNactivateCallback,
-			(XtCallbackProc) do_gto_setsel_update, (XtPointer) i);
+	    "Abscissa from graph:", LIST_TYPE_SINGLE);
 	
 	feui.absic_set = CreateSetSelector(feui.legload_rc, "set:",
 					SET_SELECT_ACTIVE,
@@ -182,14 +172,14 @@ void do_fext_proc( Widget w, XtPointer client_data, XtPointer call_data )
     Featext_ui *ui = (Featext_ui *) client_data;
 
     feature = (int) GetChoice(ui->feature_item);
-    gto = (int) GetChoice(ui->tograph )-1;
+    GetSingleListChoice(ui->tograph, &gto);
     if( gto == -1 )
             gto = get_cg();
 
     abs_src = (int) GetChoice(ui->xval_item);
     if( abs_src ==2 || abs_src==3 ) {
         abs_set = GetSelectedSet(ui->absic_set);
-        abs_graph = (int) GetChoice(ui->absic_graph);
+        GetSingleListChoice(ui->absic_graph, &abs_graph);
     }
     fext_routine( gto, feature, abs_src, abs_set, abs_graph ); 
 }

@@ -137,7 +137,9 @@ void create_graphapp_frame(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  *         rc_head = XmCreateRowColumn(graphapp_panel, "rc_head", NULL, 0);
  */
-        graph_selector = CreateNewGraphChoice(graphapp_panel, "Graph:",
+        graph_selector = CreateGraphChoice(graphapp_panel, "Graph:",
+                            LIST_TYPE_MULTIPLE);
+        AddListChoiceCB(graph_selector,
                             (XtCallbackProc) update_graphapp_items);
 /*
  *         XtManageChild(rc_head);
@@ -494,20 +496,28 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
 void update_graphapp_items(Widget list, XtPointer client_data,
                                                     XmListCallbackStruct *cbs)
 {
+    ListStructure *listp;
+    int n, *values;
     int gno;
     labels labs;
     char val[24];
     
-    if (graphapp_dialog == NULL) {
+    listp = (ListStructure *) client_data;
+    if (listp == NULL) {
         return;
     }
-    
-    if (cbs->selected_item_count != 1) {
+
+    n = GetListChoices(listp, &values);
+    if (n < 1) {
         return;
+    } else {
+        gno = values[0];
+        free(values);
+        if (n > 1) {
+            return;
+        }
     }
-    
-    /* TODO: use values[] */
-    gno = cbs->selected_item_positions[0] - 1;
+
     if (is_valid_gno(gno) != TRUE) {
         return;
     }

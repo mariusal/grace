@@ -102,7 +102,7 @@ typedef struct _Eval_ui {
     SetChoiceItem sel;
     Widget formula_item;
     Widget *load_item;
-    Widget *loadgraph_item;
+    ListStructure *loadgraph_item;
     Widget *region_item;
     Widget rinvert_item;
 } Eval_ui;
@@ -133,7 +133,7 @@ void create_eval_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	eui.load_item = CreatePanelChoice(rc,
 					  "Result to:", 3,
 					  "Same set", "New set", NULL, 0);
-	eui.loadgraph_item = CreateGraphChoice(rc, "In graph: ", number_of_graphs() , 1);
+	eui.loadgraph_item = CreateGraphChoice(rc, "In graph: ", LIST_TYPE_SINGLE);
 	XtManageChild(rc);
 
 	eui.formula_item = CreateScrollTextItem2(dialog, 30, 3,"Formula:");
@@ -172,9 +172,12 @@ static void do_compute_proc(Widget w, XtPointer client_data, XtPointer call_data
 	    return;
 	}
     }
-    loadto = (int) GetChoice(ui->load_item);
-    graphto = (int) GetChoice(ui->loadgraph_item) - 1;
-    strcpy(fstr, (char *) xv_getstr(ui->formula_item));
+    loadto = GetChoice(ui->load_item);
+    if (GetSingleListChoice(ui->loadgraph_item, &graphto) != GRACE_EXIT_SUCCESS) {
+	errmsg("Please select single graph");
+	return;
+    }
+    strcpy(fstr, xv_getstr(ui->formula_item));
     set_wait_cursor();
     set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
@@ -309,7 +312,7 @@ typedef struct _Histo_ui {
     Widget hxmin_item;
     Widget hxmax_item;
     Widget *type_item;
-    Widget *graph_item;
+    ListStructure *graph_item;
 } Histo_ui;
 
 static Histo_ui hui;
@@ -361,7 +364,7 @@ void create_histo_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					  "Cumulative histogram",
 					  0,
 					  0);
-	hui.graph_item = CreateGraphChoice(dialog, "Load result to graph:", number_of_graphs() , 1);
+	hui.graph_item = CreateGraphChoice(dialog, "Load result to graph:", LIST_TYPE_SINGLE);
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
 	CreateCommandButtons(dialog, 3, but2, label2);
@@ -397,13 +400,16 @@ static void do_histo_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	}
     }
     toset = SET_SELECT_NEXT;
-    tograph = (int) GetChoice(ui->graph_item) - 1;
+    if (GetSingleListChoice(ui->graph_item, &tograph) != GRACE_EXIT_SUCCESS) {
+	errmsg("Please select single graph");
+	return;
+    }
     if(xv_evalexpr(ui->binw_item, &binw) != GRACE_EXIT_SUCCESS ||
        xv_evalexpr(ui->hxmin_item, &xmin) != GRACE_EXIT_SUCCESS ||
        xv_evalexpr(ui->hxmax_item, &xmax) != GRACE_EXIT_SUCCESS ) {
         return;
     }
-    hist_type = (int) GetChoice(ui->type_item);
+    hist_type = GetChoice(ui->type_item);
     set_wait_cursor();
     set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {

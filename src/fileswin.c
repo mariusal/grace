@@ -66,7 +66,7 @@
 #include "protos.h"
 
 static Widget rdata_dialog;	/* read data popup */
-static Widget *read_graph_item;	/* graph choice item */
+static ListStructure *read_graph_item;	/* graph choice item */
 static Widget *read_ftype_item;	/* set type choice item */
 static Widget wparam_frame;	/* write params popup */
 static Widget wparam_panel;
@@ -99,28 +99,34 @@ static void set_src_proc(Widget w, XtPointer client_data, XtPointer call_data)
 static void rdata_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int graphno;
+    int n, *values;
     char *s;
     
     XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
     if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-	errwin("Error converting XmString to char string in rdata_proc()");
+	errmsg("Error converting XmString to char string");
 	return;
     }
-    graphno = GetChoice(read_graph_item) - 1;
-    if (graphno == -1) {
-	graphno = get_cg();
-    }
-    if (!is_graph_active(graphno)) {
-	set_graph_active(graphno, TRUE);
-    }
-    select_graph(graphno);
-    curtype = GetChoice(read_ftype_item);
 
     set_wait_cursor();
-    getdata(graphno, s, cursource, curtype);
-    XtFree(s);
 
-    drawgraph();
+    n = GetListChoices(read_graph_item, &values);
+    if (n != 1) {
+        errmsg("Please select a single graph");
+    } else {
+        graphno = values[0];
+        curtype = GetChoice(read_ftype_item);
+        getdata(graphno, s, cursource, curtype);
+
+        update_all();
+        drawgraph();
+    }
+
+    XtFree(s);
+    if (n > 0) {
+        free(values);
+    }
+
     unset_wait_cursor();
 }
 
@@ -187,7 +193,8 @@ void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
 
 	fr = XmCreateFrame(rc, "frame_3", NULL, 0);
 	rc2 = XmCreateRowColumn(fr, "Read data main RC", NULL, 0);
-	read_graph_item = CreateGraphChoice(rc2, "Read to graph: ", number_of_graphs() , 1);
+	read_graph_item = CreateGraphChoice(rc2,
+                                            "Read to graph:", LIST_TYPE_SINGLE);
 	XtManageChild(rc2);
 	XtManageChild(fr);
 	XtManageChild(rc);
@@ -207,7 +214,7 @@ static void do_rparams_proc(Widget w, XtPointer client_data, XtPointer call_data
     char *s;
     XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
     if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-	errwin("Error converting XmString to char string in rdata_proc()");
+	errwin("Error converting XmString to char string");
 	return;
     }
     set_wait_cursor();
@@ -263,11 +270,16 @@ void create_wparam_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	fr = XmCreateFrame(wparam_frame, "fr", NULL, 0);
 	wparam_panel = XmCreateRowColumn(fr, "wparam_rc", NULL, 0);
-	wparam_choice_item = CreateGraphChoice(wparam_panel, "Write parameters from graph: ", number_of_graphs() , 2);
-	SetChoice(wparam_choice_item, number_of_graphs()  + 1);
+	wparam_choice_item = CreatePanelChoice(wparam_panel,
+                                               "Write parameters from graph:",
+                                               3,
+                                               "Current",
+                                               "All",
+                                               NULL,
+                                               NULL);
 
-	XtManageChild(fr);
 	XtManageChild(wparam_panel);
+	XtManageChild(fr);
     }
     
     XtManageChild(wparam_frame);
@@ -282,40 +294,35 @@ void create_wparam_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 static void wparam_apply_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    char *s;
-    char fname[512];
-    int wparamno = (int) GetChoice(wparam_choice_item);
+    char *fname;
+    int gno;
 
-    XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
-    if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-		errwin("Error converting XmString to char string in rdata_proc()");
+    XmFileSelectionBoxCallbackStruct *cbs =
+                            (XmFileSelectionBoxCallbackStruct *) call_data;
+    if (!XmStringGetLtoR(cbs->value, charset, &fname)) {
+		errwin("Error converting XmString to char string");
 		return;
     }
-    wparamno--;
 
-    strcpy(fname, s);
-
-    if (!fexists(fname)) {
-		FILE *pp = filter_write(fname);
-
-		if (pp != NULL) {
-			set_wait_cursor();
-			if (wparamno == -1) {
-				wparamno = get_cg();
-				putparms(wparamno, pp, 0);
-				filter_close(pp);
-			} else if (wparamno == number_of_graphs() ) {
-				putparms(-1, pp, 0);
-				filter_close(pp);
-			} else {
-				putparms(wparamno, pp, 0);
-				filter_close(pp);
-			}
-			unset_wait_cursor();
-		} else {
-			errwin("Unable to open file");
-		}
+    if (GetChoice(wparam_choice_item) == 0) {
+	gno = get_cg();
+    } else {
+	gno = ALL_GRAPHS;
     }
+    
+    if (!fexists(fname)) {
+        FILE *pp = filter_write(fname);
+
+        if (pp != NULL) {
+            set_wait_cursor();
+            putparms(gno, pp, 0);
+            filter_close(pp);
+            unset_wait_cursor();
+        } else {
+            errmsg("Unable to open file");
+        }
+    }
+    XtFree(fname);
 }
 
 static Widget workingd_dialog;
@@ -328,7 +335,7 @@ static void workingdir_apply_notify_proc(Widget w, XtPointer client_data, XtPoin
     char *s;
     XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
     if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-	errwin("Error converting XmString to char string in workingdir_apply_notify_proc()");
+	errwin("Error converting XmString to char string");
 	return;
     }
     strcpy(buf, s);
@@ -644,7 +651,7 @@ static void do_netcdffile_proc(Widget w, XtPointer client_data, XtPointer call_d
     char *s;
     XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
     if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-	errwin("Error converting XmString to char string in rdata_proc()");
+	errwin("Error converting XmString to char string");
 	return;
     }
     xv_setstr(netcdf_file_item, s);
@@ -873,7 +880,7 @@ static void save_proc(Widget w, XtPointer client_data, XtPointer call_data)
     Save_ui *ui = (Save_ui *) client_data;
     XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
     if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-	errwin("Error converting XmString to char string in rdata_proc()");
+	errwin("Error converting XmString to char string");
 	return;
     }
     XtUnmanageChild(ui->top);
@@ -949,7 +956,7 @@ static void open_proc(Widget w, XtPointer client_data, XtPointer call_data)
     
     XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
     if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-	errwin("Error converting XmString to char string in rdata_proc()");
+	errwin("Error converting XmString to char string");
 	return;
     }
     
@@ -1085,22 +1092,19 @@ Write_ui wui;
  */
 static void do_write_sets_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int which_graph;
-    int setno;
+    int gno, setno;
     int embed;
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
     int netcdf;
 #endif
-    char fn[512], *s;
+    char *fn;
     Write_ui *ui = (Write_ui *) client_data;
     XmFileSelectionBoxCallbackStruct *cbs =
         (XmFileSelectionBoxCallbackStruct *) call_data;
-    if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-        errwin("Error converting XmString to char string in rdata_proc()");
+    if (!XmStringGetLtoR(cbs->value, charset, &fn)) {
+        errwin("Error converting XmString to char string");
         return;
     }
-    strcpy(fn, s);
-    XtFree(s);
 
     embed = (int) XmToggleButtonGetState(ui->embed_item);
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
@@ -1112,25 +1116,27 @@ static void do_write_sets_proc(Widget w, XtPointer client_data, XtPointer call_d
 	return;
     }
     if (setno == SET_SELECT_ALL) {
-	setno = -1;
+	setno = ALL_SETS;
     }
-    which_graph = (int) GetChoice(ui->graph_item) - 1;
-    if (which_graph == -1) {
-	which_graph = get_cg();
+    if (GetChoice(ui->graph_item) == 0) {
+	gno = get_cg();
+    } else {
+	gno = ALL_GRAPHS;
     }
-    strcpy(sformat, (char *) xv_getstr(ui->format_item));
+    strcpy(sformat, xv_getstr(ui->format_item));
     set_wait_cursor();
 
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
     if (netcdf) {
-	write_netcdf(get_cg(), setno, fn);
+	write_netcdf(gno, setno, fn);
     } else {
-	do_writesets(which_graph, setno, embed, fn, sformat);
+	do_writesets(gno, setno, embed, fn, sformat);
     }
 #else
-    do_writesets(which_graph, setno, embed, fn, sformat);
+    do_writesets(gno, setno, embed, fn, sformat);
 #endif
 
+    XtFree(fn);
     unset_wait_cursor();
 }
 
@@ -1160,7 +1166,12 @@ void create_write_popup(Widget w, XtPointer client_data, XtPointer call_data)
 				    FILTER_SELECT_NONE,
 				    GRAPH_SELECT_CURRENT,
 				    SELECTION_TYPE_MULTIPLE);
-	wui.graph_item = CreateGraphChoice(dialog, "From graph:", number_of_graphs() , 2);
+	wui.graph_item = CreatePanelChoice(dialog, "From graph:",
+                                           3,
+                                           "Current",
+                                           "All",
+                                           NULL,
+                                           NULL);
 	wui.embed_item = XtVaCreateManagedWidget("Embed parameters",
 					  xmToggleButtonWidgetClass, dialog,
 						 NULL);
@@ -1192,7 +1203,7 @@ static void block_proc(Widget w, XtPointer client_data, XtPointer call_data)
     XmFileSelectionBoxCallbackStruct *cbs =
         (XmFileSelectionBoxCallbackStruct *) call_data;
     if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-        errwin("Error converting XmString to char string in rdata_proc()");
+        errwin("Error converting XmString to char string");
         return;
     }
     if (getdata(get_cg(), s, cursource, SET_BLOCK) == GRACE_EXIT_SUCCESS) {

@@ -44,6 +44,9 @@
 #define AAC_APPLY   1
 #define AAC_CLOSE   2
 
+#define LIST_TYPE_SINGLE    0
+#define LIST_TYPE_MULTIPLE  1
+
 extern Widget app_shell;        /* defined in xmgrace.c */
 extern XmStringCharSet charset; /* defined in xmgrace.c */
 
@@ -122,22 +125,25 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items);
 
 void AddOptionChoiceCB(OptionStructure *opt, XtCallbackProc cb);
 
-ListStructure *CreateListChoice(Widget parent, char *labelstr,
+ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                               int nchoices, OptionItem *items);
 void SelectListChoice(ListStructure *listp, int choice);
 void SelectListChoices(ListStructure *listp, int nchoices, int *choices);
 void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items);
 int GetListChoices(ListStructure *listp, int **values);
+int GetSingleListChoice(ListStructure *listp, int *value);
+void AddListChoiceCB(ListStructure *listp, XtCallbackProc cb);
 
 void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar);
 
 OptionStructure *CreateFontChoice(Widget parent, char *s);
 OptionStructure *CreatePatternChoice(Widget parent, char *s);
 OptionStructure *CreateLineStyleChoice(Widget parent, char *s);
+OptionStructure *CreateColorChoice(Widget parent, char *s);
 
-ListStructure *CreateNewGraphChoice(Widget parent, char *labelstr, XtCallbackProc cbproc);
+ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);
 
-Widget *CreateSetChoice(Widget parent, char *labelstr, int nsets, int type);
+
 SetChoiceItem CreateSetSelector(Widget parent, char *label, int type, int ff, int gtype, int stype);
 int GetSelectedSet(SetChoiceItem l);
 int GetSelectedSets(SetChoiceItem l, int **sets);
@@ -149,17 +155,11 @@ void SetSelectorFilterCB(Widget parent, XtPointer cld, XtPointer calld);
 void DefineSetSelectorFilter(SetChoiceItem *s);
 int SetSelectedSet(int gno, int setno, SetChoiceItem l);
 
+
 Widget *CreatePanelChoice(Widget parent, char *labstr, int nchoices, ...);
 Widget *CreatePanelChoice0(Widget parent, char *labstr, int ncols, int nchoices, ...);
 void SetChoice(Widget * w, int value);
 int GetChoice(Widget * w);
-
-Widget *CreateGraphChoice(Widget parent, char *labelstr, int ngraphs, int type);
-OptionStructure *CreateColorChoice(Widget parent, char *s);
-Widget *CreateLineWidthChoice(Widget parent, char *s);
-
-Widget *CreateFormatChoice(Widget parent, char *s);
-Widget *CreatePrecisionChoice(Widget parent, char *s);
 
 Widget CreateTextItem2(Widget parent, int len, char *s);
 Widget CreateTextItem4(Widget parent, int len, char *s);
@@ -167,6 +167,10 @@ Widget CreateScrollTextItem2(Widget parent, int len, int hgt, char *s);
 
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
 Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);
+
+Widget *CreateLineWidthChoice(Widget parent, char *s);
+Widget *CreateFormatChoice(Widget parent, char *s);
+Widget *CreatePrecisionChoice(Widget parent, char *s);
 
 Widget CreateMenuBar(Widget parent, char *name, char *help_anchor);
 Widget CreateMenu(Widget parent, char *name, char *label, char mnemonic,
@@ -177,5 +181,7 @@ Widget CreateMenuToggle(Widget parent, char *name, char *label, char mnemonic,
 	XtCallbackProc cb, XtPointer data, char *help_anchor);
 Widget CreateMenuSeparator(Widget parent, char *name);
 Widget CreateMenuLabel(Widget parent, char *name);
+
+void savewidget(Widget w);
 
 #endif /* __MOTIFINC_H_ */

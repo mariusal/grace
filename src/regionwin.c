@@ -47,6 +47,7 @@
 #include "globals.h"
 #include "graphs.h"
 #include "plotone.h"
+#include "utils.h"
 #include "protos.h"
 #include "motifinc.h"
 
@@ -437,18 +438,25 @@ void create_evalregion_frame(Widget w, XtPointer client_data, XtPointer call_dat
 }
 
 static Widget *extractsets_region_item;
-static Widget *extractsets_graph_item;
+static ListStructure *extractsets_graph_item;
 
 static void do_extractsets_region(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int gno, regno;
+    int n, regno, *values;
 
-    gno = (int) GetChoice(extractsets_graph_item);
-    regno = (int) GetChoice(extractsets_region_item);
-    set_wait_cursor();
-    extractsets_region(get_cg(), gno, regno);
-    unset_wait_cursor();
-    drawgraph();
+    n = GetListChoices(extractsets_graph_item, &values);
+    if (n != 1) {
+        errmsg("Please select a single graph");
+    } else {
+        regno = GetChoice(extractsets_region_item);
+        set_wait_cursor();
+        extractsets_region(get_cg(), values[0], regno);
+        unset_wait_cursor();
+        drawgraph();
+    }
+    if (n > 0) {
+        free(values);
+    }
 }
 
 void create_extractsets_frame(Widget w, XtPointer client_data, XtPointer call_data)
@@ -470,7 +478,7 @@ void create_extractsets_frame(Widget w, XtPointer client_data, XtPointer call_da
 		   "0", "1", "2", "3", "4", "Inside world", "Outside world",
 						    NULL, 0);
 
-	extractsets_graph_item = CreateGraphChoice(dialog, "Load to graph:", number_of_graphs(), 0);
+	extractsets_graph_item = CreateGraphChoice(dialog, "Load to graph:", LIST_TYPE_SINGLE);
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 

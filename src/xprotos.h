@@ -70,7 +70,6 @@ void autoon_proc(void);
 void autoticks_proc(Widget w, XtPointer client_data, XtPointer call_data);
 void set_left_footer(char *s);
 
-void savewidget(Widget w);
 void xdrawgraph(void);
 void do_zoom(Widget w, XtPointer client_data, XtPointer call_data);
 void do_zoomx(Widget w, XtPointer client_data, XtPointer call_data);

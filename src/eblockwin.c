@@ -74,7 +74,7 @@ static Widget *eblock_e1_choice_item;
 static Widget *eblock_e2_choice_item;
 static Widget *eblock_e3_choice_item;
 static Widget *eblock_e4_choice_item;
-static Widget *eblock_graph_choice_item;
+static ListStructure *eblock_graph_choice_item;
 
 /*
  * Event and Notify proc declarations
@@ -151,8 +151,8 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtVaCreateManagedWidget("E4 from column:", xmLabelWidgetClass, rc, NULL);
 	eblock_e4_choice_item = CreateBlockChoice(rc, " ", maxblock, 0);
 
-	XtVaCreateManagedWidget("Load to set in graph:", xmLabelWidgetClass, rc, NULL);
-	eblock_graph_choice_item = CreateGraphChoice(rc, " ", number_of_graphs() , 1);
+	eblock_graph_choice_item = CreateGraphChoice(rc,
+                                    "Load to set in graph:", LIST_TYPE_SINGLE);
 
 	XtManageChild(rc);
 
@@ -237,7 +237,7 @@ static void eblock_type_notify_proc(Widget w, XtPointer client_data, XtPointer c
 static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     char blockcols[32];
-    int graphno;
+    int n, *values;
     int cx, cy, c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 
     cx = GetChoice(eblock_x_choice_item) - 1;
@@ -269,16 +269,20 @@ static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer
 	sprintf(blockcols, "%d:%d:%d:%d:%d%d", cx, cy, c1, c2, c3, c4);
 	break;
     }
-    graphno = GetChoice(eblock_graph_choice_item) - 1;
+    
+    n = GetListChoices(eblock_graph_choice_item, &values);
 
-    if (graphno == -1) {
-	graphno = get_cg();
+    if (n != 1) {
+        errmsg("Please select a single graph");
+    } else {
+        create_set_fromblock(values[0], block_curtype, blockcols);
+        update_status_popup(NULL, NULL, NULL);
+        update_all();
+        drawgraph();
     }
-    
-    create_set_fromblock(graphno, block_curtype, blockcols);
-    
-    update_status_popup(NULL, NULL, NULL);
-    drawgraph();
+    if (n > 0) {
+        free(values);
+    }
 }
 
 Widget *CreateBlockChoice(Widget parent, char *labelstr, int nsets, int type)

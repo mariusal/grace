@@ -91,14 +91,12 @@ unsigned char fpdigit[256] = {
 			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-extern Widget app_shell;
-extern XmStringCharSet charset;
-
-extern XtAppContext app_con;
 
 extern Display *disp;
 extern Window root;
 extern int depth;
+
+extern XtAppContext app_con;
 
 extern unsigned long xvlibcolors[];
 
@@ -306,7 +304,7 @@ void AddOptionChoiceCB(OptionStructure *opt, XtCallbackProc cb)
     }
 }
 
-ListStructure *CreateListChoice(Widget parent, char *labelstr,
+ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                               int nchoices, OptionItem *items)
 {
     Arg args[3];
@@ -320,7 +318,11 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr,
     XtManageChild(lab);
     
     XtSetArg(args[0], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
-    XtSetArg(args[1], XmNselectionPolicy, XmEXTENDED_SELECT);
+    if (type == LIST_TYPE_SINGLE) {
+        XtSetArg(args[1], XmNselectionPolicy, XmSINGLE_SELECT);
+    } else {
+        XtSetArg(args[1], XmNselectionPolicy, XmEXTENDED_SELECT);
+    }
     XtSetArg(args[2], XmNvisibleItemCount, 4);
     retval->list = XmCreateScrolledList(retval->rc, "listList", args, 3);
     retval->values = NULL;
@@ -351,7 +353,6 @@ void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
     }
     
     nsel = GetListChoices(listp, &selvalues);
-    XtUnmanageChild(listp->list);
     XmListDeleteAllItems(listp->list);
     for (i = 0; i < nchoices; i++) {
 	str = XmStringCreateSimple(items[i].label);
@@ -359,7 +360,6 @@ void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
         XmStringFree(str);
     }
     SelectListChoices(listp, nsel, selvalues);
-    XtManageChild(listp->list);
     if (nsel > 0) {
         free(selvalues);
     }
@@ -424,6 +424,23 @@ int GetListChoices(ListStructure *listp, int **values)
     }
     
     return n;
+}
+
+int GetSingleListChoice(ListStructure *listp, int *value)
+{
+    int n, *values, retval;
+ 
+    n = GetListChoices(listp, &values);
+    if (n == 1) {
+        *value = values[0];
+        retval = GRACE_EXIT_FAILURE;
+    } else {
+        retval = GRACE_EXIT_FAILURE;
+    }
+    if (n > 0) {
+        free(values);
+    }
+    return retval;
 }
 
 static OptionItem *font_option_items;
@@ -913,8 +930,7 @@ void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar)
 static char graph_translation_table[] = "\
     Ctrl<Key>A: list_choice_selectall()";
 
-ListStructure *CreateNewGraphChoice(Widget parent, char *labelstr,
-                                                XtCallbackProc cbproc)
+ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
 {
     ListStructure *retvalp;
         
@@ -922,15 +938,12 @@ ListStructure *CreateNewGraphChoice(Widget parent, char *labelstr,
     graph_selectors = xrealloc(graph_selectors, 
                                     ngraph_selectors*sizeof(ListStructure *));
 
-    retvalp = CreateListChoice(parent,
-                            labelstr, ngraph_select_items, graph_select_items);
+    retvalp = CreateListChoice(parent, labelstr, type,
+                               ngraph_select_items, graph_select_items);
     graph_selectors[ngraph_selectors - 1] = retvalp;
     
     XtAddCallback(retvalp->list, XmNdefaultActionCallback,
                                (XtCallbackProc) graph_select_cb, NULL);
-    XtAddCallback(retvalp->list, XmNextendedSelectionCallback,
-                                cbproc, NULL);
-    
     retvalp->popup = XmCreatePopupMenu(retvalp->list, "graphPopupMenu", NULL, 0);
     retvalp->anydata = CreateGraphPopupEntries(retvalp);
     
@@ -939,9 +952,20 @@ ListStructure *CreateNewGraphChoice(Widget parent, char *labelstr,
     XtOverrideTranslations(retvalp->list, 
                              XtParseTranslationTable(graph_translation_table));
 
-    update_graph_selectors();
-   
+    if (ngraph_select_items == 0) {
+        update_graph_selectors();
+    } else {
+        UpdateListChoice(retvalp, ngraph_select_items, graph_select_items);
+    }
+    
+    SelectListChoice(retvalp, get_cg());
+    
     return retvalp;
+}
+
+void AddListChoiceCB(ListStructure *listp, XtCallbackProc cb)
+{
+    XtAddCallback(listp->list, XmNextendedSelectionCallback, cb, listp);
 }
 
 void set_graph_selectors(int gno)
@@ -1146,7 +1170,7 @@ int GetChoice(Widget * w)
     Widget warg;
     int i;
 
-    if (w == (Widget *) NULL) {
+    if (w == NULL) {
 	errwin("Internal error, GetChoice called with NULL argument");
 	return 0;
     }
@@ -1154,253 +1178,13 @@ int GetChoice(Widget * w)
     XtGetValues(w[0], &a, 1);
     i = 0;
     while (w[i + 2] != warg) {
-	if (w[i + 2] == (Widget) NULL) {
+	if (w[i + 2] == NULL) {
 	    errwin("Internal error, GetChoice: Found NULL in Widget list");
 	    return 0;
 	}
 	i++;
     }
     return i;
-}
-
-
-Widget *CreateGraphChoice(Widget parent, char *labelstr, int ngraphs, int type)
-{
-    int i = 0;
-    XmString str;
-    char *name, buf[32];
-    Widget *retval = NULL;
-
-    strcpy(buf, "graphchoice");
-    name = buf;
-
-    switch (type) {
-    case 0:
-	retval = (Widget *) XtMalloc((ngraphs + 2) * sizeof(Widget));
-	retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
-	XtVaSetValues(retval[1],
-		      XmNorientation, XmVERTICAL,
-		      XmNpacking, XmPACK_COLUMN,
-		      XmNnumColumns, 4,
-		      NULL);
-	i = 0;
-	for (i = 0; i < ngraphs; i++) {
-	    sprintf(buf, "%d", i);
-	    retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
-	}
-	XtManageChildren(retval + 2, ngraphs);
-
-	str = XmStringCreate(labelstr, charset);
-
-	retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
-	XtVaSetValues(retval[0],
-		      XmNlabelString, str,
-		      XmNsubMenuId, retval[1],
-		      XmNwhichButton, 1,
-		      NULL);
-	XtManageChild(retval[0]);
-	break;
-
-    case 1:
-	retval = (Widget *) XtMalloc((ngraphs + 3) * sizeof(Widget));
-	retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
-	XtVaSetValues(retval[1],
-		      XmNorientation, XmVERTICAL,
-		      XmNpacking, XmPACK_COLUMN,
-		      XmNnumColumns, 4,
-		      NULL);
-	retval[2] = XmCreatePushButton(retval[1], "Current", NULL, 0);
-	for (i = 1; i <= ngraphs; i++) {
-	    sprintf(buf, "%d", i - 1);
-	    retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
-	}
-	XtManageChildren(retval + 2, ngraphs + 1);
-	str = XmStringCreate(labelstr, charset);
-	retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
-	XtVaSetValues(retval[0],
-		      XmNlabelString, str,
-		      XmNsubMenuId, retval[1],
-		      XmNwhichButton, 1,
-		      NULL);
-	XtManageChild(retval[0]);
-	break;
-    case 2:
-	retval = (Widget *) XtMalloc((ngraphs + 4) * sizeof(Widget));
-	retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
-	XtVaSetValues(retval[1],
-		      XmNorientation, XmVERTICAL,
-		      XmNpacking, XmPACK_COLUMN,
-		      XmNnumColumns, 4,
-		      NULL);
-	retval[2] = XmCreatePushButton(retval[1], "Current", NULL, 0);
-	for (i = 1; i <= ngraphs; i++) {
-	    sprintf(buf, "%d", i - 1);
-	    retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
-	}
-	retval[ngraphs + 3] = XmCreatePushButton(retval[1], "All", NULL, 0);
-
-	XtManageChildren(retval + 2, ngraphs + 2);
-	str = XmStringCreate(labelstr, charset);
-	retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
-	XtVaSetValues(retval[0],
-		      XmNlabelString, str,
-		      XmNsubMenuId, retval[1],
-		      XmNwhichButton, 1,
-		      NULL);
-	XtManageChild(retval[0]);
-	break;
-    }
-    return retval;
-}
-
-
-Widget *CreateSetChoice(Widget parent, char *labelstr, int nsets, int type)
-{
-    int nmal, i = 0;
-    XmString str;
-    char *name = "setchoice";
-    char buf[10];
-    Widget *retval = NULL;
- 
-    switch (type) {
-    case 0:
-        nmal = nsets + 2;
-        retval = (Widget *) XtMalloc(nmal * sizeof(Widget));
-        retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
-        XtVaSetValues(retval[1],
-                      XmNorientation, XmVERTICAL,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNnumColumns, nsets / 10,
-                      NULL);
-        i = 0;
-        for (i = 0; i < nsets; i++) {
-            sprintf(buf, "%d", i);
-            retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
-        }
-        XtManageChildren(retval + 2, nsets);
- 
-        str = XmStringCreate(labelstr, charset);
- 
-        retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
-        XtVaSetValues(retval[0],
-                      XmNlabelString, str,
-                      XmNsubMenuId, retval[1],
-                      XmNwhichButton, 1,
-                      NULL);
-        XtManageChild(retval[0]);
-        break;
-    case 1:
-        nmal = nsets + 3;
-        retval = (Widget *) XtMalloc(nmal * sizeof(Widget));
-        retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
-        XtVaSetValues(retval[1],
-                      XmNorientation, XmVERTICAL,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNnumColumns, nsets / 10,
-                      NULL);
-        i = 0;
-        for (i = 0; i < nsets; i++) {
-            sprintf(buf, "%d", i);
-            retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
-        }
-        retval[nsets + 2] = XmCreatePushButton(retval[1], "All", NULL, 0);
-        XtManageChildren(retval + 2, nsets + 1);
- 
-        str = XmStringCreate(labelstr, charset);
- 
-        retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
-        XtVaSetValues(retval[0],
-                      XmNlabelString, str,
-                      XmNsubMenuId, retval[1],
-                      XmNwhichButton, 1,
-                      NULL);
-        XtManageChild(retval[0]);
-        break;
-    case 2:
-        retval = (Widget *) XtMalloc((nsets + 3) * sizeof(Widget));
-        strcpy(buf, "setchoice");
-        name = buf;
-        retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
-        XtVaSetValues(retval[1],
-                      XmNorientation, XmVERTICAL,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNnumColumns, nsets / 10,
-                      NULL);
-        i = 0;
-        for (i = 0; i < nsets; i++) {
-            sprintf(buf, "%d", i);
-            retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
-        }
-        retval[nsets + 2] = XmCreatePushButton(retval[1], "All", NULL, 0);
-        XtManageChildren(retval + 2, nsets + 1);
- 
-        str = XmStringCreate(labelstr, charset);
- 
-        retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
-        XtVaSetValues(retval[0],
-                      XmNlabelString, str,
-                      XmNsubMenuId, retval[1],
-                      XmNwhichButton, 1,
-                      NULL);
-        XtManageChild(retval[0]);
-        break;
-/* 4 is Next */
-    case 4:
-        retval = (Widget *) XtMalloc((nsets + 3) * sizeof(Widget));
-        strcpy(buf, "setchoice");
-        name = buf;
-        retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
-        XtVaSetValues(retval[1],
-                      XmNorientation, XmVERTICAL,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNnumColumns, nsets / 10,
-                      NULL);
-        retval[2] = XmCreatePushButton(retval[1], "Next", NULL, 0);
-        for (i = 1; i <= nsets; i++) {
-            sprintf(buf, "%d", i - 1);
-            retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
-        }
-        XtManageChildren(retval + 2, nsets + 1);
- 
-        str = XmStringCreate(labelstr, charset);
- 
-        retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
-        XtVaSetValues(retval[0],
-                      XmNlabelString, str,
-                      XmNsubMenuId, retval[1],
-                      XmNwhichButton, 1,
-                      NULL);
-        XtManageChild(retval[0]);
-        break;
-/* 5 is Next, Same */
-    case 6:                     /* All, then sets */
-        nmal = nsets + 3;
-        retval = (Widget *) XtMalloc(nmal * sizeof(Widget));
-        retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
-        XtVaSetValues(retval[1],
-                      XmNorientation, XmVERTICAL,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNnumColumns, nsets / 10,
-                      NULL);
-        retval[2] = XmCreatePushButton(retval[1], "All", NULL, 0);
-        for (i = 0; i < nsets; i++) {
-            sprintf(buf, "%d", i);
-            retval[i + 3] = XmCreatePushButton(retval[1], buf, NULL, 0);
-        }
-        XtManageChildren(retval + 2, nsets + 1);
- 
-        str = XmStringCreate(labelstr, charset);
- 
-        retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
-        XtVaSetValues(retval[0],
-                      XmNlabelString, str,
-                      XmNsubMenuId, retval[1],
-                      XmNwhichButton, 1,
-                      NULL);
-        XtManageChild(retval[0]);
-        break;
-    }
-    return retval;
 }
 
 Widget *CreateLineWidthChoice(Widget parent, char *s)
@@ -1704,12 +1488,12 @@ Widget CreateScrollTextItem2(Widget parent, int len, int hgt, char *s)
 			    NULL);
     XmStringFree(str);
     w = XmCreateScrolledText( rc, "text", NULL, 0 );
-	XtVaSetValues( w,
-			XmNcolumns, len,
-			XmNrows, hgt,
-			XmNeditMode, XmMULTI_LINE_EDIT,
-		    XmNwordWrap, True,		
-			NULL);
+    XtVaSetValues(w,
+		  XmNcolumns, len,
+		  XmNrows, hgt,
+		  XmNeditMode, XmMULTI_LINE_EDIT,
+		  XmNwordWrap, True,
+		  NULL);
     XtManageChild(w);
     XtManageChild(rc);
     return w;
@@ -1742,9 +1526,9 @@ char *xv_getstr(Widget w)
 
 /*
  * xv_evalexpr - take a text field and pass it to the parser if it needs to
- * 					evaluated, else use atof().
- *               place the double result in answer
- *               if an error, return False, else True
+ * evaluated, else use atof().
+ * place the double result in answer
+ * if an error, return False, else True
  */
 Boolean xv_evalexpr(Widget w, double *answer )
 {
@@ -1790,9 +1574,9 @@ Boolean xv_evalexpr(Widget w, double *answer )
 
 /*
  * xv_evalexpri - take a text field and pass it to the parser if it needs to
- * 					evaluated, else use atoi().
- *               place the integer result in answer
- *               if an error, return False, else True
+ * evaluated, else use atoi().
+ * place the integer result in answer
+ * if an error, return False, else True
  */
 Boolean xv_evalexpri(Widget w, int *answer )
 {
@@ -1885,68 +1669,16 @@ static int nsavedwidgets = 0;
 void savewidget(Widget w)
 {
     int i;
-    if (savewidgets == NULL) {
-	savewidgets = (Widget *) malloc(sizeof(Widget));
-    } else {
-	for (i = 0; i < nsavedwidgets; i++) {
-	    if (w == savewidgets[i]) {
-		return;
-	    }
-	}
-	savewidgets = (Widget *) realloc(savewidgets, (nsavedwidgets + 2) * sizeof(Widget));
+    
+    for (i = 0; i < nsavedwidgets; i++) {
+        if (w == savewidgets[i]) {
+            return;
+        }
     }
+    
+    savewidgets = xrealloc(savewidgets, (nsavedwidgets + 1)*sizeof(Widget));
     savewidgets[nsavedwidgets] = w;
     nsavedwidgets++;
-}
-
-void savewidgetstate(Widget w)
-{
-    int i;
-    if (savewidgets == NULL) {
-    } else {
-	for (i = 0; i < nsavedwidgets; i++) {
-	}
-    }
-}
-
-void restorewidgetstate(Widget w)
-{
-    int i;
-    if (savewidgets == NULL) {
-    } else {
-	for (i = 0; i < nsavedwidgets; i++) {
-	}
-    }
-}
-
-void deletewidget(Widget w)
-{
-    int i, j;
-    if (savewidgets == NULL || nsavedwidgets == 0) {
-	return;
-    } else {
-	/* find the widget */
-	for (i = 0; i < nsavedwidgets; i++) {
-	    if (w == savewidgets[i]) {
-		break;
-	    }
-	}
-/* shouldn't happen, widget not in the saved widget list */
-	if (i == nsavedwidgets) {
-	    return;
-	}
-/* remove the widget from the list */
-	for (j = i; j < nsavedwidgets - 1; j++) {
-	    savewidgets[j] = savewidgets[j + 1];
-	}
-	if (nsavedwidgets - 1 > 0) {
-	    savewidgets = (Widget *) realloc(savewidgets, (nsavedwidgets - 1) * sizeof(Widget));
-	    nsavedwidgets--;
-	} else {
-	    free(savewidgets);
-	    savewidgets = NULL;
-	}
-    }
 }
 
 void DefineDialogCursor(Cursor c)
@@ -1955,10 +1687,6 @@ void DefineDialogCursor(Cursor c)
     
     for (i = 0; i < nsavedwidgets; i++) {
 	XDefineCursor(disp, XtWindow(savewidgets[i]), c);
-/*
-        attrs.cursor = c;
-        XChangeWindowAttributes(disp, XtWindow(savewidgets[i]), CWCursor, &attrs);
-*/
     }
     XFlush(disp);
 }
@@ -2267,19 +1995,15 @@ SetChoiceItem CreateSetSelector(Widget parent,
 int save_set_list(SetChoiceItem l)
 {
     nplist++;
-    if (plist == NULL) {
-	plist = (SetChoiceItem *) malloc(nplist * sizeof(SetChoiceItem));
-    } else {
-	plist = (SetChoiceItem *) realloc(plist, nplist * sizeof(SetChoiceItem));
-    }
+    plist = xrealloc(plist, nplist*sizeof(SetChoiceItem));
     plist[nplist - 1] = l;
     return nplist - 1;
 }
 
 void update_save_set_list( SetChoiceItem l, int newgr )
 {
-	plist[l.indx] = l;
-	update_set_list( newgr, plist[l.indx] );
+    plist[l.indx] = l;
+    update_set_list( newgr, plist[l.indx] );
 }
 
 void update_set_list(int gno, SetChoiceItem l)
@@ -2421,22 +2145,6 @@ printf("dirty = %d pending = %d\n", lists_dirty(),work_pending());
     }
 }
 
-void AddSetToLists(int gno, int setno)
-{
-    if (nplist) {
-	int i;
-	XmString xms = NULL;
-	char buf[256];
-	if (is_set_active(gno, setno)) {
-	    sprintf(buf, "S%d (N=%d, %s)", setno, getsetlength(gno, setno), getcomment(gno, setno));
-	    xms = XmStringCreateLtoR(buf, charset);
-	}
-	for (i = 0; i < nplist; i++) {
-	    XmListAddItemUnselected(plist[i].list, xms, 0);
-	}
-	XmStringFree(xms);
-    }
-}
 
 Widget CreateMenuBar(Widget parent, char *name, char *help_anchor)
 {
@@ -2547,8 +2255,6 @@ Widget CreateMenuLabel(Widget parent, char *name)
 static int yesno_retval = 0;
 static Boolean keep_grab = True;
 
-void infowin(char *s);
-
 void yesnoCB(Widget w, Boolean * keep_grab, XmAnyCallbackStruct * reason)
 {
     int why = reason->reason;
@@ -2624,6 +2330,7 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
     }
     return yesno_retval;
 }
+
 
 /*
  * close error window and set message to null

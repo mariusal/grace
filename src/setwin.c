@@ -452,36 +452,15 @@ typedef struct _Swap_ui {
     Widget top;
     SetChoiceItem sel1;
     SetChoiceItem sel2;
-    Widget *graph1_item;
-    Widget *graph2_item;
+    ListStructure *graph1_item;
+    ListStructure *graph2_item;
 } Swap_ui;
 
 static Swap_ui swapui;
 
 
-void do_setsel_gr_update(Widget w, XtPointer client_data, XtPointer call_data)
-{
-	if( (int)client_data == 1 ){
-		swapui.sel1.gno = (int)GetChoice(swapui.graph1_item)-1;
-		if( swapui.sel1.gno == -1 ) {
-			swapui.sel1.gno = GRAPH_SELECT_CURRENT;
-			update_save_set_list( swapui.sel1, cg );
-		} else
-			update_save_set_list( swapui.sel1, swapui.sel1.gno );
-	} else {
-		swapui.sel2.gno = (int)GetChoice(swapui.graph2_item)-1;
-		if( swapui.sel2.gno == -1 ) {
-			swapui.sel2.gno = GRAPH_SELECT_CURRENT;
-			update_save_set_list( swapui.sel2, cg );
-		} else
-			update_save_set_list( swapui.sel2, swapui.sel2.gno );
-	}
-}
-
-
 void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int i;
     Widget dialog;
 
     set_wait_cursor();
@@ -498,10 +477,7 @@ void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
 					FILTER_SELECT_NONE,
 					GRAPH_SELECT_CURRENT,
 					SELECTION_TYPE_SINGLE);
-	swapui.graph1_item = CreateGraphChoice(dialog, "In graph:", number_of_graphs(), 1);
-	for(i=0; i<number_of_graphs(); i++ )
-	    XtAddCallback(swapui.graph1_item[2 + i], XmNactivateCallback,
-			(XtCallbackProc) do_setsel_gr_update, (XtPointer) 1);
+	swapui.graph1_item = CreateGraphChoice(dialog, "In graph:", LIST_TYPE_SINGLE);
 
 	swapui.sel2 = CreateSetSelector(dialog, "With set:",
 					SET_SELECT_ACTIVE,
@@ -509,10 +485,7 @@ void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
 					GRAPH_SELECT_CURRENT,
 					SELECTION_TYPE_SINGLE);
 	DefineSetSelectorFilter(&swapui.sel2);
-	swapui.graph2_item = CreateGraphChoice(dialog, "In graph:", number_of_graphs(), 1);
-	for(i=0; i<number_of_graphs(); i++ )
-	    XtAddCallback(swapui.graph2_item[2 + i], XmNactivateCallback,
-			(XtCallbackProc) do_setsel_gr_update, (XtPointer) 2);
+	swapui.graph2_item = CreateGraphChoice(dialog, "In graph:", LIST_TYPE_SINGLE);
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
@@ -628,8 +601,8 @@ static void do_swap_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	errwin("Select 2 sets");
 	return;
     }
-    gfrom = (int) GetChoice(ui->graph1_item);
-    gto = (int) GetChoice(ui->graph2_item);
+    GetSingleListChoice(ui->graph1_item, &gfrom);
+    GetSingleListChoice(ui->graph2_item, &gto);
     set_wait_cursor();
     set_work_pending(TRUE);
     do_swap(j1, gfrom, j2, gto);

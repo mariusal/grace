@@ -78,8 +78,8 @@ static Widget arrange_widthx_item;
 static Widget arrange_widthy_item;
 static Widget *arrange_packed_item;
 
-static Widget *graph_overlay1_choice_item;
-static Widget *graph_overlay2_choice_item;
+static ListStructure *graph_overlay1_choice_item;
+static ListStructure *graph_overlay2_choice_item;
 static Widget *graph_overlaytype_item;
 
 static Widget but1[2];
@@ -253,45 +253,62 @@ void create_arrange_frame(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void define_overlay_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int g1 = GetChoice(graph_overlay1_choice_item);
-    int g2 = GetChoice(graph_overlay2_choice_item);
+    int n, *values;
+    int g1, g2;
     int type = GetChoice(graph_overlaytype_item);
+    
+    n = GetListChoices(graph_overlay1_choice_item, &values);
+    if (n != 1) {
+	errmsg("Please select a single graph");
+	return;
+    }
+    g1 = values[0];
+    free(values);
+    
+    n = GetListChoices(graph_overlay2_choice_item, &values);
+    if (n != 1) {
+	errmsg("Please select a single graph");
+	return;
+    }
+    g2 = values[0];
+    free(values);
 
     if (g1 == g2) {
 	errmsg("Can't overlay a graph onto itself");
 	return;
     }
-    if (!is_graph_active(g1)) {
-	set_graph_active(g1, TRUE);
-    }
-    if (!is_graph_active(g2)) {
-	set_graph_active(g2, TRUE);
-    }
+
     overlay_graphs(g1, g2, type);
+
+    set_dirtystate();
+
     update_all();
     drawgraph();
-    set_dirtystate();
 }
 
 void create_overlay_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    char *label1[2];
+    
     set_wait_cursor();
     if (overlay_frame == NULL) {
-	char *label1[2];
 	label1[0] = "Accept";
 	label1[1] = "Close";
 	overlay_frame = XmCreateDialogShell(app_shell, "Overlay graphs", NULL, 0);
 	handle_close(overlay_frame);
 	overlay_panel = XmCreateRowColumn(overlay_frame, "overlay_rc", NULL, 0);
-	graph_overlay1_choice_item = CreateGraphChoice(overlay_panel, "Overlay graph: ", number_of_graphs(), 0);
-	graph_overlay2_choice_item = CreateGraphChoice(overlay_panel, "Onto graph: ", number_of_graphs(), 0);
-	graph_overlaytype_item = CreatePanelChoice(overlay_panel, "Overlay type:",
-						   5,
-					  "Same axes scaling along X and Y",
-					   "X-axes same, Y-axes different:",
-					   "Y-axes same, X-axes different:",
-						   "X and Y axes different:",
-						   NULL, NULL);
+	graph_overlay1_choice_item = CreateGraphChoice(overlay_panel,
+            "Overlay graph:", LIST_TYPE_SINGLE);
+	graph_overlay2_choice_item = CreateGraphChoice(overlay_panel,
+            "Onto graph:", LIST_TYPE_SINGLE);
+	graph_overlaytype_item = CreatePanelChoice(overlay_panel,
+            "Overlay type:",
+	    5,
+	    "Same axes scaling along X and Y",
+	    "X-axes same, Y-axes different:",
+	    "Y-axes same, X-axes different:",
+	    "X and Y axes different:",
+	    NULL, NULL);
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, overlay_panel, NULL);
 
@@ -301,7 +318,7 @@ void create_overlay_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtManageChild(overlay_panel);
     }
-/*	update_overlay(); */
+
     XtRaise(overlay_frame);
     unset_wait_cursor();
 }
