@@ -3575,21 +3575,6 @@ Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
     return form;
 }
 
-
-
-
-void update_set_lists(int gno)
-{
-    if (gno == GRAPH_SELECT_CURRENT) {
-        update_set_selectors(get_cg());
-        update_ss_editors(get_cg());
-    } else {
-        update_set_selectors(gno);
-        update_ss_editors(gno);
-    }
-}
-
-
 Widget CreateSeparator(Widget parent)
 {
     Widget sep;
@@ -3885,6 +3870,12 @@ char *GetStringSimple(XmString xms)
 }
 
 extern int ReqUpdateColorSel;
+
+void update_set_lists(int gno)
+{
+    update_set_selectors(gno);
+    update_ss_editors(gno);
+}
 
 void update_all(void)
 {
