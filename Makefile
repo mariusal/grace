@@ -59,10 +59,6 @@ Make.conf : ac-tools/Make.conf.in configure
 configure : ac-tools/configure.in ac-tools/aclocal.m4
 	autoconf ac-tools/configure.in > configure
 	chmod +x configure
-	@echo
-	@echo 'Please re-run ./configure'
-	@echo
-	@exit 1
 
 dummy :
 
