@@ -520,6 +520,7 @@ int quark_move(const Quark *q, int forward)
 {
     Storage *sto = q->parent->children;
     if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
+        quark_dirtystate_set(q->parent, TRUE);
         return storage_move(sto, forward);
     } else {
         return RETURN_FAILURE;
@@ -530,6 +531,7 @@ int quark_push(const Quark *q, int forward)
 {
     Storage *sto = q->parent->children;
     if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
+        quark_dirtystate_set(q->parent, TRUE);
         return storage_push(sto, forward);
     } else {
         return RETURN_FAILURE;
@@ -556,4 +558,40 @@ int quark_sort_children(Quark *q, Quark_comp_proc fcomp, void *udata)
     qc.udata = udata;
     
     return storage_sort(q->children, _quark_fcomp, (void *) &qc);
+}
+
+int quark_is_first_child(const Quark *q)
+{
+    Quark *parent = quark_parent_get(q);
+    if (parent) {
+        Storage *sto = parent->children;
+        void *p;
+        storage_rewind(sto);
+        storage_get_data(sto, &p);
+        if (p == (void *) q) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    } else {
+        return FALSE;
+    }
+}
+
+int quark_is_last_child(const Quark *q)
+{
+    Quark *parent = quark_parent_get(q);
+    if (parent) {
+        Storage *sto = parent->children;
+        void *p;
+        storage_eod(sto);
+        storage_get_data(sto, &p);
+        if (p == (void *) q) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    } else {
+        return FALSE;
+    }
 }

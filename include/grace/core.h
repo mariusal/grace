@@ -799,6 +799,9 @@ int quark_sort_children(Quark *q, Quark_comp_proc fcomp, void *udata);
 int quark_set_udata(Quark *q, void *udata);
 void *quark_get_udata(const Quark *q);
 
+int quark_is_first_child(const Quark *q);
+int quark_is_last_child(const Quark *q);
+
 /* Project */
 Project *project_data_new(void);
 void project_data_free(Project *pr);
