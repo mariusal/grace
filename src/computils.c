@@ -1522,7 +1522,7 @@ int interpolate(double *mesh, double *yint, int meshlen,
                 ifound = len - 2;
             }
             dx = x[ifound + 1] - x[ifound];
-            if (dx) {
+            if (dx != 0.0) {
                 yint[i] = y[ifound] + (mesh[i] - x[ifound])*
                     ((y[ifound + 1] - y[ifound])/dx);
             } else {

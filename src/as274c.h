@@ -81,4 +81,7 @@ double *dvector(int l, int h);
 int *ivector(int l, int h);
 double **dmatrix(int rl, int rh, int cl, int ch);
 
+int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c);
+
+
 #endif /* __AS274C_H_ */

@@ -56,10 +56,9 @@
 #include "defines.h"
 #include "utils.h"
 #include "protos.h"
+#include "as274c.h"
 
 static char buf[256];
-
-int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c);
 
 
 /*
