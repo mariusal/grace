@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -54,7 +54,6 @@
 
 extern Display *disp;
 extern Window xwin;
-extern Widget app_shell;
 
 Window root;
 int screennumber;
@@ -66,8 +65,6 @@ static Visual *visual;
 static int pixel_size;
 
 int install_cmap = CMAP_INSTALL_AUTO;
-
-#define MAXLINELEN 800
 
 static int private_cmap = FALSE;
 
@@ -420,6 +417,9 @@ void xlib_setdrawbrush(void)
     xlib_setpen();
     
     iw = (unsigned int) rint(getlinewidth()*win_scale);
+    if (iw == 1) {
+        iw = 0;
+    }
     style = getlinestyle();
     lc = getlinecap();
     lj = getlinejoin();
