@@ -275,6 +275,21 @@ char *get_fontname(int font)
     return (T1_GetFontName(font));
 }
 
+char *get_fontfullname(int font)
+{
+    return (T1_GetFullName(font));
+}
+
+char *get_fontfamilyname(int font)
+{
+    return (T1_GetFamilyName(font));
+}
+
+char *get_fontweight(int font)
+{
+    return (T1_GetWeight(font));
+}
+
 char *get_fontalias(int font)
 {
     return (FontDBtable[font].alias);
@@ -308,6 +323,11 @@ double get_underline_pos(int font)
 double get_overline_pos(int font)
 {
     return (double) T1_GetLinePosition(font, T1_OVERLINE)/1000.0;
+}
+
+double get_italic_angle(int font)
+{
+    return (double) T1_GetItalicAngle(font);
 }
 
 double *get_kerning_vector(char *str, int len, int font)

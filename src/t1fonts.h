@@ -119,6 +119,9 @@ int init_t1(void);
 
 int number_of_fonts(void);
 char *get_fontname(int font);
+char *get_fontfullname(int font);
+char *get_fontfamilyname(int font);
+char *get_fontweight(int font);
 char *get_fontfilename(int font, int abspath);
 char *get_afmfilename(int font, int abspath);
 char *get_fontalias(int font);
@@ -128,6 +131,7 @@ char **get_default_encoding(void);
 double get_textline_width(int font);
 double get_underline_pos(int font);
 double get_overline_pos(int font);
+double get_italic_angle(int font);
 double *get_kerning_vector(char *str, int len, int font);
 
 int get_font_by_name(char *fname);
