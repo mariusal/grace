@@ -272,6 +272,8 @@ String fallbackResources[] = {
 #endif
     "*dragInitiatorProtocolStyle: XmDRAG_NONE",
     "*dragReceiverProtocolStyle:  XmDRAG_NONE",
+    "*fileMenu.new.acceleratorText: Ctrl+N",
+    "*fileMenu.new.accelerator: Ctrl<Key>n",
     "*fileMenu.open.acceleratorText: Ctrl+O",
     "*fileMenu.open.accelerator: Ctrl<Key>o",
     "*fileMenu.save.acceleratorText: Ctrl+S",
@@ -290,8 +292,7 @@ String fallbackResources[] = {
  */
 /* #define MENU_HELP	200 */
 #define MENU_EXIT	201
-#define MENU_CLEAR	202
-/* #define MENU_NEW	203 */
+#define MENU_NEW	203
 #define MENU_OPEN	204
 #define MENU_SAVE	205
 #define MENU_SAVEAS	206
@@ -334,16 +335,8 @@ static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data)
     case MENU_EXIT:
 	bailout();
 	break;
-    case MENU_CLEAR:
-	wipeout();
-
-/*
- * 	TODO: The following 3 lines should be replaced by reading in 
- *            a default template
- */
-        set_graph_active(0, TRUE);
-	set_graph_hidden(0, FALSE);
-	switch_current_graph(0);
+    case MENU_NEW:
+	new_project(NULL);
 
 	xdrawgraph();
 	break;
@@ -570,15 +563,14 @@ static Widget CreateMainMenuBar(Widget parent)
  */
     menupane = CreateMenu(menubar, "fileMenu", "File", 'F', NULL, NULL);
 
+    CreateMenuButton(menupane, "new", "New", 'N',
+    	(XtCallbackProc) MenuCB, (XtPointer) MENU_NEW, NULL);
     CreateMenuButton(menupane, "open", "Open...", 'O',
     	(XtCallbackProc) MenuCB, (XtPointer) MENU_OPEN, "file.html#open");
-
     CreateMenuButton(menupane, "save", "Save", 'S',
     	(XtCallbackProc) MenuCB, (XtPointer) MENU_SAVE, "file.html#save");
-
     CreateMenuButton(menupane, "saveAs", "Save as...", 'a',
     	(XtCallbackProc) MenuCB, (XtPointer) MENU_SAVEAS, "file.html#saveas");
-
     CreateMenuButton(menupane, "describe", "Describe...", 'D',
     	(XtCallbackProc) create_describe_popup, NULL, "file.html#describe");
 
@@ -592,12 +584,10 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(submenupane, "sets", "Sets...", 'S',
     	(XtCallbackProc) create_file_popup, (XtPointer) NULL, "file.html#readsets");
-
 #ifdef HAVE_MFHDF
     CreateMenuButton(submenupane, "netCDF", "NetCDF/HDF...", 'N',
     	(XtCallbackProc) create_netcdfs_popup, (XtPointer) NULL, "file.html#readnetcdf");
 #else
-
 #ifdef HAVE_NETCDF
     CreateMenuButton(submenupane, "netCDF", "NetCDF...", 'N', 
     	(XtCallbackProc) create_netcdfs_popup, (XtPointer) NULL, "file.html#readnetcdf");
@@ -606,14 +596,8 @@ static Widget CreateMainMenuBar(Widget parent)
 #endif
     CreateMenuButton(submenupane, "parameters", "Parameters...", 'P',
     	(XtCallbackProc) create_rparams_popup, (XtPointer) NULL, "file.html#readpars");
-
     CreateMenuButton(submenupane, "blockData", "Block data...", 'B',
     	(XtCallbackProc) create_block_popup, (XtPointer) NULL, "file.html#readblock");
-
-/*
- *     CreateMenuButton(submenupane, "image", "Image...", 'I',
- *     	(XtCallbackProc) create_image_frame, (XtPointer) NULL, 0);
- */
    
 /*
  * Write submenu
@@ -622,32 +606,18 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(submenupane, "sets", "Sets...", 'S',
     	(XtCallbackProc) create_write_popup, (XtPointer) NULL, "file.html#writesets");
-
     CreateMenuButton(submenupane, "parameters", "Parameters...", 'P', 
     	(XtCallbackProc) create_wparam_frame, (XtPointer) NULL, "file.html#writeparams");
 
-
     CreateMenuSeparator(menupane);
-
-    CreateMenuButton(menupane, "clearAll", "Clear all", 'C',
-    	(XtCallbackProc) MenuCB, (XtPointer) MENU_CLEAR, "file.html#clearall");
-
-    CreateMenuSeparator(menupane);
-
     CreateMenuButton(menupane, "print", "Print", 'P',
     	(XtCallbackProc) MenuCB, (XtPointer) MENU_PRINT, "file.html#print");
-
     CreateMenuButton(menupane, "deviceSetup", "Device setup...", 't',
     	(XtCallbackProc) create_printer_setup, (XtPointer) NULL, "file.html#printersetup");
-
-
     CreateMenuSeparator(menupane);
-
     CreateMenuButton(menupane, "workingDirectory", "Working directory...", 'W',
     	(XtCallbackProc) create_workingdir_popup, (XtPointer) NULL, 0);
-
     CreateMenuSeparator(menupane);
-
     CreateMenuButton(menupane, "exit", "Exit", 'x',
     	(XtCallbackProc) MenuCB, (XtPointer) MENU_EXIT, "file.html#exit");
 
