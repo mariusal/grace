@@ -1263,12 +1263,13 @@ void update_graph_selectors(void)
         free(graph_select_items[i].label);
     }
     p = xrealloc(graph_select_items, new_n*sizeof(OptionItem));
-    if (p != NULL) {
-        graph_select_items = p;
-    } else {
+    if (p == NULL && new_n != 0) {
         ngraph_select_items = 0;
         return;
+    } else {
+        graph_select_items = p;
     }
+
     for (i = 0; i < new_n; i++) {
         graph_select_items[i].value = i;
         sprintf(buf, "G%d (%s, %d sets)", i, 
@@ -2565,7 +2566,7 @@ OptionStructure *CreateFormatChoice(Widget parent, char *s)
 {
     OptionStructure *retval;
     
-    retval = CreateOptionChoice(parent, s, 4, 31, fmt_option_items);
+    retval = CreateOptionChoice(parent, s, 8, 31, fmt_option_items);
     
     return(retval);
 }
