@@ -2812,11 +2812,13 @@ tickattr:
 	    curtm->mprops.gridflag = $3;
 	}
 	| opchoice_sel {
-	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
-                axis_enable_ticks(normaxis, $1);
+	    if ($1 == PLACEMENT_OPPOSITE) {
+                axis_enable_ticks(normaxis, FALSE);
+                axis_enable_bar(normaxis, FALSE);
             }
-	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
-                axis_enable_ticks(oppaxis, $1);
+	    if ($1 == PLACEMENT_NORMAL) {
+                axis_enable_ticks(oppaxis, FALSE);
+                axis_enable_bar(oppaxis, FALSE);
             }
 	}
 	| SPEC TYPE tickspectype {
@@ -2867,14 +2869,10 @@ ticklabelattr:
 	    curtm->tl_staggered = $2;
 	}
 	| opchoice_sel {
-	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
-                axis_enable_labels(normaxis, TRUE);
-            } else {
+	    if ($1 == PLACEMENT_OPPOSITE) {
                 axis_enable_labels(normaxis, FALSE);
             }
-	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
-                axis_enable_labels(oppaxis, TRUE);
-            } else {
+	    if ($1 == PLACEMENT_NORMAL) {
                 axis_enable_labels(oppaxis, FALSE);
             }
 	}
@@ -2952,16 +2950,13 @@ axislabeldesc:
             }
 	}
 	| PLACE AUTO {
-	    // curtm->label_place = TYPE_AUTO;
+	    /* This is now default */
 	}
 	| PLACE SPEC {
-	    // curtm->label_place = TYPE_SPEC;
+	    /* FIXME */
 	}
 	| PLACE expr ',' expr {
-	    // VPoint vp;
-            // vp.x = $2; vp.y = $4;
-            // atext_set_offset(opplabel,  &vp);
-            // atext_set_offset(normlabel, &vp);
+	    /* FIXME */
 	}
 	| JUST justchoice {
 	}
@@ -3808,11 +3803,13 @@ tickattr_obs:
 	    curtm->tloc[$1].type = TICK_TYPE_MAJOR;
 	}
 	| opchoice_sel_obs {
-	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
-                axis_enable_ticks(normaxis, TRUE);
+	    if ($1 == PLACEMENT_OPPOSITE) {
+                axis_enable_ticks(normaxis, FALSE);
+                axis_enable_bar(normaxis, FALSE);
             }
-	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
-                axis_enable_ticks(oppaxis, TRUE);
+	    if ($1 == PLACEMENT_NORMAL) {
+                axis_enable_ticks(oppaxis, FALSE);
+                axis_enable_bar(oppaxis, FALSE);
             }
 	}
         ;
@@ -3838,11 +3835,11 @@ ticklabelattr_obs:
 	| PLACE ON TICKSP { }
 	| PLACE BETWEEN TICKSP { }
 	| opchoice_sel_obs {
-	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
-                axis_enable_labels(normaxis, TRUE);
+	    if ($1 == PLACEMENT_OPPOSITE) {
+                axis_enable_labels(normaxis, FALSE);
             }
-	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
-                axis_enable_labels(oppaxis, TRUE);
+	    if ($1 == PLACEMENT_NORMAL) {
+                axis_enable_labels(oppaxis, FALSE);
             }
 	}
 	| SIGN signchoice {
