@@ -1,6 +1,6 @@
 # Grace project file
 #
-@version 50101
+@version 50102
 @page size 792, 612
 @page scroll 5%
 @page inout 5%
@@ -55,26 +55,36 @@
 @timestamp font 0
 @timestamp char size 1.000000
 @timestamp def "*** *** -- --:--:-- ----"
+@r0 off
+@link r0 to g0
 @r0 type above
 @r0 linestyle 1
 @r0 linewidth 1.0
 @r0 color 1
 @r0 line 0, 0, 0, 0
+@r1 off
+@link r1 to g0
 @r1 type above
 @r1 linestyle 1
 @r1 linewidth 1.0
 @r1 color 1
 @r1 line 0, 0, 0, 0
+@r2 off
+@link r2 to g0
 @r2 type above
 @r2 linestyle 1
 @r2 linewidth 1.0
 @r2 color 1
 @r2 line 0, 0, 0, 0
+@r3 off
+@link r3 to g0
 @r3 type above
 @r3 linestyle 1
 @r3 linewidth 1.0
 @r3 color 1
 @r3 line 0, 0, 0, 0
+@r4 off
+@link r4 to g0
 @r4 type above
 @r4 linestyle 1
 @r4 linewidth 1.0
