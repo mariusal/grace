@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -33,6 +32,14 @@
 /* #define EPSI_FORMAT  2 */
 
 #define DEFAULT_PS_FORMAT PS_FORMAT
+
+typedef enum {
+    COLORSPACE_GRAYSCALE,
+    COLORSPACE_RGB,
+    COLORSPACE_CMYK
+} PSColorSpace;
+
+#define DEFAULT_COLORSPACE  COLORSPACE_RGB
 
 #define MEDIA_FEED_AUTO    0  
 #define MEDIA_FEED_MATCH   1

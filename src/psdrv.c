@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -72,22 +71,22 @@ static int ps_lines;
 static int ps_linecap;
 static int ps_linejoin;
 
-static int ps_grayscale = FALSE;
 static int ps_level2 = TRUE;
+static PSColorSpace ps_colorspace = DEFAULT_COLORSPACE;
 static int docdata = DOCDATA_8BIT;
 
 static int ps_setup_offset_x = 0;
 static int ps_setup_offset_y = 0;
 
-static int ps_setup_grayscale = FALSE;
 static int ps_setup_level2 = TRUE;
+static int ps_setup_colorspace = DEFAULT_COLORSPACE;
 static int ps_setup_docdata = DOCDATA_8BIT;
 
 static int ps_setup_feed = MEDIA_FEED_AUTO;
 static int ps_setup_hwres = FALSE;
 
-static int eps_setup_grayscale = FALSE;
 static int eps_setup_level2 = TRUE;
+static int eps_setup_colorspace = DEFAULT_COLORSPACE;
 static int eps_setup_tight_bb = TRUE;
 static int eps_setup_docdata = DOCDATA_8BIT;
 
@@ -131,7 +130,6 @@ static int ps_initgraphics(int format)
 {
     int i, j;
     Page_geometry pg;
-    fRGB *frgb;
     int width_pp, height_pp, page_offset_x, page_offset_y;
     char **enc;
     
@@ -171,6 +169,11 @@ static int ps_initgraphics(int format)
     ps_lines = -1;
     ps_linecap = -1;
     ps_linejoin = -1;
+    
+    /* CMYK is a PS2 feature */
+    if (ps_level2 == FALSE && ps_colorspace == COLORSPACE_CMYK) {
+        ps_colorspace = COLORSPACE_RGB;
+    }
 
     /* Font status table */
     if (psfont_status != NULL) {
@@ -268,6 +271,9 @@ static int ps_initgraphics(int format)
     fprintf(prstream, "/SC {setcolor} def\n");
     fprintf(prstream, "/SGRY {setgray} def\n");
     fprintf(prstream, "/SRGB {setrgbcolor} def\n");
+    if (ps_colorspace == COLORSPACE_CMYK) {
+        fprintf(prstream, "/SCMYK {setcmykcolor} def\n");
+    }
     fprintf(prstream, "/SD {setdash} def\n");
     fprintf(prstream, "/SLC {setlinecap} def\n");
     fprintf(prstream, "/SLJ {setlinejoin} def\n");
@@ -278,14 +284,29 @@ static int ps_initgraphics(int format)
     
     for (i = 0; i < number_of_colors(); i++) {
         fprintf(prstream,"/Color%d {", i);
-        if (ps_grayscale == TRUE) {
+        switch (ps_colorspace) {
+        case COLORSPACE_GRAYSCALE:
             fprintf(prstream,"%.4f", get_colorintensity(i));
-        } else {
-            frgb = get_frgb(i);
-            if (frgb != NULL) {
-                fprintf(prstream, "%.4f %.4f %.4f",
-                                    frgb->red,frgb->green, frgb->blue);
+            break;
+        case COLORSPACE_RGB:
+            {
+                fRGB frgb;
+                if (get_frgb(i, &frgb) == RETURN_SUCCESS) {
+                    fprintf(prstream, "%.4f %.4f %.4f",
+                                      frgb.red, frgb.green, frgb.blue);
+                }
             }
+            break;
+        case COLORSPACE_CMYK:
+            {
+                fCMYK fcmyk;
+                if (get_fcmyk(i, &fcmyk) == RETURN_SUCCESS) {
+                    fprintf(prstream, "%.4f %.4f %.4f %.4f",
+                                      fcmyk.cyan, fcmyk.magenta,
+                                      fcmyk.yellow, fcmyk.black);
+                }
+            }
+            break;
         }
         fprintf(prstream,"} def\n");
     }
@@ -418,32 +439,40 @@ static int ps_initgraphics(int format)
     return RETURN_SUCCESS;
 }
 
-void ps_setpen(void)
+void ps_setpen(Pen pen)
 {
-    Pen pen;
-    
-    pen = getpen();
-    
     if (pen.color != ps_color || pen.pattern != ps_pattern) {
         if (ps_level2 == TRUE) {
             if (pen.pattern == 1) {
-                if (ps_grayscale == TRUE) {
+                switch (ps_colorspace) {
+                case COLORSPACE_GRAYSCALE:
                     fprintf(prstream, "[/DeviceGray] SCS\n");
-                } else {
+                    break;
+                case COLORSPACE_RGB:
                     fprintf(prstream, "[/DeviceRGB] SCS\n");
+                    break;
+                case COLORSPACE_CMYK:
+                    fprintf(prstream, "[/DeviceCMYK] SCS\n");
+                    break;
                 }
                 fprintf(prstream, "Color%d SC\n", pen.color);
             } else {
-                if (ps_grayscale == TRUE) {
+                switch (ps_colorspace) {
+                case COLORSPACE_GRAYSCALE:
                     fprintf(prstream, "[/Pattern /DeviceGray] SCS\n");
-                } else {
+                    break;
+                case COLORSPACE_RGB:
                     fprintf(prstream, "[/Pattern /DeviceRGB] SCS\n");
+                    break;
+                case COLORSPACE_CMYK:
+                    fprintf(prstream, "[/Pattern /DeviceCMYK] SCS\n");
+                    break;
                 }
                 fprintf(prstream,
                     "Color%d Pattern%d SC\n", pen.color, pen.pattern);
             }
         } else {
-            if (ps_grayscale == TRUE) {
+            if (ps_colorspace == COLORSPACE_GRAYSCALE) {
                 fprintf(prstream, "Color%d SGRY\n", pen.color);
             } else {
                 fprintf(prstream, "Color%d SRGB\n", pen.color);
@@ -460,7 +489,7 @@ void ps_setdrawbrush(void)
     int ls;
     double lw;
     
-    ps_setpen();
+    ps_setpen(getpen());
 
     ls = getlinestyle();
     lw = MAX2(getlinewidth(), pixel_size);
@@ -519,7 +548,7 @@ void ps_setlineprops(void)
 
 void ps_drawpixel(VPoint vp)
 {
-    ps_setpen();
+    ps_setpen(getpen());
     
     if (ps_linew != pixel_size) {
         fprintf(prstream, "%.4f SLW\n", pixel_size);
@@ -575,27 +604,16 @@ void ps_fillpolygon(VPoint *vps, int nc)
 
     /* fill bg first if the pattern != solid */
     if (pen.pattern != 1 && ps_level2 == TRUE) {
+        Pen bgpen;
+        bgpen.color   = getbgcolor();
+        bgpen.pattern = 1;
         fprintf(prstream, "GS\n");
-        if (ps_grayscale == TRUE) {
-            if (ps_pattern != 1) {
-                fprintf(prstream, "[/DeviceGray] SCS\n");
-            }
-            fprintf(prstream, "Color%d SGRY\n", getbgcolor());
-        } else {
-            if (ps_pattern != 1) {
-                fprintf(prstream, "[/DeviceRGB] SCS\n");
-            }
-            fprintf(prstream, "Color%d SRGB\n", getbgcolor());
-        }
-        if (getfillrule() == FILLRULE_WINDING) {
-            fprintf(prstream, "fill\n");
-        } else {
-            fprintf(prstream, "eofill\n");
-        }
+        ps_setpen(bgpen);
+        fprintf(prstream, "fill\n");
         fprintf(prstream, "GR\n");
     }
     
-    ps_setpen();
+    ps_setpen(getpen());
     if (getfillrule() == FILLRULE_WINDING) {
         fprintf(prstream, "fill\n");
     } else {
@@ -644,23 +662,16 @@ void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 
     /* fill bg first if the pattern != solid */
     if (pen.pattern != 1 && ps_level2 == TRUE) {
+        Pen bgpen;
+        bgpen.color   = getbgcolor();
+        bgpen.pattern = 1;
         fprintf(prstream, "GS\n");
-        if (ps_grayscale == TRUE) {
-            if (ps_pattern != 1) {
-                fprintf(prstream, "[/DeviceGray] SCS\n");
-            }
-            fprintf(prstream, "Color%d SGRY\n", getbgcolor());
-        } else {
-            if (ps_pattern != 1) {
-                fprintf(prstream, "[/DeviceRGB] SCS\n");
-            }
-            fprintf(prstream, "Color%d SRGB\n", getbgcolor());
-        }
+        ps_setpen(bgpen);
         fprintf(prstream, "fill\n");
         fprintf(prstream, "GR\n");
     }
 
-    ps_setpen();
+    ps_setpen(getpen());
     fprintf(prstream, "fill\n");
 }
 
@@ -670,46 +681,66 @@ void ps_putpixmap(VPoint vp, int width, int height,
     int j, k;
     int cindex;
     int paddedW;
-    RGB *rgb;
-    fRGB *frgb;
+    fRGB frgb;
+    fCMYK fcmyk;
     unsigned char tmpbyte;
 
-    ps_setpen();
+    ps_setpen(getpen());
     
     fprintf(prstream, "GS\n");
     fprintf(prstream, "%.4f %.4f translate\n", vp.x, vp.y);
     fprintf(prstream, "%.4f %.4f scale\n", (float) width/page_scale, 
                                            (float) height/page_scale);    
     if (pixmap_bpp != 1) {
+        int layers = 1, bpp = 8;
         if (pixmap_type == PIXMAP_TRANSPARENT) {
             /* TODO: mask */
         }
-        if (ps_grayscale == TRUE) {
-            fprintf(prstream, "/picstr %d string def\n", width);
-            fprintf(prstream, "%d %d %d\n", width, height, 8);
-        } else {
-            fprintf(prstream, "/picstr %d string def\n", 3*width);
-            fprintf(prstream, "%d %d %d\n", width, height, GRACE_BPP);
+        switch (ps_colorspace) {
+        case COLORSPACE_GRAYSCALE:
+            layers = 1;
+            bpp = 8;
+            break;
+        case COLORSPACE_RGB:
+            layers = 3;
+            bpp = GRACE_BPP;
+            break;
+        case COLORSPACE_CMYK:
+            layers = 4;
+            bpp = GRACE_BPP;
+            break;
         }
+        fprintf(prstream, "/picstr %d string def\n", width*layers);
+        fprintf(prstream, "%d %d %d\n", width, height, bpp);
         fprintf(prstream, "[%d 0 0 %d 0 0]\n", width, -height);
         fprintf(prstream, "{currentfile picstr readhexstring pop}\n");
-        if (ps_grayscale == TRUE || ps_level2 == FALSE) {
+        if (ps_colorspace == COLORSPACE_GRAYSCALE || ps_level2 == FALSE) {
             /* No color images in Level1 */
             fprintf(prstream, "image\n");
         } else {
-            fprintf(prstream, "false 3\n");
+            fprintf(prstream, "false %d\n", layers);
             fprintf(prstream, "colorimage\n");
         }
         for (k = 0; k < height; k++) {
             for (j = 0; j < width; j++) {
                 cindex = (databits)[k*width+j];
-                if (ps_grayscale == TRUE || ps_level2 == FALSE) {
+                if (ps_colorspace == COLORSPACE_GRAYSCALE ||
+                    ps_level2 == FALSE) {
                     fprintf(prstream,"%02x",
                                       (int) (255*get_colorintensity(cindex)));
                 } else {
-                    rgb = get_rgb(cindex);
-                    fprintf(prstream, "%02x%02x%02x",
-                                       rgb->red, rgb->green, rgb->blue);
+                    if (ps_colorspace == COLORSPACE_CMYK) {
+                        CMYK cmyk;
+                        get_cmyk(cindex, &cmyk);
+                        fprintf(prstream, "%02x%02x%02x%02x",
+                                          cmyk.cyan, cmyk.magenta,
+                                          cmyk.yellow, cmyk.black);
+                    } else {
+                        RGB rgb;
+                        get_rgb(cindex, &rgb);
+                        fprintf(prstream, "%02x%02x%02x",
+                                           rgb.red, rgb.green, rgb.blue);
+                    }
                 }
             }
             fprintf(prstream, "\n");
@@ -717,22 +748,41 @@ void ps_putpixmap(VPoint vp, int width, int height,
     } else { /* monocolor bitmap */
         paddedW = PAD(width, bitmap_pad);
         if (pixmap_type == PIXMAP_OPAQUE) {
-            if (ps_grayscale == TRUE) {
-                fprintf(prstream,"%.4f SGRY\n",
-                                  get_colorintensity(getbgcolor()));
-            } else {
-                frgb = get_frgb(getbgcolor());
+            cindex = getbgcolor();
+            switch (ps_colorspace) {
+            case COLORSPACE_GRAYSCALE:
+                fprintf(prstream,"%.4f SGRY\n", get_colorintensity(cindex));
+                break;
+            case COLORSPACE_RGB:
+                get_frgb(cindex, &frgb);
                 fprintf(prstream,"%.4f %.4f %.4f SRGB\n",
-                                  frgb->red, frgb->green, frgb->blue);
+                                  frgb.red, frgb.green, frgb.blue);
+                break;
+            case COLORSPACE_CMYK:
+                get_fcmyk(cindex, &fcmyk);
+                fprintf(prstream, "%.4f %.4f %.4f %.4f SCMYK\n",
+                                  fcmyk.cyan, fcmyk.magenta,
+                                  fcmyk.yellow, fcmyk.black);
+                break;
             }
             fprintf(prstream, "0 0 1 -1 rectfill\n");
         }
-        if (ps_grayscale == TRUE) {
-            fprintf(prstream,"%.4f SGRY\n", get_colorintensity(getcolor()));
-        } else {
-            frgb = get_frgb(getcolor());
+        cindex = getcolor();
+        switch (ps_colorspace) {
+        case COLORSPACE_GRAYSCALE:
+            fprintf(prstream,"%.4f SGRY\n", get_colorintensity(cindex));
+            break;
+        case COLORSPACE_RGB:
+            get_frgb(cindex, &frgb);
             fprintf(prstream,"%.4f %.4f %.4f SRGB\n",
-                              frgb->red, frgb->green, frgb->blue);
+                              frgb.red, frgb.green, frgb.blue);
+            break;
+        case COLORSPACE_CMYK:
+            get_fcmyk(cindex, &fcmyk);
+            fprintf(prstream, "%.4f %.4f %.4f %.4f SCMYK\n",
+                              fcmyk.cyan, fcmyk.magenta,
+                              fcmyk.yellow, fcmyk.black);
+            break;
         }
         fprintf(prstream, "/picstr %d string def\n", paddedW/8);
         fprintf(prstream, "%d %d true\n", paddedW, height);
@@ -774,7 +824,7 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     }
     fprintf(prstream, "/Font%d FFSF\n", font);
 
-    ps_setpen();
+    ps_setpen(getpen());
     
     fprintf(prstream, "%.4f %.4f m\n", vp.x, vp.y);
     fprintf(prstream, "GS\n");
@@ -904,9 +954,9 @@ int psprintinitgraphics(void)
 {
     int result;
     
-    ps_grayscale = ps_setup_grayscale;
-    ps_level2 = ps_setup_level2;
-    docdata = ps_setup_docdata;
+    ps_level2     = ps_setup_level2;
+    ps_colorspace = ps_setup_colorspace;
+    docdata       = ps_setup_docdata;
     result = ps_initgraphics(PS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
@@ -920,9 +970,9 @@ int epsinitgraphics(void)
 {
     int result;
     
-    ps_grayscale = eps_setup_grayscale;
-    ps_level2 = eps_setup_level2;
-    docdata = eps_setup_docdata;
+    ps_level2     = eps_setup_level2;
+    ps_colorspace = eps_setup_colorspace;
+    docdata       = eps_setup_docdata;
     result = ps_initgraphics(EPS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
@@ -934,17 +984,20 @@ int epsinitgraphics(void)
 
 int ps_op_parser(char *opstring)
 {
-    if (!strcmp(opstring, "grayscale")) {
-        ps_setup_grayscale = TRUE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "color")) {
-        ps_setup_grayscale = FALSE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "level2")) {
+    if (!strcmp(opstring, "level2")) {
         ps_setup_level2 = TRUE;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "level1")) {
         ps_setup_level2 = FALSE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "colorspace:grayscale")) {
+        ps_setup_colorspace = COLORSPACE_GRAYSCALE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "colorspace:rgb")) {
+        ps_setup_colorspace = COLORSPACE_RGB;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "colorspace:cmyk")) {
+        ps_setup_colorspace = COLORSPACE_CMYK;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "docdata:7bit")) {
         ps_setup_docdata = DOCDATA_7BIT;
@@ -983,17 +1036,20 @@ int ps_op_parser(char *opstring)
 
 int eps_op_parser(char *opstring)
 {
-    if (!strcmp(opstring, "grayscale")) {
-        eps_setup_grayscale = TRUE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "color")) {
-        eps_setup_grayscale = FALSE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "level2")) {
+    if (!strcmp(opstring, "level2")) {
         eps_setup_level2 = TRUE;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "level1")) {
         eps_setup_level2 = FALSE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "colorspace:grayscale")) {
+        eps_setup_colorspace = COLORSPACE_GRAYSCALE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "colorspace:rgb")) {
+        eps_setup_colorspace = COLORSPACE_RGB;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "colorspace:cmyk")) {
+        eps_setup_colorspace = COLORSPACE_CMYK;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "docdata:7bit")) {
         eps_setup_docdata = DOCDATA_7BIT;
@@ -1021,13 +1077,30 @@ static void update_ps_setup_frame(void);
 static int set_ps_setup_proc(void *data);
 
 static Widget ps_setup_frame;
-static Widget ps_setup_grayscale_item;
 static Widget ps_setup_level2_item;
+static OptionStructure *ps_setup_colorspace_item;
 static SpinStructure *ps_setup_offset_x_item;
 static SpinStructure *ps_setup_offset_y_item;
 static OptionStructure *ps_setup_feed_item;
 static Widget ps_setup_hwres_item;
 static OptionStructure *ps_setup_docdata_item;
+
+static void colorspace_cb(int onoff, void *data)
+{
+    OptionStructure *opt = (OptionStructure *) data;
+    
+    OptionItem colorspace_op_items[3] = {
+        {COLORSPACE_GRAYSCALE, "Grayscale"},
+        {COLORSPACE_RGB,       "RGB"      },
+        {COLORSPACE_CMYK,      "CMYK"     }
+    };
+    
+    if (onoff) {
+        UpdateOptionChoice(opt, 3, colorspace_op_items);
+    } else {
+        UpdateOptionChoice(opt, 2, colorspace_op_items);
+    }
+}
 
 void ps_gui_setup(void)
 {
@@ -1035,15 +1108,20 @@ void ps_gui_setup(void)
     
     if (ps_setup_frame == NULL) {
         Widget ps_setup_rc, fr, rc;
+        OptionItem colorspace_op_items[3] = {
+            {COLORSPACE_GRAYSCALE, "Grayscale"},
+            {COLORSPACE_RGB,       "RGB"      },
+            {COLORSPACE_CMYK,      "CMYK"     }
+        };
+        OptionItem docdata_op_items[3] = {
+            {DOCDATA_7BIT,   "7bit"  },
+            {DOCDATA_8BIT,   "8bit"  },
+            {DOCDATA_BINARY, "Binary"}
+        };
         OptionItem op_items[3] = {
             {MEDIA_FEED_AUTO,   "Automatic" },
             {MEDIA_FEED_MATCH,  "Match size"},
             {MEDIA_FEED_MANUAL, "Manual"    }
-        };
-        OptionItem docdata_op_items[3] = {
-            {DOCDATA_7BIT,   "7bit" },
-            {DOCDATA_8BIT,   "8bit"},
-            {DOCDATA_BINARY, "Binary"    }
         };
         
 	ps_setup_frame = CreateDialogForm(app_shell, "PS options");
@@ -1052,8 +1130,11 @@ void ps_gui_setup(void)
 
 	fr = CreateFrame(ps_setup_rc, "PS options");
         rc = CreateVContainer(fr);
-	ps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
 	ps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
+        ps_setup_colorspace_item =
+            CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_op_items);
+	AddToggleButtonCB(ps_setup_level2_item,
+            colorspace_cb, ps_setup_colorspace_item);
 	ps_setup_docdata_item =
             CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
 
@@ -1080,8 +1161,9 @@ void ps_gui_setup(void)
 static void update_ps_setup_frame(void)
 {
     if (ps_setup_frame) {
-        SetToggleButtonState(ps_setup_grayscale_item, ps_setup_grayscale);
         SetToggleButtonState(ps_setup_level2_item, ps_setup_level2);
+        SetOptionChoice(ps_setup_colorspace_item, ps_setup_colorspace);
+        colorspace_cb(ps_setup_level2, ps_setup_colorspace_item);
         SetSpinChoice(ps_setup_offset_x_item, (double) ps_setup_offset_x);
         SetSpinChoice(ps_setup_offset_y_item, (double) ps_setup_offset_y);
         SetOptionChoice(ps_setup_feed_item, ps_setup_feed);
@@ -1092,13 +1174,13 @@ static void update_ps_setup_frame(void)
 
 static int set_ps_setup_proc(void *data)
 {
-    ps_setup_grayscale = GetToggleButtonState(ps_setup_grayscale_item);
-    ps_setup_level2    = GetToggleButtonState(ps_setup_level2_item);
-    ps_setup_offset_x  = (int) GetSpinChoice(ps_setup_offset_x_item);
-    ps_setup_offset_y  = (int) GetSpinChoice(ps_setup_offset_y_item);
-    ps_setup_feed      = GetOptionChoice(ps_setup_feed_item);
-    ps_setup_hwres     = GetToggleButtonState(ps_setup_hwres_item);
-    ps_setup_docdata   = GetOptionChoice(ps_setup_docdata_item);
+    ps_setup_level2     = GetToggleButtonState(ps_setup_level2_item);
+    ps_setup_colorspace = GetOptionChoice(ps_setup_colorspace_item);
+    ps_setup_offset_x   = (int) GetSpinChoice(ps_setup_offset_x_item);
+    ps_setup_offset_y   = (int) GetSpinChoice(ps_setup_offset_y_item);
+    ps_setup_feed       = GetOptionChoice(ps_setup_feed_item);
+    ps_setup_hwres      = GetToggleButtonState(ps_setup_hwres_item);
+    ps_setup_docdata    = GetOptionChoice(ps_setup_docdata_item);
     
     return RETURN_SUCCESS;
 }
@@ -1106,8 +1188,8 @@ static int set_ps_setup_proc(void *data)
 static void update_eps_setup_frame(void);
 static int set_eps_setup_proc(void *data);
 static Widget eps_setup_frame;
-static Widget eps_setup_grayscale_item;
 static Widget eps_setup_level2_item;
+static OptionStructure *eps_setup_colorspace_item;
 static Widget eps_setup_tight_bb_item;
 static OptionStructure *eps_setup_docdata_item;
 
@@ -1117,21 +1199,29 @@ void eps_gui_setup(void)
     
     if (eps_setup_frame == NULL) {
         Widget fr, rc;
+        OptionItem colorspace_op_items[3] = {
+            {COLORSPACE_GRAYSCALE, "Grayscale"},
+            {COLORSPACE_RGB,       "RGB"      },
+            {COLORSPACE_CMYK,      "CMYK"     }
+        };
         OptionItem docdata_op_items[3] = {
-            {DOCDATA_7BIT,   "7bit" },
-            {DOCDATA_8BIT,   "8bit"},
-            {DOCDATA_BINARY, "Binary"    }
+            {DOCDATA_7BIT,   "7bit"  },
+            {DOCDATA_8BIT,   "8bit"  },
+            {DOCDATA_BINARY, "Binary"}
         };
 	
         eps_setup_frame = CreateDialogForm(app_shell, "EPS options");
 
         fr = CreateFrame(eps_setup_frame, "EPS options");
         rc = CreateVContainer(fr);
-	eps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
 	eps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
-	eps_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
+	eps_setup_colorspace_item =
+            CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_op_items);
+	AddToggleButtonCB(eps_setup_level2_item,
+            colorspace_cb, eps_setup_colorspace_item);
 	eps_setup_docdata_item =
             CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
+	eps_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
 	CreateAACDialog(eps_setup_frame, fr, set_eps_setup_proc, NULL);
     }
     update_eps_setup_frame();
@@ -1143,8 +1233,9 @@ void eps_gui_setup(void)
 static void update_eps_setup_frame(void)
 {
     if (eps_setup_frame) {
-        SetToggleButtonState(eps_setup_grayscale_item, eps_setup_grayscale);
         SetToggleButtonState(eps_setup_level2_item, eps_setup_level2);
+        SetOptionChoice(eps_setup_colorspace_item, eps_setup_colorspace);
+        colorspace_cb(eps_setup_level2, eps_setup_colorspace_item);
         SetToggleButtonState(eps_setup_tight_bb_item, eps_setup_tight_bb);
         SetOptionChoice(eps_setup_docdata_item, eps_setup_docdata);
     }
@@ -1152,10 +1243,10 @@ static void update_eps_setup_frame(void)
 
 static int set_eps_setup_proc(void *data)
 {
-    eps_setup_grayscale = GetToggleButtonState(eps_setup_grayscale_item);
-    eps_setup_level2 = GetToggleButtonState(eps_setup_level2_item);
-    eps_setup_tight_bb = GetToggleButtonState(eps_setup_tight_bb_item);
-    eps_setup_docdata = GetOptionChoice(eps_setup_docdata_item);
+    eps_setup_level2     = GetToggleButtonState(eps_setup_level2_item);
+    eps_setup_colorspace = GetOptionChoice(eps_setup_colorspace_item);
+    eps_setup_tight_bb   = GetToggleButtonState(eps_setup_tight_bb_item);
+    eps_setup_docdata    = GetOptionChoice(eps_setup_docdata_item);
     
     return RETURN_SUCCESS;
 }

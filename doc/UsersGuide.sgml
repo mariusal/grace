@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.2.0)</title>
 <author>by the Grace Team</author>
-<date>21.01.2001</date>
+<date>01.02.2001</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -3287,10 +3287,11 @@ C
               <hline>
               Command           | Description                               @
               <hline>
-              grayscale         | set grayscale output                      @
-              color             | set color output                          @
               level1            | use only PS Level 1 subset of commands    @
               level2            | use also PS Level 2 commands if needed    @
+              colorspace:grayscale | set grayscale colorspace               @
+              colorspace:rgb       | set RGB colorspace                     @
+              colorspace:cmyk      | set CMYK colorspace (PS Level2 only)   @
               docdata:7bit      | the document data is 7bit clean           @
               docdata:8bit      | the document data is 8bit clean           @
               docdata:binary    | the document data may be binary           @
@@ -3315,10 +3316,11 @@ C
               <hline>
               Command       | Description                                   @
               <hline>
-              grayscale     | set grayscale output                          @
-              color         | set color output                              @
               level1        | use only PS Level 1 subset of commands        @
               level2        | use also PS Level 2 commands if needed        @
+              colorspace:grayscale | set grayscale colorspace               @
+              colorspace:rgb       | set RGB colorspace                     @
+              colorspace:cmyk      | set CMYK colorspace (PS Level2 only)   @
               bbox:tight    | enable "tight" bounding box                   @
               bbox:page     | bounding box coincides with page dimensions   @
               <hline>
