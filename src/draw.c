@@ -1408,10 +1408,11 @@ int store_color(Canvas *canvas, int n, const Color *color)
         cmap->color.ctype = color->ctype;
                 
         /* inform current device of changes in the cmap database */
-        if (canvas->device_ready && canvas->curdevice->updatecmap != NULL) {
+        if (canvas->device_ready) {
             canvas_color_trans(canvas, cmap);
-            canvas->curdevice->updatecmap(canvas, canvas->curdevice->data);
-            
+            if (canvas->curdevice->updatecmap != NULL) {
+                canvas->curdevice->updatecmap(canvas, canvas->curdevice->data);
+            }
         }
         if (color->ctype == COLOR_MAIN) {
             ReqUpdateColorSel = TRUE;
