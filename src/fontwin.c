@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -320,7 +320,7 @@ static void update_fonttool_cb(int value, void *data)
     Widget font_table = (Widget) data;
     
     FontID = value;
-    switch (CheckForFontID(FontID)) {
+    switch (T1_CheckForFontID(FontID)) {
     case 0:
         T1_LoadFont(FontID);
         break;

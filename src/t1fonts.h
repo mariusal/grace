@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -38,6 +38,11 @@
 #include <cmath.h>
 
 #include <t1lib.h>
+/* A hack - until there are T1_MAJORVERSION etc defined */
+#ifndef T1ERR_SCAN_ENCODING
+# define T1_CheckForFontID CheckForFontID
+# define T1_GetNoFonts T1_Get_no_fonts
+#endif
 
 #include "defines.h"
 
