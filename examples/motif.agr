@@ -144,7 +144,7 @@
 @    string font 8
 @    string just 0
 @    string char size 0.750000
-@    string def "1999-08-07 2240 \"grace-5.0.3pre1\""
+@    string def "1999-08-22 2223 \"grace-5.0.3\""
 @with string
 @    string on
 @    string loctype view
@@ -442,7 +442,7 @@
 @    s1 legend  ""
 @target G0.S0
 @type xy
-       2451397.5             2240
+       2451412.5             2223
        2451544.5                0
 &
 @target G0.S1
@@ -451,5 +451,5 @@
        2450994.5             3761 "grace-5.0.0"
        2451071.5             3703 "grace-5.0.1"
        2451257.5             3188 "grace-5.0.2"
-       2451397.5             2240 "grace-5.0.3pre1"
+       2451412.5             2223 "grace-5.0.3"
 &
