@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.9)</title>
 <author>by the Grace Team</author>
-<date>12.07.2002</date>
+<date>31.07.2002</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -1433,6 +1433,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          of one set or cross correlation between two sets. You only
          select the set (or sets) and specify the maximum lag. A check
          box allows one to evaluate covariance instead of correlation.
+         The result is normalized so that C(0) = 1.
 
          <sect3> Digital filter <label id="digital-filter">
          <p>
