@@ -31,14 +31,14 @@ check : tests
 links : subdirs
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) links) || exit 1; done
 
-clean : subdirs
+clean :
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) clean) || exit 1; done
 
-distclean : subdirs
+distclean :
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) distclean) || exit 1; done
 	$(RM) config.log config.status config.cache config.h Make.conf
 
-devclean : subdirs
+devclean :
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) devclean) || exit 1; done
 	$(RM) config.log config.status config.cache config.h Make.conf configure
 
