@@ -322,6 +322,9 @@ char *exe_path_translate(char *path)
 #endif
 
 #ifdef __VMS
+#  ifndef __CRTL_VER
+#    define __CRTL_VER __VMS_VER
+#  endif
 
 /* this is a "system" function for VMS because 
    system("spawn/nowait mosaic ...") dosn't work --
@@ -351,7 +354,7 @@ int system_spawn(const char *command)
   return retval; 
 }
 
-# if __VMS_VER < 70000000 
+# if __CRTL_VER < 70000000 
 
 /* Define a getlogin function for VMS before version 7. */
 
@@ -529,6 +532,6 @@ char *name;
 
 #pragma message restore
 
-#  endif  /* __VMS_VER */
+#  endif  /* __CRTL_VER */
 
 #endif  /* __VMS */

@@ -36,11 +36,14 @@
 #include <stdio.h>
 
 #if defined(__VMS)
+#  ifndef __CRTL_VER
+#    define __CRTL_VER __VMS_VER
+#  endif
    int system_spawn(const char *command);
 #  if __ALPHA || __DECC_VER >= 60000000
 #    include <builtins.h>
 #  endif
-#  if __VMS_VER < 70000000 
+#  if __CRTL_VER < 70000000 
 #    define O_NONBLOCK O_NDELAY
 struct passwd {
     char  *pw_name;
@@ -57,7 +60,7 @@ struct passwd {
 };
 char *getlogin();
 struct passwd *getpwnam(char *name);
-#  endif /* __VMS_VER */
+#  endif  /* __CRTL_VER */
 #endif /* __VMS */
 
 #ifndef HAVE_MEMMOVE
