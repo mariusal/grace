@@ -31,6 +31,11 @@
  !  [ES] prune data
  !  [AM/ES] X error handler
  *  [ES] dropped the "-remove" command line flag
+ *  [AG] netCDF: parse and use calibration attributes add_offset, scale_factor
+         and understand 1 byte variables
+ !  [ES] macro expansion in cstrings (timestamp and filename) (including rep.
+         #20)
+ *  [ES] include filename when creating sets from block data (rep. #346)
 
 <H3>Interface</H3>
  *  [ES] don't hardcode file extensions in file selection dialogs, but define
@@ -41,6 +46,8 @@
  !  [EV/ES] instant update
  !  [ES] about any transformation dialog
  !  [ES] drawing object dialog...
+ *  [ES] GUI/locale
+ *  [ES] -timestamp option removed
 
 <H3>Documentation</H3>
  *  [ES] HTML docs now include table of contents
@@ -106,6 +113,12 @@
          (rep. #744)
  *  [ES] line width of drawing elements wasn't accounted for in the bbox
          calculations, which in rare cases resulted in a wrong EPS bbox
+ *  [ES] reading in a project file right after printing to a raster file
+         (PNG, JPEG,...) caused a crash (rep. #990)
+ *  [ES] PS output might be broken for plots containing XYCOLOR sets
+ *  [ES] when Line type:left/right stairs was selected, drawing with a
+         dashed line of multiple short steps broke the dash pattern (rep.
+         #1024)
 
 
 <H2>5.1.1</H2>
@@ -1005,6 +1018,7 @@
     [GJ]  - Gerd Jahn &lt;Gerd.Jahn@dss.dornier.dasa.de&gt;
     [UH]  - Ulrich Harttig &lt;harttigu@ucs.orst.edu&gt;
     [MD]  - Matthias Dillier &lt;Matthias.Dillier@snb.ch&gt;
+    [AG]  - Alexey Goldin &lt;Alexey.Goldin@jpl.nasa.gov&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)

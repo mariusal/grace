@@ -303,7 +303,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
           A graph consists of (every element is optional): a graph frame, axes,
           a title and a subtitle, a number of sets and additional annotative
-          objects (time stamp string, text strings, lines, boxes and ellipses).
+          objects (text strings, lines, boxes and ellipses).
 
           The graph type can be any of:<label id="graph-types">
           <itemize>
@@ -631,8 +631,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <tag> -timer <it>delay</it> </tag>
                 Set allowed time slice for real time inputs to delay ms
 
-          <tag> -timestamp </tag> Add timestamp to plot
-
           <tag> -settype <it>xy|xydx|...</it> </tag>
                 Set the type of the next data file
 
@@ -902,7 +900,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> Ctrl &lt;Key&gt;D: Delete an object
           <item> Ctrl &lt;Key&gt;L: Move current graph legend
           <item> Ctrl &lt;Key&gt;M: Move an object
-          <item> Ctrl &lt;Key&gt;T: Place timestamp
           <item> Ctrl &lt;Key&gt;U: Refresh hotlinks
           <item> Ctrl &lt;Key&gt;V: Set the viewport with mouse
           <item> Ctrl &lt;Key&gt;Z: Zoom
@@ -3078,24 +3075,19 @@ C
          <sect3>OS/2
           <p>
          In general the method outlined in the examples above can be
-	 used on OS/2, too. However you have to create a
-	 DLL (Dynamic Link Library) which is a bit more tricky on OS/2 than
-	 on most Un*x systems. 
-         This document can't explain the whole procedure in detail, but
-	 tries to describe roughly the way to go.
+	 used on OS/2, too. However you have to create a DLL (Dynamic Link Library)
+	 which is a bit more tricky on OS/2 than on most Un*x systems.
          Since Grace was ported by using EMX we also use it to create
 	 the examples; however other development environments should work
-	 as well.
-         We refer to Example 2 as given above, since Example 1 exhibits
-	 a problem on OS/2:
-         DLLs might have their entry points (i.e. exported functions)
-         callable as ordinals only, so you might not know how to access a
-         specific function without some research. 
-         First created a source file "my_func.c" with the content from
-	 Example 2 and compile it to "my_func.obj"
+	 as well (ensure to use the _System calling convention!).
+         We refer to Example 2 only. Example 1 might demonstrate
+	 that DLLs can have their entry points (i.e. exported functions)
+         callable via ordinals only, so you might not know how to access a
+         specific function without some research.
+         First compile the source from Example 2 to "my_func.obj"
 
          <tscreen>
-         gcc -Zomf -Zmt -c my_func.c
+         gcc -Zomf -Zmt -c my_func.c -o my_func.obj
          </tscreen>
 
          Then you need to create a linker definition file "my_func.def"
@@ -3118,17 +3110,16 @@ C
          gcc my_func.obj my_func.def -o my_func.dll -Zdll -Zno-rte -Zmt -Zomf
          </tscreen>
 
-         (the -Zno-rte flag depends on the content of the library;
-          check out the EMX documentation about this as well as 
-	  the other compiler/linker flags used here!)
-         To use these new library function within Grace you may either
+         (check out the EMX documentation about the compiler/linker flags
+	  used here!)
+         To use this new library function within Grace you may either
 	 put the DLL in the LIBPATH and use the short form:
 
          <tscreen>
          USE "my_function" TYPE f_of_nd FROM "my_func" ALIAS "myf"
          </tscreen>
 
-         or have it in an arbitrary path which you need to specify explicitly
+         or put it in an arbitrary path which you need to specify explicitly
          then:
 
          <tscreen>
@@ -3188,6 +3179,7 @@ C
               &bsol;dr     | RtoL substring direction   @
               &bsol;dL     | LtoR text advancing   @
               &bsol;dR     | RtoL text advancing   @
+              &bsol;${x}   | macro x   @
               <hline>
               &bsol;x      | switch to Symbol font (same as &bsol;f{Symbol})   @
               &bsol;+      | increase size (same as &bsol;z{1.19} ; 1.19 = sqrt(sqrt(2)))   @
