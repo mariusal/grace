@@ -380,32 +380,6 @@ int storage_add(Storage *sto, void *data)
     }
 }
 
-int storage_insert(Storage *sto, void *data)
-{
-    STORAGE_SAFETY_CHECK(sto, return RETURN_FAILURE)
-    
-    if (sto->count == 0 || storage_prev(sto) == RETURN_SUCCESS) {
-        return storage_add(sto, data);
-    } else {
-        /* non-empty rewound storage */
-        LLNode *new;
-        new = storage_allocate_node(sto, data);
-        if (new == NULL) {
-            return RETURN_FAILURE;
-        } else {
-            sto->cp = new;
-            sto->count++;
-
-            new->prev = NULL;
-            new->next = sto->start;
-            sto->start->prev = new;
-            sto->start = new;
-
-            return RETURN_SUCCESS;
-        }
-    }
-}
-
 static void storage_extract_node(Storage *sto, LLNode *llnode)
 {
     LLNode *prev, *next;
@@ -831,10 +805,6 @@ int main(void)
     sto = storage_new(NULL, NULL, NULL);
     for (i = 0; i < TEST_LEN/2; i++) {
         storage_add(sto, (void *) i);
-    }
-    storage_rewind(sto);
-    for (i = TEST_LEN/2; i < TEST_LEN; i++) {
-        storage_insert(sto, (void *) i);
     }
     storage_rewind(sto);
     while (storage_get_data_next(sto, (void **) &j) == RETURN_SUCCESS) {

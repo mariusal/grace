@@ -92,7 +92,6 @@ int storage_scroll_to_data(Storage *sto, const void *data);
 int storage_id_exists(Storage *sto, int id);
 
 int storage_add(Storage *sto, void *data);
-int storage_insert(Storage *sto, void *data);
 int storage_delete(Storage *sto);
 
 void *storage_duplicate(Storage *sto, int id);
