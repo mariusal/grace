@@ -112,8 +112,9 @@ static int png_output(const Canvas *canvas, void *data,
     unsigned int w, h;
     int interlace_type;
     unsigned int i, j;
+    int bg;
     png_color *palette;
-    png_byte trans;
+    png_byte *trans;
     int num_text;
     png_text text_ptr[4];
     char *s;
@@ -158,9 +159,14 @@ static int png_output(const Canvas *canvas, void *data,
         PNG_FILTER_TYPE_DEFAULT);
 
     palette = xmalloc(ncolors*sizeof(png_color));
-    if (palette == NULL) {
+    trans = xmalloc(ncolors*sizeof(png_byte));
+    if (palette == NULL || trans == NULL) {
+        xfree(palette);
+        xfree(trans);
         return RETURN_FAILURE;
     }
+    
+    bg = getbgcolor(canvas);
     for (i = 0; i < ncolors; i++) {
         RGB rgb;
         int r, g, b;
@@ -173,6 +179,11 @@ static int png_output(const Canvas *canvas, void *data,
             g = 0;
             b = 0;
         }
+        if (colors[i] == bg) {
+            trans[i] = 0;
+        } else {
+            trans[i] = 255;
+        }
         palette[i].red   = r;
         palette[i].green = g;
         palette[i].blue  = b;
@@ -184,8 +195,7 @@ static int png_output(const Canvas *canvas, void *data,
 
 #ifdef PNG_WRITE_tRNS_SUPPORTED
     if (pngdata->transparent) {
-        trans = getbgcolor(canvas);
-        png_set_tRNS(png_ptr, info_ptr, &trans, 1, NULL);
+        png_set_tRNS(png_ptr, info_ptr, trans, ncolors, NULL);
     }
 #endif
     
@@ -238,6 +248,7 @@ static int png_output(const Canvas *canvas, void *data,
     png_write_end(png_ptr, info_ptr);
     png_destroy_write_struct(&png_ptr, &info_ptr);
     xfree(palette);
+    xfree(trans);
     
     /* free the tmp image */
     for (i = 0; i < h; i++) {
