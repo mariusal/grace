@@ -984,7 +984,7 @@ int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
         set_parser_setno(pdest);
         if (scanner(fstr) != RETURN_SUCCESS) {
 	    if (psrc != pdest) {
-		killset(pdest);
+		quark_free(pdest);
 	    }
 	    return RETURN_FAILURE;
 	} else {
@@ -2009,7 +2009,7 @@ int do_interp(Quark *psrc, Quark *pdest,
         
         res = interpolate(mesh, yint, meshlen, x, y, len, method);
         if (res != RETURN_SUCCESS) {
-            killset(pdest);
+            quark_free(pdest);
             return RETURN_FAILURE;
         }
     }

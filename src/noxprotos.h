@@ -113,30 +113,17 @@ int get_point(Quark *pset, int seti, WPoint *wp);
 int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint);
 int set_point_shift(Quark *pset, int seti, const VVector *vshift);
 
-Datapoint *datapoint_new(void);
-void datapoint_free(Datapoint *dpoint);
-int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind);
-
-void killset(Quark *pset);
 void killsetdata(Quark *pset);
 void sortset(Quark *pset, int sorton, int stype);
-void copycol2(Quark *psrc, Quark *pdest, int col);
 void droppoints(Quark *pset, int startno, int endno);
 int join_sets(Quark **sets, int nsets);
 void reverse_set(Quark *pset);
 
 void del_point(Quark *pset, int pt);
-void add_point(Quark *pset, double px, double py);
-void zero_datapoint(Datapoint *dpoint);
-int add_point_at(Quark *pset, int ind, const Datapoint *dpoint);
-void delete_byindex(Quark *pset, int *ind);
 
 int do_splitsets(Quark *pset, int lpart);
 void do_drop_points(Quark *pset, int startno, int endno);
-void do_kill(Quark *pset, int soft);
 void do_sort(Quark *pset, int sorton, int stype);
-
-void do_update_hotlink(Quark *pset);
 
 
 /* dates.c */

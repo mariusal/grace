@@ -588,7 +588,7 @@ static int leval_aac_cb(void *data)
     set_set_type(pset, type);
     quark_set_active(pset, TRUE);
     if (set_set_length(pset, npts) != RETURN_SUCCESS) {
-        killset(pset);
+        quark_free(pset);
         XCFREE(t->data);
         t->length = 0;
         return RETURN_FAILURE;
@@ -611,7 +611,7 @@ static int leval_aac_cb(void *data)
         xfree(expr);
         
         if (res != RETURN_SUCCESS) {
-            killset(pset);
+            quark_free(pset);
             
             XCFREE(t->data);
             t->length = 0;

@@ -731,8 +731,9 @@ char *utf2iso(const char *s)
     <element-type name="dataset" ctype="Dataset *"><![CDATA[
         $$ = dataset_new(quark_get_amem((Quark *)$P));
     ]]></element-type>
-    <element-type name="datapoint" ctype="Datapoint *"><![CDATA[
-        $$ = datapoint_new();
+    <element-type name="wpoint" ctype="WPoint *"><![CDATA[
+        $$ = xmalloc(sizeof(WPoint));
+        memset($$, 0, sizeof(WPoint));
     ]]></element-type>
     <element-type name="region" ctype="Quark *"><![CDATA[
         $$ = region_new((Quark *)$P);
@@ -1974,28 +1975,13 @@ char *utf2iso(const char *s)
             $$->comment = $?;
         </attribute>
     </element>
-    <element name="#EStrRow" type="datapoint">
+    <element name="#EStrRow" type="wpoint">
         <!-- Attributes -->
         <attribute name="X" type="dateordval">
-            $$->ex[DATA_X] = $?;
+            $$->x = $?;
         </attribute>
         <attribute name="Y" type="dateordval">
-            $$->ex[DATA_Y] = $?;
-        </attribute>
-        <attribute name="Y1" type="dateordval">
-            $$->ex[DATA_Y1] = $?;
-        </attribute>
-        <attribute name="Y2" type="dateordval">
-            $$->ex[DATA_Y2] = $?;
-        </attribute>
-        <attribute name="Y3" type="dateordval">
-            $$->ex[DATA_Y3] = $?;
-        </attribute>
-        <attribute name="Y4" type="dateordval">
-            $$->ex[DATA_Y4] = $?;
-        </attribute>
-        <attribute name="s" type="sval">
-            $$->s = $?;
+            $$->y = $?;
         </attribute>
     </element>
     <element name="#EStrRegion" type="region">
@@ -2016,11 +2002,8 @@ char *utf2iso(const char *s)
         
         <!-- Child elements -->
         <child name="#EStrRow"><![CDATA[
-            WPoint wp;
-            wp.x = $?->ex[DATA_X];
-            wp.y = $?->ex[DATA_Y];
-            region_add_point($$, &wp);
-            datapoint_free($?);
+            region_add_point($$, $?);
+            xfree($?);
         ]]></child>
     </element>
 

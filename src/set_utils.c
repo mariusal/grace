@@ -36,12 +36,9 @@
 #include <config.h>
 
 #include <stdlib.h>
-#include <string.h>
 
 #include "core_utils.h"
-#include "ssdata.h"
 #include "utils.h"
-#include "files.h"
 #include "protos.h"
 
 /*
@@ -99,21 +96,6 @@ int copysetdata(Quark *psrc, Quark *pdest)
     
     return set_set_dataset(pdest, dsp);
 }
-
-/*
- * kill a set
- */
-void killset(Quark *pset)
-{
-    quark_free(pset);
-}
-
-
-void do_update_hotlink(Quark *pset)
-{
-    // update_set_from_file(pset);
-}
-
 
 /*
  * get the min/max fields of a set
@@ -258,65 +240,12 @@ int set_point_shift(Quark *pset, int seti, const VVector *vshift)
     }
 }
 
-void copycol2(Quark *psrc, Quark *pdest, int col)
-{
-    int i, n1, n2;
-    double *x1, *x2;
-
-    if (!psrc || !pdest) {
-        return;
-    }
-    n1 = set_get_length(psrc);
-    n2 = set_get_length(pdest);
-    if (n1 != n2) {
-        return;
-    }
-    x1 = set_get_col(psrc, col);
-    x2 = set_get_col(pdest, col);
-    for (i = 0; i < n1; i++) {
-	x2[i] = x1[i];
-    }
-    quark_dirtystate_set(pdest, TRUE);
-}
-
 /*
  * drop points from a set
  */
 void droppoints(Quark *pset, int startno, int endno)
 {
-    double *x;
-    char **s;
-    int i, j, len, ncols, dist;
-
-    if (!pset) {
-        return;
-    }
-
-    dist = endno - startno + 1;
-    if (dist <= 0) {
-        return;
-    }
-    
-    len = set_get_length(pset);
-    
-    if (dist == len) {
-        killsetdata(pset);
-        return;
-    }
-    
-    ncols = set_get_ncols(pset);
-    for (j = 0; j < ncols; j++) {
-	x = set_get_col(pset, j);
-	for (i = endno + 1; i < len; i++) {
-	    x[i - dist] = x[i];
-	}
-    }
-    if ((s = set_get_strings(pset)) != NULL) {
-	for (i = endno + 1; i < len; i++) {
-	    s[i - dist] = copy_string(s[i - dist], s[i]);
-	}
-    }
-    set_set_length(pset, len - dist);
+    ssd_delete_rows(get_parent_ssd(pset), startno, endno);
 }
 
 /*
@@ -370,7 +299,7 @@ int join_sets(Quark **sets, int nsets)
                 s1[n] = copy_string(s1[n], s2[n - old_length]);
             }
         }
-        killset(pset);
+        quark_free(pset);
     }
     
     return RETURN_SUCCESS;
@@ -405,6 +334,7 @@ void reverse_set(Quark *pset)
     }
     quark_dirtystate_set(pset, TRUE);
 }
+
 /*
  * sort a set
  */
@@ -541,72 +471,6 @@ void del_point(Quark *pset, int pt)
     droppoints(pset, pt, pt);
 }
 
-/*
- * add a point to setno
- */
-void add_point(Quark *pset, double px, double py)
-{
-    int len;
-    double *x, *y;
-
-    if (pset) {
-	 len = set_get_length(pset);
-	 set_set_length(pset, len + 1);
-	 x = getx(pset);
-	 y = gety(pset);
-	 x[len] = px;
-	 y[len] = py;
-    }
-}
-
-void zero_datapoint(Datapoint *dpoint)
-{
-    int k;
-    
-    for (k = 0; k < MAX_SET_COLS; k++) {
-        dpoint->ex[k] = 0.0;
-    }
-    dpoint->s = NULL;
-}
-
-/*
- * add a point to setno at ind
- */
-int add_point_at(Quark *pset, int ind, const Datapoint *dpoint)
-{
-    int len, col, ncols;
-    double *ex;
-    char **s;
-
-    if (pset) {
-        len = set_get_length(pset);
-        if (ind < 0 || ind > len) {
-            return RETURN_FAILURE;
-        }
-        len++;
-        set_set_length(pset, len);
-        ncols = set_get_ncols(pset);
-        for (col = 0; col < ncols; col++) {
-            ex = set_get_col(pset, col);
-            if (ind < len - 1) {
-                memmove(ex + ind + 1, ex + ind, (len - ind - 1)*SIZEOF_DOUBLE);
-            }
-            ex[ind] = dpoint->ex[col];
-        }
-        s = set_get_strings(pset);
-        if (s != NULL) {
-            if (ind < len - 1) {
-                memmove(s + ind + 1, s + ind, (len - ind - 1)*sizeof(char *));
-            }
-            s[ind] = copy_string(NULL, dpoint->s);
-        }
-        quark_dirtystate_set(pset, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
 int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint)
 {
     int n, col;
@@ -630,36 +494,6 @@ int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint)
         }
         return RETURN_SUCCESS;
     }
-}
-
-void delete_byindex(Quark *pset, int *ind)
-{
-    int i, j, cnt = 0;
-    int ncols = set_get_ncols(pset);
-
-    if (!pset) {
-        return;
-    }
-    
-    for (i = 0; i < set_get_length(pset); i++) {
-	if (ind[i]) {
-	    cnt++;
-	}
-    }
-    if (cnt == set_get_length(pset)) {
-	killset(pset);
-	return;
-    }
-    cnt = 0;
-    for (i = 0; i < set_get_length(pset); i++) {
-	if (ind[i] == 0) {
-	    for (j = 0; j < ncols; j++) {
-                (set_get_col(pset, j))[cnt] = (set_get_col(pset, j))[i];
-	    }
-	    cnt++;
-	}
-    }
-    set_set_length(pset, cnt);
 }
 
 /*
@@ -735,7 +569,7 @@ int do_splitsets(Quark *pset, int lpart)
     }
     
     /* kill the original set */
-    killset(pset);
+    quark_free(pset);
 #endif    
     return RETURN_SUCCESS;
 }
@@ -833,21 +667,6 @@ Quark *grace_set_new(Quark *gr)
     set_set_colors(pset, rt->setcolor);
 
     return pset;
-}
-
-Datapoint *datapoint_new(void)
-{
-    Datapoint *dpoint;
-    dpoint = xmalloc(sizeof(Datapoint));
-    zero_datapoint(dpoint);
-    
-    return dpoint;
-}
-
-void datapoint_free(Datapoint *dpoint)
-{
-    xfree(dpoint->s);
-    xfree(dpoint);
 }
 
 Symbol *symbol_new()
