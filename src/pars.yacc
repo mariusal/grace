@@ -791,27 +791,59 @@ expr:	NUMBER {
 	    $$ = cal_and_time_to_jul($3, $5, $7, $9, $11, $13);
 	}
 	| VX1 {
-	    $$ = g[whichgraph].v.xv1;
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
+            $$ = g[whichgraph].v.xv1;
 	}
 	| VX2 {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    $$ = g[whichgraph].v.xv2;
 	}
 	| VY1 {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    $$ = g[whichgraph].v.yv1;
 	}
 	| VY2 {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    $$ = g[whichgraph].v.yv2;
 	}
 	| WX1 {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    $$ = g[whichgraph].w.xg1;
 	}
 	| WX2 {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    $$ = g[whichgraph].w.xg2;
 	}
 	| WY1 {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    $$ = g[whichgraph].w.yg1;
 	}
 	| WY2 {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    $$ = g[whichgraph].w.yg2;
 	}
 	| VXMAX {
@@ -2593,81 +2625,169 @@ parmset:
         }
 
 	| WORLD expr ',' expr ',' expr ',' expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].w.xg1 = $2;
 	    g[whichgraph].w.yg1 = $4;
 	    g[whichgraph].w.xg2 = $6;
 	    g[whichgraph].w.yg2 = $8;
 	}
 	| WORLD XMIN expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].w.xg1 = $3;
 	}
 	| WORLD XMAX expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].w.xg2 = $3;
 	}
 	| WORLD YMIN expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].w.yg1 = $3;
 	}
 	| WORLD YMAX expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].w.yg2 = $3;
 	}
 	| ZNORM expr {
 	    set_graph_znorm(whichgraph, $2);
 	}
 	| VIEW expr ',' expr ',' expr ',' expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].v.xv1 = $2;
 	    g[whichgraph].v.yv1 = $4;
 	    g[whichgraph].v.xv2 = $6;
 	    g[whichgraph].v.yv2 = $8;
 	}
 	| VIEW XMIN expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].v.xv1 = $3;
 	}
 	| VIEW XMAX expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].v.xv2 = $3;
 	}
 	| VIEW YMIN expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].v.yv1 = $3;
 	}
 	| VIEW YMAX expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].v.yv2 = $3;
 	}
 	| TITLE CHRSTR {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    set_plotstr_string(&g[whichgraph].labs.title, $2);
 	    xfree($2);
 	}
 	| TITLE font_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].labs.title.font = $2;
 	}
 	| TITLE SIZE expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].labs.title.charsize = $3;
 	}
 	| TITLE color_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].labs.title.color = $2;
 	}
 	| SUBTITLE CHRSTR {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    set_plotstr_string(&g[whichgraph].labs.stitle, $2);
 	    xfree($2);
 	}
 	| SUBTITLE font_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].labs.stitle.font = $2;
 	}
 	| SUBTITLE SIZE expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].labs.stitle.charsize = $3;
 	}
 	| SUBTITLE color_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].labs.stitle.color = $2;
 	}
 
 	| XAXES SCALE scaletype {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].xscale = $3;
 	}
 	| YAXES SCALE scaletype {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].yscale = $3;
 	}
 	| XAXES INVERT onoff {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].xinvert = $3;
 	}
 	| YAXES INVERT onoff {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].yinvert = $3;
 	}
 	| AUTOSCALE ONREAD NONE {
@@ -2697,79 +2817,175 @@ parmset:
         }
 
 	| LEGEND onoff {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.active = $2;
 	}
 	| LEGEND LOCTYPE worldview {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.loctype = $3;
 	}
 	| LEGEND VGAP nexpr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
             g[whichgraph].l.vgap = $3;
 	}
 	| LEGEND HGAP nexpr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.hgap = $3;
 	}
 	| LEGEND LENGTH nexpr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.len = $3;
 	}
 	| LEGEND INVERT onoff {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.invert = $3;
         }
 	| LEGEND BOX FILL color_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.boxfillpen.color = $4;
         }
 	| LEGEND BOX FILL pattern_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.boxfillpen.pattern = $4;
         }
 	| LEGEND BOX color_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.boxpen.color = $3;
 	}
 	| LEGEND BOX pattern_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.boxpen.pattern = $3;
 	}
 	| LEGEND BOX lines_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.boxlines = $3;
 	}
 	| LEGEND BOX linew_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.boxlinew = $3;
 	}
 	| LEGEND expr ',' expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.legx = $2;
 	    g[whichgraph].l.legy = $4;
 	}
 	| LEGEND CHAR SIZE expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.charsize = $4;
 	}
 	| LEGEND font_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.font = $2;
 	}
 	| LEGEND color_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.color = $2;
 	}
 
 	| FRAMEP onoff {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
             g[whichgraph].f.pen.pattern = $2;
 	}
 	| FRAMEP TYPE nexpr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].f.type = $3;
 	}
 	| FRAMEP lines_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].f.lines = $2;
 	}
 	| FRAMEP linew_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].f.linew = $2;
 	}
 	| FRAMEP color_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].f.pen.color = $2;
 	}
 	| FRAMEP pattern_select {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].f.pen.pattern = $2;
 	}
 	| FRAMEP BACKGROUND color_select
         { 
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
             g[whichgraph].f.fillpen.color = $3;
         }
 	| FRAMEP BACKGROUND pattern_select
         {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
             g[whichgraph].f.fillpen.pattern = $3;
         }
 
@@ -3531,9 +3747,17 @@ setprop:
 
 axisfeature:
 	onoff {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->active = $1;
 	}
 	| TYPE ZERO onoff {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->zero = $3;
 	}
 	| TICKP tickattr {}
@@ -3544,6 +3768,10 @@ axisfeature:
 	| LABEL axislabeldesc_obs {}
 	| BAR axisbardesc {}
 	| OFFSET expr ',' expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
             g[whichgraph].t[naxis]->offsx = $2;
 	    g[whichgraph].t[naxis]->offsy = $4;
 	}
@@ -3551,80 +3779,180 @@ axisfeature:
 
 tickattr:
 	onoff {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_flag = $1;
 	}
 	| MAJOR expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
             g[whichgraph].t[naxis]->tmajor = $2;
 	}
 	| MINOR TICKSP nexpr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->nminor = $3;
 	}
 	| PLACE ROUNDED onoff {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_round = $3;
 	}
 
 	| OFFSETX expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
             g[whichgraph].t[naxis]->offsx = $2;
 	}
 	| OFFSETY expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
             g[whichgraph].t[naxis]->offsy = $2;
 	}
 	| DEFAULT nexpr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_autonum = $2;
 	}
 	| inoutchoice {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_inout = $1;
 	}
 	| MAJOR SIZE expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->props.size = $3;
 	}
 	| MINOR SIZE expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->mprops.size = $3;
 	}
 	| color_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->props.color = g[whichgraph].t[naxis]->mprops.color = $1;
 	}
 	| MAJOR color_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->props.color = $2;
 	}
 	| MINOR color_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->mprops.color = $2;
 	}
 	| linew_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->props.linew = g[whichgraph].t[naxis]->mprops.linew = $1;
 	}
 	| MAJOR linew_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->props.linew = $2;
 	}
 	| MINOR linew_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->mprops.linew = $2;
 	}
 	| MAJOR lines_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->props.lines = $2;
 	}
 	| MINOR lines_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->mprops.lines = $2;
 	}
 	| MAJOR GRID onoff {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->props.gridflag = $3;
 	}
 	| MINOR GRID onoff {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->mprops.gridflag = $3;
 	}
 	| opchoice_sel {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_op = $1;
 	}
 	| SPEC TYPE tickspectype {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_spec = $3;
 	}
 	| SPEC nexpr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->nticks = $2;
 	}
 	| MAJOR nexpr ',' expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tloc[$2].wtpos = $4;
 	    g[whichgraph].t[naxis]->tloc[$2].type = TICK_TYPE_MAJOR;
 	}
 	| MINOR nexpr ',' expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tloc[$2].wtpos = $4;
 	    g[whichgraph].t[naxis]->tloc[$2].type = TICK_TYPE_MINOR;
 	}
@@ -3632,81 +3960,177 @@ tickattr:
 
 ticklabelattr:
 	onoff {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_flag = $1;
 	}
 	| PREC nexpr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_prec = $2;
 	}
 	| FORMAT formatchoice {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_format = $2;
 	}
 	| FORMAT expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_format = $2;
 	}
 	| APPEND CHRSTR {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    strcpy(g[whichgraph].t[naxis]->tl_appstr, $2);
 	    xfree($2);
 	}
 	| PREPEND CHRSTR {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    strcpy(g[whichgraph].t[naxis]->tl_prestr, $2);
 	    xfree($2);
 	}
 	| ANGLE nexpr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_angle = $2;
 	}
 	| SKIP nexpr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_skip = $2;
 	}
 	| STAGGER nexpr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_staggered = $2;
 	}
 	| opchoice_sel {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_op = $1;
 	}
 	| FORMULA CHRSTR {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
             g[whichgraph].t[naxis]->tl_formula =
                 copy_string(g[whichgraph].t[naxis]->tl_formula, $2);
             xfree($2);
 	}
 	| START expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_start = $2;
 	}
 	| STOP expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_stop = $2;
 	}
 	| START TYPE SPEC {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_starttype = TYPE_SPEC;
 	}
 	| START TYPE AUTO {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_starttype = TYPE_AUTO;
 	}
 	| STOP TYPE SPEC {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_stoptype = TYPE_SPEC;
 	}
 	| STOP TYPE AUTO {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_stoptype = TYPE_AUTO;
 	}
 	| CHAR SIZE expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_charsize = $3;
 	}
 	| font_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_font = $1;
 	}
 	| color_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_color = $1;
 	}
 	| nexpr ',' CHRSTR {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tloc[$1].label = 
                 copy_string(g[whichgraph].t[naxis]->tloc[$1].label, $3);
 	    xfree($3);
 	}
 	| OFFSET AUTO {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_gaptype = TYPE_AUTO;
 	}
 	| OFFSET SPEC {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_gaptype = TYPE_SPEC;
 	}
 	| OFFSET expr ',' expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_gap.x = $2;
 	    g[whichgraph].t[naxis]->tl_gap.y = $4;
 	}
@@ -3714,53 +4138,113 @@ ticklabelattr:
 
 axislabeldesc:
 	CHRSTR {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    set_plotstr_string(&g[whichgraph].t[naxis]->label, $1);
 	    xfree($1);
 	}
 	| LAYOUT PERP {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label_layout = LAYOUT_PERPENDICULAR;
 	}
 	| LAYOUT PARA {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label_layout = LAYOUT_PARALLEL;
 	}
 	| PLACE AUTO {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label_place = TYPE_AUTO;
 	}
 	| PLACE SPEC {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label_place = TYPE_SPEC;
 	}
 	| PLACE expr ',' expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label.x = $2;
 	    g[whichgraph].t[naxis]->label.y = $4;
 	}
 	| JUST justchoice {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label.just = $2;
 	}
 	| CHAR SIZE expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label.charsize = $3;
 	}
 	| font_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label.font = $1;
 	}
 	| color_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label.color = $1;
 	}
 	| opchoice_sel {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label_op = $1;
 	}
 	;
 
 axisbardesc:
 	onoff {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_drawbar = $1;
 	}
 	| color_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_drawbarcolor = $1;
 	}
 	| lines_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_drawbarlines = $1;
 	}
 	| linew_select {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_drawbarlinew = $1;
 	}
 	;
@@ -4244,14 +4728,26 @@ parmset_obs:
 	| SUBTITLE linew_select { }
 
 	| LEGEND BOX onoff {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    if ($3 == FALSE && get_project_version() <= 40102) {
                 g[whichgraph].l.boxpen.pattern = 0;
             }
 	}
 	| LEGEND X1 expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.legx = $3;
 	}
 	| LEGEND Y1 expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
 	    g[whichgraph].l.legy = $3;
 	}
 	| LEGEND STRING nexpr CHRSTR {
@@ -4310,6 +4806,10 @@ parmset_obs:
 	}
 
 	| FRAMEP FILL onoff { 
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
             g[whichgraph].f.fillpen.pattern = $3;
         }
 
@@ -4332,6 +4832,10 @@ parmset_obs:
 axislabeldesc_obs:
 	linew_select { }
 	| opchoice_sel_obs {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->label_op = $1;
 	}
         ;
@@ -4408,6 +4912,10 @@ setprop_obs:
 tickattr_obs:
 	MAJOR onoff {
 	    /* <= xmgr-4.1 */
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->active = $2;
 	}
 	| MINOR onoff { }
@@ -4416,14 +4924,26 @@ tickattr_obs:
 	| MAXP NUMBER   { }
 	| LOG onoff   { }
 	| TYPE AUTO {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_NONE;
 	}
 	| TYPE SPEC {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    if (g[whichgraph].t[naxis]->t_spec != TICKS_SPEC_BOTH) {
                 g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_MARKS;
             }
 	}
 	| MINOR expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    if ($2 != 0.0) {
                 g[whichgraph].t[naxis]->nminor = 
                             (int) rint(g[whichgraph].t[naxis]->tmajor / $2 - 1);
@@ -4432,13 +4952,25 @@ tickattr_obs:
             }
 	}
 	| SIZE expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->props.size = $2;
 	}
 	| nexpr ',' expr {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tloc[$1].wtpos = $3;
 	    g[whichgraph].t[naxis]->tloc[$1].type = TICK_TYPE_MAJOR;
 	}
 	| opchoice_sel_obs {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_op = $1;
 	}
         ;
@@ -4446,27 +4978,51 @@ tickattr_obs:
 ticklabelattr_obs:
 	linew_select { }
 	| TYPE AUTO {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    if (g[whichgraph].t[naxis]->t_spec == TICKS_SPEC_BOTH) {
                 g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_MARKS;
             }
 	}
 	| TYPE SPEC {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_BOTH;
 	}
 	| LAYOUT SPEC { }
 
 	| LAYOUT HORIZONTAL {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_angle = 0;
 	}
 	| LAYOUT VERTICAL {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_angle = 90;
 	}
 	| PLACE ON TICKSP { }
 	| PLACE BETWEEN TICKSP { }
 	| opchoice_sel_obs {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    g[whichgraph].t[naxis]->tl_op = $1;
 	}
 	| SIGN signchoice {
+	    if (!is_valid_axis(whichgraph, naxis)) {
+                yyerror("No valid axis selected");
+                return 1;
+            }
 	    switch($2) {
             case SIGN_NEGATE:
                 g[whichgraph].t[naxis]->tl_formula =
