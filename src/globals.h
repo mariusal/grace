@@ -56,7 +56,7 @@ int ptofile = FALSE;            /* flag to indicate destination of hardcopy
                                  * output, ptofile = 0 means print to printer
                                  * non-zero print to file */
 
-char sformat[128] = "%16lg";    /* format for saving (ascii) projects */
+char sformat[128] = "%16.8lg";   /* format for saving data sets */
 
 double *ax, *bx, *cx, *dx;	/* scratch arrays used in scanner */
 
