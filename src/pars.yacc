@@ -404,6 +404,7 @@ symtab_entry *key;
 %token <ival> REAL
 %token <ival> RECIPROCAL
 %token <ival> REDRAW
+%token <ival> REFDATE
 %token <ival> REGNUM
 %token <ival> REGRESS
 %token <ival> REVERSE
@@ -741,12 +742,23 @@ expr:	NUMBER {
 	| selectgraph '.' WY2 {
 	    $$ = g[$1].w.yg2;
 	}
+	| JDAY '(' CHRSTR ')' {
+            double jul;
+            Dates_format recognized;
+            if (parse_date((const char*) $3, FMT_iso, &jul, &recognized)
+                == GRACE_EXIT_SUCCESS) {
+                $$ = jul;
+            } else {
+		yyerror("Invalid date");
+		return 1;
+            }
+	}
 	| JDAY '(' expr ',' expr ',' expr ')' { /* yr, mo, day */
-	    $$ = julday((int) $5, (int) $7, (int) $3, 12, 0, 0.0);
+	    $$ = cal_and_time_to_jul((int) $3, (int) $5, (int) $7, 12, 0, 0.0);
 	}
 	| JDAY0 '(' expr ',' expr ',' expr ',' expr ',' expr ',' expr ')' 
 	{ /* yr, mo, day, hr, min, sec */
-	    $$ = julday((int) $5, (int) $7, (int) $3, (int) $9, (int) $11, (double) $13);
+	    $$ = cal_and_time_to_jul((int) $3, (int) $5, (int) $7, (int) $9, (int) $11, (double) $13);
 	}
 	| VX1 {
 	    $$ = g[whichgraph].v.xv1;
@@ -1821,7 +1833,18 @@ parmset:
             pg.height = (long) $4;
             set_page_geometry(pg);
         }
-        | DEVICE CHRSTR PAGE SIZE NUMBER NUMBER {
+        | REFDATE CHRSTR {
+            double jul;
+            Dates_format recognized;
+            if (parse_date($2, FMT_iso, &jul, &recognized) ==
+                GRACE_EXIT_SUCCESS) {
+                set_ref_date(jul);
+            } else {
+		yyerror("Invalid date");
+		return 1;
+            }
+	}
+	| DEVICE CHRSTR PAGE SIZE NUMBER NUMBER {
             int device_id;
             Device_entry dev;
             
@@ -4414,6 +4437,7 @@ symtab_entry ikey[] = {
 	{"REAL", REAL, NULL},
 	{"RECIPROCAL", RECIPROCAL, NULL},
 	{"REDRAW", REDRAW, NULL},
+	{"REFDATE", REFDATE, NULL},
 	{"REGRESS", REGRESS, NULL},
 	{"REVERSE", REVERSE, NULL},
 	{"RGAMMA", FUNC_D, rgamma},

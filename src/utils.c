@@ -240,165 +240,16 @@ double comp_perimeter(int n, double *x, double *y)
     return sum;
 }
 
-/*
- * Time and date routines
- */
-
 char *dayofweekstrs[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 char *dayofweekstrl[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 char *monthl[] = {"January", "February", "March", "April", "May", "June",
 "July", "August", "September", "October", "November", "December"};
 
-static int days1[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365};
-static int days2[] = {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366};
-
-/*
- * return the Julian day + hms as a real number
- */
-
-/*
-** Takes a date, and returns a Julian day. A Julian day is the number of
-** days since some base date  (in the very distant past).
-** Handy for getting date of x number of days after a given Julian date
-** (use jdate to get that from the Gregorian date).
-** Author: Robert G. Tantzen, translator: Nat Howard
-** Translated from the algol original in Collected Algorithms of CACM
-** (This and jdate are algorithm 199).
-*/
-double julday(int mon, int day, int year, int h, int mi, double se)
-{
-    long m = mon, d = day, y = year;
-    long c, ya, j;
-    double seconds = h * 3600.0 + mi * 60 + se;
-
-    if (m > 2)
-	m -= 3;
-    else {
-	m += 9;
-	--y;
-    }
-    c = y / 100L;
-    ya = y - (100L * c);
-    j = (146097L * c) / 4L + (1461L * ya) / 4L + (153L * m + 2L) / 5L + d + 1721119L;
-    if (seconds < 12 * 3600.0) {
-	j--;
-	seconds += 12.0 * 3600.0;
-    } else {
-	seconds = seconds - 12.0 * 3600.0;
-    }
-    return (j + (seconds / 3600.0) / 24.0);
-}
-
-/* Julian date converter. Takes a julian date (the number of days since
-** some distant epoch or other), and returns an int pointer to static space.
-** ip[0] = month;
-** ip[1] = day of month;
-** ip[2] = year (actual year, like 1977, not 77 unless it was  77 a.d.);
-** ip[3] = day of week (0->Sunday to 6->Saturday)
-** These are Gregorian.
-** Copied from Algorithm 199 in Collected algorithms of the CACM
-** Author: Robert G. Tantzen, Translator: Nat Howard
-*/
-void calcdate(double jd, int *m, int *d, int *y, int *h, int *mi, double *sec)
-{
-    static int ret[4];
-
-    long j = jd;
-    double tmp, frac = jd - j;
-
-    if (frac >= 0.5) {
-	frac = frac - 0.5;
-	j++;
-    } else {
-	frac = frac + 0.5;
-    }
-
-    ret[3] = (j + 1L) % 7L;
-    j -= 1721119L;
-    *y = (4L * j - 1L) / 146097L;
-    j = 4L * j - 1L - 146097L * *y;
-    *d = j / 4L;
-    j = (4L * *d + 3L) / 1461L;
-    *d = 4L * *d + 3L - 1461L * j;
-    *d = (*d + 4L) / 4L;
-    *m = (5L * *d - 3L) / 153L;
-    *d = 5L * *d - 3 - 153L * *m;
-    *d = (*d + 5L) / 5L;
-    *y = 100L * *y + j;
-    if (*m < 10)
-	*m += 3;
-    else {
-	*m -= 9;
-	*y += 1;
-    }
-    tmp = 3600.0 * (frac * 24.0);
-    *h = (int) (tmp / 3600.0);
-    tmp = tmp - *h * 3600.0;
-    *mi = (int) (tmp / 60.0);
-    *sec = tmp - *mi * 60.0;
-}
-
 int dayofweek(double j)
 {
     j += 0.5;
     return (int) (j + 1) % 7;
-}
-
-int leapyear(int year)
-{
-    if (year % 400 == 0)
-        return (TRUE);
-    else if (year % 100 == 0)
-        return (FALSE);
-    else if (year % 4 == 0)
-        return (TRUE);
-    else
-        return (FALSE);
-}
-
-/*
-   get the month and day given the number of days
-   from the beginning of the year 'yr'
-*/
-void getmoday(int days, int yr, int *mo, int *da)
-{
-    int i;
-
-    if (leapyear(yr)) {
-	for (i = 0; i < 13; i++) {
-	    if (days <= days2[i]) {
-		*mo = i;
-		*da = (days - days2[i - 1]);
-		goto out1;
-	    }
-	}
-    } else {
-	for (i = 0; i < 13; i++) {
-	    if (days <= days1[i]) {
-		*mo = i;
-		*da = (days - days1[i - 1]);
-		goto out1;
-	    }
-	}
-    }
-out1:;
-}
-
-/*
-   return the number of days from the beginning of the year 'yr'
-*/
-int getndays(double j)
-{
-    int m, d, y, hh, mm;
-    double ss;
-
-    calcdate(j, &m, &d, &y, &hh, &mm, &ss);
-    if (leapyear(y)) {
-	return days2[m - 1] + d;
-    } else {
-	return days1[m - 1] + d;
-    }
 }
 
 /*
@@ -617,6 +468,25 @@ void installSignal(void){
 #endif
 }
 
+
+/*
+ * reduce years according to the folowing rules :
+ * [1950 ; 1999] -> [50 ; 99]
+ * [2000 ; 2049] -> [00 ; 49]
+ */
+static int reduced_year(int y)
+{
+    if (y < 1950) {
+        return y;
+    } else if (y < 2000) {
+        return y - 1900;
+    } else if (y < 2050) {
+        return y - 2000;
+    } else {
+        return y;
+    }
+}
+
 /* create format string */
 char *create_fstring(int form, int prec, double loc, int type)
 {
@@ -760,88 +630,83 @@ char *create_fstring(int form, int prec, double loc, int type)
 	}
 	break;
     case FORMAT_DDMMYY:
-	strcpy(format, "%d-%d-%d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
-	if (y >= 1900 && y < 2000) {
-	    y -= 1900;
-	}
+	strcpy(format, "%02d-%02d-%d");
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	y = reduced_year(y);
 	sprintf(s, format, d, m, y);
 	break;
     case FORMAT_MMDDYY:
-	strcpy(format, "%d-%d-%d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
-	if (y >= 1900 && y < 2000) {
-	    y -= 1900;
-	}
+	strcpy(format, "%02d-%02d-%d");
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	y = reduced_year(y);
 	sprintf(s, format, m, d, y);
 	break;
     case FORMAT_YYMMDD:
-	strcpy(format, "%d-%d-%d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
-	if (y >= 1900 && y < 2000) {
-	    y -= 1900;
-	}
+	strcpy(format, "%d-%02d-%02d");
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	y = reduced_year(y);
 	sprintf(s, format, y, m, d);
 	break;
     case FORMAT_MMYY:
-	strcpy(format, "%d-%d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
-	if (y >= 1900 && y < 2000) {
-	    y -= 1900;
-	}
+	strcpy(format, "%02d-%d");
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	y = reduced_year(y);
 	sprintf(s, format, m, y);
 	break;
     case FORMAT_MMDD:
-	strcpy(format, "%d-%d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
+	strcpy(format, "%02d-%02d");
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, m, d);
 	break;
     case FORMAT_MONTHDAY:
-	strcpy(format, "%s-%d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
+	strcpy(format, "%s-%02d");
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
+	    sprintf(s, format, "???");
 	} else {
 	    sprintf(s, format, months[m - 1], d);
 	}
 	break;
     case FORMAT_DAYMONTH:
-	strcpy(format, "%d-%s");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
+	strcpy(format, "%02d-%s");
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
+	    sprintf(s, format, "???");
 	} else {
 	    sprintf(s, format, d, months[m - 1]);
 	}
 	break;
     case FORMAT_MONTHS:
 	strcpy(format, "%s");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
+	    sprintf(s, format, "???");
 	} else {
 	    sprintf(s, format, months[m - 1]);
 	}
 	break;
-	break;
     case FORMAT_MONTHSY:
 	strcpy(format, "%s-%d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	y = reduced_year(y);
 	if (m - 1 < 0 || m - 1 > 11) {
+	    sprintf(s, format, "???");
 	} else {
 	    sprintf(s, format, months[m - 1], y);
 	}
 	break;
-	break;
     case FORMAT_MONTHL:
 	strcpy(format, "%s");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
+	    sprintf(s, format, "???");
 	} else {
 	    sprintf(s, format, monthl[m - 1]);
 	}
 	break;
-	break;
     case FORMAT_DAYOFWEEKS:
 	strcpy(format, "%s");
-	itmp = dayofweek(loc);
+	itmp = dayofweek(loc + get_ref_date());
 	if ((itmp < 0) | (itmp > 6)) {
 	} else {
 	    sprintf(s, format, dayofweekstrs[dayofweek(loc)]);
@@ -849,7 +714,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DAYOFWEEKL:
 	strcpy(format, "%s");
-	itmp = dayofweek(loc);
+	itmp = dayofweek(loc + get_ref_date());
 	if ((itmp < 0) | (itmp > 6)) {
 	} else {
 	    sprintf(s, format, dayofweekstrl[dayofweek(loc)]);
@@ -857,35 +722,30 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DAYOFYEAR:
 	strcpy(format, "%d");
-	sprintf(s, format, getndays(loc));
+        jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	sprintf(s, format,
+                1 + (int) (cal_to_jul(y, m, d) - cal_to_jul(y, 1, 1)));
 	break;
     case FORMAT_HMS:
 	strcpy(format, "%02d:%02d:%02d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, h, mm, (int) sec);
 	break;
     case FORMAT_MMDDHMS:
-	strcpy(format, "%d-%d %02d:%02d:%02d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
-	if (y >= 1900 && y < 2000) {
-	    y -= 1900;
-	}
+	strcpy(format, "%02d-%02d %02d:%02d:%02d");
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, m, d, h, mm, (int) sec);
 	break;
     case FORMAT_MMDDYYHMS:
-	strcpy(format, "%d-%d-%d %02d:%02d:%02d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
-	if (y >= 1900 && y < 2000) {
-	    y -= 1900;
-	}
+	strcpy(format, "%02d-%02d-%d %02d:%02d:%02d");
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	y = reduced_year(y);
 	sprintf(s, format, m, d, y, h, mm, (int) sec);
 	break;
     case FORMAT_YYMMDDHMS:
-	strcpy(format, "%d-%d-%d %02d:%02d:%02d");
-	calcdate(loc, &m, &d, &y, &h, &mm, &sec);
-	if (y >= 1900 && y < 2000) {
-	    y -= 1900;
-	}
+	strcpy(format, "%d-%02d-%02d %02d:%02d:%02d");
+	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	y = reduced_year(y);
 	sprintf(s, format, y, m, d, h, mm, (int) sec);
 	break;
     case FORMAT_DEGREESLON:

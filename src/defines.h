@@ -736,4 +736,19 @@ typedef struct _Input_buffer {
     unsigned long id;     /* id for X library */
 } Input_buffer;
 
+/* dates formats */
+typedef enum   { FMT_iso,
+                 FMT_european,
+                 FMT_us,
+                 FMT_days,
+                 FMT_seconds,
+                 FMT_auto
+               } Dates_format;
+
+/* tokens for the calendar dates parser */
+typedef struct { int value;
+                 int digits;
+               } Int_token;
+
+
 #endif /* __DEFINES_H_ */

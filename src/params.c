@@ -98,7 +98,8 @@ void putparms(int gno, FILE *pp, int embed)
 {
     int i, j, k, ming, maxg;
     int ps, pt, gh, gt, fx, fy, px, py;
-    double dsx, dsy;
+    int year, month, day, hour, min;
+    double dsx, dsy, sec;
     char embedstr[2], tmpstr1[64], tmpstr2[64];
     framep f;
     legend leg;
@@ -126,6 +127,11 @@ void putparms(int gno, FILE *pp, int embed)
 
     pg = get_page_geometry();
     fprintf(pp, "%spage size %ld %ld\n", embedstr, pg.width, pg.height);
+
+    jul_to_cal_and_time(get_ref_date(), 0.5,
+                        &year, &month, &day, &hour, &min, &sec);
+    fprintf(pp, "%srefdate \"%04d-%02d-%02d %02d:%02d:%02.0f\"\n",
+            embedstr, year, month, day, hour, min, sec);
     
     tmpbuf = copy_string(NULL, get_project_description());
     if (tmpbuf != NULL) {

@@ -61,12 +61,6 @@ int ilog2(int n);
 double comp_area(int n, double *x, double *y);
 double comp_perimeter(int n, double *x, double *y);
 
-double julday(int mon, int day, int year, int h, int mi, double se);
-void calcdate(double jd, int *m, int *d, int *y, int *h, int *mi, double *sec);
-int dayofweek(double j);
-int leapyear(int year);
-void getmoday(int days, int yr, int *mo, int *da);
-int getndays(double j);
 char *create_fstring(int form, int prec, double loc, int type);
 char *escapequotes (char *s);
 
