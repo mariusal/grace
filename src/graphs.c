@@ -335,14 +335,10 @@ tickmarks *get_graph_tickmarks(int gno, int a)
 tickmarks *new_graph_tickmarks(void)
 {
     tickmarks *retval;
-    int i;
     
     retval = malloc(sizeof(tickmarks));
     if (retval != NULL) {
-        retval->label.s = NULL;
-        for (i = 0; i < MAX_TICKS; i++) {
-            retval->tloc[i].label = NULL;
-        }
+        set_default_ticks(retval);
     }
     return retval;
 }
@@ -359,6 +355,7 @@ tickmarks *copy_graph_tickmarks(tickmarks *t)
         if (retval != NULL) {
             memcpy(retval, t, sizeof(tickmarks));
 	    retval->label.s = copy_string(NULL, t->label.s);
+	    retval->tl_formula = copy_string(NULL, t->tl_formula);
             for (i = 0; i < MAX_TICKS; i++) {
                 retval->tloc[i].label = copy_string(NULL, t->tloc[i].label);
             }
@@ -375,6 +372,7 @@ void free_graph_tickmarks(tickmarks *t)
         return;
     }
     cxfree(t->label.s);
+    cxfree(t->tl_formula);
     for (i = 0; i < MAX_TICKS; i++) {
         cxfree(t->tloc[i].label);
     }
@@ -1002,7 +1000,16 @@ void set_default_graph(int gno)
     g[gno].locator.py = 6;
     for (i = 0; i < MAXAXES; i++) {
         g[gno].t[i] = new_graph_tickmarks();
-        set_default_ticks(g[gno].t[i], i);
+        switch (i) {
+        case X_AXIS:
+        case Y_AXIS:
+            g[gno].t[i]->active = TRUE;
+            break;
+        case ZX_AXIS:
+        case ZY_AXIS:
+            g[gno].t[i]->active = FALSE;
+            break;
+        }
     }
     set_default_framep(&g[gno].f);
     set_default_world(&g[gno].w);

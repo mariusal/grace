@@ -612,9 +612,10 @@ typedef struct {
     int tl_type;                /* either auto or specified (below) */
     int tl_angle;               /* angle to draw labels */
 
-    int tl_sign;                /* tick labels normal, absolute value, or negate */
+    int tl_format;              /* tickmark label format */
     int tl_prec;                /* places to right of decimal point */
-    int tl_format;              /* decimal or exp. or ... ticmark labels */
+
+    char *tl_formula;           /* transformation formula */
 
     int tl_skip;                /* tick labels to skip */
     int tl_staggered;           /* tick labels staggered */

@@ -81,7 +81,7 @@ int realloc_lines(int n);
 int realloc_boxes(int n);
 int realloc_ellipses(int n);
 int realloc_strings(int n);
-void set_default_ticks(tickmarks * t, int a);
+void set_default_ticks(tickmarks *t);
 
 void calculate_tickgrid(int gno);
 void drawgrid(int gno);

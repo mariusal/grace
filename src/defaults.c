@@ -283,7 +283,7 @@ void set_default_plotarr(plotarr * p)
 }
 
 
-void set_default_ticks(tickmarks *t, int a)
+void set_default_ticks(tickmarks *t)
 {
     int i;
 
@@ -291,16 +291,7 @@ void set_default_ticks(tickmarks *t, int a)
         return;
     }
     
-    switch (a) {
-    case X_AXIS:
-    case Y_AXIS:
-        t->active = TRUE;
-        break;
-    case ZX_AXIS:
-    case ZY_AXIS:
-        t->active = FALSE;
-        break;
-    }
+    t->active = TRUE;
     t->zero = FALSE;
     t->tl_flag = TRUE;
     t->t_flag = TRUE;
@@ -316,9 +307,9 @@ void set_default_ticks(tickmarks *t, int a)
     t->label_place = TYPE_AUTO;
     t->label_op = PLACEMENT_NORMAL;
     t->tl_type = TYPE_AUTO;
-    t->tl_sign = SIGN_NORMAL;
-    t->tl_prec = 5;
     t->tl_format = FORMAT_GENERAL;
+    t->tl_prec = 5;
+    t->tl_formula = NULL;
     t->tl_angle = 0;
     t->tl_skip = 0;
     t->tl_staggered = 0;

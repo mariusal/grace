@@ -363,8 +363,12 @@ void putparms(int gno, FILE *pp, int embed)
 
 
                 fprintf(pp, "%s ticklabel %s\n", buf, on_or_off(t->tl_flag));
-                fprintf(pp, "%s ticklabel prec %d\n", buf, t->tl_prec);
                 fprintf(pp, "%s ticklabel format %s\n", buf, get_format_types(t->tl_format));
+                fprintf(pp, "%s ticklabel prec %d\n", buf, t->tl_prec);
+
+                fprintf(pp, "%s ticklabel formula \"%s\"\n",
+                    buf, PSTRING(t->tl_formula));
+
                 fprintf(pp, "%s ticklabel append \"%s\"\n", buf, PSTRING(t->tl_appstr));
                 fprintf(pp, "%s ticklabel prepend \"%s\"\n", buf, PSTRING(t->tl_prestr));
                 fprintf(pp, "%s ticklabel angle %d\n", buf, t->tl_angle);
@@ -381,20 +385,11 @@ void putparms(int gno, FILE *pp, int embed)
                     fprintf(pp, "%s ticklabel place both\n", buf);
                     break;
                 }
+
                 fprintf(pp, "%s ticklabel offset %s\n", buf,
                                 t->tl_gaptype == TYPE_AUTO ? "auto" : "spec");
+
                 fprintf(pp, "%s ticklabel offset %f , %f\n", buf, t->tl_gap.x, t->tl_gap.y);
-                switch (t->tl_sign) {
-                case SIGN_NORMAL:
-                    fprintf(pp, "%s ticklabel sign normal\n", buf);
-                    break;
-                case SIGN_ABSOLUTE:
-                    fprintf(pp, "%s ticklabel sign absolute\n", buf);
-                    break;
-                case SIGN_NEGATE:
-                    fprintf(pp, "%s ticklabel sign negate\n", buf);
-                    break;
-                }
                 fprintf(pp, "%s ticklabel start type %s\n", buf,
                                 t->tl_starttype == TYPE_AUTO ? "auto" : "spec");
                 fprintf(pp, "%s ticklabel start %f\n", buf, t->tl_start);

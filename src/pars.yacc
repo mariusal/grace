@@ -3471,8 +3471,10 @@ ticklabelattr:
 	| opchoice_sel {
 	    g[whichgraph].t[naxis]->tl_op = $1;
 	}
-	| SIGN signchoice {
-	    g[whichgraph].t[naxis]->tl_sign = $2;
+	| FORMULA CHRSTR {
+            g[whichgraph].t[naxis]->tl_formula =
+                copy_string(g[whichgraph].t[naxis]->tl_formula, $2);
+            free($2);
 	}
 	| START expr {
 	    g[whichgraph].t[naxis]->tl_start = $2;
@@ -4207,6 +4209,22 @@ ticklabelattr_obs:
 	| PLACE BETWEEN TICKSP { }
 	| opchoice_sel_obs {
 	    g[whichgraph].t[naxis]->tl_op = $1;
+	}
+	| SIGN signchoice {
+	    switch($2) {
+            case SIGN_NEGATE:
+                g[whichgraph].t[naxis]->tl_formula =
+                    copy_string(g[whichgraph].t[naxis]->tl_formula, "-$t");
+                break;
+            case SIGN_ABSOLUTE:
+                g[whichgraph].t[naxis]->tl_formula =
+                    copy_string(g[whichgraph].t[naxis]->tl_formula, "abs($t)");
+                break;
+            default:
+                g[whichgraph].t[naxis]->tl_formula =
+                    copy_string(g[whichgraph].t[naxis]->tl_formula, NULL);
+                break;
+            }
 	}
         ;
 

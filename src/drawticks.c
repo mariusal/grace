@@ -42,6 +42,7 @@
 #include "graphs.h"
 #include "graphutils.h"
 #include "draw.h"
+#include "parser.h"
 #include "protos.h"
 
 int is_xaxis(int axis)
@@ -661,9 +662,12 @@ void calculate_tickgrid(int gno)
     int nmajor;
     double swc_start, swc_stop, stmajor;
     int scale;
-    double wtmaj, tick_value;
+    double wtmaj;
     world w;
     tickmarks *t;
+    int res, len;
+    grarr *tvar;
+    double *tt;
     
 reenter:
     get_graph_world(gno, &w);
@@ -671,106 +675,154 @@ reenter:
     for (caxis = 0; caxis < MAXAXES; caxis++) {
 	t = get_graph_tickmarks(gno, caxis);
 
-	if (!t || t->active != TRUE || t->t_type == TYPE_SPEC) {
+	if (!t || t->active != TRUE) {
             continue;
         }
-        
-        if (is_xaxis(caxis)) {
-            scale = get_graph_xscale(gno);
-            if (scale == SCALE_LOG) {
-                swc_start = fscale(w.xg1, scale);
-                swc_stop  = fscale(w.xg2, scale);
-            } else {
-                swc_start = w.xg1;
-                swc_stop  = w.xg2;
-            }
-        } else {
-            scale = get_graph_yscale(gno);
-            if (scale == SCALE_LOG) {
-                swc_start = fscale(w.yg1, scale);
-                swc_stop  = fscale(w.yg2, scale);
-            } else {
-                swc_start = w.yg1;
-                swc_stop  = w.yg2;
-            }
-        }
-        if (scale == SCALE_LOG) {
-            stmajor = fscale(t->tmajor, scale);
-        } else {
-            stmajor = t->tmajor;
-        }
 
-        if (stmajor <= 0.0) {
-	    errmsg("Invalid major tick spacing, autoticking");
-	    autotick_axis(gno, caxis);
-            goto reenter;
-	}
-        
-        if (t->t_round == TRUE) {
-            swc_start = floor(swc_start/stmajor)*stmajor;
-        }
-        
-        nmajor = (int) ceil((swc_stop - swc_start) / stmajor + 1);
-        t->nticks = (nmajor - 1)*(t->nminor + 1) + 1;
-        
-        if (t->nticks > MAX_TICKS) {
-	    errmsg("Too many ticks ( > MAX_TICKS ), autoticking");
-	    autotick_axis(gno, caxis);
-            goto reenter;
-	}
-
-/*
- *         if (t->nticks > MAX_TICKS) {
- *             t->nticks = MAX_TICKS;
- *         }
- */
-        
-        itick = 0;
-        itmaj = 0;
-        while (itick < t->nticks) {
-            if (scale == SCALE_LOG) {
-                wtmaj = ifscale(swc_start + itmaj*stmajor, scale);
+	if (t->t_type == TYPE_AUTO) {
+            if (is_xaxis(caxis)) {
+                scale = get_graph_xscale(gno);
+                if (scale == SCALE_LOG) {
+                    swc_start = fscale(w.xg1, scale);
+                    swc_stop  = fscale(w.xg2, scale);
+                } else {
+                    swc_start = w.xg1;
+                    swc_stop  = w.xg2;
+                }
             } else {
-                wtmaj = swc_start + itmaj*stmajor;
-                if (t->tl_format == FORMAT_GENERAL && fabs(wtmaj) < 1.0e-6*stmajor) {
-                    wtmaj = 0.0;
+                scale = get_graph_yscale(gno);
+                if (scale == SCALE_LOG) {
+                    swc_start = fscale(w.yg1, scale);
+                    swc_stop  = fscale(w.yg2, scale);
+                } else {
+                    swc_start = w.yg1;
+                    swc_stop  = w.yg2;
                 }
             }
-            t->tloc[itick].wtpos = wtmaj;
-            t->tloc[itick].type = TICK_TYPE_MAJOR;
+            if (scale == SCALE_LOG) {
+                stmajor = fscale(t->tmajor, scale);
+            } else {
+                stmajor = t->tmajor;
+            }
 
-	    if (t->tl_type == TYPE_AUTO) {
-	        switch (t->tl_sign) {
-	        case SIGN_NORMAL:
-	            tick_value = wtmaj;
-	            break;
-	        case SIGN_ABSOLUTE:
-	            tick_value = fabs(wtmaj);
-	            break;
-	        case SIGN_NEGATE:
-	            tick_value = -wtmaj;
-	            break;
-	        default:
-	            errmsg("Internal error in calculate_tickgrid()");
-	            return;
-	        }
-	        t->tloc[itick].label = copy_string(t->tloc[itick].label, 
-                    create_fstring(t->tl_format, t->tl_prec,
-                        tick_value, LFORMAT_TYPE_EXTENDED));
+            if (stmajor <= 0.0) {
+	        errmsg("Invalid major tick spacing, autoticking");
+	        autotick_axis(gno, caxis);
+                goto reenter;
 	    }
 
-            itick++;
-            for (imtick = 0; imtick < t->nminor && itick < t->nticks; imtick++) {
-                if (scale == SCALE_LOG) {
-                    t->tloc[itick].wtpos = wtmaj * (imtick + 2);
-                } else {
-                    t->tloc[itick].wtpos = wtmaj + (imtick + 1)*stmajor/(t->nminor + 1);
-                }
-                t->tloc[itick].type = TICK_TYPE_MINOR;
-	        cxfree(t->tloc[itick].label);
-                itick++;
+            if (t->t_round == TRUE) {
+                swc_start = floor(swc_start/stmajor)*stmajor;
             }
-            itmaj++;
+
+            nmajor = (int) ceil((swc_stop - swc_start) / stmajor + 1);
+            t->nticks = (nmajor - 1)*(t->nminor + 1) + 1;
+
+            if (t->nticks > MAX_TICKS) {
+	        errmsg("Too many ticks ( > MAX_TICKS ), autoticking");
+	        autotick_axis(gno, caxis);
+                goto reenter;
+	    }
+
+    /*
+     *         if (t->nticks > MAX_TICKS) {
+     *             t->nticks = MAX_TICKS;
+     *         }
+     */
+
+            itick = 0;
+            itmaj = 0;
+            while (itick < t->nticks) {
+                if (scale == SCALE_LOG) {
+                    wtmaj = ifscale(swc_start + itmaj*stmajor, scale);
+                } else {
+                    wtmaj = swc_start + itmaj*stmajor;
+                    if (t->tl_format == FORMAT_GENERAL && fabs(wtmaj) < 1.0e-6*stmajor) {
+                        wtmaj = 0.0;
+                    }
+                }
+                t->tloc[itick].wtpos = wtmaj;
+                t->tloc[itick].type = TICK_TYPE_MAJOR;
+
+                itick++;
+                for (imtick = 0; imtick < t->nminor && itick < t->nticks; imtick++) {
+                    if (scale == SCALE_LOG) {
+                        t->tloc[itick].wtpos = wtmaj * (imtick + 2);
+                    } else {
+                        t->tloc[itick].wtpos = wtmaj + (imtick + 1)*stmajor/(t->nminor + 1);
+                    }
+                    t->tloc[itick].type = TICK_TYPE_MINOR;
+	            cxfree(t->tloc[itick].label);
+                    itick++;
+                }
+                itmaj++;
+            }
         }
+
+        if (t->tl_type == TYPE_AUTO) {
+	    nmajor = 0;
+            for (itick = 0; itick < t->nticks; itick++) {
+                if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
+                    nmajor++;
+                }
+            }
+	    if (t->tl_formula && t->tl_formula[0] != '\0') {
+
+                tvar = get_parser_arr_by_name("$t");
+                if (tvar == NULL) {
+                    tvar = define_parser_arr("$t");
+                    if (tvar == NULL) {
+	                errmsg("Internal error");
+                        return;
+                    }
+                }
+
+                if (tvar->length != 0) {
+                    free(tvar->data);
+                    tvar->length = 0;
+                }
+                tvar->data = malloc(nmajor*SIZEOF_DOUBLE);
+                if (tvar->data == NULL) {
+	            errmsg("Not enough memory");
+                    return;
+                }
+                tvar->length = nmajor;
+                
+                itmaj = 0;
+                for (itick = 0; itick < t->nticks; itick++) {
+                    if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
+                        tvar->data[itmaj] = t->tloc[itick].wtpos;
+                        itmaj++;
+                    }
+                }
+
+                res = v_scanner(t->tl_formula, &len, &tt);
+                cxfree(tvar->data);
+                tvar->length = 0;
+                if (res != GRACE_EXIT_SUCCESS || len != nmajor) {
+                    errmsg("Error in tick transformation formula");
+                    return;
+                }
+
+                itmaj = 0;
+                for (itick = 0; itick < t->nticks; itick++) {
+                    if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
+	                t->tloc[itick].label = copy_string(t->tloc[itick].label, 
+                            create_fstring(t->tl_format, t->tl_prec,
+                                tt[itmaj], LFORMAT_TYPE_EXTENDED));
+                        itmaj++;
+                    }
+                }
+                xfree(tt);
+	    } else {
+                for (itick = 0; itick < t->nticks; itick++) {
+                    if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
+	                t->tloc[itick].label = copy_string(t->tloc[itick].label, 
+                            create_fstring(t->tl_format, t->tl_prec,
+                                t->tloc[itick].wtpos, LFORMAT_TYPE_EXTENDED));
+                    }
+                }
+            }
+	}
     }
 }

@@ -102,8 +102,7 @@ static Widget *tlgaptype;       /* tick label placement, auto or specified */
 static Widget tlgap;            /* location of tick label if specified (viewport coords) */
 static Widget tlangle;          /* angle */
 static Widget *tlstagger;       /* stagger */
-static Widget *tlsign;          /* sign of tick label (normal, negate, *
-                                 * absolute) */
+static TextStructure *tlformula; /* transformation if tick labels */
 static Widget *autonum;         /* number of autotick divisions */
 static Widget tround;           /* place at rounded positions */
 static Widget tgrid;            /* major ticks grid */
@@ -425,11 +424,7 @@ void create_axes_dialog(int axisno)
                         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 0,
                                    0);
 
-        tlsign = CreatePanelChoice(rc2, "Sign of label:",
-                                   4,
-                                   "As is", "Absolute value", "Negate",
-                                   NULL,
-                                   0);
+        tlformula = CreateTextInput(rc2, "Axis transform:");
         XtManageChild(rc2);
 
         rc2 = XmCreateRowColumn(rc, "rc", NULL, 0);
@@ -626,7 +621,7 @@ static void axes_aac_cb(void *data)
     int applyto;
     int axis_start, axis_stop, graph_start, graph_stop;
     int invert;
-    tickmarks t;
+    tickmarks *t;
     double axestart, axestop;
     char *cp;
     world w;
@@ -639,135 +634,140 @@ static void axes_aac_cb(void *data)
         XtUnmanageChild(axes_dialog);
         return;
     }
-    
-    get_graph_tickmarks(cg, &t, curaxis);
-    t.label.s = NULL;
 
     applyto = GetChoice(axis_applyto);
-    t.active = GetToggleButtonState(axis_active);
     
-    t.zero = GetToggleButtonState(axis_zero);
-
-    t.nminor = (int) GetSpinChoice(nminor);
-    if (xv_evalexpr(tmajor, &t.tmajor) != GRACE_EXIT_SUCCESS) {
-        free_ticklabels(&t);
+    t = new_graph_tickmarks();
+    if (!t) {
         return;
     }
 
-    t.tl_flag = GetToggleButtonState(tlonoff);
-    t.t_flag = GetToggleButtonState(tonoff);
-    t.t_drawbar = GetToggleButtonState(baronoff);
-    set_plotstr_string(&t.label, GetTextString(axislabel));
+    t->active = GetToggleButtonState(axis_active);
+    
+    t->zero = GetToggleButtonState(axis_zero);
 
-    xv_evalexpr(offx, &t.offsx);
-    xv_evalexpr(offy, &t.offsy);
-
-    t.label_layout = GetChoice(axislabellayout) ? LAYOUT_PERPENDICULAR : LAYOUT_PARALLEL;
-    t.label_place = GetChoice(axislabelplace) ? TYPE_SPEC : TYPE_AUTO;
-    if (t.label_place == TYPE_SPEC) {
-        strcpy(buf, xv_getstr(axislabelspec));
-        sscanf(buf, "%lf %lf", &t.label.x, &t.label.y);
+    if (xv_evalexpr(tmajor, &t->tmajor) != GRACE_EXIT_SUCCESS) {
+	errmsg( "Specify major tick spacing" );
+        free_graph_tickmarks(t);
+        return;
     }
-    t.label.font = GetOptionChoice(axislabelfont);
-    t.label.color = GetOptionChoice(axislabelcolor);
-    t.label.charsize = GetCharSizeChoice(axislabelcharsize);
+    t->nminor = (int) GetSpinChoice(nminor);
+
+    t->tl_flag = GetToggleButtonState(tlonoff);
+    t->t_flag = GetToggleButtonState(tonoff);
+    t->t_drawbar = GetToggleButtonState(baronoff);
+    set_plotstr_string(&t->label, GetTextString(axislabel));
+
+    xv_evalexpr(offx, &t->offsx);
+    xv_evalexpr(offy, &t->offsy);
+
+    t->label_layout = GetChoice(axislabellayout) ? LAYOUT_PERPENDICULAR : LAYOUT_PARALLEL;
+    t->label_place = GetChoice(axislabelplace) ? TYPE_SPEC : TYPE_AUTO;
+    if (t->label_place == TYPE_SPEC) {
+        strcpy(buf, xv_getstr(axislabelspec));
+        sscanf(buf, "%lf %lf", &t->label.x, &t->label.y);
+    }
+    t->label.font = GetOptionChoice(axislabelfont);
+    t->label.color = GetOptionChoice(axislabelcolor);
+    t->label.charsize = GetCharSizeChoice(axislabelcharsize);
 
     /* somehow the value of axislabelop gets automagically correctly
        applied to all selected axes without checking for the value of
        applyto directly here (strange...) */
-    t.label_op = GetChoice(axislabelop);
+    t->label_op = GetChoice(axislabelop);
 
-    t.tl_font = GetOptionChoice(tlfont);
-    t.tl_color = GetOptionChoice(tlcolor);
-    t.tl_skip = GetChoice(tlskip);
-    t.tl_prec = GetChoice(tlprec);
-    t.tl_staggered = (int) GetChoice(tlstagger);
-    strcpy(t.tl_appstr, xv_getstr(tlappstr));
-    strcpy(t.tl_prestr, xv_getstr(tlprestr));
-    t.tl_starttype = (int) GetChoice(tlstarttype) == 0 ? TYPE_AUTO : TYPE_SPEC;
-    if (t.tl_starttype == TYPE_SPEC) {
-        if(xv_evalexpr(tlstart, &t.tl_start) != GRACE_EXIT_SUCCESS) {
-	    errwin( "Specify tick label start" );
-	    free_ticklabels(&t);
+    t->tl_font = GetOptionChoice(tlfont);
+    t->tl_color = GetOptionChoice(tlcolor);
+    t->tl_skip = GetChoice(tlskip);
+    t->tl_prec = GetChoice(tlprec);
+    t->tl_staggered = (int) GetChoice(tlstagger);
+    strcpy(t->tl_appstr, xv_getstr(tlappstr));
+    strcpy(t->tl_prestr, xv_getstr(tlprestr));
+    t->tl_starttype = (int) GetChoice(tlstarttype) == 0 ? TYPE_AUTO : TYPE_SPEC;
+    if (t->tl_starttype == TYPE_SPEC) {
+        if(xv_evalexpr(tlstart, &t->tl_start) != GRACE_EXIT_SUCCESS) {
+	    errmsg( "Specify tick label start" );
+            free_graph_tickmarks(t);
             return;
 	}
     }
-    t.tl_stoptype = (int) GetChoice(tlstoptype) == 0 ? TYPE_AUTO : TYPE_SPEC;
-    if (t.tl_stoptype == TYPE_SPEC) {
-        if(xv_evalexpr(tlstop, &t.tl_stop) != GRACE_EXIT_SUCCESS){
-	    errwin( "Specify tick label stop" );
-	    free_ticklabels(&t);
+    t->tl_stoptype = (int) GetChoice(tlstoptype) == 0 ? TYPE_AUTO : TYPE_SPEC;
+    if (t->tl_stoptype == TYPE_SPEC) {
+        if(xv_evalexpr(tlstop, &t->tl_stop) != GRACE_EXIT_SUCCESS){
+	    errmsg( "Specify tick label stop" );
+            free_graph_tickmarks(t);
             return;
 	}
     }
-    t.tl_format = GetOptionChoice(tlform);
-    t.tl_sign = GetChoice(tlsign);
+    t->tl_format = GetOptionChoice(tlform);
 
-    t.tl_gaptype = GetChoice(tlgaptype) ? TYPE_SPEC : TYPE_AUTO;
-    if (t.tl_gaptype == TYPE_SPEC) {
+    t->tl_formula = copy_string(NULL, GetTextString(tlformula));
+
+    t->tl_gaptype = GetChoice(tlgaptype) ? TYPE_SPEC : TYPE_AUTO;
+    if (t->tl_gaptype == TYPE_SPEC) {
         strcpy(buf, xv_getstr(tlgap));
-        sscanf(buf, "%lf %lf", &t.tl_gap.x, &t.tl_gap.y);
+        sscanf(buf, "%lf %lf", &t->tl_gap.x, &t->tl_gap.y);
     }
     
-    t.tl_angle = GetAngleChoice(tlangle);
+    t->tl_angle = GetAngleChoice(tlangle);
     
-    t.tl_charsize = GetCharSizeChoice(tlcharsize);
+    t->tl_charsize = GetCharSizeChoice(tlcharsize);
 
     switch ((int) GetChoice(tinout)) {
     case 0:
-        t.t_inout = TICKS_IN;
+        t->t_inout = TICKS_IN;
         break;
     case 1:
-        t.t_inout = TICKS_OUT;
+        t->t_inout = TICKS_OUT;
         break;
     case 2:
-        t.t_inout = TICKS_BOTH;
+        t->t_inout = TICKS_BOTH;
         break;
     }
     
-    t.props.color = GetOptionChoice(tgridcol);
-    t.props.linew = GetSpinChoice(tgridlinew);
-    t.props.lines = GetOptionChoice(tgridlines);
-    t.mprops.color = GetOptionChoice(tmgridcol);
-    t.mprops.linew = GetSpinChoice(tmgridlinew);
-    t.mprops.lines = GetOptionChoice(tmgridlines);
+    t->props.color = GetOptionChoice(tgridcol);
+    t->props.linew = GetSpinChoice(tgridlinew);
+    t->props.lines = GetOptionChoice(tgridlines);
+    t->mprops.color = GetOptionChoice(tmgridcol);
+    t->mprops.linew = GetSpinChoice(tmgridlinew);
+    t->mprops.lines = GetOptionChoice(tmgridlines);
     
-    t.props.size = GetCharSizeChoice(tlen);
-    t.mprops.size = GetCharSizeChoice(tmlen);
+    t->props.size = GetCharSizeChoice(tlen);
+    t->mprops.size = GetCharSizeChoice(tmlen);
 
-    t.t_autonum = GetChoice(autonum) + 2;
+    t->t_autonum = GetChoice(autonum) + 2;
 
-    t.t_round = GetToggleButtonState(tround);
+    t->t_round = GetToggleButtonState(tround);
     
-    t.props.gridflag = GetToggleButtonState(tgrid);
-    t.mprops.gridflag = GetToggleButtonState(tmgrid);
+    t->props.gridflag = GetToggleButtonState(tgrid);
+    t->mprops.gridflag = GetToggleButtonState(tmgrid);
 
-    t.t_drawbarcolor = GetOptionChoice(barcolor);
-    t.t_drawbarlinew = GetSpinChoice(barlinew);
-    t.t_drawbarlines = GetOptionChoice(barlines);
+    t->t_drawbarcolor = GetOptionChoice(barcolor);
+    t->t_drawbarlinew = GetSpinChoice(barlinew);
+    t->t_drawbarlines = GetOptionChoice(barlines);
 
-    t.t_type = GetToggleButtonState(specticks) ? TYPE_SPEC : TYPE_AUTO;
-    t.tl_type = GetToggleButtonState(specticklabels) ? TYPE_SPEC : TYPE_AUTO;
+    t->t_type = GetToggleButtonState(specticks) ? TYPE_SPEC : TYPE_AUTO;
+    t->tl_type = GetToggleButtonState(specticklabels) ? TYPE_SPEC : TYPE_AUTO;
     /* only read special info if special ticks used */
-    if (t.t_type == TYPE_SPEC || t.tl_type == TYPE_SPEC) {
-        t.nticks = (int) GetSpinChoice(nspec);
+    if (t->t_type == TYPE_SPEC || t->tl_type == TYPE_SPEC) {
+        t->nticks = (int) GetSpinChoice(nspec);
         /* ensure that enough tick positions have been specified */
-        for (i = 0; i < t.nticks; i++) {
-            if (xv_evalexpr(specloc[i], &t.tloc[i].wtpos) == GRACE_EXIT_SUCCESS) {
-                if (t.tl_type == TYPE_SPEC) {
-                    cp = xv_getstr(speclabel[i]);
-                    if (cp[0] == '\0') {
-                        t.tloc[i].type = TICK_TYPE_MINOR;
-                    } else {
-                        t.tloc[i].type = TICK_TYPE_MAJOR;
-                    }
-                    t.tloc[i].label = copy_string(t.tloc[i].label, cp);
+        for (i = 0; i < t->nticks; i++) {
+            if (xv_evalexpr(specloc[i], &t->tloc[i].wtpos) == GRACE_EXIT_SUCCESS) {
+                cp = xv_getstr(speclabel[i]);
+                if (cp[0] == '\0') {
+                    t->tloc[i].type = TICK_TYPE_MINOR;
                 } else {
-                    t.tloc[i].type = TICK_TYPE_MAJOR;
+                    t->tloc[i].type = TICK_TYPE_MAJOR;
+                }
+                if (t->tl_type == TYPE_SPEC) {
+                    t->tloc[i].label = copy_string(t->tloc[i].label, cp);
+                } else {
+                    t->tloc[i].label = copy_string(t->tloc[i].label, NULL);
                 }
             } else {
                 errmsg("Not enough tick locations specified");
-                free_ticklabels(&t);
+                free_graph_tickmarks(t);
                 return;
             }
         }
@@ -809,7 +809,7 @@ static void axes_aac_cb(void *data)
     if (xv_evalexpr(axis_world_start, &axestart) != GRACE_EXIT_SUCCESS ||
         xv_evalexpr(axis_world_stop,  &axestop)  != GRACE_EXIT_SUCCESS) {
         errmsg("Axis start/stop values undefined");
-        free_ticklabels(&t);
+        free_graph_tickmarks(t);
         return;
     }
 		
@@ -857,15 +857,15 @@ static void axes_aac_cb(void *data)
                 set_graph_yinvert(i, invert);
             }
             
-            t.tl_op = GetChoice(ticklop);
+            t->tl_op = GetChoice(ticklop);
 
-            t.t_op = GetChoice(tickop);
+            t->t_op = GetChoice(tickop);
 
-            set_graph_tickmarks(i, &t, j);
+            set_graph_tickmarks(i, j, t);
         }
     }
     
-    free_ticklabels(&t);
+    free_graph_tickmarks(t);
     
     if (aac_mode == AAC_ACCEPT) {
         XtUnmanageChild(axes_dialog);
@@ -921,13 +921,16 @@ static void axis_scale_cb(int value, void *data)
 
 void update_ticks(int gno)
 {
-    tickmarks t;
+    tickmarks *t;
     world w;
     char buf[128];
     int i;
 
     if (axes_dialog && XtIsManaged(axes_dialog)) {
-        get_graph_tickmarks(gno, &t, curaxis);
+        t = get_graph_tickmarks(gno, curaxis);
+        if (!t) {
+            return;
+        }
 
         SetToggleButtonState(axis_active, is_axis_active(gno, curaxis));
         if (is_axis_active(gno, curaxis) == FALSE) {
@@ -957,70 +960,70 @@ void update_ticks(int gno)
             SetToggleButtonState(axis_invert, is_graph_yinvert(gno));
         }
 
-        sprintf(buf, "%.2f", t.offsx);
+        sprintf(buf, "%.2f", t->offsx);
         xv_setstr(offx, buf);
-        sprintf(buf, "%.2f", t.offsy);
+        sprintf(buf, "%.2f", t->offsy);
         xv_setstr(offy, buf);
 
-        SetChoice(axislabellayout, t.label_layout == LAYOUT_PERPENDICULAR ? 1 : 0);
-        SetChoice(axislabelplace, t.label_place == TYPE_AUTO ? 0 : 1);
-        sprintf(buf, "%.2f %.2f", t.label.x, t.label.y);
+        SetChoice(axislabellayout, t->label_layout == LAYOUT_PERPENDICULAR ? 1 : 0);
+        SetChoice(axislabelplace, t->label_place == TYPE_AUTO ? 0 : 1);
+        sprintf(buf, "%.2f %.2f", t->label.x, t->label.y);
         xv_setstr(axislabelspec, buf);
-        SetOptionChoice(axislabelfont, t.label.font);
-        SetOptionChoice(axislabelcolor, t.label.color);
-        SetCharSizeChoice(axislabelcharsize, t.label.charsize);
-        SetChoice(axislabelop, t.label_op);
+        SetOptionChoice(axislabelfont, t->label.font);
+        SetOptionChoice(axislabelcolor, t->label.color);
+        SetCharSizeChoice(axislabelcharsize, t->label.charsize);
+        SetChoice(axislabelop, t->label_op);
 
-        SetToggleButtonState(tlonoff, t.tl_flag);
-        SetToggleButtonState(tonoff, t.t_flag);
-        SetToggleButtonState(baronoff, t.t_drawbar);
-        SetTextString(axislabel, t.label.s);
+        SetToggleButtonState(tlonoff, t->tl_flag);
+        SetToggleButtonState(tonoff, t->t_flag);
+        SetToggleButtonState(baronoff, t->t_drawbar);
+        SetTextString(axislabel, t->label.s);
 
         if (is_log_axis(gno, curaxis)) {
-            if (t.tmajor <= 1.0) {
-                t.tmajor = 10.0;
+            if (t->tmajor <= 1.0) {
+                t->tmajor = 10.0;
             }
-            sprintf(buf, "%g", t.tmajor);
-        } else if (t.tmajor > 0) {
-            sprintf(buf, "%g", t.tmajor);
+            sprintf(buf, "%g", t->tmajor);
+        } else if (t->tmajor > 0) {
+            sprintf(buf, "%g", t->tmajor);
         } else {
             strcpy(buf, "UNDEFINED");
         }
         xv_setstr(tmajor, buf);
  
-        SetSpinChoice(nminor, t.nminor);
+        SetSpinChoice(nminor, t->nminor);
 
-        SetOptionChoice(tlfont, t.tl_font);
-        SetOptionChoice(tlcolor, t.tl_color);
-        SetChoice(tlskip, t.tl_skip);
-        SetChoice(tlstagger, t.tl_staggered);
-        xv_setstr(tlappstr, t.tl_appstr);
-        xv_setstr(tlprestr, t.tl_prestr);
-        SetChoice(tlstarttype, t.tl_starttype == TYPE_SPEC);
-        if (t.tl_starttype == TYPE_SPEC) {
-            sprintf(buf, "%f", t.tl_start);
+        SetOptionChoice(tlfont, t->tl_font);
+        SetOptionChoice(tlcolor, t->tl_color);
+        SetChoice(tlskip, t->tl_skip);
+        SetChoice(tlstagger, t->tl_staggered);
+        xv_setstr(tlappstr, t->tl_appstr);
+        xv_setstr(tlprestr, t->tl_prestr);
+        SetChoice(tlstarttype, t->tl_starttype == TYPE_SPEC);
+        if (t->tl_starttype == TYPE_SPEC) {
+            sprintf(buf, "%f", t->tl_start);
             xv_setstr(tlstart, buf);
-            sprintf(buf, "%f", t.tl_stop);
+            sprintf(buf, "%f", t->tl_stop);
             xv_setstr(tlstop, buf);
         }
-        SetChoice(tlstoptype, t.tl_stoptype == TYPE_SPEC);
-        if (t.tl_stoptype == TYPE_SPEC) {
-            sprintf(buf, "%f", t.tl_stop);
+        SetChoice(tlstoptype, t->tl_stoptype == TYPE_SPEC);
+        if (t->tl_stoptype == TYPE_SPEC) {
+            sprintf(buf, "%f", t->tl_stop);
             xv_setstr(tlstop, buf);
         }
-        SetOptionChoice(tlform, t.tl_format);
-        SetChoice(ticklop, t.tl_op);
-        SetChoice(tlsign, t.tl_sign);
-        SetChoice(tlprec, t.tl_prec);
+        SetOptionChoice(tlform, t->tl_format);
+        SetChoice(ticklop, t->tl_op);
+        SetTextString(tlformula, t->tl_formula);
+        SetChoice(tlprec, t->tl_prec);
 
-        SetChoice(tlgaptype, t.tl_gaptype == TYPE_AUTO ? 0 : 1);
-        sprintf(buf, "%.2f %.2f", t.tl_gap.x, t.tl_gap.y);
+        SetChoice(tlgaptype, t->tl_gaptype == TYPE_AUTO ? 0 : 1);
+        sprintf(buf, "%.2f %.2f", t->tl_gap.x, t->tl_gap.y);
         xv_setstr(tlgap, buf);
 
-        SetCharSizeChoice(tlcharsize, t.tl_charsize);
-        SetAngleChoice(tlangle, t.tl_angle);
+        SetCharSizeChoice(tlcharsize, t->tl_charsize);
+        SetAngleChoice(tlangle, t->tl_angle);
 
-        switch (t.t_inout) {
+        switch (t->t_inout) {
         case TICKS_IN:
             SetChoice(tinout, 0);
             break;
@@ -1032,41 +1035,39 @@ void update_ticks(int gno)
             break;
         }
         
-        SetChoice(tickop, t.t_op);
+        SetChoice(tickop, t->t_op);
         
-        SetOptionChoice(tgridcol, t.props.color);
-        SetSpinChoice(tgridlinew, t.props.linew);
-        SetOptionChoice(tgridlines, t.props.lines);
-        SetOptionChoice(tmgridcol, t.mprops.color);
-        SetSpinChoice(tmgridlinew, t.mprops.linew);
-        SetOptionChoice(tmgridlines, t.mprops.lines);
-        SetCharSizeChoice(tlen, t.props.size);
-        SetCharSizeChoice(tmlen, t.mprops.size);
+        SetOptionChoice(tgridcol, t->props.color);
+        SetSpinChoice(tgridlinew, t->props.linew);
+        SetOptionChoice(tgridlines, t->props.lines);
+        SetOptionChoice(tmgridcol, t->mprops.color);
+        SetSpinChoice(tmgridlinew, t->mprops.linew);
+        SetOptionChoice(tmgridlines, t->mprops.lines);
+        SetCharSizeChoice(tlen, t->props.size);
+        SetCharSizeChoice(tmlen, t->mprops.size);
 
-        SetChoice(autonum, t.t_autonum - 2);
+        SetChoice(autonum, t->t_autonum - 2);
 
-        SetToggleButtonState(tround, t.t_round);
-        SetToggleButtonState(tgrid, t.props.gridflag);
-        SetToggleButtonState(tmgrid, t.mprops.gridflag);
+        SetToggleButtonState(tround, t->t_round);
+        SetToggleButtonState(tgrid, t->props.gridflag);
+        SetToggleButtonState(tmgrid, t->mprops.gridflag);
 
-        SetOptionChoice(barcolor, t.t_drawbarcolor);
-        SetSpinChoice(barlinew, t.t_drawbarlinew);
-        SetOptionChoice(barlines, t.t_drawbarlines);
+        SetOptionChoice(barcolor, t->t_drawbarcolor);
+        SetSpinChoice(barlinew, t->t_drawbarlinew);
+        SetOptionChoice(barlines, t->t_drawbarlines);
 
-        SetToggleButtonState(specticks, (t.t_type == TYPE_SPEC));
-        SetToggleButtonState(specticklabels, (t.tl_type == TYPE_SPEC));
-        SetSpinChoice(nspec, t.nticks);
-        for (i = 0; i < t.nticks; i++) {
-            sprintf(buf, "%g", t.tloc[i].wtpos);
+        SetToggleButtonState(specticks, (t->t_type == TYPE_SPEC));
+        SetToggleButtonState(specticklabels, (t->tl_type == TYPE_SPEC));
+        SetSpinChoice(nspec, t->nticks);
+        for (i = 0; i < t->nticks; i++) {
+            sprintf(buf, "%g", t->tloc[i].wtpos);
             xv_setstr(specloc[i], buf);
-            if (t.tloc[i].type == TICK_TYPE_MAJOR) {
-                xv_setstr(speclabel[i], t.tloc[i].label);
+            if (t->tloc[i].type == TICK_TYPE_MAJOR) {
+                xv_setstr(speclabel[i], t->tloc[i].label);
             } else {
                 xv_setstr(speclabel[i], "");
             }
         }
-        
-        free_ticklabels(&t);
     }
 }
 
