@@ -112,6 +112,8 @@ struct _StorageStructure {
     
     Quark *q;
     Storage_LabelingProc labeling_proc;
+    
+    StorageStructure *governor;
 
     Widget rc;
     Widget list;

@@ -933,6 +933,11 @@ static void storage_popup(Widget parent,
         return;
     }
     
+    /* don't post menu if governor selection isn't single */
+    if (ss->governor && list_get_selected_count(ss->governor->list) != 1) {
+        return;
+    }
+    
     n = list_get_selected_count(ss->list);
     
     if (n != 0) {
@@ -3052,6 +3057,7 @@ GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
     retval->set_sel = CreateSetChoice(rc, "Set:", sel_type, retval->graph_sel);
     AddStorageChoiceCB(retval->graph_sel, update_sets_cb, (void *) retval);
     UpdateSetChoice(retval->set_sel);
+    retval->set_sel->governor = retval->graph_sel;
     XtManageChild(rc);
 
     return retval;
