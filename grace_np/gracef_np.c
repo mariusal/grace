@@ -8,6 +8,12 @@
 
 #include "grace_np.h"
 
+#ifdef NEED_F77_UNDERSCORE
+#  define F77_FNAME(fname) fname ## _
+#else
+#  define F77_FNAME(fname) fname
+#endif
+
 typedef void (*GraceFortranFunctionType) (const char *str, int len);
 static GraceFortranFunctionType fortran_error = (GraceFortranFunctionType) 0;
 
@@ -20,74 +26,39 @@ static void GraceFortranWrapper(const char *str)
     }
 }
 
-void
-#ifdef NEED_F77_UNDERSCORE
-graceregistererrorfunctionf_ (GraceFortranFunctionType f)
-#else
-graceregistererrorfunctionf (GraceFortranFunctionType f)
-#endif
+void F77_FNAME(graceregistererrorfunctionf) (GraceFortranFunctionType f)
 {
     fortran_error = f;
     GraceRegisterErrorFunction(GraceFortranWrapper);
 }
 
-int
-#ifdef NEED_F77_UNDERSCORE
-graceopenf_ (const int *arg)
-#else
-graceopenf (const int *arg)
-#endif
+int F77_FNAME(graceopenf) (const int *arg)
 {
     return (GraceOpen (*arg));
 }
 
-int
-#ifdef NEED_F77_UNDERSCORE
-graceisopenf_ (void)
-#else
-graceisopenf (void)
-#endif
+int F77_FNAME(graceisopenf) (void)
 {
     return (GraceIsOpen ());
 }
 
-int
-#ifdef NEED_F77_UNDERSCORE
-graceclosef_ (void)
-#else
-graceclosef (void)
-#endif
+int F77_FNAME(graceclosef) (void)
 {
     return (GraceClose ());
 }
 
-int
-#ifdef NEED_F77_UNDERSCORE
-graceclosepipef_ (void)
-#else
-graceclosepipef (void)
-#endif
+int F77_FNAME(graceclosepipef) (void)
 {
     return (GraceClosePipe());
 }
 
-int
-#ifdef NEED_F77_UNDERSCORE
-graceflushf_ (void)
-#else
-graceflushf (void)
-#endif
+int F77_FNAME(graceflushf) (void)
 {
     return (GraceFlush ());
 }
 
 
-int
-#ifdef NEED_F77_UNDERSCORE
-gracecommandf_ (const char* arg, int length)
-#else
-gracecommandf (const char* arg, int length)
-#endif
+int F77_FNAME(gracecommandf) (const char* arg, int length)
 {
     char* str;
     int res;
@@ -104,10 +75,9 @@ gracecommandf (const char* arg, int length)
     return (res);
 }
 
-#else /* no Fortran */
+#else /* don't include Fortran wrapper */
 
 /* To make ANSI C happy about non-empty file */
-void _gracef_np_c_dummy_func(void) {}
+void F77_FNAME(_gracef_np_c_dummy_func) (void) {}
 
 #endif /* HAVE_F77 */
-
