@@ -79,11 +79,10 @@ void set_default_ellipse(ellipsetype * b);
 void set_default_legend(int gno, legend * l);
 void set_default_plotarr(plotarr * p);
 void set_default_graph(int gno);
-void realloc_lines(int n);
-void realloc_boxes(int n);
-void realloc_ellipses(int n);
-void realloc_strings(int n);
-void set_default_annotation(void);
+int realloc_lines(int n);
+int realloc_boxes(int n);
+int realloc_ellipses(int n);
+int realloc_strings(int n);
 void set_default_ticks(tickmarks * t, int a);
 
 void calculate_tickgrid(int gno);

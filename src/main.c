@@ -474,46 +474,6 @@ int main(int argc, char *argv[])
 			}
 			alloc_blockdata(itmp);
 		    }
-		} else if (argmatch(argv[i], "-maxlines", 8)) {
-		    int itmp;
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for max number of lines\n");
-			usage(stderr, argv[0]);
-		    } else {
-			itmp = atoi(argv[i]);
-			realloc_lines(itmp);
-		    }
-		} else if (argmatch(argv[i], "-maxboxes", 8)) {
-		    int itmp;
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for max number of boxes\n");
-			usage(stderr, argv[0]);
-		    } else {
-			itmp = atoi(argv[i]);
-			realloc_boxes(itmp);
-		    }
-		} else if (argmatch(argv[i], "-maxellipses", 12)) {
-		    int itmp;
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for max number of ellipses\n");
-			usage(stderr, argv[0]);
-		    } else {
-			itmp = atoi(argv[i]);
-			realloc_ellipses(itmp);
-		    }
-		} else if (argmatch(argv[i], "-maxstr", 7)) {
-		    int itmp;
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for max number of strings\n");
-			usage(stderr, argv[0]);
-		    } else {
-			itmp = atoi(argv[i]);
-			realloc_strings(itmp);
-		    }
 #ifndef NONE_GUI
 		} else if (argmatch(argv[i], "-install", 7)) {
 		    install_cmap = CMAP_INSTALL_ALWAYS;
@@ -958,10 +918,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-logwindow                            Open the log window\n");
     fprintf(stream, "-maxblock  [number_of_columns]        Set the number of columns for block data\n");
     fprintf(stream, "                                        (default is %d)\n", MAXBLOCK);
-    fprintf(stream, "-maxboxes  [number_of_boxes]          Set the number of boxes\n");
-    fprintf(stream, "-maxellipses  [number_of_ellipses]    Set the number of ellipses\n");
-    fprintf(stream, "-maxlines  [number_of_lines]          Set the number of lines\n");
-    fprintf(stream, "-maxstr    [number_of_strings]        Set the number of strings \n");
     fprintf(stream, "-mono                                 Run %s in monochrome mode (affects\n", progname);
     fprintf(stream, "                                        the display only)\n");
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)

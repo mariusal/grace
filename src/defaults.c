@@ -78,8 +78,6 @@ void set_program_defaults(void)
         set_region_defaults(i);
     }
     
-    set_default_annotation();
-    
     set_default_string(&timestamp);
     
     alloc_blockdata(maxblock);
@@ -285,28 +283,6 @@ void set_default_plotarr(plotarr * p)
     p->data.s = NULL;                   /* pointer to strings */
 }
 
-void set_default_annotation(void)
-{
-    int i;
-
-    realloc_lines(MAXLINES);
-    realloc_boxes(MAXBOXES);
-    realloc_ellipses(MAXELLIPSES);
-    realloc_strings(MAXSTR);
-
-    for (i = 0; i < number_of_lines(); i++) {
-        set_default_line(&lines[i]);
-    }
-    for (i = 0; i < number_of_boxes(); i++) {
-        set_default_box(&boxes[i]);
-    }
-    for (i = 0; i < number_of_ellipses(); i++) {
-        set_default_ellipse(&ellip[i]);
-    }
-    for (i = 0; i < number_of_strings(); i++) {
-        set_default_string(&pstr[i]);
-    }
-}
 
 void set_default_ticks(tickmarks *t, int a)
 {

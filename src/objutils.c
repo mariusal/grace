@@ -188,9 +188,10 @@ int isactive_ellipse(int ellipno)
     return (0);
 }
 
+
 int next_line(void)
 {
-    int i;
+    int i, maxold;
 
     for (i = 0; i < maxlines; i++) {
 	if (!isactive_line(i)) {
@@ -199,13 +200,18 @@ int next_line(void)
 	    return (i);
 	}
     }
-    errmsg("Error - no lines available");
-    return (-1);
+    maxold = maxlines;
+    if (realloc_lines(maxlines + OBJECT_BUFNUM) == GRACE_EXIT_SUCCESS) {
+        return maxold;
+    } else {
+        errmsg("Error - no lines available");
+        return (-1);
+    }
 }
 
 int next_box(void)
 {
-    int i;
+    int i, maxold;
 
     for (i = 0; i < maxboxes; i++) {
 	if (!isactive_box(i)) {
@@ -214,13 +220,18 @@ int next_box(void)
 	    return (i);
 	}
     }
-    errmsg("Error - no boxes available");
-    return (-1);
+    maxold = maxboxes;
+    if (realloc_boxes(maxboxes + OBJECT_BUFNUM) == GRACE_EXIT_SUCCESS) {
+        return maxold;
+    } else {
+        errmsg("Error - no boxes available");
+        return (-1);
+    }
 }
 
 int next_string(void)
 {
-    int i;
+    int i, maxold;
 
     for (i = 0; i < maxstr; i++) {
 	if (!isactive_string(i)) {
@@ -228,13 +239,18 @@ int next_string(void)
 	    return (i);
 	}
     }
-    errmsg("Error - no strings available");
-    return (-1);
+    maxold = maxstr;
+    if (realloc_strings(maxstr + OBJECT_BUFNUM) == GRACE_EXIT_SUCCESS) {
+        return maxold;
+    } else {
+        errmsg("Error - no strings available");
+        return (-1);
+    }
 }
 
 int next_ellipse(void)
 {
-    int i;
+    int i, maxold;
 
     for (i = 0; i < maxellipses; i++) {
 	if (!isactive_ellipse(i)) {
@@ -243,8 +259,13 @@ int next_ellipse(void)
 	    return (i);
 	}
     }
-    errmsg("Error - no ellipses available");
-    return (-1);
+    maxold = maxellipses;
+    if (realloc_ellipses(maxellipses + OBJECT_BUFNUM) == GRACE_EXIT_SUCCESS) {
+        return maxold;
+    } else {
+        errmsg("Error - no ellipses available");
+        return (-1);
+    }
 }
 
 int next_object(int type)
@@ -561,52 +582,92 @@ void do_clear_text(void)
     }
 }
 
-void realloc_lines(int n)
+int realloc_lines(int n)
 {
     int i;
+    void *ptmp;
+
     if (n > maxlines) {
-	lines = (linetype *) xrealloc(lines, n * sizeof(linetype));
-	for (i = maxlines; i < n; i++) {
-	    set_default_line(&lines[i]);
-	}
-	maxlines = n;
+	ptmp = xrealloc(lines, n * sizeof(linetype));
+	if (ptmp != NULL) {
+            lines = ptmp;
+            for (i = maxlines; i < n; i++) {
+	        set_default_line(&lines[i]);
+	    }
+	    maxlines = n;
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            return GRACE_EXIT_FAILURE;
+        }
     }
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
-void realloc_boxes(int n)
+int realloc_boxes(int n)
 {
     int i;
+    void *ptmp;
+    
     if (n > maxboxes) {
-	boxes = (boxtype *) xrealloc(boxes, n * sizeof(boxtype));
-	for (i = maxboxes; i < n; i++) {
-	    set_default_box(&boxes[i]);
-	}
-	maxboxes = n;
+	ptmp = xrealloc(boxes, n * sizeof(boxtype));
+	if (ptmp != NULL) {
+            boxes = ptmp;
+            for (i = maxboxes; i < n; i++) {
+	        set_default_box(&boxes[i]);
+	    }
+	    maxboxes = n;
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            return GRACE_EXIT_FAILURE;
+        }
     }
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
-void realloc_ellipses(int n)
+int realloc_ellipses(int n)
 {
     int i;
+    void *ptmp;
+    
     if (n > maxellipses) {
-	ellip = (ellipsetype *) xrealloc(ellip, n * sizeof(ellipsetype));
-	for (i = maxellipses; i < n; i++) {
-	    set_default_ellipse(&ellip[i]);
-	}
-	maxellipses = n;
+	ptmp = xrealloc(ellip, n * sizeof(ellipsetype));
+	if (ptmp != NULL) {
+            ellip = ptmp;
+            for (i = maxellipses; i < n; i++) {
+	        set_default_ellipse(&ellip[i]);
+	    }
+	    maxellipses = n;
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            return GRACE_EXIT_FAILURE;
+        }
     }
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
-void realloc_strings(int n)
+int realloc_strings(int n)
 {
     int i;
+    void *ptmp;
+    
     if (n > maxstr) {
-	pstr = (plotstr *) xrealloc(pstr, n * sizeof(plotstr));
-	for (i = maxstr; i < n; i++) {
-	    set_default_string(&pstr[i]);
-	}
-	maxstr = n;
+	ptmp = xrealloc(pstr, n * sizeof(plotstr));
+	if (ptmp != NULL) {
+            pstr = ptmp;
+            for (i = maxstr; i < n; i++) {
+	        set_default_string(&pstr[i]);
+	    }
+	    maxstr = n;
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            return GRACE_EXIT_FAILURE;
+        }
     }
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
 

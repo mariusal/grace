@@ -53,18 +53,16 @@
 #define MAX_TICKS 100           /* max number of ticks/labels per axis */
 #define MAXREGION 5             /* max number of regions */
 
-/* max number of different objects */
-#define MAXLINES 50             /* max number of lines */
-#define MAXBOXES 50             /* max number of boxes */
-#define MAXELLIPSES 50          /* max number of ellipses */
-#define MAXSTR 100              /* max number of strings */
-
 #define MAX_ZOOM_STACK 20       /* max stack depth for world stack */
 
 #define MAXPARM 10              /* max number of parameters for non-lin fit */
 
 #define MAXFIT 12               /* max degree of polynomial+1 that can be
                                  * fitted */
+
+
+/* number of extra objects of a given type to allocate if not enough */
+#define OBJECT_BUFNUM 10
 
 
 #define MAX_JUST 2
