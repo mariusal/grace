@@ -425,7 +425,7 @@ void create_graphapp_frame(int gno)
 
 	fr = CreateFrame(graphapp_spec, "XY charts");
         bargap_item = CreateSpinChoice(fr, "Bar gap:", 5,
-            SPIN_TYPE_FLOAT, 0.0, 1.0, 0.005);
+            SPIN_TYPE_FLOAT, -1.0, 1.0, 0.005);
         AddSpinButtonCB(bargap_item, sp_graph_cb, bargap_item);
 
        
