@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -102,8 +102,31 @@ static Device_entry dev_x11 = {DEVICE_TERM,
 
 int register_x11_drv(void)
 {
+    long mrsize;
+    int max_path_limit;
+    
+    /* XExtendedMaxRequestSize() appeared in X11R6 */
+#if XlibSpecificationRelease > 5
+    mrsize = XExtendedMaxRequestSize(disp);
+#else
+    mrsize = 0;
+#endif
+    if (mrsize <= 0) {
+        mrsize = XMaxRequestSize(disp);
+    }
+    max_path_limit = (mrsize - 3)/2;
+    if (max_path_limit < get_max_path_limit()) {
+        char buf[128];
+        sprintf(buf,
+            "Setting max drawing path length to %d (limited by the X server)",
+            max_path_limit);
+        errmsg(buf);
+        set_max_path_limit(max_path_limit);
+    }
+    
     dev_x11.pg.dpi = rint(MM_PER_INCH*DisplayWidth(disp, screennumber)/
         DisplayWidthMM(disp, screennumber));
+    
     return register_device(dev_x11);
 }
 
