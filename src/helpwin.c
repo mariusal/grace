@@ -80,7 +80,7 @@ void HelpCB(void *data)
     } else {
         /* xmhelp doesn't like "file://localhost/" prefix */
         sprintf(URL, "file:%s/doc/%s", get_grace_home(), ha);
-        get_help(w, (XtPointer) URL, ha);
+        get_help(app_shell, (XtPointer) URL, NULL);
     }
 #else /* usual HTML browser */
 
@@ -171,22 +171,14 @@ void create_about_grtool(void *data)
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
 	sprintf(buf, "      Copyright (c) 1995-97 Andrew Lister");
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-#ifdef HAVE_LIBPDF
-	sprintf(buf, "May contain PDFlib library, Copyright (c) 1997-98 Thomas Metz");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-#endif
-#ifdef HAVE_LIBGD
-	sprintf(buf, "May contain GD library,");
+	sprintf(buf, "Raster driver based on the GD-1.3 library,");
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
 	sprintf(buf, "      Portions copyright (c) 1994-98 Cold Spring Harbor Laboratory");
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
 	sprintf(buf, "      Portions copyright (c) 1996-98 Boutell.Com, Inc");
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "      GIF decompression code copyright (c) 1990, 91, 93 David Koblas");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "      Non-LZW-based GIF compression code copyright (c) 1998");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "      Hutchison Avenue Software Corporation");
+#ifdef HAVE_LIBPDF
+	sprintf(buf, "May contain PDFlib library, Copyright (c) 1997-99 Thomas Metz");
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
 #endif
 
