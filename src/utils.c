@@ -1049,6 +1049,11 @@ char *q_labeling(Quark *q)
             quark_dirtystate_get(q) ? "*":"");
 
         break;
+    case QFlavorSSD:
+        sprintf(buf, "SpreadSheet \"%s%s\"", QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"");
+
+        break;
     case QFlavorFrame:
         sprintf(buf, "Frame \"%s%s\"", QIDSTR(q),
             quark_dirtystate_get(q) ? "*":"");
