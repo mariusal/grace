@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1env.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-08-12
+  ----- Date:        1999-11-29
   ----- Description: This file is part of the t1-library. It implements
                      the reading of a configuration file and path-searching
 		     of type1-, afm- and encoding files.
@@ -69,6 +69,7 @@ int ScanConfigFile( char **pfabenv_ptr,
   char *cnffilepath;
   char *globalcnffilepath;
   char *tmp_ptr;
+  static int linecnt;
   
   
   
@@ -78,7 +79,7 @@ int ScanConfigFile( char **pfabenv_ptr,
   
   /* First, get the string stored in the environment variable: */
   environ=getenv(ENV_CONF_STRING);
-
+  linecnt=1;
 
   if (environ==NULL) {
     /* environment variable not set, try to open default file
@@ -165,7 +166,7 @@ int ScanConfigFile( char **pfabenv_ptr,
   /* Reset fileposition to start */
   fseek( cfg_fp, 0, SEEK_SET);
   
-  if ((linebuf=(char *)calloc( filesize,
+  if ((linebuf=(char *)calloc( filesize+1,
 			       sizeof(char)))==NULL){
     T1_errno=T1ERR_ALLOC_MEM;
     return(-1);
@@ -178,22 +179,25 @@ int ScanConfigFile( char **pfabenv_ptr,
   
   while(i<filesize){
     j=i;     /* Save index of beginning of line */
-    while ((linebuf[i]!='=')&&(linebuf[i]!='\n'))
+    while ((linebuf[i]!='=')&&(linebuf[i]!='\n')&&(i<filesize))
       i++;
-    linebuf[i]=0;  /* replace '=' by ASCII-0 */
-    if (strcmp( "ENCODING", &linebuf[j])==0){
+    if (i==filesize) {
+      free( linebuf);
+      return(i);
+    }
+    if (strncmp( "ENCODING", &linebuf[j], 8)==0) {
       /* Check for an explicitly assigned value */
       if (*encenv_ptr==T1_enc){
 	k=i+1;       /* points to assigned path string */
-	while (linebuf[i] != '\n')
+	while ((!isspace((int)linebuf[i]))&&(i<filesize))
 	  i++;
-	linebuf[i]=0;  /* replace linefeed by ASCII-0 */
 	/* Copy string */
-	if ((tmp_ptr=(char *)malloc( strlen(&linebuf[k]) + 1))==NULL){
+	if ((tmp_ptr=(char *)malloc( i-k+1))==NULL){
 	  T1_errno=T1ERR_ALLOC_MEM;
 	  return(-1);
 	}
-	strcpy( tmp_ptr, &linebuf[k]);
+	strncpy( tmp_ptr, &linebuf[k], i-k);
+	tmp_ptr[i-k]='\0';
 	*encenv_ptr=tmp_ptr;
       }
       else
@@ -201,19 +205,19 @@ int ScanConfigFile( char **pfabenv_ptr,
 		     "Preserving explicitly assigned ENCODING search path",
 		     T1LOG_DEBUG);
     }  
-    if (strcmp( "TYPE1", &linebuf[j])==0){
+    else if (strncmp( "TYPE1", &linebuf[j], 5)==0) {
       /* Check for an explicitly assigned value */
       if (*pfabenv_ptr==T1_pfab){
 	k=i+1;       /* points to assigned path string */
-	while (linebuf[i] != '\n')
+	while ((!isspace((int)linebuf[i]))&&(i<filesize))
 	  i++;
-	linebuf[i]=0;  /* replace linefeed by ASCII-0 */
 	/* Copy string */
-	if ((tmp_ptr=(char *)malloc( strlen(&linebuf[k]) + 1))==NULL){
+	if ((tmp_ptr=(char *)malloc( i-k+1))==NULL){
 	  T1_errno=T1ERR_ALLOC_MEM;
 	  return(-1);
 	}
-	strcpy( tmp_ptr, &linebuf[k]);
+	strncpy( tmp_ptr, &linebuf[k], i-k);
+	tmp_ptr[i-k]='\0';
 	*pfabenv_ptr=tmp_ptr;
       }
       else
@@ -221,19 +225,19 @@ int ScanConfigFile( char **pfabenv_ptr,
 		     "Preserving explicitly assigned PFAB search path",
 		     T1LOG_DEBUG);
     }  
-    if (strcmp( "AFM", &linebuf[j])==0){
+    else if (strncmp( "AFM", &linebuf[j], 3)==0) {
       /* Check for an explicitly assigned value */
       if (T1_AFM_ptr==T1_afm){
 	k=i+1;       /* points to assigned path string */
-	while (linebuf[i] != '\n')
+	while ((!isspace((int)linebuf[i]))&&(i<filesize))
 	  i++;
-	linebuf[i]=0;  /* replace linefeed by ASCII-0 */
 	/* Copy string */
-	if ((tmp_ptr=(char *)malloc( strlen(&linebuf[k]) + 1))==NULL){
+	if ((tmp_ptr=(char *)malloc( i-k+1))==NULL){
 	  T1_errno=T1ERR_ALLOC_MEM;
 	  return(-1);
 	}
-	strcpy( tmp_ptr, &linebuf[k]);
+	strncpy( tmp_ptr, &linebuf[k], i-k);
+	tmp_ptr[i-k]='\0';
 	*afmenv_ptr=tmp_ptr;
       }
       else
@@ -241,28 +245,19 @@ int ScanConfigFile( char **pfabenv_ptr,
 		     "Preserving explicitly assigned AFM search path",
 		     T1LOG_DEBUG);
     }  
-    if (strcmp( "FONTDATABASE", &linebuf[j])==0){
+    else if (strncmp( "FONTDATABASE", &linebuf[j], 12)==0) {
       /* Check for an explicitly assigned value */
       if (*fontdatabase_ptr==T1_fontdatabase){
 	k=i+1;       /* points to assigned path string */
-	while (!isspace((int)linebuf[i]))
+	while ((!isspace((int)linebuf[i]))&&(i<filesize))
 	  i++;
-	if (linebuf[i]=='\n'){
-	  linebuf[i]=0;  /* replace linefeed by ASCII-0 */
-	}
-	else{
-	  linebuf[i]=0;  /* replace linefeed by ASCII-0 */
-	  /* Step to end of line */
-	  while (linebuf[i] != '\n')
-	    i++;
-	  linebuf[i]=0;
-	}
 	/* Copy string */
-	if ((tmp_ptr=(char *)malloc( strlen(&linebuf[k]) + 1))==NULL){
+	if ((tmp_ptr=(char *)malloc( i-k+1))==NULL){
 	  T1_errno=T1ERR_ALLOC_MEM;
 	  return(-1);
 	}
-	strcpy( tmp_ptr, &linebuf[k]);
+	strncpy( tmp_ptr, &linebuf[k], i-k);
+	tmp_ptr[i-k]='\0';
 	*fontdatabase_ptr=tmp_ptr;
       }
       else
@@ -270,7 +265,16 @@ int ScanConfigFile( char **pfabenv_ptr,
 		     "Preserving explicitly assigned FontDataBase",
 		     T1LOG_DEBUG);
     }
+    else {
+      sprintf( err_warn_msg_buf, "Ignoring line %d", linecnt);
+      T1_PrintLog( "ScanConfigFile()", err_warn_msg_buf,
+		   T1LOG_DEBUG);
+    }
+    
+    while ((linebuf[i]!='\n')&&(i<filesize))
+      i++;
     i++;
+    linecnt++;
   }
   /*file should now be read in */
   free( linebuf);
@@ -373,6 +377,12 @@ char *Env_GetCompletePath( char *FileName,
     /* Copy current path element: */
     res_ptr=strcpy( FullPathName, &env_ptr[j]);
     /* Add the directory separator: */
+#ifdef VMS
+    { char *p= strrchr(FullPathName, DIRECTORY_SEP_CHAR);
+      if (p && *(p+1) ==  '\0')
+       *p = '\0';
+    } 
+#endif 
     res_ptr=strcat( FullPathName, DIRECTORY_SEP);
     /* And finally the filename: */
     res_ptr=strcat( FullPathName, StrippedName);
@@ -537,7 +547,7 @@ int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname)
       strcat(tmp_ptr, PATH_SEP);
       strcat(tmp_ptr, pathname);
     }
-    if ((void *)T1_PFAB_ptr!=(void *)&T1_pfab)
+    if ((void *)T1_PFAB_ptr!=(void *)T1_pfab)
       free( T1_PFAB_ptr);
     T1_PFAB_ptr=tmp_ptr;
   }
@@ -558,7 +568,7 @@ int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname)
       strcat(tmp_ptr, PATH_SEP);
       strcat(tmp_ptr, pathname);
     }
-    if ((void *)T1_AFM_ptr!=(void *)&T1_afm)
+    if ((void *)T1_AFM_ptr!=(void *)T1_afm)
       free( T1_AFM_ptr);
     T1_AFM_ptr=tmp_ptr;
   }
@@ -579,7 +589,7 @@ int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname)
       strcat(tmp_ptr, PATH_SEP);
       strcat(tmp_ptr, pathname);
     }
-    if ((void *)T1_ENC_ptr!=(void *)&T1_enc)
+    if ((void *)T1_ENC_ptr!=(void *)T1_enc)
       free( T1_ENC_ptr);
     T1_ENC_ptr=tmp_ptr;
   }

@@ -217,7 +217,7 @@ xobject fontfcnB(int FontID, int modflag,
     /* Instead of returning an error, we substitute .notdef (RMz) */
     charnameP = &CodeName;
     charnameP->len = 7;
-    charnameP->data.stringP = (unsigned char *) &notdef;
+    charnameP->data.stringP = (unsigned char *) notdef;
     N = SearchDictName(CharStringsDictP,charnameP);
     /* Font must be completely damaged if it doesn't define a .notdef */
     if (N<=0) {
@@ -480,7 +480,7 @@ xobject fontfcnB_string( int FontID, int modflag,
 	/* Instead of returning an error, we substitute .notdef (RMz) */
 	charnameP = &CodeName;
 	charnameP->len = 7;
-	charnameP->data.stringP = (unsigned char *) &notdef;
+	charnameP->data.stringP = (unsigned char *) notdef;
 	N = SearchDictName(CharStringsDictP,charnameP);
 	/* Font must be completely damaged if it doesn't define a .notdef */
 	if (N<=0) {

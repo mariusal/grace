@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1load.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-09-03
+  ----- Date:        1999-10-11
   ----- Description: This file is part of the t1-library. It contains
                      functions for loading fonts  and for managing size
 		     dependent data.
@@ -286,7 +286,7 @@ int T1_LoadFont( int FontID)
     ldummy=(long)pFontBase->pFontArray[FontID].pType1Data->Subrs.data.arrayP;
     ldummy +=shift;
     pFontBase->pFontArray[FontID].pType1Data->Subrs.data.arrayP=(struct ps_obj *)ldummy;
-    for (j=1; j<=i; j++) {
+    for (j=0; j<i; j++) {
       ldummy=(long)pFontBase->pFontArray[FontID].pType1Data->Subrs.data.arrayP[j].data.valueP;
       ldummy +=shift;
       pFontBase->pFontArray[FontID].pType1Data->Subrs.data.arrayP[j].data.valueP=(char *)ldummy;
@@ -421,7 +421,7 @@ int T1_LoadFont( int FontID)
     ldummy=(long)pFontBase->pFontArray[FontID].pType1Data->Subrs.data.arrayP;
     ldummy -=shift;
     pFontBase->pFontArray[FontID].pType1Data->Subrs.data.arrayP=(struct ps_obj *)ldummy;
-    for (j=1; j<=i; j++) {
+    for (j=0; j<i; j++) {
       ldummy=(long)pFontBase->pFontArray[FontID].pType1Data->Subrs.data.arrayP[j].data.valueP;
       ldummy -=shift;
       pFontBase->pFontArray[FontID].pType1Data->Subrs.data.arrayP[j].data.valueP=(char *)ldummy;

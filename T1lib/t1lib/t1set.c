@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1set.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-09-03
+  ----- Date:        1999-09-29
   ----- Description: This file is part of the t1-library. It contains
                      functions for setting characters and strings of
 		     characters.
@@ -577,9 +577,9 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
      generate them */
   if ((rot_flag==0)){
     overallwidth=0;
-    for (i=0; i<no_chars; i++){
+    for (i=0; i<no_chars; i++) {
       currchar= &(font_ptr->pFontCache[ustring[i]]);
-      if (currchar->bpp<1){
+      if (currchar->bpp<1) {
 	flags[i]=0;
 	mode=0;
 	/*  Don't try to generate space-character: */
@@ -643,7 +643,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	  currchar->metrics.rightSideBearing = area->xmax;
 	  currchar->metrics.descent          = - area->ymax;
 	  currchar->metrics.ascent           = - area->ymin;
-	  currchar->bpp                      = 1;
+	  currchar->bpp=1;
 	  
 	  /* By this point, it's clear that the 'area' struct exists,
 	     and that we no longer need it, so free it up. */

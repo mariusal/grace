@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1global.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-04-20
+  ----- Date:        1999-11-29
   ----- Description: This file is part of the t1-library. It contains
                      global declarations used by the t1-library.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -95,9 +95,15 @@ int errornumber;  /* for debugging purposes */
  
 /* The following pointer should be set to path-strings--used for locating
    type1, afm and encoding files */
+#ifndef VMS
 char T1_pfab[]=".";
 char T1_afm[]=".";
 char T1_enc[]=".";
+#else
+char T1_pfab[]="sys$disk:[]";
+char T1_afm[]="sys$disk:[]";
+char T1_enc[]="sys$disk:[]";
+#endif
 char T1_fontdatabase[]="FontDataBase";
 char *T1_PFAB_ptr=T1_pfab;
 char *T1_AFM_ptr=T1_afm;

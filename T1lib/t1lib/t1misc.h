@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1misc.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-09-02
+  ----- Date:        1999-11-29
   ----- Description: This file is part of the t1-library. It contains
                      some miscellaneous definitions.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
@@ -67,11 +67,16 @@
 #define T1_CONFIGFILENAME    ".t1librc"
 #define ENV_CONF_STRING      "T1LIB_CONFIG"
 #define GLOBAL_CONFIG_FILE   "t1lib.config"
+#ifndef VMS
 #define DIRECTORY_SEP        "/"
 #define DIRECTORY_SEP_CHAR   '/'
+#else
+#define DIRECTORY_SEP        "]"
+#define DIRECTORY_SEP_CHAR   ']'
+#endif
 /* For EMX-environment, we define the default path separator to
    be ';' instead of ':' */
-#ifdef __EMX__
+#if defined(__EMX__) || defined(VMS)
 #define PATH_SEP             ";"
 #define PATH_SEP_CHAR        ';'
 #else
