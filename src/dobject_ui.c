@@ -327,9 +327,9 @@ static void update_string_ui(StringUI *ui, DOStringData *odata)
 static void set_string_odata(StringUI *ui, DOStringData *odata, void *caller)
 {
     if (ui && odata && IsManaged(ui->top)) {
-        xfree(odata->s);
 
         if (!caller || caller == ui->text) {
+            xfree(odata->s);
             odata->s    = GetTextString(ui->text);
         }
         if (!caller || caller == ui->font) {
