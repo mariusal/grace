@@ -412,7 +412,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
                 nncols++;
             }
         }
-        if (!strlen(getcomment(gno, setno))) {
+        if (!getcomment(gno, setno)) {
             setcomment(gno, setno, label);
         }
         
