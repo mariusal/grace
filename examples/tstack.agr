@@ -353,7 +353,7 @@
 @    subtitle color 1
 @    s0 symbol 0
 @    s0 symbol size 1.000000
-@    s0 symbol color -1
+@    s0 symbol color 0
 @    s0 symbol linewidth 1
 @    s0 symbol linestyle 1
 @    s0 symbol center false
