@@ -100,9 +100,7 @@ void update_set_lists(Quark *gr);
 
 void update_ticks(Quark *gr);
 
-void create_world_frame(Widget but, void *data);
 void create_arrange_frame(Widget but, void *data);
-void create_overlay_frame(Widget but, void *data);
 void create_autos_frame(Widget but, void *data);
 
 void create_monitor_frame_cb(Widget but, void *data);
