@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
     register_mf_drv();
 
     /* check whether locale is correctly set */
-    if (set_locale_num(TRUE) == NULL) {
+    if (init_locale() != GRACE_EXIT_SUCCESS) {
         errmsg("Invalid or unsupported locale");
     }
     /* default is POSIX */
