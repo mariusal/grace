@@ -2298,14 +2298,38 @@ integral     | cumulative sum @
   <sect1>Procedures
     <p>
      Methods of directly manipulating the data corresponding to the
-     Data|Transformation menu are described in table
-     <ref id="transformations">. 
+     Data|Transformation menu are described in table <ref
+     id="transformations">. To evaluate expressions, you can directly submit
+     them to the command interpreter like you would in the evaluate expression
+     window. As an example, S1.X = S1.X * 0.000256 scales the x-axis
+     coordinates. The functionality of the 'Sample points' menu entry can be
+     obtained through RESTRICT.
 
       <table loc="htbp">
       <tabular ca="p{3cm}p{5cm}p{3.5cm}p{3cm}">
         <hline>
         Statement | Description | Types | Example @
         <hline>
+        RUNAVG (set, npoints) |
+          running average of <it>set</it> using <it>npoints</it> number of points |
+          nexpr <it>npoints</it> |
+          RUNAVG (S0, 100) @
+        RUNMED (set, npoints) |
+          running median of <it>set</it> using <it>npoints</it> number of points |
+          nexpr <it>npoints</it> |
+          RUNMED (S0, 100) @
+        RUNMIN (set, npoints) |
+          running minimum of <it>set</it> using <it>npoints</it> number of points |
+          nexpr <it>npoints</it> |
+          RUNMIN (S0, 100) @
+        RUNMAX (set, npoints) |
+          running maximum of <it>set</it> using <it>npoints</it> number of points |
+          nexpr <it>npoints</it> |
+          RUNMAX (S0, 100) @
+        RUNSTD (set, npoints) |
+          running standard deviation of <it>set</it> using <it>npoints</it> number of points |
+          nexpr <it>points</it> |
+          RUNSTD (S0, 100) @
         INTERPOLATE (set, mesh, method, strict) |
           interpolate <it>set</it> on a sampling <it>mesh</it> using <it>method</it>. <it>strict</it> flag controls whether result should be bound within the source set |
           vexpr <it>mesh</it>, <it>method</it>: one of LINEAR, SPLINE, and ASPLINE, onoff <it>strict</it> |
@@ -2396,6 +2420,22 @@ integral     | cumulative sum @
           execute print job |
           &nbsp; |
           PRINT @
+        AUTOSCALE |
+          scale the graph |
+          &nbsp; |
+          AUTOSCALE @
+        AUTOSCALE XAXES |
+          scale the graph in x only |
+          &nbsp; |
+          AUTOSCALE XAXES @
+        AUTOSCALE YAXES |
+          scale the graph in y only |
+          &nbsp; |
+          AUTOSCALE YAXES @
+        AUTOSCALE set |
+          scale to a specific set |
+          &nbsp; |
+          AUTOSCALE S0 @
         REDRAW |
           refresh the canvas to reflect the current project state |
           &nbsp; |
@@ -2408,6 +2448,14 @@ integral     | cumulative sum @
           update the GUI (graph and set selectors etc) to reflect the current project state |
           &nbsp; |
           UPDATEALL @
+        SAVEALL <it>"file"</it> |
+          save project to <it>file</it> |
+          qstr <it>file</it> |
+          SAVEALL "foo.agr" @
+        LOAD <it>"file"</it> |
+          load project <it>file</it> |
+          qstr <it>file</it> |
+          LOAD "foo.agr" @
         <hline>
       </tabular>
       <caption>
@@ -2656,16 +2704,24 @@ integral     | cumulative sum @
         <hline>
         Statement | Description | Types | Example @
         <hline>
-    	READ <it>file</it> | Reads <it>file</it> as a single set |
+    	READ <it>"file"</it> | Reads <it>file</it> as a single set |
 	                     qstr <it>file</it> | READ "foo.dat" @
-    	READ <it>settype</it> <it>file</it> | Reads <it>file</it> into a single set of type <it>settype</it> |
+    	READ <it>settype</it> <it>"file"</it> | Reads <it>file</it> into a single set of type <it>settype</it> |
 		     xytype <it>settype</it>, qstr <it>file</it> | READ xydy "bar.dat" @
-	READ NXY <it>file</it> | Reads <it>file</it> as NXY data |
+	READ NXY <it>"file"</it> | Reads <it>file</it> as NXY data |
 	                     qstr <it>file</it> | READ NXY "gad.dat" @
-	READ BLOCK <it>file</it> | Reads <it>file</it> as block data |
+	READ BLOCK <it>"file"</it> | Reads <it>file</it> as block data |
 	                     qstr <it>file</it> | READ BLOCK "zooks.dat" @
 	BLOCK <it>settype</it> <it>columns</it> | Forms a data set of type <it>settype</it> using <it>columns</it> from current block data file. |
 	             xytype <it>settype</it>, qstr <it>columns</it> | BLOCK xydxdy "0:2:1:3" @
+    	WRITE <it>set</it> | writes <it>set</it> to stdout|
+		     setsel <it>set</it> | WRITE G0.S1 @
+    	WRITE <it>set</it> FORMAT <it>"formatstring"</it> | writes <it>set</it> to stdout using format specification <it>formatstring</it> |
+		     setsel <it>set</it> qstr <it>formatstring</it> | WRITE G0.S1 FORMAT "%18.8g" @
+    	WRITE <it>set</it> FILE <it>"file"</it> | writes <it>set</it> to <it>file</it> |
+		     setsel <it>set</it> qstr <it>file</it> | WRITE G0.S1 FILE "data.dat" @
+    	WRITE <it>set</it> FILE <it>"file"</it> FORMAT <it>"formatstring"</it> | writes <it>set</it> to <it>file</it> using format specification <it>formatstring</it> |
+		     setsel <it>set</it> qstr <it>file</it> qstr <it>formatstring</it> | WRITE G0.S1 FILE "data.dat" FORMAT "%18.8g" @
       </tabular>
       <caption>
         <label id="set-io">
