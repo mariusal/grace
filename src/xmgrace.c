@@ -321,6 +321,7 @@ int initialize_gui(int *argc, char **argv)
     XtAppSetFallbackResources(app_con, fallbackResources);
     disp = XtOpenDisplay(app_con, NULL, NULL, "XMgrace", NULL, 0, argc, argv);
     if (disp == NULL) {
+	errmsg("Can't open display");
         return RETURN_FAILURE;
     }
 
