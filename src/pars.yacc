@@ -2911,8 +2911,14 @@ actions:
 	    free($4);
 	}
 	| BLOCK xytype CHRSTR {
-	    create_set_fromblock(whichgraph, $2, $3);
+            int nc, *cols;
+            field_string_to_cols($3, &nc, &cols);
 	    free($3);
+            if (nc <= 0) {
+                errmsg("Erroneous field specifications");
+                return 1;
+            }
+	    create_set_fromblock(whichgraph, $2, nc, cols, -1);
 	}
 	| READ xytype CHRSTR {
 	    gotread = TRUE;
