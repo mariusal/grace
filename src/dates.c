@@ -230,7 +230,7 @@ static int neg_julian_non_leap (int year)
 static long neg_julian_cal_to_jul(int y, int m, int d)
 {
     /* day 0       : -4713-01-01
-     * day 1721423 :    -1-01-01
+     * day 1721423 :    -1-12-31
      */
     return (1461L*(y + 1L))/4L
         + (m*489)/16 - ((m > 2) ? (neg_julian_non_leap(y) ? 32L : 31L) : 30L)
@@ -291,7 +291,7 @@ static int pos_julian_year_estimate(long n)
 static int gregorian_non_leap(int year)
 {
     /* one leap year every four years, except for multiple of 100 that
-     * are not also multiple of 400 (so 1600, 1896, 1904, &nd 2000 are
+     * are not also multiple of 400 (so 1600, 1896, 1904, and 2000 are
      * leap years, but 1700, 1800 and 1900 are non leap years
      */
     return (year & 3) || ((year % 100) == 0 && ((year/100 & 3)));
@@ -312,12 +312,12 @@ static long gregorian_cal_to_jul(int y, int m, int d)
 static int gregorian_year_estimate(long n)
 {
     /*
-     * year bounds : 400n - 688569888 <= 146097y <= 400n - 688423312
+     * year bounds : 400n - 688570288 <= 146097y <= 400n - 688423712
      * lower bound reached on : 1696-12-31, 2096-12-31, 2496-12-31 ...
      * upper bound reached on : 1904-01-01, 2304-01-01, 2704-01-01 ...
      * the lower bound gives a low estimate of the year
      */
-    return (int) ((400L*n - 688569888L)/146097L);
+    return (int) ((400L*n - 688570288L)/146097L);
 }
 
 
