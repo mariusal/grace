@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -521,79 +521,126 @@ void scrollinout_proc(int value)
 int graph_scroll(Quark *gr, int type)
 {
     world w;
-    double dwc = 0.0;
+    double xmax, xmin, ymax, ymin;
+    double dwc;
 
     if (get_graph_world(gr, &w) == RETURN_SUCCESS) {
+	if (islogx(gr) == TRUE) {
+	    xmin = log10(w.xg1);
+	    xmax = log10(w.xg2);
+	} else {
+	    xmin = w.xg1;
+	    xmax = w.xg2;
+	}
+
+	if (islogy(gr) == TRUE) {
+	    ymin = log10(w.yg1);
+	    ymax = log10(w.yg2);
+	} else {
+	    ymin = w.yg1;
+	    ymax = w.yg2;
+	}
+
+	dwc = 1.0;
         switch (type) {
-        case GSCROLL_LEFT:    
-        case GSCROLL_RIGHT:    
-            if (islogx(gr) == TRUE) {
-                errmsg("Scrolling of LOG axes is not implemented");
-                return RETURN_FAILURE;
-            }
-            dwc = grace->rt->scrollper * (w.xg2 - w.xg1);
+        case GSCROLL_LEFT:
+	    dwc = -1.0;
+	case GSCROLL_RIGHT:    
+            dwc *= grace->rt->scrollper * (xmax - xmin);
+            xmin += dwc;
+            xmax += dwc;
             break;
-        case GSCROLL_DOWN:    
-        case GSCROLL_UP:    
-            if (islogy(gr) == TRUE) {
-                errmsg("Scrolling of LOG axes is not implemented");
-                return RETURN_FAILURE;
-            }
-            dwc = grace->rt->scrollper * (w.yg2 - w.yg1);
+        case GSCROLL_DOWN:
+	    dwc = -1.0;
+	case GSCROLL_UP:    
+            dwc *= grace->rt->scrollper * (ymax - ymin);
+            ymin += dwc;
+            ymax += dwc;
             break;
         }
 
-        switch (type) {
-        case GSCROLL_LEFT:    
-            w.xg1 -= dwc;
-            w.xg2 -= dwc;
-            break;
-        case GSCROLL_RIGHT:    
-            w.xg1 += dwc;
-            w.xg2 += dwc;
-            break;
-        case GSCROLL_DOWN:    
-            w.yg1 -= dwc;
-            w.yg2 -= dwc;
-            break;
-        case GSCROLL_UP:    
-            w.yg1 += dwc;
-            w.yg2 += dwc;
-            break;
-        }
+	if (islogx(gr) == TRUE) {
+	    w.xg1 = pow(10.0, xmin);
+	    w.xg2 = pow(10.0, xmax);
+	} else {
+	    w.xg1 = xmin;
+	    w.xg2 = xmax;
+	}
+
+	if (islogy(gr) == TRUE) {
+	    w.yg1 = pow(10.0, ymin);
+	    w.yg2 = pow(10.0, ymax);
+	} else {
+	    w.yg1 = ymin;
+	    w.yg2 = ymax;
+	}
+       
         set_graph_world(gr, &w);
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
     }
-    
-    return RETURN_SUCCESS;
 }
 
 int graph_zoom(Quark *gr, int type)
 {
     double dx, dy;
+    double xmax, xmin, ymax, ymin;
     world w;
-    
-    if (!islogx(gr) && !islogy(gr)) {
-        if (get_graph_world(gr, &w) == RETURN_SUCCESS) {
-            dx = grace->rt->shexper * (w.xg2 - w.xg1);
-            dy = grace->rt->shexper * (w.yg2 - w.yg1);
-            if (type == GZOOM_SHRINK) {
-                dx *= -1;
-                dy *= -1;
-            }
 
-            w.xg1 -= dx;
-            w.xg2 += dx;
-            w.yg1 -= dy;
-            w.yg2 += dy;
+    if (get_graph_world(gr, &w) == RETURN_SUCCESS) {
 
-            set_graph_world(gr, &w);
-        }
+	if (islogx(gr) == TRUE) {
+	    xmin = log10(w.xg1);
+	    xmax = log10(w.xg2);
+	} else {
+	    xmin = w.xg1;
+	    xmax = w.xg2;
+	}
+
+	if (islogy(gr) == TRUE) {
+	    ymin = log10(w.yg1);
+	    ymax = log10(w.yg2);
+	} else {
+	    ymin = w.yg1;
+	    ymax = w.yg2;
+	}
+
+	dx = grace->rt->shexper * (xmax - xmin);
+	dy = grace->rt->shexper * (ymax - ymin);
+	if (type == GZOOM_SHRINK) {
+	    dx *= -1;
+	    dy *= -1;
+	}
+
+	xmin -= dx;
+	xmax += dx;
+	ymin -= dy;
+	ymax += dy;
+
+	if (islogx(gr) == TRUE) {
+	    w.xg1 = pow(10.0, xmin);
+	    w.xg2 = pow(10.0, xmax);
+	} else {
+	    w.xg1 = xmin;
+	    w.xg2 = xmax;
+	}
+
+	if (islogy(gr) == TRUE) {
+	    w.yg1 = pow(10.0, ymin);
+	    w.yg2 = pow(10.0, ymax);
+	} else {
+	    w.yg1 = ymin;
+	    w.yg2 = ymax;
+	}
+
+        set_graph_world(gr, &w);
+        
+        return RETURN_SUCCESS;
     } else {
-        errmsg("Zooming is not implemented for LOG plots");
         return RETURN_FAILURE;
     }
-    
-    return RETURN_SUCCESS;
 }
 
 /*
