@@ -345,12 +345,12 @@ int get_ptofile(const Grace *grace)
 int set_printer(Grace *grace, int device)
 {
     Canvas *canvas = grace->rt->canvas;
-    if (device >= canvas->ndevices || device < 0 ||
-        canvas->device_table[device]->type == DEVICE_TERM) {
+    Device_entry *d = get_device_props(canvas, device);
+    if (!d || d->type == DEVICE_TERM) {
         return RETURN_FAILURE;
     } else {
         grace->rt->hdevice = device;
-	if (canvas->device_table[device]->type != DEVICE_PRINT) {
+	if (d->type != DEVICE_PRINT) {
             set_ptofile(grace, TRUE);
         }
         return RETURN_SUCCESS;
@@ -406,11 +406,10 @@ int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
                 rescale_viewport(pr, ext_x, ext_y);
             } 
         }
-        for (i = 0; i < canvas->ndevices; i++) {
-            canvas->device_table[i]->pg.width =
-                (unsigned long) (wpp*(canvas->device_table[i]->pg.dpi/72));
-            canvas->device_table[i]->pg.height =
-                (unsigned long) (hpp*(canvas->device_table[i]->pg.dpi/72));
+        for (i = 0; i < number_of_devices(canvas); i++) {
+            Device_entry *d = get_device_props(canvas, i);
+            d->pg.width  = (unsigned long) wpp*d->pg.dpi/72;
+            d->pg.height = (unsigned long) hpp*d->pg.dpi/72;
         }
         return RETURN_SUCCESS;
     }
