@@ -197,21 +197,22 @@ int getncols(int gno, int setno);
 void setxy(int gno, double **ex, int setno, int len, int ncols);
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col);
 void packsets(int gno);
-void do_packsets(void);
 int nextset(int gno);
 void killset(int gno, int setno);
 void killsetdata(int gno, int setno);
 int activeset(int gno);
 int swapset(int gfrom, int j1, int gto, int j2);
-void sort_set(int setno, int sorton, int stype);
 void droppoints(int gno, int setno, int startno, int endno, int dist);
 void joinsets(int g1, int j1, int g2, int j2);
 void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype);
+void reverse_set(int gno, int setno);
+
 void findpoint(int gno, double x, double y, double *xs, double *ys, int *setno, int *loc);
 void del_point(int gno, int setno, int pt);
 void add_point(int gno, int setno, double px, double py, double tx, double ty, int type);
 void add_point_at(int gno, int setno, int ind, int where, double px, double py, double tx, double ty, int type);
 void delete_byindex(int gno, int setno, int *ind);
+
 double *getvptr(int gno, int setno, int v);
 
 int do_copyset(int gfrom, int j1, int gto, int j2);
@@ -226,15 +227,8 @@ void do_copy(int j1, int gfrom, int j2, int gto);
 void do_move(int j1, int gfrom, int j2, int gto);
 void do_drop_points(int setno, int startno, int endno);
 void do_join_sets(int gfrom, int j1, int gto, int j2);
-void do_reverse_sets(int setno);
 void do_kill(int gno, int setno, int soft);
 void do_sort(int setno, int sorton, int stype);
-void do_kill_nearest(void);
-void do_copy_nearest(void);
-void do_move_nearest(void);
-void do_reverse_nearest(void);
-void do_join_nearest(void);
-void do_delete_nearest(void);
 void do_cancel_pickop(void);
 
 

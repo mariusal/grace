@@ -1714,11 +1714,11 @@ void my_proc(Widget w, XtPointer data, XEvent * event)
 
 			    sprintf(tmpbuf, "Reverse S%1d?", setno);
 			    if (yesno(tmpbuf, NULL, NULL, NULL)) {
-				do_reverse_sets(setno);
+				reverse_set(get_cg(), setno);
 				xdrawgraph();
 			    }
 			} else {
-			    do_reverse_sets(setno);
+			    reverse_set(get_cg(), setno);
 			    xdrawgraph();
 			}
 		    } else {

@@ -811,7 +811,7 @@ static void do_reverse_sets_proc(Widget w, XtPointer client_data, XtPointer call
     set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
-	do_reverse_sets(setno);
+	reverse_set(get_cg(), setno);
     }
     set_work_pending(FALSE);
     update_set_lists(cg);
