@@ -72,6 +72,11 @@ int save_project(Quark *project, char *fn);
 int write_set(Quark *pset, FILE *cp, char *format);
 void outputset(Quark *pset, char *fname, char *dformat);
 
+void unregister_real_time_input(const char *name);
+int register_real_time_input(Grace *grace, int fd, const char *name, int reopen);
+int real_time_under_monitoring(void);
+int monitor_input(Grace *grace, Input_buffer *tbl, int tblsize, int no_wait);
+
 int readnetcdf(Quark *pset,
 	       char *netcdfname,
 	       char *xvar,

@@ -64,6 +64,7 @@ extern int ib_tblsize;
 
 static void usage(FILE *stream, char *progname);
 static void VersionInfo(const Grace *grace);
+static void cli_loop(Grace *grace);
 
 int inpipe = FALSE;		/* if xmgrace is to participate in a pipe */
 
@@ -513,12 +514,12 @@ int main(int argc, char *argv[])
  */
 #ifndef NONE_GUI
         if (cli == TRUE) {
-            cli_loop();
+            cli_loop(grace);
         } else {
             startup_gui();
         }
 #else
-        cli_loop();
+        cli_loop(grace);
 #endif        
     }
     /* never reaches */
@@ -528,7 +529,7 @@ int main(int argc, char *argv[])
 /*
  * command interface loop
  */
-void cli_loop(void)
+static void cli_loop(Grace *grace)
 {
     Input_buffer *ib_stdin;
     int previous = -1;

@@ -452,6 +452,157 @@ int seval(double *u, double *v, int ulen,
     return RETURN_SUCCESS;
 }
 
+/*
+ * compute the mins and maxes of a vector x
+ */
+void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax)
+{
+    int i;
+    
+    *imin = 0;
+    *imax = 0;
+
+    if (x == NULL) {
+        *xmin = 0.0;
+        *xmax = 0.0;
+        return;
+    }
+    
+    *xmin = x[0];
+    *xmax = x[0];
+    
+    for (i = 1; i < n; i++) {
+	if (x[i] < *xmin) {
+	    *xmin = x[i];
+	    *imin = i;
+	}
+	if (x[i] > *xmax) {
+	    *xmax = x[i];
+	    *imax = i;
+	}
+    }
+}
+
+
+/*
+ * compute the min and max of vector vec calculated for indices such that
+ * bvec values lie within [bmin, bmax] range
+ * returns RETURN_FAILURE if none found
+ */
+int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
+              	   double *vmin, double *vmax)
+{
+    int i, first = TRUE;
+    
+    if ((vec == NULL) || (bvec == NULL)) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < n; i++) {
+        if ((bvec[i] >= bvmin) && (bvec[i] <= bvmax)) {
+	    if (first == TRUE) {
+                *vmin = vec[i];
+                *vmax = vec[i];
+                first = FALSE;
+            } else {
+                if (vec[i] < *vmin) {
+                    *vmin = vec[i];
+  	        } else if (vec[i] > *vmax) {
+                    *vmax = vec[i];
+       	        }
+            }
+        }
+    }
+    
+    if (first == FALSE) {
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+
+/*
+ * compute the mins and maxes of a vector x
+ */
+double vmin(double *x, int n)
+{
+    int i;
+    double xmin;
+    if (n <= 0) {
+	return 0.0;
+    }
+    xmin = x[0];
+    for (i = 1; i < n; i++) {
+	if (x[i] < xmin) {
+	    xmin = x[i];
+	}
+    }
+    return xmin;
+}
+
+double vmax(double *x, int n)
+{
+    int i;
+    double xmax;
+    if (n <= 0) {
+	return 0.0;
+    }
+    xmax = x[0];
+    for (i = 1; i < n; i++) {
+	if (x[i] > xmax) {
+	    xmax = x[i];
+	}
+    }
+    return xmax;
+}
+
+static int dbl_comp(const void *a, const void *b)
+{
+    if (*(double *)a < *(double *)b) {
+        return -1;
+    } else if (*(double *)a > *(double *)b) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+/* get the median of a vector */
+int vmedian(double *x, int n, double *med)
+{
+    double *d;
+
+    if (n < 1) {
+        return RETURN_FAILURE;
+    } else if (n == 1) {
+        *med = x[0];
+    } else {
+        if (monotonicity(x, n, FALSE) == 0) {
+            d = copy_data_column(x, n);
+            if (!d) {
+                return RETURN_FAILURE;
+            }
+            qsort(d, n, SIZEOF_DOUBLE, dbl_comp);
+        } else {
+            d = x;
+        }
+        if (n % 2) {
+            /* odd length */
+            *med = d[(n + 1)/2 - 1];
+        } else {
+            *med = (d[n/2 - 1] + d[n/2])/2;
+        }
+
+        if (d != x) {
+            /* FIXME (no direct use of *alloc/free) !!! */
+            xfree(d);
+        }
+    }
+    
+    return RETURN_SUCCESS;
+}
+
 int find_span_index(double *array, int len, int m, double x)
 {
     int ind, low = 0, high = len - 1;
@@ -819,6 +970,35 @@ int monospaced(double *array, int len, double *space)
     }
     
     return TRUE;
+}
+
+int filter_set(Quark *pset, char *rarray)
+{
+    int i, ip, j, ncols;
+    Dataset *dsp;
+    
+    if (!pset) {
+        return RETURN_FAILURE;
+    }
+    if (rarray == NULL) {
+        return RETURN_SUCCESS;
+    }
+    ncols = set_get_ncols(pset);
+    dsp = set_get_dataset(pset);
+    ip = 0;
+    for (i = 0; i < dsp->len; i++) {
+        if (rarray[i]) {
+            for (j = 0; j < ncols; j++) {
+                dsp->ex[j][ip] = dsp->ex[j][i];
+            }
+            if (dsp->s != NULL) {
+                dsp->s[ip] = copy_string(dsp->s[ip], dsp->s[i]);
+            }
+            ip++;
+        }
+    }
+    set_set_length(pset, ip);
+    return RETURN_SUCCESS;
 }
 
 /*

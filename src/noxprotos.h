@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -35,15 +35,30 @@
 #ifndef __NOXPROTOS_H_
 #define __NOXPROTOS_H_
 
-/* For FILE */
-#include <stdio.h>
-
 #include "grace.h"
 
+/* computils.c */
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 int apply_window(double *v, int ilen, int window, double beta);
 int histogram(int ndata, double *data, int nbins, double *bins, int *hist);
+double comp_area(int n, double *x, double *y);
+double comp_perimeter(int n, double *x, double *y);
+void stasum(double *x, int n, double *xbar, double *sd);
+void linearconv(double *x, int n, double *h, int m, double *y);
+void spline(int n, double *x, double *y, double *b, double *c, double *d);
+void aspline(int n, double *x, double *y, double *b, double *c, double *d);
+int seval(double *u, double *v, int ulen,
+    double *x, double *y, double *b, double *c, double *d, int n);
+void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
+int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
+              	   double *vmin, double *vmax);
+double vmin(double *x, int n);
+double vmax(double *x, int n);
+int monotonicity(double *array, int len, int strict);
+int monospaced(double *array, int len, double *space);
+int find_span_index(double *array, int len, int m, double x);
 
+int get_restriction_array(Quark *pset, Quark *r, int negate, char **rarray);
 int filter_set(Quark *pset, char *rarray);
 
 int do_compute(Quark *psrc, Quark *pdest,
@@ -68,65 +83,48 @@ int do_sample(Quark *psrc, Quark *pdest,
     char *formula);
 int do_prune(Quark *psrc, Quark *pdest, 
     int interp, int elliptic, double dx, int reldx, double dy, int reldy);
-int do_nonlfit(Quark *pset, NLFit *nlfit,
-    double *warray, char *rarray, int nsteps);
 int do_interp(Quark *psrc, Quark *pdest,
     double *mesh, int meshlen, int method, int strict);
 int featext(Quark **sets, int nsets, Quark *pdest,
     char *formula);
 int cumulative(Quark **sets, int nsets, Quark *pdest);
 
+/* fourier.c */
+int fourier(double *jr, double *ji, int n, int iflag);
+
+/* nonlfit.c */
+void reset_nonl(NLFit *nlfit);
+int do_nonlfit(Quark *pset, NLFit *nlfit,
+    double *warray, char *rarray, int nsteps);
+
+
+/* typeset.c */
 int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring);
 int fmap_proc(const Canvas *canvas, int font);
 int init_font_db(Canvas *canvas);
 
-void unregister_real_time_input(const char *name);
-int register_real_time_input(Grace *grace, int fd, const char *name, int reopen);
-int real_time_under_monitoring(void);
-int monitor_input(Grace *grace, Input_buffer *tbl, int tblsize, int no_wait);
 
-double comp_area(int n, double *x, double *y);
-double comp_perimeter(int n, double *x, double *y);
-
-void stasum(double *x, int n, double *xbar, double *sd);
-void linearconv(double *x, int n, double *h, int m, double *y);
-
-void spline(int n, double *x, double *y, double *b, double *c, double *d);
-void aspline(int n, double *x, double *y, double *b, double *c, double *d);
-int seval(double *u, double *v, int ulen,
-    double *x, double *y, double *b, double *c, double *d, int n);
-
-int fourier(double *jr, double *ji, int n, int iflag);
-
-int find_item(Quark *gr, VPoint vp, view *bb, int *id);
-
+/* set_utils.c */
 int getsetminmax(Quark **sets, int nsets, double *x1, double *x2, double *y1, double *y2);
 int getsetminmax_c(Quark **sets, int nsets, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
-void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
-int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
-              	   double *vmin, double *vmax);
-double vmin(double *x, int n);
-double vmax(double *x, int n);
 int set_point(Quark *pset, int seti, const WPoint *wp);
 int get_point(Quark *pset, int seti, WPoint *wp);
 int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint);
+
 Datapoint *datapoint_new(void);
 void datapoint_free(Datapoint *dpoint);
 int dataset_set_nrows(Dataset *data, int nrows);
 int dataset_set_ncols(Dataset *data, int ncols);
 int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind);
-void setcol(Quark *pset, int col, double *x, int len);
-
-void copycol2(Quark *psrc, Quark *pdest, int col);
 
 void killset(Quark *pset);
 void killsetdata(Quark *pset);
-int number_of_active_sets(Quark *gr);
-int swapset(int gfrom, int j1, int gto, int j2);
-int pushset(Quark *pset, int push_type);
+void sortset(Quark *pset, int sorton, int stype);
+void copycol2(Quark *psrc, Quark *pdest, int col);
 void droppoints(Quark *pset, int startno, int endno);
 int join_sets(Quark **sets, int nsets);
 void reverse_set(Quark *pset);
+int number_of_active_sets(Quark *gr);
 
 void del_point(Quark *pset, int pt);
 void add_point(Quark *pset, double px, double py);
@@ -134,43 +132,20 @@ void zero_datapoint(Datapoint *dpoint);
 int add_point_at(Quark *pset, int ind, const Datapoint *dpoint);
 void delete_byindex(Quark *pset, int *ind);
 
-int do_copyset(int gfrom, int j1, int gto, int j2);
-int do_moveset(int gfrom, int j1, int gto, int j2);
-int do_swapset(int gno1, int setno1, int gno2, int setno2);
 int do_splitsets(Quark *pset, int lpart);
-void do_activate(int setno, int type, int len);
-void do_hideset(Quark *pset);
-void do_showset(Quark *pset);
-void do_changetype(int setno, int type);
-void do_copy(int j1, int gfrom, int j2, int gto);
-void do_move(int j1, int gfrom, int j2, int gto);
 void do_drop_points(Quark *pset, int startno, int endno);
 void do_kill(Quark *pset, int soft);
 void do_sort(Quark *pset, int sorton, int stype);
-void do_cancel_pickop(void);
 
 void do_update_hotlink(Quark *pset);
 
-void sortset(Quark *pset, int sorton, int stype);
-int get_restriction_array(Quark *pset, Quark *r, int negate, char **rarray);
 
-int monotonicity(double *array, int len, int strict);
-int monospaced(double *array, int len, double *space);
-int find_span_index(double *array, int len, int m, double x);
-
+/* region_utils.c */
 int inregion(const Quark *q, const WPoint *wp);
 char *region_types(int it, int which);
 
-void cli_loop(void);
 
-void reset_nonl(NLFit *nlfit);
-
-int axis_is_x(const Quark *q);
-int axis_is_y(const Quark *q);
-
-void kill_blockdata(void);
-void alloc_blockdata(int ncols);
-
+/* dates.c */
 void set_date_hint(Dates_format preferred);
 Dates_format get_date_hint(void);
 long cal_to_jul(int y, int m, int d);

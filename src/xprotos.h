@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -42,8 +42,6 @@
 int initialize_gui(int *argc, char **argv);
 void startup_gui(void);
 
-void set_left_footer(char *s);
-
 void xdrawgraph(void);
 void expose_resize(Widget w, XtPointer client_data, XtPointer call_data);
 
@@ -63,13 +61,17 @@ char *display_name(void);
 void xunregister_rti(XtInputId);
 void xregister_rti(Input_buffer *ib);
 
+void errwin(const char *s);
 int yesnowin(char *msg1, char *msg2, char *s1, char *help_anchor);
+void stufftextwin(char *s);
+
+void do_hotupdate_proc(void *data);
 
 void create_file_popup(Widget but, void *data);
 void create_netcdfs_popup(Widget but, void *data);
 void create_saveproject_popup(void);
 void create_openproject_popup(void);
-void do_hotupdate_proc(void *data);
+void create_write_popup(Widget but, void *data);
 
 void create_eblock_frame(Quark *gr);
 
@@ -90,25 +92,29 @@ void create_prune_frame(Widget but, void *data);
 void create_lconv_frame(Widget but, void *data);
 void create_leval_frame(Widget but, void *data);
 
-void create_write_popup(Widget but, void *data);
-
 void create_points_frame(Widget but, void *data);
-
-void create_about_grtool(Widget but, void *data);
-
-void update_set_lists(Quark *gr);
-
-void update_ticks(Quark *gr);
 
 void create_arrange_frame(Widget but, void *data);
 void create_autos_frame(Widget but, void *data);
 
-void create_monitor_frame_cb(Widget but, void *data);
-
 void define_explorer_popup(Widget but, void *data);
 void update_explorer(ExplorerUI *ui, int reselect);
 
-void stufftextwin(char *s);
+void create_about_grtool(Widget but, void *data);
+
+void create_monitor_frame_cb(Widget but, void *data);
+
+void update_set_lists(Quark *gr);
+void update_ticks(Quark *gr);
+void update_props_items(void);
+void update_all(void);
+void update_all_cb(Widget but, void *data);
+
+void update_set_selectors(Quark *gr);
+
+void graph_set_selectors(Quark *gr);
+int clean_graph_selectors(Quark *pr, int etype, void *data);
+int clean_set_selectors(Quark *gr, int etype, void *data);
 
 void HelpCB(Widget w, void *data);
 
@@ -118,21 +124,6 @@ void create_props_frame(Widget but, void *data);
 
 void create_fonttool(Widget w);
 void create_fonttool_cb(Widget but, void *data);
-
-void set_wait_cursor(void);
-void unset_wait_cursor(void);
-void set_cursor(int c);
-void init_cursors(void);
-int init_option_menus(void);
-
-void sync_canvas_size(unsigned int *w, unsigned int *h, int inv);
-
-void set_title(const Quark *pr);
-
-void set_pagelayout(int layout);
-int get_pagelayout(void);
-
-void errwin(const char *s);
 
 void create_datasetprop_popup(Widget but, void *data);
 void create_datasetop_popup(Widget but, void *data);
@@ -144,15 +135,19 @@ void create_ss_frame(Quark *pset);
 void update_ss_editors(Quark *gr);
 void do_ext_editor(Quark *pset);
 
-void update_set_selectors(Quark *gr);
+void init_cursors(void);
+void set_cursor(int c);
+void set_wait_cursor(void);
+void unset_wait_cursor(void);
 
-void graph_set_selectors(Quark *gr);
-int clean_graph_selectors(Quark *pr, int etype, void *data);
-int clean_set_selectors(Quark *gr, int etype, void *data);
+int init_option_menus(void);
 
-void update_props_items(void);
-void update_all(void);
-void update_all_cb(Widget but, void *data);
+void set_title(const Quark *pr);
+void set_left_footer(char *s);
+
+void set_pagelayout(int layout);
+int get_pagelayout(void);
+void sync_canvas_size(unsigned int *w, unsigned int *h, int inv);
 
 void set_barebones(void);
 
