@@ -327,7 +327,7 @@ static int do_interp_proc(void *data)
 	if (nsdest != 0) {
             setnodest = svaluesdest[i];
         } else {
-            setnodest = SET_SELECT_NEXT;
+            setnodest = NEW_SET;
         }
         
         res = do_interp(gsrc, setnosrc, gdest, setnodest,
@@ -496,7 +496,7 @@ static int do_histo_proc(void *data)
 	if (nsdest != 0) {
             setnodest = svaluesdest[i];
         } else {
-            setnodest = SET_SELECT_NEXT;
+            setnodest = NEW_SET;
         }
         
         res = do_histo(gsrc, setnosrc, gdest, setnodest,

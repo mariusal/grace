@@ -918,7 +918,7 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
 	errmsg("Number of bins <= 0");
 	return RETURN_FAILURE;
     }
-    if (toset == SET_SELECT_NEXT) {
+    if (toset == NEW_SET) {
 	toset = nextset(tograph);
     }
     if (!is_valid_setno(tograph, toset)) {
@@ -1354,7 +1354,7 @@ int do_interp(int gno_src, int setno_src, int gno_dest, int setno_dest,
     len = getsetlength(gno_src, setno_src);
     ncols = dataset_cols(gno_src, setno_src);
 
-    if (setno_dest == SET_SELECT_NEXT) {
+    if (setno_dest == NEW_SET) {
 	setno_dest = nextset(gno_dest);
     }
     if (!is_valid_setno(gno_dest, setno_dest)) {
