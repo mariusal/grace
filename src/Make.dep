@@ -2,6 +2,7 @@
 main$(O) : main.c globals.h grace.h defines.h storage.h draw.h dict3.h \
   utils.h files.h ssdata.h dicts.h graphs.h graphutils.h plotone.h \
   devlist.h x11drv.h parser.h protos.h missing.h noxprotos.h xprotos.h
+quark$(O) : quark.c defines.h utils.h grace.h storage.h draw.h dict3.h
 grace$(O) : grace.c defines.h grace.h storage.h draw.h dict3.h utils.h \
   dicts.h graphs.h protos.h missing.h noxprotos.h xprotos.h
 project$(O) : project.c defines.h utils.h grace.h storage.h draw.h dict3.h \
@@ -130,8 +131,6 @@ graphappwin$(O) : graphappwin.c globals.h grace.h defines.h storage.h draw.h \
 helpwin$(O) : helpwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \
   utils.h files.h protos.h missing.h noxprotos.h graphs.h xprotos.h \
   motifinc.h
-hotwin$(O) : hotwin.c utils.h grace.h defines.h storage.h draw.h dict3.h \
-  graphs.h parser.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
 locatewin$(O) : locatewin.c graphs.h grace.h defines.h storage.h draw.h \
   dict3.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
 miscwin$(O) : miscwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \

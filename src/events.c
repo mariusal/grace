@@ -1358,3 +1358,26 @@ void push_and_zoom(void)
     set_action(DO_NOTHING);
     set_action(ZOOM_1ST);
 }
+
+/*
+ * update the sets in the current graph
+ */
+void do_hotupdate_proc(void *data)
+{
+    int setno;
+    int gno = get_cg();
+    int nsets;
+
+    set_wait_cursor();
+
+    /* do links */
+    nsets = number_of_sets(gno);
+    for (setno = 0; setno < nsets; setno++) {
+        if (is_hotlinked(gno, setno)) {
+            do_update_hotlink(gno, setno);
+        }
+    }
+
+    unset_wait_cursor();
+    xdrawgraph();
+}

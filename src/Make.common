@@ -42,7 +42,7 @@ GROBJS =  main$(O) quark$(O) grace$(O) project$(O) \
 GUISRCS =  Tab.c ListTree.c motifutils.c \
 	compwin.c comwin.c eblockwin.c \
 	editpwin.c events.c fileswin.c plotwin.c \
-	graphappwin.c helpwin.c hotwin.c \
+	graphappwin.c helpwin.c \
 	locatewin.c miscwin.c monwin.c \
 	nonlwin.c printwin.c ptswin.c regionwin.c \
 	setwin.c objwin.c setappwin.c explorer.c \
@@ -51,7 +51,7 @@ GUISRCS =  Tab.c ListTree.c motifutils.c \
 GUIOBJS =  Tab$(O) ListTree$(O) motifutils$(O) \
 	compwin$(O) comwin$(O) eblockwin$(O) \
 	editpwin$(O) events$(O) fileswin$(O) plotwin$(O) \
-	graphappwin$(O) helpwin$(O) hotwin$(O) \
+	graphappwin$(O) helpwin$(O) \
 	locatewin$(O) miscwin$(O) monwin$(O) \
 	nonlwin$(O) printwin$(O) ptswin$(O) regionwin$(O) \
 	setwin$(O) objwin$(O) setappwin$(O) explorer$(O) \

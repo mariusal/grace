@@ -743,8 +743,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Report on...", 'R', create_reporton_frame, NULL);
 
 
-    CreateMenuButton(menupane, "Hot links...", 'l', create_hotlinks_popup, NULL);
-
     CreateMenuSeparator(menupane);
 
     CreateMenuButton(menupane, "Set locator fixed point", 'f', set_actioncb, (void *) SEL_POINT);

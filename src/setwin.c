@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -55,6 +55,7 @@
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
 static void changetypeCB(int n, int *values, void *data);
 static int datasetprop_aac_cb(void *data);
+static void create_hotfiles_popup(void *data);
 
 static int datasetop_aac_cb(void *data);
 static void datasetoptypeCB(int value, void *data);
@@ -68,6 +69,9 @@ typedef struct _Type_ui {
     Widget comment_item;
     Widget length_item;
     OptionStructure *datatype_item;
+    Widget hotlink_item;
+    OptionStructure *hotsrc_item;
+    Widget hotfile_item;
     Widget mw;
     char *rows[MAX_SET_COLS][6];
 } Type_ui;
@@ -79,13 +83,18 @@ void create_datasetprop_popup(void *data)
     set_wait_cursor();
 
     if (tui.top == NULL) {
-        Widget menubar, menupane, submenupane, dialog, rc, fr;
+        Widget menubar, menupane, submenupane, dialog, rc, rc1, fr, wbut;
         int i, j;
         char *rowlabels[MAX_SET_COLS];
         char *collabels[6] = {"Min", "at", "Max", "at", "Mean", "Stdev"};
         short column_widths[6] = {10, 6, 10, 6, 10, 10};
         unsigned char column_alignments[6];
         unsigned char column_label_alignments[6];
+        OptionItem optype_items[] = {
+            {SOURCE_DISK,  "File"},
+            {SOURCE_PIPE,  "Pipe"}
+        };
+
 	tui.top = CreateDialogForm(app_shell, "Data set properties");
 
         menubar = CreateMenuBar(tui.top);
@@ -134,10 +143,23 @@ void create_datasetprop_popup(void *data)
         CreateMenuHelpButton(menupane, "On data sets", 's',
             tui.top, "doc/UsersGuide.html#data-sets");
 
-	rc = CreateHContainer(dialog);
-	tui.datatype_item = CreateSetTypeChoice(rc, "Type:");
-	tui.length_item = CreateTextItem2(rc, 6, "Length:");
-	tui.comment_item = CreateTextItem2(dialog, 26, "Comment:");
+	fr = CreateFrame(dialog, NULL);
+	rc = CreateVContainer(fr);
+	rc1 = CreateHContainer(rc);
+	tui.datatype_item = CreateSetTypeChoice(rc1, "Type:");
+	tui.length_item = CreateTextItem2(rc1, 6, "Length:");
+	tui.comment_item = CreateTextItem2(rc, 26, "Comment:");
+
+	fr = CreateFrame(dialog, "Hotlink");
+	rc = CreateVContainer(fr);
+	rc1 = CreateHContainer(rc);
+        tui.hotlink_item = CreateToggleButton(rc1, "Enabled");
+        tui.hotsrc_item  = CreateOptionChoice(rc1,
+            "Source type: ", 1, 2, optype_items);
+	rc1 = CreateHContainer(rc);
+	tui.hotfile_item = CreateTextItem2(rc1, 20, "File name:");
+	wbut = CreateButton(rc1, "Browse...");
+	AddButtonCB(wbut, create_hotfiles_popup, &tui);
 
         for (i = 0; i < 6; i++) {
             column_alignments[i] = XmALIGNMENT_END;
@@ -209,13 +231,12 @@ static void changetypeCB(int n, int *values, void *data)
 	sprintf(buf, "%d", getsetlength(gno, setno));
         xv_setstr(tui.length_item, buf);
         SetOptionChoice(tui.datatype_item, dataset_type(gno, setno));
-        SetSensitive(tui.datatype_item->menu, TRUE);
+        SetToggleButtonState(tui.hotlink_item, is_hotlinked(gno, setno));
+        SetOptionChoice(tui.hotsrc_item, get_hotlink_src(gno, setno));
+        xv_setstr(tui.hotfile_item, get_hotlink_file(gno, setno));
     } else {
 	setno = -1;
         ncols = 0;
-        xv_setstr(tui.comment_item, "");
-        xv_setstr(tui.length_item, "");
-        SetSensitive(tui.datatype_item->menu, FALSE);
     }
     for (i = 0; i < MAX_SET_COLS; i++) {
         datap = getcol(gno, setno, i);
@@ -271,8 +292,8 @@ static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 static int datasetprop_aac_cb(void *data)
 {
     int error = FALSE;
-    int *selset, nsets, i, len, setno, type;
-    char *s;
+    int *selset, nsets, i, len, setno, type, hotlink, hotsrc;
+    char *s, *hotfile;
     
     nsets = GetListChoices(tui.sel, &selset);
     
@@ -288,6 +309,9 @@ static int datasetprop_aac_cb(void *data)
         }
         s = xv_getstr(tui.comment_item);
         
+        hotlink = GetToggleButtonState(tui.hotlink_item);
+        hotsrc  = GetOptionChoice(tui.hotsrc_item);
+        hotfile = xv_getstr(tui.hotfile_item);
  
         if (error == FALSE) {
             for (i = 0; i < nsets; i++) {
@@ -295,6 +319,7 @@ static int datasetprop_aac_cb(void *data)
                 set_dataset_type(cg, setno, type);
                 setlength(cg, setno, len);
                 setcomment(cg, setno, s);
+                set_hotlink(cg, setno, hotlink, hotfile, hotsrc);
             }
         }
  
@@ -310,6 +335,34 @@ static int datasetprop_aac_cb(void *data)
     }
 }
 
+static int do_hotlinkfile_proc(char *filename, void *data)
+{
+    Type_ui *ui = (Type_ui *) data;
+    
+    xv_setstr(ui->hotfile_item, filename);
+    
+    return TRUE;
+}
+
+/*
+ * create file selection pop up to choose the file for hotlink
+ */
+static void create_hotfiles_popup(void *data)
+{
+    static FSBStructure *fsb = NULL;
+
+    set_wait_cursor();
+
+    if (fsb == NULL) {
+        fsb = CreateFileSelectionBox(app_shell, "Hotlinked file");
+	AddFileSelectionBoxCB(fsb, do_hotlinkfile_proc, data);
+        ManageChild(fsb->FSB);
+    }
+    
+    RaiseWindow(fsb->dialog);
+
+    unset_wait_cursor();
+}
 
 typedef enum {
     DATASETOP_SORT,

@@ -4675,7 +4675,6 @@ void update_all(void)
 
     update_ticks(gno);
     update_props_items();
-    update_hotlinks();
     update_locator_items(gno);
     set_stack_message();
     set_left_footer(NULL);
