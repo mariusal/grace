@@ -95,6 +95,10 @@ Quark *graph_next(Quark *project)
 {
     Quark *f, *g;
     
+    if (!project) {
+        return NULL;
+    }
+    
     f = frame_new(project);
     g = graph_new(f);
     if (g && number_of_graphs(project) == 1) {
