@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1277,6 +1277,19 @@ void newworld(int gno, int axes, VPoint vp1, VPoint vp2)
     }
 }
 
+void switch_current_graph(int gno)
+{
+    int saveg = get_cg();
+    
+    if (is_graph_hidden(gno) == FALSE) {
+        select_graph(gno);
+        draw_focus(saveg);
+        draw_focus(gno);
+        update_all();
+        set_graph_selectors(gno);
+        getpoints(anchor_vp);
+    }
+}
 
 
 /* -------------------------------------------------------------- */
@@ -1287,6 +1300,7 @@ void autoscale_action(Widget w, XKeyEvent *e, String *p, Cardinal *c)
     
     autoscale_graph(cg, AUTOSCALE_XY);
     update_ticks(cg);
+    xdrawgraph();
 }
 
 void autoscale_on_near_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
