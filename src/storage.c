@@ -52,7 +52,7 @@
     if (!sto) {                                                         \
         _exception_handler(STORAGE_ETYPE_ERROR, "NULL pointer passed"); \
         retaction;                                                      \
-    } else if (sto->errno == STORAGE_EFATAL) {                          \
+    } else if (sto->ierrno == STORAGE_EFATAL) {                          \
         sto->exception_handler(STORAGE_ETYPE_FATAL, "Fatal error");     \
         retaction;                                                      \
     }
@@ -101,7 +101,7 @@ Storage *storage_new(Storage_data_free data_free,
     sto->cp    = NULL;
     sto->count = 0;
     sto->ids   = NULL;
-    sto->errno = 0;
+    sto->ierrno = 0;
     if (data_free == NULL) {
         sto->data_free = _data_free;
     } else {
@@ -124,7 +124,7 @@ int storage_next(Storage *sto)
     
     cllnode = sto->cp;
     if (cllnode == NULL || cllnode->next == NULL) {
-        sto->errno = STORAGE_ENOENT;
+        sto->ierrno = STORAGE_ENOENT;
         return RETURN_FAILURE;
     } else {
         sto->cp = cllnode->next;
@@ -140,7 +140,7 @@ int storage_prev(Storage *sto)
     
     cllnode = sto->cp;
     if (cllnode == NULL || cllnode->prev == NULL) {
-        sto->errno = STORAGE_ENOENT;
+        sto->ierrno = STORAGE_ENOENT;
         return RETURN_FAILURE;
     } else {
         sto->cp = cllnode->prev;
@@ -202,7 +202,7 @@ int storage_scroll_to_id(Storage *sto, int id)
         cllnode = cllnode->prev;
     }
 
-    sto->errno = STORAGE_ENOENT;
+    sto->ierrno = STORAGE_ENOENT;
     return RETURN_FAILURE;
 }
 
@@ -242,7 +242,7 @@ static LLNode *storage_allocate_node(Storage *sto, int id, void *data)
     LLNode *new;
     
     if (storage_id_exists(sto, id)) {
-        sto->errno = STORAGE_EEXIST;
+        sto->ierrno = STORAGE_EEXIST;
         return NULL;
     }
     new = xmalloc(sizeof(LLNode));
@@ -258,12 +258,12 @@ static LLNode *storage_allocate_node(Storage *sto, int id, void *data)
             sto->ids = ids;
             sto->cp = new;
         } else {
-            sto->errno = STORAGE_ENOMEM;
+            sto->ierrno = STORAGE_ENOMEM;
             xfree(new);
             new = NULL;
         }
     } else {
-        sto->errno = STORAGE_ENOMEM;
+        sto->ierrno = STORAGE_ENOMEM;
     }
     return new;
 }
@@ -287,7 +287,7 @@ static void storage_deallocate_node(Storage *sto, LLNode *llnode)
     }
     
     /* should never come here */
-    sto->errno = STORAGE_EFATAL;
+    sto->ierrno = STORAGE_EFATAL;
 }
 
 int storage_add(Storage *sto, int id, void *data)
@@ -351,7 +351,7 @@ int storage_delete(Storage *sto)
     
     llnode = sto->cp;
     if (llnode == NULL) {
-        sto->errno = STORAGE_ENOENT;
+        sto->ierrno = STORAGE_ENOENT;
         return RETURN_FAILURE;
     } else {
         next = llnode->next;
@@ -451,7 +451,7 @@ int storage_get_unique_id(Storage *sto)
             }
             
             /* should never come here */
-            sto->errno = STORAGE_EFATAL;
+            sto->ierrno = STORAGE_EFATAL;
             return -1;
         }
     } else {

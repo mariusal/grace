@@ -63,7 +63,7 @@ typedef struct _Storage {
     LLNode *cp;
     int count;
     int *ids;
-    int errno;
+    int ierrno;
     Storage_data_free data_free;
     Storage_exception_handler exception_handler;
 } Storage;
