@@ -1344,7 +1344,7 @@ static void rgb_bw(const RGB *src, RGB *dest)
 
 void canvas_color_trans(Canvas *canvas, CMap_entry *cmap)
 {
-    switch (canvas->color_trans) {
+    switch (canvas->curdevice->color_trans) {
     case COLOR_TRANS_BW:
         rgb_bw(&cmap->color.rgb, &cmap->devrgb);
         break;
@@ -1533,11 +1533,6 @@ int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk)
     } else {
         return RETURN_FAILURE;
     }
-}
-
-void reverse_video(Canvas *canvas)
-{
-    canvas->color_trans = COLOR_TRANS_REVERSE;
 }
 
 /* 

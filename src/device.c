@@ -44,7 +44,8 @@ Device_entry *device_new(const char *name, int type, int twopass, void *data)
     d = xmalloc(sizeof(Device_entry));
     if (d) {
         memset(d, 0, sizeof(Device_entry));
-        d->pg.dpi = 72.0;
+        d->pg.dpi      = 72.0;
+        d->color_trans = COLOR_TRANS_NONE;
         
         d->type    = type;
         d->twopass = twopass;

@@ -382,6 +382,8 @@ typedef struct {
     
     int twopass;                           /* two-pass mode */
     int autocrop;                          /* resize canvas to tight BBox */
+
+    int color_trans;                       /* color transformation type */
     
     /* low-level device routines */
     DevInitProc          initgraphics;
@@ -434,7 +436,6 @@ struct _Canvas {
     /* colors */
     unsigned int ncolors;
     CMap_entry *cmap;
-    int color_trans;                       /* color transformation type */
 
     /* patterns */
     unsigned int npatterns;
@@ -594,7 +595,6 @@ int get_cmyk(const Canvas *canvas, unsigned int cindex, CMYK *cmyk);
 int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk);
 
 void initialize_cmap(Canvas *canvas);
-void reverse_video(Canvas *canvas);
 
 int init_t1(Canvas *canvas);
 

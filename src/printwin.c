@@ -67,6 +67,7 @@ static OptionStructure *page_size_unit_item;
 static Widget dev_res_item;
 static Widget autocrop_item;
 static OptionStructure *fontrast_item;
+static OptionStructure *color_trans_item;
 static Widget dsync_item, psync_item;
 
 static void do_pr_toggle(int onoff, void *data);
@@ -208,10 +209,8 @@ void create_printer_setup(void *data)
 
 	autocrop_item = CreateToggleButton(rc1, "Auto crop");
 
-        fr = CreateFrame(psetup_rc, "Fonts");
+        fr = CreateFrame(psetup_rc, "Fonts & Colors");
         rc1 = CreateVContainer(fr);
-
-
 
         option_items = xmalloc(3*sizeof(OptionItem));
         option_items[0].value = FONT_RASTER_DEVICE;
@@ -222,6 +221,21 @@ void create_printer_setup(void *data)
         option_items[2].label = "Antialiasing";
 	fontrast_item = CreateOptionChoice(rc1,
             "Font rastering:", 1, 3, option_items);
+        xfree(option_items);
+
+        option_items = xmalloc(5*sizeof(OptionItem));
+        option_items[0].value = COLOR_TRANS_NONE;
+        option_items[0].label = "None";
+        option_items[1].value = COLOR_TRANS_GREYSCALE;
+        option_items[1].label = "Grayscale";
+        option_items[2].value = COLOR_TRANS_BW;
+        option_items[2].label = "B/W";
+        option_items[3].value = COLOR_TRANS_NEGATIVE;
+        option_items[3].label = "Negative";
+        option_items[4].value = COLOR_TRANS_REVERSE;
+        option_items[4].label = "Reverse";
+	color_trans_item = CreateOptionChoice(rc1,
+            "Color transform:", 1, 5, option_items);
         xfree(option_items);
         
 	CreateAACDialog(psetup_frame, psetup_rc, set_printer_proc, NULL);
@@ -357,6 +371,7 @@ static void update_device_setup(int device_id)
         xv_setstr(page_y_item, buf);
         
         SetOptionChoice(fontrast_item, dev->fontrast);
+        SetOptionChoice(color_trans_item, dev->color_trans);
     }
 }
 
@@ -385,6 +400,7 @@ static int set_printer_proc(void *data)
     }
     
     dev->fontrast = GetOptionChoice(fontrast_item);
+    dev->color_trans = GetOptionChoice(color_trans_item);
     
     if (xv_evalexpr(page_x_item, &page_x) != RETURN_SUCCESS || 
         xv_evalexpr(page_y_item, &page_y) != RETURN_SUCCESS ||
