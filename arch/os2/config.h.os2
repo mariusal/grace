@@ -116,7 +116,7 @@
 #undef HAVE_VFORK_H
 
 /* Define vfork as fork if vfork does not work.  */
-#undef vfork
+#define vfork fork
 
 /* Define if you have the getcwd function.  */
 #define HAVE_GETCWD 1

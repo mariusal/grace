@@ -1,5 +1,5 @@
                            (XM)GRACE for XFree86 OS/2
-                                   (19990319)
+                                   (19990427)
 
 
                           Contents of this document:
@@ -13,27 +13,26 @@
 1) Introduction
    ------------
 
-  Like every software this port of GRACE for XFree86 OS/2 may still have
+  Like every piece of software this port of GRACE for XFree86 OS/2 may have
   some bugs. Some of them are just related to the general problems
   un*x biased applications have on non-un*x filesystems. So read the
   documentation and FAQs of XFree86 carefully to get some hints how to
-  avoid running into these bugs ('limitations'). e.g. a good idea is
-  installing TVFS, the Toronto Virtual File System.
+  avoid running into these bugs ('limitations'). e.g. it is a good idea to
+  install TVFS, the Toronto Virtual File System.
 
   A pre-compiled version should always be available from
 
     http://www.tu-darmstadt.de/~st002279/os2.html
 
-
   This document describes only the OS/2 specifics. If you're going
-  to use GRACE you should read the general documentation files as well !
+  to use GRACE you should read the general documentation files as well!
 
 
 2) How to build xmgrace
    --------------------
    
   Here I try to give a complete list what you need to build grace.
-  The first listed packages have be installed anyway:
+  The first listed packages have be installed in any case:
 
   - EMX 0.9 development package
     (http://hobbes.nmsu.edu  and/or http://www.leo.org)
@@ -49,10 +48,10 @@
   - the "usual" GNU utilities (text, shell, file).
   - un*x shell (sh)
 
-  To actually build grace I used additional libraries which may or
-  may not be public available in binary form (grace _can_ be build
-  without these packages). Well, at least they could be found in
-  binary distributions from the URL given above.
+  To actually build grace I use additional libraries which may or
+  may not be public available in binary form (grace _can_ be built
+  without these packages!). If you can't find them on my webpage,
+  I'll provide them as binaries upon request.
 
     - libhelp and it's little application xmhelp
       (used to display the online help written in HTML)
@@ -65,11 +64,11 @@
     - fftw library: fourier transformations
          http://theory.lcs.mit.edu/~fftw/
 
-  So far the supplied configure (shell-) script may not work under OS/2
+  By now the supplied configure (shell-) script may not work under OS/2
   (even using the existing Autoconf port). 
   As a small replacement I offer a small REXX-script 'configos2.cmd' which will
 
-    - copy the standard OS/2 configuration files (config.h and Make.conf)
+    - copy a standard OS/2 configuration files (config.h and Make.conf)
       from .\arch\os2 to the toplevel source directory
     - build dlfcn.a in \arch\os2 (support for user-supplied mathemtical
       functions in dynamic load libraries)
@@ -81,29 +80,30 @@
 
   Finally 'x11make.exe' will be called. Note that calling the 'make'
   script from X/2 won't work cause the generic Makefile is using
-  shell commands which is suppressed by make.cmd.
+  shell commands which is disabled by make.cmd.
 
 
 3) How to install
    ---------------
 
   At this moment the OS/2 Makefiles don't offer an installation target.
-  You have to it manually ...
+  You have to do it manually ...
 
   The binary distribution archive can just be unpacked and will
   extract in $(X11ROOT)\. I supply a small REXX-script 'xmgrace1.cmd'
   which will set the necessary environment variable(s) so that xmgrace
-  can be run within this setup.
+  can run within this setup.
   
   In future I plan to include some instructions how to access your installed
   printers without manual processing the Postscript files. But this is
-  of course not only a problem of GRACE but of every non-PM application
-  on OS/2. By now I'm using lpr and lpd to access my local Postscript printer.
-  Check out the printing tools on LEO/Hobbes for useful utiities.
-  Of course you may 'just' print to a file and do the further processing
-  of this file manually.
+  not only a problem of GRACE but of every non-PM application on OS/2. By now 
+  I'm using lpr and lpd to access my local Postscript printer (via a
+  loopback interface).
+  Check out the printing tools on LEO/Hobbes for useful utiities!
+  Or you may 'just' print to a file and do the further processing
+  (e.g. running Ghostview/gvpm) of it manually.
   
 
-
+---
 Alexander Mai
 st002279@hrzpub.tu-darmstadt.de
