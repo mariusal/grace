@@ -507,12 +507,15 @@ static void calculate_tickgrid(Quark *q)
     int res, len;
     grarr *tvar;
     double *tt;
+    AMem *amem;
     
     t = axisgrid_get_data(q);
 
     if (!t) {
         return;
     }
+    
+    amem = quark_get_amem(q);
 
     gr = get_parent_graph(q);
 
@@ -592,7 +595,7 @@ reenter:
                     t->tloc[itick].wtpos = wtmaj + (imtick + 1)*stmajor/(t->nminor + 1);
                 }
                 t->tloc[itick].type = TICK_TYPE_MINOR;
-	        XCFREE(t->tloc[itick].label);
+	        AMEM_CFREE(amem, t->tloc[itick].label);
                 itick++;
             }
             itmaj++;
@@ -646,7 +649,8 @@ reenter:
             itmaj = 0;
             for (itick = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
-	            t->tloc[itick].label = copy_string(t->tloc[itick].label, 
+	            t->tloc[itick].label = amem_strcpy(amem,
+                        t->tloc[itick].label, 
                         create_fstring(get_parent_project(q),
                             t->tl_format, t->tl_prec,
                             tt[itmaj], LFORMAT_TYPE_EXTENDED));
@@ -657,7 +661,8 @@ reenter:
 	} else {
             for (itick = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
-	            t->tloc[itick].label = copy_string(t->tloc[itick].label, 
+	            t->tloc[itick].label = amem_strcpy(amem,
+                        t->tloc[itick].label, 
                         create_fstring(get_parent_project(q),
                             t->tl_format, t->tl_prec,
                             t->tloc[itick].wtpos, LFORMAT_TYPE_EXTENDED));
