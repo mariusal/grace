@@ -45,7 +45,7 @@
 #define AXIS_TYPE_X    0
 #define AXIS_TYPE_Y    1
 
-#define MAX_TICKS 100           /* max number of ticks/labels per axis */
+#define MAX_TICKS 256           /* max number of ticks/labels per axis */
 
 /* Axis label layout */
 #define LAYOUT_PARALLEL         0
