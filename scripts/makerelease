@@ -5,6 +5,7 @@ export PATH
 make configure
 
 cat << EOF > Make.conf
+.SUFFIXES:
 O=.o
 EXE=
 YACC=bison -y
