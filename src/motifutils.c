@@ -4388,6 +4388,7 @@ void update_set_lists(Quark *gr)
 {
     update_set_selectors(gr);
     update_ss_editors(gr);
+    update_explorer(grace->gui->eui, TRUE);
 }
 
 void update_all(void)
