@@ -432,7 +432,7 @@ static int setapp_aac_cb(void *data)
     AValue avalue;
     char symchar;
     int charfont;
-    plotarr p;
+    set *p;
     
     int setno;
     int *selset, cd;
@@ -491,33 +491,34 @@ static int setapp_aac_cb(void *data)
     } else {
         for(i = 0; i < cd; i++) {
             setno = selset[i];
-            get_graph_plotarr(get_cg(), setno, &p);
-            p.symskip = symskip;
-            p.symsize = symsize;
-            p.symlinew = symlinew;
-            p.symlines = symlines;
-            p.symchar = symchar;
-            p.charfont = charfont;
-            p.filltype = filltype;
-            p.fillrule = fillrule;
-            p.setfillpen.pattern = fillpat;
-            p.setfillpen.color = fillcol;
+            p = set_get(get_cg(), setno);
+            p->symskip = symskip;
+            p->symsize = symsize;
+            p->symlinew = symlinew;
+            p->symlines = symlines;
+            p->symchar = symchar;
+            p->charfont = charfont;
+            p->filltype = filltype;
+            p->fillrule = fillrule;
+            p->setfillpen.pattern = fillpat;
+            p->setfillpen.color = fillcol;
             if (cd == 1 || duplegs) {
-                strcpy(p.lstr, GetTextString(legend_str_item));
+                p->legstr = copy_string(p->legstr,
+                    GetTextString(legend_str_item));
             }
-            p.sym = sym;
-            p.linet = linet;
-            p.lines = line;
-            p.linew = wid;
-            p.linepen.color = color;
-            p.linepen.pattern = pattern;
-            p.sympen.color = symcolor;
-            p.sympen.pattern = sympattern;
-            p.symfillpen.color = symfillcolor;
-            p.symfillpen.pattern = symfillpattern;
-            p.dropline = dropline;
-            p.baseline = baseline;
-            p.baseline_type = baselinetype;
+            p->sym = sym;
+            p->linet = linet;
+            p->lines = line;
+            p->linew = wid;
+            p->linepen.color = color;
+            p->linepen.pattern = pattern;
+            p->sympen.color = symcolor;
+            p->sympen.pattern = sympattern;
+            p->symfillpen.color = symfillcolor;
+            p->symfillpen.pattern = symfillpattern;
+            p->dropline = dropline;
+            p->baseline = baseline;
+            p->baseline_type = baselinetype;
 
             errbar.ptype = GetChoice(errbar_ptype_item);
             errbar.pen.color = GetOptionChoice(errbar_color_item);
@@ -525,10 +526,9 @@ static int setapp_aac_cb(void *data)
             errbar.arrow_clip = GetToggleButtonState(errbar_aclip_item);
             errbar.cliplen = GetSpinChoice(errbar_cliplen_item);
     
-            p.errbar = errbar;
-            p.avalue = avalue;
+            p->errbar = errbar;
+            p->avalue = avalue;
             
-            set_graph_plotarr(get_cg(), setno, &p);
             set_dataset_type(get_cg(), setno, type);
         }
         xfree(selset);
@@ -548,56 +548,59 @@ static void UpdateSymbols(int gno, int value)
 {
     int i;
     char val[24];
-    plotarr p;
+    set *p;
 
     if ((cset == value) && (value != -1)) {
-        get_graph_plotarr(gno, cset, &p);
+        p = set_get(gno, cset);
+        if (!p) {
+            return;
+        }
     
-        SetOptionChoice(type_item, p.type);
+        SetOptionChoice(type_item, p->type);
         for (i = 0; i < type_item->nchoices; i++) {
             if (settype_cols(type_item->options[i].value) ==
-                                            settype_cols(p.type)) {
+                                            settype_cols(p->type)) {
                 SetSensitive(type_item->options[i].widget, True);
             } else {
                 SetSensitive(type_item->options[i].widget, False);
             }
         }
 
-        SetCharSizeChoice(symsize_item, p.symsize);
-        sprintf(val, "%d", p.symskip);
+        SetCharSizeChoice(symsize_item, p->symsize);
+        sprintf(val, "%d", p->symskip);
         xv_setstr(symskip_item, val);
-        sprintf(val, "%d", p.symchar);
+        sprintf(val, "%d", p->symchar);
         xv_setstr(symchar_item, val);
-        SetChoice(toggle_symbols_item, p.sym);
+        SetChoice(toggle_symbols_item, p->sym);
         
-        SetOptionChoice(symcolor_item, p.sympen.color);
-        SetOptionChoice(sympattern_item, p.sympen.pattern);
-        SetOptionChoice(symfillcolor_item, p.symfillpen.color);
-        SetOptionChoice(symfillpattern_item, p.symfillpen.pattern);
-        SetSpinChoice(symlinew_item, p.symlinew);
-        SetOptionChoice(symlines_item, p.symlines);
+        SetOptionChoice(symcolor_item, p->sympen.color);
+        SetOptionChoice(sympattern_item, p->sympen.pattern);
+        SetOptionChoice(symfillcolor_item, p->symfillpen.color);
+        SetOptionChoice(symfillpattern_item, p->symfillpen.pattern);
+        SetSpinChoice(symlinew_item, p->symlinew);
+        SetOptionChoice(symlines_item, p->symlines);
         
-        SetOptionChoice(char_font_item, p.charfont);        
+        SetOptionChoice(char_font_item, p->charfont);        
         
-        SetOptionChoice(toggle_color_item, p.linepen.color);
-        SetOptionChoice(toggle_pattern_item, p.linepen.pattern);
-        SetSpinChoice(toggle_width_item, p.linew);
-        SetToggleButtonState(dropline_item, p.dropline);
-        SetOptionChoice(toggle_lines_item, p.lines);
-        SetChoice(toggle_linet_item, p.linet);
-        SetChoice(toggle_filltype_item, p.filltype);
-        SetChoice(toggle_fillrule_item, p.fillrule);
-        SetOptionChoice(toggle_fillcol_item, p.setfillpen.color);
-        SetOptionChoice(toggle_fillpat_item, p.setfillpen.pattern);
+        SetOptionChoice(toggle_color_item, p->linepen.color);
+        SetOptionChoice(toggle_pattern_item, p->linepen.pattern);
+        SetSpinChoice(toggle_width_item, p->linew);
+        SetToggleButtonState(dropline_item, p->dropline);
+        SetOptionChoice(toggle_lines_item, p->lines);
+        SetChoice(toggle_linet_item, p->linet);
+        SetChoice(toggle_filltype_item, p->filltype);
+        SetChoice(toggle_fillrule_item, p->fillrule);
+        SetOptionChoice(toggle_fillcol_item, p->setfillpen.color);
+        SetOptionChoice(toggle_fillpat_item, p->setfillpen.pattern);
         
-        SetToggleButtonState(baseline_item, p.baseline);
-        SetChoice(baselinetype_item, p.baseline_type);
+        SetToggleButtonState(baseline_item, p->baseline);
+        SetChoice(baselinetype_item, p->baseline_type);
 
-        SetTextString(legend_str_item, p.lstr);
+        SetTextString(legend_str_item, p->legstr);
         
-        SetToggleButtonState(errbar_active_item, p.errbar.active);
+        SetToggleButtonState(errbar_active_item, p->errbar.active);
         
-        switch (p.type) {
+        switch (p->type) {
         case SET_XYDXDX:
         case SET_XYDYDY:
         case SET_XYDXDXDYDY:
@@ -607,38 +610,34 @@ static void UpdateSymbols(int gno, int value)
             SetSensitive(errbar_ptype_item[4], True);
             break;
         }
-        SetChoice(errbar_ptype_item, p.errbar.ptype);
-        SetOptionChoice(errbar_color_item, p.errbar.pen.color);
-        SetOptionChoice(errbar_pattern_item, p.errbar.pen.pattern);
-        SetToggleButtonState(errbar_aclip_item, p.errbar.arrow_clip);
-        SetSpinChoice(errbar_cliplen_item, p.errbar.cliplen);
-        SetSpinChoice(errbar_width_item, p.errbar.linew);
-        SetOptionChoice(errbar_lines_item, p.errbar.lines);
-        SetSpinChoice(errbar_riserlinew_item, p.errbar.riser_linew);
-        SetOptionChoice(errbar_riserlines_item, p.errbar.riser_lines);
-        SetCharSizeChoice(errbar_size_item, p.errbar.barsize);
+        SetChoice(errbar_ptype_item, p->errbar.ptype);
+        SetOptionChoice(errbar_color_item, p->errbar.pen.color);
+        SetOptionChoice(errbar_pattern_item, p->errbar.pen.pattern);
+        SetToggleButtonState(errbar_aclip_item, p->errbar.arrow_clip);
+        SetSpinChoice(errbar_cliplen_item, p->errbar.cliplen);
+        SetSpinChoice(errbar_width_item, p->errbar.linew);
+        SetOptionChoice(errbar_lines_item, p->errbar.lines);
+        SetSpinChoice(errbar_riserlinew_item, p->errbar.riser_linew);
+        SetOptionChoice(errbar_riserlines_item, p->errbar.riser_lines);
+        SetCharSizeChoice(errbar_size_item, p->errbar.barsize);
 
-        SetToggleButtonState(avalue_active_item, p.avalue.active);
-        SetChoice(avalue_type_item, p.avalue.type);
-        SetCharSizeChoice(avalue_charsize_item, p.avalue.size);
-        SetOptionChoice(avalue_font_item, p.avalue.font);
-        SetOptionChoice(avalue_color_item, p.avalue.color);
-        SetAngleChoice(avalue_angle_item, p.avalue.angle);
-        SetOptionChoice(avalue_format_item, p.avalue.format);
-        SetChoice(avalue_precision_item, p.avalue.prec);
+        SetToggleButtonState(avalue_active_item, p->avalue.active);
+        SetChoice(avalue_type_item, p->avalue.type);
+        SetCharSizeChoice(avalue_charsize_item, p->avalue.size);
+        SetOptionChoice(avalue_font_item, p->avalue.font);
+        SetOptionChoice(avalue_color_item, p->avalue.color);
+        SetAngleChoice(avalue_angle_item, p->avalue.angle);
+        SetOptionChoice(avalue_format_item, p->avalue.format);
+        SetChoice(avalue_precision_item, p->avalue.prec);
         
-        xv_setstr(avalue_prestr, p.avalue.prestr);
-        xv_setstr(avalue_appstr, p.avalue.appstr);
+        xv_setstr(avalue_prestr, p->avalue.prestr);
+        xv_setstr(avalue_appstr, p->avalue.appstr);
 
-        sprintf(val, "%f", p.avalue.offset.x);
+        sprintf(val, "%f", p->avalue.offset.x);
         xv_setstr(avalue_offsetx, val);
-        sprintf(val, "%f", p.avalue.offset.y);
+        sprintf(val, "%f", p->avalue.offset.y);
         xv_setstr(avalue_offsety, val);
-        
-/*
- *         set_graph_plotarr(gno, cset, &p);
- */
-   }
+    }
 }
 
 
@@ -669,7 +668,7 @@ static void setapp_data_proc(void *data)
     int proc_type;
     int *selset, cd;
     int i, setno;
-    plotarr p;
+    set *p;
     int c = 0, bg = getbgcolor();
     
     proc_type = (int) data;
@@ -681,6 +680,10 @@ static void setapp_data_proc(void *data)
     } else {
         for(i = 0; i < cd; i++) {
             setno = selset[i];
+            p = set_get(cg, setno);
+            if (!p) {
+                return;
+            }
             switch (proc_type) {
             case SETAPP_STRIP_LEGENDS:
                 set_legend_string(cg, setno,
@@ -698,19 +701,13 @@ static void setapp_data_proc(void *data)
                 c++;
                 break;
             case SETAPP_ALL_SYMBOLS:
-                get_graph_plotarr(cg, setno, &p);
-                p.sym = (i % (MAXSYM - 2)) + 1;
-                set_graph_plotarr(cg, setno, &p);
+                p->sym = (i % (MAXSYM - 2)) + 1;
                 break;
             case SETAPP_ALL_LINEW:
-                get_graph_plotarr(cg, setno, &p);
-                p.linew = ((i % (2*((int) MAX_LINEWIDTH) - 1)) + 1)/2.0;
-                set_graph_plotarr(cg, setno, &p);
+                p->linew = ((i % (2*((int) MAX_LINEWIDTH) - 1)) + 1)/2.0;
                 break;
             case SETAPP_ALL_LINES:
-                get_graph_plotarr(cg, setno, &p);
-                p.lines = (i % (number_of_linestyles() - 1)) + 1;
-                set_graph_plotarr(cg, setno, &p);
+                p->lines = (i % (number_of_linestyles() - 1)) + 1;
                 break;
             case SETAPP_ALL_BW:
                 set_set_colors(cg, setno, 1);

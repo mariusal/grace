@@ -60,7 +60,7 @@ void putparms(int gno, FILE *pp, int embed)
     framep f;
     legend leg;
     labels lab;
-    plotarr p;
+    set *p;
     tickmarks *t;
     world_stack ws;
     world w;
@@ -433,53 +433,53 @@ void putparms(int gno, FILE *pp, int embed)
             fprintf(pp, "%s    frame background pattern %d\n", embedstr, f.fillpen.pattern);
 
             for (i = 0; i < number_of_sets(gno); i++) {
-                get_graph_plotarr(gno, i, &p);
-                if (is_set_active(gno, i) == TRUE) {
+                p = set_get(gno, i);
+                if (p) {
                     fprintf(pp, "%s    s%1d hidden %s\n", embedstr, i,
-                                            true_or_false(p.hidden));
-                    fprintf(pp, "%s    s%1d type %s\n", embedstr, i, set_types(p.type));
-                    fprintf(pp, "%s    s%1d symbol %d\n", embedstr, i, p.sym);
-                    fprintf(pp, "%s    s%1d symbol size %f\n", embedstr, i, p.symsize);
-                    fprintf(pp, "%s    s%1d symbol color %d\n", embedstr, i, p.sympen.color);
-                    fprintf(pp, "%s    s%1d symbol pattern %d\n", embedstr, i, p.sympen.pattern);
-                    fprintf(pp, "%s    s%1d symbol fill color %d\n", embedstr, i, p.symfillpen.color);
-                    fprintf(pp, "%s    s%1d symbol fill pattern %d\n", embedstr, i, p.symfillpen.pattern);
-                    fprintf(pp, "%s    s%1d symbol linewidth %.1f\n", embedstr, i, p.symlinew);
-                    fprintf(pp, "%s    s%1d symbol linestyle %d\n", embedstr, i, p.symlines);
-                    fprintf(pp, "%s    s%1d symbol char %d\n", embedstr, i, p.symchar);
-                    fprintf(pp, "%s    s%1d symbol char font %d\n", embedstr, i, get_font_mapped_id(p.charfont));
-                    fprintf(pp, "%s    s%1d symbol skip %d\n", embedstr, i, p.symskip);
+                                            true_or_false(p->hidden));
+                    fprintf(pp, "%s    s%1d type %s\n", embedstr, i, set_types(p->type));
+                    fprintf(pp, "%s    s%1d symbol %d\n", embedstr, i, p->sym);
+                    fprintf(pp, "%s    s%1d symbol size %f\n", embedstr, i, p->symsize);
+                    fprintf(pp, "%s    s%1d symbol color %d\n", embedstr, i, p->sympen.color);
+                    fprintf(pp, "%s    s%1d symbol pattern %d\n", embedstr, i, p->sympen.pattern);
+                    fprintf(pp, "%s    s%1d symbol fill color %d\n", embedstr, i, p->symfillpen.color);
+                    fprintf(pp, "%s    s%1d symbol fill pattern %d\n", embedstr, i, p->symfillpen.pattern);
+                    fprintf(pp, "%s    s%1d symbol linewidth %.1f\n", embedstr, i, p->symlinew);
+                    fprintf(pp, "%s    s%1d symbol linestyle %d\n", embedstr, i, p->symlines);
+                    fprintf(pp, "%s    s%1d symbol char %d\n", embedstr, i, p->symchar);
+                    fprintf(pp, "%s    s%1d symbol char font %d\n", embedstr, i, get_font_mapped_id(p->charfont));
+                    fprintf(pp, "%s    s%1d symbol skip %d\n", embedstr, i, p->symskip);
 
-                    fprintf(pp, "%s    s%1d line type %d\n", embedstr, i, p.linet);
-                    fprintf(pp, "%s    s%1d line linestyle %d\n", embedstr, i, p.lines);
-                    fprintf(pp, "%s    s%1d line linewidth %.1f\n", embedstr, i, p.linew);
-                    fprintf(pp, "%s    s%1d line color %d\n", embedstr, i, p.linepen.color);
-                    fprintf(pp, "%s    s%1d line pattern %d\n", embedstr, i, p.linepen.pattern);
+                    fprintf(pp, "%s    s%1d line type %d\n", embedstr, i, p->linet);
+                    fprintf(pp, "%s    s%1d line linestyle %d\n", embedstr, i, p->lines);
+                    fprintf(pp, "%s    s%1d line linewidth %.1f\n", embedstr, i, p->linew);
+                    fprintf(pp, "%s    s%1d line color %d\n", embedstr, i, p->linepen.color);
+                    fprintf(pp, "%s    s%1d line pattern %d\n", embedstr, i, p->linepen.pattern);
 
-                    fprintf(pp, "%s    s%1d baseline type %d\n", embedstr, i, p.baseline_type);
-                    fprintf(pp, "%s    s%1d baseline %s\n", embedstr, i, on_or_off(p.baseline));
+                    fprintf(pp, "%s    s%1d baseline type %d\n", embedstr, i, p->baseline_type);
+                    fprintf(pp, "%s    s%1d baseline %s\n", embedstr, i, on_or_off(p->baseline));
 
-                    fprintf(pp, "%s    s%1d dropline %s\n", embedstr, i, on_or_off(p.dropline));
+                    fprintf(pp, "%s    s%1d dropline %s\n", embedstr, i, on_or_off(p->dropline));
 
-                    fprintf(pp, "%s    s%1d fill type %d\n", embedstr, i, p.filltype);
-                    fprintf(pp, "%s    s%1d fill rule %d\n", embedstr, i, p.fillrule);
-                    fprintf(pp, "%s    s%1d fill color %d\n", embedstr, i, p.setfillpen.color);
-                    fprintf(pp, "%s    s%1d fill pattern %d\n", embedstr, i, p.setfillpen.pattern);
+                    fprintf(pp, "%s    s%1d fill type %d\n", embedstr, i, p->filltype);
+                    fprintf(pp, "%s    s%1d fill rule %d\n", embedstr, i, p->fillrule);
+                    fprintf(pp, "%s    s%1d fill color %d\n", embedstr, i, p->setfillpen.color);
+                    fprintf(pp, "%s    s%1d fill pattern %d\n", embedstr, i, p->setfillpen.pattern);
 
-                    fprintf(pp, "%s    s%1d avalue %s\n", embedstr, i, on_or_off(p.avalue.active));
-                    fprintf(pp, "%s    s%1d avalue type %d\n", embedstr, i, p.avalue.type);
-                    fprintf(pp, "%s    s%1d avalue char size %f\n", embedstr, i, p.avalue.size);
-                    fprintf(pp, "%s    s%1d avalue font %d\n", embedstr, i, get_font_mapped_id(p.avalue.font));
-                    fprintf(pp, "%s    s%1d avalue color %d\n", embedstr, i, p.avalue.color);
-                    fprintf(pp, "%s    s%1d avalue rot %d\n", embedstr, i, p.avalue.angle);
-                    fprintf(pp, "%s    s%1d avalue format %s\n", embedstr, i, get_format_types(p.avalue.format));
-                    fprintf(pp, "%s    s%1d avalue prec %d\n", embedstr, i, p.avalue.prec);
-                    fprintf(pp, "%s    s%1d avalue prepend \"%s\"\n", embedstr, i, PSTRING(p.avalue.prestr));
-                    fprintf(pp, "%s    s%1d avalue append \"%s\"\n", embedstr, i, PSTRING(p.avalue.appstr));
-                    fprintf(pp, "%s    s%1d avalue offset %f , %f\n", embedstr, i, p.avalue.offset.x, p.avalue.offset.y);
+                    fprintf(pp, "%s    s%1d avalue %s\n", embedstr, i, on_or_off(p->avalue.active));
+                    fprintf(pp, "%s    s%1d avalue type %d\n", embedstr, i, p->avalue.type);
+                    fprintf(pp, "%s    s%1d avalue char size %f\n", embedstr, i, p->avalue.size);
+                    fprintf(pp, "%s    s%1d avalue font %d\n", embedstr, i, get_font_mapped_id(p->avalue.font));
+                    fprintf(pp, "%s    s%1d avalue color %d\n", embedstr, i, p->avalue.color);
+                    fprintf(pp, "%s    s%1d avalue rot %d\n", embedstr, i, p->avalue.angle);
+                    fprintf(pp, "%s    s%1d avalue format %s\n", embedstr, i, get_format_types(p->avalue.format));
+                    fprintf(pp, "%s    s%1d avalue prec %d\n", embedstr, i, p->avalue.prec);
+                    fprintf(pp, "%s    s%1d avalue prepend \"%s\"\n", embedstr, i, PSTRING(p->avalue.prestr));
+                    fprintf(pp, "%s    s%1d avalue append \"%s\"\n", embedstr, i, PSTRING(p->avalue.appstr));
+                    fprintf(pp, "%s    s%1d avalue offset %f , %f\n", embedstr, i, p->avalue.offset.x, p->avalue.offset.y);
 
-                    fprintf(pp, "%s    s%1d errorbar %s\n", embedstr, i, on_or_off(p.errbar.active));
-                    switch (p.errbar.ptype) {
+                    fprintf(pp, "%s    s%1d errorbar %s\n", embedstr, i, on_or_off(p->errbar.active));
+                    switch (p->errbar.ptype) {
                     case PLACEMENT_NORMAL:
                         fprintf(pp, "%s    s%1d errorbar place normal\n", embedstr, i);
                         break;
@@ -490,24 +490,24 @@ void putparms(int gno, FILE *pp, int embed)
                         fprintf(pp, "%s    s%1d errorbar place both\n", embedstr, i);
                         break;
                     }
-                    fprintf(pp, "%s    s%1d errorbar color %d\n", embedstr, i, p.errbar.pen.color);
-                    fprintf(pp, "%s    s%1d errorbar pattern %d\n", embedstr, i, p.errbar.pen.pattern);
-                    fprintf(pp, "%s    s%1d errorbar size %f\n", embedstr, i, p.errbar.barsize);
-                    fprintf(pp, "%s    s%1d errorbar linewidth %.1f\n", embedstr, i, p.errbar.linew);
-                    fprintf(pp, "%s    s%1d errorbar linestyle %d\n", embedstr, i, p.errbar.lines);
-                    fprintf(pp, "%s    s%1d errorbar riser linewidth %.1f\n", embedstr, i, p.errbar.riser_linew);
-                    fprintf(pp, "%s    s%1d errorbar riser linestyle %d\n", embedstr, i, p.errbar.riser_lines);
-                    fprintf(pp, "%s    s%1d errorbar riser clip %s\n", embedstr, i, on_or_off(p.errbar.arrow_clip));
-                    fprintf(pp, "%s    s%1d errorbar riser clip length %f\n", embedstr, i, p.errbar.cliplen);
+                    fprintf(pp, "%s    s%1d errorbar color %d\n", embedstr, i, p->errbar.pen.color);
+                    fprintf(pp, "%s    s%1d errorbar pattern %d\n", embedstr, i, p->errbar.pen.pattern);
+                    fprintf(pp, "%s    s%1d errorbar size %f\n", embedstr, i, p->errbar.barsize);
+                    fprintf(pp, "%s    s%1d errorbar linewidth %.1f\n", embedstr, i, p->errbar.linew);
+                    fprintf(pp, "%s    s%1d errorbar linestyle %d\n", embedstr, i, p->errbar.lines);
+                    fprintf(pp, "%s    s%1d errorbar riser linewidth %.1f\n", embedstr, i, p->errbar.riser_linew);
+                    fprintf(pp, "%s    s%1d errorbar riser linestyle %d\n", embedstr, i, p->errbar.riser_lines);
+                    fprintf(pp, "%s    s%1d errorbar riser clip %s\n", embedstr, i, on_or_off(p->errbar.arrow_clip));
+                    fprintf(pp, "%s    s%1d errorbar riser clip length %f\n", embedstr, i, p->errbar.cliplen);
 
                     if (is_hotlinked(gno, i)) {
                         fprintf(pp, "%s    s%1d link %s \"%s\"\n", embedstr, i,
-                                p.hotsrc == SOURCE_DISK ? "disk" : "pipe", p.hotfile);
+                                p->hotsrc == SOURCE_DISK ? "disk" : "pipe", p->hotfile);
                     }
                     
-                    fprintf(pp, "%s    s%1d comment \"%s\"\n", embedstr, i, PSTRING(p.comments));
+                    fprintf(pp, "%s    s%1d comment \"%s\"\n", embedstr, i, PSTRING(p->comment));
                 
-                    fprintf(pp, "%s    s%1d legend  \"%s\"\n", embedstr, i, PSTRING(p.lstr));
+                    fprintf(pp, "%s    s%1d legend  \"%s\"\n", embedstr, i, PSTRING(p->legstr));
                 }
             }
         }

@@ -25,6 +25,9 @@
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#ifndef __GRACE_H_
+#define __GRACE_H_
+
 #include <config.h>
 
 /* For FILE */
@@ -32,17 +35,13 @@
 
 #include "defines.h"
 #include "storage.h"
-#include "graphs.h"
 
 typedef struct _Project {
 #if 0
     Storage *blockdata;
 #endif
-#if 0
     Storage *graphs;
-#else
-    graph *graphs;
-#endif
+
     Storage *objects;
 
 #if 0
@@ -165,3 +164,5 @@ void runtime_free(RunTime *rt);
 
 Grace *grace_new(void);
 void grace_free(Grace *grace);
+
+#endif /* __GRACE_H_ */

@@ -64,6 +64,16 @@ static void *wrap_object_copy(void *data)
     return (void *) object_copy((DObject *) data);
 }
 
+static void wrap_graph_free(void *data)
+{
+    graph_free((graph *) data);
+}
+
+static void *wrap_graph_copy(void *data)
+{
+    return (void *) graph_copy((graph *) data);
+}
+
 Project *project_new(void)
 {
     Project *pr;
@@ -74,10 +84,15 @@ Project *project_new(void)
         return NULL;
     }
     
-    pr->graphs  = NULL;
+    pr->graphs  = storage_new(wrap_graph_free, wrap_graph_copy, NULL);
+    if (!pr->graphs) {
+        xfree(pr);
+        return NULL;
+    }
     
     pr->objects = storage_new(wrap_object_free, wrap_object_copy, NULL);
     if (!pr->objects) {
+        storage_free(pr->graphs);
         xfree(pr);
         return NULL;
     }
@@ -110,11 +125,12 @@ void project_free(Project *pr)
         return;
     }
     
+    storage_free(pr->graphs);
     storage_free(pr->objects);
     
     xfree(pr->sformat);
+    xfree(pr->docname);
     
-    /* FIXME graphs */
     /* FIXME regions */
     /* FIXME timestamp */
     

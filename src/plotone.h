@@ -35,6 +35,7 @@
 
 #include "defines.h"
 #include "draw.h"
+#include "graphs.h"
 
 #define BAR_HORIZONTAL  0
 #define BAR_VERTICAL    1
@@ -52,22 +53,22 @@ void draw_pie_chart(int gno);
 void drawframe(int gno);
 void fillframe(int gno);
 
-void drawsetfill(int gno, int setno, plotarr *p,
+void drawsetfill(int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawsetline(int gno, int setno, plotarr *p,
+void drawsetline(int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawsetbars(int gno, int setno, plotarr *p,
+void drawsetbars(int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawsetsyms(int gno, int setno, plotarr *p,
+void drawsetsyms(int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawsetavalues(int gno, int setno, plotarr *p,
+void drawsetavalues(int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawseterrbars(int gno, int setno, plotarr *p,
+void drawseterrbars(int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawsethilo(plotarr *p);
-void drawcirclexy(plotarr *p);
-void drawsetvmap(int gno, plotarr *p);
-void drawsetboxplot(plotarr *p);
+void drawsethilo(set *s);
+void drawcirclexy(set *s);
+void drawsetvmap(int gno, set *s);
+void drawsetboxplot(set *s);
 
 int drawxysym(VPoint vp, double size, int symtype,
     Pen sympen, Pen symfillpen, char s);

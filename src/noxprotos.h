@@ -68,8 +68,6 @@ void set_default_framep(framep * f);
 void set_default_world(world * w);
 void set_default_view(view * v);
 void set_default_legend(legend * l);
-void set_default_plotarr(plotarr * p);
-void set_default_graph(int gno);
 
 void set_default_string(plotstr *s);
 void set_default_arrow(Arrow *arrowp);

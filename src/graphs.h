@@ -29,7 +29,7 @@
 #ifndef __GRAPHS_H_
 #define __GRAPHS_H_
 
-#include "defines.h"
+#include "grace.h"
 
 /* Graph type */
 typedef enum {
@@ -78,12 +78,6 @@ typedef enum {
 #define MAX_SET_COLS    DATA_BAD
 
 
-/* target graph & set*/
-typedef struct {
-    int gno;    /* graph # */
-    int setno;  /* set # */
-} target;
-
 typedef struct {
     int len;                    /* dataset length */
     double *ex[MAX_SET_COLS];   /* arrays of x, y, z, ... depending on type */
@@ -96,17 +90,11 @@ typedef struct {
 } Datapoint;
 
 typedef struct {
-    Dataset data;               /* dataset */
+    Dataset *data;              /* dataset */
     
     int hidden;                 /* hidden set */
 
-    int type;                   /* dataset type */
-
-    char comments[MAX_STRING_LENGTH];   /* how did this set originate */
-
-    int hotlink;                /* hot linked set */
-    int hotsrc;                 /* source for hot linked file (DISK|PIPE) */
-    char hotfile[GR_MAXPATHLEN];   /* hot linked filename */
+    int type;                   /* set type */
 
     int sym;                    /* set plot symbol type */
     double symsize;             /* size of symbols */
@@ -132,11 +120,17 @@ typedef struct {
     int fillrule;               /* fill rule (winding/even-odd) */
     Pen setfillpen;             /* pen props for set fill */
 
-    char lstr[MAX_STRING_LENGTH];       /* legend for this set */
-
     AValue avalue;              /* Parameters for annotative string */
     Errbar errbar;              /* error bar properties */
-} plotarr;
+
+    char *legstr;               /* legend for this set */
+
+    char *comment;              /* how this set originated & alike */
+
+    int hotlink;                /* hot linked set */
+    int hotsrc;                 /* source for hot linked file (DISK|PIPE) */
+    char hotfile[GR_MAXPATHLEN];   /* hot linked filename */
+} set;
 
 /* Locator props */
 typedef struct {
@@ -155,8 +149,6 @@ typedef struct {
 
     int type;                   /* type of graph */
 
-    int maxplot;                /* number of sets allocated for this graph */
-
     int xscale;                 /* scale mapping of X axes*/
     int yscale;                 /* scale mapping of Y axes*/
     int xinvert;                /* X axes inverted, TRUE or FALSE */
@@ -167,7 +159,7 @@ typedef struct {
     double bargap;              /* Distance between bars (in bar charts) */
     double znorm;               /* Normalization of pseudo-3D graphs */
 
-    plotarr *p;                 /* sets go here */
+    Storage *sets;              /* sets go here */
 
     legend l;                   /* legends */
 
@@ -187,6 +179,10 @@ typedef struct {
     int curw;                   /* for cycling through the stack */
 } graph;
 
+
+graph *graph_new(void);
+void graph_free(graph *g);
+graph *graph_copy(graph *g);
 
 int get_cg(void);
 
@@ -211,7 +207,6 @@ int get_graph_framep(int gno, framep *f);
 int get_graph_world(int gno, world *w);
 int get_graph_viewport(int gno, view *v);
 int get_graph_labels(int gno, labels *labs);
-int get_graph_plotarr(int gno, int i, plotarr *p);
 int get_graph_legend(int gno, legend *leg);
 
 int set_graph_active(int gno, int flag);
@@ -219,7 +214,6 @@ void set_graph_framep(int gno, framep *f);
 void set_graph_world(int gno, world w);
 void set_graph_viewport(int gno, view v);
 void set_graph_labels(int gno, labels *labs);
-void set_graph_plotarr(int gno, int i, plotarr *p);
 void set_graph_legend(int gno, legend *leg);
 void set_graph_legend_active(int gno, int flag);
 
@@ -348,6 +342,11 @@ void reset_project_version(void);
 
 void set_project_description(char *descr);
 char *get_project_description(void);
+
+void set_free(set *s);
+set *set_copy(set *s);
+graph *graph_get(int gno);
+set *set_get(int gno, int setno);
 
 void postprocess_project(int version);
 

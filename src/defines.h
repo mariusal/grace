@@ -409,6 +409,12 @@ typedef struct {
     double xv1, xv2, yv1, yv2;  /* viewport */
 } view;
 
+/* target graph & set*/
+typedef struct {
+    int gno;    /* graph # */
+    int setno;  /* set # */
+} target;
+
 /*
  * typedefs for objects
  */

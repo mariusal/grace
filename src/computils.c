@@ -918,7 +918,8 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
     int i, ndata;
     int *hist;
     double *x, *y, *data;
-    plotarr p;
+    set *p;
+    char buf[64];
     
     if (!is_set_active(fromgraph, fromset)) {
 	errmsg("Set not active");
@@ -979,16 +980,16 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
     
     xfree(hist);
 
-    get_graph_plotarr(tograph, toset, &p);
-    p.sym = SYM_NONE;
-    p.linet = LINE_TYPE_LEFTSTAIR;
-    p.dropline = TRUE;
-    p.baseline = FALSE;
-    p.baseline_type = BASELINE_TYPE_0;
-    p.lines = 1;
-    p.symlines = 1;
-    sprintf(p.comments, "Histogram from G%d.S%d", fromgraph, fromset);
-    set_graph_plotarr(tograph, toset, &p);
+    p = set_get(tograph, toset);
+    p->sym = SYM_NONE;
+    p->linet = LINE_TYPE_LEFTSTAIR;
+    p->dropline = TRUE;
+    p->baseline = FALSE;
+    p->baseline_type = BASELINE_TYPE_0;
+    p->lines = 1;
+    p->symlines = 1;
+    sprintf(buf, "Histogram from G%d.S%d", fromgraph, fromset);
+    p->comment = copy_string(p->comment, buf);
 
     return RETURN_SUCCESS;
 }
