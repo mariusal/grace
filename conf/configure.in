@@ -411,7 +411,7 @@ else
 fi
 
 dnl **** Check for XDR
-mdw_CHECK_MANYLIBS(xdrstdio_create, nsl rpc xdr, XDR_LIB=$mdw_cv_lib_xdrstdio_create, XDR_LIB="NONE")
+mdw_CHECK_MANYLIBS(xdrstdio_create, nsl rpc xdr rpclib, XDR_LIB=$mdw_cv_lib_xdrstdio_create, XDR_LIB="NONE")
 
 if test "${XDR_LIB}" = "NONE"; then
   XDR_LIB=
