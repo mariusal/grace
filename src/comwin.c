@@ -40,7 +40,6 @@
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
 #include <Xm/Command.h>
-#include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Text.h>
 #include <Xm/List.h>
@@ -198,7 +197,7 @@ static void  add_com(Widget w, XtPointer client_data, XtPointer call_data)
     XmStringFree( comtxt );
 }
 
-static void  replace_com(Widget w, XtPointer client_data, XtPointer call_data)
+static void replace_com(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  * replace a entry in the history list with the command line 
  * without executing it
@@ -284,12 +283,20 @@ void open_command(void *data)
         comshell = XmCreateDialogShell(app_shell, "Commands", NULL, 0);
 	handle_close(comshell);
 	command = XmCreateCommand(comshell, "command", NULL, 0);
-	hl = XmCommandGetChild( command, XmDIALOG_HISTORY_LIST );
+	hl = XmCommandGetChild(command, XmDIALOG_HISTORY_LIST);
 	str = XmStringCreateLocalized("Command");
         XtVaSetValues(command, XmNpromptString, str, NULL);
         XmStringFree(str);
         
 	form = XmCreateForm(command, "commandform", NULL, 0);
+	XtVaSetValues(form, 
+	    XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, hl,
+	    XmNleftAttachment, XmATTACH_FORM,
+	    XmNrightAttachment, XmATTACH_FORM,
+	    XmNbottomAttachment, XmATTACH_WIDGET,
+            XmNbottomWidget, XmCommandGetChild(command, XmDIALOG_PROMPT_LABEL),
+	    NULL);
 
 	fr1 = CreateFrame(form, NULL);
 	XtVaSetValues(fr1, 
@@ -298,16 +305,11 @@ void open_command(void *data)
 	    XmNrightAttachment, XmATTACH_FORM,
 	    NULL);
 	CreateCommandButtonsNoDefault(fr1, 5, but, labrow1);
-	XtAddCallback(but[0], XmNactivateCallback, 
-	              (XtCallbackProc) add_com , (XtPointer) NULL);
-	XtAddCallback(but[1], XmNactivateCallback, 
-	              (XtCallbackProc) delete_com , (XtPointer) NULL);
-	XtAddCallback(but[2], XmNactivateCallback, 
-	              (XtCallbackProc) replace_com , (XtPointer) NULL);
-	XtAddCallback(but[3], XmNactivateCallback, (XtCallbackProc) move_com ,
-			(XtPointer) 0);
-	XtAddCallback(but[4], XmNactivateCallback, 
-	              (XtCallbackProc) move_com, (XtPointer) 1);
+	XtAddCallback(but[0], XmNactivateCallback, add_com, NULL);
+	XtAddCallback(but[1], XmNactivateCallback, delete_com, NULL);
+	XtAddCallback(but[2], XmNactivateCallback, replace_com, NULL);
+	XtAddCallback(but[3], XmNactivateCallback, move_com, (XtPointer) 0);
+	XtAddCallback(but[4], XmNactivateCallback, move_com, (XtPointer) 1);
 
 	fr2 = CreateFrame(form, NULL);
 	XtVaSetValues(fr2, 
@@ -318,22 +320,14 @@ void open_command(void *data)
 	    XmNbottomAttachment, XmATTACH_FORM,
 	    NULL);
 	CreateCommandButtonsNoDefault(fr2, 6, but, labrow2);
-	XtAddCallback(but[0], XmNactivateCallback, 
-	              (XtCallbackProc) create_rhist_popup, (XtPointer) NULL);
-	XtAddCallback(but[1], XmNactivateCallback, 
-	              (XtCallbackProc) create_whist_frame, (XtPointer) NULL);
-	XtAddCallback(but[2], XmNactivateCallback, 
-	              (XtCallbackProc) clear_history, (XtPointer) NULL);
-	XtAddCallback(but[3], XmNactivateCallback, 
-	              (XtCallbackProc) replay_history, (XtPointer) NULL);
-	XtAddCallback(but[4], XmNactivateCallback, 
-	              (XtCallbackProc) destroy_dialog, (XtPointer) comshell);
-	XtAddCallback(but[5], XmNactivateCallback, 
-	              (XtCallbackProc) HelpCB, (XtPointer) "data.html#commands");
+	XtAddCallback(but[0], XmNactivateCallback, create_rhist_popup, NULL);
+	XtAddCallback(but[1], XmNactivateCallback, create_whist_frame, NULL);
+	XtAddCallback(but[2], XmNactivateCallback, clear_history, NULL);
+	XtAddCallback(but[3], XmNactivateCallback, replay_history, NULL);
+	XtAddCallback(but[4], XmNactivateCallback, destroy_dialog, comshell);
+	AddButtonCB(but[5], HelpCB, NULL);
 
-
-	XtAddCallback(command, XmNcommandEnteredCallback, 
-	              (XtCallbackProc) comcall, (XtPointer) NULL);
+	XtAddCallback(command, XmNcommandEnteredCallback, comcall, NULL);
 	XtManageChild(form);
 	XtManageChild(command);
 	XtManageChild(comshell);
