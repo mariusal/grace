@@ -1197,7 +1197,7 @@ int fexists(char *to)
 void stufftext(char *s, int sp)
 {
 #ifdef NONE_GUI
-    printf("%s", buf);
+    printf("%s", s);
 #else
     stufftextwin(s, sp);
 #endif
