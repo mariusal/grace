@@ -264,14 +264,14 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
         char buf[GR_MAXPATHLEN];
         char *fontname, *encscheme;
         char *pdflibenc;
-        int embed;
+        char *embedstr;
         
         font = cstats->fonts[i].font;
         
         fontname = get_fontalias(canvas, font);
         
         if (pdf_builtin_font(fontname)) {
-            embed = 0;
+            embedstr = "embedding=false";
         } else {
             sprintf(buf, "%s==%s",
                 fontname, get_afmfilename(canvas, font, TRUE));
@@ -280,7 +280,7 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
                 fontname, get_fontfilename(canvas, font, TRUE));
             PDF_set_parameter(pdfdata->phandle, "FontOutline", buf);
 
-            embed = 1;
+            embedstr = "embedding=false";
         }
 
         encscheme = get_encodingscheme(canvas, font);
@@ -291,7 +291,8 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
         }
         
         pdfdata->font_ids[font] =
-            PDF_findfont(pdfdata->phandle, fontname, pdflibenc, embed);
+            PDF_load_font(pdfdata->phandle, fontname, 0,
+                pdflibenc, embedstr);
         
         if (pdfdata->font_ids[font] < 0) {
             errmsg(PDF_get_errmsg(pdfdata->phandle));
@@ -330,7 +331,8 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
 #endif
     }
 
-    PDF_begin_page(pdfdata->phandle, pg->width*72.0/pg->dpi, pg->height*72.0/pg->dpi);
+    PDF_begin_page_ext(pdfdata->phandle,
+        pg->width*72.0/pg->dpi, pg->height*72.0/pg->dpi, "");
     
     s = canvas_get_description(canvas);
 
@@ -489,7 +491,7 @@ void pdf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
         pdfdata->linecap = LINECAP_ROUND;
     }
     if (pdfdata->lines != 1) {
-        PDF_setpolydash(pdfdata->phandle, NULL, 0);
+        PDF_setdash(pdfdata->phandle, 0, 0);
         pdfdata->lines = 1;
     }
 
@@ -753,7 +755,7 @@ void pdf_leavegraphics(const Canvas *canvas, void *data,
     PDF_set_value(pdfdata->phandle, "CropBox/urx", pdfdata->page_scalef*v.xv2);
     PDF_set_value(pdfdata->phandle, "CropBox/ury", pdfdata->page_scalef*v.yv2);
     
-    PDF_end_page(pdfdata->phandle);
+    PDF_end_page_ext(pdfdata->phandle, "");
     PDF_end_document(pdfdata->phandle, "");
     PDF_delete(pdfdata->phandle);
     xfree(pdfdata->font_ids);
