@@ -55,7 +55,6 @@ Make.conf : conf/Make.conf.in configure
 	@echo
 	@echo 'Please re-run ./configure'
 	@echo
-	@exit 1
 
 configure : conf/configure.in
 	autoconf $? > configure
@@ -63,7 +62,6 @@ configure : conf/configure.in
 	@echo
 	@echo 'Please re-run ./configure'
 	@echo
-	@exit 1
 
 dummy :
 
