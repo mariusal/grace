@@ -292,14 +292,9 @@ typedef void (*Spin_CBProc)(
 
 /* Text input CB procedure */
 typedef void (*Text_CBProc)(
+    char *,              /* text string */
     void *               /* data the application registered */
 );
-
-/* TextItem CB procedure */
-typedef void (*TI_CBProc)(
-    void *               /* data the application registered */
-);
-
 
 /*
  * Scale input CB procedure */
@@ -494,7 +489,7 @@ OptionStructure *CreatePrecisionChoice(Widget parent, char *s);
 Widget CreateTextItem2(Widget parent, int len, char *s);
 Widget CreateTextItem4(Widget parent, int len, char *s);
 Widget CreateScrollTextItem2(Widget parent, int hgt, char *s);
-void AddTextItemCB(Widget ti, TI_CBProc cbproc, void *data);
+void AddTextItemCB(Widget ti, Text_CBProc cbproc, void *data);
 
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
 Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);

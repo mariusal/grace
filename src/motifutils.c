@@ -1448,8 +1448,11 @@ typedef struct {
 
 static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    char *s;
     Text_CBdata *cbdata = (Text_CBdata *) client_data;
-    cbdata->cbproc(cbdata->anydata);
+    s = XmTextGetString(w);
+    cbdata->cbproc(s, cbdata->anydata);
+    XtFree(s);
 }
 
 void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
@@ -4069,25 +4072,14 @@ Widget CreateScrollTextItem2(Widget parent, int hgt, char *s)
     return w;
 }
 
-typedef struct {
-    void (*cbproc)();
-    void *anydata;
-} TI_CBdata;
-
-static void ti_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void AddTextItemCB(Widget ti, Text_CBProc cbproc, void *data)
 {
-    TI_CBdata *cbdata = (TI_CBdata *) client_data;
-    cbdata->cbproc(cbdata->anydata);
-}
-
-void AddTextItemCB(Widget ti, TI_CBProc cbproc, void *data)
-{
-    TI_CBdata *cbdata;
+    Text_CBdata *cbdata;
     
-    cbdata = xmalloc(sizeof(Button_CBdata));
+    cbdata = xmalloc(sizeof(Text_CBdata));
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
-    XtAddCallback(ti, XmNactivateCallback, ti_int_cb_proc, (XtPointer) cbdata);
+    XtAddCallback(ti, XmNactivateCallback, text_int_cb_proc, (XtPointer) cbdata);
 }
 
 
