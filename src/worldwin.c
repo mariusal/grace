@@ -122,6 +122,7 @@ static void define_arrange_proc(Widget w, XtPointer client_data, XtPointer call_
 	return;
     }
     define_arrange(nrows, ncols, pack, vgap, hgap, sx, sy, wx, wy);
+    update_all();
     
     drawgraph();
 }
