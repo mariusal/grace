@@ -511,7 +511,7 @@ int select_graph(int gno)
 {
     int retval;
 
-    if (is_valid_gno(gno) == TRUE) {
+    if (set_parser_gno(gno) == GRACE_EXIT_SUCCESS) {
         cg = gno;
         retval = definewindow(g[gno].w, g[gno].v, g[gno].type,
                               g[gno].xscale, g[gno].yscale,
