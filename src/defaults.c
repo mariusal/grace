@@ -43,7 +43,6 @@
 #include "globals.h"
 #include "graphs.h"
 #include "utils.h"
-#include "t1fonts.h"
 #include "protos.h"
 
 static defaults d_d =

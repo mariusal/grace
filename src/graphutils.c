@@ -41,7 +41,6 @@
 #include "utils.h"
 #include "draw.h"
 #include "device.h"
-#include "t1fonts.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "protos.h"

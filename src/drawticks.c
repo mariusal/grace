@@ -42,7 +42,6 @@
 #include "graphs.h"
 #include "graphutils.h"
 #include "draw.h"
-#include "t1fonts.h"
 #include "protos.h"
 
 int is_xaxis(int axis)

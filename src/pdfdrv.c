@@ -44,7 +44,6 @@
 #include "device.h"
 #include "devlist.h"
 #include "patterns.h"
-#include "t1fonts.h"
 #include "pdfdrv.h"
 
 #include "protos.h"

@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -45,7 +45,6 @@
 #include "graphs.h"
 #include "draw.h"
 #include "graphutils.h"
-#include "t1fonts.h"
 #include "x11drv.h"
 #include "plotone.h"
 #include "protos.h"

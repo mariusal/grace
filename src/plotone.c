@@ -45,7 +45,6 @@
 #include "files.h"
 #include "graphs.h"
 #include "draw.h"
-#include "t1fonts.h"
 #include "device.h"
 #include "plotone.h"
 #include "protos.h"
