@@ -34,6 +34,7 @@
 #define __CTRANS_H_
 
 #include "core_utils.h"
+#include "defines.h"
 
 /*
  * types of coordinate frames

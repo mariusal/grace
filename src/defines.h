@@ -36,8 +36,6 @@
 
 #include <config.h>
 
-#include "grace/canvas.h"
-
 /*
  * some constants
  *
@@ -51,39 +49,13 @@
 
 #define MAXPARM 10              /* max number of parameters for non-lin fit */
 
-#define MAX_ARROW 3
 #define MAX_PREC 10
-
-/* symbol types */
-
-#define SYM_NONE    0
-#define SYM_CIRCLE  1
-#define SYM_SQUARE  2
-#define SYM_DIAMOND 3
-#define SYM_TRIANG1 4
-#define SYM_TRIANG2 5
-#define SYM_TRIANG3 6
-#define SYM_TRIANG4 7
-#define SYM_PLUS    8
-#define SYM_X       9
-#define SYM_SPLAT  10
-#define SYM_CHAR   11
-
-/* max number of symbols defined */
-#define MAXSYM  12
 
 /* dot (obsolete) */
 #define SYM_DOT_OBS     1
 
 /* max width of drawn lines */
 #define MAX_LINEWIDTH 20.0
-
-/*
- * axis type masks
- */
-#define AXIS_MASK_X  1
-#define AXIS_MASK_Y  2
-#define AXIS_MASK_XY 3
 
 /* type of splines */
 #define INTERP_LINEAR   0
@@ -93,10 +65,6 @@
 /* Canvas types */
 #define PAGE_FREE       0
 #define PAGE_FIXED      1
-
-/* Tick label placement */
-#define LABEL_ONTICK    0
-#define LABEL_BETWEEN   1
 
 /* Coordinates */
 #define COORD_VIEW      0
@@ -132,18 +100,6 @@
 
 #define FILTER_MAGIC    0
 #define FILTER_PATTERN  1
-
-/* ticks */
-#define TICK_TYPE_MAJOR     0
-#define TICK_TYPE_MINOR     1
-
-/* arrow types */
-#define ARROW_TYPE_LINE     0
-#define ARROW_TYPE_FILLED   1
-
-/* push set direction */
-#define PUSH_SET_TOFRONT    0
-#define PUSH_SET_TOBACK     1
 
 /* restriction types */
 #define RESTRICT_NONE  -1
@@ -206,7 +162,6 @@ typedef struct {
     double x;
     double y;
 } FPoint;
-
 
 
 typedef struct {

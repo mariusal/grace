@@ -38,8 +38,7 @@
 /* For FILE */
 #include <stdio.h>
 
-#include "defines.h"
-#include "core_utils.h"
+#include "grace.h"
 
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 int apply_window(double *v, int ilen, int window, double beta);

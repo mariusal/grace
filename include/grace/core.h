@@ -55,6 +55,10 @@
 #define TYPE_AUTO       0
 #define TYPE_SPEC       1
 
+/* ticks */
+#define TICK_TYPE_MAJOR     0
+#define TICK_TYPE_MINOR     1
+
 /* User-defined tickmarks/labels */
 #define TICKS_SPEC_NONE     0
 #define TICKS_SPEC_MARKS    1
@@ -64,6 +68,24 @@
 #define TICKS_IN        0
 #define TICKS_OUT       1
 #define TICKS_BOTH      2
+
+/* symbol types */
+
+#define SYM_NONE    0
+#define SYM_CIRCLE  1
+#define SYM_SQUARE  2
+#define SYM_DIAMOND 3
+#define SYM_TRIANG1 4
+#define SYM_TRIANG2 5
+#define SYM_TRIANG3 6
+#define SYM_TRIANG4 7
+#define SYM_PLUS    8
+#define SYM_X       9
+#define SYM_SPLAT  10
+#define SYM_CHAR   11
+
+/* max number of symbols defined */
+#define MAXSYM  12
 
 /* set line types */
 #define LINE_TYPE_NONE          0
@@ -101,6 +123,10 @@
 #define REGION_POLYGON  0
 #define REGION_BAND     1
 #define REGION_FORMULA  2
+
+/* arrow types */
+#define ARROW_TYPE_LINE     0
+#define ARROW_TYPE_FILLED   1
 
 
 typedef struct _Quark Quark;
@@ -830,7 +856,7 @@ int axis_set_type(Quark *q, int type);
 int axis_set_active(Quark *q, int flag);
 int axis_is_x(const Quark *q);
 int axis_is_y(const Quark *q);
-void autotick_axis(Quark *q);
+void axis_autotick(Quark *q);
 
 void set_plotstr_string(plotstr *pstr, char *s);
 

@@ -29,8 +29,33 @@
 #ifndef __CORE_UTILS_H_
 #define __CORE_UTILS_H_
 
-#include "grace.h"
+#include "grace/core.h"
 #include "ctrans.h"
+
+/*
+ * axis type masks
+ */
+#define AXIS_MASK_X  1
+#define AXIS_MASK_Y  2
+#define AXIS_MASK_XY 3
+
+#define GSCROLL_LEFT    0
+#define GSCROLL_RIGHT   1
+#define GSCROLL_DOWN    2
+#define GSCROLL_UP      3
+
+#define GZOOM_SHRINK    0
+#define GZOOM_EXPAND    1
+
+/* Order of matrix fill (inversion mask bits) */
+#define GA_ORDER_V_INV  1
+#define GA_ORDER_H_INV  2
+#define GA_ORDER_HV_INV 4
+
+/* Default page offsets and gaps for graph arranging */
+#define GA_OFFSET_DEFAULT    0.15
+#define GA_GAP_DEFAULT       0.2
+
 
 Symbol *symbol_new();
 void symbol_free(Symbol *sym);
@@ -111,23 +136,6 @@ int object_place_at_vp(Quark *q, VPoint vp);
 
 int object_get_loctype(const Quark *q);
 
-
-#define GSCROLL_LEFT    0
-#define GSCROLL_RIGHT   1
-#define GSCROLL_DOWN    2
-#define GSCROLL_UP      3
-
-#define GZOOM_SHRINK    0
-#define GZOOM_EXPAND    1
-
-/* Order of matrix fill (inversion mask bits) */
-#define GA_ORDER_V_INV  1
-#define GA_ORDER_H_INV  2
-#define GA_ORDER_HV_INV 4
-
-/* Default page offsets and gaps for graph arranging */
-#define GA_OFFSET_DEFAULT    0.15
-#define GA_GAP_DEFAULT       0.2
 
 char *get_format_types(FormatType f);
 FormatType get_format_type_by_name(const char *name);

@@ -33,9 +33,7 @@
 #ifndef __PLOTONE_H_
 #define __PLOTONE_H_
 
-#include "defines.h"
-#include "grace/canvas.h"
-#include "core_utils.h"
+#include "grace.h"
 
 typedef struct {
     Canvas *canvas;

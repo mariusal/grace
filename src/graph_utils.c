@@ -36,7 +36,7 @@
 
 #include <string.h>
 
-#include "core_utils.h"
+#include "grace.h"
 #include "parser.h"
 #include "protos.h"
 
@@ -423,7 +423,7 @@ static int autotick_hook(Quark *q, void *udata, QTraverseClosure *closure)
         closure->descend = FALSE;
         if (((*amask & AXIS_MASK_X) && axis_is_x(q)) ||
             ((*amask & AXIS_MASK_Y) && axis_is_y(q))) {
-            autotick_axis(q);
+            axis_autotick(q);
         }
         break;
     }

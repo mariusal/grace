@@ -133,7 +133,7 @@ Quark *axis_new(Quark *q)
     Quark *a; 
     a = quark_new(q, QFlavorAxis);
     set_default_ticks(a);
-    autotick_axis(a);
+    axis_autotick(a);
     return a;
 }
 
@@ -234,7 +234,7 @@ int axis_is_y(const Quark *q)
     return (t && t->type == AXIS_TYPE_Y);
 }
 
-void autotick_axis(Quark *q)
+void axis_autotick(Quark *q)
 {
     Quark *gr;
     tickmarks *t;

@@ -720,7 +720,7 @@ reenter:
 
         if (stmajor <= 0.0) {
 	    errmsg("Invalid major tick spacing, autoticking");
-	    autotick_axis(q);
+	    axis_autotick(q);
             goto reenter;
 	}
 
@@ -733,7 +733,7 @@ reenter:
 
         if (t->nticks > MAX_TICKS) {
 	    errmsg("Too many ticks ( > MAX_TICKS ), autoticking");
-	    autotick_axis(q);
+	    axis_autotick(q);
             goto reenter;
 	}
 
