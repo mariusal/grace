@@ -4,7 +4,7 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.15)
+  <title>Grace FAQ (for Grace-5.1.16)
   <author>by the Grace Team
   <date>24.06.2004
   <abstract>
@@ -1288,7 +1288,7 @@ XMgrace*background: ...
       <p>
 
         Probably. If you have an idea for improvement, post it as a wish to
-        the w3todo web page (see question<ref id="w3todo" name="Known Bugs">).
+        the w3todo web page (see question <ref id="w3todo" name="Known Bugs">).
 
     <sect1>How should Grace be acknowledged when it
            is used to prepare a publication?

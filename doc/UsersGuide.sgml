@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.15)</title>
+<title>Grace User's Guide (for Grace-5.1.16)</title>
 <author>by the Grace Team</author>
-<date>09.05.2004</date>
+<date>26.06.2004</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -3542,8 +3542,8 @@ C
               <hline>
               Command           | Description                        @
               <hline>
-              PDF1.2            | set compatibility mode to PDF-1.2  @
               PDF1.3            | set compatibility mode to PDF-1.3  @
+              PDF1.4            | set compatibility mode to PDF-1.4  @
               compression:value | set compression level (0 - 9)      @
               patterns:on       | enable use of patterns             @
               patterns:off      | disable use of patterns            @
