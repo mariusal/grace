@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
                             wpp = atoi(argv[i]);
 		    	    i++;
 		    	    hpp = atoi(argv[i]);
-                            set_page_dimensions(wpp, hpp);
+                            set_page_dimensions(wpp, hpp, FALSE);
 #ifndef NONE_GUI
 		    	    set_pagelayout(PAGE_FIXED);
 #endif

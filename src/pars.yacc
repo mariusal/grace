@@ -2010,7 +2010,7 @@ parmset:
             }
         }
         | PAGE SIZE nexpr ',' nexpr {
-            set_page_dimensions($3, $5);
+            set_page_dimensions($3, $5, FALSE);
         }
 	| DEVICE CHRSTR PAGE SIZE nexpr ',' nexpr {
             int device_id;
@@ -3992,10 +3992,10 @@ parmset_obs:
                 wpp = 612;
                 hpp = 792;
             }
-            set_page_dimensions(wpp, hpp);
+            set_page_dimensions(wpp, hpp, FALSE);
         }
         | PAGE SIZE NUMBER NUMBER {
-            set_page_dimensions((int) $3, (int) $4);
+            set_page_dimensions((int) $3, (int) $4, FALSE);
         }
 	| PAGE nexpr {
 	    scroll_proc($2);

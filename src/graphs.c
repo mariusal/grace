@@ -1186,7 +1186,7 @@ void postprocess_project(int version)
     }
 
     if (version < 40005) {
-        set_page_dimensions(792, 612);
+        set_page_dimensions(792, 612, FALSE);
     }
 
     if (get_project_version() < 50002) {
