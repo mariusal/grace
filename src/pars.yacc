@@ -3319,6 +3319,7 @@ selectgraph:
         GRAPHNO
         {
             $$ = allocate_graph(grace->project, $1);
+            whichgraph = $$;
         }
         ;
 
