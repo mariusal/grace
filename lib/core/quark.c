@@ -367,7 +367,11 @@ int quark_idstr_set(Quark *q, const char *s)
 
 char *quark_idstr_get(const Quark *q)
 {
-    return q->idstr;
+    if (q) {
+        return q->idstr;
+    } else {
+        return NULL;
+    }
 }
 
 int quark_fid_set(Quark *q, int fid)
