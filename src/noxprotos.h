@@ -136,6 +136,11 @@ void define_autos(int aon, int au, int ap);
 
 int find_item(int gno, VPoint vp, view *bb, int *type, int *id);
 
+int is_valid_line(int line);
+int is_valid_box(int box);
+int is_valid_ellipse(int ellipse);
+int is_valid_string(int string);
+
 int isactive_line(int lineno);
 int isactive_box(int boxno);
 int isactive_ellipse(int ellipno);

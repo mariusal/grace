@@ -49,20 +49,44 @@ static int maxlines = 0;
 static int maxstr = 0;
 static int maxellipses = 0;
 
-int number_of_boxes(void) {
-    return maxboxes;
-}
-
-int number_of_ellipses(void) {
-    return maxellipses;
-}
-
-int number_of_lines(void) {
+int number_of_lines(void)
+{
     return maxlines;
 }
 
-int number_of_strings(void) {
+int number_of_boxes(void)
+{
+    return maxboxes;
+}
+
+int number_of_ellipses(void)
+{
+    return maxellipses;
+}
+
+int number_of_strings(void)
+{
     return maxstr;
+}
+
+int is_valid_line(int line)
+{
+    return (line >= 0 && line < maxlines);
+}
+
+int is_valid_box(int box)
+{
+    return (box >= 0 && box < maxboxes);
+}
+
+int is_valid_ellipse(int ellipse)
+{
+    return (ellipse >= 0 && ellipse < maxellipses);
+}
+
+int is_valid_string(int string)
+{
+    return (string >= 0 && string < maxstr);
 }
 
 void move_object(int type, int id, VVector shift)
@@ -162,30 +186,38 @@ void move_object(int type, int id, VVector shift)
 
 int isactive_line(int lineno)
 {
-    if (0 <= lineno && lineno < maxlines)
-	return (lines[lineno].active == TRUE);
-    return (0);
+    if (is_valid_line(lineno)) {
+	return lines[lineno].active;
+    } else {
+        return FALSE;
+    }
 }
 
 int isactive_box(int boxno)
 {
-    if (0 <= boxno && boxno < maxboxes)
-	return (boxes[boxno].active == TRUE);
-    return (0);
-}
-
-int isactive_string(int strno)
-{
-    if (0 <= strno && strno < maxstr)
-	return (pstr[strno].s[0]);
-    return (0);
+    if (is_valid_box(boxno)) {
+	return boxes[boxno].active;
+    } else {
+        return FALSE;
+    }
 }
 
 int isactive_ellipse(int ellipno)
 {
-    if (0 <= ellipno && ellipno < maxellipses)
-	return (ellip[ellipno].active == TRUE);
-    return (0);
+    if (is_valid_ellipse(ellipno)) {
+	return ellip[ellipno].active;
+    } else {
+        return FALSE;
+    }
+}
+
+int isactive_string(int strno)
+{
+    if (is_valid_string(strno)) {
+	return (pstr[strno].s[0]);
+    } else {
+        return FALSE;
+    }
 }
 
 
