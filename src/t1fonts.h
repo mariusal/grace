@@ -57,7 +57,8 @@
 #define SSCRIPT_SCALE M_SQRT1_2
 #define ENLARGE_SCALE sqrt(M_SQRT2)
 
-#define T1_DEFAULT_ENCODING_FILE "Default.enc"
+#define T1_DEFAULT_ENCODING_FILE  "Default.enc"
+#define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
 #define T1_DEFAULT_SLANT 0.0
 #define T1_AALEVELS 5
 

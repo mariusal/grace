@@ -41,6 +41,7 @@
 #include "protos.h"
 
 static char LastEncodingFile[GR_MAXPATHLEN];
+static char EncodingFile[GR_MAXPATHLEN];
 static float lastExtent;
 static float lastSlant;
 static int bitmap_pad;
@@ -115,12 +116,17 @@ int init_t1(void)
     
 
     Encoding = T1_LoadEncoding(T1_DEFAULT_ENCODING_FILE);
-    strcpy(LastEncodingFile, T1_DEFAULT_ENCODING_FILE);
-    
+    if (Encoding != NULL) {
+        strcpy(EncodingFile, T1_DEFAULT_ENCODING_FILE);
+    } else {
+        Encoding = T1_LoadEncoding(T1_FALLBACK_ENCODING_FILE);
+        strcpy(EncodingFile, T1_FALLBACK_ENCODING_FILE);
+    }
     if (Encoding != NULL) {
         T1_SetDefaultEncoding(Encoding);
+        strcpy(LastEncodingFile, EncodingFile);
     } else {
-        errmsg("Failed loading default encoding vector!");
+        return (GRACE_EXIT_FAILURE);
     }
     
     lastExtent = 1.0;
@@ -138,7 +144,6 @@ void update_t1(void)
     int i;
     
     float Slant = T1_DEFAULT_SLANT, Extent;
-    char EncodingFile[GR_MAXPATHLEN] = T1_DEFAULT_ENCODING_FILE;
     
     static char **Encoding = NULL;
     
