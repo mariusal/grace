@@ -161,7 +161,7 @@ char *get_format_types(int f)
 int wipeout(void)
 {
     if (!noask && is_dirtystate()) {
-        if (!yesno("Abandon unsaved project?", NULL, NULL, NULL)) {
+        if (!yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
             return 1;
         }
     }
