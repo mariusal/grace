@@ -258,7 +258,7 @@ void draw_pie_chart(int gno)
     VPoint vpc, vp1, vp2, vps[3], vpa;
     VVector offset;
     double r, start_angle, stop_angle;
-    double norm;
+    double e_max, norm;
     double *x, *c, *e, *pt;
     AValue avalue;
     char str[MAX_STRING_LENGTH];
@@ -266,7 +266,6 @@ void draw_pie_chart(int gno)
     get_graph_viewport(gno, &v);
     vpc.x = (v.xv1 + v.xv2)/2;
     vpc.y = (v.yv1 + v.yv2)/2;
-    r = 0.75*MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2;
 
     for (setno = 0; setno < number_of_sets(gno); setno++) {
         if (is_set_drawable(gno, setno)) {
@@ -288,6 +287,14 @@ void draw_pie_chart(int gno)
                 /* patterns */
                 pt = getcol(gno, setno, DATA_Y2);
                 
+                /* get max eplode factor */
+                e_max = 0.0;
+                for (i = 0; i < p.data.len; i++) {
+                    e_max = MAX2(e_max, e[i]);
+                }
+                
+                r = 0.8/(1.0 + e_max)*MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2;
+
                 norm = 0.0;
                 for (i = 0; i < p.data.len; i++) {
                     if (x[i] < 0.0) {
