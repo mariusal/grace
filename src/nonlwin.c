@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -40,9 +40,6 @@
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/ScrolledW.h>
 
@@ -87,7 +84,7 @@ static Widget nonl_start_item, nonl_stop_item;
 static Widget nonl_fload_rc;
 static void do_nonl_proc(void *data);
 static void do_nonl_toggle(int onoff, void *data);
-static void do_constr_toggle(void *data);
+static void do_constr_toggle(int onoff, void *data);
 
 static void update_nonl_frame_cb(void *data);
 static void destroy_nonl_frame_cb(void *data);
@@ -185,8 +182,7 @@ void create_nonl_frame(void *data)
 	
 	title_fr = CreateFrame(rc, NULL);
 	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
-	nonl_title_item = XmCreateLabel(title_fr, nonl_opts.title, NULL, 0);
-    	XtManageChild(nonl_title_item);
+	nonl_title_item = CreateLabel(title_fr, nonl_opts.title);
     	
 	nonl_formula_item = CreateScrollTextItem2(rc, 2, "Formula:");
 	rc1 = XmCreateRowColumn(rc, "nonl_rc", NULL, 0);
@@ -210,7 +206,7 @@ void create_nonl_frame(void *data)
 
 	for (i = 0; i < MAXPARM + 1; i++) {
 	    XtAddCallback(nonl_nparm_item[2 + i], XmNactivateCallback,
-			(XtCallbackProc) do_nparm_toggle, (XtPointer) i);
+			do_nparm_toggle, (XtPointer) i);
 	}
 	
 	nonl_tol_item = CreateTextItem2(rc1, 10, "Tolerance:");
@@ -232,16 +228,13 @@ void create_nonl_frame(void *data)
 	    sprintf(buf, "A%1d: ", i);
 	    nonl_value_item[i] = CreateTextItem2(nonl_parm_item[i], 10, buf);
 
-	    nonl_constr_item[i] = XmCreateToggleButton(nonl_parm_item[i], "Bounds:", NULL, 0);
-	    XtAddCallback(nonl_constr_item[i], XmNvalueChangedCallback, 
-	    	    	    (XtCallbackProc) do_constr_toggle, (XtPointer) i);
-	    XtManageChild(nonl_constr_item[i]);
+	    nonl_constr_item[i] = CreateToggleButton(nonl_parm_item[i], "Bounds:");
+	    AddToggleButtonCB(nonl_constr_item[i], do_constr_toggle, (void *) i);
 
 	    nonl_lowb_item[i] = CreateTextItem2(nonl_parm_item[i], 6, "");
 	    
 	    sprintf(buf, "< A%1d < ", i);
-	    lab = XmCreateLabel(nonl_parm_item[i], buf, NULL, 0);
-    	    XtManageChild(lab);
+	    lab = CreateLabel(nonl_parm_item[i], buf);
 
 	    nonl_uppb_item[i] = CreateTextItem2(nonl_parm_item[i], 6, "");
 	}
@@ -346,7 +339,7 @@ void update_nonl_frame(void)
         for (i = 0; i < MAXPARM; i++) {
             sprintf(buf, "%g", nonl_parms[i].value);
             xv_setstr(nonl_value_item[i], buf);
-            XmToggleButtonSetState(nonl_constr_item[i], nonl_parms[i].constr, False);
+            SetToggleButtonState(nonl_constr_item[i], nonl_parms[i].constr);
             sprintf(buf, "%g", nonl_parms[i].min);
             xv_setstr(nonl_lowb_item[i], buf);
             XtSetSensitive(nonl_lowb_item[i], nonl_parms[i].constr);
@@ -364,11 +357,11 @@ void update_nonl_frame(void)
             }
         }
         
-        XmToggleButtonSetState(nonl_autol_item, nonl_prefs.autoload, False);
+        SetToggleButtonState(nonl_autol_item, nonl_prefs.autoload);
         for (i = 0; i < 3; i++) {
-	    XmToggleButtonSetState(nonl_load_item[i], False, False);
+	    SetToggleButtonState(nonl_load_item[i], FALSE);
         }
-        XmToggleButtonSetState(nonl_load_item[nonl_prefs.load], True, False);
+        SetToggleButtonState(nonl_load_item[nonl_prefs.load], TRUE);
         
         if (nonl_prefs.load == LOAD_FUNCTION) {
             XtSetSensitive(nonl_fload_rc, True);
@@ -393,9 +386,9 @@ static void do_nonl_toggle(int onoff, void *data)
     int value = (int) data;
     for (i = 0; i < 3; i++) {
 	if (i != value) {
-            XmToggleButtonSetState(nonl_load_item[i], False, False);
+            SetToggleButtonState(nonl_load_item[i], FALSE);
 	} else {
-            XmToggleButtonSetState(nonl_load_item[i], True, False);
+            SetToggleButtonState(nonl_load_item[i], TRUE);
 	}
     }
     if (value == LOAD_FUNCTION) {
@@ -405,10 +398,10 @@ static void do_nonl_toggle(int onoff, void *data)
     }
 }
 
-static void do_constr_toggle(void *data)
+static void do_constr_toggle(int onoff, void *data)
 {
     int value = (int) data;
-    if (XmToggleButtonGetState(nonl_constr_item[value])) {
+    if (onoff) {
     	XtSetSensitive(nonl_lowb_item[value], True);
     	XtSetSensitive(nonl_uppb_item[value], True);
     	nonl_parms[value].constr = TRUE;
@@ -435,26 +428,26 @@ static void do_nonl_proc(void *data)
     	return;
     }
     
-    nonl_opts.tolerance = atof((char *) xv_getstr(nonl_tol_item));
+    nonl_opts.tolerance = atof(xv_getstr(nonl_tol_item));
     nonl_opts.parnum = GetChoice(nonl_nparm_item);
-    strcpy(nonl_opts.formula, (char *) xv_getstr(nonl_formula_item));
+    strcpy(nonl_opts.formula, xv_getstr(nonl_formula_item));
     for (i = 0; i < nonl_opts.parnum; i++) {
-	strcpy(buf, (char *) xv_getstr(nonl_value_item[i]));
+	strcpy(buf, xv_getstr(nonl_value_item[i]));
 	if (sscanf(buf, "%lf", &nonl_parms[i].value) != 1) {
 	    errmsg("Invalid input in parameter field");
 	    unset_wait_cursor();
 	    return;
 	}
 	
-	nonl_parms[i].constr = XmToggleButtonGetState(nonl_constr_item[i]);
+	nonl_parms[i].constr = GetToggleButtonState(nonl_constr_item[i]);
 	if (nonl_parms[i].constr) {
-	    strcpy(buf, (char *) xv_getstr(nonl_lowb_item[i]));
+	    strcpy(buf, xv_getstr(nonl_lowb_item[i]));
 	    if (sscanf(buf, "%lf", &nonl_parms[i].min) != 1) {
 	    	errmsg("Invalid input in low-bound field");
 	    	unset_wait_cursor();
 	    	return;
 	    }
-	    strcpy(buf, (char *) xv_getstr(nonl_uppb_item[i]));
+	    strcpy(buf, xv_getstr(nonl_uppb_item[i]));
 	    if (sscanf(buf, "%lf", &nonl_parms[i].max) != 1) {
 	    	errmsg("Invalid input in upper-bound field");
 	    	unset_wait_cursor();
@@ -468,9 +461,9 @@ static void do_nonl_proc(void *data)
 	}
     }
     
-    nonl_prefs.autoload = XmToggleButtonGetState(nonl_autol_item);
+    nonl_prefs.autoload = GetToggleButtonState(nonl_autol_item);
     for (i = 0; i < 3; i++) {
-        if (XmToggleButtonGetState(nonl_load_item[i])) {
+        if (GetToggleButtonState(nonl_load_item[i])) {
             nonl_prefs.load = i;
             break;
         }
@@ -717,7 +710,7 @@ static int do_savefit_proc(char *filename, void *data)
     
     pp = grace_openw(filename);
     if (pp != NULL) {
-        strcpy(nonl_opts.title, (char *) xv_getstr(title_item));
+        strcpy(nonl_opts.title, xv_getstr(title_item));
         put_fitparms(pp, 0);
         grace_close(pp);
     }
