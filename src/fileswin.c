@@ -953,9 +953,12 @@ static void open_proc(Widget w, XtPointer client_data, XtPointer call_data)
     
     set_wait_cursor();
     
-    load_project(s);
+    if (load_project(s) == GRACE_EXIT_SUCCESS) {
+        XtUnmanageChild(oui.top);
+    }
         
     XtFree(s);
+
     unset_wait_cursor();
 
     update_all();
