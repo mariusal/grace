@@ -36,6 +36,12 @@ T1_AA_TYPE16=@T1_AA_TYPE16@
 T1_AA_TYPE32=@T1_AA_TYPE32@
 T1_AA_TYPE64=@T1_AA_TYPE64@
 
+# XCC library
+XCC_LIB=-lxcc
+
+# Expat library
+EXPAT_LIB=-lexpat
+
 # Library containing XDR functions
 XDR_LIB=@XDR_LIB@
 
