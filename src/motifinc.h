@@ -463,6 +463,8 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows);
 TextStructure *CreateCSText(Widget parent, char *s);
 TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows);
 
+void SetTextInputLength(TextStructure *cst, int len);
+
 char *GetTextString(TextStructure *cst);
 void SetTextString(TextStructure *cst, char *s);
 void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data);

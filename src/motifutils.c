@@ -1655,6 +1655,11 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
     return retval;
 }
 
+void SetTextInputLength(TextStructure *cst, int len)
+{
+    XtVaSetValues(cst->text, XmNcolumns, len, NULL);
+}
+
 void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     TextStructure *cst = (TextStructure *) GetUserData(w);
