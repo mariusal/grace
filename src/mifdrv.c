@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -43,6 +43,8 @@
 #include "devlist.h"
 #include "patterns.h"
 #include "mifdrv.h"
+
+#define MIF_MARGIN 15.0
 
 extern FILE *prstream;
 
@@ -277,7 +279,7 @@ int mifinitgraphics(void)
 
     fprintf(prstream, "<Document\n");
     fprintf(prstream, " <DPageSize %8.3f pt %8.3f pt>\n",
-            page_width_pp, page_height_pp);
+            page_width_pp + 2*MIF_MARGIN, page_height_pp + 2*MIF_MARGIN);
     fprintf(prstream, "> # end of Document\n");
 
     fprintf(prstream, "<Page\n");
@@ -285,11 +287,7 @@ int mifinitgraphics(void)
     fprintf(prstream, " <PageNum `1'>\n");
     fprintf(prstream, " <PageAngle 0>\n");
     fprintf(prstream, " <PageBackground `Default'>\n");
-    fprintf(prstream, " <Frame\n");
-    fprintf(prstream, "  <ShapeRect  0.0 pt 0.0 pt %8.3f pt %8.3f pt>\n",
-            page_width_pp, page_height_pp);
-    fprintf(prstream, "  <FrameType NotAnchored>\n");
-    
+
     return RETURN_SUCCESS;
 }
 
@@ -328,6 +326,7 @@ void mif_object_props (int draw, int fill)
         fprintf(prstream, "   <Fill 15>\n");
     }
     fprintf(prstream, "   <ObColor `%s'>\n", get_colorname(pen.color));
+    fprintf(prstream, "   <GroupID 1>\n");
 
 }
 
@@ -342,7 +341,8 @@ void mif_drawpixel(VPoint vp)
     mif_object_props(FALSE, TRUE);
     fprintf(prstream,
             "   <ShapeRect %8.3f pt %8.3f pt %8.3f pt %8.3f pt>\n",
-            vp.x*side, (1.0 - vp.y)*side, 72.0/page_dpi, 72.0/page_dpi);
+            vp.x*side + MIF_MARGIN, (1.0 - vp.y)*side + MIF_MARGIN,
+            72.0/page_dpi, 72.0/page_dpi);
     fprintf(prstream, "  > # end of Rectangle\n");
 
 }
@@ -362,7 +362,7 @@ void mif_drawpolyline(VPoint *vps, int n, int mode)
     mif_object_props(TRUE, FALSE);
     for (i = 0; i < n; i++) {
         fprintf(prstream, "   <Point %8.3f pt %8.3f>\n",
-                vps[i].x*side, (1.0 - vps[i].y)*side);
+                vps[i].x*side + MIF_MARGIN, (1.0 - vps[i].y)*side + MIF_MARGIN);
     }
     if (mode == POLYLINE_CLOSED) {
         fprintf(prstream, "  > # end of Polygon\n");
@@ -400,7 +400,7 @@ void mif_fillpolygon(VPoint *vps, int nc)
     mif_object_props(FALSE, TRUE);
     for (i = 0; i < nc; i++) {
         fprintf(prstream, "   <Point %8.3f pt %8.3f>\n",
-                vps[i].x*side, (1.0 - vps[i].y)*side);
+                vps[i].x*side + MIF_MARGIN, (1.0 - vps[i].y)*side + MIF_MARGIN);
     }
     fprintf(prstream, "  > # end of Polygon\n");
 }
@@ -415,7 +415,8 @@ static void mif_arc(int draw, int fill, VPoint vp1, VPoint vp2, int a1, int a2)
     fprintf(prstream, "  <Arc\n");
     mif_object_props(draw, fill);
     fprintf(prstream, "   <ArcRect %8.3f pt %8.3f pt %8.3f pt %8.3f pt>\n",
-            MIN2(vp1.x, vp2.x)*side, (1.0 - MAX2(vp1.y, vp2.y))*side,
+            MIN2(vp1.x, vp2.x)*side + MIF_MARGIN,
+            (1.0 - MAX2(vp1.y, vp2.y))*side + MIF_MARGIN,
             fabs(vp2.x - vp1.x)*side, fabs(vp2.y - vp1.y)*side);
     fprintf(prstream, "   <ArcTheta %d>\n",
             (a2 > 90) ? (450 - a2) : (90 - a2));
@@ -513,7 +514,7 @@ void mif_putpixmap(VPoint vp, int width, int height, char *databits,
     mif_object_props(FALSE, FALSE);
     fprintf(prstream,
             "   <ShapeRect %8.3f pt %8.3f pt %8.3f pt %8.3f pt>\n",
-            vp.x*side, (1.0 - vp.y)*side,
+            vp.x*side + MIF_MARGIN, (1.0 - vp.y)*side + MIF_MARGIN,
             72.0*width/page_dpi, 72.0*height/page_dpi);
     fprintf(prstream, "   <ImportObFixedSize Yes>\n");
     fprintf(prstream, "=FrameImage\n");
@@ -580,6 +581,7 @@ void mif_putpixmap(VPoint vp, int width, int height, char *databits,
 
     fprintf(prstream, "&\\x\n");
     fprintf(prstream, "=EndInset\n");
+    fprintf(prstream, "   <GroupID 1>\n");
     fprintf(prstream, "  > # end of ImportObject\n");
 }
 
@@ -588,8 +590,10 @@ void mif_puttext(VPoint vp, char *s, int len, int font,
 {
     char *fontalias, *dash, *family;
     double angle, side, size;
+    Pen pen;
 
     side = *((double *) get_curdevice_data());
+    pen = getpen();
 
     fprintf(prstream, "  <TextLine\n");
     mif_object_props(FALSE, FALSE);
@@ -599,7 +603,7 @@ void mif_puttext(VPoint vp, char *s, int len, int font,
     }
     fprintf(prstream, "   <Angle %f>\n", angle);
     fprintf(prstream, "   <TLOrigin %9.3f pt %9.3f pt>\n",
-            side*vp.x, side*(1.0 - vp.y));
+            side*vp.x + MIF_MARGIN, side*(1.0 - vp.y) + MIF_MARGIN);
     fprintf(prstream, "   <Font\n");
     fprintf(prstream, "    <FTag `'>\n");
 
@@ -637,6 +641,7 @@ void mif_puttext(VPoint vp, char *s, int len, int font,
             (underline == TRUE) ? "FSingle" : "FNoUnderlining");
     fprintf(prstream, "    <FOverline %s>\n",
             (overline == TRUE) ? "Yes" : "No");
+    fprintf(prstream, "    <FColor `%s'>\n", get_colorname(pen.color));
     fprintf(prstream, "   > # end of Font\n");
     fprintf(prstream, "   <String `%s'>\n",
             escape_specials((unsigned char *) s, len));
@@ -647,7 +652,9 @@ void mif_puttext(VPoint vp, char *s, int len, int font,
 
 void mif_leavegraphics(void)
 {
-    fprintf(prstream, " > # end of Frame\n");
+    fprintf(prstream, " <Group\n");
+    fprintf(prstream, "  <ID 1>\n");
+    fprintf(prstream, " > # end of Group\n");
     fprintf(prstream, "> # end of Page\n");
     fprintf(prstream, "# End of MIFFile\n");
 }
