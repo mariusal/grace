@@ -60,10 +60,6 @@ typedef enum {
 } SetType;
 #define NUMBER_OF_SETTYPES  SET_BAD
 
-/* TODO: those are NOT really set types */
-#define SET_NXY     (SET_BAD + 1)
-#define SET_BLOCK   (SET_BAD + 2)
-
 /* Data column names; */
 typedef enum {
     DATA_X ,
