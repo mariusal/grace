@@ -65,9 +65,11 @@ int is_valid_gno(int gno)
     }
 }
 
-int is_valid_axis(axis)
+int is_valid_axis(int gno, int axis)
 {
-    if (axis >= 0 || axis < MAXAXES) {
+    if (is_valid_gno(gno) &&
+        axis >= 0 && axis < MAXAXES &&
+        g[gno].t[axis] != NULL) {
         return TRUE;
     } else {
         return FALSE;
@@ -323,7 +325,7 @@ int get_graph_plotarr(int gno, int i, plotarr *p)
 /* Tickmarks */
 tickmarks *get_graph_tickmarks(int gno, int a)
 {
-    if (is_valid_gno(gno) == TRUE && is_valid_axis(a) == TRUE) {
+    if (is_valid_axis(gno, a) == TRUE) {
         return g[gno].t[a];
     } else {
         return NULL;
@@ -379,7 +381,7 @@ void free_graph_tickmarks(tickmarks *t)
 
 int set_graph_tickmarks(int gno, int a, tickmarks *t)
 {
-    if (is_valid_gno(gno) == TRUE &&  is_valid_axis(a) == TRUE) {
+    if (is_valid_axis(gno, a) == TRUE) {
         free_graph_tickmarks(g[gno].t[a]);
         g[gno].t[a] = copy_graph_tickmarks(t);
         return RETURN_SUCCESS;
@@ -820,7 +822,7 @@ int set_graph_yinvert(int gno, int flag)
 
 int is_axis_active(int gno, int axis)
 {
-    if (is_valid_gno(gno) == TRUE && is_valid_axis(axis) == TRUE) {
+    if (is_valid_axis(gno, axis) == TRUE) {
         return g[gno].t[axis]->active;
     } else {
         return FALSE;
@@ -829,7 +831,7 @@ int is_axis_active(int gno, int axis)
 
 int is_zero_axis(int gno, int axis)
 {
-    if (is_valid_gno(gno) == TRUE && is_valid_axis(axis) == TRUE) {
+    if (is_valid_axis(gno, axis) == TRUE) {
         return g[gno].t[axis]->zero;
     } else {
         return FALSE;
@@ -1111,7 +1113,7 @@ int get_world_stack_entry(int gno, int n, world_stack *ws)
 
 int activate_tick_labels(int gno, int axis, int flag)
 {
-    if (is_valid_gno(gno) == TRUE && is_valid_axis(axis) == TRUE) {
+    if (is_valid_axis(gno, axis) == TRUE) {
         g[gno].t[axis]->tl_flag = flag;
         set_dirtystate();
         return RETURN_SUCCESS;
