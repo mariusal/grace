@@ -458,6 +458,7 @@ int set_set_legstr(Quark *pset, const char *s);
 int number_of_sets(Quark *gr);
 
 set *set_get_data(Quark *p);
+Dataset *dataset_get(Quark *p);
 
 int load_comments_to_legend(Quark *p);
 

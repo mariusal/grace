@@ -57,7 +57,7 @@ void grace_close(FILE *fp);
 
 int getparms(char *plfile);
 int getdata(Quark *gr, char *fn, int src, int type);
-int read_xyset_fromfile(Quark *pset, char *fn, int src, int col);
+int update_set_from_file(Quark *pset);
 
 int readblockdata(Quark *gr, char *fn, FILE * fp);
 

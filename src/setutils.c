@@ -753,12 +753,7 @@ int get_hotlink_src(Quark *pset)
 
 void do_update_hotlink(Quark *pset)
 {
-    Dataset *dsp;
-    
-    dsp = dataset_get(pset);
-    if (dsp) {
-        read_xyset_fromfile(pset, dsp->hotfile, dsp->hotsrc, dsp->hotlink);
-    }
+    update_set_from_file(pset);
 }
 
 
