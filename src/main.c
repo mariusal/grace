@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -450,7 +450,11 @@ int main(int argc, char *argv[])
 		usage(stderr, argv[0]);
 	    }
 	} else {
-	    load_project(grace, argv[i]);
+	    if (strstr(argv[i], ".xgr") || strstr(argv[i], ".agr")) {
+                load_project(grace, argv[i]);
+            } else {
+                getdata(grace->project, argv[i], rt->cursource, LOAD_SINGLE);
+            }
 	} /* end else */
     } /* end for */
     
@@ -573,8 +577,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-printfile [file for hardcopy output] Save print output to file \n");
     fprintf(stream, "-results   [results_file]             Write results of some data manipulations\n");
     fprintf(stream, "                                        to results_file\n");
-    fprintf(stream, "-rvideo                               Exchange the color indices for black and\n");
-    fprintf(stream, "                                        white\n");
     fprintf(stream, "-safe                                 Safe mode (default)\n");
     fprintf(stream, "-saveall   [save_file]                Save all to save_file\n");
     fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator\n");
@@ -631,7 +633,7 @@ static void VersionInfo(const Grace *grace)
     fprintf(stdout, "\n\n");
     
     fprintf(stdout, "(C) Copyright 1991-1995 Paul J Turner\n");
-    fprintf(stdout, "(C) Copyright 1996-2003 Grace Development Team\n");
+    fprintf(stdout, "(C) Copyright 1996-2004 Grace Development Team\n");
     fprintf(stdout, "All Rights Reserved\n");
 
     return;
