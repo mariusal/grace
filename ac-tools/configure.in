@@ -18,6 +18,7 @@ AC_SUBST(MKINSTALLDIRS)
 AC_SUBST(GRACE)
 AC_SUBST(GRACE_HOME)
 AC_SUBST(GUI_FLAGS)
+AC_SUBST(FC)
 AC_SUBST(GUI_LIBS)
 AC_SUBST(NOGUI_LIBS)
 AC_SUBST(NETCDF_LIBS)
@@ -62,14 +63,26 @@ AC_ARG_ENABLE(config,
                                autodetection (not recommended!)],
                              [CONF_FILE="${enableval}"])
 
+dnl **** define C compiler
+CC=${CC-gcc}
+AC_ARG_WITH(config,
+[  --with-cc=PROG               use PROG as C compiler [${CC-gcc}]],
+[CC="${withval}"])
+
+dnl **** define Fortran compiler
+FC=${FC-f77}
+AC_ARG_WITH(config,
+[  --with-f77=PROG              use PROG as Fortran compiler [${FC-f77}]],
+[FC="${withval}"])
+
 dnl Chance to add include path
 AC_ARG_WITH(extra-incpath,
-[  --with-extra-incpath=PATH    define extra include path (dir1:dir2:...)],
+[  --with-extra-incpath=PATH    define extra include path (dir1:dir2:...) [none]],
 [CPPFLAGS="${CPPFLAGS} -I`echo ${withval}|sed 's/:/\ -I/g'`"])
 
 dnl ... and ld path
 AC_ARG_WITH(extra-ldpath,
-[  --with-extra-ldpath=PATH     define extra ld path (dir1:dir2:...)],
+[  --with-extra-ldpath=PATH     define extra ld path (dir1:dir2:...) [none]],
 [LDFLAGS="-L`echo ${withval}|sed 's/:/\ -L/g'` ${LDFLAGS}";
   case "${host}" in
     sparc-sun-solaris*) LDFLAGS="-R:${withval} ${LDFLAGS}";;
@@ -141,7 +154,7 @@ esac],[pdfdrv=true])
 
 dnl **** check if user wants to compile grace_np lib with support for Fortran
 AC_ARG_ENABLE(f77,
-[  --enable-f77                 include Fortran wrapper for libgrace_np [yes]],
+[  --enable-f77-wrapper         include Fortran wrapper for libgrace_np [yes]],
 [case "${enableval}" in
   yes) f77=true ;;
   no)  f77=false;;
@@ -200,6 +213,11 @@ then
   AC_DEFINE(WITH_DEBUG)
 fi
 
+dnl Support for Fortran wrapper
+if test $f77 = true; then
+  AC_DEFINE(WITH_F77_WRAPPER)
+fi
+
 
 dnl **** Possibility to override defaults
 if test "x$CONF_FILE" != "x"
@@ -226,15 +244,6 @@ AC_CANONICAL_HOST
 
 dnl Checks for C compiler
 AC_PROG_CC
-
-dnl Checks for Fortran compiler
-if test $f77 = true; then
-  ACX_PROG_FC
-  if test "x$FC" != "x"; then
-    AC_DEFINE(HAVE_F77)
-    ACX_CHECK_FC_UNDERSCORE(AC_DEFINE(NEED_F77_UNDERSCORE))
-  fi
-fi
 
 AC_ISC_POSIX
 AC_AIX
@@ -279,7 +288,6 @@ then
         CFLAGS="-Aa -D_HPUX_SOURCE"
         OPTIMIZE="-O"
         DEBUG="-g -O"
-        FC="fort77 +U77"
         ;;
       mips-sgi-irix6.[[4-9]]*)
         CFLAGS="-w"
