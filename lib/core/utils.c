@@ -107,7 +107,9 @@ int quark_get_descendant_sets(Quark *q, Quark ***sets)
 
 int set_is_dataless(Quark *pset)
 {
-    if (set_get_length(pset) > 0) {
+    if (set_get_length(pset) > 0          &&
+        set_get_col(pset, DATA_X) != NULL &&
+        set_get_col(pset, DATA_Y) != NULL) {
         return FALSE;
     } else {
         return TRUE;
