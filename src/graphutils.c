@@ -410,7 +410,6 @@ static double nicenum(double x, int nrange, int round)
 {
     int xsign;
     double f, y, fexp, rx, sx;
-    double epsilon;
     double maxf, maxexp;
     
     if (x == 0.0) {
@@ -427,14 +426,14 @@ static double nicenum(double x, int nrange, int round)
     sx = x/pow(10.0, fexp);                 /* scaled x */
     rx = floor(sx);                         /* rounded x */
     f = 10*(sx - rx);                       /* fraction between 0 and 10 */
-    epsilon = pow(10.0, -(nrange + 1));     /* accuracy */
+    /* epsilon = pow(10.0, -(nrange + 1)); */    /* accuracy */
 
     if ((round == NICE_FLOOR && xsign == +1) ||
         (round == NICE_CEIL  && xsign == -1)) {
-        y = (int) floor(f + epsilon);
+        y = (int) floor(f);
     } else if ((round == NICE_FLOOR && xsign == -1) ||
                (round == NICE_CEIL  && xsign == +1)) {
-	y = (int) ceil(f - epsilon);
+	y = (int) ceil(f);
     } else {    /* round == NICE_ROUND */
 	if (f < 1.5)
 	    y = 1;
