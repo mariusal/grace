@@ -283,6 +283,21 @@ char **get_default_encoding(void)
     return (DefEncoding);
 }
 
+double get_textline_width(int font)
+{
+    return (double) T1_GetUnderlineThickness(font)/1000.0;
+}
+
+double get_underline_pos(int font)
+{
+    return (double) T1_GetLinePosition(font, T1_UNDERLINE)/1000.0;
+}
+
+double get_overline_pos(int font)
+{
+    return (double) T1_GetLinePosition(font, T1_OVERLINE)/1000.0;
+}
+
 static int tm_scale(TextMatrix *tm, double s)
 {
     if (s != 0.0) {

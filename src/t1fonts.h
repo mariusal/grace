@@ -124,6 +124,9 @@ char *get_fontfallback(int font);
 char *get_fontfilename(int font);
 char *get_encodingscheme(int font);
 char **get_default_encoding(void);
+double get_textline_width(int font);
+double get_underline_pos(int font);
+double get_overline_pos(int font);
 
 int get_font_by_name(char *fname);
 int get_font_mapped_id(int font);
