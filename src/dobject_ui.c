@@ -98,7 +98,9 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
     ui->linepen = CreatePenChoice(rc1, "Outline pen:");
+    AddPenChoiceCB(ui->linepen, pen_explorer_cb, eui);
     ui->fillpen = CreatePenChoice(rc1, "Fill pen:");
+    AddPenChoiceCB(ui->fillpen, pen_explorer_cb, eui);
 
     /* ------------ Object data tab -------------- */
     ui->odata_tp = CreateTabPage(tab, "Object data");
@@ -376,7 +378,9 @@ static StringUI *create_string_ui(Widget parent, ExplorerUI *eui)
     AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
     ui->linepen = CreatePenChoice(rc1, "Outline pen:");
+    AddPenChoiceCB(ui->linepen, pen_explorer_cb, eui);
     ui->fillpen = CreatePenChoice(rc1, "Fill pen:");
+    AddPenChoiceCB(ui->fillpen, pen_explorer_cb, eui);
     
     return ui;
 }
