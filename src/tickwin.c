@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -229,8 +229,8 @@ void create_axes_dialog(int axisno)
         fr = CreateFrame(axes_main, "Axis placement");
         rc = CreateHContainer(fr);
 	axis_zero = CreateToggleButton(rc, "Zero axis");
-        offx = CreateTextItem2(rc, 7, "Offsets - Left/bottom:");
-        offy = CreateTextItem2(rc, 7, "Right/top:");
+        offx = CreateTextItem2(rc, 6, "Offsets - Normal:");
+        offy = CreateTextItem2(rc, 6, "Opposite:");
 
         fr = CreateFrame(axes_main, "Tick label properties");
         rc = CreateHContainer(fr);
@@ -250,7 +250,7 @@ void create_axes_dialog(int axisno)
         
         rc2 = CreateHContainer(rc);
         axislabelcharsize = CreateCharSizeChoice(rc2, "Char size");
-	SetScaleWidth(axislabelcharsize, 180);
+	SetScaleWidth(axislabelcharsize, 160);
         
         axislabellayout = CreatePanelChoice(rc2, "Layout:",
                                             3,
