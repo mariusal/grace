@@ -412,9 +412,7 @@ void set_left_footer(char *s)
     } else {
         SetLabel(statlab, s);
     }
-/*
- *     XmUpdateDisplay(statlab);
- */
+    XmUpdateDisplay(statlab);
 }
 
 /*
