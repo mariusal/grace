@@ -957,7 +957,9 @@ void startup_gui(Grace *grace)
     XtAddCallback(xstuff->canvas, XmNexposeCallback, expose_resize, grace);
     XtAddCallback(xstuff->canvas, XmNresizeCallback, expose_resize, grace);
 
-    XtAddEventHandler(xstuff->canvas, ButtonPressMask
+    XtAddEventHandler(xstuff->canvas,
+                      ButtonPressMask
+                      | ButtonReleaseMask
 		      | PointerMotionMask
 		      | KeyPressMask
 		      | KeyReleaseMask

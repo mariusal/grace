@@ -63,6 +63,36 @@ static char *typestr[6] = {"X, Y",
 
 int cursortype = 0;
 
+static void scroll_bar_pix(Widget bar, int pix)
+{
+    int value, slider_size, maxvalue;
+
+    XtVaGetValues(bar,
+        XmNvalue,      &value,
+        XmNmaximum,    &maxvalue,
+        XmNsliderSize, &slider_size,
+        NULL);
+    value += pix;
+    if (value < 0) {
+        value = 0;
+    } else
+    if (value > maxvalue - slider_size) {
+        value = maxvalue - slider_size;
+    }
+    XmScrollBarSetValues(bar, value, 0, 0, 0, True);
+}
+
+static void scroll_pix(Widget w, int dx, int dy)
+{
+    Widget bar;
+    
+    if (dx && (bar = XtNameToWidget(w, "HorScrollBar"))) {
+        scroll_bar_pix(bar, dx);
+    }
+    if (dy && (bar = XtNameToWidget(w, "VertScrollBar"))) {
+        scroll_bar_pix(bar, dy);
+    }
+}
 static void scroll(Widget w, int up, int horiz)
 {
     int value, slider_size, increment, page_increment, maxvalue;
@@ -109,6 +139,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     
     static Time lastc_time = 0;  /* time of last mouse click */
     static int lastc_x, lastc_y; /* coords of last mouse click */
+    static int last_b1down_x, last_b1down_y;   /* coords of last event */
     int dbl_click;
 
     int undo_point = FALSE;
@@ -125,13 +156,18 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 	if (cursortype || xme->state & ShiftMask) {
             crosshair_motion(grace->gui, x, y);
         }
-	x11_dev2VPoint(x, y, &vp);
 
-        if (grace->gui->focus_policy == FOCUS_FOLLOWS) {
-            cg = next_graph_containing(cg, &vp);
+	if (xme->state & Button1Mask) {
+            scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
+        } else {
+	    x11_dev2VPoint(x, y, &vp);
+
+            if (grace->gui->focus_policy == FOCUS_FOLLOWS) {
+                cg = next_graph_containing(cg, &vp);
+            }
+            update_locator_lab(cg, &vp);
         }
         
-        update_locator_lab(cg, &vp);
         break;
     case ButtonPress:
         xbe = (XButtonEvent *) event;
@@ -166,6 +202,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 /* add_point(x, y) */
                 npoints++;
             }
+
+            last_b1down_x = x;
+            last_b1down_y = y;
+            set_cursor(grace->gui, 5);
             
             break;
 	case Button2:
@@ -189,6 +229,9 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 	default:
             break;
         }
+        break;
+    case ButtonRelease:
+            set_cursor(grace->gui, -1);
         break;
     case KeyPress:
 	xke = (XKeyEvent *) event;

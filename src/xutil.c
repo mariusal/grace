@@ -61,6 +61,7 @@ static Cursor find_cursor;
 static Cursor move_cursor;
 static Cursor text_cursor;
 static Cursor kill_cursor;
+static Cursor drag_cursor;
 static int cur_cursor = -1;
 
 static void resize_drawables(unsigned int w, unsigned int h);
@@ -138,6 +139,9 @@ void set_cursor(GUI *gui, int c)
     case 4:
         XDefineCursor(xstuff->disp, xstuff->xwin, move_cursor);
         break;
+    case 5:
+        XDefineCursor(xstuff->disp, xstuff->xwin, drag_cursor);
+        break;
     default:
         cur_cursor = -1;
         break;
@@ -151,10 +155,11 @@ void init_cursors(GUI *gui)
 
     wait_cursor = XCreateFontCursor(xstuff->disp, XC_watch);
     line_cursor = XCreateFontCursor(xstuff->disp, XC_crosshair);
-    find_cursor = XCreateFontCursor(xstuff->disp, XC_hand2);
+    find_cursor = XCreateFontCursor(xstuff->disp, XC_dotbox);
     text_cursor = XCreateFontCursor(xstuff->disp, XC_xterm);
     kill_cursor = XCreateFontCursor(xstuff->disp, XC_pirate);
     move_cursor = XCreateFontCursor(xstuff->disp, XC_fleur);
+    drag_cursor = XCreateFontCursor(xstuff->disp, XC_hand2);
     
     cur_cursor = -1;
 }
