@@ -49,8 +49,6 @@
 #include "motifinc.h"
 #include "protos.h"
 
-extern Widget drawing_window;
-
 int cursortype = 0;
 
 static void scroll_bar_pix(Widget bar, int pix)
@@ -472,6 +470,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     Grace *grace = (Grace *) data;
     Quark *cg = graph_get_current(grace->project);
     X11Stuff *xstuff = grace->gui->xstuff;
+    Widget drawing_window = grace->gui->mwui->drawing_window;
     
     XMotionEvent *xme;
     XButtonEvent *xbe;

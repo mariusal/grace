@@ -90,6 +90,16 @@ struct _X11Stuff {
     int sel_type;
 };
 
+struct _MainWinUI {
+    Widget drawing_window;
+    Widget frleft, frtop, frbot;
+    Widget windowbarw[3];
+    Widget loclab;           /* locator label */
+    Widget statlab;          /* status line at the bottom */
+    Widget undo_button;
+    Widget redo_button;
+};
+
 void x11_VPoint2dev(const VPoint *vp, short *x, short *y);
 void x11_dev2VPoint(short x, short y, VPoint *vp);
 
@@ -168,6 +178,7 @@ void create_about_grtool(Widget but, void *data);
 
 void create_monitor_frame_cb(Widget but, void *data);
 
+void update_undo_buttons(Quark *project);
 void update_set_lists(Quark *gr);
 void update_props_items(void);
 void update_all(void);

@@ -42,6 +42,7 @@ typedef struct _Grace Grace;
 
 typedef struct _X11Stuff X11Stuff;
 typedef struct _ExplorerUI ExplorerUI;
+typedef struct _MainWinUI MainWinUI;
 
 typedef struct _GUI {
     /* Parent */
@@ -83,6 +84,7 @@ typedef struct _GUI {
     
     X11Stuff *xstuff;
     
+    MainWinUI *mwui;
     ExplorerUI *eui;
 } GUI;
 

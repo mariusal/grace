@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -67,15 +67,6 @@
 /* used globally */
 XtAppContext app_con;
 Widget app_shell;
-
-Widget drawing_window;		/* container for drawing area */
-
-
-/* used locally */
-static Widget frleft, frtop, frbot;
-static Widget windowbarw[3];
-static Widget loclab;		/* locator label */
-static Widget statlab;		/* status line at the bottom */
 
 static Widget CreateMainMenuBar(Widget parent);
 static void graph_scroll_left_cb(Widget but, void *data);
@@ -193,6 +184,10 @@ String fallbackResourcesCommon[] = {
     "XMgrace*fileMenu.printSetupButton.accelerator: Ctrl<Key>p",
     "XMgrace*fileMenu.printButton.acceleratorText: Ctrl+Alt+P",
     "XMgrace*fileMenu.printButton.accelerator: Ctrl Alt<Key>p",
+    "XMgrace*editMenu.undoButton.acceleratorText: Ctrl+Z",
+    "XMgrace*editMenu.undoButton.accelerator: Ctrl<Key>z",
+    "XMgrace*editMenu.redoButton.acceleratorText: Ctrl+R",
+    "XMgrace*editMenu.redoButton.accelerator: Ctrl<Key>r",
     "XMgrace*editMenu.explorerButton.acceleratorText: Ctrl+E",
     "XMgrace*editMenu.explorerButton.accelerator: Ctrl<Key>e",
     "XMgrace*helpMenu.onContextButton.acceleratorText: Shift+F1",
@@ -329,6 +324,7 @@ static int is_motif_compatible(void)
 int initialize_gui(int *argc, char **argv)
 {
     X11Stuff *xstuff;
+    MainWinUI *mwui;
     Screen *screen;
     ApplicationData rd;
     String *allResources, *resolResources;
@@ -339,6 +335,10 @@ int initialize_gui(int *argc, char **argv)
     xstuff = xmalloc(sizeof(X11Stuff));
     memset(xstuff, 0, sizeof(X11Stuff));
     grace->gui->xstuff = xstuff;
+
+    mwui = xmalloc(sizeof(MainWinUI));
+    memset(mwui, 0, sizeof(MainWinUI));
+    grace->gui->mwui = mwui;
     
     installXErrorHandler();
     
@@ -466,6 +466,8 @@ static void autoticks_cb(Widget but, void *data)
  */
 void set_left_footer(char *s)
 {
+    Widget statlab = grace->gui->mwui->statlab;
+
     if (s == NULL) {
         char hbuf[64], buf[GR_MAXPATHLEN + 100], *prname;
         gethostname(hbuf, 63);
@@ -485,6 +487,8 @@ void set_left_footer(char *s)
 
 void set_tracker_string(char *s)
 {
+    Widget loclab = grace->gui->mwui->loclab;
+    
     if (s == NULL) {
         SetLabel(loclab, "[Out of frame]");
     } else {
@@ -497,78 +501,80 @@ void set_tracker_string(char *s)
  */
 static void set_view_items(void)
 {
+    MainWinUI *mwui = grace->gui->mwui;
+    
     if (grace->gui->statusbar) {
-	SetToggleButtonState(windowbarw[1], TRUE);
-	ManageChild(frbot);
-	XtVaSetValues(drawing_window,
+	SetToggleButtonState(mwui->windowbarw[1], TRUE);
+	ManageChild(mwui->frbot);
+	XtVaSetValues(mwui->drawing_window,
 		      XmNbottomAttachment, XmATTACH_WIDGET,
-		      XmNbottomWidget, frbot,
+		      XmNbottomWidget, mwui->frbot,
 		      NULL);
 	if (grace->gui->toolbar) {
-	    XtVaSetValues(frleft,
+	    XtVaSetValues(mwui->frleft,
 			  XmNbottomAttachment, XmATTACH_WIDGET,
-			  XmNbottomWidget, frbot,
+			  XmNbottomWidget, mwui->frbot,
 			  NULL);
 	}
     } else {
-	SetToggleButtonState(windowbarw[1], FALSE);
-	XtVaSetValues(drawing_window,
+	SetToggleButtonState(mwui->windowbarw[1], FALSE);
+	XtVaSetValues(mwui->drawing_window,
 		      XmNbottomAttachment, XmATTACH_FORM,
 		      NULL);
-	UnmanageChild(frbot);
+	UnmanageChild(mwui->frbot);
 	if (grace->gui->toolbar) {
-	    XtVaSetValues(frleft,
+	    XtVaSetValues(mwui->frleft,
 			  XmNbottomAttachment, XmATTACH_FORM,
 			  NULL);
 	}
     }
     if (grace->gui->toolbar) {
-	SetToggleButtonState(windowbarw[2], TRUE);
-	ManageChild(frleft);
+	SetToggleButtonState(mwui->windowbarw[2], TRUE);
+	ManageChild(mwui->frleft);
 	if (grace->gui->statusbar) {
-	    XtVaSetValues(frleft,
+	    XtVaSetValues(mwui->frleft,
 			  XmNbottomAttachment, XmATTACH_WIDGET,
-			  XmNbottomWidget, frbot,
+			  XmNbottomWidget, mwui->frbot,
 			  NULL);
 	}
 	if (grace->gui->locbar) {
-	    XtVaSetValues(frleft,
+	    XtVaSetValues(mwui->frleft,
 			  XmNtopAttachment, XmATTACH_WIDGET,
-			  XmNtopWidget, frtop,
+			  XmNtopWidget, mwui->frtop,
 			  NULL);
 	}
-	XtVaSetValues(drawing_window,
+	XtVaSetValues(mwui->drawing_window,
 		      XmNleftAttachment, XmATTACH_WIDGET,
-		      XmNleftWidget, frleft,
+		      XmNleftWidget, mwui->frleft,
 		      NULL);
     } else {
-	SetToggleButtonState(windowbarw[2], FALSE);
-	UnmanageChild(frleft);
-	XtVaSetValues(drawing_window,
+	SetToggleButtonState(mwui->windowbarw[2], FALSE);
+	UnmanageChild(mwui->frleft);
+	XtVaSetValues(mwui->drawing_window,
 		      XmNleftAttachment, XmATTACH_FORM,
 		      NULL);
     }
     if (grace->gui->locbar) {
-	SetToggleButtonState(windowbarw[0], TRUE);
-	ManageChild(frtop);
-	XtVaSetValues(drawing_window,
+	SetToggleButtonState(mwui->windowbarw[0], TRUE);
+	ManageChild(mwui->frtop);
+	XtVaSetValues(mwui->drawing_window,
 		      XmNtopAttachment, XmATTACH_WIDGET,
-		      XmNtopWidget, frtop,
+		      XmNtopWidget, mwui->frtop,
 		      NULL);
 	if (grace->gui->toolbar) {
-	    XtVaSetValues(frleft,
+	    XtVaSetValues(mwui->frleft,
 			  XmNtopAttachment, XmATTACH_WIDGET,
-			  XmNtopWidget, frtop,
+			  XmNtopWidget, mwui->frtop,
 			  NULL);
 	}
     } else {
-	SetToggleButtonState(windowbarw[0], FALSE);
-	UnmanageChild(frtop);
-	XtVaSetValues(drawing_window,
+	SetToggleButtonState(mwui->windowbarw[0], FALSE);
+	UnmanageChild(mwui->frtop);
+	XtVaSetValues(mwui->drawing_window,
 		      XmNtopAttachment, XmATTACH_FORM,
 		      NULL);
 	if (grace->gui->toolbar) {
-	    XtVaSetValues(frleft,
+	    XtVaSetValues(mwui->frleft,
 			  XmNtopAttachment, XmATTACH_FORM,
 			  NULL);
 	}
@@ -678,11 +684,56 @@ static void print_cb(Widget but, void *data)
     unset_wait_cursor();
 }
 
+static void undo_stats(AMem *amem)
+{
+    printf("undo = %d, redo = %d\n",
+        amem_get_undo_count(amem), amem_get_redo_count(amem));
+}
+
+static void snapshot_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    AMem *amem = quark_get_amem(grace->project);
+    
+    amem_snapshot(amem);
+    update_undo_buttons(grace->project);
+    
+    undo_stats(amem);
+}
+
+static void undo_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    AMem *amem = quark_get_amem(grace->project);
+    
+    amem_undo(amem);
+    
+    xdrawgraph(grace->project, FALSE);
+    update_all();
+    
+    undo_stats(amem);
+}
+
+static void redo_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    AMem *amem = quark_get_amem(grace->project);
+    
+    amem_redo(amem);
+    
+    xdrawgraph(grace->project, FALSE);
+    update_all();
+    
+    undo_stats(amem);
+}
+
+
 /*
  * create the main menubar
  */
 static Widget CreateMainMenuBar(Widget parent)
 {
+    MainWinUI *mwui = grace->gui->mwui;
     Widget menubar;
     Widget menupane, submenupane, sub2menupane;
     static char buf[128];
@@ -707,6 +758,12 @@ static Widget CreateMainMenuBar(Widget parent)
 
     /* Edit menu */
     menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
+
+    CreateMenuButton(menupane, "Snapshot", 'S', snapshot_cb, grace);
+    mwui->undo_button = CreateMenuButton(menupane, "Undo", 'U', undo_cb, grace);
+    mwui->redo_button = CreateMenuButton(menupane, "Redo", 'R', redo_cb, grace);
+
+    CreateMenuSeparator(menupane);
 
     CreateMenuButton(menupane, "Explorer...", 'E', define_explorer_popup, grace->gui);
 
@@ -759,9 +816,9 @@ static Widget CreateMainMenuBar(Widget parent)
     menupane = CreateMenu(menubar, "View", 'V', FALSE);
 
     submenupane = CreateMenu(menupane, "Show/Hide", 'w', FALSE);
-    windowbarw[0] = CreateMenuToggle(submenupane, "Locator bar", 'L', set_locbar, NULL);
-    windowbarw[1] = CreateMenuToggle(submenupane, "Status bar", 'S', set_statusbar, NULL);
-    windowbarw[2] = CreateMenuToggle(submenupane, "Tool bar", 'T', set_toolbar, NULL);
+    mwui->windowbarw[0] = CreateMenuToggle(submenupane, "Locator bar", 'L', set_locbar, NULL);
+    mwui->windowbarw[1] = CreateMenuToggle(submenupane, "Status bar", 'S', set_statusbar, NULL);
+    mwui->windowbarw[2] = CreateMenuToggle(submenupane, "Tool bar", 'T', set_toolbar, NULL);
 
     if (!gui_is_page_free(grace->gui)) {
         submenupane = CreateMenu(menupane, "Page zoom", 'z', FALSE);
@@ -887,6 +944,7 @@ static Widget CreateMainMenuBar(Widget parent)
  */
 void startup_gui(Grace *grace)
 {
+    MainWinUI *mwui = grace->gui->mwui;
     X11Stuff *xstuff = grace->gui->xstuff;
     Widget main_frame, form, menu_bar, bt, rcleft;
     Pixmap icon, shape;
@@ -916,8 +974,9 @@ void startup_gui(Grace *grace)
 
     form = XmCreateForm(main_frame, "form", NULL, 0);
 
-    frleft = CreateFrame(form, NULL);
-    rcleft = XtVaCreateManagedWidget("toolBar", xmRowColumnWidgetClass, frleft,
+    mwui->frleft = CreateFrame(form, NULL);
+    rcleft = XtVaCreateManagedWidget("toolBar", xmRowColumnWidgetClass,
+                                     mwui->frleft,
 				     XmNorientation, XmVERTICAL,
 				     XmNpacking, XmPACK_TIGHT,
 				     XmNspacing, 0,
@@ -926,26 +985,27 @@ void startup_gui(Grace *grace)
 				     XmNmarginHeight, 0,
 				     NULL);
 
-    frtop = CreateFrame(form, NULL);
-    loclab = CreateLabel(frtop, NULL);
+    mwui->frtop = CreateFrame(form, NULL);
+    mwui->loclab = CreateLabel(mwui->frtop, NULL);
     
-    frbot = CreateFrame(form, NULL);
-    statlab = CreateLabel(frbot, NULL);
+    mwui->frbot = CreateFrame(form, NULL);
+    mwui->statlab = CreateLabel(mwui->frbot, NULL);
 
     if (!gui_is_page_free(grace->gui)) {
-        drawing_window = XtVaCreateManagedWidget("drawing_window",
+        mwui->drawing_window = XtVaCreateManagedWidget("drawing_window",
 				     xmScrolledWindowWidgetClass, form,
 				     XmNscrollingPolicy, XmAUTOMATIC,
 				     XmNvisualPolicy, XmVARIABLE,
 				     NULL);
         xstuff->canvas = XtVaCreateManagedWidget("canvas",
-                                     xmDrawingAreaWidgetClass, drawing_window,
+                                     xmDrawingAreaWidgetClass,
+                                     mwui->drawing_window,
 				     NULL);
     } else {
         xstuff->canvas = XtVaCreateManagedWidget("canvas",
                                      xmDrawingAreaWidgetClass, form,
 				     NULL);
-        drawing_window = xstuff->canvas;
+        mwui->drawing_window = xstuff->canvas;
     }
     
     XtAddCallback(xstuff->canvas, XmNexposeCallback, expose_resize, grace);
@@ -965,30 +1025,30 @@ void startup_gui(Grace *grace)
     
     AddHelpCB(xstuff->canvas, "doc/UsersGuide.html#canvas");
 
-    XtVaSetValues(frtop,
+    XtVaSetValues(mwui->frtop,
 		  XmNtopAttachment, XmATTACH_FORM,
 		  XmNleftAttachment, XmATTACH_FORM,
 		  XmNrightAttachment, XmATTACH_FORM,
 		  NULL);
-    XtVaSetValues(frbot,
+    XtVaSetValues(mwui->frbot,
 		  XmNbottomAttachment, XmATTACH_FORM,
 		  XmNrightAttachment, XmATTACH_FORM,
 		  XmNleftAttachment, XmATTACH_FORM,
 		  NULL);
-    XtVaSetValues(frleft,
+    XtVaSetValues(mwui->frleft,
 		  XmNtopAttachment, XmATTACH_WIDGET,
-		  XmNtopWidget, frtop,
+		  XmNtopWidget, mwui->frtop,
 		  XmNbottomAttachment, XmATTACH_WIDGET,
-		  XmNbottomWidget, frbot,
+		  XmNbottomWidget, mwui->frbot,
 		  XmNleftAttachment, XmATTACH_FORM,
 		  NULL);
-    XtVaSetValues(drawing_window,
+    XtVaSetValues(mwui->drawing_window,
 		  XmNtopAttachment, XmATTACH_WIDGET,
-		  XmNtopWidget, frtop,
+		  XmNtopWidget, mwui->frtop,
 		  XmNbottomAttachment, XmATTACH_WIDGET,
-		  XmNbottomWidget, frbot,
+		  XmNbottomWidget, mwui->frbot,
 		  XmNleftAttachment, XmATTACH_WIDGET,
-		  XmNleftWidget, frleft,
+		  XmNleftWidget, mwui->frleft,
 		  XmNrightAttachment, XmATTACH_FORM,
 		  NULL);
 

@@ -4663,6 +4663,18 @@ void update_set_lists(Quark *gr)
     update_app_title(grace->project);
 }
 
+void update_undo_buttons(Quark *project)
+{
+    GUI *gui = gui_from_quark(project);
+    AMem *amem = quark_get_amem(project);
+    if (!gui || !amem) {
+        return;
+    }
+    
+    SetSensitive(gui->mwui->undo_button, amem_get_undo_count(amem));
+    SetSensitive(gui->mwui->redo_button, amem_get_redo_count(amem));
+}
+
 void update_all(void)
 {
     if (!grace->gui->inwin) {
@@ -4690,6 +4702,7 @@ void update_all(void)
         grace->gui->need_fontsel_update = FALSE;
     }
 
+    update_undo_buttons(grace->project);
     update_props_items();
     update_explorer(grace->gui->eui, TRUE);
     set_left_footer(NULL);
