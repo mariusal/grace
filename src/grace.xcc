@@ -908,6 +908,9 @@ char *utf2iso(const char *s)
             quark_idstr_set($$, $?);
             xfree($?);
         </attribute>
+        <attribute name="#AStrActive" type="bval">
+            frame_set_active($$, $?);
+        </attribute>
         <attribute name="#AStrType" type="ival">
             frame_set_type($$, $?);
         </attribute>
