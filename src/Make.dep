@@ -14,7 +14,7 @@ ssdata$(O) : ssdata.c defines.h globals.h graphs.h draw.h utils.h \
 utils$(O) : utils.c buildinfo.h globals.h defines.h graphs.h draw.h \
  utils.h files.h protos.h missing.h noxprotos.h xprotos.h
 drawticks$(O) : drawticks.c globals.h defines.h graphs.h draw.h utils.h \
- graphutils.h protos.h missing.h noxprotos.h xprotos.h
+ graphutils.h parser.h protos.h missing.h noxprotos.h xprotos.h
 nonlfit$(O) : nonlfit.c globals.h defines.h graphs.h draw.h utils.h \
  parser.h protos.h missing.h noxprotos.h xprotos.h f2c.h
 lmdif$(O) : lmdif.c f2c.h
