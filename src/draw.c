@@ -1276,7 +1276,7 @@ ScaleType get_scale_type_by_name(const char *name)
         }
     }
     
-    return GRAPH_BAD;
+    return SCALE_BAD;
 }
 
 /*
