@@ -13,7 +13,7 @@
 
 <H3>Functionality</H3>
  *  [ES] interpolation now takes into account all data set columns
- *  [ES] option to calculate normalized histograms
+ *  [ES] normalized histograms can be calculated
  *  [ES] histograms with varying bin widths - abscissas of a set can be used
          as the bin mesh
  *  [EV/ES] added GraceOpenVA() function to the grace_np API
@@ -30,8 +30,8 @@
  *  [ES] "Histograms" popup rewritten
  *  [ES] "Arrange graphs" rewritten (including reps. #368, #592, #735)
  *  [ES] double click on a set selector entry now pops up the SS editor
- !  [ES] many enhancements in the SS editor
- !  [ES] date/time format in the SS editor
+ *  [ES] date/time format can be used in the SS editor to display/enter values
+ *  [ES] many other enhancements in the SS editor
  *  [ES] if the XmHTML widget library is available, it will be used for
          displaying on-line help ("Gracilla"). The libhelp support is
          scheduled to be withdrawn soon
@@ -64,7 +64,7 @@
  *  [ES] changed syntax of ARRANGE command
  *  [ES] removed UNLINK REGNUM FROM selectgraph; now that a region links to a
          single graph only the command makes no sense
- *  [DP] READ NXY CHRSTR
+ *  [DP] added READ NXY CHRSTR for reading in data in the NXY format
  
 <H3>Portability/Compilation</H3>
  *  [ES] configure checks for netCDF version

@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.1.1)
   <author>by the Grace Team
-  <date>25.06.2000
+  <date>28.06.2000
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -502,14 +502,16 @@
         (buttons, labels, etc). Grace makes heavy use of the M*tif API. 
         
         There are several <it>implementations</it> of the interface. The
-        original OSF Motif (see <url url="http://www.osf.org">) is
-        <em>not</em> free.
+        original OSF Motif (see <url url="http://www.opengroup.org">)
+        recently changed its license: on open-source platforms you
+        may have a chance to use it for free, although it's not in general
+        qualified as either a FreeSource or OpenSource product.
  
         There is, however, a free replacement for Motif called LessTif (see
         <url url="http://www.lesstif.org">). LessTif is intended to be a 100%
         source compatible replacement for Motif, but is still under
         development. For the purposes of Grace, try using the latest version
-        of LessTif (at least 0.90 and above). The LessTif people usually
+        of LessTif (at least 0.91.4 and above). The LessTif people usually
         receive many bug reports from the Grace developers, so you might hope
         that a few remaining bugs in LessTif will be fixed rather quickly.
         
