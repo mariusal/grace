@@ -3608,14 +3608,29 @@ Widget CreateScrollTextItem2(Widget parent, int hgt, char *s)
     return w;
 }
 
-void AddTextItemCB(Widget ti, Text_CBProc cbproc, void *data)
+typedef struct {
+    TItem_CBProc cbproc;
+    void *anydata;
+} TItem_CBdata;
+
+static void titem_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Text_CBdata *cbdata;
+    char *s;
+    TItem_CBdata *cbdata = (TItem_CBdata *) client_data;
+    s = XmTextGetString(w);
+    cbdata->cbproc(w, s, cbdata->anydata);
+    XtFree(s);
+}
+
+
+void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
+{
+    TItem_CBdata *cbdata;
     
-    cbdata = xmalloc(sizeof(Text_CBdata));
+    cbdata = xmalloc(sizeof(TItem_CBdata));
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
-    XtAddCallback(ti, XmNactivateCallback, text_int_cb_proc, (XtPointer) cbdata);
+    XtAddCallback(ti, XmNactivateCallback, titem_int_cb_proc, (XtPointer) cbdata);
 }
 
 
