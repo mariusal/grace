@@ -225,7 +225,11 @@ int get_device_by_name(const Canvas *canvas, const char *dname)
 
 Device_entry *get_device_props(const Canvas *canvas, int device)
 {
-    return canvas->device_table[device];
+    if (device >= 0 && device < canvas->ndevices) {
+        return canvas->device_table[device];
+    } else {
+        return NULL;
+    }
 }
 
 Device_entry *get_curdevice_props(const Canvas *canvas)
@@ -235,7 +239,11 @@ Device_entry *get_curdevice_props(const Canvas *canvas)
 
 char *get_device_name(const Canvas *canvas, int device)
 {
-    return canvas->device_table[device]->name;
+    if (device >= 0 && device < canvas->ndevices) {
+        return canvas->device_table[device]->name;
+    } else {
+        return NULL;
+    }
 }
 
 int parse_device_options(Canvas *canvas, unsigned int dindex, char *options)
