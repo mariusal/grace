@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -624,6 +624,78 @@ double GetSpinChoice(SpinStructure *spinp)
     }
 }
 
+
+void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+    create_fonttool(w);
+}
+
+static char cstext_translation_table[] = "\
+    Ctrl<Key>E: cstext_edit_action()";
+
+CSTextStructure *CreateCSText(Widget parent, char *s)
+{
+    CSTextStructure *retval;
+    XmString str;
+    
+    retval = malloc(sizeof(CSTextStructure));
+    retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL, 0);
+
+    str = XmStringCreateSimple(s);
+    retval->label = XtVaCreateManagedWidget("label", 
+        xmLabelWidgetClass, retval->form,
+        XmNlabelString, str,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        XmNleftAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_NONE,
+        NULL);
+    XmStringFree(str);
+
+    retval->cstext = XtVaCreateManagedWidget("cstext",
+        xmTextWidgetClass, retval->form,
+        XmNtraversalOn, True,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        XmNleftAttachment, XmATTACH_WIDGET,
+        XmNleftWidget, retval->label,
+        XmNrightAttachment, XmATTACH_FORM,
+        NULL);
+
+    XtOverrideTranslations(retval->cstext, 
+        XtParseTranslationTable(cstext_translation_table));
+
+    XtManageChild(retval->form);
+
+    return retval;
+}
+
+char *GetCSTextString(CSTextStructure *cst)
+{
+    static char *buf = NULL;
+    char *s;
+    
+    s = XmTextGetString(cst->cstext);
+    buf = copy_string(buf, s);
+    XtFree(s);
+    
+    return buf;
+}
+
+void SetCSTextString(CSTextStructure *cst, char *s)
+{
+    XmTextSetString(cst->cstext, s);
+}
+
+int GetCSTextCursorPos(CSTextStructure *cst)
+{
+    return XmTextGetInsertionPosition(cst->cstext);
+}
+
+void CSTextInsert(CSTextStructure *cst, int pos, char *s)
+{
+    XmTextInsert(cst->cstext, pos, s);
+}
 
 static OptionItem *font_option_items;
 static OptionItem *settype_option_items;
@@ -2175,6 +2247,7 @@ Widget CreateTextItem4(Widget parent, int len, char *label)
     XtVaSetValues(retval, XmNcolumns, len, NULL);
     return retval;
 }
+
 
 /* 
  * create a multiline editable window

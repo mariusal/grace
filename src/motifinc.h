@@ -108,6 +108,12 @@ typedef struct {
 } SpinStructure;
 
 typedef struct {
+    Widget label;
+    Widget form;
+    Widget cstext;
+} CSTextStructure;
+
+typedef struct {
     Widget popup;
     Widget label_item;
     Widget shownd_item;
@@ -202,10 +208,18 @@ void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 void list_selectall_cb(Widget w, XtPointer client_data, XtPointer call_data);
 void list_unselectall_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
+
 SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
                         int type, double min, double max, double incr);
 double GetSpinChoice(SpinStructure *spinp);
 void SetSpinChoice(SpinStructure *spinp, double value);
+
+CSTextStructure *CreateCSText(Widget parent, char *s);
+char *GetCSTextString(CSTextStructure *cst);
+void SetCSTextString(CSTextStructure *cst, char *s);
+int GetCSTextCursorPos(CSTextStructure *cst);
+void CSTextInsert(CSTextStructure *cst, int pos, char *s);
+void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 
 OptionStructure *CreateFontChoice(Widget parent, char *s);
 OptionStructure *CreatePatternChoice(Widget parent, char *s);
