@@ -295,13 +295,17 @@ graph *graph_copy(graph *g)
 
     /* duplicate allocatable storage */
     g_new->sets = storage_copy(g->sets);
+
+    g_new->dobjects = storage_copy(g->dobjects);
+    
     g_new->labs.title.s = copy_string(NULL, g->labs.title.s);
     g_new->labs.stitle.s = copy_string(NULL, g->labs.stitle.s);
+    
     for (j = 0; j < MAXAXES; j++) {
 	g_new->t[j] = copy_graph_tickmarks(g->t[j]);
     }
     
-    if (!g_new->sets) {
+    if (!g_new->sets || !g_new->dobjects) {
         graph_free(g_new);
         return NULL;
     } else {
