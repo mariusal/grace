@@ -1608,6 +1608,7 @@ DrawAll(ListTreeWidget w)
 static void
 DrawChanged(ListTreeWidget w)
 {
+  GotoPosition(w);
   DrawAll(w);
   SetScrollbars(w);
 }
