@@ -40,7 +40,7 @@
 void drawgraph(Grace *grace);
 void do_hardcopy(Grace *grace);
 
-void draw_graph(Canvas *canvas, Quark *gr);
+int draw_graph(Canvas *canvas, Quark *gr);
 
 void xyplot(Canvas *canvas, Quark *gr);
 void draw_polar_graph(Canvas *canvas, Quark *gr);

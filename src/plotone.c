@@ -68,7 +68,9 @@ static int plotone_hook(Quark *q,
         }
         break;
     case QFlavorGraph:
-        draw_graph(canvas, q);
+        if (draw_graph(canvas, q) != RETURN_SUCCESS) {
+            closure->descend = FALSE;
+        }
         break;
     case QFlavorDObject:
         draw_object(canvas, q);
@@ -181,17 +183,17 @@ void do_hardcopy(Grace *grace)
 }
 
 
-void draw_graph(Canvas *canvas, Quark *gr)
+int draw_graph(Canvas *canvas, Quark *gr)
 {
     GraphType gtype;
     graph *g = graph_get_data(gr);
     
     if (!g || g->hidden) {
-        return;
+        return RETURN_FAILURE;
     }
 
     if (select_graph(gr) != RETURN_SUCCESS) {
-        return;
+        return RETURN_FAILURE;
     }
     
     gtype = get_graph_type(gr);
@@ -230,6 +232,8 @@ void draw_graph(Canvas *canvas, Quark *gr)
         draw_regions(canvas, gr);
         draw_ref_point(canvas, gr);
     }
+    
+    return RETURN_SUCCESS;
 }
 
 void draw_smith_chart(Canvas *canvas, Quark *gr)
