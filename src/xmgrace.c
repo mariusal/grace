@@ -826,6 +826,8 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(sub2menupane, "XY Radius", '\0', load_example, "txyr.agr");
     CreateMenuButton(sub2menupane, "XYZ", '\0', load_example, "xyz.agr");
     CreateMenuButton(sub2menupane, "Box plot", '\0', load_example, "boxplot.agr");
+    CreateMenuButton(sub2menupane, "Vector map", '\0', load_example, "vmap.agr");
+    CreateMenuButton(sub2menupane, "XY Size", '\0', load_example, "xysize.agr");
 
     sub2menupane = CreateMenu(submenupane, "Type setting", 'T', FALSE);
     CreateMenuButton(sub2menupane, "Simple", '\0', load_example, "test2.agr");
