@@ -38,25 +38,16 @@ $GRACE symslines.agr
 $GRACE fills.agr 
 #
 # some graph stuff and ticks
-$GRACE -p graphs.par 
-#
-# some graph stuff and ticks
 $GRACE props.agr 
 #
 # demonstration of many graphs
 $GRACE manygraphs.agr
-#
-# some graph stuff and ticks
-$GRACE brw.dat -p regions.par 
 #
 # test of a graph inset
 $GRACE tinset.agr
 #
 # some time and date formats
 $GRACE times.agr 
-#
-# some more tick label formats
-$GRACE -p tforms.par 
 #
 # Australia map
 $GRACE au.agr 
@@ -82,10 +73,6 @@ $GRACE txttrans.agr
 # advaned typesetting
 $GRACE typeset.agr
 #
-# a graph with a parameter file
-$GRACE -p test1.par -autoscale xy test.dat 
-#
-#
 $GRACE test2.agr 
 #
 # explanation of arrow shape parameters
@@ -96,9 +83,6 @@ $GRACE co2.agr
 #
 # a nice sample
 $GRACE spectrum.agr 
-#
-# a graph with alternate axes
-$GRACE -p altaxis.par test.dat -autoscale xy 
 #
 # a graph with error bars
 $GRACE terr.agr
