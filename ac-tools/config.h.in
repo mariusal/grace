@@ -323,22 +323,19 @@
 /* Define if the yn function is declared in math.h.  */
 #undef HAVE_YN_DECL
 
-/* Define if you have the netcdf library (-lnetcdf).  */
+/* Define if netCDF library is available */
 #undef HAVE_NETCDF
 
-/* Define if you have the mfhdf library (-lmfhdf).  */
-#undef HAVE_MFHDF
-
-/* define if FFTW Fourier transform library is available */
+/* Define if FFTW Fourier transform library is available */
 #undef HAVE_FFTW
 
-/* define if PNG library is available */
+/* Define if PNG library is available */
 #undef HAVE_LIBPNG
 
-/* define if JPEG library is available */
+/* Define if JPEG library is available */
 #undef HAVE_LIBJPEG
 
-/* define if PDFlib library is available */
+/* Define if PDFlib library is available */
 #undef HAVE_LIBPDF
 
 /* Define if you have a Fortran compiler.  */
