@@ -1351,6 +1351,9 @@ void project_postprocess(Quark *project)
 	    if (pr->version_id <= 40102 && s->type == SET_XYHILO) {
                 s->sym.line.width = s->line.line.width;
             }
+	    if (pr->version_id <= 50112 && s->type == SET_XYHILO) {
+                s->avalue.active = FALSE;
+            }
 	    if (pr->version_id < 50100 && s->type == SET_BOXPLOT) {
                 s->sym.line.width = s->line.line.width;
                 s->sym.line.style = s->line.line.style;
