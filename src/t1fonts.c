@@ -304,12 +304,19 @@ double *get_kerning_vector(char *str, int len, int font)
     if (len < 2 || T1_GetNoKernPairs(font) <= 0) {
         return NULL;
     } else {
-        int i;
+        int i, k, ktot;
         double *kvector;
         
-        kvector = xmalloc((len - 1)*SIZEOF_DOUBLE);
-        for (i = 0; i < len - 1; i++) {
-            kvector[i] = (double) T1_GetKerning(font, str[i], str[i + 1])/1000;
+        kvector = xmalloc(len*SIZEOF_DOUBLE);
+        for (i = 0, ktot = 0; i < len - 1; i++) {
+            k = T1_GetKerning(font, str[i], str[i + 1]);
+            ktot += k;
+            kvector[i] = (double) k/1000;
+        }
+        if (ktot) {
+            kvector[len - 1] = (double) ktot/1000;
+        } else {
+            XCFREE(kvector);
         }
         
         return kvector;
