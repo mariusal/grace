@@ -82,15 +82,7 @@
 #include "parser.h"
 #include "protos.h"
 
-/*
- * used to set up XmStrings
- * Seems to be some problems under AIX, the #ifdef is supposed to
- * take care of the problem.
- */
-#ifndef XmFONTLIST_DEFAULT_TAG
-#  define XmFONTLIST_DEFAULT_TAG XmSTRING_DEFAULT_CHARSET
-#endif
-static XmStringCharSet charset = (XmStringCharSet) XmFONTLIST_DEFAULT_TAG;
+static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
 
 /* lookup table to determine if character is a floating point digit 
  * only allowable char's [0-9.eE]
