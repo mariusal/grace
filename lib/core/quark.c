@@ -340,7 +340,11 @@ int quark_set_active(Quark *q, int onoff)
 
 int quark_is_active(const Quark *q)
 {
-    return q->active;
+    if (q) {
+        return q->active;
+    } else {
+        return FALSE;
+    }
 }
 
 int quark_idstr_set(Quark *q, const char *s)
