@@ -358,6 +358,9 @@ int initialize_gui(int *argc, char **argv)
 
     installXErrorHandler();
     
+    /* Locale settings for GUI */
+    XtSetLanguageProc(NULL,NULL,NULL);
+    
     XtToolkitInitialize();
     app_con = XtCreateApplicationContext();
     XtAppSetFallbackResources(app_con, fallbackResources);
