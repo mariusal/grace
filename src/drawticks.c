@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -545,7 +545,6 @@ void drawaxes(int gno)
 	        return;
 	    }
 
-	    setcolor(t->tl_color);
 	    setfont(t->tl_font);
 	    setcharsize(t->tl_charsize);
 	
@@ -576,7 +575,11 @@ void drawaxes(int gno)
 	        vtpos = coord_conv(wtpos);
 
 	        if (itcur % (t->tl_skip + 1) == 0) {
-		  /* Tick labels on normal side */
+                    /* Set color before each tick label, since pre/app
+                       strings may change it */
+	            setcolor(t->tl_color);
+		    
+                    /* Tick labels on normal side */
 	            if (t->tl_op == PLACEMENT_NORMAL ||
 	                t->tl_op == PLACEMENT_BOTH) {
 	                vbase_tlabel = vbase_tlabel1 - (tl_offset + tlsize)*
