@@ -707,11 +707,9 @@ int main(int argc, char *argv[])
  */
     if (loadlegend) {
 	for (i = 0; i < number_of_graphs(); i++) {
-	    if (is_graph_active(i) && (activeset(i))) {
+	    if (is_graph_active(i)) {
 		for (j = 0; j < number_of_sets(i); j++) {
-		    if (is_set_active(i, j)) {
-			load_comments_to_legend(i, j);
-		    }
+		    load_comments_to_legend(i, j);
 		}
 	    }
 	}
