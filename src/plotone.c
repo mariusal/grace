@@ -2378,6 +2378,7 @@ void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
         
         if (is_set_drawable(pset)) {
             view vtmp;
+            double symvshift;
             
             p = (set *) pset->data;
             
@@ -2396,19 +2397,52 @@ void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
             
             setfont(canvas, p->sym.charfont);
             
-            if (l->len <= 0.0 ||
-                p->line.line.style == 0 || p->line.line.pen.pattern == 0 ||
-                p->line.type == 0) {
+            if (l->len <= 0.0 || p->line.type == 0 ||
+                ((p->line.line.style == 0 ||
+                  p->line.line.pen.pattern == 0) &&
+                 (p->line.filltype == SETFILL_NONE ||
+                  p->line.fillpen.pattern == 0))) {
                 draw_line = FALSE;
-                singlesym = TRUE;
             } else {
                 draw_line = TRUE;
-                singlesym = l->singlesym;
+            }
+            
+            symvshift = 0.0;
+            if (draw_line) {
+                setline(canvas, &p->line.line);
+                if (p->line.filltype != SETFILL_NONE &&
+                    p->line.fillpen.pattern != 0) {
+                    VPoint vpf1, vpf2;
+                    vpf1.x = vp1.x;
+                    vpf1.y = vp1.y - 0.01*l->charsize;
+                    vpf2.x = vp2.x;
+                    vpf2.y = vp2.y + 0.01*l->charsize;
+
+                    /* TODO: settable option for setfill presentation */
+                    setpen(canvas, &p->line.fillpen);
+                    if (1) {
+                        FillRect(canvas, &vpf1, &vpf2);
+                    } else {
+                        DrawFilledEllipse(canvas, &vpf1, &vpf2);
+                    }
+                    setpen(canvas, &p->line.line.pen);
+                    if (1) {
+                        DrawRect(canvas, &vpf1, &vpf2);
+                    } else {
+                        DrawEllipse(canvas, &vpf1, &vpf2);
+                    }
+                    
+                    /* FIXME: BBox calculations */
+                    symvshift = 0.01*l->charsize;
+                } else {
+                    DrawLine(canvas, &vp1, &vp2);
+                }
             }
             
             if (draw_line) {
-                setline(canvas, &p->line.line);
-                DrawLine(canvas, &vp1, &vp2);
+                singlesym = l->singlesym;
+            } else {
+                singlesym = TRUE;
             }
             
             setline(canvas, &p->sym.line);
@@ -2426,7 +2460,7 @@ void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
             } else {
                 VPoint vptmp;
                 vptmp.x = (vp1.x + vp2.x)/2;
-                vptmp.y = vp1.y;
+                vptmp.y = vp1.y + symvshift;
                 
                 if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                     p->type == SET_BARDY || p->type == SET_BARDYDY) {
