@@ -53,7 +53,6 @@ void DrawShadowLines(Display*, Drawable, GC, XPoint*, int, Dimension);
 
 #define offset(field) XtOffsetOf(XmTabRec, field)
 #define ACTIONPROC(proc)  static void proc(Widget,XEvent*,String*,Cardinal*)
-#define DEFAULT_FONT_LIST(w)  _XmGetDefaultFontList((Widget)w, XmLABEL_FONTLIST)
 
 #define MANAGE(w)    w->core.managed = True
 #define UNMANAGE(w)    w->core.managed = False
@@ -74,10 +73,10 @@ static XtResource resources[]={
 	XmNfontList,
 	XmCFontList,
 	XmRFontList,
-	sizeof(XmRFontList),
+	sizeof(XmFontList),
 	offset(tab.tab_font_list),
-	XmRImmediate,
-	(XtPointer)NULL
+	XmRString,
+	"fixed"
 	},
 	{
 	XmNresizeChildren,
@@ -696,44 +695,45 @@ static void change_gc(XmTabWidget wid)
 
 static void create_gc(XmTabWidget wid)
 {
-XGCValues gc_val;
-unsigned long gc_mask;
-Boolean status;
-XmFontContext font_context;
-XFontStruct *font_struct;
-XmFontType font_type;
-XmFontListEntry font_list_entry;
-char *font_name;
-XtPointer pointer;
-XFontSet *font_set;
+    XGCValues gc_val;
+    unsigned long gc_mask;
+    XmFontContext font_context;
+    XmFontType font_type;
+    XmFontListEntry font_list_entry;
+    XtPointer pointer;
 
-status = XmFontListInitFontContext(&font_context, DEFAULT_FONT_LIST(wid));
- 
-font_list_entry = XmFontListNextEntry(font_context);
- 
-pointer = XmFontListEntryGetFont(font_list_entry, &font_type);
- 
-if(font_type == XmFONT_IS_FONT)
-        {
-        font_struct = (XFontStruct *)pointer;
+    if (!XmFontListInitFontContext(&font_context, wid->tab.tab_font_list)) {
+	XtAppErrorMsg(
+	    XtWidgetToApplicationContext((Widget) wid),
+	    "newFont", "badFont", "Tab",
+	    "XmTab: XmFontListInitFontContext failed, bad fontList",
+	    NULL, 0);
+    }
+
+    if ((font_list_entry = XmFontListNextEntry(font_context)) == NULL) {
+	XtAppErrorMsg(
+	    XtWidgetToApplicationContext((Widget) wid),
+	    "newFont", "badFont", "Tab",
+	    "XmTab: XmFontListNextEntry failed, no next fontList",
+	    NULL, 0);
+    }
+
+    pointer = XmFontListEntryGetFont(font_list_entry, &font_type);
+
+    gc_val.foreground = wid->manager.foreground;
+    gc_val.background = wid->core.background_pixel;
+
+    gc_mask = GCForeground | GCBackground;
+    
+    if (font_type == XmFONT_IS_FONT) {
+        XFontStruct *font_struct = (XFontStruct *)pointer;
         gc_val.font = font_struct->fid;
-        }
-else if(font_type == XmFONT_IS_FONTSET)
-        {
-        font_set = (XFontSet *) pointer;
-        font_name = XBaseFontNameListOfFontSet(*font_set);
-        gc_val.font = XLoadFont(XtDisplay(wid), font_name);
-        }
- 
-	gc_val.foreground = wid->manager.foreground;
-	gc_val.background = wid->core.background_pixel;
-	gc_mask = GCForeground | GCBackground | GCFont;
+	gc_mask |= GCFont;
+    }
 
-	wid->tab.normal_gc = XtGetGC((Widget)wid,
-					gc_mask,
-					&gc_val);
+    wid->tab.normal_gc = XtGetGC((Widget)wid, gc_mask, &gc_val);
 
-XmFontListFreeFontContext(font_context);
+    XmFontListFreeFontContext(font_context);
 }
 
 static void change_tab(XmTabWidget wid, Widget new_tab)
@@ -765,8 +765,7 @@ Widget child;
 	left_x = wid->tab.margin_width;
 	left_y = wid->tab.margin_height;
 
-	font_list = (wid->tab.tab_font_list) ?
-			 wid->tab.tab_font_list : DEFAULT_FONT_LIST(wid);
+	font_list = wid->tab.tab_font_list;
 
 	temp_str = XmStringCreateLocalized("0");	
 	str_width = XmStringWidth(font_list, temp_str);
@@ -858,8 +857,7 @@ XmString xm_name = (XmString) NULL;
 	bright_gc = wid->manager.top_shadow_GC;
 	dark_gc = wid->manager.bottom_shadow_GC;
 
-	font_list = (wid->tab.tab_font_list) ?
-			 wid->tab.tab_font_list : DEFAULT_FONT_LIST(wid);
+	font_list = wid->tab.tab_font_list;
 
 	for(i=0; i< wid->composite.num_children; i++)
 	{
