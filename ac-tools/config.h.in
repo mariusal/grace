@@ -337,9 +337,6 @@
 /* Define if PDFlib library is available */
 #undef HAVE_LIBPDF
 
-/* Define if you want to compile a Fortran wrapper for grace_np lib.  */
-#undef WITH_F77_WRAPPER
-
 /* Define if the X Window System is missing or not being used.  */
 #undef X_DISPLAY_MISSING
 
@@ -360,9 +357,6 @@
 
 /* Define if you have the xpm.h header among X11 includes.  */
 #undef HAVE_X11_XPM_H
-
-/* Define if you have (and want to use) libhelp  */
-#undef WITH_LIBHELP
 
 /* Define if you have (and want to use) XmHTML widget  */
 #undef WITH_XMHTML
