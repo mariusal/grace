@@ -1673,7 +1673,7 @@ char *utf2iso(const char *s)
         <attribute name="#AStrStartAngle" type="dval">
             $$->angle1 = $?;
         </attribute>
-        <attribute name="#AStrStopAngle" type="dval">
+        <attribute name="#AStrExtentAngle" type="dval">
             $$->angle2 = $?;
         </attribute>
         <attribute name="#AStrFillMode" type="ival">

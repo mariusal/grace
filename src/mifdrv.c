@@ -518,6 +518,7 @@ static void mif_arc(const Canvas *canvas,
 void mif_drawarc(const Canvas *canvas,
     const VPoint *vp1, const VPoint *vp2, int a1, int a2)
 {
+    a2 += a1;
     mif_arc(canvas, TRUE, FALSE, vp1, vp2, a1, a2);
 }
 
@@ -527,6 +528,7 @@ void mif_fillarc(const Canvas *canvas,
     double rx, ry;
     VPoint vp[3];
 
+    a2 += a1;
     mif_arc(canvas, FALSE, TRUE, vp1, vp2, a1, a2);
 
     if (mode == ARCFILL_CHORD) {

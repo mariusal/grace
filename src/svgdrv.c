@@ -508,6 +508,8 @@ void svg_drawarc(const Canvas *canvas,
     VPoint center;
     double rx, ry;
 
+    a2 += a1;
+    
     if (a1 == a2) {
         return;
     }
@@ -549,6 +551,8 @@ void svg_fillarc(const Canvas *canvas,
     Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
     VPoint center;
     double rx, ry;
+
+    a2 += a1;
 
     if (a1 == a2) {
         return;

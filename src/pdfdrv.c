@@ -448,8 +448,13 @@ void pdf_arc_path(const VPoint *vp1, const VPoint *vp2,
     PDF_scale(phandle, 1.0, ry/rx);
     PDF_moveto(phandle, (float) vpc.x + rx*cos(a1*M_PI/180.0), 
                         (float) rx/ry*vpc.y + rx*sin(a1*M_PI/180.0));
-    PDF_arc(phandle, (float) vpc.x, (float) rx/ry*vpc.y, rx, 
-                                        (float) a1, (float) a2);
+    if (a2 < 0) {
+        PDF_arcn(phandle, (float) vpc.x, (float) rx/ry*vpc.y, rx, 
+                                            (float) a1, (float) (a1 + a2));
+    } else {
+        PDF_arc(phandle, (float) vpc.x, (float) rx/ry*vpc.y, rx, 
+                                            (float) a1, (float) (a1 + a2));
+    }
 
     if (mode == ARCFILL_PIESLICE) {
         PDF_lineto(phandle, (float) vpc.x, (float) rx/ry*vpc.y);

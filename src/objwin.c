@@ -268,7 +268,7 @@ static ArcUI *create_arc_ui(Widget parent)
         8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
     
     ui->angle1 = CreateAngleChoice(rc, "Start angle");
-    ui->angle2 = CreateAngleChoice(rc, "End angle");
+    ui->angle2 = CreateAngleChoice(rc, "Extent angle");
     
     ui->fillmode = CreateOptionChoice(rc, "Fill mode:", 1, 2, opitems);
     

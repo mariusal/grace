@@ -556,20 +556,22 @@ static int ps_initgraphics(const Canvas *canvas,
     }
     
     /* Elliptic arc */
-    fprintf(canvas->prstream, "/ellipsedict 8 dict def\n");
+    fprintf(canvas->prstream, "/ellipsedict 9 dict def\n");
     fprintf(canvas->prstream, "ellipsedict /mtrx matrix put\n");
     fprintf(canvas->prstream, "/EARC {\n");
     fprintf(canvas->prstream, " ellipsedict begin\n");
-    fprintf(canvas->prstream, "  /endangle exch def\n");
+    fprintf(canvas->prstream, "  /pathangle exch def\n");
     fprintf(canvas->prstream, "  /startangle exch def\n");
     fprintf(canvas->prstream, "  /yrad exch def\n");
     fprintf(canvas->prstream, "  /xrad exch def\n");
     fprintf(canvas->prstream, "  /y exch def\n");
     fprintf(canvas->prstream, "  /x exch def\n");
     fprintf(canvas->prstream, "  /savematrix mtrx currentmatrix def\n");
+    fprintf(canvas->prstream, "  /endangle startangle pathangle add def\n");
     fprintf(canvas->prstream, "  x y translate\n");
     fprintf(canvas->prstream, "  xrad yrad scale\n");
-    fprintf(canvas->prstream, "  0 0 1 startangle endangle arc\n");
+    fprintf(canvas->prstream, "  0 0 1 startangle endangle\n");
+    fprintf(canvas->prstream, "  pathangle 0 lt {arcn} {arc} ifelse\n");
     fprintf(canvas->prstream, "  savematrix setmatrix\n");
     fprintf(canvas->prstream, " end\n");
     fprintf(canvas->prstream, "} def\n");

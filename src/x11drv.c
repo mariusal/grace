@@ -524,7 +524,7 @@ void xlibdrawarc(const Canvas *canvas,
     
     if (x1 != x2 || y1 != y2) {
         XDrawArc(disp, displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
-              abs(x2 - x1), abs(y2 - y1), 64 * a1, 64 * (a2 - a1));
+              abs(x2 - x1), abs(y2 - y1), 64 * a1, 64 * a2);
     } else { /* zero radius */
         XDrawPoint(disp, displaybuff, gc, x1, y1);
     }
@@ -552,7 +552,7 @@ void xlibfillarc(const Canvas *canvas,
             }
         }
         XFillArc(disp, displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
-           abs(x2 - x1), abs(y2 - y1), 64 * a1, 64 * (a2 - a1));
+           abs(x2 - x1), abs(y2 - y1), 64 * a1, 64 * a2);
     } else { /* zero radius */
         XDrawPoint(disp, displaybuff, gc, x1, y1);
     }

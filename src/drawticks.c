@@ -174,7 +174,7 @@ void drawgrid(Canvas *canvas, int gno)
                         phi_stop += 2*M_PI;
                     } 
                     DrawArc(canvas, &vp1, &vp2, (int) rint(180.0/M_PI*phi_start),
-                                      (int) rint(180.0/M_PI*phi_stop));
+                                      (int) rint(180.0/M_PI*(phi_stop - phi_start)));
                 } else {
 		    DrawLine(canvas, &vp_grid_start, &vp_grid_stop);
                 }
@@ -395,7 +395,7 @@ void drawaxes(Canvas *canvas, int gno)
                         phi_stop += 2*M_PI;
                     } 
                     DrawArc(canvas, &vp1, &vp2, (int) rint(180.0/M_PI*phi_start),
-                                      (int) rint(180.0/M_PI*phi_stop));
+                                      (int) rint(180.0/M_PI*(phi_stop - phi_start)));
                 } else {
 	    	    DrawLine(canvas, &vp1_start, &vp1_stop);
                 }
@@ -417,7 +417,7 @@ void drawaxes(Canvas *canvas, int gno)
                         phi_stop += 2*M_PI;
                     } 
                     DrawArc(canvas, &vp1, &vp2, (int) rint(180.0/M_PI*phi_start),
-                                      (int) rint(180.0/M_PI*phi_stop));
+                                      (int) rint(180.0/M_PI*(phi_stop - phi_start)));
                 } else {
 	    	    DrawLine(canvas, &vp2_start, &vp2_stop);
                 }

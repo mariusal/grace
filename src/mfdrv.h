@@ -27,7 +27,7 @@
 
 #include "defines.h"
 
-#define GMF_VERSION "0.9"
+#define GMF_VERSION "0.10"
 
 int mfinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
 

@@ -398,16 +398,24 @@ int gdImageBoundsSafe(gdImagePtr im, int x, int y)
   at least for me) and there are other inefficiencies (small circles
   do far too much work). */
 
-void gdImageArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color)
+void gdImageArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int path, int color)
 {
-	int i;
+	int i, e;
 	int lx = 0, ly = 0;
 	int w2, h2;
 	w2 = w/2;
 	h2 = h/2;
-	while (e < s) {
-		e += 360;
+	while (s < 0) {
+		s += 360;
 	}
+        e = s + path;
+	while (e < 0) {
+		e += 360;
+		s += 360;
+	}
+        if (e < s) {
+            int tmp = s; s = e; e = tmp;
+        }
 	for (i=s; (i <= e); i++) {
 		int x, y;
 		x = ((long)cost[i % 360] * (long)w2 / costScale) + cx; 
@@ -421,16 +429,24 @@ void gdImageArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int c
 }
 
 void gdImageFilledArc(gdImagePtr im, int cx, int cy, int w, int h,
-    int s, int e, int mode, int color)
+    int s, int path, int mode, int color)
 {
-	int i, n, ntot;
+	int i, e, n, ntot;
 	int w2, h2;
 	gdPointPtr p;
 	w2 = w/2;
 	h2 = h/2;
-	while (e < s) {
-		e += 360;
+	while (s < 0) {
+		s += 360;
 	}
+        e = s + path;
+	while (e < 0) {
+		e += 360;
+		s += 360;
+	}
+        if (e < s) {
+            int tmp = s; s = e; e = tmp;
+        }
         
         n = e - s + 1;
         if (mode == gdArcFillPieSlice) {

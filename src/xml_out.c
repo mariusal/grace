@@ -728,7 +728,7 @@ int save_object(XFile *xf, DObject *o)
                 attributes_set_dval(attrs, AStrWidth, a->width);
                 attributes_set_dval(attrs, AStrHeight, a->height);
                 attributes_set_dval(attrs, AStrStartAngle, a->angle1);
-                attributes_set_dval(attrs, AStrStopAngle, a->angle2);
+                attributes_set_dval(attrs, AStrExtentAngle, a->angle2);
                 attributes_set_ival(attrs, AStrFillMode, a->fillmode); /* FIXME: textual */
             }
             break;
