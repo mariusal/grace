@@ -53,6 +53,10 @@ double *copy_data_column(double *src, int nrows)
 {
     double *dest;
     
+    if (!src) {
+        return NULL;
+    }
+    
     dest = xmalloc(nrows*SIZEOF_DOUBLE);
     if (dest != NULL) {
         memcpy(dest, src, nrows*SIZEOF_DOUBLE);
@@ -65,10 +69,14 @@ char **copy_string_column(char **src, int nrows)
     char **dest;
     int i;
 
+    if (!src) {
+        return NULL;
+    }
+    
     dest = xmalloc(nrows*sizeof(char *));
     if (dest != NULL) {
         for (i = 0; i < nrows; i++)
-            dest[i] =copy_string(NULL, src[i]);
+            dest[i] = copy_string(NULL, src[i]);
     }
     return dest;
 }
