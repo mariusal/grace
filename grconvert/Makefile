@@ -24,7 +24,7 @@ LIBS = $(XDR_LIB) $(NOGUI_LIBS)
 all : $(PROG)
 
 $(PROG) : $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LIBS)
+	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS)
 
 $(OBJS) : grconvert.h
 
