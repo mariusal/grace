@@ -2600,9 +2600,8 @@ GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
     retval->frame = CreateFrame(parent, s);
     rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, retval->frame, NULL);
     retval->graph_sel = CreateGraphChoice(rc, "Graph:", LIST_TYPE_SINGLE);
-    retval->set_sel = CreateSetChoice(rc, "Set:", sel_type, FALSE);
-    AddStorageChoiceCB(retval->graph_sel,
-        update_sets_cb, (void *) retval->set_sel);
+    retval->set_sel = CreateSetChoice(rc, "Set:", sel_type, retval->graph_sel);
+    AddStorageChoiceCB(retval->graph_sel, update_sets_cb, (void *) retval);
     UpdateSetChoice(retval->set_sel);
     XtManageChild(rc);
 
@@ -2931,7 +2930,12 @@ Widget CreateToggleButton(Widget parent, char *s)
 
 int GetToggleButtonState(Widget w)
 {
-    return (XmToggleButtonGetState(w));
+    if (!w) {
+        errmsg("Internal error: GetToggleButtonState() called with NULL widget");
+        return 0;
+    } else {
+        return XmToggleButtonGetState(w);
+    }
 }
 
 void SetToggleButtonState(Widget w, int value)
@@ -2971,7 +2975,7 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
         XmNvalueChangedCallback, tb_int_cb_proc, (XtPointer) cbdata);
 }
 
-Widget CreateDialogForm(Widget parent, char *s)
+Widget CreateDialogForm(Widget parent, const char *s)
 {
     Widget dialog, w;
     char *bufp;
@@ -3123,13 +3127,17 @@ void CreateAACDialog(Widget form,
 }
 
 TransformStructure *CreateTransformDialogForm(Widget parent,
-    char *s, int sel_type)
+    const char *s, int sel_type)
 {
     TransformStructure *retval;
     
     retval = xmalloc(sizeof(TransformStructure));
     
     retval->form = CreateDialogForm(parent, s);
+
+    retval->menubar = CreateMenuBar(retval->form);
+
+    AddDialogFormChild(retval->form, retval->menubar);
     
     retval->srcdest = CreateSrcDestSelector(retval->form, sel_type);
     AddDialogFormChild(retval->form, retval->srcdest->form);
@@ -3177,7 +3185,7 @@ int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
         Quark *destgr;
         if (GetSingleStorageChoice(tdialog->srcdest->dest->graph_sel,
             (void **) &destgr) != RETURN_SUCCESS) {
-            errmsg("No dest graph?! - internal error!");
+            errmsg("No destination graph selected");
 	    return RETURN_FAILURE;
         }
         
@@ -3185,6 +3193,9 @@ int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
         for (i = 0; i < *nssrc; i++) {
             *destsets[i] = set_new(destgr);
         }
+        
+        update_set_selectors(destgr);
+        SelectStorageChoices(tdialog->srcdest->dest->set_sel, *nssrc, (void **) *destsets);
     }
     
     return RETURN_SUCCESS;

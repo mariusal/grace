@@ -229,6 +229,7 @@ typedef struct {
 
 typedef struct {
     Widget form;
+    Widget menubar;
     SrcDestStructure *srcdest;
 } TransformStructure;
 
@@ -314,7 +315,7 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height);
 void *GetUserData(Widget w);
 void SetUserData(Widget w, void *udata);
 
-Widget CreateDialogForm(Widget parent, char *s);
+Widget CreateDialogForm(Widget parent, const char *s);
 void SetDialogFormResizable(Widget form, int onoff);
 void AddDialogFormChild(Widget form, Widget child);
 void FixateDialogFormChild(Widget w);
@@ -489,7 +490,7 @@ Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
 Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);
 
 TransformStructure *CreateTransformDialogForm(Widget parent,
-    char *s, int sel_type);
+    const char *s, int sel_type);
 int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
     int *nssrc, Quark ***srcsets, Quark ***destsets);
 
