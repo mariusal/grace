@@ -167,6 +167,15 @@ void UnmanageChild(Widget w)
     }
 }
 
+Widget GetParent(Widget w)
+{
+    if (w) {
+        return (XtParent(w));
+    } else {
+        errmsg("Internal error: GetParent() called with NULL widget");
+        return NULL;
+    }
+}
 
 #define MAX_PULLDOWN_LENGTH 30
 
