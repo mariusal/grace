@@ -498,12 +498,21 @@ void xdrawgraph(const Quark *q, int force)
         X11Stuff *xstuff = grace->gui->xstuff;
         Quark *gr = graph_get_current(project);
         Device_entry *d = get_device_props(grace->rt->canvas, grace->rt->tdevice);
+        Page_geometry *pg = &d->pg;
+        float dpi = grace->gui->zoom*xstuff->dpi;
         
         set_wait_cursor();
 
-        device_set_dpi(d, grace->gui->zoom*xstuff->dpi, TRUE);
+        if (dpi != pg->dpi) {
+            int wpp, hpp;
+            project_get_page_dimensions(project, &wpp, &hpp);
+
+            pg->width  = (unsigned long) (wpp*dpi/72);
+            pg->height = (unsigned long) (hpp*dpi/72);
+            pg->dpi = dpi;
+        }
         
-        resize_drawables(d->pg.width, d->pg.height);
+        resize_drawables(pg->width, pg->height);
 
         select_device(grace->rt->canvas, grace->rt->tdevice);
 	drawgraph(project);
