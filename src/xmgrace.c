@@ -527,7 +527,7 @@ void autoon_proc(Widget but, void *data)
  */
 void autoticks_proc(Widget but, void *data)
 {
-    autotick_axis(graph_get_current(grace->project), ALL_AXES);
+    autotick_graph_axes(graph_get_current(grace->project), AXIS_MASK_XY);
     update_ticks(graph_get_current(grace->project));
     xdrawgraph();
 }

@@ -46,8 +46,6 @@
 
 extern char print_file[];
 
-static void auto_ticks(Quark *q);
-
 char *get_format_types(FormatType f)
 {
     char *s;
@@ -189,55 +187,40 @@ static double nicenum(double x, int nrange, int round);
 #define NICE_CEIL    1
 #define NICE_ROUND   2
 
-void autotick_axis(Quark *gr, int axes)
+static int autotick_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-#if 0
-    switch (axis) {
-    case ALL_AXES:
-        auto_ticks(gr, X_AXIS);
-        auto_ticks(gr, ZX_AXIS);
-        auto_ticks(gr, Y_AXIS);
-        auto_ticks(gr, ZY_AXIS);
-        break;
-    case ALL_X_AXES:
-        auto_ticks(gr, X_AXIS);
-        auto_ticks(gr, ZX_AXIS);
-        break;
-    case ALL_Y_AXES:
-        auto_ticks(gr, Y_AXIS);
-        auto_ticks(gr, ZY_AXIS);
-        break;
-    default:
-        auto_ticks(gr, axis);
+    int *amask = (int *) udata;
+    
+    switch (q->fid) {
+    case QFlavorAxis:
+        closure->descend = FALSE;
+        if (((*amask & AXIS_MASK_X) && axis_is_x(q)) ||
+            ((*amask & AXIS_MASK_Y) && axis_is_y(q))) {
+            autotick_axis(q);
+        }
         break;
     }
-#endif
+    
+    return TRUE;
+}
+
+void autotick_graph_axes(Quark *q, int amask)
+{
+    quark_traverse(q, autotick_hook, &amask);
 }
 
 void autoscale_bysets(Quark **sets, int nsets, int autos_type)
 {
-#if 0
     Quark *gr;
     
     if (nsets <= 0) {
         return;
     }
     
-    gr = sets[0]->parent;
+    gr = get_parent_graph(sets[0]);
     
     autorange_bysets(sets, nsets, autos_type);
-    switch (autos_type) {
-    case AUTOSCALE_X:
-        autotick_axis(gr, ALL_X_AXES);
-        break;
-    case AUTOSCALE_Y:
-        autotick_axis(gr, ALL_Y_AXES);
-        break;
-    case AUTOSCALE_XY:
-        autotick_axis(gr, ALL_AXES);
-        break;
-    }
-#endif
+    autotick_graph_axes(gr, autos_type);
 }
 
 int autoscale_graph(Quark *gr, int autos_type)
@@ -390,7 +373,7 @@ static void autorange_bysets(Quark **sets, int nsets, int autos_type)
     set_graph_world(gr, &w);
 }
 
-static void auto_ticks(Quark *q)
+void autotick_axis(Quark *q)
 {
     Quark *gr;
     tickmarks *t;

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -81,17 +81,17 @@
 #define SYM_DOT_OBS     1
 
 /*
- * coordinates
+ * axis types
  */
 #define AXIS_TYPE_X    0
 #define AXIS_TYPE_Y    1
 
 /*
- * types of axes
+ * axis type masks
  */
-#define ALL_AXES    -3
-#define ALL_X_AXES  -2
-#define ALL_Y_AXES  -1
+#define AXIS_MASK_X  1
+#define AXIS_MASK_Y  2
+#define AXIS_MASK_XY 3
 
 /* type of splines */
 #define INTERP_LINEAR   0
@@ -211,9 +211,9 @@ typedef enum {
 
 /* types of autscales */
 #define AUTOSCALE_NONE    0
-#define AUTOSCALE_X       1
-#define AUTOSCALE_Y       2
-#define AUTOSCALE_XY      3
+#define AUTOSCALE_X       AXIS_MASK_X
+#define AUTOSCALE_Y       AXIS_MASK_Y
+#define AUTOSCALE_XY      AXIS_MASK_XY
 
 /* Default document name */
 #define NONAME "Untitled"
