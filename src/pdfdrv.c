@@ -106,7 +106,7 @@ int pdfinitgraphics(void)
 {
     int i;
     Page_geometry pg;
-    char *s, buf[32];
+    char *s;
    
     /* device-dependent routines */
     devupdatecmap   = NULL;
@@ -142,8 +142,7 @@ int pdfinitgraphics(void)
 
     PDF_set_parameter(phandle, "prefix", get_grace_home());
 
-    sprintf(buf, "%d", pdf_setup_compression);
-    PDF_set_parameter(phandle, "compress", buf);
+    PDF_set_value(phandle, "compress", (float) pdf_setup_compression);
 
     if (pdf_setup_pdf1_3 == TRUE) {
         s = "1.3";
@@ -526,17 +525,20 @@ void pdf_puttext(VPoint vp, char *s, int len, int font,
         
         pdf_font_ids[font] = PDF_findfont(phandle, fontname, pdflibenc, embed);
     } 
+    
+    PDF_save(phandle);
+    
     PDF_setfont(phandle, pdf_font_ids[font], 1.0);
 
     PDF_set_parameter(phandle, "underline", true_or_false(underline));
     PDF_set_parameter(phandle, "overline",  true_or_false(overline));
-    
-    PDF_set_text_matrix(phandle, (float) tm->cxx, (float) tm->cyx,
-                                 (float) tm->cxy, (float) tm->cyy,
-                                 vp.x, vp.y);
+    PDF_concat(phandle, (float) tm->cxx, (float) tm->cyx,
+                        (float) tm->cxy, (float) tm->cyy,
+                        vp.x, vp.y);
 
     PDF_show2(phandle, s, len);
 
+    PDF_restore(phandle);
 }
 
 void pdf_leavegraphics(void)
@@ -547,7 +549,7 @@ void pdf_leavegraphics(void)
     xfree(pdf_font_ids);
 }
 
-static void pdf_error_handler(PDF *p, int type, const char* msg)
+static void pdf_error_handler(PDF *p, int type, const char *msg)
 {
     char buf[MAX_STRING_LENGTH];
 
