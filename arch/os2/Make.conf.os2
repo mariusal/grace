@@ -51,6 +51,9 @@ DL_LIB=
 # FFTW library
 FFTW_LIB=-lfftw
 
+# netCDF libraries
+NETCDF_LIBS=
+
 # PDFlib library
 PDF_LIB=-lpdf
 
@@ -108,8 +111,9 @@ GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/xfree86/lib -lhlpclient ../Xbae/libXbae.a -lX
 # Commamd used to print
 PRINT_CMD='lp'
 
+# Editor
+GRACE_EDITOR=nedit
+
 # HTML help viewer command
 HELPVIEWER=-DGRACE_HELPVIEWER=\"xmhelp\"
 
-# netCDF libraries
-NETCDF_LIBS=

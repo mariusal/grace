@@ -1,6 +1,6 @@
 /* 
-  REXX-Script to configure & build GRACE 5.0x for XFree86 OS/2
-  (990114)
+  REXX-Script to configure&build GRACE 5.x for XFree86 OS/2
+  (19990519)
 */
 
 /*
@@ -50,6 +50,7 @@ do while param <> ''
     end /* select */
 end /* do while */
 
+say "configos2.cmd"
 say "Options are: "options
 
 cf_make_conf = 'Make.conf'
@@ -143,17 +144,17 @@ exit
 
 /* ######################################################################## */
 
-Execute:
+Execute: procedure
 Parse Arg cmd
 Address CMD '@'cmd
 return
 
-FileCopy:
+FileCopy: procedure
 Parse Arg par1, par2
 call Execute '@copy 'par1' 'par2' >nul'
 return
 
-FileExists:
+FileExists: procedure
 Parse Arg fe_file
 rs = Stream(fe_file, 'C', 'QUERY EXISTS')
 if rs = '' then
@@ -173,6 +174,7 @@ say " -o : optimize"
 return
 
 rtest:
+/* work in progress (hopefully ;-) */
 _CR     = D2C(13)
 _LF     = D2C(10)
 _CRLF   = _CR''_LF
