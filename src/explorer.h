@@ -189,6 +189,7 @@ typedef struct {
     OptionStructure *avalue_precision;
     Widget          avalue_offsetx;
     Widget          avalue_offsety;
+    OptionStructure *avalue_just;
     Widget          avalue_prestr;
     Widget          avalue_appstr;
 } SetUI;

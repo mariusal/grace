@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2003 Grace Development Team
+ * Copyright (c) 2001-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -562,6 +562,7 @@ int save_set_properties(XFile *xf, Quark *pset)
     attributes_set_ival(attrs, AStrType, p->avalue.type); /* FIXME: textual */
     xmlio_set_angle(attrs, (double) p->avalue.angle);
     xmlio_set_offset(attrs, p->avalue.offset.x, p->avalue.offset.y);
+    attributes_set_ival(attrs, AStrJustification, p->avalue.just); /* FIXME: textual */
     attributes_set_sval(attrs, AStrPrepend, p->avalue.prestr);
     attributes_set_sval(attrs, AStrAppend, p->avalue.appstr);
     xfile_begin_element(xf, EStrAnnotation, attrs);

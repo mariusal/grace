@@ -262,10 +262,11 @@ Dataset *dataset_copy(Dataset *data)
 static void set_default_set(Quark *pset)
 {
     set *p = set_get_data(pset);
+    Quark *gr = get_parent_graph(pset);
     Project *pr = project_get_data(get_parent_project(pset));
     defaults grdefaults;
     
-    if (!p || !pr) {
+    if (!p || !gr || !pr) {
         return;
     }
     
@@ -289,6 +290,11 @@ static void set_default_set(Quark *pset)
     p->avalue.font = grdefaults.font;            /* font */
     p->avalue.color = grdefaults.line.pen.color; /* color */
     p->avalue.angle = 0;                         /* rotation angle */
+    if (graph_get_type(gr) == GRAPH_PIE) {
+        p->avalue.just  = JUST_CENTER|JUST_MIDDLE;
+    } else {
+        p->avalue.just  = JUST_CENTER|JUST_BOTTOM;
+    }
     p->avalue.format = FORMAT_GENERAL;           /* format */
     p->avalue.prec = 3;                          /* precision */
     p->avalue.prestr[0] = '\0';

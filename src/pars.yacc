@@ -5,7 +5,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -2447,6 +2447,9 @@ parmset:
 	    view v;
             graph_get_viewport(whichgraph, &v);
 	    v.xv1 = $3;
+            if (v.xv1 >= v.xv2) {
+                v.xv2 = v.xv1 + 0.1;
+            }
             frame_set_view(whichframe, &v);
 	}
 	| VIEW XMAX expr {
@@ -2459,6 +2462,9 @@ parmset:
 	    view v;
             graph_get_viewport(whichgraph, &v);
 	    v.yv1 = $3;
+            if (v.yv1 >= v.yv2) {
+                v.yv2 = v.yv1 + 0.1;
+            }
             frame_set_view(whichframe, &v);
 	}
 	| VIEW YMAX expr {

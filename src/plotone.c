@@ -1181,8 +1181,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         strcat(str, avalue.appstr);
         
         setcolor(canvas, avalue.color);
-        WriteString(canvas,
-            &vp, (double) avalue.angle, JUST_CENTER|JUST_BOTTOM, str);
+        WriteString(canvas, &vp, (double) avalue.angle, avalue.just, str);
     } 
 }
 
@@ -1754,8 +1753,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
             setfont(canvas, avalue.font);
             setcolor(canvas, avalue.color);
 
-            WriteString(canvas, &vpa,
-                (double) avalue.angle, JUST_CENTER|JUST_MIDDLE, str);
+            WriteString(canvas, &vpa, (double) avalue.angle, avalue.just, str);
         }
     }
 }

@@ -328,11 +328,14 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->avalue_precision, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->avalue_tp, "Placement");
-    rc2 = CreateHContainer(fr);
+    rc = CreateVContainer(fr);
+    rc2 = CreateHContainer(rc);
     ui->avalue_offsetx = CreateTextItem2(rc2, 10, "X offset:");
     AddTextItemCB(ui->avalue_offsetx, titem_explorer_cb, eui);
     ui->avalue_offsety = CreateTextItem2(rc2, 10, "Y offset:");
     AddTextItemCB(ui->avalue_offsety, titem_explorer_cb, eui);
+    ui->avalue_just = CreateJustChoice(rc, "Justification:");
+    AddOptionChoiceCB(ui->avalue_just, oc_explorer_cb, eui);
 
 
     /* ------------ Errbar tab -------------- */
@@ -481,6 +484,8 @@ void update_set_ui(SetUI *ui, Quark *q)
         xv_setstr(ui->avalue_offsetx, val);
         sprintf(val, "%f", p->avalue.offset.y);
         xv_setstr(ui->avalue_offsety, val);
+
+        SetOptionChoice(ui->avalue_just, p->avalue.just);
     }
 }
 
@@ -637,6 +642,9 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->avalue_offsety) {
             xv_evalexpr(ui->avalue_offsety, &p->avalue.offset.y);
+        }
+        if (!caller || caller == ui->avalue_just) {
+            p->avalue.just = GetOptionChoice(ui->avalue_just);
         }
 
         quark_dirtystate_set(q, TRUE);

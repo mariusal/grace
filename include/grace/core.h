@@ -625,15 +625,21 @@ typedef struct {
 /* Annotative strings for data values */
 typedef struct {
     int active;                 /* active or not */
+
     int type;                   /* type */
-    double size;                /* char size */
-    int font;                   /* font */
+
     int color;                  /* color */
+    int font;                   /* font */
+    double size;                /* char size */
+    int just;                   /* justification */
     int angle;                  /* angle */
+
     int format;                 /* format */
     int prec;                   /* precision */
+
     char prestr[64];            /* prepend string */
     char appstr[64];            /* append string */
+
     VPoint offset;              /* offset related to symbol position */
 } AValue;
 
