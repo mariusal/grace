@@ -157,7 +157,7 @@ static int ps_initgraphics(int format)
     pixel_size = 1.0/page_scale;
     page_scalef = (float) page_scale*72.0/pg.dpi;
 
-    if (pg.height < pg.width) {
+    if (curformat == PS_FORMAT && pg.height < pg.width) {
         page_orientation = PAGE_ORIENT_LANDSCAPE;
     } else {
         page_orientation = PAGE_ORIENT_PORTRAIT;
@@ -198,12 +198,12 @@ static int ps_initgraphics(int format)
         return RETURN_FAILURE;
     }
     
-    if (page_orientation == PAGE_ORIENT_PORTRAIT) {
-        width_pp  = (int) rint(72.0*pg.width/pg.dpi);
-        height_pp = (int) rint(72.0*pg.height/pg.dpi);
-    } else {
+    if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
         width_pp  = (int) rint(72.0*pg.height/pg.dpi);
         height_pp = (int) rint(72.0*pg.width/pg.dpi);
+    } else {
+        width_pp  = (int) rint(72.0*pg.width/pg.dpi);
+        height_pp = (int) rint(72.0*pg.height/pg.dpi);
     }
     
     if (tight_bb == TRUE) {
@@ -359,6 +359,7 @@ static int ps_initgraphics(int format)
         fprintf(prstream, "PAGE_OFFSET_X PAGE_OFFSET_Y translate\n");
     }
     fprintf(prstream, "%.2f %.2f scale\n", page_scalef, page_scalef);
+    /* rotate to get landscape on hardcopy */
     if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
         fprintf(prstream, "90 rotate\n");
         fprintf(prstream, "0.0 -1.0 translate\n");
