@@ -205,7 +205,8 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
     int quoted;
     char *buf, *s1, *token;
     double value;
-    Dates_format df_pref, df_rec;
+    Dates_format df_pref, ddummy;
+    const char *sdummy;
 
     *nscols = 0;
     *nncols = 0;
@@ -231,13 +232,19 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
         if (quoted) {
             (*formats)[ncols] = FFORMAT_STRING;
             (*nscols)++;
-        } else if (parse_date(token, df_pref, &value, &df_rec) ==
+        } else if (parse_date(token, df_pref, &value, &ddummy) ==
             GRACE_EXIT_SUCCESS) {
             (*formats)[ncols] = FFORMAT_DATE;
             (*nncols)++;
-        } else {
+        } else if (parse_float(token, &value, &sdummy) == GRACE_EXIT_SUCCESS) {
             (*formats)[ncols] = FFORMAT_NUMBER;
             (*nncols)++;
+        } else {
+            *nscols = 0;
+            *nncols = 0;
+            cxfree(*formats);
+            free(buf);
+            return GRACE_EXIT_FAILURE;
         }
     }
     free(buf);
@@ -255,7 +262,9 @@ int insert_data_row(ss_data *ssd, int row, char *s)
     int quoted;
     char  **sp;
     double *np;
-    Dates_format df_pref, df_rec;
+    Dates_format df_pref, ddummy;
+    const char *sdummy;
+    int res;
     
     df_pref = get_date_hint();
     for (i = 0; i < ncols; i++) {
@@ -273,12 +282,26 @@ int insert_data_row(ss_data *ssd, int row, char *s)
             if (ssd->formats[i] == FFORMAT_STRING) {
                 sp = (char **) ssd->data[i];
                 sp[row] = copy_string(NULL, token);
+                if (sp[row] != NULL) {
+                    res = GRACE_EXIT_SUCCESS;
+                } else {
+                    res = GRACE_EXIT_FAILURE;
+                }
             } else if (ssd->formats[i] == FFORMAT_DATE) {
                 np = (double *) ssd->data[i];
-                parse_date(token, df_pref, &np[row], &df_rec);
+                res = parse_date(token, df_pref, &np[row], &ddummy);
             } else {
                 np = (double *) ssd->data[i];
-                np[row] = atof(token);
+                res = parse_float(token, &np[row], &sdummy);
+            }
+            if (res != GRACE_EXIT_SUCCESS) {
+                for (j = 0; j < i; j++) {
+                    if (ssd->formats[j] == FFORMAT_STRING) {
+                        sp = (char **) ssd->data[j];
+                        cxfree(sp[row]);
+                    }
+                }
+                return GRACE_EXIT_FAILURE;
             }
         }
     }
@@ -362,7 +385,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
         break;
     case LOAD_NXY:
         if (nscols != 0) {
-            errmsg("Internal error");
+            errmsg("Can not yet use strings when reading in data as NXY");
             free_ss_data(ssd);
             return GRACE_EXIT_FAILURE;
         }
