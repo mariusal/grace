@@ -120,7 +120,7 @@ void create_openproject_popup(void)
 
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell,
-            "Save project", "*.agr");
+            "Open project", "*.agr");
 	AddFileSelectionBoxCB(fsb, open_proc, NULL);
         XtManageChild(fsb->FSB);
     }
@@ -386,7 +386,7 @@ void create_wparam_frame(Widget w, XtPointer client_data, XtPointer call_data)
         Widget fr, *graph_item;
 	
         fsb = CreateFileSelectionBox(app_shell,
-            "Read parameters", "*.par");
+            "Write parameters", "*.par");
 	fr = CreateFrame(fsb->rc, NULL);
 	graph_item = CreatePanelChoice(fr,
             "Write parameters from graph:",
@@ -431,8 +431,6 @@ static int write_params_proc(char *filename, void *data)
 
 static Widget describe_frame, describe_panel;
 static Widget text_w;
-static XFontStruct *f;
-static XmFontList xmf;
 extern Display *disp;
 
 void update_descript(Widget w, XtPointer client_data, XtPointer call_data)
@@ -458,8 +456,6 @@ void create_describe_popup(Widget w, XtPointer client_data, XtPointer call_data)
     	char *label[2];
     	label[0] = "Accept";
     	label[1] = "Close";
-		f = (XFontStruct *) XLoadQueryFont(disp, "fixed");
-		xmf = XmFontListCreate(f, charset);
 		describe_frame = XmCreateDialogShell(app_shell, "Description", NULL, 0);
 		handle_close(describe_frame);
 		describe_panel = XmCreateRowColumn(describe_frame, "describe_form", NULL, 0);
@@ -468,7 +464,6 @@ void create_describe_popup(Widget w, XtPointer client_data, XtPointer call_data)
 		      XmNrows, 10,
 		      XmNcolumns, 80,
 		      XmNeditMode, XmMULTI_LINE_EDIT,
-		      XmNfontList, xmf,
 		      XmNwordWrap, True,
 		      NULL);
 		XtManageChild(text_w);
