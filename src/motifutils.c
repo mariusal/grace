@@ -2131,9 +2131,9 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
 
     submenupane = CreateMenu(popup, "Selector operations", 'o', FALSE);
     set_popup_menu->shownd_item = CreateMenuToggle(submenupane,
-        "Show data-less", '\0', shownd_set_proc, NULL);
+        "Show data-less", '\0', shownd_set_proc, (void *) listp);
     set_popup_menu->showh_item = CreateMenuToggle(submenupane,
-        "Show hidden", '\0', showh_set_proc, NULL);
+        "Show hidden", '\0', showh_set_proc, (void *) listp);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Select all", '\0',
     	list_selectall_cb, (void *) listp);
