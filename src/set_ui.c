@@ -100,10 +100,10 @@ static void setapp_data_proc(Widget but, void *data)
 }
 #endif
 
-void charfont_cb(OptionStructure *opt, int a, void *data)
+static void charfont_cb(OptionStructure *opt, int a, void *data)
 {
-    OptionStructure *symchar = (OptionStructure *) data;
-    UpdateCharOptionChoice(symchar, a);
+    SetUI *ui = (SetUI *) data;
+    UpdateCharOptionChoice(ui->symchar, a);
 }
 
 /*
@@ -149,50 +149,6 @@ SetUI *create_set_ui(ExplorerUI *eui)
     ui->type = CreateSetTypeChoice(fr, "Type:");
     AddOptionChoiceCB(ui->type, oc_explorer_cb, eui);
 
-    rc2 = CreateHContainer(ui->main_tp);
-
-    fr = CreateFrame(rc2, "Symbol properties");
-    rc = CreateVContainer(fr);
-    ui->symbols = CreateOptionChoiceVA(rc, "Type:",
-        "None",           SYM_NONE,
-        "Circle",         SYM_CIRCLE,
-        "Square",         SYM_SQUARE,
-        "Diamond",        SYM_DIAMOND,
-        "Triangle up",    SYM_TRIANG1,
-        "Triangle left",  SYM_TRIANG2,
-        "Triangle down",  SYM_TRIANG3,
-        "Triangle right", SYM_TRIANG4,
-        "Plus",           SYM_PLUS,
-        "X",              SYM_X,
-        "Star",           SYM_SPLAT,
-        "Char",           SYM_CHAR,
-        NULL);
-    AddOptionChoiceCB(ui->symbols, oc_explorer_cb, eui);
-    ui->symsize = CreateCharSizeChoice(rc, "Size:");
-    AddSpinChoiceCB(ui->symsize, sp_explorer_cb, eui);
-    ui->sympen = CreatePenChoice(rc, "Outline pen:");
-    AddPenChoiceCB(ui->sympen, pen_explorer_cb, eui);
-    ui->symchar = CreateCharOptionChoice(rc, "Symbol char:");
-    AddOptionChoiceCB(ui->symchar, oc_explorer_cb, eui);
-
-    fr = CreateFrame(rc2, "Line properties");
-    rc = CreateVContainer(fr);
-    ui->linet = CreateOptionChoiceVA(rc, "Type:",
-        "None",         LINE_TYPE_NONE,
-        "Straight",     LINE_TYPE_STRAIGHT,
-        "Left stairs",  LINE_TYPE_LEFTSTAIR,
-        "Right stairs", LINE_TYPE_RIGHTSTAIR,
-        "Segments",     LINE_TYPE_SEGMENT2,
-        "3-Segments",   LINE_TYPE_SEGMENT3,
-        NULL);
-    AddOptionChoiceCB(ui->linet, oc_explorer_cb, eui); 
-    ui->lines = CreateLineStyleChoice(rc, "Style:");
-    AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
-    ui->width = CreateLineWidthChoice(rc, "Width:");
-    AddSpinChoiceCB(ui->width, sp_explorer_cb, eui); 
-    ui->pen = CreatePenChoice(rc, "Pen:");
-    AddPenChoiceCB(ui->pen, pen_explorer_cb, eui);
-
     fr = CreateFrame(ui->main_tp, "Legend");
     ui->legend_str = CreateCSText(fr, "String:");
     AddTextInputCB(ui->legend_str, text_explorer_cb, eui);
@@ -209,7 +165,30 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     ui->symbol_tp = CreateTabPage(tab, "Symbols");
 
-    fr = CreateFrame(ui->symbol_tp, "Symbol outline");
+    fr = CreateFrame(ui->symbol_tp, "Symbol properties");
+    rc = CreateVContainer(fr);
+
+    rc2 = CreateHContainer(rc);
+    ui->symbols = CreateOptionChoiceVA(rc2, "Type:",
+        "None",           SYM_NONE,
+        "Circle",         SYM_CIRCLE,
+        "Square",         SYM_SQUARE,
+        "Diamond",        SYM_DIAMOND,
+        "Triangle up",    SYM_TRIANG1,
+        "Triangle left",  SYM_TRIANG2,
+        "Triangle down",  SYM_TRIANG3,
+        "Triangle right", SYM_TRIANG4,
+        "Plus",           SYM_PLUS,
+        "X",              SYM_X,
+        "Star",           SYM_SPLAT,
+        "Char",           SYM_CHAR,
+        NULL);
+    AddOptionChoiceCB(ui->symbols, oc_explorer_cb, eui);
+    ui->symsize = CreateCharSizeChoice(rc2, "Size:");
+    AddSpinChoiceCB(ui->symsize, sp_explorer_cb, eui);
+
+
+    fr = CreateFrame(ui->symbol_tp, "Drawing properties");
     rc = CreateVContainer(fr);
 
     rc2 = CreateHContainer(rc);
@@ -218,10 +197,20 @@ SetUI *create_set_ui(ExplorerUI *eui)
     ui->symlinew = CreateLineWidthChoice(rc2, "Width:");
     AddSpinChoiceCB(ui->symlinew, sp_explorer_cb, eui);
 
-    fr = CreateFrame(ui->symbol_tp, "Symbol fill");
-    rc = CreateHContainer(fr);
-    ui->symfillpen = CreatePenChoice(rc, "Pen:");
+    rc2 = CreateHContainer(rc);
+    ui->sympen = CreatePenChoice(rc2, "Outline pen:");
+    AddPenChoiceCB(ui->sympen, pen_explorer_cb, eui);
+    ui->symfillpen = CreatePenChoice(rc2, "Fill pen:");
     AddPenChoiceCB(ui->symfillpen, pen_explorer_cb, eui);
+
+    fr = CreateFrame(ui->symbol_tp, "Symbol char");
+    rc = CreateHContainer(fr);
+    ui->char_font = CreateFontChoice(rc, "Font:");
+    AddOptionChoiceCB(ui->char_font, oc_explorer_cb, eui);
+    AddOptionChoiceCB(ui->char_font, charfont_cb, ui);
+    ui->symchar = CreateCharOptionChoice(rc, "Glyph:");
+    AddOptionChoiceCB(ui->symchar, oc_explorer_cb, eui);
+
 
     fr = CreateFrame(ui->symbol_tp, "Extra");
     rc = CreateVContainer(fr);
@@ -232,19 +221,45 @@ SetUI *create_set_ui(ExplorerUI *eui)
 	 rc, "Minimum symbol separation:",
 	 5, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.01);
     AddSpinChoiceCB(ui->symskipmindist, sp_explorer_cb, eui);
-    ui->char_font = CreateFontChoice(rc, "Font for char symbol:");
-    AddOptionChoiceCB(ui->char_font, oc_explorer_cb, eui);
-    AddOptionChoiceCB(ui->char_font, charfont_cb, ui->symchar);
 
 
     /* ------------ Line tab -------------- */
 
     ui->line_tp = CreateTabPage(tab, "Line");
 
-    fr = CreateFrame(ui->line_tp, "Drop lines");
+    fr = CreateFrame(ui->line_tp, "Line properties");
     rc = CreateHContainer(fr);
-    ui->dropline = CreateToggleButton(rc, "Enabled");
-    AddToggleButtonCB(ui->dropline, tb_explorer_cb, eui);
+    ui->linet = CreateOptionChoiceVA(rc, "Connection:",
+        "None",         LINE_TYPE_NONE,
+        "Straight",     LINE_TYPE_STRAIGHT,
+        "Left stairs",  LINE_TYPE_LEFTSTAIR,
+        "Right stairs", LINE_TYPE_RIGHTSTAIR,
+        "Segments",     LINE_TYPE_SEGMENT2,
+        "3-Segments",   LINE_TYPE_SEGMENT3,
+        NULL);
+    AddOptionChoiceCB(ui->linet, oc_explorer_cb, eui); 
+    ui->baselinetype = CreateOptionChoiceVA(rc, "Base:",
+        "Zero",      BASELINE_TYPE_0,
+        "Set min",   BASELINE_TYPE_SMIN,
+        "Set max",   BASELINE_TYPE_SMAX,
+        "Graph min", BASELINE_TYPE_GMIN,
+        "Graph max", BASELINE_TYPE_GMAX,
+        NULL);
+    AddOptionChoiceCB(ui->baselinetype, oc_explorer_cb, eui);
+
+    fr = CreateFrame(ui->line_tp, "Drawing properties");
+    rc = CreateVContainer(fr);
+
+    rc2 = CreateHContainer(rc);
+    ui->lines = CreateLineStyleChoice(rc2, "Style:");
+    AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
+    ui->width = CreateLineWidthChoice(rc2, "Width:");
+    AddSpinChoiceCB(ui->width, sp_explorer_cb, eui); 
+    rc2 = CreateHContainer(rc);
+    ui->pen = CreatePenChoice(rc2, "Outline pen:");
+    AddPenChoiceCB(ui->pen, pen_explorer_cb, eui);
+    ui->fillpen = CreatePenChoice(rc2, "Fill pen:");
+    AddPenChoiceCB(ui->fillpen, pen_explorer_cb, eui);
 
     fr = CreateFrame(ui->line_tp, "Fill properties");
     rc = CreateVContainer(fr);
@@ -260,21 +275,13 @@ SetUI *create_set_ui(ExplorerUI *eui)
         "Even-Odd", FILLRULE_EVENODD,
         NULL);
     AddOptionChoiceCB(ui->fillrule, oc_explorer_cb, eui); 
-    rc2 = CreateHContainer(rc);
-    ui->fillpen = CreatePenChoice(rc2, "Pen:");
-    AddPenChoiceCB(ui->fillpen, pen_explorer_cb, eui);
 
-    fr = CreateFrame(ui->line_tp, "Base line");
+
+    fr = CreateFrame(ui->line_tp, "Extra");
     rc = CreateHContainer(fr);
-    ui->baselinetype = CreateOptionChoiceVA(rc, "Type:",
-        "Zero",      BASELINE_TYPE_0,
-        "Set min",   BASELINE_TYPE_SMIN,
-        "Set max",   BASELINE_TYPE_SMAX,
-        "Graph min", BASELINE_TYPE_GMIN,
-        "Graph max", BASELINE_TYPE_GMAX,
-        NULL);
-    AddOptionChoiceCB(ui->baselinetype, oc_explorer_cb, eui);
-    ui->baseline = CreateToggleButton(rc, "Draw line");
+    ui->dropline = CreateToggleButton(rc, "Draw drop lines");
+    AddToggleButtonCB(ui->dropline, tb_explorer_cb, eui);
+    ui->baseline = CreateToggleButton(rc, "Draw base line");
     AddToggleButtonCB(ui->baseline, tb_explorer_cb, eui);
 
 
