@@ -22,6 +22,7 @@ AC_SUBST(NETCDF_LIBS)
 AC_SUBST(XDR_LIB)
 AC_SUBST(DL_LIB)
 AC_SUBST(T1_LIB)
+AC_SUBST(T1_INC)
 AC_SUBST(FFTW_LIB)
 AC_SUBST(PDF_LIB)
 AC_SUBST(PDFDRV_O)
@@ -338,7 +339,7 @@ then
   AC_MSG_RESULT(--> Bundled version of T1lib will be used)
 
   T1_LIB='$(TOP)/T1lib/libt1.a'
-  CPPFLAGS="${CPPFLAGS} -I\$(TOP)/T1lib/t1lib"
+  T1_INC='-I$(TOP)/T1lib/t1lib'
   t1lib_dir="T1lib"
 
   dnl **** Check which ANSI integer type is 16 bit

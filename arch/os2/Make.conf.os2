@@ -34,6 +34,9 @@ ALLOCA=
 # Type1 fonts library
 T1_LIB=../T1lib/libt1.a
 
+# T1 include path
+T1_INC=-I../T1lib/t1lib
+
 # T1lib defines (if the packaged version to be used)
 T1_AA_TYPE16=short
 T1_AA_TYPE32=int
@@ -91,7 +94,7 @@ INSTALL_DATA=
 MKINSTALLDIRS=
 
 # C flags
-CFLAGS0= -Wall -Wno-unused -O2 -I$(X11ROOT)/xfree86/include -I../T1lib/t1lib -D__ST_MT_ERRNO -Zmt
+CFLAGS0= -Wall -Wno-unused -O2 -I$(X11ROOT)/xfree86/include -D__ST_MT_ERRNO -Zmt
 
 # GUI flags
 GUI_FLAGS=
