@@ -67,7 +67,7 @@ static int do_differ_proc(void *data);
 static int do_int_proc(void *data);
 static int do_linearc_proc(void *data);
 static int do_xcor_proc(void *data);
-static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_sample_proc(void *data);
 static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data);
 
@@ -1286,104 +1286,85 @@ static int do_xcor_proc(void *data)
 /* sample a set */
 
 typedef struct _Samp_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget *type_item;
-    Widget start_item;
-    Widget step_item;
-    Widget expr_item;
-    Widget *region_item;
-    Widget rinvert_item;
+    TransformStructure *tdialog;
+    TextStructure *formula;
 } Samp_ui;
-
-static Samp_ui sampui;
 
 void create_samp_frame(void *data)
 {
-    static Widget dialog;
-    Widget rc;
+    static Samp_ui *ui = NULL;
 
     set_wait_cursor();
-    if (sampui.top == NULL) {
-	char *label2[2];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	sampui.top = XmCreateDialogShell(app_shell, "Sample points", NULL, 0);
-	handle_close(sampui.top);
-	dialog = XmCreateRowColumn(sampui.top, "dialog_rc", NULL, 0);
 
-	sampui.sel = CreateSetSelector(dialog, "Apply to set:",
-				       SET_SELECT_ALL,
-				       FILTER_SELECT_NONE,
-				       GRAPH_SELECT_CURRENT,
-				       SELECTION_TYPE_MULTIPLE);
+    if (ui == NULL) {
+        Widget rc;
+	
+        ui = xmalloc(sizeof(Samp_ui));
+        
+        ui->tdialog = CreateTransformDialogForm(app_shell,
+            "Sample points", LIST_TYPE_MULTIPLE);
 
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, dialog,
-			      XmNpacking, XmPACK_COLUMN,
-			      XmNnumColumns, 5,
-			      XmNorientation, XmHORIZONTAL,
-			      XmNisAligned, True,
-			      XmNadjustLast, False,
-			      XmNentryAlignment, XmALIGNMENT_END,
-			      NULL);
+	rc = CreateVContainer(ui->tdialog->form);
+	ui->formula = CreateTextInput(rc, "Logical expression:");
 
-	XtVaCreateManagedWidget("Sample type:", xmLabelWidgetClass, rc, NULL);
-	sampui.type_item = CreatePanelChoice(rc,
-					     " ",
-					     3,
-					     "Start/step",
-					     "Expression",
-					     0,
-					     0);
-	sampui.start_item = CreateTextItem4(rc, 10, "Start:");
-	sampui.step_item = CreateTextItem4(rc, 10, "Step:");
-	sampui.expr_item = CreateTextItem4(rc, 10, "Logical expression:");
-	ManageChild(rc);
-
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_sample_proc, (XtPointer) & sampui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) sampui.top);
-
-	ManageChild(dialog);
+        CreateAACDialog(ui->tdialog->form, rc, do_sample_proc, (void *) ui);
     }
-    RaiseWindow(sampui.top);
+    
+    RaiseWindow(GetParent(ui->tdialog->form));
+    
     unset_wait_cursor();
 }
 
 /*
- * sample a set, by start/step or logical expression
+ * sample a set by a logical expression
  */
-static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_sample_proc(void *data)
 {
-    int *selsets;
-    int i, cnt;
-    int setno, typeno;
-    char exprstr[256];
-    int startno, stepno;
-    Samp_ui *ui = (Samp_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
-        return;
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int i, res, err = FALSE;
+    char *formula;
+    Samp_ui *ui = (Samp_ui *) data;
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest,
+        &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
-    typeno = (int) GetChoice(ui->type_item);
-	
-	if(xv_evalexpri(ui->start_item, &startno) != RETURN_SUCCESS||
-	   xv_evalexpri(ui->step_item, &stepno) != RETURN_SUCCESS)
-		return;
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-		setno = selsets[i];
-/* exprstr gets clobbered */
-		strcpy(exprstr, (char *) xv_getstr(ui->expr_item));
-		do_sample(setno, typeno, exprstr, startno, stepno);
+    
+    formula = GetTextString(ui->formula);
+
+    for (i = 0; i < nssrc; i++) {
+	int setfrom, setto;
+        
+        setfrom = svaluessrc[i];
+	if (nsdest) {
+            setto = svaluesdest[i];
+        } else {
+            setto = nextset(gdest);
+        }
+        
+        res = do_sample(gsrc, setfrom, gdest, setto, formula);
+        
+        if (res != RETURN_SUCCESS) {
+            err = TRUE;
+        }
     }
-    update_set_lists(get_cg());
-    unset_wait_cursor();
-    xfree(selsets);
+
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    
+    update_set_lists(gdest);
     xdrawgraph();
+
+    if (err) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
 }
 
 /* Prune data */

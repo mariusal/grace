@@ -1024,78 +1024,77 @@ int histogram(int ndata, double *data, int nbins, double *bins, int *hist)
 
 
 /*
- * sample a set, by start/step or logical expression
+ * sample a set by a logical expression
  */
-void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
+int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula)
 {
-    int len, npts = 0, i, resset;
-    double *x, *y;
+    int len, newlen, ncols, i, nc;
     int reslen;
     double *result;
-    int gno = get_cg();
 
-    if (!is_set_active(gno, setno)) {
-	errmsg("Set not active");
-	return;
+    if (!is_valid_setno(gsrc, setfrom)) {
+	errmsg("Source set not active");
+	return RETURN_FAILURE;
+    }
+    
+    if (!formula || formula[0] == '\0') {
+	errmsg("Empty formula");
+	return RETURN_FAILURE;
     }
 
-    len = getsetlength(gno, setno);
-
-    resset = nextset(gno);
-    if (resset < 0) {
-	return;
+    if (set_parser_setno(gsrc, setfrom) != RETURN_SUCCESS) {
+	errmsg("Bad set");
+	return RETURN_FAILURE;
+    }
+    
+    len = getsetlength(gsrc, setfrom);
+    
+    if (v_scanner(formula, &reslen, &result) != RETURN_SUCCESS) {
+	return RETURN_FAILURE;
+    }
+    if (reslen != len) {
+	errmsg("Internal error");
+	xfree(result);
+        return RETURN_FAILURE;
+    }
+    
+    newlen = 0;
+    for (i = 0; i < len; i++) {
+	if ((int) rint(result[i])) {
+	    newlen++;
+	}
     }
 
-    x = getx(gno, setno);
-    y = gety(gno, setno);
-
-    if (typeno == 0) {
-	if (len <= 2) {
-	    errmsg("Set has <= 2 points");
-	    return;
-	}
-	if (startno < 1) {
-	    errmsg("Start point < 1 (locations in sets are numbered starting from 1)");
-	    return;
-	}
-	if (stepno < 1) {
-	    errmsg("Step < 1");
-	    return;
-	}
-	for (i = startno - 1; i < len; i += stepno) {
-	    add_point(gno, resset, x[i], y[i]);
-	    npts++;
-	}
-	sprintf(buf, "Sample, %d, %d set #%d", startno, stepno, setno);
-    } else {
-        if (set_parser_setno(gno, setno) != RETURN_SUCCESS) {
-	    errmsg("Bad set");
-            killset(gno, resset);
-	    return;
-        }
-        if (v_scanner(exprstr, &reslen, &result) != RETURN_SUCCESS) {
-            killset(gno, resset);
-	    return;
-        }
-        if (reslen != len) {
-	    errmsg("Internal error");
-            killset(gno, resset);
-	    return;
-        }
-
-        npts = 0;
-	sprintf(buf, "Sample from %d, using '%s'", setno, exprstr);
-	for (i = 0; i < len; i++) {
-	    if ((int) rint(result[i])) {
-		add_point(gno, resset, x[i], y[i]);
-		npts++;
-	    }
-	}
+    ncols = dataset_cols(gsrc, setfrom);
+    if (dataset_cols(gdest, setto) != ncols) {
+        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    }
+    
+    if (setlength(gdest, setto, newlen) != RETURN_SUCCESS) {
         xfree(result);
+        return RETURN_FAILURE;
     }
-    if (npts > 0) {
-	setcomment(gno, resset, buf);
+
+    for (nc = 0; nc < ncols; nc++) {
+        double *d1, *d2;
+        int j;
+        j = 0;
+        d1 = getcol(gsrc, setfrom, nc);
+        d2 = getcol(gdest, setto, nc);
+        for (i = 0; i < len; i++) {
+	    if ((int) rint(result[i])) {
+	        d2[j] = d1[i];
+                j++;
+	    }
+        }
     }
+    
+    xfree(result);
+    
+    sprintf(buf, "Sample from G%d.S%d, using '%s'", gsrc, setfrom, formula);
+    setcomment(gdest, setto, buf);
+    
+    return RETURN_SUCCESS;
 }
 
 #define prune_xconv(res,x,xtype)	\
