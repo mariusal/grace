@@ -5,7 +5,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -399,6 +399,7 @@ symtab_entry *key;
 %token <ival> RISER
 %token <ival> ROT
 %token <ival> ROUNDED
+%token <ival> RSUM
 %token <ival> RULE
 %token <ival> RUNAVG
 %token <ival> RUNMAX
@@ -1139,6 +1140,16 @@ vexpr:
 	    }
             
             xfree(rarray);
+	}
+	| RSUM '(' vexpr ')'
+	{
+            int i;
+            $$ = &freelist[fcnt++];
+            copy_vrbl($$, $3);
+            $$->type = GRARR_TMP;
+            for (i = 1; i < $$->length; i++) {
+                $$->data[i] += $$->data[i - 1];
+            }
 	}
 	| FUNC_I '(' vexpr ')'
 	{
@@ -5408,6 +5419,7 @@ symtab_entry ikey[] = {
 	{"RNORM", FUNC_DD, (void *) rnorm},
 	{"ROT", ROT, NULL},
 	{"ROUNDED", ROUNDED, NULL},
+	{"RSUM", RSUM, NULL},
 	{"RULE", RULE, NULL},
 	{"RUNAVG", RUNAVG, NULL},
 	{"RUNMAX", RUNMAX, NULL},
