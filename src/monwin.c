@@ -28,7 +28,7 @@
 
 /*
  *
- * monitor Panel
+ * Console
  *
  */
 
@@ -39,77 +39,85 @@
 #include <Xm/Xm.h>
 #include <Xm/Text.h>
 
-#include "globals.h"
 #include "utils.h"
 #include "files.h"
 #include "motifinc.h"
 #include "protos.h"
 
-static Widget mon_frame, monText;
-static Widget wmon_text_item;
-static Widget wmon_frame;
 
 static void clear_results(void *data);
 static void create_wmon_frame(void *data);
 static int wmon_apply_notify_proc(void *data);
+
+typedef struct _console_ui
+{
+    Widget mon_frame;
+    Widget monText;
+    Widget wmon_frame;
+    Widget wmon_text_item;
+} console_ui;
 
 /*
  * Create the mon Panel
  */
 void create_monitor_frame(void *data)
 {
+    static console_ui *ui = NULL;
+    char *msg = (char *) data;
+    
     set_wait_cursor();
-    if (mon_frame == NULL) {
-        Widget wbut, rc, fr;
-        int ac;
-        Arg args[5];
 
-	mon_frame = CreateDialogForm(app_shell, "Results");
-	
-        fr = CreateFrame(mon_frame, NULL);
-        AddDialogFormChild(mon_frame, fr);
+    if (ui == NULL) {
+        Widget menubar, menupane, wbut, fr;
+
+	ui = xmalloc(sizeof(console_ui));
+        ui->mon_frame = CreateDialogForm(app_shell, "Console");
+        ui->wmon_frame = NULL;
+
+        menubar = CreateMenuBar(ui->mon_frame);
+        ManageChild(menubar);
+        AddDialogFormChild(ui->mon_frame, menubar);
         
-        ac = 0;
-        XtSetArg(args[ac], XmNeditMode, XmMULTI_LINE_EDIT); ac++;
-        XtSetArg(args[ac], XmNrows, 10); ac++;
-        XtSetArg(args[ac], XmNcolumns, 80); ac++;
-        XtSetArg(args[ac], XmNwordWrap, True); ac++;
-        XtSetArg(args[ac], XmNeditable, False); ac++;
-	monText = XmCreateScrolledText(fr, "monText", args, ac);
-        ManageChild(monText);
+        menupane = CreateMenu(menubar, "File", 'F', FALSE);
+        CreateMenuButton(menupane, "Save...", 'S', create_wmon_frame, ui);
+        CreateMenuSeparator(menupane);
+        wbut = CreateMenuButton(menupane,
+            "Close", 'C', destroy_dialog_cb, GetParent(ui->mon_frame));
+        XtVaSetValues(ui->mon_frame, XmNcancelButton, wbut, NULL);
+        
+        menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
+        CreateMenuButton(menupane, "Clear", 'C', clear_results, ui);
 
-	rc = CreateHContainer(mon_frame);
-        AddDialogFormChild(mon_frame, rc);
+        menupane = CreateMenu(menubar, "Help", 'H', TRUE);
+        CreateMenuButton(menupane, "On console", 'c', HelpCB, NULL);
+	
+        fr = CreateFrame(ui->mon_frame, NULL);
+        
+	ui->monText = CreateScrollTextItem2(fr, 5, "Messages:");
+        XmTextSetString(ui->monText, "");
+        XtVaSetValues(ui->monText,
+            XmNeditable, False,
+            NULL);
 
-	wbut = CreateButton(rc, "Save...");
-	AddButtonCB(wbut, create_wmon_frame, NULL);
-	wbut = CreateButton(rc, "Clear");
-	AddButtonCB(wbut, clear_results, NULL);
-	wbut = CreateButton(rc, "Close");
-	AddButtonCB(wbut, destroy_dialog_cb, GetParent(mon_frame));
-	wbut = CreateButton(rc, "Help");
-	AddButtonCB(wbut, HelpCB, NULL);
-
-	ManageChild(mon_frame);
+        AddDialogFormChild(ui->mon_frame, fr);
+        ManageChild(ui->mon_frame);
     }
     
-    RaiseWindow(GetParent(mon_frame));
+    if (msg != NULL) {
+        XmTextPosition pos;
+        pos = XmTextGetLastPosition(ui->monText);
+        XmTextInsert(ui->monText, pos, msg);
+    }
+    
+    RaiseWindow(GetParent(ui->mon_frame));
+    
     unset_wait_cursor();
 }
 
 static void clear_results(void *data)
 {
-    XmTextSetString(monText, "");
-}
-
-void stufftextwin(char *s)
-{
-    XmTextPosition pos;
-
-    create_monitor_frame(NULL);
-    
-    pos = XmTextGetLastPosition(monText);
-    XmTextInsert(monText, pos, s);
+    console_ui *ui = (console_ui *) data;
+    XmTextSetString(ui->monText, "");
 }
 
 /*
@@ -117,41 +125,45 @@ void stufftextwin(char *s)
  */
 static void create_wmon_frame(void *data)
 {
-    set_wait_cursor();
+    console_ui *ui = (console_ui *) data;
     
-    if (wmon_frame == NULL) {
-        Widget wmon_panel;
-	
-        wmon_frame = CreateDialogForm(app_shell, "Save logs");
-	wmon_panel = CreateVContainer(wmon_frame);
-
-	wmon_text_item = CreateTextItem2(wmon_panel, 20, "Save to file: ");
-	CreateSeparator(wmon_panel);
-
-	CreateAACDialog(wmon_frame, wmon_panel, wmon_apply_notify_proc, NULL);
-        
-        ManageChild(wmon_frame);
+    if (!ui) {
+        return;
     }
     
-    RaiseWindow(GetParent(wmon_frame));
+    set_wait_cursor();
+    
+    if (ui->wmon_frame == NULL) {
+        Widget wmon_panel;
+	
+        ui->wmon_frame = CreateDialogForm(app_shell, "Save logs");
+	wmon_panel = CreateVContainer(ui->wmon_frame);
+
+	ui->wmon_text_item = CreateTextItem2(wmon_panel, 30, "Save to file: ");
+
+	CreateAACDialog(ui->wmon_frame,
+            wmon_panel, wmon_apply_notify_proc, ui);
+    }
+    
+    RaiseWindow(GetParent(ui->wmon_frame));
     unset_wait_cursor();
 }
 
 static int wmon_apply_notify_proc(void *data)
 {
+    console_ui *ui = (console_ui *) data;
     int len;
-    char s[256];
-    char *text;
+    char *s, *text;
     FILE *pp;
 
-    strcpy(s, xv_getstr(wmon_text_item));
+    s = xv_getstr(ui->wmon_text_item);
     pp = grace_openw(s);
 
     if (pp == NULL) {
         return RETURN_FAILURE;
     } else {
-        text = XmTextGetString(monText);
-        len = XmTextGetLastPosition(monText);
+        text = XmTextGetString(ui->monText);
+        len = XmTextGetLastPosition(ui->monText);
         
         fwrite(text, SIZEOF_CHAR, len, pp);
         
@@ -160,4 +172,23 @@ static int wmon_apply_notify_proc(void *data)
         
         return RETURN_SUCCESS;
     }
+}
+
+
+void stufftextwin(char *msg)
+{
+    create_monitor_frame(msg);
+}
+
+void errwin(char *msg)
+{
+    char *buf;
+    
+    buf = copy_string(NULL, "[Error] ");
+    buf = concat_strings(buf, msg);
+    buf = concat_strings(buf, "\n");
+    
+    stufftextwin(buf);
+    
+    xfree(buf);
 }
