@@ -418,20 +418,55 @@ static void graphapp_aac_cb(void *data)
         return;
     }
     
-    set_default_string(&labs.title);
-    set_default_string(&labs.stitle);
+    graphtype = GetChoice(graph_type_choice_item);
     
     xv_evalexpr(define_view_xv1, &v.xv1);  
     xv_evalexpr(define_view_xv2, &v.xv2);  
     xv_evalexpr(define_view_yv1, &v.yv1);  
     xv_evalexpr(define_view_yv2, &v.yv2);  
-    
     if (isvalid_viewport(v) == FALSE) {
         errmsg("Invalid viewport coordinates");
         return;
     } 
 
-    graphtype = GetChoice(graph_type_choice_item);
+    set_default_string(&labs.title);
+    set_plotstr_string(&labs.title, GetTextString(label_title_text_item));
+    labs.title.charsize = GetCharSizeChoice(title_size_item);
+    labs.title.color = GetOptionChoice(title_color_item);
+    labs.title.font = GetOptionChoice(title_font_item);
+
+    set_default_string(&labs.stitle);
+    set_plotstr_string(&labs.stitle, GetTextString(label_subtitle_text_item));
+    labs.stitle.charsize = GetCharSizeChoice(stitle_size_item);
+    labs.stitle.color = GetOptionChoice(stitle_color_item);
+    labs.stitle.font = GetOptionChoice(stitle_font_item);
+    
+    f.type = GetChoice(frame_framestyle_choice_item);
+    f.pen.color = GetOptionChoice(frame_color_choice_item);
+    f.pen.pattern = GetOptionChoice(frame_pattern_choice_item);
+    f.linew = GetSpinChoice(frame_linew_choice_item);
+    f.lines = GetOptionChoice(frame_lines_choice_item);
+    f.fillpen.color = GetOptionChoice(frame_fillcolor_choice_item);
+    f.fillpen.pattern = GetOptionChoice(frame_fillpattern_choice_item);
+
+    l.charsize = GetCharSizeChoice(legend_charsize_item);
+    l.active = GetToggleButtonState(toggle_legends_item);
+    l.vgap = GetChoice(legends_vgap_item);
+    l.hgap = GetChoice(legends_hgap_item);
+    l.len = GetChoice(legends_len_item);
+    l.invert = GetToggleButtonState(legends_invert_item);
+    l.loctype = GetChoice(toggle_legendloc_item) ? COORD_VIEW : COORD_WORLD;
+    xv_evalexpr(legend_x_item, &l.legx);
+    xv_evalexpr(legend_y_item, &l.legy);
+    l.font = GetOptionChoice(legend_font_item);
+    l.color = GetOptionChoice(legend_color_item);
+    l.boxfillpen.color = GetOptionChoice(legend_boxfillcolor_item);
+    l.boxfillpen.pattern = GetOptionChoice(legend_boxfillpat_item);
+    l.boxpen.color = GetOptionChoice(legend_boxcolor_item);
+    l.boxpen.pattern = GetOptionChoice(legend_boxpattern_item);
+    l.boxlinew = GetSpinChoice(legend_boxlinew_item);
+    l.boxlines = GetOptionChoice(legend_boxlines_item);
+
     stacked = GetToggleButtonState(stacked_item);
 
     bargap = GetSpinChoice(bargap_item);
@@ -444,59 +479,16 @@ static void graphapp_aac_cb(void *data)
     for (j = 0; j < n; j++) {
 	gno = values[j];
         if (is_valid_gno(gno)) {
-
             set_graph_type(gno, graphtype);
-
             set_graph_stacked(gno, stacked);
             set_graph_bargap(gno, bargap);
-
-            set_plotstr_string(&labs.title, GetTextString(label_title_text_item));
-            set_plotstr_string(&labs.stitle, GetTextString(label_subtitle_text_item));
-
-            labs.title.charsize = GetCharSizeChoice(title_size_item);
-            labs.stitle.charsize = GetCharSizeChoice(stitle_size_item);
-
-            labs.title.color = GetOptionChoice(title_color_item);
-            labs.stitle.color = GetOptionChoice(stitle_color_item);
-            
-            labs.title.font = GetOptionChoice(title_font_item);
-            labs.stitle.font = GetOptionChoice(stitle_font_item);
-            
-/*
- *             g[gno].xyflip = flipxy;
- */
-           
-
-	    f.type = GetChoice(frame_framestyle_choice_item);
-	    f.pen.color = GetOptionChoice(frame_color_choice_item);
-	    f.pen.pattern = GetOptionChoice(frame_pattern_choice_item);
-	    f.linew = GetSpinChoice(frame_linew_choice_item);
-	    f.lines = GetOptionChoice(frame_lines_choice_item);
-	    f.fillpen.color = GetOptionChoice(frame_fillcolor_choice_item);
-	    f.fillpen.pattern = GetOptionChoice(frame_fillpattern_choice_item);
-
-	    l.charsize = GetCharSizeChoice(legend_charsize_item);
-	    l.active = GetToggleButtonState(toggle_legends_item);
-	    l.vgap = GetChoice(legends_vgap_item);
-	    l.hgap = GetChoice(legends_hgap_item);
-	    l.len = GetChoice(legends_len_item);
-	    l.invert = GetToggleButtonState(legends_invert_item);
-	    l.loctype = GetChoice(toggle_legendloc_item) ? COORD_VIEW : COORD_WORLD;
-	    xv_evalexpr(legend_x_item, &l.legx);
-	    xv_evalexpr(legend_y_item, &l.legy);
-	    l.font = GetOptionChoice(legend_font_item);
-	    l.color = GetOptionChoice(legend_color_item);
-	    l.boxfillpen.color = GetOptionChoice(legend_boxfillcolor_item);
-	    l.boxfillpen.pattern = GetOptionChoice(legend_boxfillpat_item);
-	    l.boxpen.color = GetOptionChoice(legend_boxcolor_item);
-	    l.boxpen.pattern = GetOptionChoice(legend_boxpattern_item);
-	    l.boxlinew = GetSpinChoice(legend_boxlinew_item);
-	    l.boxlines = GetOptionChoice(legend_boxlines_item);
-
             set_graph_viewport(gno, v);
             set_graph_labels(gno, &labs);
             set_graph_framep(gno, &f);
             set_graph_legend(gno, &l);
+/*
+ *             g[gno].xyflip = flipxy;
+ */
 	}
     }
     
@@ -507,7 +499,6 @@ static void graphapp_aac_cb(void *data)
     }
     
     drawgraph();
-    set_dirtystate();
 }
 
 void update_graphapp_items(int n, int *values, void *data)
