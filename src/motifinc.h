@@ -56,11 +56,8 @@ typedef struct _SetChoiceItem {
     int display;
     int gno;
     int spolicy;
-    int fflag; /* if 0, no filter gadgets */
     int indx;
     Widget list;
-    Widget rb;
-    Widget but[8];
 } SetChoiceItem;
 
 typedef struct {
@@ -92,7 +89,6 @@ typedef struct {
     void *anydata;
     Widget rc;
     Widget list;
-    Widget popup;
 } ListStructure;
 
 Widget CreateFrame(Widget parent, char *s);
@@ -126,8 +122,8 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items);
 void AddOptionChoiceCB(OptionStructure *opt, XtCallbackProc cb);
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
-                                              int nchoices, OptionItem *items);
-void SelectListChoice(ListStructure *listp, int choice);
+                                int nvisible, int nchoices, OptionItem *items);
+int SelectListChoice(ListStructure *listp, int choice);
 void SelectListChoices(ListStructure *listp, int nchoices, int *choices);
 void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items);
 int GetListChoices(ListStructure *listp, int **values);
@@ -143,6 +139,9 @@ OptionStructure *CreateColorChoice(Widget parent, char *s);
 
 ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);
 
+ListStructure *CreateSetChoice(Widget parent, char *labelstr, 
+                                        int type, int standalone);
+
 
 SetChoiceItem CreateSetSelector(Widget parent, char *label, int type, int ff, int gtype, int stype);
 int GetSelectedSet(SetChoiceItem l);
@@ -151,8 +150,6 @@ void update_set_list(int gno, SetChoiceItem l);
 int save_set_list(SetChoiceItem l);
 void update_save_set_list( SetChoiceItem l, int newgr );
 
-void SetSelectorFilterCB(Widget parent, XtPointer cld, XtPointer calld);
-void DefineSetSelectorFilter(SetChoiceItem *s);
 int SetSelectedSet(int gno, int setno, SetChoiceItem l);
 
 

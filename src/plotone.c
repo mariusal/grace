@@ -48,6 +48,7 @@
 #include "plotone.h"
 #include "protos.h"
 
+#define is_set_drawable(gno, setno) (is_set_active(gno, setno) && !is_set_hidden(gno, setno))
 FILE *prstream;
 
 char print_cmd[GR_MAXPATHLEN]  = PRINT_CMD;
@@ -211,8 +212,8 @@ void draw_polar_graph(int gno)
     plotarr p;
 
     for (i = 0; i < number_of_sets(gno); i++) {
-        get_graph_plotarr(gno, i, &p);
-        if (is_set_active(gno, i)) {
+        if (is_set_drawable(gno, i)) {
+            get_graph_plotarr(gno, i, &p);
             switch (dataset_type(gno, i)) {
             case SET_XY:
                 drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -256,8 +257,8 @@ void xyplot(int gno)
     switch (get_graph_type(gno)) {
     case GRAPH_XY:
         for (i = 0; i < number_of_sets(gno); i++) {
-            get_graph_plotarr(gno, i, &p);
-            if (is_set_active(gno, i)) {
+            if (is_set_drawable(gno, i)) {
+                get_graph_plotarr(gno, i, &p);
                 switch (dataset_type(gno, i)) {
                 case SET_XY:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -311,7 +312,7 @@ void xyplot(int gno)
     case GRAPH_CHART:
         for (i = 0; i < number_of_sets(gno); i++) {
             get_graph_plotarr(gno, i, &p);
-            if (is_set_active(gno, i)) {
+            if (is_set_drawable(gno, i)) {
                 if (p.len > refn) {
                     refn = p.len;
                     refx = p.ex[0];
@@ -333,7 +334,7 @@ void xyplot(int gno)
 
         for (i = 0; i < number_of_sets(gno); i++) {
             get_graph_plotarr(gno, i, &p);
-            if (is_set_active(gno, i)) {
+            if (is_set_drawable(gno, i)) {
                 if (is_graph_stacked(gno) != TRUE) {
                     offset += 0.5*0.02*p.symsize;
                 }
@@ -393,7 +394,7 @@ void xyplot(int gno)
             
             for (i = 0; i < number_of_sets(gno); i++) {
                 get_graph_plotarr(gno, i, &p);
-                if (is_set_active(gno, i)) {
+                if (is_set_drawable(gno, i)) {
                     switch (dataset_type(gno, i)) {
                     case SET_XY:
                         drawsetsyms(gno, i, &p, refn, refx, refy, offset);
@@ -2072,7 +2073,7 @@ void dolegend(int gno)
     
     maxsymsize = 0;
     for (i = 0; i < number_of_sets(gno); i++) {
-        if (is_set_active(gno, i)) {
+        if (is_set_drawable(gno, i)) {
             get_graph_plotarr(gno, i, &p);
             if (p.symsize > maxsymsize) {
                 maxsymsize = p.symsize;
@@ -2140,7 +2141,7 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
         } else {
             setno = number_of_sets(gno) - i - 1;
         }
-        if (is_set_active(gno, setno)) {
+        if (is_set_drawable(gno, setno)) {
             get_graph_plotarr(gno, setno, &p);
             
             if (p.lstr == NULL || p.lstr[0] == '\0') {

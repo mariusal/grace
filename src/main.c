@@ -517,10 +517,6 @@ int main(int argc, char *argv[])
 		    auto_redraw = 1;
 		} else if (argmatch(argv[i], "-noredraw", 9)) {
 		    auto_redraw = 0;
-		} else if (argmatch(argv[i], "-statusredraw", 7)) {
-		    status_auto_redraw = 1;
-		} else if (argmatch(argv[i], "-nostatusredraw", 9)) {
-		    status_auto_redraw = 0;
 		} else if (argmatch(argv[i], "-GXxor", 6)) {
 		    invert = 0;
 		} else if (argmatch(argv[i], "-GXinvert", 6)) {
@@ -991,8 +987,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        canvas when the server doesn't do\n");
     fprintf(stream, "                                        backing store\n");
     fprintf(stream, "-nosigcatch                           Don't catch signals\n");
-    fprintf(stream, "-nostatusredraw                       Don't do a redraw after each action in the\n");
-    fprintf(stream, "                                        status window\n");
     fprintf(stream, "-npipe     [file]                     Read data from named pipe on startup\n");
     fprintf(stream, "-nxy       [nxy_file]                 Assume data file is in X Y1 Y2 Y3 ...\n");
     fprintf(stream, "                                        format\n");
@@ -1012,8 +1006,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-saveall   [save_file]                Save all graphs to save_file\n");
     fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator\n");
     fprintf(stream, "-source    [disk|pipe|stdin]          Source of next data file\n");
-    fprintf(stream, "-statusredraw                         Do a redraw after each action in the\n");
-    fprintf(stream, "                                        status window\n");
     fprintf(stream, "-timer     [delay]                    Set timer for named pipes to delay ms \n");
     fprintf(stream, "-timestamp                            Add timestamp to plot\n");
     fprintf(stream, "-type      [xy|xydx|xydy|xydxdx|xydydy|hilo] Set the type of the next data file\n");

@@ -264,7 +264,7 @@ int read_set_fromfile(int gno, int setno, char *fn, int src, int col)
         else
             strcat( scstr, "%*lf " );
     i = 0;
-    softkillset(gno, setno);
+    killsetdata(gno, setno);
     x = calloc(BUFSIZE, SIZEOF_DOUBLE);
     y = calloc(BUFSIZE, SIZEOF_DOUBLE);
     if (x == NULL || y == NULL) {

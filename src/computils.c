@@ -1244,11 +1244,6 @@ void do_histo(int fromgraph, int fromset, int tograph, int toset,
     set_graph_plotarr(tograph, toset, &p);
 
     log_results(buf);
-    
-#ifndef NONE_GUI
-   updatesymbols(tograph, toset);
-   update_set_status(tograph, toset);
-#endif
 }
 
 int histogram(int ndata, double *data, int nbins, double *bins, int *hist)

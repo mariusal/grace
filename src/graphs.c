@@ -1006,16 +1006,6 @@ int is_valid_setno(int gno, int setno)
     }
 }
 
-
-int is_set_active(int gno, int setno)
-{
-    if (is_valid_setno(gno, setno) == TRUE) {
-        return g[gno].p[setno].active;
-    } else {
-        return FALSE;
-    }
-}
-
 int is_set_hidden(int gno, int setno)
 {
     if (is_valid_setno(gno, setno) == TRUE) {
@@ -1029,6 +1019,8 @@ int set_set_hidden(int gno, int setno, int flag)
 {
     if (is_valid_setno(gno, setno) == TRUE) {
         g[gno].p[setno].hidden = flag;
+        set_lists_dirty(TRUE);
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;

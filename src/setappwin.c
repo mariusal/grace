@@ -51,7 +51,7 @@
 
 #define cg get_cg()
 
-int cset = 0;                   /* the current set from the symbols panel */
+static int cset = 0;            /* the current set from the symbols panel */
 
 static Widget setapp_dialog = NULL;
 
@@ -78,7 +78,7 @@ static Widget *toggle_filltype_item;
 static Widget *toggle_fillrule_item;
 static OptionStructure *toggle_fillpat_item;
 static OptionStructure *toggle_fillcol_item;
-static SetChoiceItem toggle_symset_item;
+static ListStructure *toggle_symset_item;
 static Widget baseline_item;
 static Widget *baselinetype_item;
 
@@ -121,11 +121,18 @@ static void UpdateSymbols(int gno, int value);
  */
 void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int setno;
     Widget setapp_panel, setapp_tab, setapp_main, setapp_symbols, 
            setapp_line, setapp_errbar, setapp_avalue, rc_head, fr, rc, rc1, rc2;
     Widget menubar, menupane, cascade;
 
     set_wait_cursor();
+    
+    setno = (int) client_data;
+    if (is_valid_setno(cg, setno) == TRUE) {
+        cset = setno;
+    }
+    
     if (setapp_dialog == NULL) {
         setapp_dialog = XmCreateDialogShell(app_shell, "SetAppearance", NULL, 0);
         handle_close(setapp_dialog);
@@ -182,14 +189,10 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
         rc_head = XmCreateRowColumn(setapp_panel, "rc_head", NULL, 0);
 
-        toggle_symset_item = CreateSetSelector(rc_head, "Select set:",
-                                             SET_SELECT_ACTIVE,
-                                             FILTER_SELECT_NONE,
-                                             GRAPH_SELECT_CURRENT,
-                                             SELECTION_TYPE_MULTIPLE);
+        toggle_symset_item = CreateSetChoice(rc_head, "Select set:",
+                                                LIST_TYPE_MULTIPLE, TRUE);
 
-        XtAddCallback(toggle_symset_item.list, XmNextendedSelectionCallback,
-                      (XtCallbackProc) set_cset_proc, (XtPointer) 0);
+        AddListChoiceCB(toggle_symset_item, set_cset_proc);
 
         XtManageChild(rc_head);
         XtVaSetValues(rc_head,
@@ -517,6 +520,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     int charfont;
     plotarr p;
     
+    int setno;
     int *selset, cd;
 
     aac_mode = (int) client_data;
@@ -571,14 +575,14 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     xv_evalexpr(avalue_offsetx, &avalue.offset.x );
     xv_evalexpr(avalue_offsety, &avalue.offset.y);
                     
-    cd = GetSelectedSets(toggle_symset_item, &selset);
-    if (cd == SET_SELECT_ERROR) {
+    cd = GetListChoices(toggle_symset_item, &selset);
+    if (cd < 1) {
         errwin("No set selected");
         return;
     } else {
         for(i = 0; i < cd; i++) {
-            cset = selset[i];
-            get_graph_plotarr(get_cg(), cset, &p);
+            setno = selset[i];
+            get_graph_plotarr(get_cg(), setno, &p);
             p.type = type;
             p.symskip = symskip;
             p.symsize = symsize;
@@ -606,7 +610,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
             p.baseline_type = baselinetype;
 
             etype_tmp = GetChoice(errbar_type_item);
-            switch (dataset_type(cg, cset)) {
+            switch (dataset_type(cg, setno)) {
             case SET_XYDX:
             case SET_XYDXDX:
                 if (etype_tmp == 0) {
@@ -637,8 +641,10 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     
             p.errbar = errbar;
             p.avalue = avalue;
+            
+            set_graph_plotarr(get_cg(), setno, &p);
         }
-        set_graph_plotarr(get_cg(), cset, &p);
+        free(selset);
     } 
 
     if (aac_mode == AAC_ACCEPT) {
@@ -746,23 +752,26 @@ static void UpdateSymbols(int gno, int value)
 
 static void set_cset_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int cd;
-    int *selsets;
-        
-    cd = GetSelectedSets(toggle_symset_item, &selsets);
-    if (cd != SET_SELECT_ERROR) {
-        cset = selsets[0];
+    ListStructure *listp;
+    
+    listp = (ListStructure *) client_data;
+    if (listp == NULL) {
+        return;
+    }
+    
+    if (GetSingleListChoice(listp, &cset) == GRACE_EXIT_SUCCESS) {
         UpdateSymbols(cg, cset);
     }
 }
 
 void updatesymbols(int gno, int setno)
-{
-    int cd;
+{    
+    if (gno != cg) {
+        return;
+    }
     
     if (setapp_dialog != NULL) { 
-        cd = SetSelectedSet(gno, setno, toggle_symset_item);
-        if (cd != SET_SELECT_ERROR) {
+        if (SelectListChoice(toggle_symset_item, setno) == GRACE_EXIT_SUCCESS) {
             cset = setno;
         }
     }

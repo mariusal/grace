@@ -679,7 +679,7 @@ void do_ext_editor(Widget w, XtPointer client_data, XtPointer call_data)
     sprintf(ebuf, "%s %s", ebuf, fname);
     system(ebuf);
     if( is_set_active( curgraph, setno ) ) {
-	softkillset( curgraph, setno );	
+	killsetdata( curgraph, setno );	
         getdata(curgraph, fname, SOURCE_DISK, dataset_type( curgraph, setno ) );
     } else {
         setcomment( curgraph, setno, "editor" );

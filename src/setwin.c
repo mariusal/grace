@@ -74,7 +74,7 @@ static void do_split_sets_proc(Widget w, XtPointer client_data, XtPointer call_d
 static void do_sort_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_reverse_sets_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_coalesce_sets_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_swap_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 
 typedef struct _Type_ui {
@@ -450,50 +450,96 @@ void create_coalesce_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 typedef struct _Swap_ui {
     Widget top;
-    SetChoiceItem sel1;
-    SetChoiceItem sel2;
+    ListStructure *sel1;
+    ListStructure *sel2;
     ListStructure *graph1_item;
     ListStructure *graph2_item;
 } Swap_ui;
 
 static Swap_ui swapui;
 
+void source_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    ListStructure *listp;
+    int gno;
+    
+    listp = (ListStructure *) client_data;
+    if (listp == NULL) {
+        return;
+    }
+    
+    if (GetSingleListChoice(listp, &gno) == GRACE_EXIT_SUCCESS) {
+        UpdateSetChoice(swapui.sel1, gno);
+    } else {
+        UpdateSetChoice(swapui.sel1, -1);
+    }
+}
+
+void target_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    ListStructure *listp;
+    int gno;
+    
+    listp = (ListStructure *) client_data;
+    if (listp == NULL) {
+        return;
+    }
+    
+    if (GetSingleListChoice(listp, &gno) == GRACE_EXIT_SUCCESS) {
+        UpdateSetChoice(swapui.sel2, gno);
+    } else {
+        UpdateSetChoice(swapui.sel2, -1);
+    }
+}
 
 void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Widget dialog;
+    Widget panel, rc, rc2, fr;
 
     set_wait_cursor();
     if (swapui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	swapui.top = XmCreateDialogShell(app_shell, "Swap sets", NULL, 0);
+	swapui.top = XmCreateDialogShell(app_shell, "SwapSets", NULL, 0);
 	handle_close(swapui.top);
-	dialog = XmCreateRowColumn(swapui.top, "dialog_rc", NULL, 0);
+        panel = XtVaCreateWidget("panel", xmFormWidgetClass, 
+                                          swapui.top, NULL, 0);
+	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, panel,
+			      XmNorientation, XmHORIZONTAL,
+			      NULL);
 
-	swapui.sel1 = CreateSetSelector(dialog, "Swap set:",
-					SET_SELECT_ACTIVE,
-					FILTER_SELECT_NONE,
-					GRAPH_SELECT_CURRENT,
-					SELECTION_TYPE_SINGLE);
-	swapui.graph1_item = CreateGraphChoice(dialog, "In graph:", LIST_TYPE_SINGLE);
+	fr = CreateFrame(rc, "Source");
+        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
+	swapui.graph1_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
+	swapui.sel1 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
+        AddListChoiceCB(swapui.graph1_item, source_cb);
+        XtManageChild(rc2);
 
-	swapui.sel2 = CreateSetSelector(dialog, "With set:",
-					SET_SELECT_ACTIVE,
-					FILTER_SELECT_ALL,
-					GRAPH_SELECT_CURRENT,
-					SELECTION_TYPE_SINGLE);
-	DefineSetSelectorFilter(&swapui.sel2);
-	swapui.graph2_item = CreateGraphChoice(dialog, "In graph:", LIST_TYPE_SINGLE);
+	fr = CreateFrame(rc, "Destination");
+        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
+	swapui.graph2_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
+	swapui.sel2 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
+        AddListChoiceCB(swapui.graph2_item, target_cb);
+        XtManageChild(rc2);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+        XtManageChild(rc);
+        XtVaSetValues(rc,
+            XmNtopAttachment, XmATTACH_FORM,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
 
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_swap_proc, (XtPointer) & swapui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) swapui.top);
+	fr = CreateFrame(panel, NULL);
+        XtVaSetValues(fr,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, rc,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_FORM,
+            NULL);
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+        CreateAACButtons(rc, panel, swap_aac_cb);
+        XtManageChild(rc);
 
-	XtManageChild(dialog);
+	XtManageChild(panel);
     }
     XtRaise(swapui.top);
     unset_wait_cursor();
@@ -590,22 +636,55 @@ static void do_setlength_proc(Widget w, XtPointer client_data, XtPointer call_da
 /*
  * swap a set with another set
  */
-static void do_swap_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int j1, j2, gto, gfrom;
+    int aac_mode, error;
+    int i, g1_ok, g2_ok, ns1, ns2, *svalues1, *svalues2, gno1, gno2;
 
-    Swap_ui *ui = (Swap_ui *) client_data;
-    j1 = GetSelectedSet(ui->sel1);
-    j2 = GetSelectedSet(ui->sel2);
-    if (j1 == SET_SELECT_ERROR || j2 == SET_SELECT_ERROR) {
-	errwin("Select 2 sets");
-	return;
+    aac_mode = (int) client_data;
+    
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(swapui.top);
+        return;
     }
-    GetSingleListChoice(ui->graph1_item, &gfrom);
-    GetSingleListChoice(ui->graph2_item, &gto);
+
     set_wait_cursor();
     set_work_pending(TRUE);
-    do_swap(j1, gfrom, j2, gto);
+
+    g1_ok = GetSingleListChoice(swapui.graph1_item, &gno1);
+    g2_ok = GetSingleListChoice(swapui.graph2_item, &gno2);
+    ns1 = GetListChoices(swapui.sel1, &svalues1);
+    ns2 = GetListChoices(swapui.sel2, &svalues2);
+    
+    error = FALSE;
+    if (g1_ok == GRACE_EXIT_FAILURE || g2_ok == GRACE_EXIT_FAILURE) {
+        error = TRUE;
+        errmsg("Please select single source and destination graphs");
+    } else if (ns1 != ns2) {
+        error = TRUE;
+        errmsg("Different number of source and destination sets");
+    } else if (ns1 == 0) {
+        error = TRUE;
+        errmsg("No sets selected");
+    } else {
+        for (i = 0; i < ns1; i++) {
+            if (swapset(gno1, svalues1[i], gno2, svalues2[i])
+                                            != GRACE_EXIT_SUCCESS) {
+                error = TRUE;
+            }
+        }
+    }
+    
+    if (aac_mode == AAC_ACCEPT && error == FALSE) {
+        XtUnmanageChild(swapui.top);
+    }
+
+    if (ns1 > 0) {
+        free(svalues1);
+    }
+    if (ns2 > 0) {
+        free(svalues2);
+    }
     set_work_pending(FALSE);
     update_set_lists(cg);
     unset_wait_cursor();

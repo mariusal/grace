@@ -468,7 +468,7 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
 {
     int k;
 
-    if (setfrom == setto && gnoto == gnofrom) {
+    if (gnoto == gnofrom && setfrom == setto) {
 	return GRACE_EXIT_FAILURE;
     }
 
@@ -477,17 +477,20 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
         return GRACE_EXIT_FAILURE;
     }
 
-    if (is_set_active(gnoto, setto)) {
-	killset(gnoto, setto);
-    }
+    killset(gnoto, setto);
 
-    setlength(gnoto, setto, g[gnofrom].p[setfrom].len);
+/*
+ *     setlength(gnoto, setto, g[gnofrom].p[setfrom].len);
+ */
     memcpy(&g[gnoto].p[setto], &g[gnofrom].p[setfrom], sizeof(plotarr));
+
+    g[gnofrom].p[setfrom].len = 0;
     for (k = 0; k < MAX_SET_COLS; k++) {
 	g[gnofrom].p[setfrom].ex[k] = NULL;
     }
+    g[gnofrom].p[setfrom].s = NULL;
     
-    g[gnofrom].p[setfrom].active = FALSE;
+    g[gnofrom].p[setfrom].hidden = TRUE;
     
     set_dirtystate();
     return GRACE_EXIT_SUCCESS;
@@ -590,6 +593,24 @@ void do_packsets(void)
     packsets(get_cg());
 }
 
+int activateset(int gno, int setno)
+{
+    int retval;
+    
+    if (is_valid_gno(gno) != TRUE) {
+        return GRACE_EXIT_FAILURE;
+    } else if (is_valid_setno(gno, setno)) {
+        set_set_hidden(gno, setno, FALSE);
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        retval = realloc_graph_plots(gno, setno + 1);
+        if (retval == GRACE_EXIT_SUCCESS) {
+            set_set_hidden(gno, setno, FALSE);
+        }
+        return retval;
+    }
+}
+
 /*
  * return the next available set in graph gno
  * ignoring deactivated sets.
@@ -608,8 +629,7 @@ int nextset(int gno)
     if ( (target_set.gno == gno) &&
          (target_set.setno >= 0) &&
          (target_set.setno < g[gno].maxplot) &&
-         !is_set_active(gno, target_set.setno) &&
-         !g[gno].p[target_set.setno].hidden ) {
+         !is_set_active(gno, target_set.setno)) {
 	i = target_set.setno;
 	target_set.gno = -1;
 	target_set.setno = -1;
@@ -618,7 +638,7 @@ int nextset(int gno)
     i = 0;
     maxplot = g[gno].maxplot;
     for (i = 0; i < maxplot; i++) {
-	if (!is_set_active(gno, i) && !g[gno].p[i].hidden) {
+	if (!is_set_active(gno, i)) {
 	    return (i);
 	}
     }
@@ -631,9 +651,9 @@ int nextset(int gno)
 }
 
 /*
- * kill a set, but preserve the parameter settings
+ * free set data, but preserve the parameter settings
  */
-void softkillset(int gno, int setno)
+void killsetdata(int gno, int setno)
 {
     int i;
 
@@ -652,8 +672,7 @@ void softkillset(int gno, int setno)
 	    g[gno].p[setno].s = NULL;
 	}
 	g[gno].p[setno].len = 0;
-        g[gno].p[setno].active = FALSE;
-	g[gno].p[setno].hidden = FALSE;
+	g[gno].p[setno].hidden = TRUE;
 	set_lists_dirty(TRUE);
 	set_dirtystate();
     }
@@ -664,37 +683,30 @@ void softkillset(int gno, int setno)
  */
 void killset(int gno, int setno)
 {
-    if (is_set_active(gno, setno)) {
-	softkillset(gno, setno);
+    if (is_valid_setno(gno, setno)) {
+	killsetdata(gno, setno);
 	set_default_plotarr(&g[gno].p[setno]);
     }
 }
 
-/*
- * activate a set
- */
-int activateset(int gno, int setno)
+int is_set_active(int gno, int setno)
 {
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+    if (is_valid_setno(gno, setno) && g[gno].p[setno].len > 0) {
+        return TRUE;
     } else {
-        g[gno].p[setno].active = TRUE;
-        g[gno].p[setno].hidden = FALSE;
-        set_lists_dirty(TRUE);
-        set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return FALSE;
     }
 }
 
 /*
- * return 1 if there are active set(s) in the gno graph
+ * return TRUE if there are active set(s) in the gno graph
  */
 int activeset(int gno)
 {
     int i;
 
     for (i = 0; i < g[gno].maxplot; i++) {
-	if (g[gno].p[i].active == TRUE) {
+	if (is_set_active(gno, i) == TRUE) {
 	    return TRUE;
 	}
     }
@@ -970,7 +982,7 @@ void del_point(int gno, int setno, int pt)
     if (len > 1) {
 	setlength(gno, setno, len - 1);
     } else {
-	softkillset(gno, setno);
+	killsetdata(gno, setno);
     }
 }
 
@@ -1124,9 +1136,6 @@ void do_copyset(int gfrom, int j1, int gto, int j2)
     sprintf(buf, "copy of set %d", j1);
     setcomment(gto, j2, buf);
     log_results(buf);
-#ifndef NONE_GUI
-    update_set_status(gto, j2);
-#endif
 }
 
 /*
@@ -1135,36 +1144,26 @@ void do_copyset(int gfrom, int j1, int gto, int j2)
 void do_moveset(int gfrom, int j1, int gto, int j2)
 {
     moveset(gfrom, j1, gto, j2);
-#ifndef NONE_GUI
-    updatesymbols(gto, j2);
-    updatesymbols(gfrom, j1);
-    update_set_status(gto, j2);
-    update_set_status(gfrom, j1);
-#endif
 }
 
 /*
  * swap a set with another set
  */
-void do_swapset(int gfrom, int j1, int gto, int j2)
+int swapset(int gno1, int setno1, int gno2, int setno2)
 {
     plotarr p;
 
-    if (j1 == j2 && gto == gfrom) {
+    if (setno1 == setno2 && gno1 == gno2) {
 	errmsg("Set from and set to are the same");
-	return;
+	return GRACE_EXIT_FAILURE;
     }
-    memcpy(&p, &g[gto].p[j1], sizeof(plotarr));
-    memcpy(&g[gto].p[j1], &g[gfrom].p[j2], sizeof(plotarr));
-    memcpy(&g[gfrom].p[j2], &p, sizeof(plotarr));
+    memcpy(&p, &g[gno2].p[setno2], sizeof(plotarr));
+    memcpy(&g[gno2].p[setno2], &g[gno1].p[setno1], sizeof(plotarr));
+    memcpy(&g[gno1].p[setno1], &p, sizeof(plotarr));
     set_lists_dirty(TRUE);
     set_dirtystate();
-#ifndef NONE_GUI
-    updatesymbols(gfrom, j1);
-    update_set_status(gfrom, j1);
-    updatesymbols(gto, j2);
-    update_set_status(gto, j2);
-#endif
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
 /*
@@ -1412,7 +1411,6 @@ void do_activate(int setno, int type, int len)
  */
 void do_hideset(int gno, int setno)
 {
-    g[gno].p[setno].active = FALSE;
     g[gno].p[setno].hidden = TRUE;
     set_lists_dirty(TRUE);
 #ifndef NONE_GUI
@@ -1425,14 +1423,13 @@ void do_hideset(int gno, int setno)
  */
 void do_showset(int gno, int setno)
 {
-    if (g[gno].p[setno].hidden && (g[gno].p[setno].ex[0] != NULL)) {
-	g[gno].p[setno].active = TRUE;
-    }
-    g[gno].p[setno].hidden = FALSE;
-    set_lists_dirty(TRUE);
+    if (is_set_active(gno, setno)) {
+        g[gno].p[setno].hidden = FALSE;
+        set_lists_dirty(TRUE);
 #ifndef NONE_GUI
-    update_set_status(gno, setno);
+        update_set_status(gno, setno);
 #endif
+    }
 }
 
 /*
@@ -1529,26 +1526,6 @@ void do_move(int j1, int gfrom, int j2, int gto)
     update_set_status(gto, j2);
     update_set_status(gfrom, j1);
 #endif
-}
-
-/*
- * swap a set with another set
- */
-void do_swap(int j1, int gfrom, int j2, int gto)
-{
-    gfrom--;
-    if (gfrom == -1) {
-	gfrom = get_cg();
-    }
-    gto--;
-    if (gto == -1) {
-	gto = get_cg();
-    }
-    if (j1 == j2 && gfrom == gto) {
-	errmsg("Set from and set to are the same");
-	return;
-    }
-    do_swapset(gfrom, j1, gto, j2);
 }
 
 /*
@@ -1722,7 +1699,7 @@ void do_kill(int gno, int setno, int soft)
 	for (i = 0; i < g[gno].maxplot; i++) {
 	    if (is_set_active(gno, i)) {
 		if (soft) {
-		    softkillset(gno, i);
+		    killsetdata(gno, i);
 		} else {
 		    killset(gno, i);
 		}
@@ -1739,7 +1716,7 @@ void do_kill(int gno, int setno, int soft)
 	    return;
 	} else {
 	    if (soft) {
-		softkillset(gno, setno);
+		killsetdata(gno, setno);
 	    } else {
 		killset(gno, setno);
 	    }
@@ -1986,6 +1963,11 @@ int dataset_type(int gno, int setno)
     } else {
         return -1;
     }
+}
+
+int dataset_cols(int gno, int setno)
+{
+    return settype_cols(dataset_type(gno, setno));
 }
 
 int load_comments_to_legend(int gno, int setno)

@@ -232,7 +232,6 @@ void create_hotlinks_popup(Widget w, XtPointer client_data, XtPointer call_data)
                 FILTER_SELECT_ALL,
                 GRAPH_SELECT_CURRENT,
                 SELECTION_TYPE_MULTIPLE);
-        DefineSetSelectorFilter(&hotlink_set_item);
 
 	hotlink_file_item = CreateTextItem2(dialog, 30, "To file or SOURCE_PIPE:");
 	hotlink_source_item = CreatePanelChoice(dialog, "Source: ", 3,

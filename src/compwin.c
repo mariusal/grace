@@ -416,11 +416,11 @@ static void do_histo_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	fromset = selsets[i];
 	do_histo(get_cg(), fromset, tograph, toset, binw, xmin, xmax, hist_type);
     }
-    set_work_pending(FALSE);
-    update_set_lists(get_cg());
-    unset_wait_cursor();
     free(selsets);
+    set_work_pending(FALSE);
+    update_all();
     drawgraph();
+    unset_wait_cursor();
 }
 
 /* DFTs */

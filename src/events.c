@@ -111,7 +111,6 @@ int add_setno;			/* set to add points - set in ptswin.c */
 int add_at;			/* where to begin inserting points in the set */
 int move_dir;			/* restriction on point movement */
 
-extern int cset;
 extern int digit_setno;
 extern int track_set, track_point;   /* from ptswin.c */
 extern int paint_skip;	/* defined in ptswin.c */
@@ -951,22 +950,14 @@ void my_proc(Widget w, XtPointer data, XEvent * event)
 			} else if (is_validVPoint(vptmp)) {
 			    findpoint(get_cg(), wx, wy, &wx, &wy, &setno, &loc);
 			    if (setno != -1) {
-					cset = setno;
-					set_wait_cursor();
-					define_symbols_popup(NULL, NULL, NULL);
-					unset_wait_cursor();
+				define_symbols_popup(w, (XtPointer) setno, NULL);
 			    } else {
-					set_wait_cursor();
-					create_file_popup(NULL, NULL, NULL);
-					unset_wait_cursor();
-/* annoying error message
-					errwin("No set!");
-*/
+			        create_file_popup(w, NULL, NULL);
 			    }
 			} else {
 			    if (wx < g[get_cg()].w.xg1) {
 					curaxis = 1;
-					create_axes_dialog(NULL, NULL, NULL);
+					create_axes_dialog(w, NULL, NULL);
 			    } else if (wy < g[get_cg()].w.yg1) {
 					curaxis = 0;
 					create_axes_dialog(NULL, NULL, NULL);

@@ -77,7 +77,6 @@ typedef struct {
 
 
 typedef struct {
-    int active;                 /* active flag */
     int hidden;                 /* hidden set */
 
     int type;                   /* dataset type */
@@ -219,6 +218,7 @@ int set_graph_bargap(int gno, double bargap);
 int islogx(int gno);
 int islogy(int gno);
 
+int number_of_graphs(void);
 int select_graph(int gno);
 
 int realloc_graphs(int n);
@@ -231,11 +231,12 @@ int get_graph_xscale(int gno);
 int get_graph_yscale(int gno);
 
 int is_valid_gno(int gno);
-int is_valid_setno(int gno, int setno);
-int number_of_graphs(void);
 
 int set_graph_type(int gno, int gtype);
 
+int activateset(int gno, int setno);
+
+int is_valid_setno(int gno, int setno);
 int is_set_active(int gno, int setno);
 int is_set_hidden(int gno, int setno);
 int set_set_hidden(int gno, int setno, int flag);
@@ -246,6 +247,7 @@ int load_comments_to_legend(int gno, int setno);
 
 int settype_cols(int type);
 int dataset_type(int gno, int setno);
+int dataset_cols(int gno, int setno);
 
 int is_refpoint_active(int gno);
 

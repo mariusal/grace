@@ -221,7 +221,6 @@ typedef struct {
     Boolean allow_dc;
     Boolean verify_action;
     Boolean auto_redraw;
-    Boolean status_auto_redraw;
     Boolean logwindow;
     Boolean toolbar;
     Boolean statusbar;
@@ -242,9 +241,6 @@ static XtResource resources[] =
      (XtPointer) FALSE},
     {"allowRedraw", "AllowRedraw", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, auto_redraw), XtRImmediate,
-     (XtPointer) TRUE},
-    {"allowStatusRedraw", "AllowStatusRedraw", XtRBoolean, sizeof(Boolean),
-     XtOffset(ApplicationDataPtr, status_auto_redraw), XtRImmediate,
      (XtPointer) TRUE},
     {"logWindow", "LogWindow", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, logwindow), XtRImmediate,
@@ -333,7 +329,6 @@ void xlibprocess_args(int *argc, char **argv)
     verify_action = rd.verify_action;
     logwindow = rd.logwindow;
     auto_redraw = rd.auto_redraw;
-    status_auto_redraw = rd.status_auto_redraw;
     toolbar_visible = rd.toolbar;
     statusbar_visible = rd.statusbar;
     locbar_visible = rd.locatorbar;
@@ -671,9 +666,6 @@ static Widget CreateMainMenuBar(Widget parent)
  */
     menupane = CreateMenu(menubar, "dataMenu", "Data", 'D', NULL, NULL);
 
-    CreateMenuButton(menupane, "status", "Status...", 'S',
-    	(XtCallbackProc) define_status_popup, (XtPointer) NULL, 0);
-
     CreateMenuButton(menupane, "results", "Results...", 'R',
     	(XtCallbackProc) create_monitor_frame, (XtPointer) NULL, 0);
     
@@ -791,6 +783,9 @@ static Widget CreateMainMenuBar(Widget parent)
     submenupane = CreateMenu(menupane, "regionOperationsMenu", 
     				"Region operations", 'i', NULL, NULL);
 
+    CreateMenuButton(submenupane, "status", "Status...", 'S',
+    	(XtCallbackProc) define_status_popup, (XtPointer) NULL, 0);
+
     CreateMenuButton(submenupane, "define", "Define...", 'D',
     	    (XtCallbackProc) create_define_frame, (XtPointer) NULL, 0);
 
@@ -852,7 +847,7 @@ static Widget CreateMainMenuBar(Widget parent)
     	(XtCallbackProc) create_axes_dialog, (XtPointer) NULL, 0);
 
     CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
-    	(XtCallbackProc) define_symbols_popup, (XtPointer) NULL, 0);
+    	(XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
 
     CreateMenuSeparator(menupane, "sep2");
 

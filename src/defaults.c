@@ -215,13 +215,10 @@ void set_default_legend(int gno, legend * l)
 void set_default_plotarr(plotarr * p)
 {
     int i;
-    p->active = FALSE;                          /* active flag */
+    p->hidden = TRUE;                           /* hidden set */
     p->type = SET_XY;                           /* dataset type */
-    p->hidden = FALSE;                          /* hidden set */
     p->hotlink = FALSE;                         /* hot linked set */
     p->hotfile[0] = '\0';                       /* hot linked file name */
-    p->len = 0;                                 /* set length */
-    p->s = (char **) NULL;                      /* pointer to strings */
 
     p->sym = 0;                                 /* set plot symbol */
     p->symlines = grdefaults.lines;             /* set plot sym line style */
@@ -276,11 +273,14 @@ void set_default_plotarr(plotarr * p)
     p->errbar.length = 1.0;     /* length of error bar */
 
     p->comments[0] = 0;         /* how did this set originate */
-    p->lstr[0] = 0;             /* legend */
+    p->lstr[0] = 0;             /* legend string */
 
+    p->len = 0;                 /* set length */
     for (i = 0; i < MAX_SET_COLS; i++) {
         p->ex[i] = NULL;
     }
+    p->s = NULL;                /* pointer to strings */
+
     p->ep = NULL;               /* EditPoints pointer */
 }
 

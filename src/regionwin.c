@@ -70,6 +70,20 @@ static Widget *define_region_item;
 static Widget *define_type_item;
 static Widget *define_linkto_item;
 
+extern Display *disp;
+
+static char buf[256];
+
+static Widget status_frame;
+static Widget status_panel;
+static Widget status_sw;
+
+static Widget header_w;
+static Widget *labx;
+
+static XFontStruct *f;
+static XmFontList xmf;
+
 static void do_define_region(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int rtype = GetChoice(define_type_item);
@@ -382,7 +396,6 @@ static Widget eval_region_item;
 static void do_eval_region(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int regno, setno, gno = GRAPH_SELECT_CURRENT;
-    char buf[256];
 
     regno = (int) GetChoice(eval_region);
     setno = GetSelectedSet(eval_set_item);
@@ -589,5 +602,117 @@ void create_reporton_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtManageChild(dialog);
     }
     XtRaise(top);
+    unset_wait_cursor();
+}
+
+static void set_status_label(Widget w, char *buf)
+{
+    Arg al;
+    XmString ls;
+    ls = XmStringCreateLtoR(buf, charset);
+    XtSetArg(al, XmNlabelString, ls);
+    XtSetValues(w, &al, 1);
+    XmStringFree(ls);
+}
+
+
+void clear_status(void)
+{
+    int i;
+    for (i = 0; i < MAXREGION; i++) {
+	set_status_label(labx[i], " ");
+    }
+}
+
+void update_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int rno;
+    if (status_frame) {
+        clear_status();
+        sprintf(buf, " Region # Active  Type");
+	set_status_label(header_w, buf);
+
+	for (rno = 0; rno < MAXREGION; rno++) {
+	    sprintf(buf, "  %2d    %3s   %6s", rno, on_or_off(rg[rno].active),
+		    region_types(rg[rno].type, 0));
+	    set_status_label(labx[rno], buf);
+	}
+
+    }
+}
+
+
+void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int i;
+    Widget wbut, rc, rc3, fr2;
+    
+    set_wait_cursor();
+    if (status_frame == NULL) {
+	status_frame = XmCreateDialogShell(app_shell, "Status", NULL, 0);
+	handle_close(status_frame);
+
+	f = (XFontStruct *) XLoadQueryFont(disp, "fixed");
+	xmf = XmFontListCreate(f, charset);
+
+	status_panel = XmCreateForm(status_frame, "form", NULL, 0);
+
+	status_sw = XtVaCreateManagedWidget("sw",
+	    xmScrolledWindowWidgetClass, status_panel,
+	    XmNscrollingPolicy, XmAUTOMATIC,
+	    XmNheight, 200,
+	    XmNwidth, 200,
+	    NULL);
+	rc3 = XmCreateRowColumn(status_sw, "rc3", NULL, 0);
+	header_w = XtVaCreateManagedWidget("header", xmLabelWidgetClass, rc3,
+	    XmNalignment, XmALIGNMENT_BEGINNING,
+	    XmNfontList, xmf,
+	    XmNrecomputeSize, True,
+	    NULL);
+	labx = (Widget *)malloc( MAXREGION*sizeof(Widget) );
+	for (i = 0; i < MAXREGION; i++) {
+            labx[i] = XtVaCreateManagedWidget("labx", xmLabelWidgetClass, rc3,
+		XmNalignment, XmALIGNMENT_BEGINNING,
+		XmNfontList, xmf,
+		XmNrecomputeSize, True,
+		NULL);
+        }
+        XtManageChild(rc3);
+	XtVaSetValues(status_sw,
+		      XmNworkWindow, rc3,
+		      NULL);
+
+	fr2 = XmCreateFrame(status_panel, "fr2", NULL, 0);
+	rc = XmCreateRowColumn(fr2, "rc", NULL, 0);
+	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+
+	wbut = XtVaCreateManagedWidget("Close", xmPushButtonWidgetClass, rc,
+				       NULL);
+	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) destroy_dialog, status_frame);
+
+	wbut = XtVaCreateManagedWidget("Update", xmPushButtonWidgetClass, rc,
+				       NULL);
+	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) update_status_popup, NULL);
+
+	XtManageChild(rc);
+	XtManageChild(fr2);
+
+	XtVaSetValues(status_sw,
+		      XmNtopAttachment, XmATTACH_FORM,
+		      XmNleftAttachment, XmATTACH_FORM,
+		      XmNrightAttachment, XmATTACH_FORM,
+		      XmNbottomAttachment, XmATTACH_WIDGET,
+		      XmNbottomWidget, fr2,
+		      NULL);
+	XtVaSetValues(fr2,
+		      XmNleftAttachment, XmATTACH_FORM,
+		      XmNrightAttachment, XmATTACH_FORM,
+		      XmNbottomAttachment, XmATTACH_FORM,
+		      NULL);
+	XtManageChild(status_panel);
+
+    }
+    XtRaise(status_frame);
+    update_status_popup(NULL, NULL, NULL);
     unset_wait_cursor();
 }

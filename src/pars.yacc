@@ -414,7 +414,6 @@ symtab_entry *key;
 %token <pset> STACKEDHBAR
 %token <pset> STAGGER
 %token <pset> START
-%token <pset> STATUS
 %token <pset> STOP
 %token <pset> STRING
 %token <pset> SUBTITLE
@@ -2481,12 +2480,12 @@ actions:
 	    }
 	}
 	| KILL SETNUM SAVEALL {
-            softkillset(get_cg(), $2);
+            killsetdata(get_cg(), $2);
         }
 	| KILL SETS SAVEALL {
 	    int i;
 	    for (i = 0; i < g[get_cg()].maxplot; i++) {
-		softkillset(get_cg(), i);
+		killsetdata(get_cg(), i);
 	    }
 	}
 	| KILL GRAPHNO {
@@ -2709,9 +2708,6 @@ options:
         }
 	| AUTO REDRAW onoff {
 	    auto_redraw = $3;
-	}
-	| STATUS AUTO REDRAW onoff {
-	    status_auto_redraw = $4;
 	}
 	| FOCUS onoff {
 	    draw_focus_flag = $2;
@@ -4101,7 +4097,6 @@ symtab_entry ikey[] = {
 	{"STACKEDHBAR", STACKEDHBAR, NULL},
 	{"STAGGER", STAGGER, NULL},
 	{"START", START, NULL},
-	{"STATUS", STATUS, NULL},
 	{"STDTR", FUNC_ND, stdtr},
 	{"STDTRI", FUNC_ND, stdtri},
 	{"STOP", STOP, NULL},
@@ -4438,11 +4433,10 @@ int yylex(void)
 	    } else if (ctmp == 'S') {
 	        stmp[i] = '\0';
 		sn = atoi(stmp);
-		if (is_valid_setno(whichgraph, sn) == TRUE || 
-                    realloc_graph_plots(whichgraph, sn + 1) == GRACE_EXIT_SUCCESS) {
-		    lxy = getsetlength(whichgraph, sn);
+		if (activateset(whichgraph, sn) == GRACE_EXIT_SUCCESS) {
 		    yylval.ival = sn;
 		    whichset = sn;
+		    lxy = getsetlength(whichgraph, sn);
 		    return SETNUM;
 		}
 	    } else if (ctmp == 'R') {
@@ -4676,12 +4670,10 @@ void set_prop(int gno,...)
 		    if (prop == ON) {	/* could have been ignored */
 			if (g[i].p[j].hidden && (g[i].p[j].ex[0] != NULL)) {
 			    g[i].p[j].hidden = FALSE;
-			    g[i].p[j].active = TRUE;
 			}
 		    } else if (prop == FALSE) {
-			g[i].p[j].active = FALSE;
+			g[i].p[j].hidden = TRUE;
 		    } else if (prop == IGNORE) {
-			g[i].p[j].active = FALSE;
 			g[i].p[j].hidden = TRUE;
 		    }
 		}
