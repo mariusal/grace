@@ -132,9 +132,6 @@ int pdfinitgraphics(void)
     PDF_set_info(phandle, "Author", get_username());
     PDF_set_info(phandle, "Title", get_docname());
         
-    /* just to disable warning - should be fixed in pdflib-2.0.1 */
-    PDF_set_parameter(phandle, "resourcefile", "/dev/null");
-
     pdf_font_ids = malloc(number_of_fonts()*SIZEOF_INT);
     for (i = 0; i < number_of_fonts(); i++) {
         pdf_font_ids[i] = -1;
@@ -370,7 +367,7 @@ void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
 void pdf_putpixmap(VPoint vp, int width, int height, char *databits, 
                              int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
-    unsigned char *buf, *bp;
+    char *buf, *bp;
     int image;
     int cindex;
     RGB *fg, *bg;
@@ -394,13 +391,13 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
             for (j = 0; j < paddedW/bitmap_pad; j++) {
                 for (i = 0; i < bitmap_pad && j*bitmap_pad + i < width; i++) {
                     if (bin_dump(&(databits)[k*paddedW/bitmap_pad + j], i, bitmap_pad)) {
-                        *bp++ = (unsigned char) fg->red;
-                        *bp++ = (unsigned char) fg->green;
-                        *bp++ = (unsigned char) fg->blue;
+                        *bp++ = (char) fg->red;
+                        *bp++ = (char) fg->green;
+                        *bp++ = (char) fg->blue;
                     } else {
-                        *bp++ = (unsigned char) bg->red;
-                        *bp++ = (unsigned char) bg->green;
-                        *bp++ = (unsigned char) bg->blue;
+                        *bp++ = (char) bg->red;
+                        *bp++ = (char) bg->green;
+                        *bp++ = (char) bg->blue;
                     }
                 }
             }
@@ -410,15 +407,16 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
             for (j = 0; j < width; j++) {
                 cindex = (databits)[k*width + j];
                 fg = get_rgb(cindex);
-                *bp++ = (unsigned char) fg->red;
-                *bp++ = (unsigned char) fg->green;
-                *bp++ = (unsigned char) fg->blue;
+                *bp++ = (char) fg->red;
+                *bp++ = (char) fg->green;
+                *bp++ = (char) fg->blue;
             }
         }
     }
     
-    image = PDF_open_memory_image(phandle,
-        buf, width, height, components, GRACE_BPP);
+    image = PDF_open_image(phandle, "raw", "memory",
+        buf, width*height*components,
+        width, height, components, GRACE_BPP, "");
     if (image == -1) {
         errmsg("Not enough memory for image!");
         free(buf);
@@ -469,7 +467,7 @@ void pdf_puttext(VPoint start, VPoint end, double size,
 
             encscheme = get_encodingscheme(font);
             if (strcmp(encscheme, "ISOLatin1Encoding") == 0) {
-                pdflibenc = "winansi";
+                pdflibenc = "default";
             } else if (strcmp(encscheme, "FontSpecific") == 0) {
                 pdflibenc = "builtin";
             } else {
