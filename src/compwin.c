@@ -86,8 +86,7 @@ typedef struct _Eval_ui {
     Widget top;
     SrcDestStructure *srcdest;
     Widget formula_item;
-    OptionStructure *restr_item;
-    Widget negate_item;
+    RestrictionStructure *restr_item;
 } Eval_ui;
 
 static Eval_ui eui;
@@ -96,23 +95,7 @@ void create_eval_frame(void *data)
 {
     set_wait_cursor();
     if (eui.top == NULL) {
-        Widget dialog, rc2, rc_trans, fr;
-        OptionItem restr_items[7];
-
-        restr_items[0].value = RESTRICT_NONE;
-        restr_items[0].label = "None";
-        restr_items[1].value = RESTRICT_REG0;
-        restr_items[1].label = "Region 0";
-        restr_items[2].value = RESTRICT_REG1;
-        restr_items[2].label = "Region 1";
-        restr_items[3].value = RESTRICT_REG2;
-        restr_items[3].label = "Region 2";
-        restr_items[4].value = RESTRICT_REG3;
-        restr_items[4].label = "Region 3";
-        restr_items[5].value = RESTRICT_REG4;
-        restr_items[5].label = "Region 4";
-        restr_items[6].value = RESTRICT_WORLD;
-        restr_items[6].label = "Inside graph";
+        Widget dialog, rc_trans, fr;
 
 	eui.top = XmCreateDialogShell(app_shell, "evaluateExpression", NULL, 0);
         XtVaSetValues(eui.top, XmNallowShellResize, True, NULL);
@@ -138,18 +121,10 @@ void create_eval_frame(void *data)
 
 	CreateSeparator(rc_trans);
 	eui.formula_item = CreateScrollTextItem2(rc_trans, 3, "Formula:");
-	CreateSeparator(rc_trans);
 
-	rc2 = XtVaCreateWidget("rc",
-            xmRowColumnWidgetClass, rc_trans,
-            XmNorientation, XmHORIZONTAL,
-            NULL);
-        eui.restr_item = CreateOptionChoice(rc2,
-	    "Restriction:", 1, 7, restr_items);
-	eui.negate_item = CreateToggleButton(rc2, "Negated");
-        XtManageChild(rc2);
+        eui.restr_item =
+            CreateRestrictionChoice(rc_trans, "Source data filtering");
 
-	CreateSeparator(rc_trans);
         XtManageChild(rc_trans);
 	fr = CreateFrame(dialog, NULL);
         XtVaSetValues(fr,
@@ -197,8 +172,8 @@ static void compute_aac(void *data)
 
     set_wait_cursor();
     
-    restr_type = GetOptionChoice(eui.restr_item);
-    restr_negate = GetToggleButtonState(eui.negate_item);
+    restr_type = GetOptionChoice(eui.restr_item->r_sel);
+    restr_negate = GetToggleButtonState(eui.restr_item->negate);
     
     g1_ok = GetSingleListChoice(eui.srcdest->src->graph_sel, &gno1);
     g2_ok = GetSingleListChoice(eui.srcdest->dest->graph_sel, &gno2);
