@@ -53,6 +53,7 @@
 #include "graphs.h"
 #include "plotone.h"
 #include "utils.h"
+#include "ssdata.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -63,11 +64,10 @@ static void compute_aac(void *data);
 static void do_digfilter_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_spline_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_differ_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_seasonal_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_interp_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_interp_proc(void *data);
 static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -235,6 +235,192 @@ static void compute_aac(void *data)
     }
     unset_wait_cursor();
 }
+
+
+#define SAMPLING_MESH   0
+#define SAMPLING_SET    1
+
+/* interpolation */
+
+typedef struct _Interp_ui {
+    TransformStructure *tdialog;
+    OptionStructure *method;
+    OptionStructure *sampling;
+    Widget strict;
+    Widget mrc;
+    Widget mstart;
+    Widget mstop;
+    Widget mlength;
+    ListStructure *sset_sel;
+} Interp_ui;
+
+static Interp_ui *interpui = NULL;
+
+static void sampling_cb(int value, void *data)
+{
+    Interp_ui *ui = (Interp_ui *) data;
+    
+    if (value == SAMPLING_MESH) {
+        XtSetSensitive(ui->mrc, True);
+        XtSetSensitive(ui->sset_sel->list, False);
+    } else {
+        XtSetSensitive(ui->mrc, False);
+        XtSetSensitive(ui->sset_sel->list, True);
+    }
+}
+
+void create_interp_frame(void *data)
+{
+    set_wait_cursor();
+
+    if (interpui == NULL) {
+        Widget fr, rc, rc2;
+        OptionItem opitems[3];
+        
+        interpui = xmalloc(sizeof(Interp_ui));
+        interpui->tdialog = CreateTransformDialogForm(app_shell,
+            "Interpolation", LIST_TYPE_MULTIPLE);
+        fr = CreateFrame(interpui->tdialog->form, NULL);
+        rc = CreateVContainer(fr);
+        
+        rc2 = CreateHContainer(rc);
+        opitems[0].value = INTERP_LINEAR;
+        opitems[0].label = "Linear";
+        opitems[1].value = INTERP_SPLINE;
+        opitems[1].label = "Cubic spline";
+        opitems[2].value = INTERP_ASPLINE;
+        opitems[2].label = "Akima spline";
+        interpui->method = CreateOptionChoice(rc2, "Method:", 0, 3, opitems);
+        
+        opitems[0].value = SAMPLING_MESH;
+        opitems[0].label = "Linear mesh";
+        opitems[1].value = SAMPLING_SET;
+        opitems[1].label = "Abscissas of another set";
+        interpui->sampling = CreateOptionChoice(rc2, "Sampling:", 0, 2, opitems);
+        AddOptionChoiceCB(interpui->sampling, sampling_cb, interpui);
+
+        interpui->strict = CreateToggleButton(rc,
+            "Strict (no extrapolation beyond source bounds)");
+        
+        CreateSeparator(rc);
+        
+        interpui->mrc = CreateHContainer(rc);
+	interpui->mstart  = CreateTextItem2(interpui->mrc, 10, "Start at:");
+	interpui->mstop   = CreateTextItem2(interpui->mrc, 10, "Stop at:");
+	interpui->mlength = CreateTextItem2(interpui->mrc, 6, "Length:");
+        
+        interpui->sset_sel = CreateSetChoice(rc,
+            "Sampling set", LIST_TYPE_SINGLE, TRUE);
+        XtSetSensitive(interpui->sset_sel->list, False);
+        
+        CreateAACDialog(interpui->tdialog->form, fr, do_interp_proc, interpui);
+    }
+    
+    RaiseWindow(GetParent(interpui->tdialog->form));
+    unset_wait_cursor();
+}
+
+
+static int do_interp_proc(void *data)
+{
+    int error, res;
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int method, sampling, strict;
+    int i, meshlen;
+    double *mesh = NULL;
+    Interp_ui *ui = (Interp_ui *) data;
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest,
+        &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+
+    error = FALSE;
+    
+    method = GetOptionChoice(ui->method);
+    sampling = GetOptionChoice(ui->sampling);
+    strict = GetToggleButtonState(ui->strict);
+
+    if (sampling == SAMPLING_SET) {
+        int gsampl, setnosampl;
+        gsampl = get_cg();
+        res = GetSingleListChoice(ui->sset_sel, &setnosampl);
+        if (res != RETURN_SUCCESS) {
+            errmsg("Please select single sampling set");
+            error = TRUE;
+        } else {
+            meshlen = getsetlength(gsampl, setnosampl);
+            mesh = getcol(gsampl, setnosampl, DATA_X);
+        }
+    } else {
+        double start, stop;
+        if(xv_evalexpr(ui->mstart, &start)  != RETURN_SUCCESS ||
+           xv_evalexpr(ui->mstop,  &stop)   != RETURN_SUCCESS ||
+           xv_evalexpri(ui->mlength, &meshlen) != RETURN_SUCCESS ) {
+            errmsg("Can't parse mesh settings");
+            error = TRUE;
+        } else {
+            mesh = allocate_mesh(start, stop, meshlen);
+            if (mesh == NULL) {
+	        errmsg("Can't allocate mesh");
+                error = TRUE;
+            }
+        }
+    }
+    
+    if (error) {
+        xfree(svaluessrc);
+        if (nsdest > 0) {
+            xfree(svaluesdest);
+        }
+        return RETURN_FAILURE;
+    }
+
+    set_wait_cursor();
+    
+    for (i = 0; i < nssrc; i++) {
+	int setnosrc, setnodest;
+        setnosrc = svaluessrc[i];
+	if (nsdest != 0) {
+            setnodest = svaluesdest[i];
+        } else {
+            setnodest = nextset(gdest);
+            set_set_hidden(gdest, setnodest, FALSE);
+        }
+        
+        res = do_interp(gsrc, setnosrc, gdest, setnodest,
+            mesh, meshlen, method, strict);
+	
+        if (res != RETURN_SUCCESS) {
+	    errmsg("Error in do_interp()");
+	    error = TRUE;
+            break;
+	}
+    }
+    
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    if (sampling == SAMPLING_MESH) {
+        xfree(mesh);
+    }
+
+    update_set_lists(gdest);
+    xdrawgraph();
+    
+    unset_wait_cursor();
+    
+    if (error) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
+}
+
 
 /* histograms */
 
@@ -1130,85 +1316,6 @@ static void do_seasonal_proc(Widget w, XtPointer client_data, XtPointer call_dat
     drawgraph();
 }
 
-/* interpolation */
-
-typedef struct _Interp_ui {
-    Widget top;
-    SetChoiceItem sel1;
-    SetChoiceItem sel2;
-    Widget *type_item;
-    Widget *region_item;
-    Widget *meth_item;
-    Widget rinvert_item;
-} Interp_ui;
-
-static Interp_ui interpui;
-
-void create_interp_frame(void *data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (interpui.top == NULL) {
-	char *label2[3];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	interpui.top = XmCreateDialogShell(app_shell, "Interpolation", NULL, 0);
-	handle_close(interpui.top);
-	dialog = XmCreateRowColumn(interpui.top, "dialog_rc", NULL, 0);
-
-	interpui.sel1 = CreateSetSelector(dialog, "Interpolate on set:",
-					  SET_SELECT_ACTIVE,
-					  FILTER_SELECT_NONE,
-					  GRAPH_SELECT_CURRENT,
-					  SELECTION_TYPE_SINGLE);
-	interpui.sel2 = CreateSetSelector(dialog, "At points from set:",
-					  SET_SELECT_ACTIVE,
-					  FILTER_SELECT_NONE,
-					  GRAPH_SELECT_CURRENT,
-					  SELECTION_TYPE_SINGLE);
-
-	interpui.meth_item = CreatePanelChoice(dialog,
-					  "Method:",
-					  4,
-					  "Linear",
-					  "Spline",
-					  "Akima",
-					  NULL, 0);
-					  
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_interp_proc, (XtPointer) & interpui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) interpui.top);
-
-	ManageChild(dialog);
-    }
-    RaiseWindow(interpui.top);
-    unset_wait_cursor();
-}
-
-/*
- * interpolation
- */
-static void do_interp_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int gno = get_cg();
-    int set1, set2, method;
-    Interp_ui *ui = (Interp_ui *) client_data;
-    set1 = GetSelectedSet(ui->sel1);
-    set2 = GetSelectedSet(ui->sel2);
-    if (set1 == SET_SELECT_ERROR || set2 == SET_SELECT_ERROR) {
-	errwin("Select 2 sets");
-	return;
-    }
-    method = GetChoice(ui->meth_item);
-    set_wait_cursor();
-    do_interp(gno, set1, gno, set2, method);
-    update_set_lists(gno);
-    drawgraph();
-    unset_wait_cursor();
-}
 
 /* cross correlation */
 
@@ -1284,98 +1391,6 @@ static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
-/* splines */
-
-typedef struct _Spline_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget *type_item;
-    Widget start_item;
-    Widget stop_item;
-    Widget step_item;
-    Widget *region_item;
-    Widget rinvert_item;
-} Spline_ui;
-
-static Spline_ui splineui;
-
-void create_spline_frame(void *data)
-{
-    static Widget dialog;
-
-    set_wait_cursor();
-    if (splineui.top == NULL) {
-	char *label2[2];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	splineui.top = XmCreateDialogShell(app_shell, "Splines", NULL, 0);
-	handle_close(splineui.top);
-	dialog = XmCreateRowColumn(splineui.top, "dialog_rc", NULL, 0);
-
-	splineui.sel = CreateSetSelector(dialog, "Apply to set:",
-					 SET_SELECT_ALL,
-					 FILTER_SELECT_NONE,
-					 GRAPH_SELECT_CURRENT,
-					 SELECTION_TYPE_MULTIPLE);
-
-
-	splineui.start_item = CreateTextItem2(dialog, 10, "Start:");
-	splineui.stop_item = CreateTextItem2(dialog, 10, "Stop:");
-	splineui.step_item = CreateTextItem2(dialog, 6, "Number of points:");
-	splineui.type_item = CreatePanelChoice(dialog,
-					  "Spline type:",
-					  3,
-					  "Cubic",
-					  "Akima",
-					  0, 0);
-
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_spline_proc, (XtPointer) & splineui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) splineui.top);
-
-	ManageChild(dialog);
-    }
-    RaiseWindow(splineui.top);
-    unset_wait_cursor();
-}
-
-/*
- * splines
- */
-static void do_spline_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int gno = get_cg();
-    int *selsets;
-    int i, cnt;
-    int setno, n;
-    int stype;
-    double start, stop;
-    Spline_ui *ui = (Spline_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
-        return;
-    }
-    if(xv_evalexpr(ui->start_item, &start) != RETURN_SUCCESS ||
-       xv_evalexpr(ui->stop_item,  &stop)  != RETURN_SUCCESS ||
-       xv_evalexpri(ui->step_item, &n)     != RETURN_SUCCESS )
-		return;
-
-    stype = GetChoice(ui->type_item);
-    
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	do_spline(gno, setno, start, stop, n, stype+1);
-    }
-    update_set_lists(gno);
-    unset_wait_cursor();
-
-    xfree(selsets);
-    drawgraph();
-}
 
 /* sample a set */
 
