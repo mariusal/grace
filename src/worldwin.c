@@ -47,18 +47,7 @@
 #include "protos.h"
 
 
-static Widget overlay_dialog = NULL;
-
-/*
- * Panel item declarations
- */
-
-static StorageStructure *graph_overlay1_choice_item;
-static StorageStructure *graph_overlay2_choice_item;
-static OptionStructure *graph_overlaytype_item;
-
 static int define_arrange_proc(void *data);
-static int define_overlay_proc(void *data);
 static int define_autos_proc(void *data);
 
 typedef struct _Arrange_ui {
