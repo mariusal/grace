@@ -1,0 +1,18 @@
+Here is a simple fix allowing for correct processing of the 'ca' attribute in
+the 'tabular' element:
+
+--- sgml-tools-1.0.9/lib/dist/fmt_latex2e.pl.orig	Tue Oct 13 13:48:02 1998
++++ sgml-tools-1.0.9/lib/dist/fmt_latex2e.pl	Mon Apr  3 17:44:59 2000
+@@ -111,7 +111,7 @@
+ 	  if ($type eq "CDATA")
+ 	    {
+ 	      # CDATA attributes get translated also
+-	      if ($name eq "URL" or $name eq "ID")
++	      if ($name eq "URL" or $name eq "ID" or $name eq "CA")
+ 	        {
+ 		  # URL for url.sty is a kind of verbatim...
+ 		  my $old_verb = $in_verb;
+
+
+With the patch applied, it's possible to use '|' to denote vertical lines,
+as well as p{[width]} (for lengthy justified text).
