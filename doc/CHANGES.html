@@ -29,6 +29,9 @@
  !  [ES] INTERPOLATE, HISTOGRAM, FFT, DIFFERENCE, INTEGRATE, XCOR
  !  [ES] sampling
  !  [ES] prune data
+ !  [AM/ES] X error handler
+ !  [EV/ES] instant update
+ *  [ES] dropped the "-remove" command line flag
 
 <H3>Interface</H3>
  *  [ES] don't hardcode file extensions in file selection dialogs, but define
@@ -41,6 +44,8 @@
  *  [ES] implemented font kerning in the (E)PS output
  *  [ES] added option to choose document data (7bit/8bit/binary) for the PS
          driver
+ *  [MD] produce MIF files with a textflow in which the graph is included, so
+         it can be included in another FrameMaker document
 
 <H3>Portability/Compilation</H3>
  *  [AM] OS/2 updates
@@ -66,6 +71,12 @@
          (rep. #874)
  *  [ES] fixed a bug in the Xbae widget crashing under a multi-head X server
          (rep. #878)
+ *  [ES] fixed rounding error in calculation pulldown menu length (rep. #929)
+ *  [ES] double click on canvas with a pie chart might cause crash
+ *  [ES] expn() docs fixed (rep. #926)
+ *  [MD] fixed conversion table for non-ASCII codes in the MIF driver
+         (rep. #946)
+ *  [EV] legend entries for BARDY and BARDYDY sets weren't drawn
 
 
 <H2>5.1.1</H2>
@@ -964,6 +975,7 @@
     [AC]  - Alber Chin &lt;china@thewrittenword.com&gt;
     [GJ]  - Gerd Jahn &lt;Gerd.Jahn@dss.dornier.dasa.de&gt;
     [UH]  - Ulrich Harttig &lt;harttigu@ucs.orst.edu&gt;
+    [MD]  - Matthias Dillier &lt;Matthias.Dillier@snb.ch&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)
