@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Create.c,v 1.3 2001-12-26 21:39:46 fnevgeny Exp $
+ * $Id: Create.c,v 1.4 2004-07-30 21:25:56 fnevgeny Exp $
  */
 
 /*
@@ -876,16 +876,19 @@ xbaeCreateDrawGC(mw)
 XbaeMatrixWidget mw;
 {
     XGCValues values;
-    unsigned long mask = GCForeground | GCFont | GCStipple;
+    unsigned long mask = GCForeground | GCStipple;
 
     /*
      * GC for drawing cells. We create it instead of using a cached one,
      * since the foreground may change frequently.
      */
     values.foreground = mw->manager.foreground;
-    values.font = mw->matrix.fid;
     values.stipple = createInsensitivePixmap(mw);
-
+    /* font id isn't used for fontsets */
+    if (mw->matrix.font_struct) {
+        mask |= GCFont;
+        values.font = mw->matrix.fid;
+    }
     mw->matrix.draw_gc = XCreateGC(XtDisplay(mw),
 				   GC_PARENT_WINDOW(mw),
 				   mask, &values);
@@ -912,14 +915,18 @@ xbaeCreateLabelGC(mw)
 XbaeMatrixWidget mw;
 {
     XGCValues values;
-    unsigned long mask = GCForeground | GCFont | GCStipple;
+    unsigned long mask = GCForeground | GCStipple;
 
     /*
      * GC for drawing labels
      */
     values.foreground = mw->manager.foreground;
-    values.font = mw->matrix.label_fid;
     values.stipple = createInsensitivePixmap(mw);
+    /* font id isn't used for fontsets */
+    if (mw->matrix.label_font_struct) {
+        mask |= GCFont;
+        values.font = mw->matrix.label_fid;
+    }
     mw->matrix.label_gc = XCreateGC(XtDisplay(mw),
 				    GC_PARENT_WINDOW(mw),
 				    mask, &values);
@@ -930,14 +937,18 @@ xbaeCreateLabelClipGC(mw)
 XbaeMatrixWidget mw;
 {
     XGCValues values;
-    unsigned long mask = GCForeground | GCFont | GCStipple;
+    unsigned long mask = GCForeground | GCStipple;
 
     /*
      * GC for drawing labels with clipping.
      */
     values.foreground = mw->manager.foreground;
-    values.font = mw->matrix.label_fid;
     values.stipple = createInsensitivePixmap(mw);
+    /* font id isn't used for fontsets */
+    if (mw->matrix.label_font_struct) {
+        mask |= GCFont;
+        values.font = mw->matrix.label_fid;
+    }
     mw->matrix.label_clip_gc = XCreateGC(XtDisplay(mw),
 					 GC_PARENT_WINDOW(mw),
 					 mask, &values);
@@ -999,17 +1010,48 @@ XbaeMatrixWidget mw;
 	(Widget) mw, mask, &values);
 }
 
+static short
+xbaeGetFontWidth(font_struct)
+XFontStruct *font_struct;
+{
+    short width;
+    unsigned long fp;
+    unsigned char char_idx;
+
+    /*
+     *  From the XmText man page: If the em-space value is
+     *  available, it is used. If not, the width of the  numeral  "0"
+     *  is used. If this is not available, the maximum width is used.
+     */
+    if (XGetFontProperty(font_struct, XA_QUAD_WIDTH, &fp) && fp != 0) {
+        width = (short) fp;
+    } else {
+	if (font_struct->min_char_or_byte2 <= '0' &&
+	    font_struct->max_char_or_byte2 >= '0' &&
+            font_struct->per_char) {
+	    char_idx = '0' - font_struct->min_char_or_byte2;
+            width = font_struct->per_char[char_idx].width;
+	} else {
+	    width = font_struct->max_bounds.width;
+        }
+    }
+
+    /* last safety check */
+    if (width <= 0) {
+        width = 1;
+    }
+    
+    return width;
+}
+
 void
 xbaeNewFont(mw)
 XbaeMatrixWidget mw;
 {
     XmFontContext context;
-    XFontStruct *font;
     XmFontListEntry font_list_entry;
     XmFontType type;
-    XFontSetExtents *extents;
-    XFontStruct **fonts;
-    char **font_names;
+    XtPointer fontp;
 
     /*
      * Make a private copy of the FontList
@@ -1033,31 +1075,35 @@ XbaeMatrixWidget mw;
 	    "XbaeMatrix: XmFontListNextEntry failed, no next fontList",
 	    NULL, 0);
 
-    font = (XFontStruct*)XmFontListEntryGetFont(font_list_entry, &type);
-
+    fontp = XmFontListEntryGetFont(font_list_entry, &type);
+        
+    
     if (type == XmFONT_IS_FONTSET)
     {
-	mw->matrix.font_set = (XFontSet)font;
+        XFontSetExtents *extents;
+	
+        mw->matrix.font_set = (XFontSet)fontp;
 	mw->matrix.font_struct = (XFontStruct*)NULL;
 
-	extents = XExtentsOfFontSet((XFontSet)font);
-	mw->matrix.font_width = extents->max_logical_extent.width;
-	mw->matrix.font_height = extents->max_logical_extent.height;
-	mw->matrix.font_y = extents->max_logical_extent.y;
+        extents = XExtentsOfFontSet(mw->matrix.font_set);
 
-	XFontsOfFontSet((XFontSet)font, &fonts, &font_names);
-	mw->matrix.fid = fonts[0]->fid;
+        mw->matrix.font_width = extents->max_logical_extent.width;
+        mw->matrix.font_height = extents->max_logical_extent.height;
+        mw->matrix.font_y = extents->max_logical_extent.y;
+        mw->matrix.fid  = 0; /* not used for fontsets */
     }
     else
     {
-	mw->matrix.font_set = (XFontSet)NULL;
-	mw->matrix.font_struct = font;
-
-	mw->matrix.font_width = (font->max_bounds.width + font->min_bounds.width) /2;
-	mw->matrix.font_height = (font->max_bounds.descent + font->max_bounds.ascent);
-	mw->matrix.font_y = -font->max_bounds.ascent;
-
-	mw->matrix.fid = font->fid;
+        XFontStruct *font_struct = (XFontStruct *)fontp;
+	
+        mw->matrix.font_set = (XFontSet)NULL;
+	mw->matrix.font_struct = font_struct;
+        
+        mw->matrix.font_width  = xbaeGetFontWidth(font_struct);
+        mw->matrix.font_height = (font_struct->max_bounds.descent +
+                                  font_struct->max_bounds.ascent);
+        mw->matrix.font_y = -font_struct->max_bounds.ascent;
+        mw->matrix.fid  = font_struct->fid;
     }
 
     XmFontListFreeFontContext(context);
@@ -1068,12 +1114,9 @@ xbaeNewLabelFont(mw)
 XbaeMatrixWidget mw;
 {
     XmFontContext context;
-    XFontStruct *font;
     XmFontListEntry font_list_entry;
     XmFontType type;
-    XFontSetExtents *extents;
-    XFontStruct **fonts;
-    char **font_names;
+    XtPointer fontp;
 
     /*
      * Make a private copy of the FontList
@@ -1097,31 +1140,34 @@ XbaeMatrixWidget mw;
 	    "XbaeMatrix: XmFontListNextEntry failed, no next fontList",
 	    NULL, 0);
 
-    font = (XFontStruct*)XmFontListEntryGetFont(font_list_entry, &type);
-
+    fontp = XmFontListEntryGetFont(font_list_entry, &type);
+        
     if (type == XmFONT_IS_FONTSET)
     {
-	mw->matrix.label_font_set = (XFontSet)font;
+        XFontSetExtents *extents;
+	
+        mw->matrix.label_font_set = (XFontSet)fontp;
 	mw->matrix.label_font_struct = (XFontStruct*)NULL;
 
-	extents = XExtentsOfFontSet((XFontSet)font);
-	mw->matrix.label_font_width = extents->max_logical_extent.width;
-	mw->matrix.label_font_height = extents->max_logical_extent.height;
-	mw->matrix.label_font_y = extents->max_logical_extent.y;
+        extents = XExtentsOfFontSet(mw->matrix.label_font_set);
 
-	XFontsOfFontSet((XFontSet)font, &fonts, &font_names);
-	mw->matrix.label_fid = fonts[0]->fid;
+        mw->matrix.label_font_width = extents->max_logical_extent.width;
+        mw->matrix.label_font_height = extents->max_logical_extent.height;
+        mw->matrix.label_font_y = extents->max_logical_extent.y;
+        mw->matrix.label_fid  = 0; /* not used for fontsets */
     }
     else
     {
-	mw->matrix.label_font_set = (XFontSet)NULL;
-	mw->matrix.label_font_struct = font;
+        XFontStruct *font_struct = (XFontStruct *)fontp;
+	
+        mw->matrix.label_font_set = (XFontSet)NULL;
+	mw->matrix.label_font_struct = font_struct;
 
-	mw->matrix.label_font_width = (font->max_bounds.width + font->min_bounds.width) /2;
-	mw->matrix.label_font_height = (font->max_bounds.descent + font->max_bounds.ascent);
-	mw->matrix.label_font_y = -font->max_bounds.ascent;
-
-	mw->matrix.label_fid = font->fid;
+        mw->matrix.label_font_width  = xbaeGetFontWidth(font_struct);
+        mw->matrix.label_font_height = (font_struct->max_bounds.descent +
+                                  font_struct->max_bounds.ascent);
+        mw->matrix.label_font_y = -font_struct->max_bounds.ascent;
+        mw->matrix.label_fid  = font_struct->fid;
     }
 
     XmFontListFreeFontContext(context);
