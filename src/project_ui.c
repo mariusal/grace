@@ -191,7 +191,7 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->description  = CreateScrolledTextInput(rc, "Project description:", 5);
     AddTextInputCB(ui->description, text_explorer_cb, eui);
-    ui->sformat = CreateTextItem2(rc, 15, "Data format:");
+    ui->sformat = CreateTextItem(rc, 15, "Data format:");
     AddTextItemCB(ui->sformat, titem_explorer_cb, eui);
 
     fr = CreateFrame(form, "Page dimensions");
@@ -207,9 +207,9 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->page_format, oc_explorer_cb, eui);
 
     rc = CreateHContainer(rc1);
-    ui->page_x = CreateTextItem2(rc, 7, "Dimensions:");
+    ui->page_x = CreateTextItem(rc, 7, "Dimensions:");
     AddTextItemCB(ui->page_x, titem_explorer_cb, eui);
-    ui->page_y = CreateTextItem2(rc, 7, "x ");
+    ui->page_y = CreateTextItem(rc, 7, "x ");
     AddTextItemCB(ui->page_y, titem_explorer_cb, eui);
     ui->page_size_unit = CreateOptionChoiceVA(rc, " ",
         "pp", PAGE_UNITS_PP,
@@ -240,12 +240,12 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
 
     fr = CreateFrame(form, "Dates");
     rc1 = CreateVContainer(fr);
-    ui->refdate = CreateTextItem2(rc1, 20, "Reference date:");
+    ui->refdate = CreateTextItem(rc1, 20, "Reference date:");
     AddTextItemCB(ui->refdate, titem_explorer_cb, eui);
     rc = CreateHContainer(rc1);
     ui->two_digits_years = CreateToggleButton(rc, "Two-digit year span");
     AddToggleButtonCB(ui->two_digits_years, tb_explorer_cb, eui);
-    ui->wrap_year = CreateTextItem2(rc, 4, "Wrap year:");
+    ui->wrap_year = CreateTextItem(rc, 4, "Wrap year:");
     AddTextItemCB(ui->wrap_year, titem_explorer_cb, eui);
     AddToggleButtonCB(ui->two_digits_years, wrap_year_cb, ui->wrap_year);
     

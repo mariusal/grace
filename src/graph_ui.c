@@ -83,9 +83,9 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     rc1 = CreateVContainer(fr);
     
     rc = CreateHContainer(rc1);
-    ui->start_x = CreateTextItem2(rc, 10, "Start:");
+    ui->start_x = CreateTextItem(rc, 10, "Start:");
     AddTextItemCB(ui->start_x, titem_explorer_cb, eui);
-    ui->stop_x = CreateTextItem2(rc, 10, "Stop:");
+    ui->stop_x = CreateTextItem(rc, 10, "Stop:");
     AddTextItemCB(ui->stop_x, titem_explorer_cb, eui);
 
     rc = CreateHContainer(rc1);
@@ -100,9 +100,9 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     rc1 = CreateVContainer(fr);
     
     rc = CreateHContainer(rc1);
-    ui->start_y = CreateTextItem2(rc, 10, "Start:");
+    ui->start_y = CreateTextItem(rc, 10, "Start:");
     AddTextItemCB(ui->start_y, titem_explorer_cb, eui);
-    ui->stop_y = CreateTextItem2(rc, 10, "Stop:");
+    ui->stop_y = CreateTextItem(rc, 10, "Stop:");
     AddTextItemCB(ui->stop_y, titem_explorer_cb, eui);
 
     rc = CreateHContainer(rc1);
@@ -114,7 +114,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     AddToggleButtonCB(ui->invert_y, tb_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "2D+ graphs");
-    ui->znorm = CreateTextItem2(fr, 10, "Z normalization");
+    ui->znorm = CreateTextItem(fr, 10, "Z normalization");
     AddTextItemCB(ui->znorm, titem_explorer_cb, eui); 
 
     fr = CreateFrame(ui->main_tp, "XY charts");
@@ -153,9 +153,9 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     ui->fixedp = CreateToggleButton(rc, "Enable");
     AddToggleButtonCB(ui->fixedp, tb_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
-    ui->locx = CreateTextItem2(rc1, 10, "X:");
+    ui->locx = CreateTextItem(rc1, 10, "X:");
     AddTextItemCB(ui->locx, titem_explorer_cb, eui);
-    ui->locy = CreateTextItem2(rc1, 10, "Y:");
+    ui->locy = CreateTextItem(rc1, 10, "Y:");
     AddTextItemCB(ui->locy, titem_explorer_cb, eui);
 
 

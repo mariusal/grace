@@ -297,9 +297,9 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddScaleCB(ui->avalue_angle, scale_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->avalue_prestr = CreateTextItem2(rc2, 10, "Prepend:");
+    ui->avalue_prestr = CreateTextItem(rc2, 10, "Prepend:");
     AddTextItemCB(ui->avalue_prestr, titem_explorer_cb, eui);
-    ui->avalue_appstr = CreateTextItem2(rc2, 10, "Append:");
+    ui->avalue_appstr = CreateTextItem(rc2, 10, "Append:");
     AddTextItemCB(ui->avalue_appstr, titem_explorer_cb, eui);
 
     fr = CreateFrame(ui->avalue_tp, "Format options");
@@ -322,9 +322,9 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->avalue_tp, "Placement");
     rc = CreateVContainer(fr);
     rc2 = CreateHContainer(rc);
-    ui->avalue_offsetx = CreateTextItem2(rc2, 10, "X offset:");
+    ui->avalue_offsetx = CreateTextItem(rc2, 10, "X offset:");
     AddTextItemCB(ui->avalue_offsetx, titem_explorer_cb, eui);
-    ui->avalue_offsety = CreateTextItem2(rc2, 10, "Y offset:");
+    ui->avalue_offsety = CreateTextItem(rc2, 10, "Y offset:");
     AddTextItemCB(ui->avalue_offsety, titem_explorer_cb, eui);
     ui->avalue_just = CreateTextJustChoice(rc, "Justification:");
     AddOptionChoiceCB(ui->avalue_just, oc_explorer_cb, eui);

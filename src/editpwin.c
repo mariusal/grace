@@ -761,7 +761,7 @@ static EditPoints *new_ep(void)
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
     ep->stype = CreateSetTypeChoice(rc1, "Type:");
-    ep->length = CreateTextItem2(rc1, 6, "Length:");
+    ep->length = CreateTextItem(rc1, 6, "Length:");
     ep->comment = CreateTextInput(rc, "Comment:");
 
     fr = CreateFrame(ep->top, "Hotlink");
@@ -774,7 +774,7 @@ static EditPoints *new_ep(void)
         "Pipe", SOURCE_PIPE,
         NULL);
     rc1 = CreateHContainer(rc);
-    ep->hotfile = CreateTextItem2(rc1, 20, "File name:");
+    ep->hotfile = CreateTextItem(rc1, 20, "File name:");
     wbut = CreateButton(rc1, "Browse...");
     AddButtonCB(wbut, create_hotfiles_popup, ep);
 

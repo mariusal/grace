@@ -548,7 +548,7 @@ OptionStructure *CreatePlacementChoice(Widget parent, char *s);
 OptionStructure *CreatePaperOrientationChoice(Widget parent, char *s);
 OptionStructure *CreatePaperFormatChoice(Widget parent, char *s);
 
-Widget CreateTextItem2(Widget parent, int len, char *s);
+Widget CreateTextItem(Widget parent, int len, char *s);
 void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
 
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);

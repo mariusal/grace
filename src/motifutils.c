@@ -3840,7 +3840,7 @@ void SelectTabPage(Widget tab, Widget w)
     XmTabSetTabWidget(tab, w, True);
 }
 
-Widget CreateTextItem2(Widget parent, int len, char *s)
+Widget CreateTextItem(Widget parent, int len, char *s)
 {
     Widget w;
     Widget rc;

@@ -313,13 +313,13 @@ void create_datasetop_popup(Widget but, void *data)
 
 	/* Split */
 	rc = CreateVContainer(dialog);
-        datasetopui.length_item = CreateTextItem2(rc, 6, "Length:");
+        datasetopui.length_item = CreateTextItem(rc, 6, "Length:");
         datasettype_controls[3] = rc;
 
 	/* Drop points */
 	rc = CreateHContainer(dialog);
-        datasetopui.start_item = CreateTextItem2(rc, 6, "Start at:");
-        datasetopui.stop_item  = CreateTextItem2(rc, 6, "Stop at:");
+        datasetopui.start_item = CreateTextItem(rc, 6, "Start at:");
+        datasetopui.stop_item  = CreateTextItem(rc, 6, "Stop at:");
         datasettype_controls[4] = rc;
 
 	ManageChild(datasettype_controls[0]);
@@ -485,9 +485,9 @@ void create_leval_frame(Widget but, void *data)
 	fr = CreateFrame(levalui.top, "Parameter mesh ($t)");
         AddDialogFormChild(levalui.top, fr);
         rc1 = CreateHContainer(fr);
-	levalui.start = CreateTextItem2(rc1, 10, "Start at:");
-	levalui.stop = CreateTextItem2(rc1, 10, "Stop at:");
-	levalui.npts = CreateTextItem2(rc1, 6, "Length:");
+	levalui.start = CreateTextItem(rc1, 10, "Start at:");
+	levalui.stop = CreateTextItem(rc1, 10, "Stop at:");
+	levalui.npts = CreateTextItem(rc1, 6, "Length:");
 
 	levalui.set_type = CreateSetTypeChoice(levalui.top, "Set type:");
         AddDialogFormChild(levalui.top, levalui.set_type->menu);

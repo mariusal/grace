@@ -190,7 +190,7 @@ void create_points_frame(void *data)
         AddListChoiceCB(track_set_sel, track_set_cbproc, NULL);
         
 	rc = CreateHContainer(dialog);
-	goto_index_item = CreateTextItem2(rc, 6, "Point location:");
+	goto_index_item = CreateTextItem(rc, 6, "Point location:");
 	wbut = CreateButton(rc, "Goto point");
 	AddButtonCB(wbut, do_gotopt_proc, NULL);
 

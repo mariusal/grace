@@ -141,10 +141,10 @@ void create_printer_setup(Widget but, void *data)
 	printto_item = CreateToggleButton(rc1, "Print to file");
         AddToggleButtonCB(printto_item, do_pr_toggle, NULL);
 
-	print_string_item = CreateTextItem2(rc1, 25, "Print command:");
+	print_string_item = CreateTextItem(rc1, 25, "Print command:");
 
 	rc_filesel = CreateHContainer(rc1);
-	printfile_item = CreateTextItem2(rc_filesel, 20, "File name:");
+	printfile_item = CreateTextItem(rc_filesel, 20, "File name:");
 	wbut = CreateButton(rc_filesel, "Browse...");
 	AddButtonCB(wbut, create_printfiles_popup, NULL);
 
@@ -162,8 +162,8 @@ void create_printer_setup(Widget but, void *data)
 	AddOptionChoiceCB(page_format_item, do_format_toggle, NULL);
 
 	rc = CreateHContainer(rc1);
-        page_x_item = CreateTextItem2(rc, 7, "Dimensions:");
-        page_y_item = CreateTextItem2(rc, 7, "x ");
+        page_x_item = CreateTextItem(rc, 7, "Dimensions:");
+        page_y_item = CreateTextItem(rc, 7, "x ");
         option_items = xmalloc(3*sizeof(OptionItem));
         option_items[0].value = 0;
         option_items[0].label = "pix";
@@ -177,7 +177,7 @@ void create_printer_setup(Widget but, void *data)
         xfree(option_items);
         SetOptionChoice(page_size_unit_item, current_page_units);
 
-        dev_res_item = CreateTextItem2(rc1, 4, "Resolution (dpi):");
+        dev_res_item = CreateTextItem(rc1, 4, "Resolution (dpi):");
 
 	autocrop_item = CreateToggleButton(rc1, "Auto crop");
 

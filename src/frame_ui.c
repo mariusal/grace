@@ -54,15 +54,15 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
 
     rc1 = CreateHContainer(rc);
-    ui->view_xv1 = CreateTextItem2(rc1, 8, "Xmin:");
+    ui->view_xv1 = CreateTextItem(rc1, 8, "Xmin:");
     AddTextItemCB(ui->view_xv1, titem_explorer_cb, eui);
-    ui->view_xv2 = CreateTextItem2(rc1, 8, "Xmax:");
+    ui->view_xv2 = CreateTextItem(rc1, 8, "Xmax:");
     AddTextItemCB(ui->view_xv2, titem_explorer_cb, eui);
 
     rc1 = CreateHContainer(rc);
-    ui->view_yv1 = CreateTextItem2(rc1, 8, "Ymin:");
+    ui->view_yv1 = CreateTextItem(rc1, 8, "Ymin:");
     AddTextItemCB(ui->view_yv1, titem_explorer_cb, eui);
-    ui->view_yv2 = CreateTextItem2(rc1, 8, "Ymax:");
+    ui->view_yv2 = CreateTextItem(rc1, 8, "Ymax:");
     AddTextItemCB(ui->view_yv2, titem_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Frame box");

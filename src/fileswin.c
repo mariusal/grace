@@ -264,7 +264,7 @@ void create_write_popup(Widget but, void *data)
 	fr = CreateFrame(fsb->rc, NULL);
 	rc = CreateVContainer(fr);
         gui->sel = CreateGraphSetSelector(rc, NULL, LIST_TYPE_MULTIPLE);
-	gui->format_item = CreateTextItem2(rc, 15, "Format: ");
+	gui->format_item = CreateTextItem(rc, 15, "Format: ");
         xv_setstr(gui->format_item, project_get_sformat(grace->project));
 
         ManageChild(fsb->FSB);
@@ -491,7 +491,7 @@ void create_netcdfs_popup(Widget but, void *data)
 	netcdf_listy_item = XmCreateScrolledList(dialog, "list", args, 2);
 	ManageChild(netcdf_listy_item);
 
-	netcdf_file_item = CreateTextItem2(dialog, 30, "netCDF file:");
+	netcdf_file_item = CreateTextItem(dialog, 30, "netCDF file:");
 
 	CreateSeparator(dialog);
 

@@ -211,7 +211,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
             "Parameters:", 1, MAXPARM + 1, np_option_items);
         AddOptionChoiceCB(ui->nparm_item, do_nparm_toggle, ui);
         
-	ui->tol_item = CreateTextItem2(rc1, 8, "Tolerance:");
+	ui->tol_item = CreateTextItem(rc1, 8, "Tolerance:");
         
 	ui->nsteps_item = CreateSpinChoice(rc1, "Iterations:", 3,
             SPIN_TYPE_INT, 0.0, 500.0, 5.0);
@@ -228,17 +228,17 @@ static void *nonl_build_cb(TransformStructure *tdialog)
 	    ui->parm_item[i] = CreateHContainer(rc2);
             UnmanageChild(ui->parm_item[i]);
 	    sprintf(buf, "A%1d: ", i);
-	    ui->value_item[i] = CreateTextItem2(ui->parm_item[i], 10, buf);
+	    ui->value_item[i] = CreateTextItem(ui->parm_item[i], 10, buf);
 
 	    ui->constr_item[i] = CreateToggleButton(ui->parm_item[i], "Bounds:");
 	    AddToggleButtonCB(ui->constr_item[i], do_constr_toggle, (void *) i);
 
-	    ui->lowb_item[i] = CreateTextItem2(ui->parm_item[i], 6, "");
+	    ui->lowb_item[i] = CreateTextItem(ui->parm_item[i], 6, "");
 	    
 	    sprintf(buf, "< A%1d < ", i);
 	    lab = CreateLabel(ui->parm_item[i], buf);
 
-	    ui->uppb_item[i] = CreateTextItem2(ui->parm_item[i], 6, "");
+	    ui->uppb_item[i] = CreateTextItem(ui->parm_item[i], 6, "");
 	}
 
         /* ------------ Advanced tab --------------*/
@@ -261,7 +261,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         option_items[4].value = WEIGHT_CUSTOM;
         option_items[4].label = "Custom";
 	ui->weigh_item = CreateOptionChoice(rc3, "Weights", 1, 5, option_items);
-	ui->wfunc_item = CreateTextItem2(rc3, 30, "Function:");
+	ui->wfunc_item = CreateTextItem(rc3, 30, "Function:");
 	AddOptionChoiceCB(ui->weigh_item, nonl_wf_cb, (void *) ui->wfunc_item);
 
 	fr3 = CreateFrame(nonl_advanced, "Load options");
@@ -274,9 +274,9 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         option_items[2].label = "Function";
 	ui->load_item = CreateOptionChoice(rc3, "Load", 1, 3, option_items);
 	ui->fload_rc = CreateHContainer(rc3);
-	ui->start_item = CreateTextItem2(ui->fload_rc, 6, "Start load at:");
-	ui->stop_item = CreateTextItem2(ui->fload_rc, 6, "Stop load at:");
-	ui->npts_item = CreateTextItem2(ui->fload_rc, 4, "# of points:");
+	ui->start_item = CreateTextItem(ui->fload_rc, 6, "Start load at:");
+	ui->stop_item = CreateTextItem(ui->fload_rc, 6, "Stop load at:");
+	ui->npts_item = CreateTextItem(ui->fload_rc, 4, "# of points:");
         AddOptionChoiceCB(ui->load_item, do_nonl_toggle, (void *) ui->fload_rc);
 
         /* defaults */
@@ -676,7 +676,7 @@ static void create_savefit_popup(Widget but, void *data)
         
         fsb = CreateFileSelectionBox(app_shell, "Save fit parameter file");
 	fr = CreateFrame(fsb->rc, NULL);
-	title_item = CreateTextItem2(fr, 25, "Title: ");
+	title_item = CreateTextItem(fr, 25, "Title: ");
 	AddFileSelectionBoxCB(fsb, do_savefit_proc, (void *) title_item);
         ManageChild(fsb->FSB);
     }

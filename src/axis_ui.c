@@ -73,7 +73,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
 
     rc2 = CreateHContainer(rc);
-    ui->tmajor = CreateTextItem2(rc2, 8, "Major spacing:");
+    ui->tmajor = CreateTextItem(rc2, 8, "Major spacing:");
     AddTextItemCB(ui->tmajor, titem_explorer_cb, eui);
     ui->nminor = CreateSpinChoice(rc2, "Minor ticks:",
         2, SPIN_TYPE_INT, 0.0, (double) MAX_TICKS - 1, 1.0);
@@ -102,9 +102,9 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc = CreateHContainer(fr);
     ui->zero = CreateToggleButton(rc, "Zero ");
     AddToggleButtonCB(ui->zero, tb_explorer_cb, eui);
-    ui->offx = CreateTextItem2(rc, 5, "Offsets - Left/bottom:");
+    ui->offx = CreateTextItem(rc, 5, "Offsets - Left/bottom:");
     AddTextItemCB(ui->offx, titem_explorer_cb, eui);
-    ui->offy = CreateTextItem2(rc, 5, "Right/top:");
+    ui->offy = CreateTextItem(rc, 5, "Right/top:");
     AddTextItemCB(ui->offy, titem_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Tick label properties");
@@ -148,9 +148,9 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->labelplace, oc_explorer_cb, eui);
     ui->labelspec_rc = CreateHContainer(rc);
     AddOptionChoiceCB(ui->labelplace, auto_spec_cb, ui->labelspec_rc);
-    ui->labelspec_para = CreateTextItem2(ui->labelspec_rc, 5, "Parallel offset:");
+    ui->labelspec_para = CreateTextItem(ui->labelspec_rc, 5, "Parallel offset:");
     AddTextItemCB(ui->labelspec_para, titem_explorer_cb, eui);
-    ui->labelspec_perp = CreateTextItem2(ui->labelspec_rc, 5, "Perpendicular offset:");
+    ui->labelspec_perp = CreateTextItem(ui->labelspec_rc, 5, "Perpendicular offset:");
     AddTextItemCB(ui->labelspec_perp, titem_explorer_cb, eui);
 
     fr = CreateFrame(ui->label_tp, "Bar properties");
@@ -181,14 +181,14 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     ui->tlstarttype = CreatePanelChoice(rc3, "Start at:",
                                     "Axis min", "Specified:", NULL);
     AddOptionChoiceCB(ui->tlstarttype, oc_explorer_cb, eui);
-    ui->tlstart = CreateTextItem2(rc3, 8, "");
+    ui->tlstart = CreateTextItem(rc3, 8, "");
     AddTextItemCB(ui->tlstart, titem_explorer_cb, eui);
 
     rc3 = CreateHContainer(rc2);
     ui->tlstoptype = CreatePanelChoice(rc3, "Stop at:",
                                    "Axis max", "Specified:", NULL);
     AddOptionChoiceCB(ui->tlstoptype, oc_explorer_cb, eui);
-    ui->tlstop = CreateTextItem2(rc3, 8, "");
+    ui->tlstop = CreateTextItem(rc3, 8, "");
     AddTextItemCB(ui->tlstop, titem_explorer_cb, eui);
 
     fr = CreateFrame(ui->ticklabel_tp, "Extra");
@@ -218,17 +218,17 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddTextInputCB(ui->tlformula, text_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->tlprestr = CreateTextItem2(rc2, 13, "Prepend:");
+    ui->tlprestr = CreateTextItem(rc2, 13, "Prepend:");
     AddTextItemCB(ui->tlprestr, titem_explorer_cb, eui);
-    ui->tlappstr = CreateTextItem2(rc2, 13, "Append:");
+    ui->tlappstr = CreateTextItem(rc2, 13, "Append:");
     AddTextItemCB(ui->tlappstr, titem_explorer_cb, eui);
 
     ui->tlgap_rc = CreateHContainer(rc);
     AddOptionChoiceCB(ui->tlgaptype, auto_spec_cb, ui->tlgap_rc);
     AddOptionChoiceCB(ui->tlgaptype, oc_explorer_cb, eui);
-    ui->tlgap_para = CreateTextItem2(ui->tlgap_rc, 5, "Parallel offset:");
+    ui->tlgap_para = CreateTextItem(ui->tlgap_rc, 5, "Parallel offset:");
     AddTextItemCB(ui->tlgap_para, titem_explorer_cb, eui);
-    ui->tlgap_perp = CreateTextItem2(ui->tlgap_rc, 5, "Perpendicular offset:");
+    ui->tlgap_perp = CreateTextItem(ui->tlgap_rc, 5, "Perpendicular offset:");
     AddTextItemCB(ui->tlgap_perp, titem_explorer_cb, eui);
 
 
@@ -316,9 +316,9 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     for (i = 0; i < MAX_TICKS; i++) {
         rc3 = CreateHContainer(rc);
         sprintf(buf, "%2d", i);
-        ui->specloc[i]   = CreateTextItem2(rc3, 12, buf);
+        ui->specloc[i]   = CreateTextItem(rc3, 12, buf);
         AddTextItemCB(ui->specloc[i], titem_explorer_cb, eui);
-        ui->speclabel[i] = CreateTextItem2(rc3, 30, "");
+        ui->speclabel[i] = CreateTextItem(rc3, 30, "");
         AddTextItemCB(ui->speclabel[i], titem_explorer_cb, eui);
     }
 

@@ -207,9 +207,9 @@ static void *interp_build_cb(TransformStructure *tdialog)
         AddOptionChoiceCB(ui->sampling, sampling_cb, ui);
 
         ui->mrc = CreateHContainer(rc);
-        ui->mstart  = CreateTextItem2(ui->mrc, 10, "Start at:");
-        ui->mstop   = CreateTextItem2(ui->mrc, 10, "Stop at:");
-        ui->mlength = CreateTextItem2(ui->mrc,  6, "Length:");
+        ui->mstart  = CreateTextItem(ui->mrc, 10, "Start at:");
+        ui->mstop   = CreateTextItem(ui->mrc, 10, "Stop at:");
+        ui->mlength = CreateTextItem(ui->mrc,  6, "Length:");
 
         ui->sel = CreateGraphSetSelector(rc, "Sampling set", LIST_TYPE_SINGLE);
         SetSensitive(ui->sel->frame, FALSE);
@@ -372,9 +372,9 @@ static void *histo_build_cb(TransformStructure *tdialog)
         AddOptionChoiceCB(ui->sampling, binsampling_cb, ui);
 
         ui->mrc = CreateHContainer(rc);
-	ui->mstart  = CreateTextItem2(ui->mrc, 10, "Start at:");
-	ui->mstop   = CreateTextItem2(ui->mrc, 10, "Stop at:");
-	ui->mlength = CreateTextItem2(ui->mrc,  6, "# of bins");
+	ui->mstart  = CreateTextItem(ui->mrc, 10, "Start at:");
+	ui->mstop   = CreateTextItem(ui->mrc, 10, "Stop at:");
+	ui->mlength = CreateTextItem(ui->mrc,  6, "# of bins");
         
         ui->sel = CreateGraphSetSelector(rc, "Sampling set", LIST_TYPE_SINGLE);
         SetSensitive(ui->sel->frame, FALSE);
@@ -1312,11 +1312,11 @@ static void *prune_build_cb(TransformStructure *tdialog)
         ui->area = CreateOptionChoice(rc, "Prune area:", 0, 2, aopitems);
 
 	rc2 = CreateHContainer(rc);
-	ui->dx = CreateTextItem2(rc2, 16, "DX:");
+	ui->dx = CreateTextItem(rc2, 16, "DX:");
 	ui->dxtype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
 	
 	rc2 = CreateHContainer(rc);
-	ui->dy = CreateTextItem2(rc2, 16, "DY:");
+	ui->dy = CreateTextItem(rc2, 16, "DY:");
 	ui->dytype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
     }
 
