@@ -1,5 +1,5 @@
 #####################################################
-# Makefile for auxiliary stuff of XMGR              #
+# Makefile for auxiliary stuff of Grace             #
 #####################################################
 # You should not change anything here.              #
 # Please read INSTALL file in the upper directory   #
@@ -9,7 +9,7 @@ TOP=..
 
 include $(TOP)/Make.conf
 
-AUXILIARIES = README jul2greg.c greg2jul.c magic.xmgr 
+AUXILIARIES = README jul2greg.c greg2jul.c magic.grace
 
 all : dummy
 
