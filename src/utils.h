@@ -78,14 +78,6 @@ void bailout(Grace *grace);
 void installSignal(void);
 void emergency_exit(Grace *grace, int is_my_bug, char *msg);
 
-int bin_dump(char *value, int i, int pad);
-unsigned char reversebits(unsigned char inword);
-
-char *copy_string(char *dest, const char *src);
-char *concat_strings(char *dest, const char *src);
-int compare_strings(const char *s1, const char *s2);
-int is_empty_string(const char *s);
-
 char *get_grace_home(const Grace *grace);
 
 char *get_help_viewer(const Grace *grace);

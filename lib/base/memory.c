@@ -1,4 +1,4 @@
- /*
+/*
  * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
@@ -10,7 +10,7 @@
  * 
  *                           All Rights Reserved
  * 
-*    This program is free software; you can redistribute it and/or modify
+ *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
@@ -98,4 +98,33 @@ void *xcalloc(size_t nmemb, size_t size)
     }
 
     return retval;
+}
+
+char *copy_string(char *dest, const char *src)
+{
+    if (src == dest) {
+        ;
+    } else if (src == NULL) {
+        xfree(dest);
+        dest = NULL;
+    } else {
+        dest = xrealloc(dest, (strlen(src) + 1)*SIZEOF_CHAR);
+        strcpy(dest, src);
+    }
+    return(dest);
+}
+
+char *concat_strings(char *dest, const char *src)
+{
+    if (src != NULL) {
+        if (dest == NULL) {
+            dest = copy_string(NULL, src);
+        } else {
+            dest = xrealloc(dest, (strlen(dest) + strlen(src) + 1)*SIZEOF_CHAR);
+            if (dest != NULL) {
+                strcat(dest, src);
+            }
+        }
+    }
+    return(dest);
 }

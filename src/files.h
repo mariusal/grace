@@ -79,7 +79,4 @@ int readnetcdf(int gno,
 	       int nstride);
 int write_netcdf(char *fname);
 
-char *grace_fgets(char *s, int size, FILE *stream);
-
-
 #endif /* __FILES_H_ */

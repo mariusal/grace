@@ -5,7 +5,7 @@
 
 LIB  = $(GRACE_BASE_LIB)
 
-SRCS = memory.c missing.c alloca.c
+SRCS = memory.c missing.c alloca.c utils.c files.c
 
-OBJS = memory$(O) missing$(O) $(ALLOCA)
+OBJS = memory$(O) missing$(O) $(ALLOCA) utils$(O) files$(O)
 

@@ -552,29 +552,6 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
     return RETURN_SUCCESS;
 }
 
-/* replacement for fgets() to fix up reading DOS text files */
-char *grace_fgets(char *s, int size, FILE *stream) {
-    int  slen;
-    char *endptr;
-
-    s = fgets(s, size, stream);
-    if (!s) {
-        return NULL;
-    }
-
-    slen = strlen(s);
-    if (slen >= 2) {
-        endptr = s + slen - 2;
-        /* check for DOS ending "\r\n" */
-        if (*endptr == '\r') {
-            /* 'move' un*x string tail "\n\0" one char forward */
-            *endptr     = '\n';
-            *(endptr+1) = '\0';
-        }
-    }
-    return s;
-}
-
 /*
  * read a line increasing buffer as necessary
  */
