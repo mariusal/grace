@@ -838,7 +838,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-log       [x|y|xy]                   Set the axis scaling of the current graph\n");
     fprintf(stream, "                                        to logarithmic\n");
     fprintf(stream, "-logwindow                            Open the log window\n");
-    fprintf(stream, "-mono                                 Run %s in monochrome mode (affects\n", progname);
+    fprintf(stream, "-mono                                 Run Grace in monochrome mode (affects\n");
     fprintf(stream, "                                        the display only)\n");
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
     fprintf(stream, "-netcdf    [netcdf file]              Assume data file is bnetCDF format\n");
@@ -864,15 +864,16 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-pipe                                 Read data from stdin on startup\n");
     fprintf(stream, "-printfile [file for hardcopy output] Save print output to file \n");
     fprintf(stream, "-remove                               Remove data file after read\n");
-    fprintf(stream, "-results   [results_file]             Write results of some data manipulations to\n");
-    fprintf(stream, "                                        results_file\n");
+    fprintf(stream, "-results   [results_file]             Write results of some data manipulations\n");
+    fprintf(stream, "                                        to results_file\n");
     fprintf(stream, "-rows      [grows]                    Arrange graphs in grows rows \n");
     fprintf(stream, "-rvideo                               Exchange the color indices for black and\n");
     fprintf(stream, "                                        white\n");
     fprintf(stream, "-saveall   [save_file]                Save all to save_file\n");
     fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator\n");
     fprintf(stream, "-source    [disk|pipe]                Source type of next data file\n");
-    fprintf(stream, "-timer     [delay]                    Set allowed time slice for real time inputs to delay ms\n");
+    fprintf(stream, "-timer     [delay]                    Set allowed time slice for real time\n");
+    fprintf(stream, "                                        inputs to delay ms\n");
     fprintf(stream, "-timestamp                            Add timestamp to plot\n");
     fprintf(stream, "-settype   [xy|xydx|...]              Set the type of the next data file\n");
     fprintf(stream, "-version                              Show the program version\n");
