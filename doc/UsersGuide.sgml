@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.1)
 <author>by the Grace Team
-<date>14.06.2000
+<date>17.06.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -2271,12 +2271,12 @@ integral     | cumulative sum @
         Statement | Description | Types | Example @
         <hline>
 	FOCUS <it>graph</it> | Makes <it>graph</it> current and unhides it if necessary |
-	                      <ref id="graph-sel" name="graphsel"> <it>graph</it> | FOCUS G0 @
-	KILL <it>graph</it> | Kills <it>graph</it> | <ref id="graph-sel" name="graphsel"> <it>graph</it> | KILL G0 @
+	                      graphsel <it>graph</it> | FOCUS G0 @
+	KILL <it>graph</it> | Kills <it>graph</it> | graphsel <it>graph</it> | KILL G0 @
       </tabular>
       <caption>
         <label id="graph-ops">
-        Graph Operations
+        Graph operations
       </caption>
       </table>
     </p>
@@ -2288,16 +2288,16 @@ integral     | cumulative sum @
         Statement | Description | Types | Example @
         <hline>
 	WITH <it>graph</it> | Makes  <it>graph</it> current | 
-	                    <ref id="graph-sel" name="graphsel"> <it>graph</it> | WITH G0 @
+	                    graphsel <it>graph</it> | WITH G0 @
 	TYPE <it>type</it>  | Sets <it>type</it> of current graph |
 	                   graphtype <it>type</it> |TYPE XY @
-	 <it>graph</it> onoff| (De)Activates selected <it>graph</it> | <ref id="graph-sel" name="graphsel"> <it>graph</it>, onoff | G0 ON @
-	 <it>graph</it> HIDDEN onoff | Hides selected <it>graph</it> | <ref id="graph-sel" name="graphsel"> <it>graph</it>, onoff | G1 HIDDEN TRUE @
+	 <it>graph</it> onoff| (De)Activates selected <it>graph</it> | graphsel <it>graph</it>, onoff | G0 ON @
+	 <it>graph</it> HIDDEN onoff | Hides selected <it>graph</it> | graphsel <it>graph</it>, onoff | G1 HIDDEN TRUE @
 	 <it>graph</it> TYPE <it>type</it> | Sets <it>type</it> of <it>graph</it>  |
-	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, graphtype <it>type</it> | G0 TYPE XYDY @
+	          graphsel <it>graph</it>, graphtype <it>type</it> | G0 TYPE XYDY @
       </tabular>
       <caption>
-        Graph Selection Parameters
+        Graph selection parameters
       </caption>
       </table>
       </p>
@@ -2308,21 +2308,21 @@ integral     | cumulative sum @
         Statement | Description | Types | Example @
         <hline>
 	 WORLD XMIN <it>xmin</it> | Sets minimum value of  current graph's x axis to <it>xmin</it> |
-	          <ref id="types" name="expr"> <it>xmin</it> | WORLD XMIN -10 @
+	          expr <it>xmin</it> | WORLD XMIN -10 @
 	 WORLD XMAX <it>xmax</it> | Sets maximum value of  current graph's x axis to <it>xmin</it> |
-	          <ref id="types" name="expr"> <it>xmax</it> | WORLD XMAX 22.5 @
+	          expr <it>xmax</it> | WORLD XMAX 22.5 @
 	 WORLD YMIN <it>ymin</it> | Sets minimum value of current graph's y axis to <it>ymin</it> |
-	          <ref id="types" name="expr"> <it>ymin</it> | WORLD YMIN 0 @
+	          expr <it>ymin</it> | WORLD YMIN 0 @
 	 WORLD YMAX <it>ymax</it> | Sets maximum value of current graph's y axis to <it>ymax</it> |
-	          <ref id="types" name="expr"> <it>ymax</it> | WORLD YMAX 1e4 @
+	          expr <it>ymax</it> | WORLD YMAX 1e4 @
 	 VIEW XMIN <it>xmin</it> | Sets left edge of current graph at x=<it>xmin</it> in the viewport |
-	          <ref id="types" name="expr"> <it>xmin</it>| VIEW XMIN .2 @
+	          expr <it>xmin</it>| VIEW XMIN .2 @
 	 VIEW XMAX <it>xmax</it> | Sets right edge of current graph at x=<it>xmax</it> in the viewport |
-	          <ref id="types" name="expr"> <it>xmax</it>| VIEW XMAX 1.0 @
+	          expr <it>xmax</it>| VIEW XMAX 1.0 @
 	 VIEW YMIN <it>ymin</it> | Sets bottom edge of current graph at y=<it>ymin</it> in the viewport |
-	          <ref id="types" name="expr"> <it>ymin</it>| VIEW YMIN .25 @
+	          expr <it>ymin</it>| VIEW YMIN .25 @
          VIEW YMAX <it>ymax</it> | Sets top edge of current graph at y=<it>ymax</it> in the viewport | 
-	          <ref id="types" name="expr"> <it>ymax</it>| VIEW YMAX .75 @
+	          expr <it>ymax</it>| VIEW YMAX .75 @
 	 XAXES SCALE <it>type</it>  | Set scaling of the x axes to <it>type</it> |
 	          <it>type</it>: one of NORMAL, LOGARITHMIC, or RECIPROCAL | XAXES SCALE NORMAL @
 	 YAXES SCALE <it>type</it>  | Set scaling of the y axes to <it>type</it>  |
@@ -2333,7 +2333,7 @@ integral     | cumulative sum @
  	          onoff | YAXES INVERT OFF @
       </tabular>
       <caption>
-        Axis Parameters
+        Axis parameters
       </caption>
       </table>
       </p>
@@ -2344,62 +2344,59 @@ integral     | cumulative sum @
         Statement | Description | Types | Example @
         <hline>
 	 TITLE <it>title</it>       | Sets the title of current graph |
-	          <ref id="types" name="qstr"> <it>title</it> | TITLE "Foo" @
+	          qstr <it>title</it> | TITLE "Foo" @
 	 TITLE FONT <it>font</it>  | Selects font of title string |
 	          fontsel <it>font</it> | TITLE FONT 1 @
 	 TITLE SIZE <it>size</it>  | Sets size of title string |
-	          <ref id="types" name="expr"> <it>size</it> | TITLE SIZE 1.5 @
+	          expr <it>size</it> | TITLE SIZE 1.5 @
 	 TITLE COLOR <it>color</it> | Sets color of title string | 
-	          <ref id="color-sel" name="colorsel"> <it>color</it> | TITLE COLOR 1 @
+	          colorsel <it>color</it> | TITLE COLOR 1 @
 	 SUBTITLE <it>subtitle</it> | Sets the subtitle of current graph |
-	          <ref id="types" name="qstr"> <it>subtitle</it> | SUBTITLE "Bar" @
+	          qstr <it>subtitle</it> | SUBTITLE "Bar" @
 	 SUBTITLE FONT <it>font</it>  | Selects font of subtitle string |
 	          fontsel <it>font</it> | SUBTITLE FONT "Times-Italic" @
 	 SUBTITLE SIZE <it>size</it>  | Sets size of subtitle string |
-	          <ref id="types" name="expr"> <it>size</it> | SUBTITLE SIZE .60 @
+	          expr <it>size</it> | SUBTITLE SIZE .60 @
 	 SUBTITLE COLOR <it>color</it> | Sets color of subtitle string |
-	          <ref id="color-sel" name="colorsel"> <it>color</it> | SUBTITLE COLOR "blue" @
+	          colorsel <it>color</it> | SUBTITLE COLOR "blue" @
 	 LEGEND onoff | Toggle legend display |onoff | LEGEND ON @
 	 LEGEND LOCTYPE <it>type</it> | Posistion legend in <it>type</it> coordinates |
 	   <it>type</it>: either WORLD or VIEW | LEGEND LOCTYPE WORLD @
-	 LEGEND <it>xloc,yloc</it> | Set location of legend | 
-	   <ref id="types" name="expr">: <it>xloc,yloc</it> | LEGEND .5,.75 @
-	 LEGEND X1 <it>xloc</it>| Set x position of legend |
-	   <ref id="types" name="expr"> <it>xloc</it> | LEGEND X1 0.80 @
-	 LEGEND Y1 <it>yloc</it>| Set y position of legend |
-	   <ref id="types" name="expr"> <it>yloc</it> | LEGEND Y1 100 @
+	 LEGEND <it>xloc, yloc</it> | Set location of legend box (upper left corner) | 
+	   expr <it>xloc, yloc</it> | LEGEND .5,.75 @
 	 LEGEND FONT <it>font</it>| Set legend font type |
 	   fontsel <it>font</it> | LEGEND FONT "Helvetica" @
-	 LEGEND CHAR SIZE <it>size</it> | Sets size of legend label characters |<ref id="types" name="expr"> <it>size</it> | @
+	 LEGEND CHAR SIZE <it>size</it> | Sets size of legend label characters (1 is normal)|
+	 expr <it>size</it> | LEGEND CHAR SIZE .30 @
 	 LEGEND <it>color</it>| Set color of legend text |
-	   <ref id="color-sel" name="colorsel"> <it>color</it> | LEGEND COLOR 1 @
+	   colorsel <it>color</it> | LEGEND COLOR 1 @
 	 LEGEND VGAP <it>gap</it> | Sets vertical gap between legend entries |
-	   <ref id="types" name="nexpr"> <it>gap</it> | LEGEND VGAP 1 @
+	   nexpr <it>gap</it> | LEGEND VGAP 1 @
 	 LEGEND HGAP <it>gap</it> | Sets horizontal gap between symbol and description |
-	   <ref id="types" name="nexpr"> <it>gap</it> | LEGEND VGAP 4 @
+	   nexpr <it>gap</it> | LEGEND HGAP 4 @
 	 LEGEND LENGTH <it>length</it>| Sets <it>length</it> of legend| 
- 	   <ref id="types" name="nexpr"> <it>length</it> | LEGEND LENGTH 5 @
+ 	   nexpr <it>length</it> | LEGEND LENGTH 5 @
 	 LEGEND INVERT onoff | Determines relationship between order of sets and order of legend labels |
 	   onoff | LEGEND INVERT true @
 	 LEGEND BOX onoff | Determines if the legend bounding box is drawn |
 	   onoff | LEGEND BOX off @
-	 LEGEND BOX COLOR <it>color</it>  | Sets color of legend bounding box | <ref id="color-sel" name="colorsel"> <it>color</it> |
+	 LEGEND BOX COLOR <it>color</it>  | Sets color of legend bounding box | colorsel <it>color</it> |
 	   LEGEND BOX COLOR 1@
-	 LEGEND BOX PATTERN <it>pattern</it>| Sets pattern of legend bounding box | <ref id="pattern-sel" name="patternsel"> <it>pattern</it> |
+	 LEGEND BOX PATTERN <it>pattern</it>| Sets pattern of legend bounding box | patternsel <it>pattern</it> |
 	   LEGEND BOX PATTERN 2@
-	 LEGEND BOX LINESTYLE <it>style</it>| Sets line style of bounding box |<ref id="types" name="nexpr"> <it>style</it> |
+	 LEGEND BOX LINESTYLE <it>style</it>| Sets line style of bounding box |nexpr <it>style</it> |
 	   LEGEND BOX LINESTYLE 1 @
-	 LEGEND BOX LINEWIDTH <it>width</it>| Sets line width of bounding box|<ref id="types" name="nexpr"> <it>width</it> | 
+	 LEGEND BOX LINEWIDTH <it>width</it>| Sets line width of bounding box|nexpr <it>width</it> | 
 	   LEGEND BOX LINEWIDTH 2 @
 	 LEGEND BOX FILL onoff | Determines if the legend bounding box is filled |
 	   onoff | LEGEND BOX FILL false @
-	 LEGEND BOX FILL COLOR <it>color</it>  | Sets color of legend box fill | <ref id="color-sel" name="colorsel"> <it>color</it> | 
+	 LEGEND BOX FILL COLOR <it>color</it>  | Sets color of legend box fill | colorsel <it>color</it> | 
 	   LEGEND BOX COLOR 3 @
-	 LEGEND BOX FILL <it>pattern</it>| Sets pattern of legend box fill |<ref id="pattern-sel" name="patternsel"> <it>pattern</it> |
+	 LEGEND BOX FILL <it>pattern</it>| Sets pattern of legend box fill |patternsel <it>pattern</it> |
 	   LEGEND BOX FILL PATTERN 1@
       </tabular>
       <caption>
-        Titles and Legends
+        Titles and legends
       </caption>
       </table>
     </p>
