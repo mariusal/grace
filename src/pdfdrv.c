@@ -121,7 +121,7 @@ int pdfinitgraphics(void)
     sprintf(buf_cr, "Grace v%d.%d.%d %s\n",
                                 MAJOR_REV, MINOR_REV, PATCHLEVEL, BETA_VER);
     info->Creator = buf_cr;
-    info->Author = getlogin();
+    info->Author = get_username();
     info->Title = docname;
 
     info->binary_mode = pdf_setup_binary;
