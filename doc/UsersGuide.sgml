@@ -5,9 +5,9 @@
 
 <article>
 
-<title>Grace User's Guide (v0.7 - for Grace-5.1.1)
+<title>Grace User's Guide (for Grace-5.1.1)
 <author>by the Grace Team
-<date>18.05.2000
+<date>26.05.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -129,7 +129,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                      (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">),
                      version 6.x.
               <item> The PNG backend needs
-                     the (<url name="libpng" url="http://www.cdrom.com/pub/png/">)
+                     the (<url name="libpng" url="http://www.libpng.org/pub/png/libpng.html">)
                      library (version 0.96 or above).
               <item> The PDF driver requires the PDFlib library of Thomas
                      Merz to be installed, which is available
@@ -534,9 +534,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <sect2>Command line options
         <p>
           <descrip>
-          <tag> -arrange <it>rows</it> <it>cols</it> </tag>
-                Arrange the graphs in a grid rows by cols
-
           <tag> -autoscale <it>x|y|xy</it> </tag>
                 Override any parameter file settings
 
@@ -552,9 +549,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <tag> -bxy <it>x:y:etc.</it> </tag>
                 Form a set from the current block data set using the current set
                 type from columns given in the argument
-
-          <tag> -cols <it>gcols</it> </tag>
-                Arrange graphs in gcols columns
 
           <tag> -datehint <it>iso|european|us|days|seconds|nohint</it> </tag>
                 Set the hint for dates analysis
@@ -588,9 +582,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <tag> -log <it>x|y|xy</it> </tag>
                 Set the axis scaling of the current graph to logarithmic
 
-          <tag> -logwindow </tag>
-                Open the log window
-
           <tag> -mono </tag>
                 Run Grace in monochrome mode (affects the display only)
 
@@ -600,9 +591,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
           <tag> -noinstall </tag>
                 Don't use private colormap
-
-          <tag> -nologwindow </tag>
-                No log window, overrides resource setting
 
           <tag> -noprint </tag>
                 In batch mode, do not print
@@ -633,9 +621,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
           <tag> -results <it>results_file</it> </tag>
                 Write results of some data manipulations to results_file
-
-          <tag> -rows <it>grows</it> </tag>
-                Arrange graphs in grows rows
 
           <tag> -rvideo </tag>
                 Exchange the color indices for black and white
