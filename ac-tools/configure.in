@@ -45,10 +45,15 @@ AC_SUBST(T1_AA_TYPE32)
 AC_SUBST(T1_AA_TYPE64)
 
 dnl **** define home dir of Grace
-GRACE_HOME=${ac_default_prefix}/grace
+if test "x${prefix}" = "xNONE"
+then
+  GRACE_HOME=${ac_default_prefix}/grace
+else
+  GRACE_HOME=${prefix}/grace
+fi
 AC_ARG_ENABLE(grace-home,
 [  --enable-grace-home=GRACE_HOME 
-                          define Grace home dir (default = ${ac_default_prefix}/grace)],
+                          define Grace home dir (default = PREFIX/grace)],
 [GRACE_HOME="${enableval}"])
 
 
