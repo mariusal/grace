@@ -40,7 +40,6 @@
 #include "cmath.h"
 #include "draw.h"
 #include "devlist.h"
-#include "patterns.h"
 #include "mifdrv.h"
 
 #define MIF_MARGIN 15.0
@@ -377,12 +376,13 @@ void mif_object_props(const Canvas *canvas, int draw, int fill)
         ls = getlinestyle(canvas);
 
         if (ls <= 1) {
-        fprintf(canvas->prstream, "    <DashedStyle Solid>\n");
+          fprintf(canvas->prstream, "    <DashedStyle Solid>\n");
         } else {
+          LineStyle *linestyle = canvas_get_linestyle(canvas, ls);
           fprintf(canvas->prstream, "   <DashedStyle Dashed>\n");
-          for (i = 0; i < dash_array_length[ls]; i++) {
+          for (i = 0; i < linestyle->length; i++) {
             fprintf(canvas->prstream, "   <DashSegment %8.3f pt>\n",
-                    lw*dash_array[ls][i]);
+                    lw*linestyle->array[i]);
           }
         }
         fprintf(canvas->prstream, "   > # end of DashedPattern\n");

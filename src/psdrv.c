@@ -42,7 +42,6 @@
 #include "utils.h"
 #include "draw.h"
 #include "devlist.h"
-#include "patterns.h"
 #include "psdrv.h"
 #include "protos.h"
 
@@ -526,26 +525,31 @@ static int ps_initgraphics(const Canvas *canvas,
         fprintf(canvas->prstream, "/Font%d exch definefont pop\n", font);
     }
        
-    if (ps_level2 == TRUE) {
+    if (ps_level2 == TRUE && cstats->npatterns) {
         fprintf(canvas->prstream, "/PTRN {\n");
         fprintf(canvas->prstream, " /pat_bits exch def \n");
+        fprintf(canvas->prstream, " /height exch def \n");
+        fprintf(canvas->prstream, " /width exch def \n");
         fprintf(canvas->prstream, " <<\n");
         fprintf(canvas->prstream, "  /PaintType 2\n");
         fprintf(canvas->prstream, "  /PatternType 1 /TilingType 1\n");
-        fprintf(canvas->prstream, "  /BBox[0 0 16 16]\n");
-        fprintf(canvas->prstream, "  /XStep 16 /YStep 16\n");
+        fprintf(canvas->prstream, "  /BBox[0 0 width height]\n");
+        fprintf(canvas->prstream, "  /XStep width /YStep height\n");
         fprintf(canvas->prstream, "  /PaintProc {\n");
         fprintf(canvas->prstream, "   pop\n");
-        fprintf(canvas->prstream, "   16 16 true [-1 0 0 -1 16 16] pat_bits imagemask\n");
+        fprintf(canvas->prstream, "   width height true [-1 0 0 -1 width height] pat_bits imagemask\n");
         fprintf(canvas->prstream, "  }\n");
         fprintf(canvas->prstream, " >>\n");
         fprintf(canvas->prstream, " [%.4f 0 0 %.4f 0 0]\n", 1.0/page_scalef, 1.0/page_scalef);
         fprintf(canvas->prstream, " makepattern\n");
         fprintf(canvas->prstream, "} def\n");
-        for (i = 0; i < number_of_patterns(canvas); i++) {
-            fprintf(canvas->prstream, "/Pattern%d {<", i);
-            for (j = 0; j < 32; j++) {
-                fprintf(canvas->prstream, "%02x", pat_bits[i][j]);
+        for (i = 0; i < cstats->npatterns; i++) {
+            int patno = cstats->patterns[i];
+            Pattern *pat = canvas_get_pattern(canvas, patno);
+            fprintf(canvas->prstream, "/Pattern%d {%d %d <",
+                patno, pat->width, pat->height);
+            for (j = 0; j < pat->width*pat->height/8; j++) {
+                fprintf(canvas->prstream, "%02x", pat->bits[j]);
             }
             fprintf(canvas->prstream, "> PTRN} bind def\n");
         }
@@ -712,8 +716,9 @@ void ps_setdrawbrush(const Canvas *canvas)
     if (ls != ps_lines || lw != ps_linew) {    
         fprintf(canvas->prstream, "[");
         if (ls > 1) {
-            for (i = 0; i < dash_array_length[ls]; i++) {
-                fprintf(canvas->prstream, "%.4f ", lw*dash_array[ls][i]);
+            LineStyle *linestyle = canvas_get_linestyle(canvas, ls);
+            for (i = 0; i < linestyle->length; i++) {
+                fprintf(canvas->prstream, "%.4f ", lw*linestyle->array[i]);
             }
         }
         fprintf(canvas->prstream, "] 0 SD\n");

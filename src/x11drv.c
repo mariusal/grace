@@ -45,7 +45,6 @@
 #include "devlist.h"
 #include "draw.h"
 #include "graphs.h"
-#include "patterns.h"
 
 #include "x11drv.h"
 
@@ -69,7 +68,6 @@ static int private_cmap = FALSE;
 unsigned long xvlibcolors[MAXCOLORS];
 Colormap cmap;
 
-static Pixmap curtile;
 static Pixmap displaybuff = (Pixmap) NULL;
 
 static int xlibcolor;
@@ -175,14 +173,6 @@ int xlibinit(const Canvas *canvas)
     gcxor = XCreateGC(disp, root, GCFunction | GCForeground, &gc_val);
 
     displaybuff = resize_bufpixmap(win_w, win_h);
-/* 
- * tile pixmap for patterns
- */    
-    curtile = XCreatePixmap(disp, root, 16, 16, depth);
-    if (curtile == (Pixmap) NULL) {
-        errmsg("Error allocating tile pixmap");
-	return RETURN_FAILURE;
-    }
     
 /*
  * disable font AA in mono mode
@@ -342,7 +332,6 @@ int xlibinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 void xlib_setpen(const Canvas *canvas)
 {
     int fg, bg, p;
-    Pixmap ptmp;
     
     fg = getcolor(canvas);
     bg = getbgcolor(canvas);
@@ -352,39 +341,30 @@ void xlib_setpen(const Canvas *canvas)
         return;
     }
         
-    if (fg != xlibcolor) {
-        XSetForeground(disp, gc, xvlibcolors[fg]);
-        xlibcolor = fg;
-    }
-    
-    if (bg != xlibbgcolor) {
-        XSetBackground(disp, gc, xvlibcolors[bg]);
-        xlibbgcolor = bg;
-    }
-
-    if (p >= number_of_patterns(canvas) || p < 0) {
-        p = 0;
-    }
+    xlibcolor = fg;
+    xlibbgcolor = bg;
     xlibpatno = p;
     
     if (p == 0) { /* TODO: transparency !!!*/
         return;
     } else if (p == 1) {
         /* To make X faster */
+        XSetForeground(disp, gc, xvlibcolors[fg]);
+        XSetBackground(disp, gc, xvlibcolors[bg]);
         XSetFillStyle(disp, gc, FillSolid);
     } else {
-        /* TODO: implement cache ? */
-        ptmp = XCreateBitmapFromData(disp, root, (char *) pat_bits[p], 16, 16);
-        XCopyPlane(disp, ptmp, curtile, gc, 0, 0, 16, 16, 0, 0, 1);
-        XFreePixmap(disp, ptmp);
-        
+        Pattern *pat = canvas_get_pattern(canvas, p);
+        Pixmap ptmp = XCreatePixmapFromBitmapData(disp, root,
+            (char *) pat->bits, pat->width, pat->height,
+            xvlibcolors[fg], xvlibcolors[bg], depth);
 /*
  *      XSetFillStyle(disp, gc, FillStippled);
  *      XSetStipple(disp, gc, curstipple);
  */
         XSetFillStyle(disp, gc, FillTiled);
-        XSetTile(disp, gc, curtile);
-        return;
+        XSetTile(disp, gc, ptmp);
+        
+        XFreePixmap(disp, ptmp);
     }
 }
 
@@ -433,14 +413,15 @@ void xlib_setdrawbrush(const Canvas *canvas)
     if (iw != xliblinewidth || style != xliblinestyle ||
         lc != xliblinecap   || lj    != xliblinejoin) {
         if (style > 1) {
-            darr_len = dash_array_length[style];
+            LineStyle *linestyle = canvas_get_linestyle(canvas, style);
+            darr_len = linestyle->length;
             xdarr = xmalloc(darr_len*SIZEOF_CHAR);
             if (xdarr == NULL) {
                 return;
             }
             scale = MAX2(1, iw);
             for (i = 0; i < darr_len; i++) {
-                xdarr[i] = scale*dash_array[style][i];
+                xdarr[i] = scale*linestyle->array[i];
             }
             XSetLineAttributes(disp, gc, iw, LineOnOffDash, lc, lj);
             XSetDashes(disp, gc, 0, xdarr, darr_len);

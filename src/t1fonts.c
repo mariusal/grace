@@ -191,7 +191,7 @@ int map_font_by_name(Canvas *canvas, const char *fname, int mapped_id)
     return map_font(canvas, get_font_by_name(canvas, fname), mapped_id);
 }
 
-int number_of_fonts(const Canvas *canvas)
+unsigned int number_of_fonts(const Canvas *canvas)
 {
     return canvas->nfonts;
 }

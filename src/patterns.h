@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -158,75 +158,72 @@ static unsigned char pat31_bits[] = {
    0x21, 0x21, 0xc0, 0xc0, 0x03, 0x03, 0x04, 0x04, 0x08, 0x08, 0x08, 0x08,
    0x0c, 0x0c, 0x12, 0x12, 0x21, 0x21, 0xc0, 0xc0};
 
-static unsigned char *pat_bits[MAXPATTERNS] = {
-    pat0_bits,
-    pat1_bits,
-    pat2_bits,
-    pat3_bits,
-    pat4_bits,
-    pat5_bits,
-    pat6_bits,
-    pat7_bits,
-    pat8_bits,
-    pat9_bits,
-    pat10_bits,
-    pat11_bits,
-    pat12_bits,
-    pat13_bits,
-    pat14_bits,
-    pat15_bits,
-    pat16_bits,
-    pat17_bits,
-    pat18_bits,
-    pat19_bits,
-    pat20_bits,
-    pat21_bits,
-    pat22_bits,
-    pat23_bits,
-    pat24_bits,
-    pat25_bits,
-    pat26_bits,
-    pat27_bits,
-    pat28_bits,
-    pat29_bits,
-    pat30_bits,
-    pat31_bits,
+static Pattern patterns_init[] = {
+    {16, 16, pat0_bits},
+    {16, 16, pat1_bits},
+    {16, 16, pat2_bits},
+    {16, 16, pat3_bits},
+    {16, 16, pat4_bits},
+    {16, 16, pat5_bits},
+    {16, 16, pat6_bits},
+    {16, 16, pat7_bits},
+    {16, 16, pat8_bits},
+    {16, 16, pat9_bits},
+    {16, 16, pat10_bits},
+    {16, 16, pat11_bits},
+    {16, 16, pat12_bits},
+    {16, 16, pat13_bits},
+    {16, 16, pat14_bits},
+    {16, 16, pat15_bits},
+    {16, 16, pat16_bits},
+    {16, 16, pat17_bits},
+    {16, 16, pat18_bits},
+    {16, 16, pat19_bits},
+    {16, 16, pat20_bits},
+    {16, 16, pat21_bits},
+    {16, 16, pat22_bits},
+    {16, 16, pat23_bits},
+    {16, 16, pat24_bits},
+    {16, 16, pat25_bits},
+    {16, 16, pat26_bits},
+    {16, 16, pat27_bits},
+    {16, 16, pat28_bits},
+    {16, 16, pat29_bits},
+    {16, 16, pat30_bits},
+    {16, 16, pat31_bits}
 };
 
 
-static char dash_array0[2] =
+static unsigned int dash_array0[2] =
 {0, 1};
-static char dash_array1[2] =
+static unsigned int dash_array1[2] =
 {1, 0};
-static char dash_array2[2] =
+static unsigned int dash_array2[2] =
 {1, 3};
-static char dash_array3[2] =
+static unsigned int dash_array3[2] =
 {5, 3};
-static char dash_array4[2] =
+static unsigned int dash_array4[2] =
 {7, 3};
-static char dash_array5[4] =
+static unsigned int dash_array5[4] =
 {1, 3, 5, 3};
-static char dash_array6[4] =
+static unsigned int dash_array6[4] =
 {1, 3, 7, 3};
-static char dash_array7[6] =
+static unsigned int dash_array7[6] =
 {1, 3, 5, 3, 1, 3};
-static char dash_array8[6] =
+static unsigned int dash_array8[6] =
 {5, 3, 1, 3, 5, 3};
 
-static char *dash_array[MAXLINESTYLES] =
+static LineStyle linestyles_init[] =
 {
-    dash_array0,
-    dash_array1,
-    dash_array2,
-    dash_array3,
-    dash_array4,
-    dash_array5,
-    dash_array6,
-    dash_array7,
-    dash_array8
+    {2, dash_array0},
+    {2, dash_array1},
+    {2, dash_array2},
+    {2, dash_array3},
+    {2, dash_array4},
+    {4, dash_array5},
+    {4, dash_array6},
+    {6, dash_array7},
+    {6, dash_array8}
 };
-
-static int dash_array_length[] =
-{2, 2, 2, 2, 2, 4, 4, 6, 6};
 
 #endif /* __PATTERNS_H_ */

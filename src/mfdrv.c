@@ -37,7 +37,6 @@
 #include "defines.h"
 #include "utils.h"
 #include "draw.h"
-#include "patterns.h"
 #include "devlist.h"
 #include "mfdrv.h"
 
@@ -100,20 +99,24 @@ int mfinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
     fprintf(canvas->prstream, "}\n");
 
     fprintf(canvas->prstream, "PatternResources {\n");
-    for (i = 0; i < number_of_patterns(canvas); i++) {
-        fprintf(canvas->prstream, "\t( %d , ", i);
-        for (j = 0; j < 32; j++) {
-            fprintf(canvas->prstream, "%02x", pat_bits[i][j]);
+    for (i = 0; i < cstats->npatterns; i++) {
+        int patno = cstats->patterns[i];
+        Pattern *pat = canvas_get_pattern(canvas, patno);
+        fprintf(canvas->prstream, "\t( %d , ", patno);
+        for (j = 0; j < pat->width*pat->height/8; j++) {
+            fprintf(canvas->prstream, "%02x", pat->bits[j]);
         }
         fprintf(canvas->prstream, " )\n");
     }
     fprintf(canvas->prstream, "}\n");
 
     fprintf(canvas->prstream, "DashResources {\n");
-    for (i = 0; i < number_of_linestyles(canvas); i++) {
-        fprintf(canvas->prstream, "\t( %d , [ ", i);
-        for (j = 0; j < dash_array_length[i]; j++) {
-            fprintf(canvas->prstream, "%d ", dash_array[i][j]);
+    for (i = 0; i < cstats->nlinestyles; i++) {
+        int lines = cstats->linestyles[i];
+        LineStyle *ls = canvas_get_linestyle(canvas, lines);
+        fprintf(canvas->prstream, "\t( %d , [ ", lines);
+        for (j = 0; j < ls->length; j++) {
+            fprintf(canvas->prstream, "%d ", ls->array[j]);
         }
         fprintf(canvas->prstream, "] )\n");
     }

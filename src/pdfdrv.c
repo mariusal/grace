@@ -46,7 +46,6 @@
 #include "utils.h"
 #include "draw.h"
 #include "devlist.h"
-#include "patterns.h"
 #include "pdfdrv.h"
 
 #include "protos.h"
@@ -169,25 +168,28 @@ int pdfinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
     
     if (pdf_setup_compat >= PDF_1_3) {
         pdf_pattern_ids = xmalloc(number_of_patterns(canvas)*SIZEOF_INT);
-        for (i = 1; i < number_of_patterns(canvas); i++) {
+        for (i = 0; i < cstats->npatterns; i++) {
+            int patno = cstats->patterns[i];
+            Pattern *pat = canvas_get_pattern(canvas, patno);
 /* Unfortunately, there is no way to open a _masked_ image from memory */
 #if 0
             int im;
             pdf_pattern_ids[i] = PDF_begin_pattern(phandle,
-                16.0, 16.0, 16.0, 16.0, 2);
+                pat->width, pat->height, pat->width, pat->height, 2);
             im = PDF_open_image(phandle, "raw", "memory",
-                (const char *) pat_bits[i], 32, 16, 16, 1, 1, "");
+                (const char *) pat_bits[i], pat->width*pat->height/8,
+                pat->width, pat->height, 1, 1, "");
             PDF_place_image(phandle, im, 0.0, 0.0, 1.0);
             PDF_close_image(phandle, im);
             PDF_end_pattern(phandle);
 #else
             int j, k, l;
-            pdf_pattern_ids[i] = PDF_begin_pattern(phandle,
-                16.0, 16.0, 16.0, 16.0, 2);
+            pdf_pattern_ids[patno] = PDF_begin_pattern(phandle,
+                pat->width, pat->height, pat->width, pat->height, 2);
             for (j = 0; j < 256; j++) {
                 k = j%16;
                 l = 15 - j/16;
-                if ((pat_bits[i][j/8] >> (j%8)) & 0x01) {
+                if ((pat->bits[j/8] >> (j%8)) & 0x01) {
                     /* the bit is set */
                     PDF_rect(phandle, (float) k, (float) l, 1.0, 1.0);
                     PDF_fill(phandle);
@@ -292,11 +294,12 @@ void pdf_setdrawbrush(const Canvas *canvas)
         if (ls == 0 || ls == 1) {
             PDF_setpolydash(phandle, NULL, 0); /* length == 0,1 means solid line */
         } else {
-            darray = xmalloc(dash_array_length[ls]*SIZEOF_FLOAT);
-            for (i = 0; i < dash_array_length[ls]; i++) {
-                darray[i] = lw*dash_array[ls][i];
+            LineStyle *linestyle = canvas_get_linestyle(canvas, ls);
+            darray = xmalloc(linestyle->length*SIZEOF_FLOAT);
+            for (i = 0; i < linestyle->length; i++) {
+                darray[i] = lw*linestyle->array[i];
             }
-            PDF_setpolydash(phandle, darray, dash_array_length[ls]);
+            PDF_setpolydash(phandle, darray, linestyle->length);
             xfree(darray);
         }
         pdf_linew = lw;

@@ -77,7 +77,6 @@
 #include "defines.h"
 #include "globals.h"
 #include "draw.h"
-#include "patterns.h"
 #include "jbitmaps.h"
 #include "graphs.h"
 #include "utils.h"
@@ -1753,7 +1752,8 @@ int init_option_menus(void) {
         if (i == 0) {
             pattern_option_items[i].bitmap = NULL;
         } else {
-            pattern_option_items[i].bitmap = pat_bits[i];
+            Pattern *pat = canvas_get_pattern(canvas, i);
+            pattern_option_items[i].bitmap = pat->bits;
         }
     }
     
@@ -1766,6 +1766,7 @@ int init_option_menus(void) {
         return RETURN_FAILURE;
     }
     for (i = 0; i < n; i++) {
+        LineStyle *linestyle = canvas_get_linestyle(canvas, i);
         lines_option_items[i].value = i;
         if (i == 0) {
             lines_option_items[i].bitmap = NULL;
@@ -1777,8 +1778,8 @@ int init_option_menus(void) {
         
         k = LINES_BM_WIDTH*(LINES_BM_HEIGHT/2);
         while (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
-            for (j = 0; j < dash_array_length[i]; j++) {
-                for (l = 0; l < dash_array[i][j]; l++) {
+            for (j = 0; j < linestyle->length; j++) {
+                for (l = 0; l < linestyle->array[j]; l++) {
                     if (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
                         if (j % 2 == 0) { 
                             /* black */
@@ -1910,6 +1911,7 @@ void SetPenChoice(Widget button, Pen *pen)
     Pixel bg, fg;
     Pixmap pixtile, pixmap;
     Button_PData *pdata;
+    Pattern *pat;
 
     /* Safety checks */
     if (!button || !pen ||
@@ -1929,8 +1931,9 @@ void SetPenChoice(Widget button, Pen *pen)
     fg = xvlibcolors[pen->color];
     bg = xvlibcolors[getbgcolor(canvas)];
     
+    pat = canvas_get_pattern(canvas, pen->pattern);
     pixtile = XCreatePixmapFromBitmapData(disp, root, 
-        (char *) pat_bits[pen->pattern], 16, 16, fg, bg, depth);
+        (char *) pat->bits, pat->width, pat->height, fg, bg, depth);
 
     XSetTile(disp, gc_pen, pixtile);
     

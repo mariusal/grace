@@ -39,10 +39,6 @@
 #define GRACE_BPP	8
 #define MAXCOLORS	(0x01 << GRACE_BPP)
 
-#define MAXPATTERNS 32
-
-#define MAXLINESTYLES 9
-
 #define MAX_LINEWIDTH 10.0        /* max width of drawn lines */
 
 #define MAGIC_LINEW_SCALE 0.0015
@@ -311,6 +307,27 @@ typedef struct {
     char used;
 } CMap_entry;
 
+typedef struct {
+    unsigned int width;
+    unsigned int height;
+    unsigned char *bits;
+} Pattern;
+
+typedef struct {
+    Pattern pattern;
+    char used;
+} PMap_entry;
+
+typedef struct {
+    unsigned int length;
+    unsigned int *array;
+} LineStyle;
+
+typedef struct {
+    LineStyle linestyle;
+    char used;
+} LMap_entry;
+
 #define BAD_COLOR	-1
 
 #define COLOR_NONE      0
@@ -377,12 +394,20 @@ struct _Canvas {
     Pen pagepen;
     
     /* colors */
-    int maxcolors;
-    CMap_entry *cmap_table;
+    unsigned int ncolors;
+    CMap_entry *cmap;
     int revflag;
 
+    /* patterns */
+    unsigned int npatterns;
+    PMap_entry *pmap;
+    
+    /* linestyles */
+    unsigned int nlinestyles;
+    LMap_entry *lmap;
+    
     /* fonts */
-    int nfonts;
+    unsigned int nfonts;
     FontDB *FontDBtable;
     char **DefEncoding;
 
@@ -510,6 +535,7 @@ int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb);
 
 int is_vpoint_inside(const view *v, const VPoint *vp, double epsilon);
 
+unsigned int number_of_colors(const Canvas *canvas);
 int is_valid_color(const RGB *rgb);
 int find_color(const Canvas *canvas, const RGB *rgb);
 int get_color_by_name(const Canvas *canvas, const char *cname);
@@ -538,7 +564,7 @@ int map_font(Canvas *canvas, int font, int mapped_id);
 int map_font_by_name(Canvas *canvas, const char *fname, int mapped_id);
 void map_fonts(Canvas *canvas, int map);
 
-int number_of_fonts(const Canvas *canvas);
+unsigned int number_of_fonts(const Canvas *canvas);
 char *get_fontname(const Canvas *canvas, int font);
 char *get_fontfilename(const Canvas *canvas, int font, int abspath);
 char *get_afmfilename(const Canvas *canvas, int font, int abspath);
@@ -559,10 +585,15 @@ int get_mapped_font(const Canvas *canvas, int mapped_id);
 char *font_subset(const Canvas *canvas,
     int font, char *mask, unsigned long *datalen);
 
-int number_of_colors(const Canvas *canvas);
-int number_of_patterns(const Canvas *canvas);
-int number_of_linestyles(const Canvas *canvas);
+unsigned int number_of_patterns(const Canvas *canvas);
+int canvas_set_pattern(Canvas *canvas, unsigned int n, const Pattern *pat);
+Pattern *canvas_get_pattern(const Canvas *canvas, unsigned int n);
+void initialize_patterns(Canvas *canvas);
 
+unsigned int number_of_linestyles(const Canvas *canvas);
+int canvas_set_linestyle(Canvas *canvas, unsigned int n, const LineStyle *ls);
+LineStyle *canvas_get_linestyle(const Canvas *canvas, unsigned int n);
+void initialize_linestyles(Canvas *canvas);
 
 int register_device(Canvas *canvas, Device_entry *device);
 int select_device(Canvas *canvas, int dindex);

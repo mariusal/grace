@@ -41,7 +41,6 @@
 #include "draw.h"
 #include "graphs.h"
 #include "devlist.h"
-#include "patterns.h"
 #include "svgdrv.h"
 
 typedef struct {
@@ -419,10 +418,11 @@ static void svg_group_props(const Canvas *canvas, int draw, int fill)
             if (linestyle <= 1) {
                 fprintf(canvas->prstream, "; stroke-dasharray:none");
             } else {
+                LineStyle *ls = canvas_get_linestyle(canvas, linestyle);
                 fprintf(canvas->prstream, "; stroke-dasharray:");
-                for (i = 0; i < dash_array_length[linestyle]; i++) {
+                for (i = 0; i < ls->length; i++) {
                     fprintf(canvas->prstream,
-                        " %d", (int) rint(lw*dash_array[linestyle][i]));
+                        " %d", (int) rint(lw*ls->array[i]));
                 }
             }
         }

@@ -39,7 +39,6 @@
 #include "utils.h"
 #include "draw.h"
 #include "devlist.h"
-#include "patterns.h"
 #include "rstdrv.h"
 #include "protos.h"
 
@@ -267,9 +266,10 @@ void rst_setdrawbrush(const Canvas *canvas)
     }
 
     if (rstlines > 1) {
+        LineStyle *linestyle = canvas_get_linestyle(canvas, rstlines);
         rst_dash_array_length = 0;
-        for (i = 0; i < dash_array_length[rstlines]; i++) {
-            rst_dash_array_length += dash_array[rstlines][i];
+        for (i = 0; i < linestyle->length; i++) {
+            rst_dash_array_length += linestyle->array[i];
         }
     
         if (rstlinew <= 1) {
@@ -290,15 +290,15 @@ void rst_setdrawbrush(const Canvas *canvas)
         }
         
         k = 0;
-        for (i = 0; i < dash_array_length[rstlines]; i++) {
+        for (i = 0; i < linestyle->length; i++) {
             if (i % 2 == 0) {
                 /* black */
-                for (j = 0; j < (dash_array[rstlines][i] - 1)*scale + 1; j++) {
+                for (j = 0; j < (linestyle->array[i] - 1)*scale + 1; j++) {
                     tmp_dash_array[k++] = on;
                 }
             } else {
                 /* white */
-                for (j = 0; j < (dash_array[rstlines][i] + 1)*scale - 1; j++) {
+                for (j = 0; j < (linestyle->array[i] + 1)*scale - 1; j++) {
                     tmp_dash_array[k++] = off;
                 }
             }
@@ -333,11 +333,11 @@ void rst_setfillbrush(const Canvas *canvas)
     } else if (rstpen.pattern == 1) {
         rst_fillbrush = rst_colors[rstpen.color];
     } else {
-        /* TODO */
+        Pattern *pat = canvas_get_pattern(canvas, rstpen.pattern);
         if (brush != NULL) {
             gdImageDestroy(brush);
         }
-        brush = gdImageCreate(16, 16);
+        brush = gdImageCreate(pat->width, pat->height);
         
         get_rgb(canvas, rstpen.color, &rgb);
         red   = rgb.red   >> (GRACE_BPP - 8);
@@ -354,7 +354,7 @@ void rst_setfillbrush(const Canvas *canvas)
         for (k = 0; k < 16; k++) {
             for (j = 0; j < 2; j++) {
                 for (i = 0; i < 8; i++) {
-                    p = pat_bits[rstpen.pattern][k*2+j];
+                    p = pat->bits[k*2+j];
                     if ((p >> i) & 0x01) {
                         gdImageSetPixel(brush, 8*j + i, k, fgcolor);
                     } else {
