@@ -359,6 +359,7 @@ void set_data_free(set *p)
     if (p) {
         dataset_free(p->data);
         xfree(p->legstr);
+        xfree(p);
     }
 }
 
