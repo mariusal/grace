@@ -72,10 +72,6 @@ static Widget scrollper_item;
 static Widget shexper_item;
 static Widget linkscroll_item;
 
-static OptionStructure *hint_item;
-static Widget date_item;
-static Widget wrap_year_item;
-static Widget two_digits_years_item;
 #if defined WITH_XMHTML || defined WITH_LIBHELP
 static Widget force_external_viewer_item;
 #endif
@@ -85,19 +81,12 @@ static Widget force_external_viewer_item;
  */
 static int props_define_notify_proc(void *data);
 
-static void wrap_year_cb(Widget but, int onoff, void *data)
-{
-    Widget wrap_year = (Widget) data;
-    
-    SetSensitive(wrap_year, onoff);
-}
-
 void create_props_frame(Widget but, void *data)
 {
     set_wait_cursor();
 
     if (props_frame == NULL) {
-        Widget fr, rc, rc1;
+        Widget fr, rc1;
 
 	props_frame = CreateDialogForm(app_shell, "Preferences");
 
@@ -137,28 +126,10 @@ void create_props_frame(Widget but, void *data)
 	safe_mode_item = CreateToggleButton(rc1, "Run in safe mode");
         
 	fr = CreateFrame(props_frame, "Scroll/zoom");
-        AddDialogFormChild(props_frame, fr);
         rc1 = CreateVContainer(fr);
 	scrollper_item = CreateScale(rc1, "Scroll %", 0, 200, 20);
 	shexper_item   = CreateScale(rc1, "Zoom %",   0, 200, 20);
 	linkscroll_item = CreateToggleButton(rc1, "Linked scrolling");
-
-	fr = CreateFrame(props_frame, "Dates");
-        rc1 = CreateVContainer(fr);
-        hint_item = CreatePanelChoice(rc1, "Date hint",
-                                      5,
-                                      "ISO",
-                                      "European",
-                                      "US",
-                                      "None",
-                                      NULL,
-                                      NULL);
-	date_item = CreateTextItem2(rc1, 20, "Reference date:");
-	rc = CreateHContainer(rc1);
-        two_digits_years_item = CreateToggleButton(rc, "Two-digit year span");
-        wrap_year_item = CreateTextItem2(rc, 4, "Wrap year:");
-	AddToggleButtonCB(two_digits_years_item,
-            wrap_year_cb, (void *) wrap_year_item);
 
 	CreateAACDialog(props_frame, fr, props_define_notify_proc, NULL);
     }
@@ -173,8 +144,6 @@ void update_props_items(void)
 {
     int itest = 0;
     int iv;
-    int y, m, d, h, mm, sec;
-    char date_string[64], wrap_year_string[64];
     
     if (props_frame) {
         GUI *gui = grace->gui;
@@ -211,35 +180,11 @@ void update_props_items(void)
 	SetScaleValue(scrollper_item, iv);
 	iv = (int) rint(100*grace->rt->shexper);
 	SetScaleValue(shexper_item, iv);
-        switch (get_date_hint()) {
-        case FMT_iso :
-            itest = 0;
-            break;
-        case FMT_european :
-            itest = 1;
-            break;
-        case FMT_us :
-            itest = 2;
-            break;
-        default :
-            itest = FMT_nohint;
-            break;
-        }
-    	SetOptionChoice(hint_item, itest);
-	jul_to_cal_and_time(0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
-                y, m, d, h, mm, sec);
-        xv_setstr(date_item, date_string);
-        SetToggleButtonState(two_digits_years_item, two_digits_years_allowed());
-        sprintf(wrap_year_string, "%04d", get_wrap_year());
-        xv_setstr(wrap_year_item, wrap_year_string);
-        SetSensitive(wrap_year_item, two_digits_years_allowed() ? True:False);
     }
 }
 
 static int props_define_notify_proc(void *data)
 {
-    double jul;
     GUI *gui = grace->gui;
     
 #ifdef DEBUG
@@ -271,29 +216,6 @@ static int props_define_notify_proc(void *data)
     grace->rt->safe_mode = GetToggleButtonState(safe_mode_item);
     grace->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
     grace->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
-
-    switch (GetOptionChoice(hint_item)) {
-    case 0 :
-        set_date_hint(FMT_iso);
-        break;
-    case 1 :
-        set_date_hint(FMT_european);
-        break;
-    case 2 :
-        set_date_hint(FMT_us);
-        break;
-    default :
-        set_date_hint(FMT_nohint);
-        break;
-    }
-    if (parse_date_or_number(xv_getstr(date_item), TRUE, &jul)
-        == RETURN_SUCCESS) {
-        set_ref_date(jul);
-    } else {
-        errmsg("Invalid date");
-    }
-    allow_two_digits_years(GetToggleButtonState(two_digits_years_item));
-    set_wrap_year(atoi(xv_getstr(wrap_year_item)));
     
     xdrawgraph();
     

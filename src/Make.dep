@@ -1133,7 +1133,7 @@ project_ui$(O) : project_ui.c explorer.h graphs.h grace.h \
   /usr/X11R6/include/X11/CompositeP.h /usr/X11R6/include/X11/ConstrainP.h \
   /usr/X11R6/include/X11/ObjectP.h /usr/X11R6/include/X11/RectObjP.h \
   /usr/X11R6/include/Xm/ColorP.h /usr/X11R6/include/Xm/AccColorT.h \
-  /usr/X11R6/include/Xm/BaseClassP.h
+  /usr/X11R6/include/Xm/BaseClassP.h protos.h noxprotos.h xprotos.h
 graph_ui$(O) : graph_ui.c explorer.h graphs.h grace.h ../include/config.h \
   ../include/grace/baseP.h ../include/grace/base.h defines.h \
   ../include/grace/canvas.h storage.h dict3.h ctrans.h motifinc.h \

@@ -27,14 +27,31 @@
 
 /* Project UI */
 
+#include <stdlib.h>
+       
 #include "explorer.h"
+#include "protos.h"
+
+static void wrap_year_cb(Widget but, int onoff, void *data)
+{
+    Widget wrap_year = (Widget) data;
+    
+    SetSensitive(wrap_year, onoff);
+}
 
 ProjectUI *create_project_ui(ExplorerUI *eui)
 {
     ProjectUI *ui;
-    Widget form, fr, rc;
+    Widget form, fr, rc, rc1;
+
+    OptionItem opitems[4] = {
+        {FMT_iso,      "ISO"     },
+        {FMT_european, "European"},
+        {FMT_us,       "US"      },
+        {FMT_nohint,   "None"    }
+    };
     
-    form = eui->scrolled_window;
+    form = CreateVContainer(eui->scrolled_window);
     
     ui = xmalloc(sizeof(ProjectUI));
     
@@ -45,8 +62,22 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->bg_color, oc_explorer_cb, eui);
     ui->bg_fill = CreateToggleButton(rc, "Fill");
     AddToggleButtonCB(ui->bg_fill, tb_explorer_cb, eui);
+
+    fr = CreateFrame(form, "Dates");
+    rc1 = CreateVContainer(fr);
+    ui->datehint = CreateOptionChoice(rc1, "Date hint", 0, 4, opitems);
+    AddOptionChoiceCB(ui->datehint, oc_explorer_cb, eui);
+    ui->refdate = CreateTextItem2(rc1, 20, "Reference date:");
+    AddTextItemCB(ui->refdate, titem_explorer_cb, eui);
+    rc = CreateHContainer(rc1);
+    ui->two_digits_years = CreateToggleButton(rc, "Two-digit year span");
+    AddToggleButtonCB(ui->two_digits_years, wrap_year_cb, ui->wrap_year);
+    AddToggleButtonCB(ui->two_digits_years, tb_explorer_cb, eui);
+    ui->wrap_year = CreateTextItem2(rc, 4, "Wrap year:");
+    AddTextItemCB(ui->wrap_year, titem_explorer_cb, eui);
+
     
-    ui->top = fr;
+    ui->top = form;
     
     return ui;
 }
@@ -55,15 +86,32 @@ void update_project_ui(ProjectUI *ui, Quark *q)
 {
     Project *pr = project_get_data(q);
     if (pr) {
+        int y, m, d, h, mm, sec;
+        char date_string[64], wrap_year_string[64];
+        
         SetOptionChoice(ui->bg_color, pr->bgcolor);
         SetToggleButtonState(ui->bg_fill, pr->bgfill);
+
+    	SetOptionChoice(ui->datehint, get_date_hint());
+	jul_to_cal_and_time(0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
+                y, m, d, h, mm, sec);
+        xv_setstr(ui->refdate, date_string);
+        SetToggleButtonState(ui->two_digits_years, two_digits_years_allowed());
+        sprintf(wrap_year_string, "%04d", get_wrap_year());
+        xv_setstr(ui->wrap_year, wrap_year_string);
+        SetSensitive(ui->wrap_year, two_digits_years_allowed() ? TRUE:FALSE);
     }
 }
 
 int set_project_data(ProjectUI *ui, Quark *q, void *caller)
 {
     Project *pr = project_get_data(q);
-    if (pr) {
+    int retval = RETURN_SUCCESS;
+    
+    if (ui && pr) {
+        double jul;
+        
         if (!caller || caller == ui->bg_color) {
             pr->bgcolor = GetOptionChoice(ui->bg_color);
         }
@@ -71,10 +119,27 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             pr->bgfill = GetToggleButtonState(ui->bg_fill);
         }
 
+        if (!caller || caller == ui->datehint) {
+            set_date_hint(GetOptionChoice(ui->datehint));
+        }
+        if (!caller || caller == ui->refdate) {
+            if (parse_date_or_number(xv_getstr(ui->refdate), TRUE, &jul) ==
+                RETURN_SUCCESS) {
+                set_ref_date(jul);
+            } else {
+                errmsg("Invalid date");
+                retval = RETURN_FAILURE;
+            }
+        }
+        if (!caller || caller == ui->two_digits_years) {
+            allow_two_digits_years(GetToggleButtonState(ui->two_digits_years));
+        }
+        if (!caller || caller == ui->wrap_year) {
+            set_wrap_year(atoi(xv_getstr(ui->wrap_year)));
+        }
+
         quark_dirtystate_set(q, TRUE);
-        
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
     }
+    
+    return retval;
 }
