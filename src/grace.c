@@ -154,7 +154,6 @@ RunTime *runtime_new(Grace *grace)
         runtime_free(rt);
         return NULL;
     }
-    canvas_set_udata(rt->canvas, grace);
     canvas_set_fmap_proc(rt->canvas, fmap_proc);
     canvas_set_csparse_proc(rt->canvas, csparse_proc);
     
@@ -411,18 +410,10 @@ int grace_set_project(Grace *grace, Quark *project)
 {
     if (grace && project) {
         Project *pr = project_get_data(project);
-        int i;
         
         quark_free(grace->project);
         grace->project = project;
         parser_state_reset(project);
-        
-        /* Reset colormap */
-        canvas_cmap_reset(grace->rt->canvas);
-        for (i = 0; i < pr->ncolors; i++) {
-            Colordef *c = &pr->colormap[i];
-            canvas_store_color(grace->rt->canvas, c->id, &c->rgb);
-        }
         
         /* Set dimensions of all devices */
         set_page_dimensions(grace, pr->page_wpp, pr->page_hpp, TRUE);

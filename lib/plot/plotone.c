@@ -136,7 +136,17 @@ int drawgraph(Canvas *canvas, const Quark *project)
     Project *pr = project_get_data(project);
 
     if (pr) {
+        int i;
+        canvas_set_udata(canvas, (Quark *) project);
         canvas_set_docname(canvas, project_get_docname(project));
+
+        /* Reset colormap */
+        canvas_cmap_reset(canvas);
+        for (i = 0; i < pr->ncolors; i++) {
+            Colordef *c = &pr->colormap[i];
+            canvas_store_color(canvas, c->id, &c->rgb);
+        }
+
         canvas_set_pagefill(canvas, pr->bgfill);
         setbgcolor(canvas, pr->bgcolor);
         canvas_set_fontsize_scale(canvas,  pr->fscale);
