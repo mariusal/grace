@@ -213,8 +213,8 @@ int isactive_ellipse(int ellipno)
 
 int isactive_string(int strno)
 {
-    if (is_valid_string(strno)) {
-	return (pstr[strno].s[0]);
+    if (is_valid_string(strno) && pstr[strno].s && pstr[strno].s[0]) {
+	return TRUE;
     } else {
         return FALSE;
     }
@@ -345,7 +345,6 @@ int kill_object(int type, int id)
 
 void copy_object(int type, int from, int to)
 {
-    char *tmpbuf;
     switch (type) {
 	case OBJECT_BOX:
 	boxes[to] = boxes[from];
@@ -358,11 +357,8 @@ void copy_object(int type, int from, int to)
 	break;
     case OBJECT_STRING:
 	kill_string(to);
-	free(pstr[to].s);
-	tmpbuf = (char *) malloc((strlen(pstr[from].s) + 1) * sizeof(char));
 	pstr[to] = pstr[from];
-	pstr[to].s = tmpbuf;
-	strcpy(pstr[to].s, pstr[from].s);
+	pstr[to].s = copy_string(pstr[to].s, pstr[from].s);
 	break;
     }
     set_dirtystate();
@@ -384,23 +380,11 @@ int duplicate_object(int type, int id)
 plotstr copy_plotstr(plotstr p)
 {
     static plotstr pto;
-    pto = p;
-    if (p.s != NULL) {
-	pto.s = (char *) malloc((strlen(p.s) + 1) * sizeof(char));
-	if (pto.s != NULL) {
-	    strcpy(pto.s, p.s);
-	}
-    } else {
-	pto.s = NULL;
-    }
-    return pto;
-}
 
-void kill_plotstr(plotstr p)
-{
-    if (p.s != NULL) {
-	free(p.s);
-    }
+    pto = p;
+    pto.s = copy_string(NULL, p.s);
+
+    return pto;
 }
 
 void kill_box(int boxno)
@@ -423,11 +407,7 @@ void kill_line(int lineno)
 
 void kill_string(int stringno)
 {
-    if (pstr[stringno].s != NULL) {
-	free(pstr[stringno].s);
-    }
-    pstr[stringno].s = (char *) malloc(sizeof(char));
-    pstr[stringno].s[0] = 0;
+    cxfree(pstr[stringno].s);
     pstr[stringno].active = FALSE;
     set_dirtystate();
 }
@@ -454,26 +434,9 @@ int get_object_bb(int type, int id, view *bb)
     return GRACE_EXIT_SUCCESS;
 }
 
-void set_plotstr_string(plotstr * pstr, char *buf)
+void set_plotstr_string(plotstr *pstr, char *buf)
 {
-    int n;
-    
-    if (pstr->s != buf) {
-        if (pstr->s != NULL) {
-          free(pstr->s);
-        }
-        pstr->s = NULL;
-    }
-    
-    if (buf != NULL) {
-	n = strlen(buf);
-	pstr->s = (char *) malloc(sizeof(char) * (n + 1));
-	strcpy(pstr->s, buf);
-	pstr->s[n] = 0;
-    } else {
-	pstr->s = (char *) malloc(sizeof(char));
-	pstr->s[0] = 0;
-    }
+    pstr->s = copy_string(pstr->s, buf);
 }
 
 void init_line(int id, VPoint vp1, VPoint vp2)
