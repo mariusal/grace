@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.3)</title>
+<title>Grace User's Guide (for Grace-5.1.4)</title>
 <author>by the Grace Team</author>
-<date>07.04.2001</date>
+<date>31.05.2001</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -53,7 +53,7 @@
 
 <tscreen><verb>
 Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
-Copyright (&copy;) 1996-2000 Grace Development Team
+Copyright (&copy;) 1996-2001 Grace Development Team
 
 Maintained by Evgeny Stambulchik
 
@@ -3104,24 +3104,19 @@ C
          <sect3>OS/2
           <p>
          In general the method outlined in the examples above can be
-	 used on OS/2, too. However you have to create a
-	 DLL (Dynamic Link Library) which is a bit more tricky on OS/2 than
-	 on most Un*x systems. 
-         This document can't explain the whole procedure in detail, but
-	 tries to describe roughly the way to go.
+	 used on OS/2, too. However you have to create a DLL (Dynamic Link Library)
+	 which is a bit more tricky on OS/2 than on most Un*x systems.
          Since Grace was ported by using EMX we also use it to create
 	 the examples; however other development environments should work
-	 as well.
-         We refer to Example 2 as given above, since Example 1 exhibits
-	 a problem on OS/2:
-         DLLs might have their entry points (i.e. exported functions)
-         callable as ordinals only, so you might not know how to access a
-         specific function without some research. 
-         First created a source file "my_func.c" with the content from
-	 Example 2 and compile it to "my_func.obj"
+	 as well (ensure to use the _System calling convention!).
+         We refer to Example 2 only. Example 1 might demonstrate
+	 that DLLs can have their entry points (i.e. exported functions)
+         callable via ordinals only, so you might not know how to access a
+         specific function without some research.
+         First compile the source from Example 2 to "my_func.obj"
 
          <tscreen>
-         gcc -Zomf -Zmt -c my_func.c
+         gcc -Zomf -Zmt -c my_func.c -o my_func.obj
          </tscreen>
 
          Then you need to create a linker definition file "my_func.def"
@@ -3144,17 +3139,16 @@ C
          gcc my_func.obj my_func.def -o my_func.dll -Zdll -Zno-rte -Zmt -Zomf
          </tscreen>
 
-         (the -Zno-rte flag depends on the content of the library;
-          check out the EMX documentation about this as well as 
-	  the other compiler/linker flags used here!)
-         To use these new library function within Grace you may either
+         (check out the EMX documentation about the compiler/linker flags
+	  used here!)
+         To use this new library function within Grace you may either
 	 put the DLL in the LIBPATH and use the short form:
 
          <tscreen>
          USE "my_function" TYPE f_of_nd FROM "my_func" ALIAS "myf"
          </tscreen>
 
-         or have it in an arbitrary path which you need to specify explicitly
+         or put it in an arbitrary path which you need to specify explicitly
          then:
 
          <tscreen>
