@@ -779,17 +779,17 @@ typedef struct {
     unsigned int rid;
 } storage_traverse_data;
 
-static int traverse_hook(unsigned int step, void *data, void *udata)
+static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     char *s;
     storage_traverse_data *stdata = (storage_traverse_data *) udata;
-    StorageStructure *ss = stdata->ss;;
+    StorageStructure *ss = stdata->ss;
     
-    s = ss->labeling_proc(data, &stdata->rid);
+    s = ss->labeling_proc(q, &stdata->rid);
     if (s) {
         XmString str;
         
-        ss->values[ss->nchoices++] = data;
+        ss->values[ss->nchoices++] = q;
 
         str = XmStringCreateLocalized(s);
         xfree(s);
@@ -1166,7 +1166,7 @@ void UpdateStorageChoice(StorageStructure *ss)
     stdata.ss = ss;
     if (ss->q) {
         ss->values = xrealloc(ss->values, SIZEOF_VOID_P*quark_count_children(ss->q));
-        storage_traverse(ss->q->children, traverse_hook, &stdata);
+        quark_traverse(ss->q, traverse_hook, &stdata);
 
         SelectStorageChoices(ss, nsel, selvalues);
     }
@@ -2356,13 +2356,17 @@ static char *graph_labeling(Quark *q, unsigned int *rid)
     char buf[128];
     graph *g = graph_get_data(q);
     
-    sprintf(buf, "(%c) Graph #%d (type: %s, sets: %d)",
-        !g->hidden ? '+':'-', *rid, graph_types(grace->rt, g->type),
-        number_of_sets(q));
-    
-    (*rid)++;
-    
-    return copy_string(NULL, buf);
+    if (g) {
+        sprintf(buf, "(%c) Graph #%d (type: %s, sets: %d)",
+            !g->hidden ? '+':'-', *rid, graph_types(grace->rt, g->type),
+            number_of_sets(q));
+
+        (*rid)++;
+
+        return copy_string(NULL, buf);
+    } else {
+        return NULL;
+    }
 }
 
 StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
