@@ -269,11 +269,11 @@ float T1_GetLinePosition( int FontID, int linetype)
   }
 
   if (linetype & T1_UNDERLINE)
-    return( pFontBase->pFontArray[FontID].UndrLnThick);
+    return( pFontBase->pFontArray[FontID].UndrLnPos);
   if (linetype & T1_OVERLINE)
-    return( pFontBase->pFontArray[FontID].OvrLnThick);
+    return( pFontBase->pFontArray[FontID].OvrLnPos);
   if (linetype & T1_OVERSTRIKE)
-    return( pFontBase->pFontArray[FontID].OvrStrkThick);
+    return( pFontBase->pFontArray[FontID].OvrStrkPos);
   
   /* The linetype was bad */
   T1_errno=T1ERR_INVALID_PARAMETER;
