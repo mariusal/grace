@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -308,11 +308,6 @@ void xyplot(int gno)
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
-                case SET_XYSTRING:
-                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
-                    break;
                 default:
                     errmsg("Unsupported in XY graph set type");
                     break;
@@ -466,11 +461,6 @@ void xyplot(int gno)
                     break;
                 case SET_XYR:
                     drawcirclexy(&p);
-                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_XYSTRING:
-                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;

@@ -52,7 +52,6 @@ typedef enum {
     SET_BAR       ,
     SET_BARDY     ,
     SET_BARDYDY   ,
-    SET_XYSTRING  ,
     SET_XYHILO    ,
     SET_XYZ       ,
     SET_XYR       ,

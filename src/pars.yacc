@@ -3594,7 +3594,7 @@ xytype:
 	| XYDXDXDYDY { $$ = SET_XYDXDXDYDY; }
 	| XYHILO { $$ = SET_XYHILO; }
 	| XYR { $$ = SET_XYR; }
-	| XYSTRING { $$ = SET_XYSTRING; }
+	| XYSTRING { $$ = SET_XY; }
 	;
 
 graphtype:

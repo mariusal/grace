@@ -95,9 +95,6 @@ char *set_types(int it)
     case SET_XYR:
 	s = "xyr";
 	break;
-    case SET_XYSTRING:
-	s = "xystring";
-	break;
     }
     return s;
 }
@@ -121,7 +118,6 @@ int settype_cols(int type)
     switch (type) {
     case SET_XY:
     case SET_BAR:
-    case SET_XYSTRING:
 	ncols = 2;
 	break;
     case SET_XYDX:
@@ -225,7 +221,7 @@ int setlength(int gno, int setno, int len)
         }
     }
     
-    if (p->type == SET_XYSTRING) {
+    if (p->data.s != NULL) {
         for (i = len; i < oldlen; i++) {
             xfree(p->data.s[i]);
         }
@@ -421,7 +417,7 @@ void killsetdata(int gno, int setno)
 	    }
 	    g[gno].p[setno].data.ex[i] = NULL;
 	}
-	if (dataset_type(gno, setno) == SET_XYSTRING && get_set_strings(gno, setno) != NULL) {
+	if (get_set_strings(gno, setno) != NULL) {
 	    for (i = 0; i < getsetlength(gno, setno); i++) {
 		cxfree(g[gno].p[setno].data.s[i]);
 	    }
@@ -547,10 +543,6 @@ int set_dataset_type(int gno, int setno, int type)
             cxfree(g[gno].p[setno].data.ex[i]);
         }
         switch (type) {
-        case SET_XYSTRING:
-            g[gno].p[setno].avalue.active = TRUE;
-            g[gno].p[setno].avalue.type = AVALUE_TYPE_STRING;
-            break;
         case SET_XYZ:
             g[gno].p[setno].avalue.active = TRUE;
             g[gno].p[setno].avalue.type = AVALUE_TYPE_Z;
