@@ -21,7 +21,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Actions.c,v 1.1 1999-09-11 01:25:36 fnevgeny Exp $
+ * $Id: Actions.c,v 1.2 2005-03-08 21:51:38 fnevgeny Exp $
  */
 
 /*
@@ -79,7 +79,6 @@ typedef struct {
     int row;
     int column;
     Boolean pressed;
-    Boolean grabbed;
 } XbaeMatrixButtonPressedStruct;
 
 typedef struct {
@@ -1208,8 +1207,6 @@ Boolean *cont;
 
     if (event->type == ButtonRelease)
     {
-	button->grabbed = False;
-	XtRemoveGrab(w);
 	scrolling = False;
 
 	if (button->pressed)
@@ -1222,27 +1219,6 @@ Boolean *cont;
 	    else if (button->row == -1)
 		xbaeDrawColumnLabel(button->mw, button->column, False);    
 
-	    if (button->mw->matrix.label_activate_callback)
-	    {
-		XbaeMatrixLabelActivateCallbackStruct call_data;
-		
-		call_data.reason = XbaeLabelActivateReason;
-		call_data.event = event;
-		call_data.row_label = (button->column == -1);
-		call_data.row = button->row;
-		call_data.column = button->column;
-
-		if (button->column == -1)
-		    call_data.label =
-			button->mw->matrix.row_labels[button->row];
-		else
-		    call_data.label =
-			button->mw->matrix.column_labels[button->column];
-
-		XtCallCallbackList((Widget)button->mw,
-				   button->mw->matrix.label_activate_callback,
-				   (XtPointer)&call_data);
-	    }
 	}
 	return;
     }
@@ -1334,13 +1310,31 @@ Boolean *cont;
 
 	scrolling = True;
 
-	XtAddGrab(w, True, False);
-	/* Copy the data needed to be passed to the event handler */
+        /* Copy the data needed to be passed to the event handler */
 	button.mw = mw;
 	button.row = row;
 	button.column = column;
 	button.pressed = True;
-	button.grabbed = True;
+
+	if (mw->matrix.label_activate_callback)
+	{
+	    XbaeMatrixLabelActivateCallbackStruct call_data;
+
+	    call_data.reason = XbaeLabelActivateReason;
+	    call_data.event = event;
+	    call_data.row_label = (column == -1);
+	    call_data.row = row;
+	    call_data.column = column;
+
+	    if (column == -1)
+		call_data.label = mw->matrix.row_labels[row];
+	    else
+		call_data.label = mw->matrix.column_labels[column];
+
+	    XtCallCallbackList((Widget)mw,
+			       mw->matrix.label_activate_callback,
+			       (XtPointer)&call_data);
+	}
 		
 	XtAddEventHandler(w, event_mask,
 			   True, (XtEventHandler)PushButton,
@@ -1351,7 +1345,7 @@ Boolean *cont;
     
 	appcontext = XtWidgetToApplicationContext(w);
 
-	while (button.grabbed)
+	while (button.pressed)
 	    XtAppProcessEvent(appcontext, XtIMAll);
 
 	XtRemoveEventHandler(w, event_mask, True,
