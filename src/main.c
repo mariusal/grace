@@ -952,7 +952,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-saveall   [save_file]                Save all to save_file\n");
     fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator\n");
     fprintf(stream, "-source    [disk|pipe]                Source type of next data file\n");
-    fprintf(stream, "-timer     [delay]                    Set timer for named pipes to delay ms \n");
+    fprintf(stream, "-timer     [delay]                    Set allowed time slice for real time inputs to delay ms\n");
     fprintf(stream, "-timestamp                            Add timestamp to plot\n");
     fprintf(stream, "-settype   [xy|xydx|...]              Set the type of the next data file\n");
     fprintf(stream, "-version                              Show the program version\n");
