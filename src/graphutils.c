@@ -387,19 +387,23 @@ static void auto_ticks(int gno, int axis)
     } else if (t->tmajor <= 0.0) {
         t->tmajor = 1.0;
     }
-    if (t->nminor < 0) {
-	t->nminor = 1;
-    }
     
     range = tmpmax - tmpmin;
     if (axis_scale != SCALE_LOG) {
         d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
 	t->tmajor = d;
-        t->nminor = 1;
     } else {
         d = ceil(range/(t->t_autonum - 1));
 	t->tmajor = pow(t->tmajor, d);
-        t->nminor = 9;
+    }
+
+    /* alter # of minor ticks only if the current value is anomalous */
+    if (t->nminor < 0 || t->nminor > 10) {
+        if (axis_scale != SCALE_LOG) {
+	    t->nminor = 1;
+        } else {
+            t->nminor = 8;
+        }
     }
     
     set_dirtystate();
