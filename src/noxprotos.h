@@ -183,12 +183,14 @@ int init_array(double **a, int n);
 int init_scratch_arrays(int n);
 double *get_scratch(int ind);
 
-void scanner(char *s, int len, int setno, int *errpos);
+int   scanner(char *s);
+int s_scanner(char *s, double *res);
+int v_scanner(char *s, int *reslen, double **res);
 
 int get_parser_gno(void);
-void set_parser_gno(int gno);
+int set_parser_gno(int gno);
 int get_parser_setno(void);
-void set_parser_setno(int setno);
+int set_parser_setno(int gno, int setno);
 
 double rnorm(double mean, double sdev);
 double fx(double x);
