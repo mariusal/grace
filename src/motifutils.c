@@ -1612,6 +1612,15 @@ static OptionItem fsb_items[] = {
 
 #define FSB_ITEMS_NUM   sizeof(fsb_items)/sizeof(OptionItem)
 
+#if XmVersion >= 2000    
+static void show_hidden_cb(int onoff, void *data)
+{
+    FSBStructure *fsb = (FSBStructure *) data;
+    XtVaSetValues(fsb->FSB, XmNfileFilterStyle,
+        onoff ? XmFILTER_NONE:XmFILTER_HIDDEN_FILES, NULL);
+}
+#endif
+
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 {
     FSBStructure *retval;
@@ -1640,6 +1649,11 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
     AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
     
     retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
+#if XmVersion >= 2000    
+    button = CreateToggleButton(retval->rc, "Show hidden files");
+    AddToggleButtonCB(button, show_hidden_cb, retval);
+    XtVaSetValues(retval->FSB, XmNfileFilterStyle, XmFILTER_HIDDEN_FILES, NULL);
+#endif
     fr = CreateFrame(retval->rc, NULL);
     form = XtVaCreateWidget("form", xmFormWidgetClass, fr, NULL);
     opt = CreateOptionChoice(form, "Chdir to:", 1, FSB_ITEMS_NUM, fsb_items);
