@@ -74,7 +74,9 @@
   configos2.cmd is located in .\arch\os2 and has to be copied
   to the toplevel source directory before executing it.
   Please check .\arch\os2\config.h.os2 and .\arch\os2\Make.conf.os2
-  and modify them if necessary.
+  and modify them if necessary. Especially make changes to
+  make use of pre-installed versions of libraries like
+  T1lib and Xbae.
   Finally 'x11make.exe' will be called by this script. 
   Note that calling the 'make' script from XFree/2 won't work,
   because the generic Makefile is using shell commands which are 
