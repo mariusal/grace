@@ -386,7 +386,7 @@ int initialize_gui(int *argc, char **argv)
     for (i = 1; i < *argc - 1; i++) {
         /* See if display name was specified in the args */
         char *pattern = "-display";
-        if (strstr(pattern, argv[i]) == pattern) {
+        if (strlen(argv[i]) > 1 && strstr(pattern, argv[i]) == pattern) {
             display_name = argv[i + 1];
         }
     }
