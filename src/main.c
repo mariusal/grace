@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
 	    } else if (argmatch(argv[i], "-noinstall", 9)) {
 		install_cmap = CMAP_INSTALL_NEVER;
 	    } else if (argmatch(argv[i], "-barebones", 9)) {
-		set_barebones( TRUE );
+		set_barebones();
 #endif
 	    } else if (argmatch(argv[i], "-timestamp", 10)) {
 		project->timestamp.active = TRUE;

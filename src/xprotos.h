@@ -189,7 +189,7 @@ void update_props_items(void);
 void update_all(void);
 void update_all_cb(void *data);
 
-void set_barebones(int onoff);
+void set_barebones(void);
 
 void installXErrorHandler(void);
 

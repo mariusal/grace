@@ -630,13 +630,11 @@ void set_locbar(int onoff, void *data)
     set_view_items();
 }
 
-void set_barebones(int onoff)
+void set_barebones()
 {
-    if (onoff) {
-        grace->gui->locbar    = FALSE;
-        grace->gui->toolbar   = FALSE;
-        grace->gui->statusbar = FALSE;
-    }
+    grace->gui->locbar    = FALSE;
+    grace->gui->toolbar   = FALSE;
+    grace->gui->statusbar = FALSE;
 }
 
 /*
