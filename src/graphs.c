@@ -106,6 +106,24 @@ int get_cg(void)
 }
 
 
+int get_graph_ids(int **ids)
+{
+    return storage_get_all_ids(graphs, ids);
+}
+
+int get_set_ids(int gno, int **ids)
+{
+    graph *g;
+    
+    g = graph_get(gno);
+    
+    if (g) {
+        return storage_get_all_ids(g->sets, ids);
+    } else {
+        return 0;
+    }
+}
+
 graph *graph_get(int gno)
 {
     graph *g;

@@ -349,6 +349,9 @@ set *set_copy(set *s);
 graph *graph_get(int gno);
 set *set_get(int gno, int setno);
 
+int get_graph_ids(int **ids);
+int get_set_ids(int gno, int **ids);
+
 void postprocess_project(int version);
 
 #endif /* __GRAPHS_H_ */
