@@ -295,7 +295,6 @@ void update_project_ui(ProjectUI *ui, Quark *q)
             SetSensitive(ui->page_x, TRUE);
             SetSensitive(ui->page_y, TRUE);
             SetSensitive(ui->page_orient->menu, FALSE);
-            return;
         } else {
             SetSensitive(ui->page_x, FALSE);
             SetSensitive(ui->page_y, FALSE);
