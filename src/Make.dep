@@ -98,8 +98,8 @@ plotwin$(O) : plotwin.c globals.h defines.h graphs.h draw.h utils.h \
  plotone.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
 graphappwin$(O) : graphappwin.c graphs.h defines.h graphutils.h utils.h \
  plotone.h draw.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
-helpwin$(O) : helpwin.c globals.h defines.h graphs.h draw.h utils.h \
- files.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
+helpwin$(O) : helpwin.c utils.h files.h protos.h missing.h noxprotos.h \
+ defines.h graphs.h xprotos.h motifinc.h
 hotwin$(O) : hotwin.c globals.h defines.h graphs.h draw.h plotone.h \
  parser.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
 locatewin$(O) : locatewin.c graphs.h defines.h protos.h missing.h \
