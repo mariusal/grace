@@ -372,7 +372,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
  * We use a stack of static buffers to work around asynchronous
  * refresh/redraw events
  */
-#define STACKLEN    10
+#define STACKLEN    30
 
 static char *get_cell_content(EditPoints *ep, int row, int column)
 {
@@ -662,7 +662,7 @@ static EditPoints *new_ep(void)
         ep->cformat[i] = CELL_FORMAT;
     }
 
-    ep->top = CreateDialogForm(app_shell, "Spreadsheet dataset editor");
+    ep->top = CreateDialogForm(NULL, "Spreadsheet dataset editor");
     SetDialogFormResizable(ep->top, TRUE);
 
     menubar = CreateMenuBar(ep->top);
@@ -670,8 +670,7 @@ static EditPoints *new_ep(void)
     AddDialogFormChild(ep->top, menubar);
 
     menupane = CreateMenu(menubar, "File", 'F', FALSE);
-    CreateMenuButton(menupane,
-        "Close", 'C', destroy_dialog_cb, GetParent(ep->top));
+    CreateMenuCloseButton(menupane, ep->top);
 
     menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
     CreateMenuButton(menupane, "Add row", 'A', add_row_cb, ep);
