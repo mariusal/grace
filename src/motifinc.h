@@ -333,6 +333,18 @@ void UpdateSetChoice(ListStructure *listp, int gno);
 GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type);
 SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type);
 
+void switch_focus_proc(void *data);
+void hide_graph_proc(void *data);
+void show_graph_proc(void *data);
+void duplicate_graph_proc(void *data);
+void kill_graph_proc(void *data);
+void copy12_graph_proc(void *data);
+void copy21_graph_proc(void *data);
+void move12_graph_proc(void *data);
+void move21_graph_proc(void *data);
+void swap_graph_proc(void *data);
+void create_new_graph_proc(void *data);
+
 void hide_set_proc(void *data);
 void show_set_proc(void *data);
 void duplicate_set_proc(void *data);
