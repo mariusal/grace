@@ -828,7 +828,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Update all", 'U', update_all_cb, NULL);
 
 /* Window menu */
-    menupane = CreateMenu(menubar, "Window", 'W', FALSE);
+    menupane = CreateMenu(menubar, "Tools", 'T', FALSE);
    
     CreateMenuButton(menupane, "Point explorer", 'P', create_points_frame, NULL);
     CreateMenuButton(menupane, "Font tool", 'F', create_fonttool_cb, NULL);
