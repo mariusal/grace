@@ -42,30 +42,35 @@ $ !
 $ SAY "Building T1LIB"
 $ SET DEFAULT [.T1LIB.TYPE1]
 $ CFLAGS = CFLAGS0 -
-         + "/INCLUDE=[--]/DEFINE=(GLOBAL_CONFIG_DIR=""""""[]"""""", " -
-         + "T1_AA_TYPE16=""''T1_AA_TYPE16'"",T1_AA_TYPE32=""''T1_AA_TYPE32'"")"
+       + "/INCLUDE=[--]/DEFINE=(GLOBAL_CONFIG_DIR=""""""[]"""""", " -
+       + "T1_AA_TYPE16=""''T1_AA_TYPE16'"",T1_AA_TYPE32=""''T1_AA_TYPE32'"")"
 $ LIB = "[-]libt1lib.olb"
 $ SRCS = "arith curves fontfcn hints lines objects paths regions scanfont " -
        + "spaces t1io t1snap t1stub token type1 util"
 $ GOSUB COMPILE
 $ SET DEFAULT [-.T1LIB]
+$ CFLAGS = CFLAGS0 -
+       + "/INCLUDE=[--]/DEFINE=(GLOBAL_CONFIG_DIR=""""""[]"""""", " -
+       + "T1_AA_TYPE16=""''T1_AA_TYPE16'"",T1_AA_TYPE32=""''T1_AA_TYPE32'"")" -
+       + "/WARNING=(DISABLE=DUPEXTERN)"
+$ LIB = "[-]libt1lib.olb"
 $ SRCS = "t1finfo t1base t1delete t1enc t1env t1load t1set t1trans t1aaset " -
        + "t1afmtool t1outline parseAFM"
 $ GOSUB COMPILE
 $ SET DEFAULT [--]
 $ !
 $ SAY "Building XBAE"
-$ SET DEFAULT [.XBAE]
-$ XBAE = F$PARSE("[-]",,,"DEVICE") + F$PARSE("[-]",,,"DIRECTORY") - "]" + ".XBAE]"
+$ SET DEFAULT [.XBAE.XBAE]
+$ XBAE = F$PARSE("[]",,,,"SYNTAX_ONLY") - ".;"
 $ DEFINE/NOLOG XBAE 'XBAE'
 $ CFLAGS = CFLAGS0 + "/INCLUDE=[-]" + GUI_FLAGS -
          + "/DEFINE=(DRAW_RESIZE_SHADOW)/WARNINGS=(DISABLE=LONGEXTERN)"
 $ LIB = "libXbae.OLB"
-$ SRCS = "Actions Clip Converters Create Draw " -
+$ SRCS = "Actions Clip Converters Create Draw Input " -
        + "Matrix Methods Public ScrollMgr Shadow Utils"
 $ GOSUB COMPILE
 $ DEASSIGN XBAE
-$ SET DEFAULT [-]
+$ SET DEFAULT [--]
 $ !
 $ SAY "Building SRC"
 $ SET DEFAULT [.SRC]
@@ -92,11 +97,9 @@ $   V = 'F$VERIFY(0)'
 $ ELSE
 $   GOSUB BUILDINFO
 $ ENDIF
-$ CEPHES = F$PARSE("[-]",,,"DEVICE") + F$PARSE("[-]",,,"DIRECTORY") -
-       - "]" + ".CEPHES]"
+$ CEPHES = F$PARSE("[-.CEPHES]",,,,"SYNTAX_ONLY") - ".;"
 $ DEFINE/NOLOG CEPHES 'CEPHES'
-$ XBAE = F$PARSE("[-]","","","DEVICE") + F$PARSE("[-]","","","DIRECTORY") -
-       - "]" + ".XBAE]"
+$ XBAE = F$PARSE(XBAE_INC,,,,"SYNTAX_ONLY") - ".;"
 $ DEFINE/NOLOG XBAE 'XBAE'
 $ CFLAGS = CFLAGS0 + "/INCLUDE=([-],[-.T1LIB.T1LIB]''LIB_INC')" -
          + "/DEFINE=(""xfree=xfree_"")"
@@ -123,7 +126,7 @@ $ GOSUB COMPILE
 $ CEPHES_LIB = ",[-.CEPHES]LIBCEPHES.OLB/LIB"
 $ V = F$VERIFY(1)
 $ LINK /EXECUTABLE=xmgrace.exe 'LDFLAGS' xmgrace.olb/lib/inc=main -
-    'GUI_LIBS''CEPHES_LIB''T1_LIB''NETCDF_LIBS''FFT1_LIB' -
+    'GUI_LIBS''CEPHES_LIB''T1_LIB''NETCDF_LIBS''FFTW_LIB' -
     'PDF_LIB''TIFF_LIB''JPEG_LIB''PNG_LIB''Z_LIB' -
     'NOGUI_LIBS''DL_LIB'
 $ V = 'F$VERIFY(0)'

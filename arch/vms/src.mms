@@ -35,10 +35,10 @@ msg :
         @ $(ECHO) ""
 
 logicals :
-        @ define/nolog cephes 'f$string(f$parse("[-]","","","device")+ \
-          f$parse("[-]","","","directory") - "]" + ".cephes]")
-        @ define/nolog xbae 'f$string(f$parse("[-]","","","device")+ \
-          f$parse("[-]","","","directory") - "]" + ".xbae]")
+        @ define/nolog cephes \
+            'f$string(f$parse("[-.cephes]",,,,"syntax_only")-".;")'
+        @ define/nolog xbae \
+            'f$string(f$parse("$(XBAE_INC)",,,,"syntax_only")-".;")'
 .IFDEF USE_DECC$CRTL
         @ define/nolog decc$crtlmap sys$library:decc$crtl.exe
 .ENDIF

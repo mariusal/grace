@@ -2,7 +2,7 @@
 # Makefile for Xbae matrix widget on VMS            #
 #####################################################
 
-TOP=[-]
+TOP=[--]
 ECHO = WRITE SYS$OUTPUT
 
 include $(TOP)Make.conf

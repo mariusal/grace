@@ -3,7 +3,8 @@ TOP=[--]
 include $(TOP)Make.conf
 
 CFLAGS = $(CFLAGS0)/INCLUDE=[--]/DEFINE=(GLOBAL_CONFIG_DIR="""[]""",\
-         T1_AA_TYPE16="$(T1_AA_TYPE16)",T1_AA_TYPE32="$(T1_AA_TYPE32)")
+         T1_AA_TYPE16="$(T1_AA_TYPE16)",T1_AA_TYPE32="$(T1_AA_TYPE32)")\
+         /WARNING=(DISABLE=DUPEXTERN)
 
 OBJS = \
 	t1finfo$(O) \

@@ -1,4 +1,4 @@
-README for GRACE on VMS -- 17-Jun-1999
+README for GRACE on VMS --  1-Oct-1999
 
 People who have worked on Grace for VMS:
   Rolf Niepraschk (niepraschk@ptb.de)
@@ -14,8 +14,8 @@ People who have worked on Grace for VMS:
 
  Grace calls library functions not included in VMS until version 7.
  Starting with version 5.6 of DECC, Compaq distributes an object library
- (sys$library:decc$crtl.olb) containing these new functions; see
- sys$libray:decc$crtl.readme for information on it.  On VMS version 6
+ (sys$library:decc$crtl.olb) containing these new functions (see
+ sys$libray:decc$crtl.readme for information on it).  On VMS version 6
  and older, you can build Grace using this library, or you can build it
  with versions of the needed routines that are [.src]missing.c.  The
  default is to use the decc$crtl library if it exists on VMS version
@@ -29,25 +29,52 @@ People who have worked on Grace for VMS:
  and older of VMS, you must do @[.ARCH.VMS]BUILD BUILDINFO before building
  with MMK or MMS.
 
- Grace requires Motif 1.2; it uses the Tab widget and Xbae, which are not
- supported with Motif 1.1.
+ Grace requires Motif 1.2; it uses the Tab widget and Xbae, which do not
+ support with Motif 1.1.
 
 2. Other software
 
- There are three libraries that can be included with Grace: NetCDF allows
- you to read files in the HDF format; PNG allows you to write PNG files;
- and JPEG allows you to write JPEG files.  When you compile the libraries,
- you should use the same floating point format (IEEE, G_FLOAT, or D_FLOAT)
- as you use with Grace.
+ There are five libraries that can be included with Grace: FFTW does fast
+ fourier transforms and allows you to do non-power-of-2 length FFT's along
+ with the normal ones; NetCDF allows you to read files in the HDF format;
+ PNG, JPEG, and PDF allow you to write PNG, JPEG, and PDF files.  When you
+ compile the libraries, you should use the same floating point format
+ (IEEE, G_FLOAT, or D_FLOAT) as you use with Grace; note that the TIFF
+ library (which may be included with PDF) supports IEEE and D_FLOAT only.
 
- You can find the NETCDF package at ftp://ftp.ncsa.uiuc.edu/HDF/, including
- precompiled binaries for VAX and Alpha.
+ The FFTW package is at http://www.fftw.org/.  Compile all the C files
+ in [.fftw] with the command
 
- You can get the JPEG library, the PNG library, and the ZLIB library
- (required if you want PNG) from the Ghostscript distribution at
- http://www.cs.wisc.edu/~ghost/index.html.  You will need to modify
- the make file to use the floating point format you use with Grace.  There
- is also a precompiled version of the JPEG library in the netcdf distribution.
+     CC /FLOAT=IEEE /PREFIX=ALL /INCLUDE=[]
+
+ then create a library (fftw.olb) containing all the object files.  Change
+ the /FLOAT qualifier if you are using a different format.
+
+ The NETCDF package is at ftp://ftp.ncsa.uiuc.edu/HDF/, including precompiled
+ binaries for VAX and Alpha.
+
+ The JPEG library, the PNG library, and the ZLIB library (required if you
+ want PNG) are in the Ghostscript distribution at
+ http://www.cs.wisc.edu/~ghost/index.html.  You will need to modify the make
+ file to use the floating point format you use with Grace.  There is also a
+ precompiled version of the JPEG library in the netcdf distribution.
+
+ The TIFF library is at http://www.libtiff.org/.  By default, it uses IEEE
+ on Alpha and D_FLOAT on VAX; the code will not work with G_FLOAT, so you
+ must use IEEE or D_FLOAT for Grace.  Grace does not do TIFF output, but
+ configure.in says it may be needed for pdflib; my experience was that it
+ is not needed.
+
+ The PDF library is at http://www.pdflib.com/.  Get the Unix distribution
+ and compile the C files in [.pdflib] with the command
+
+     CC/FLOAT=IEEE/PREFIX=ALL -
+       /DEFINE=("unlink"="delete",HAVE_SETLOCALE="",HAVE_LIBZ,HAVE_LIBTIFF) -
+       /INCLUDE=(<zlib include directory>,<libtiff include directory>)
+
+ then create an object library (pdflib.olb) from all the files.  Change
+ the /FLOAT qualifier if you are using a different format.  If you don't
+ have the TIFF library, omit HAVE_LIBTIFF and the libtiff include directory.
 
 3. Compilation
 
@@ -101,8 +128,9 @@ People who have worked on Grace for VMS:
       constants in [.t1lib.type1]token.c from the T1 library if you use
       D_FLOAT.  However, grace still works (you should use
       MMS/IGNORE=WARNING to compile if you select D_FLOAT).  If you are
-      including libraries (NETCDF, GD, and JPEG options), you should
-      compile the library using the same floating point you use here.
+      including libraries (FFTW, NETCDF, JPEG, ZLIB, PNG, TIFF, and PDF
+      options), you should compile the library using the same floating
+      point you use here.
 
     HOME="/dev/dir" -- Specify the home directory for grace; it must be
       in Unix format.  You can override this compiled in directory when
@@ -141,24 +169,25 @@ People who have worked on Grace for VMS:
       GRACE_HOME: instead of the device and directory because GRACE_HOME
       is defined in Unix format.
 
+    FFTW=<header>=<library> -- Include the FFTW library.  <header> is the
+      directory containing the header files and <library> is the object
+      library.  The default library is fftw.olb in the <header> directory;
+      you can omit the second equal sign if you use the default.
+
     NETCDF=<header>=<libraries> -- Include the netcdf library.  <header>
       is the directory containing the netcdf header files.  <libraries> is
       a list of the netcdf object libraries, separated by commas.
 
-    JPEG=<header>=<library> -- Include the JPEG library.  <header> is the
-      directory containing the JPEG header files.  <library> is the JPEG
-      object library.  The default library is libjpeg.olb in the <header>
+    JPEG=<header>=<library> --
+    ZLIB=<header>=<library> --
+    PNG=<header>=<library> --
+    TIFF=<header>=<library> --
+    PDF=<header>=<library> -- Include the other graphics libraries.
+      <header> is the directory containing the header files and <library>
+      is the object library.  The default libraries are libjpeg.olb, libz.olb,
+      libpng.olb, tiff.olb, and pdflib.olb, respectively, and in the <header>
       directory; you can omit the second equal sign if you use the default.
-
-    ZLIB=<header>=<library> -- Include the ZLIB library.  <header> is the
-      directory containing the ZLIB header files.  <library> is the ZLIB
-      object library.  The default library is libz.olb in the <header>
-      directory; you can omit the second equal sign if you use the default.
-
-    PNG=<header>=<library> -- Include the PNG library.  <header> is the
-      directory containing the PNG header files.  <library> is the PNG
-      object library.  The default library is libpng.olb in the <header>
-      directory; you can omit the second equal sign if you use the default.
+      You must include ZLIB if you include PNG.
 
     COPY -- Copy the build files from [.arch.vms] to the other directories
       even if the files already exist in the other directories.  This option

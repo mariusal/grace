@@ -28,9 +28,9 @@ T1LIB :
 	 @ $(CD) $(TOP)
 
 XBAE :
-	 @ $(CD) [.XBAE]
+	 @ $(CD) [.XBAE.XBAE]
 	 @ $(MMS) $(MMSQUALIFIERS) $(MMSTARGETS)
-	 @ $(CD) $(TOP)
+	 @ $(CD) [--]
 
 SRC :
 	 @ $(CD) [.SRC]
