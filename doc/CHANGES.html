@@ -10,10 +10,18 @@
 <PRE>
 <H2>5.1.5</H2>
 
-<H3>Documentation</H3>
+<H3>Interface</H3>
+ *  [ES] automatically adjust Xresources for low-resolution (800x600) displays
+         so all dialogs fit in the screen
+
+<H3>Parser</H3>
+ *  [ES] implicitly cast to boolean double arguments used as bool
+
+<H3>Documentation/Info</H3>
  *  [JS] added man page for convcal
  *  [ES] added examples of XYCOLOR set presentation and reciprocal axis scale,
          contributed by Nels Dumin
+ *  [AM] include libpng version in the `-version' output
 
 <H3>Bug fixes</H3>
  *  [ES] PS output might be broken for plots containing XYCOLOR sets
@@ -25,6 +33,8 @@
  *  [LM] date format hint was ignored in the parser
  *  [ES] legend and viewport dialog were not updated when moving legend or
          resizing graph from canvas
+ *  [ES] std. dev. was calculated using n instead of n-1 in the denominator
+         (rep. #1042)
 
 
 <H2>5.1.4</H2>
