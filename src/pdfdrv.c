@@ -502,7 +502,7 @@ void pdf_gui_setup(void)
 	pdf_setup_compress_item = CreateToggleButton(rc, "Compression (N/I)");
 	XtManageChild(rc);
 
-	CreateMenuSeparator(pdf_setup_rc, "sep");
+	CreateSeparator(pdf_setup_rc);
 
 	CreateAACButtons(pdf_setup_rc, pdf_setup_panel, set_pdf_setup_proc);
         

@@ -159,7 +159,7 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
             setapp_data_proc, (XtPointer) SETAPP_ALL_LINES, NULL);
         CreateMenuButton(menupane, "setBW", "Black & white", 'B',
             setapp_data_proc, (XtPointer) SETAPP_ALL_BW, NULL);
-        CreateMenuSeparator(menupane, "sep");
+        CreateMenuSeparator(menupane);
         CreateMenuButton(menupane, "loadComments", "Load comments", 'm',
             setapp_data_proc, (XtPointer) SETAPP_LOAD_COMMENTS, NULL);
         CreateMenuButton(menupane, "stripLegends", "Strip legends", 'l',

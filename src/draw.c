@@ -40,9 +40,13 @@
 #include <string.h>
 
 #include "defines.h"
+#include "device.h"
 #include "graphs.h"
 #include "utils.h"
 #include "draw.h"
+
+/* TODO: move to an .h file */
+void update_color_selectors(void);
 
 void (*devupdatecmap)();        /* update color map */
 
@@ -873,7 +877,9 @@ int store_color(int n, CMap_entry cmap)
             (*devupdatecmap)();
         }
 #ifndef NONE_GUI        
-        update_color_selectors();
+        if (cmap.ctype == COLOR_MAIN) {
+            update_color_selectors();
+        }
 #endif        
         return GRACE_EXIT_SUCCESS;
     }

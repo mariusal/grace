@@ -32,7 +32,7 @@
 #define MAJOR_REV 5
 #define MINOR_REV 0
 #define PATCHLEVEL 2
-#define BETA_VER "(981203)"
+#define BETA_VER "(981223)"
 
 #define VERSION_ID (MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL)
 

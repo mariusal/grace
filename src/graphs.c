@@ -1207,7 +1207,7 @@ void postprocess_project(int version)
                 }
             }
             if ((version < 40004 && g[gno].type != GRAPH_CHART) ||
-                (version < 50000 && g[gno].p[setno].sympen.color == -1)) {
+                g[gno].p[setno].sympen.color == -1) {
                 g[gno].p[setno].sympen.color = g[gno].p[setno].linepen.color;
             }
             if (version < 40200 || g[gno].p[setno].symfillpen.color == -1) {

@@ -47,6 +47,8 @@
 #define LIST_TYPE_SINGLE    0
 #define LIST_TYPE_MULTIPLE  1
 
+#define CreateMenuSeparator(w) CreateSeparator(w)
+
 extern Widget app_shell;        /* defined in xmgrace.c */
 extern XmStringCharSet charset; /* defined in xmgrace.c */
 
@@ -92,6 +94,8 @@ typedef struct {
 } ListStructure;
 
 Widget CreateFrame(Widget parent, char *s);
+
+Widget CreateSeparator(Widget parent);
 
 Widget CreateTab(Widget parent);
 Widget CreateTabPage(Widget parent, char *s);
@@ -142,6 +146,7 @@ ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);
 
 ListStructure *CreateSetChoice(Widget parent, char *labelstr, 
                                         int type, int standalone);
+void UpdateSetChoice(ListStructure *listp, int gno);
 
 
 SetChoiceItem CreateSetSelector(Widget parent, char *label, int type, int ff, int gtype, int stype);
@@ -170,6 +175,8 @@ Widget *CreateLineWidthChoice(Widget parent, char *s);
 Widget *CreateFormatChoice(Widget parent, char *s);
 Widget *CreatePrecisionChoice(Widget parent, char *s);
 
+void SetLabel(Widget w, char *s);
+
 Widget CreateMenuBar(Widget parent, char *name, char *help_anchor);
 Widget CreateMenu(Widget parent, char *name, char *label, char mnemonic,
 	Widget *cascade, char *help_anchor);
@@ -177,7 +184,6 @@ Widget CreateMenuButton(Widget parent, char *name, char *label, char mnemonic,
 	XtCallbackProc cb, XtPointer data, char *help_anchor);
 Widget CreateMenuToggle(Widget parent, char *name, char *label, char mnemonic,
 	XtCallbackProc cb, XtPointer data, char *help_anchor);
-Widget CreateMenuSeparator(Widget parent, char *name);
 Widget CreateMenuLabel(Widget parent, char *name);
 
 void savewidget(Widget w);

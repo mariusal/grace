@@ -194,7 +194,6 @@ void init_symtab(void);
 int addto_symtab(symtab_entry newkey);
 
 
-void allocxy(plotarr * p, int len);
 int init_array(double **a, int n);
 int init_scratch_arrays(int n);
 int getsetminmax(int gno, int setno, double *x1, double *x2, double *y1, double *y2);
@@ -207,11 +206,7 @@ void get_point(int gno, int setn, int seti, double *wx, double *wy);
 void setcol(int gno, double *x, int setno, int len, int col);
 int getncols(int gno, int setno);
 void setxy(int gno, double **ex, int setno, int len, int ncols);
-void setlength(int gno, int i, int length);
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col);
-void copyset(int gnofrom, int setfrom, int gnoto, int setto);
-void copysetprops(int gnofrom, int setfrom, int gnoto, int setto);
-void copysetdata(int gnofrom, int setfrom, int gnoto, int setto);
 void packsets(int gno);
 void do_packsets(void);
 int nextset(int gno);
@@ -230,15 +225,15 @@ void add_point_at(int gno, int setno, int ind, int where, double px, double py, 
 void delete_byindex(int gno, int setno, int *ind);
 double *getvptr(int gno, int setno, int v);
 
-void do_copyset(int gfrom, int j1, int gto, int j2);
-void do_moveset(int gfrom, int j1, int gto, int j2);
+int do_copyset(int gfrom, int j1, int gto, int j2);
+int do_moveset(int gfrom, int j1, int gto, int j2);
+int do_swapset(int gno1, int setno1, int gno2, int setno2);
 void do_splitsets(int gno, int setno, int lpart);
 int do_writesets(int gno, int setno, int embed, char *fn, char *format);
 void do_activate(int setno, int type, int len);
 void do_hideset(int gno, int setno);
 void do_showset(int gno, int setno);
 void do_changetype(int setno, int type);
-void do_setlength(int setno, int len);
 void do_copy(int j1, int gfrom, int j2, int gto);
 void do_move(int j1, int gfrom, int j2, int gto);
 void do_drop_points(int setno, int startno, int endno);

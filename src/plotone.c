@@ -152,7 +152,9 @@ void do_hardcopy(void)
             !yesno("Printout is truncated. Abort?", NULL, NULL, NULL)) {
             system(tbuf);
         }
+#ifndef PRINT_CMD_UNLINKS
         unlink(fname);
+#endif
     } else {
         if (truncated_out == TRUE) {
             errmsg("Output is truncated - tune device dimensions");

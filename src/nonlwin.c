@@ -136,7 +136,7 @@ void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
             (XtCallbackProc) create_openfit_popup, (XtPointer) NULL, NULL);
         CreateMenuButton(menupane, "save", "Save...", 'S',
             (XtCallbackProc) create_savefit_popup, (XtPointer) NULL, NULL);
-        CreateMenuSeparator(menupane, "sep1");
+        CreateMenuSeparator(menupane);
         CreateMenuButton(menupane, "close", "Close", 'C',
     	    (XtCallbackProc) destroy_nonl_frame, (XtPointer) NONL_ACCEPT, NULL);
 

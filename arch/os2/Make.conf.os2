@@ -72,11 +72,11 @@ CC=gcc
 # F77 compiler
 FC=g77
 
-# ranlib
-RANLIB=ar s
-
 # ar
 AR=ar
+
+# ranlib
+RANLIB=ar s
 
 # rm
 RM=rm -f
@@ -93,14 +93,17 @@ MKINSTALLDIRS=
 # C flags
 CFLAGS0= -Wall -Wno-unused -O2 -I$(X11ROOT)/xfree86/include -D__ST_MT_ERRNO -Zmt
 
+# GUI flags
+GUI_FLAGS=
+
 # LDFLAGS
-LDFLAGS=-s -Zmtd -Zsysv-signals -Zbin-files
+LDFLAGS=-s -Zmt -Zcrtdll -Zsysv-signals -Zbin-files
 
 # Libraries (all but GUI)
 NOGUI_LIBS=
 
 # GUI libraries
-GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/xfree86/lib -lhlpclient -lXbae -lXm -lXpm -lSM -lICE -lsocket -lXt -lXext -lX11
+GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/xfree86/lib -lhlpclient -lXbae -lXm -lXpm -lXt -lXext -lX11 -lsocket
 
 # Commamd used to print
 PRINT_CMD='lp'

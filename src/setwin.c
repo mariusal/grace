@@ -62,12 +62,7 @@
 
 static Widget but1[2];
 
-/*
- * char format[128] = "%16lg %16lg";
- */
-
-static void do_setlength_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_changetype_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void dataset_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_drop_points_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_join_sets_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_split_sets_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -78,107 +73,78 @@ static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 typedef struct _Type_ui {
     Widget top;
-    SetChoiceItem sel;
+    ListStructure *sel;
     Widget comment_item;
-    Widget *graph_item;
+    Widget length_item;
+    OptionStructure *datatype_item;
 } Type_ui;
 
 static Type_ui tui;
 
-static void changetypeCB(Widget w, XtPointer clientd, XtPointer calld)
+static void changetypeCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Type_ui *ui = (Type_ui *) clientd;
-    XmListCallbackStruct *cbs = (XmListCallbackStruct *) calld;
-    char *s;
-    XmStringGetLtoR(cbs->item, charset, &s);
-    if (cbs->reason == XmCR_SINGLE_SELECT) {
-	int setno = GetSelectedSet(ui->sel);
-        if (setno == SET_SELECT_ERROR) {
-            errwin("No set selected");
-            return;
-        }
-	if (setno >= 0) {
-	    xv_setstr(ui->comment_item, getcomment(cg, setno));
+    ListStructure *listp;
+    int setno;
+    char buf[32];
+    
+    listp = (ListStructure *) client_data;
+    if (listp == NULL) {
+        return;
+    }
+    
+    if (GetSingleListChoice(listp, &setno) == GRACE_EXIT_SUCCESS) {
+	if (is_valid_setno(cg, setno)) {
+	    xv_setstr(tui.comment_item, getcomment(cg, setno));
+	    sprintf(buf, "%d", getsetlength(cg, setno));
+            xv_setstr(tui.length_item, buf);
+            SetOptionChoice(tui.datatype_item, dataset_type(cg, setno));
 	}
     }
-    XtFree(s);
 }
 
 void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Widget dialog;
+    Widget panel, dialog, rc, fr;
 
     set_wait_cursor();
     if (tui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	tui.top = XmCreateDialogShell(app_shell, "Set comments", NULL, 0);
+	tui.top = XmCreateDialogShell(app_shell, "Data set props", NULL, 0);
 	handle_close(tui.top);
-	dialog = XmCreateRowColumn(tui.top, "dialog_rc", NULL, 0);
+        panel = XtVaCreateWidget("panel",
+            xmFormWidgetClass, tui.top, NULL, 0);
+	dialog = XmCreateRowColumn(panel, "dialog_rc", NULL, 0);
 
-	tui.sel = CreateSetSelector(dialog, "Apply to set:",
-				    SET_SELECT_ACTIVE,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-
-	XtVaSetValues(tui.sel.list,
-		      XmNselectionPolicy, XmSINGLE_SELECT,
-		      NULL);
-	XtAddCallback(tui.sel.list, XmNdefaultActionCallback, changetypeCB, &tui);
-	XtAddCallback(tui.sel.list, XmNsingleSelectionCallback, changetypeCB, &tui);
-	tui.comment_item = CreateTextItem2(dialog, 20, "Comment:");
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_changetype_proc, (XtPointer) & tui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) tui.top);
-
+	tui.sel = CreateSetChoice(dialog,
+            "Data sets:", LIST_TYPE_MULTIPLE, TRUE);
+	AddListChoiceCB(tui.sel, changetypeCB);
+	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+	tui.datatype_item = CreateSetTypeChoice(rc, "Type:");
+	tui.length_item = CreateTextItem2(rc, 6, "Length:");
+        XtManageChild(rc);
+	tui.comment_item = CreateTextItem2(dialog, 24, "Comment:");
 	XtManageChild(dialog);
+        XtVaSetValues(dialog,
+            XmNtopAttachment, XmATTACH_FORM,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
+
+	fr = CreateFrame(panel, NULL);
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+        CreateAACButtons(rc, panel, dataset_aac_cb);
+        XtManageChild(rc);
+        XtVaSetValues(fr,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, dialog,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_FORM,
+            NULL);
+
+	XtManageChild(panel);
     }
     XtRaise(tui.top);
-    unset_wait_cursor();
-}
-
-typedef struct _Length_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget length_item;
-    Widget *graph_item;
-} Length_ui;
-
-static Length_ui lui;
-
-void create_setlength_popup(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (lui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	lui.top = XmCreateDialogShell(app_shell, "Set length", NULL, 0);
-	handle_close(lui.top);
-	dialog = XmCreateRowColumn(lui.top, "dialog_rc", NULL, 0);
-
-	lui.sel = CreateSetSelector(dialog, "Set length of set:",
-				    SET_SELECT_ACTIVE,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-	lui.length_item = CreateTextItem2(dialog, 10, "Length:");
-
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_setlength_proc, (XtPointer) & lui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) lui.top);
-
-	XtManageChild(dialog);
-    }
-    XtRaise(lui.top);
     unset_wait_cursor();
 }
 
@@ -228,7 +194,6 @@ typedef struct _Join_ui {
     Widget top;
     SetChoiceItem sel1;
     SetChoiceItem sel2;
-    Widget *graph_item;
 } Join_ui;
 
 static Join_ui jui;
@@ -273,7 +238,6 @@ typedef struct _Split_ui {
     Widget top;
     SetChoiceItem sel;
     Widget len_item;
-    Widget *graph_item;
 } Split_ui;
 
 static Split_ui sui;
@@ -315,7 +279,6 @@ typedef struct _Sort_ui {
     SetChoiceItem sel;
     Widget *xy_item;
     Widget *up_down_item;
-    Widget *graph_item;
 } Sort_ui;
 
 static Sort_ui sortui;
@@ -369,7 +332,6 @@ void create_sort_popup(Widget w, XtPointer client_data, XtPointer call_data)
 typedef struct _Reverse_ui {
     Widget top;
     SetChoiceItem sel;
-    Widget *graph_item;
 } Reverse_ui;
 
 static Reverse_ui rui;
@@ -411,6 +373,7 @@ typedef struct _Swap_ui {
     ListStructure *sel2;
     ListStructure *graph1_item;
     ListStructure *graph2_item;
+    OptionStructure *optype_item;
 } Swap_ui;
 
 static Swap_ui swapui;
@@ -449,9 +412,14 @@ void target_cb(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
+#define OPTYPE_COPY 0
+#define OPTYPE_MOVE 1
+#define OPTYPE_SWAP 2
+
 void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget panel, rc, rc2, fr;
+    OptionItem opitems[3];
 
     set_wait_cursor();
     if (swapui.top == NULL) {
@@ -468,6 +436,7 @@ void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	swapui.graph1_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
 	swapui.sel1 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
         AddListChoiceCB(swapui.graph1_item, source_cb);
+        UpdateSetChoice(swapui.sel1, cg);
         XtManageChild(rc2);
 
 	fr = CreateFrame(rc, "Destination");
@@ -475,6 +444,7 @@ void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	swapui.graph2_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
 	swapui.sel2 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
         AddListChoiceCB(swapui.graph2_item, target_cb);
+        UpdateSetChoice(swapui.sel2, cg);
         XtManageChild(rc2);
 
         XtManageChild(rc);
@@ -483,11 +453,26 @@ void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             NULL);
-
+        
+        opitems[0].value = OPTYPE_COPY;
+        opitems[0].label = "Copy";
+        opitems[1].value = OPTYPE_MOVE;
+        opitems[1].label = "Move";
+        opitems[2].value = OPTYPE_SWAP;
+        opitems[2].label = "Swap";
+        swapui.optype_item = CreateOptionChoice(panel,
+            "Type of operation:", 0, 3, opitems);
+        XtVaSetValues(swapui.optype_item->rc,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, rc,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
+        
 	fr = CreateFrame(panel, NULL);
         XtVaSetValues(fr,
             XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, rc,
+            XmNtopWidget, swapui.optype_item->rc,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNbottomAttachment, XmATTACH_FORM,
@@ -503,78 +488,57 @@ void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
 }
 
 /*
- * setops - combine, copy sets - callbacks
-*/
-
-/*
  * change the type of a set
  */
-static void do_changetype_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void dataset_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int setno;
-    Type_ui *ui = (Type_ui *) client_data;
-    setno = GetSelectedSet(ui->sel);
-    if (setno == SET_SELECT_ERROR) {
-        errwin("No set selected");
+    int aac_mode, error = FALSE;
+    int *selset, nsets, i, len, setno, type;
+    char *s;
+    
+    aac_mode = (int) client_data;
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(tui.top);
         return;
     }
-    setcomment(cg, setno, xv_getstr(ui->comment_item));
-    set_wait_cursor();
-    set_work_pending(TRUE);
-    set_work_pending(FALSE);
-    update_set_lists(cg);
-    unset_wait_cursor();
-}
 
+    nsets = GetListChoices(tui.sel, &selset);
+    if (nsets < 1) {
+        errmsg("No set selected");
+        return;
+    } else {
+        set_wait_cursor();
+        set_work_pending(TRUE);
+ 
+        type = GetOptionChoice(tui.datatype_item);
+        xv_evalexpri(tui.length_item, &len);
+        if (len < 0) {
+            errmsg("Negative set length!");
+            error = TRUE;
+        }
+        s = xv_getstr(tui.comment_item);
+        
+ 
+        if (error == FALSE) {
+            for (i = 0; i < nsets; i++) {
+                setno = selset[i];
+                set_dataset_type(cg, setno, type);
+                setlength(cg, setno, len);
+                setcomment(cg, setno, s);
+            }
+        }
+ 
+        if (aac_mode == AAC_ACCEPT && error == FALSE) {
+            XtUnmanageChild(tui.top);
+        }
+        
+        free(selset);
 
-/*
- * set the length of an active set - contents are destroyed
- */
-void do_setlength(int setno, int len)
-{
-    char buf[64];
-    
-    if (!is_set_active(cg, setno)) {
-	sprintf(buf, "Set %d not active", setno);
-	errmsg(buf);
-	return;
+        set_work_pending(FALSE);
+        update_set_lists(cg);
+        unset_wait_cursor();
+        drawgraph();
     }
-    if (len <= 0) {
-	sprintf(buf, "Improper set length = %d", len);
-	errmsg(buf);
-	return;
-    }
-    setlength(cg, setno, len);
-
-    update_set_status(cg, setno);
-}
-
-/*
- * set the length of an active set - contents are destroyed
- */
-static void do_setlength_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int *selsets;
-    int i, cnt;
-    int setno, len;
-    Length_ui *ui = (Length_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-	errwin("No sets selected");
-	return;
-    }
-    xv_evalexpri(ui->length_item, &len);
-    set_wait_cursor();
-    set_work_pending(TRUE);
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	do_setlength(setno, len);
-    }
-    set_work_pending(FALSE);
-    update_set_lists(cg);
-    unset_wait_cursor();
-    free(selsets);
-    drawgraph();
 }
 
 
@@ -583,8 +547,8 @@ static void do_setlength_proc(Widget w, XtPointer client_data, XtPointer call_da
  */
 static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int aac_mode, error;
-    int i, g1_ok, g2_ok, ns1, ns2, *svalues1, *svalues2, gno1, gno2;
+    int aac_mode, optype, error;
+    int i, g1_ok, g2_ok, ns1, ns2, *svalues1, *svalues2, gno1, gno2, setno2;
 
     aac_mode = (int) client_data;
     
@@ -595,7 +559,9 @@ static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
 
     set_wait_cursor();
     set_work_pending(TRUE);
-
+    
+    optype = GetOptionChoice(swapui.optype_item);
+    
     g1_ok = GetSingleListChoice(swapui.graph1_item, &gno1);
     g2_ok = GetSingleListChoice(swapui.graph2_item, &gno2);
     ns1 = GetListChoices(swapui.sel1, &svalues1);
@@ -605,17 +571,49 @@ static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     if (g1_ok == GRACE_EXIT_FAILURE || g2_ok == GRACE_EXIT_FAILURE) {
         error = TRUE;
         errmsg("Please select single source and destination graphs");
-    } else if (ns1 != ns2) {
-        error = TRUE;
-        errmsg("Different number of source and destination sets");
     } else if (ns1 == 0) {
         error = TRUE;
-        errmsg("No sets selected");
+        errmsg("No source sets selected");
+    } else if (ns2 == 0 && optype == OPTYPE_SWAP) {
+        error = TRUE;
+        errmsg("No destination sets selected");
+    } else if (ns1 != ns2 && (optype == OPTYPE_SWAP || ns2 != 0)) {
+        error = TRUE;
+        errmsg("Different number of source and destination sets");
+    } else if (gno1 == gno2 && ns2 == 0 && optype == OPTYPE_MOVE) {
+        error = TRUE;
+        errmsg("Can't move a set to itself");
     } else {
         for (i = 0; i < ns1; i++) {
-            if (swapset(gno1, svalues1[i], gno2, svalues2[i])
-                                            != GRACE_EXIT_SUCCESS) {
-                error = TRUE;
+            switch (optype) {
+            case OPTYPE_SWAP:
+                if (do_swapset(gno1, svalues1[i], gno2, svalues2[i])
+                                                != GRACE_EXIT_SUCCESS) {
+                    error = TRUE;
+                }
+                break;
+            case OPTYPE_COPY:
+                if (ns2 == 0) {
+                    setno2 = nextset(gno2);
+                } else {
+                    setno2 = svalues2[i];
+                }
+                if (do_copyset(gno1, svalues1[i], gno2, setno2)
+                                                != GRACE_EXIT_SUCCESS) {
+                    error = TRUE;
+                }
+                break;
+            case OPTYPE_MOVE:
+                if (ns2 == 0) {
+                    setno2 = nextset(gno2);
+                } else {
+                    setno2 = svalues2[i];
+                }
+                if (do_moveset(gno1, svalues1[i], gno2, setno2)
+                                                != GRACE_EXIT_SUCCESS) {
+                    error = TRUE;
+                }
+                break;
             }
         }
     }
@@ -631,9 +629,11 @@ static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
         free(svalues2);
     }
     set_work_pending(FALSE);
-    update_set_lists(cg);
+    if (error == FALSE) {
+        update_all();
+        drawgraph();
+    }
     unset_wait_cursor();
-    drawgraph();
 }
 
 /*

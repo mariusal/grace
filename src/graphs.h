@@ -275,6 +275,7 @@ int setcomment(int gno, int setno, char *s);
 int set_set_strings(int gno, int setno, int len, char **s);
 char **get_set_strings(int gno, int setno);
 
+int setlength(int gno, int setno, int length);
 int getsetlength(int gno, int setno);
 
 double setybase(int gno, int setno);
@@ -307,6 +308,7 @@ int overlay_graphs(int g1, int g2, int type);
 int set_set_colors(int gno, int setno, int color);
 
 int moveset(int gnofrom, int setfrom, int gnoto, int setto);
+int copyset(int gnofrom, int setfrom, int gnoto, int setto);
 
 
 int get_project_version(void);

@@ -74,7 +74,7 @@ typedef struct F_FILE {
   )
  
 extern FILE *T1Open(), *T1eexec();
-extern int T1Close(), T1ungetc(), T1Read();
+extern int T1Close(), T1Ungetc(), T1Read();
 
 #define  fclose(f)          T1Close(f)
 #define  fopen(name,mode)   T1Open(name,mode)

@@ -1,5 +1,5 @@
 #####################################################
-# Top-level Makefile for XMGR4                      #
+# Top-level Makefile for Grace                      #
 #####################################################
 # You should not change anything here.              #
 # Please read INSTALL file in the current directory #

@@ -220,7 +220,7 @@ void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data)
 	devfont_item = CreateToggleButton(rc1, "Use device fonts");
         XtManageChild(rc1);
         
-	CreateMenuSeparator(psetup_rc, "sep");
+	CreateSeparator(psetup_rc);
 
 	CreateAACButtons(psetup_rc, device_panel, set_printer_proc);
 	XtManageChild(psetup_rc);

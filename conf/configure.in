@@ -493,10 +493,10 @@ AC_ARG_ENABLE(rstdrv,
 esac],[rstdrv=true])
 
 case $rstdrv in
-  true) AC_CHECK_LIB(gd, main, GD_LIB="-lgd";RSTDRV_O='rstdrv$(O)';AC_DEFINE(HAVE_LIBGD));;
+  true) AC_CHECK_LIB(gd, gdImageCreate, GD_LIB="-lgd";RSTDRV_O='rstdrv$(O)';AC_DEFINE(HAVE_LIBGD));;
   *);;
 esac
-if test $ac_cv_lib_gd_main != yes; then
+if test $ac_cv_lib_gd_gdImageCreate != yes; then
   AC_MSG_RESULT(--> raster driver is disabled)
 fi
 
@@ -640,6 +640,9 @@ dnl **** use editres
     dnl **** check for Xbae widget
     GUI_LIBS="-lXm $GUI_LIBS"
     AC_CHECK_LIB(Xbae,main,GUI_LIBS="-lXbae $GUI_LIBS"; AC_DEFINE(HAVE_LIBXBAE),,$X_LIBS $GUI_LIBS)
+    if test $ac_cv_lib_Xbae_main != yes; then
+      AC_MSG_RESULT(--> Xbae not found - spreadsheet editor and fonttool won't be built)
+    fi
     GUI="MOTIF_GUI"
     GUI_FLAGS="$X_CFLAGS"
     AC_DEFINE(HAVE_MOTIF)

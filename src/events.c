@@ -1661,10 +1661,10 @@ void my_proc(Widget w, XtPointer data, XEvent * event)
 			   	 	char tmpbuf[128];
 			   		sprintf(tmpbuf, "Move S%1d in graph %d to next set in graph %d?", setno1, graphno1, graphno2);
 			    	if (yesno(tmpbuf, NULL, NULL, NULL)) {
-						do_move(setno1, graphno1, SET_SELECT_NEXT, graphno2+1);
+						do_move(setno1, graphno1, SET_SELECT_NEXT, graphno2);
 			   		}
 				} else {
-			    	do_move(setno1, graphno1, SET_SELECT_NEXT, graphno2 + 1);
+			    	do_move(setno1, graphno1, SET_SELECT_NEXT, graphno2);
 				}
 				set_action(MOVE_NEAREST1ST);
 		    } else if( graphno2 == -1 ) {
@@ -2865,6 +2865,96 @@ void push_and_zoom(void)
 #endif
 }
 
+/*
+ * move a set to another set, if the to set doesn't exist
+ * get a new one, if it does, ask if it is okay to overwrite
+ */
+void do_move(int j1, int gfrom, int j2, int gto)
+{
+    if (j2 == SET_SELECT_NEXT) {
+	if ((j2 = nextset(gto)) == -1) {
+	    return;
+	}
+    }
+    if (j1 == j2 && gto == gfrom) {
+	errmsg("Set from and set to are the same");
+	return;
+    }
+    if (is_set_active(gto, j2)) {
+	sprintf(buf, "Set %d active, overwrite?", j2);
+	if (!yesno(buf, NULL, NULL, NULL)) {
+	    return;
+	}
+    }
+    moveset(gfrom, j1, gto, j2);
+
+    updatesymbols(gto, j2);
+    updatesymbols(gfrom, j1);
+    update_set_status(gto, j2);
+    update_set_status(gfrom, j1);
+}
+
+/*
+ * copy a set to another set, if the to set doesn't exist
+ * get a new one, if it does, ask if it is okay to overwrite
+ */
+void do_copy(int j1, int gfrom, int j2, int gto)
+{
+    if (!is_set_active(gfrom, j1)) {
+	sprintf(buf, "Set %d not active", j1);
+	errmsg(buf);
+	return;
+    }
+    gto--;
+    if (gto == -1) {
+	gto = get_cg();
+    }
+    if (!is_graph_active(gto)) {
+	set_graph_active(gto, TRUE);
+    }
+    if (j1 == j2 && gfrom == gto) {
+	errmsg("Set from and set to are the same");
+	return;
+    }
+    /* select next set */
+    if (j2 == SET_SELECT_NEXT) {
+	if ((j2 = nextset(gto)) != -1) {
+	    activateset(gto, j2);
+	    set_dataset_type(gto, j2, dataset_type(gfrom, j1));
+	    setlength(gto, j2, getsetlength(gfrom, j1));
+	} else {
+	    return;
+	}
+    }
+    /* use user selected set */
+    else {
+	if (is_set_active(gto, j2)) {
+	    sprintf(buf, "Set %d active, overwrite?", j2);
+	    if (!yesno(buf, NULL, NULL, NULL)) {
+		return;
+	    }
+	    killset(gto, j2);
+	}
+	activateset(gto, j2);
+	set_dataset_type(gto, j2, dataset_type(gfrom, j1));
+	setlength(gto, j2, getsetlength(gfrom, j1));
+    }
+    copyset(gfrom, j1, gto, j2);
+    sprintf(buf, "copy of set %d", j1);
+    setcomment(gto, j2, buf);
+    log_results(buf);
+    update_set_status(gto, j2);
+}
+
+/*
+ * hide a set
+ */
+void do_hideset(int gno, int setno)
+{
+    set_set_hidden(gno, setno, TRUE);
+    set_lists_dirty(TRUE);
+    update_set_status(gno, setno);
+}
 
 static double _stringextentx(double scale, char *s)
 {

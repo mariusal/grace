@@ -147,35 +147,43 @@ int settype_cols(int type)
 /*
  * allocate arrays for a set of length len.
  */
-void allocxy(plotarr *p, int len)
+static int allocxy(plotarr *p, int len)
 {
     int i, ncols;
 
     if (len == p->len) {
-	return;
+	return GRACE_EXIT_SUCCESS;
     }
-
+    if (len < 0) {
+	return GRACE_EXIT_FAILURE;
+    }
+    
     ncols = settype_cols(p->type);
     
     if (ncols == 0) {
 	errmsg("Set type not found in setutils.c:allocxy()!!");
-	return;
+	return GRACE_EXIT_FAILURE;
     }
     
+    /* TODO: memory leak! */
     if (p->type == SET_XYSTRING) {
         p->s = xrealloc(p->s, len*sizeof(char *));
+    } else {
+        cxfree(p->s);
     }
     
     for (i = 0; i < ncols; i++) {
 	if ((p->ex[i] = xrealloc(p->ex[i], len*SIZEOF_DOUBLE)) == NULL) {
 	    errmsg("Insufficient memory to allocate for plots");
-	    return;
+	    return GRACE_EXIT_FAILURE;
 	}
     }
     
     p->len = len;
     set_dirtystate();
     set_lists_dirty(TRUE);
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
 int init_array(double **a, int n)
@@ -433,12 +441,17 @@ void setcol(int gno, double *x, int setno, int len, int col)
 
 int getncols(int gno, int setno)
 {
-    int i = 0;
+    int i;
 
-    while (g[gno].p[setno].ex[i]) {
-	i++;
+    for (i = 0; i < MAX_SET_COLS; i++) {
+        if (g[gno].p[setno].ex[i] == NULL) {
+            return i;
+        }
     }
-    return i;
+    
+    /* should never come here */
+    errmsg("Internal error in getncols()!");
+    return 0;
 }
 
 void setxy(int gno, double **ex, int setno, int len, int ncols)
@@ -452,9 +465,9 @@ void setxy(int gno, double **ex, int setno, int len, int ncols)
     set_dirtystate();
 }
 
-void setlength(int gno, int i, int length)
+int setlength(int gno, int setno, int length)
 {
-    allocxy(&g[gno].p[i], length);
+    return allocxy(&g[gno].p[setno], length);
 }
 
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
@@ -508,61 +521,76 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
 }
 
 /*
- * copyset assumes both sets exist, have their length
- * properly set, and that they are both active
+ * copy a set to another set, if the to set doesn't exist allocate it
  */
-void copyset(int gnofrom, int setfrom, int gnoto, int setto)
+int copyset(int gfrom, int setfrom, int gto, int setto)
 {
-    int k;
+    int k, len;
     double *savec[MAX_SET_COLS];
-    int len = getsetlength(gnofrom, setfrom);
+
+    if (!is_graph_active(gto)) {
+	set_graph_active(gto, TRUE);
+    }
+    if (!is_set_active(gfrom, setfrom)) {
+	return GRACE_EXIT_FAILURE;
+    }
+    if (setfrom == setto && gfrom == gto) {
+	return GRACE_EXIT_FAILURE;
+    }
+    if (is_set_active(gto, setto)) {
+	killset(gto, setto);
+    }
+    activateset(gto, setto);
+    set_dataset_type(gto, setto, dataset_type(gfrom, setfrom));
+    len = getsetlength(gfrom, setfrom);
+    setlength(gto, setto, len);
 
     for (k = 0; k < MAX_SET_COLS; k++) {
-	savec[k] = g[gnoto].p[setto].ex[k];
+	savec[k] = g[gto].p[setto].ex[k];
     }
-    memcpy(&g[gnoto].p[setto], &g[gnofrom].p[setfrom], sizeof(plotarr));
+    memcpy(&g[gto].p[setto], &g[gfrom].p[setfrom], sizeof(plotarr));
     for (k = 0; k < MAX_SET_COLS; k++) {
-	g[gnoto].p[setto].ex[k] = savec[k];
-	if (g[gnofrom].p[setfrom].ex[k] != NULL && g[gnoto].p[setto].ex[k] != NULL) {
-	    memcpy(g[gnoto].p[setto].ex[k], g[gnofrom].p[setfrom].ex[k], len * SIZEOF_DOUBLE);
+	g[gto].p[setto].ex[k] = savec[k];
+	if (g[gfrom].p[setfrom].ex[k] != NULL &&
+            g[gto].p[setto].ex[k] != NULL) {
+	    memcpy(g[gto].p[setto].ex[k],
+                g[gfrom].p[setfrom].ex[k],
+                len*SIZEOF_DOUBLE);
 	}
     }
+
+    sprintf(buf, "copy of set G%d.S%d", gfrom, setfrom);
+    setcomment(gto, setto, buf);
+
     set_dirtystate();
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
 /*
- * copy everything but the data
+ * swap a set with another set
  */
-void copysetprops(int gnofrom, int setfrom, int gnoto, int setto)
+int swapset(int gno1, int setno1, int gno2, int setno2)
 {
-    int k;
-    double *savec[MAX_SET_COLS];
+    plotarr p;
 
-    for (k = 0; k < MAX_SET_COLS; k++) {
-	savec[k] = g[gnoto].p[setto].ex[k];
+    if (is_valid_setno(gno1, setno1) == FALSE ||
+        is_valid_setno(gno2, setno2) == FALSE) {
+	return GRACE_EXIT_FAILURE;
     }
-    memcpy(&g[gnoto].p[setto], &g[gnofrom].p[setfrom], sizeof(plotarr));
-    for (k = 0; k < MAX_SET_COLS; k++) {
-	g[gnoto].p[setto].ex[k] = savec[k];
+    if (setno1 == setno2 && gno1 == gno2) {
+	return GRACE_EXIT_FAILURE;
     }
+
+    memcpy(&p, &g[gno2].p[setno2], sizeof(plotarr));
+    memcpy(&g[gno2].p[setno2], &g[gno1].p[setno1], sizeof(plotarr));
+    memcpy(&g[gno1].p[setno1], &p, sizeof(plotarr));
+
     set_dirtystate();
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
-/*
- * copy data only
- */
-void copysetdata(int gnofrom, int setfrom, int gnoto, int setto)
-{
-    int k;
-    int len = getsetlength(gnofrom, setfrom);
-
-    for (k = 0; k < MAX_SET_COLS; k++) {
-	if (g[gnofrom].p[setfrom].ex[k] != NULL && g[gnoto].p[setto].ex[k] != NULL) {
-	    memcpy(g[gnoto].p[setto].ex[k], g[gnofrom].p[setfrom].ex[k], len * SIZEOF_DOUBLE);
-	}
-    }
-    set_dirtystate();
-}
 
 /*
  * pack all sets leaving no gaps in the set structure
@@ -1105,58 +1133,57 @@ void delete_byindex(int gno, int setno, int *ind)
 
 
 /*
- * copy a set to another set, if the to set doesn't exist
- * get a new one, if it does, ask if it is okay to overwrite
- */
-void do_copyset(int gfrom, int j1, int gto, int j2)
-{
-    if (!is_graph_active(gto)) {
-	set_graph_active(gto, TRUE);
-    }
-    if (!is_set_active(gfrom, j1)) {
-	return;
-    }
-    if (j1 == j2 && gfrom == gto) {
-	return;
-    }
-    if (is_set_active(gto, j2)) {
-	killset(gto, j2);
-    }
-    activateset(gto, j2);
-    set_dataset_type(gto, j2, dataset_type(gfrom, j1));
-    setlength(gto, j2, getsetlength(gfrom, j1));
-    copyset(gfrom, j1, gto, j2);
-    sprintf(buf, "copy of set %d", j1);
-    setcomment(gto, j2, buf);
-    log_results(buf);
-}
-
-/*
  * move a set to another set, in possibly another graph
  */
-void do_moveset(int gfrom, int j1, int gto, int j2)
+int do_moveset(int gfrom, int setfrom, int gto, int setto)
 {
-    moveset(gfrom, j1, gto, j2);
+    int retval;
+    char buf[64];
+    
+    retval = moveset(gfrom, setfrom, gto, setto);
+    if (retval != GRACE_EXIT_SUCCESS) {
+        sprintf(buf,
+            "Error moving G%d.S%d to G%d.S%d",
+            gfrom, setfrom, gto, setto);
+        errmsg(buf);
+    }
+    return retval;
 }
 
 /*
- * swap a set with another set
+ * do_copyset
  */
-int swapset(int gno1, int setno1, int gno2, int setno2)
+int do_copyset(int gfrom, int setfrom, int gto, int setto)
 {
-    plotarr p;
-
-    if (setno1 == setno2 && gno1 == gno2) {
-	errmsg("Set from and set to are the same");
-	return GRACE_EXIT_FAILURE;
-    }
-    memcpy(&p, &g[gno2].p[setno2], sizeof(plotarr));
-    memcpy(&g[gno2].p[setno2], &g[gno1].p[setno1], sizeof(plotarr));
-    memcpy(&g[gno1].p[setno1], &p, sizeof(plotarr));
-    set_lists_dirty(TRUE);
-    set_dirtystate();
+    int retval;
+    char buf[64];
     
-    return GRACE_EXIT_SUCCESS;
+    retval = copyset(gfrom, setfrom, gto, setto);
+    if (retval != GRACE_EXIT_SUCCESS) {
+        sprintf(buf,
+            "Error copying G%d.S%d to G%d.S%d",
+            gfrom, setfrom, gto, setto);
+        errmsg(buf);
+    }
+    return retval;
+}
+
+/*
+ * do_swapset
+ */
+int do_swapset(int gfrom, int setfrom, int gto, int setto)
+{
+    int retval;
+    char buf[64];
+    
+    retval = swapset(gfrom, setfrom, gto, setto);
+    if (retval != GRACE_EXIT_SUCCESS) {
+        sprintf(buf,
+            "Error swapping G%d.S%d with G%d.S%d",
+            gfrom, setfrom, gto, setto);
+        errmsg(buf);
+    }
+    return retval;
 }
 
 /*
@@ -1374,128 +1401,6 @@ void do_activate(int setno, int type, int len)
     setlength(get_cg(), setno, len);
 #ifndef NONE_GUI
     update_set_status(get_cg(), setno);
-#endif
-}
-
-/*
- * hide a set
- */
-void do_hideset(int gno, int setno)
-{
-    g[gno].p[setno].hidden = TRUE;
-    set_lists_dirty(TRUE);
-#ifndef NONE_GUI
-    update_set_status(gno, setno);
-#endif
-}
-
-/*
- * show a hidden set
- */
-void do_showset(int gno, int setno)
-{
-    if (is_set_active(gno, setno)) {
-        g[gno].p[setno].hidden = FALSE;
-        set_lists_dirty(TRUE);
-#ifndef NONE_GUI
-        update_set_status(gno, setno);
-#endif
-    }
-}
-
-/*
- * copy a set to another set, if the to set doesn't exist
- * get a new one, if it does, ask if it is okay to overwrite
- */
-void do_copy(int j1, int gfrom, int j2, int gto)
-{
-    if (!is_set_active(gfrom, j1)) {
-	sprintf(buf, "Set %d not active", j1);
-	errmsg(buf);
-	return;
-    }
-    gto--;
-    if (gto == -1) {
-	gto = get_cg();
-    }
-    if (!is_graph_active(gto)) {
-	set_graph_active(gto, TRUE);
-    }
-    if (j1 == j2 && gfrom == gto) {
-	errmsg("Set from and set to are the same");
-	return;
-    }
-    /* select next set */
-    if (j2 == SET_SELECT_NEXT) {
-	if ((j2 = nextset(gto)) != -1) {
-	    activateset(gto, j2);
-	    set_dataset_type(gto, j2, dataset_type(gfrom, j1));
-	    setlength(gto, j2, getsetlength(gfrom, j1));
-	} else {
-	    return;
-	}
-    }
-    /* use user selected set */
-    else {
-	if (is_set_active(gto, j2)) {
-	    sprintf(buf, "Set %d active, overwrite?", j2);
-	    if (!yesno(buf, NULL, NULL, NULL)) {
-		return;
-	    }
-	    killset(gto, j2);
-	}
-	activateset(gto, j2);
-	set_dataset_type(gto, j2, dataset_type(gfrom, j1));
-	setlength(gto, j2, getsetlength(gfrom, j1));
-    }
-    copyset(gfrom, j1, gto, j2);
-    sprintf(buf, "copy of set %d", j1);
-    setcomment(gto, j2, buf);
-    log_results(buf);
-#ifndef NONE_GUI
-    update_set_status(gto, j2);
-#endif
-}
-
-/*
- * move a set to another set, if the to set doesn't exist
- * get a new one, if it does, ask if it is okay to overwrite
- */
-void do_move(int j1, int gfrom, int j2, int gto)
-{
-    if (!is_set_active(gfrom, j1)) {
-	sprintf(buf, "Set %d not active", j1);
-	errmsg(buf);
-	return;
-    }
-    gto--;
-    if (gto == -1) {
-	gto = get_cg();
-    }
-    if (!is_graph_active(gto)) {
-	set_graph_active(gto, TRUE);
-    }
-    if (j2 == SET_SELECT_NEXT) {
-	if ((j2 = nextset(gto)) == -1) {
-	    return;
-	}
-    }
-    if (j1 == j2 && gto == gfrom) {
-	errmsg("Set from and set to are the same");
-	return;
-    }
-    if (is_set_active(gto, j2)) {
-	sprintf(buf, "Set %d active, overwrite?", j2);
-	if (!yesno(buf, NULL, NULL, NULL)) {
-	    return;
-	}
-    }
-    moveset(gfrom, j1, gto, j2);
-#ifndef NONE_GUI
-    updatesymbols(gto, j2);
-    updatesymbols(gfrom, j1);
-    update_set_status(gto, j2);
-    update_set_status(gfrom, j1);
 #endif
 }
 

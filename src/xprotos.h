@@ -150,7 +150,6 @@ void create_hotlinks_popup(Widget w, XtPointer client_data, XtPointer call_data)
 void update_hotlinks(void);
 void create_saveall_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
-void SetLabel(Widget w, char *buf);
 void create_points_frame(Widget w, XtPointer client_data, XtPointer call_data);
 void create_goto_frame(Widget w, XtPointer client_data, XtPointer call_data);
 void create_add_frame(Widget w, XtPointer client_data, XtPointer call_data);
@@ -271,21 +270,13 @@ void string_edit_popup(int no);
 void set_title(char *ts);
 
 void set_pagelayout(int layout);
-int GetXVText(double scale, char *s);
-int GetYVText(double scale, char *s);
 
 void errwin(char *s);
 
 void create_describe_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
 void define_pickops_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_activate_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_deactivate_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_reactivate_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_copy_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_setlength_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_move_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_drop_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_join_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_split_popup(Widget w, XtPointer client_data, XtPointer call_data);
@@ -294,18 +285,15 @@ void create_sort_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_reverse_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
-void create_gfocus_frame(Widget w, XtPointer client_data, XtPointer call_data);
-
 void create_featext_frame(Widget w, XtPointer client_data, XtPointer call_data);
-
-int focus_clicked(int cg, int x, int y);
-void get_corner_clicked(int cg, int x, int y, double *xc, double *yc);
 
 void set_graph_selectors(int gno);
 
 void update_props_items(void);
 void update_all(void);
 
+int focus_clicked(int cg, int x, int y);
+void get_corner_clicked(int cg, int x, int y, double *xc, double *yc);
 void push_and_zoom(void);
 
 #endif /* __XPROTOS_H_ */

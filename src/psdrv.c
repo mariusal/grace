@@ -695,7 +695,7 @@ void ps_gui_setup(void)
 	ps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
 	XtManageChild(rc);
 
-	CreateMenuSeparator(ps_setup_rc, "sep");
+	CreateSeparator(ps_setup_rc);
 
 	CreateAACButtons(ps_setup_rc, ps_setup_panel, set_ps_setup_proc);
         

@@ -281,6 +281,10 @@
 /* Define if you have the xpm.h header among X11 includes.  */
 #undef HAVE_X11_XPM_H
 
+/* Define if you have the T1lib library (-lt1). Otherwise, the bundled
+   version will be used */
+#undef HAVE_LIBT1
+
 /* Define if you have the Xbae library (-lXbae).  */
 #undef HAVE_LIBXBAE
 
@@ -296,6 +300,9 @@
 #  define NONE_GUI
 #endif
 
+/* Define if the print spooling command itself unlinks the temporary file */
+#undef PRINT_CMD_UNLINKS
+
 /* Define if you want to compile in (a basic) support for debugging  */
 #undef WITH_DEBUG
 
@@ -304,9 +311,5 @@
 #else
 #  define NDEBUG
 #endif
-
-/* Define if you have the T1lib library (-lt1). Otherwise, the bundled
-   version will be used */
-#undef HAVE_LIBT1
 
 #endif /* __CONFIG_H */

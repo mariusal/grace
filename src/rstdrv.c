@@ -79,7 +79,7 @@ static int gif_setup_transparent = FALSE;
 
 static void rst_updatecmap(void)
 {
-    int i;
+    int i, c;
     RGB *prgb;
     int red, green, blue;
     
@@ -89,11 +89,12 @@ static void rst_updatecmap(void)
             red = prgb->red >> (GRACE_BPP - 8);
             green = prgb->green >> (GRACE_BPP - 8);
             blue = prgb->blue >> (GRACE_BPP - 8);
-            if (i < gdMaxColors) {
-                rst_colors[i] = gdImageColorAllocate(ihandle, red, green, blue);
-            } else {
-                rst_colors[i] = gdImageColorClosest(ihandle, red, green, blue);
+            if ((c = gdImageColorExact(ihandle, red, green, blue))    == -1 &&
+                (c = gdImageColorAllocate(ihandle, red, green, blue)) == -1 &&
+                (c = gdImageColorClosest(ihandle, red, green, blue))  == -1) {
+                c = rst_colors[0];
             }
+            rst_colors[i] = c;
         }
     }
 }
@@ -621,7 +622,7 @@ void gif_gui_setup(void)
 	gif_setup_transparent_item = CreateToggleButton(rc, "Transparent");
 	XtManageChild(rc);
 
-	CreateMenuSeparator(gif_setup_rc, "sep");
+	CreateSeparator(gif_setup_rc);
 
 	CreateAACButtons(gif_setup_rc, gif_setup_panel, set_gif_setup_proc);
         
@@ -683,7 +684,7 @@ void pnm_gui_setup(void)
 	pnm_setup_rawbits_item = CreateToggleButton(rc, "\"Rawbits\"");
 	XtManageChild(rc);
 
-	CreateMenuSeparator(pnm_setup_rc, "sep");
+	CreateSeparator(pnm_setup_rc);
 
 	CreateAACButtons(pnm_setup_rc, pnm_setup_panel, set_pnm_setup_proc);
         

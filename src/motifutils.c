@@ -466,7 +466,6 @@ void AddListChoiceCB(ListStructure *listp, XtCallbackProc cb)
     XtAddCallback(listp->list, XmNextendedSelectionCallback, cb, listp);
 }
 
-
 static OptionItem *font_option_items;
 static OptionItem *settype_option_items;
 static BitmapOptionItem *pattern_option_items;
@@ -844,10 +843,10 @@ GraphPopupMenu *CreateGraphPopupEntries(ListStructure *listp)
     graph_popup_menu->popup = popup;
     
     graph_popup_menu->label_item = CreateMenuLabel(popup, "Selection:");
-    CreateMenuSeparator(popup, "sep");
+    CreateMenuSeparator(popup);
     graph_popup_menu->focus_item = CreateMenuButton(popup, "switchFocus", "Focus to", 'F',
     	switch_focus_proc, (XtPointer) listp, 0);
-    CreateMenuSeparator(popup, "sep");
+    CreateMenuSeparator(popup);
     graph_popup_menu->hide_item = CreateMenuButton(popup, "hide", "Hide", 'H',
     	hide_graph_proc, (XtPointer) listp, 0);
     graph_popup_menu->show_item = CreateMenuButton(popup, "show", "Show", 'S',
@@ -856,7 +855,7 @@ GraphPopupMenu *CreateGraphPopupEntries(ListStructure *listp)
     	duplicate_graph_proc, (XtPointer) listp, 0);
     graph_popup_menu->kill_item = CreateMenuButton(popup, "kill", "Kill", 'K',
     	kill_graph_proc, (XtPointer) listp, 0);
-    CreateMenuSeparator(popup, "sep");
+    CreateMenuSeparator(popup);
     graph_popup_menu->copy12_item = CreateMenuButton(popup, "copy12", "Copy 1 to 2", 'C',
     	copy12_graph_proc, (XtPointer) listp, 0);
     graph_popup_menu->copy21_item = CreateMenuButton(popup, "copy21", "Copy 2 to 1", 'C',
@@ -867,7 +866,7 @@ GraphPopupMenu *CreateGraphPopupEntries(ListStructure *listp)
     	move21_graph_proc, (XtPointer) listp, 0);
     graph_popup_menu->swap_item = CreateMenuButton(popup, "swap", "Swap", 'w',
     	swap_graph_proc, (XtPointer) listp, 0);
-    CreateMenuSeparator(popup, "sep");
+    CreateMenuSeparator(popup);
     CreateMenuButton(popup, "createNew", "Create new", 'C',
     	create_new_graph_proc, (XtPointer) listp, 0);
 
@@ -880,7 +879,6 @@ void graph_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event
     int *values;
     char buf[64];
     Widget popup;
-    XmString str;
     GraphPopupMenu* graph_popup_menu;
     
     if (event->button != 3) {
@@ -904,9 +902,7 @@ void graph_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event
         strcpy(buf, "None"); 
     }
     
-    str = XmStringCreateSimple(buf);
-    XtVaSetValues(graph_popup_menu->label_item, XmNlabelString, str, NULL);
-    XmStringFree(str);
+    SetLabel(graph_popup_menu->label_item, buf);
     
     if (n == 0) {
         XtSetSensitive(graph_popup_menu->hide_item, False);
@@ -926,24 +922,16 @@ void graph_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event
     }
     if (n == 2) {
         sprintf(buf, "Copy G%d to G%d", values[0], values[1]);
-        str = XmStringCreateSimple(buf);
-        XtVaSetValues(graph_popup_menu->copy12_item, XmNlabelString, str, NULL);
-        XmStringFree(str);
+        SetLabel(graph_popup_menu->copy12_item, buf);
         XtManageChild(graph_popup_menu->copy12_item);
         sprintf(buf, "Copy G%d to G%d", values[1], values[0]);
-        str = XmStringCreateSimple(buf);
-        XtVaSetValues(graph_popup_menu->copy21_item, XmNlabelString, str, NULL);
-        XmStringFree(str);
+        SetLabel(graph_popup_menu->copy21_item, buf);
         XtManageChild(graph_popup_menu->copy21_item);
         sprintf(buf, "Move G%d to G%d", values[0], values[1]);
-        str = XmStringCreateSimple(buf);
-        XtVaSetValues(graph_popup_menu->move12_item, XmNlabelString, str, NULL);
-        XmStringFree(str);
+        SetLabel(graph_popup_menu->move12_item, buf);
         XtManageChild(graph_popup_menu->move12_item);
         sprintf(buf, "Move G%d to G%d", values[1], values[0]);
-        str = XmStringCreateSimple(buf);
-        XtVaSetValues(graph_popup_menu->move21_item, XmNlabelString, str, NULL);
-        XmStringFree(str);
+        SetLabel(graph_popup_menu->move21_item, buf);
         XtManageChild(graph_popup_menu->move21_item);
         XtSetSensitive(graph_popup_menu->swap_item, True);
     } else {
@@ -1281,7 +1269,7 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     set_popup_menu->popup = popup;
     
     set_popup_menu->label_item = CreateMenuLabel(popup, "Selection:");
-    CreateMenuSeparator(popup, "sep");
+    CreateMenuSeparator(popup);
     set_popup_menu->hide_item = CreateMenuButton(popup, "hide", "Hide", 'H',
     	hide_set_proc, (XtPointer) listp, 0);
     set_popup_menu->show_item = CreateMenuButton(popup, "show", "Show", 'S',
@@ -1290,7 +1278,7 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     	duplicate_set_proc, (XtPointer) listp, 0);
     set_popup_menu->kill_item = CreateMenuButton(popup, "kill", "Kill", 'K',
     	kill_set_proc, (XtPointer) listp, 0);
-    CreateMenuSeparator(popup, "sep");
+    CreateMenuSeparator(popup);
     set_popup_menu->copy12_item = CreateMenuButton(popup, "copy12", "Copy 1 to 2", 'C',
     	copy12_set_proc, (XtPointer) listp, 0);
     set_popup_menu->copy21_item = CreateMenuButton(popup, "copy21", "Copy 2 to 1", 'C',
@@ -1312,7 +1300,6 @@ void set_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event)
     int *values;
     char buf[64];
     Widget popup;
-    XmString str;
     SetPopupMenu* set_popup_menu;
     
     if (event->button != 3) {
@@ -1337,9 +1324,7 @@ void set_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event)
         strcpy(buf, "None"); 
     }
     
-    str = XmStringCreateSimple(buf);
-    XtVaSetValues(set_popup_menu->label_item, XmNlabelString, str, NULL);
-    XmStringFree(str);
+    SetLabel(set_popup_menu->label_item, buf);
     
     if (n == 0) {
         XtSetSensitive(set_popup_menu->hide_item, False);
@@ -1354,24 +1339,16 @@ void set_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event)
     }
     if (n == 2) {
         sprintf(buf, "Copy S%d to S%d", values[0], values[1]);
-        str = XmStringCreateSimple(buf);
-        XtVaSetValues(set_popup_menu->copy12_item, XmNlabelString, str, NULL);
-        XmStringFree(str);
+        SetLabel(set_popup_menu->copy12_item, buf);
         XtManageChild(set_popup_menu->copy12_item);
         sprintf(buf, "Copy S%d to S%d", values[1], values[0]);
-        str = XmStringCreateSimple(buf);
-        XtVaSetValues(set_popup_menu->copy21_item, XmNlabelString, str, NULL);
-        XmStringFree(str);
+        SetLabel(set_popup_menu->copy21_item, buf);
         XtManageChild(set_popup_menu->copy21_item);
         sprintf(buf, "Move S%d to S%d", values[0], values[1]);
-        str = XmStringCreateSimple(buf);
-        XtVaSetValues(set_popup_menu->move12_item, XmNlabelString, str, NULL);
-        XmStringFree(str);
+        SetLabel(set_popup_menu->move12_item, buf);
         XtManageChild(set_popup_menu->move12_item);
         sprintf(buf, "Move S%d to S%d", values[1], values[0]);
-        str = XmStringCreateSimple(buf);
-        XtVaSetValues(set_popup_menu->move21_item, XmNlabelString, str, NULL);
-        XmStringFree(str);
+        SetLabel(set_popup_menu->move21_item, buf);
         XtManageChild(set_popup_menu->move21_item);
         XtSetSensitive(set_popup_menu->swap_item, True);
     } else {
@@ -1424,7 +1401,6 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
     
     return retvalp;
 }
-
 
 
 
@@ -2556,11 +2532,11 @@ Widget CreateMenuToggle(Widget parent, char *name, char *label, char mnemonic,
     return button;
 }
 
-Widget CreateMenuSeparator(Widget parent, char *name)
+Widget CreateSeparator(Widget parent)
 {
     Widget sep;
     
-    sep = XmCreateSeparator(parent, name, NULL, 0);
+    sep = XmCreateSeparator(parent, "sep", NULL, 0);
     XtManageChild(sep);
     return sep;
 }
@@ -2730,6 +2706,15 @@ Widget CreateAACButtons(Widget parent, Widget form, XtCallbackProc aac_cb)
     }
     
     return w;
+}
+
+void SetLabel(Widget w, char *s)
+{
+    XmString str;
+
+    str = XmStringCreateSimple(s);
+    XtVaSetValues(w, XmNlabelString, str, NULL);
+    XmStringFree(str);
 }
 
 

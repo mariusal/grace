@@ -494,6 +494,7 @@ $ WITH_LIBHELP = 0
 $ WITH_EDITRES = 0
 $ WITH_DEBUG = 0
 $ HAVE_LIBT1 = 0
+$ PRINT_CMD_UNLINKS = 1
 $!
 $! create config.h
 $! Any lines beginning with #define SIZEOF or #undef are rewritten; all

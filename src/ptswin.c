@@ -78,7 +78,6 @@ static Widget points_panel;
 Widget locate_point_item;
 static SetChoiceItem locate_set_item;
 static Widget locate_point_message;
-XmString label_string;
 
 static Widget paint_item;
 
@@ -102,15 +101,6 @@ void create_points_frame(Widget w, XtPointer client_data, XtPointer call_data);
 void create_goto_frame(Widget w, XtPointer client_data, XtPointer call_data);
 void create_digit_frame(Widget w, XtPointer client_data, XtPointer call_data);
 
-void SetLabel(Widget w, char *buf)
-{
-    Arg al;
-    XmStringFree(label_string);
-    label_string = XmStringCreateLtoR(buf, charset);
-    XtSetArg(al, XmNlabelString, label_string);
-    XtSetValues(w, &al, 1);
-}
-
 static void update_track_set(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int setno;
@@ -122,7 +112,6 @@ static void update_track_set(Widget w, XtPointer client_data, XtPointer call_dat
     }	
     track_set = setno;
 }
-
 
 /*
  * set tracker
@@ -453,6 +442,7 @@ void create_points_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
     static Widget top, dialog;
     Widget wbut, rc;
+    XmString str;
 
     set_wait_cursor();
     if (top == NULL) {
@@ -467,10 +457,10 @@ void create_points_frame(Widget w, XtPointer client_data, XtPointer call_data)
     XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 */
 
-	label_string = XmStringCreateLtoR("Set, location, (X, Y): ", charset);
-	locate_point_message = XtVaCreateManagedWidget("pointslabel", xmLabelWidgetClass, rc,
-					       XmNlabelString, label_string,
-						       NULL);
+	str = XmStringCreateLtoR("Set, location, (X, Y): ", charset);
+	locate_point_message = XtVaCreateManagedWidget("pointslabel",
+            xmLabelWidgetClass, rc, XmNlabelString, str, NULL);
+        XmStringFree(str);
 
 	locate_point_item = XtVaCreateManagedWidget("locator", xmTextWidgetClass, rc,
 						    XmNcolumns, 60,
