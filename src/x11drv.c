@@ -138,6 +138,16 @@ void xlibinit(void)
     if (curtile == (Pixmap) NULL) {
         errmsg("Error allocating tile");
     }
+    
+/*
+ * disable font AA in mono mode
+ */
+    if (bpp == 1) {
+        Device_entry dev;
+        dev = get_device_props(tdevice);
+        dev.fontaa = FALSE;
+        set_device_props(tdevice, dev);
+    }
 }
 
 
@@ -581,7 +591,11 @@ void xlibputpixmap(VPoint vp, int width, int height,
     
     xp = VPoint2XPoint(vp);
       
-    if (pixmap_bpp != 1 && bpp != 1) {
+    if (pixmap_bpp != 1) {
+        if (bpp == 1) {
+            /* TODO: dither pixmaps on mono displays */
+            return;
+        }
         pixmap_ptr = calloc(PAD(width, 8) * height, pixel_size);
         if (pixmap_ptr == NULL) {
             errmsg("malloc failed in xlibputpixmap()");
