@@ -232,7 +232,6 @@ int autoscale_graph(int gno, int autos_type)
     nsets = get_set_ids(gno, &sets);
     if (nsets) {
         autoscale_bysets(gno, sets, nsets, autos_type);
-        xfree(sets);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
