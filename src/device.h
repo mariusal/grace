@@ -96,7 +96,8 @@ extern void (*devfillarc) (VPoint vp1, VPoint vp2, int a1, int a2, int mode);
 extern void (*devputpixmap) (VPoint vp, int width, int height, char *databits,
                                int pixmap_bpp, int bitmap_pad, int pixmap_type);
 /* device text typesetting */
-extern void (*devputtext) (CompositeString *cs);
+extern void (*devputtext) (VPoint vp, char *s, int len, int font,
+     TextMatrix *tm, int underline, int overline, int kerning);
 
 /* update color map */
 extern void (*devupdatecmap)(void);	

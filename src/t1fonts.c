@@ -50,7 +50,8 @@ static int bitmap_pad;
 
 void (*devputpixmap) (VPoint vp, int width, int height, 
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void (*devputtext) (CompositeString *cs);
+void (*devputtext) (VPoint vp, char *s, int len, int font,
+     TextMatrix *tm, int underline, int overline, int kerning);
 
 static int nfonts = 0;
 static FontDB *FontDBtable = NULL;
@@ -834,12 +835,12 @@ static CompositeString *String2Composite(char *string)
 	        csbuf[nss].underline = underline;
 	        csbuf[nss].overline = overline;
 	        csbuf[nss].kerning = kerning;
-	        csbuf[nss].aux.direction = direction;
-	        csbuf[nss].aux.advancing = advancing;
-	        csbuf[nss].aux.ligatures = ligatures;
-	        csbuf[nss].aux.setmark = setmark;
+	        csbuf[nss].direction = direction;
+	        csbuf[nss].advancing = advancing;
+	        csbuf[nss].ligatures = ligatures;
+	        csbuf[nss].setmark = setmark;
                 setmark = MARK_NONE;
-	        csbuf[nss].aux.gotomark = gotomark;
+	        csbuf[nss].gotomark = gotomark;
 
 	        csbuf[nss].s = xmalloc((isub + 1)*SIZEOF_CHAR);
 	        memcpy(csbuf[nss].s, ss, isub);
@@ -1052,10 +1053,10 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         if (cs->color == BAD_COLOR) {
             cs->color = def_color;
         }
-        if (cs->aux.ligatures == TRUE) {
+        if (cs->ligatures == TRUE) {
             process_ligatures(cs);
         }
-        if (cs->aux.direction == STRING_DIRECTION_RL) {
+        if (cs->direction == STRING_DIRECTION_RL) {
             reverse_string(cs->s, cs->len);
         }
         tm_rotate(&cs->tm, Angle);
@@ -1064,9 +1065,9 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         cs->vshift *= charsize;
         cs->hshift *= charsize;
         
-        text_advancing = cs->aux.advancing;
-        gotomark = cs->aux.gotomark;
-        setmark = cs->aux.setmark;
+        text_advancing = cs->advancing;
+        gotomark = cs->gotomark;
+        setmark = cs->setmark;
 
         glyph = GetGlyphString(cs, page_dpv, dev.fontaa);
         if (glyph != NULL) {
@@ -1184,23 +1185,29 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
             continue;
         }
         
-        /* upper left corner of bitmap */
-        vptmp = cs->start;
-        vptmp.x += (double) glyph->metrics.leftSideBearing/page_dpv;
-        vptmp.y += (double) glyph->metrics.ascent/page_dpv;
-        
         if (get_draw_mode() == TRUE) {
             /* No patterned texts yet */
             setpattern(1);
             setcolor(cs->color);
 
             if (dev.devfonts == TRUE) {
+                if (cs->advancing == TEXT_ADVANCING_RL) {
+                    vptmp = cs->stop;
+                } else {
+                    vptmp = cs->start;
+                }
                 if (devputtext == NULL) {
                     errmsg("Device has no built-in fonts");
                 } else {
-                    (*devputtext) (cs);
+                    (*devputtext) (vptmp, cs->s, cs->len, cs->font,
+                        &cs->tm, cs->underline, cs->overline, cs->kerning);
                 }
             } else {
+                /* upper left corner of bitmap */
+                vptmp = cs->start;
+                vptmp.x += (double) glyph->metrics.leftSideBearing/page_dpv;
+                vptmp.y += (double) glyph->metrics.ascent/page_dpv;
+
                 (*devputpixmap) (vptmp, pwidth, pheight, glyph->bits, 
                                     glyph->bpp, bitmap_pad, PIXMAP_TRANSPARENT);
             }

@@ -79,14 +79,6 @@ typedef struct {
 } TextMatrix;
 
 typedef struct {
-    int direction;
-    int advancing;
-    int ligatures;
-    int setmark;
-    int gotomark;
-} CSAux;
-
-typedef struct {
     char *s;
     int len;
     int font;
@@ -96,11 +88,15 @@ typedef struct {
     double vshift;
     int underline;
     int overline;
+    int setmark;
+    int gotomark;
+    int direction;
+    int advancing;
+    int ligatures;
     int kerning;
-    CSAux aux;
-    GLYPH *glyph;
     VPoint start;
     VPoint stop;
+    GLYPH *glyph;
 } CompositeString;
 
 typedef struct {
