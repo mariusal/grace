@@ -34,13 +34,12 @@ links : subdirs
 clean :
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) clean) || exit 1; done
 
-distclean :
-	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) distclean) || exit 1; done
+distclean : clean
 	$(RM) config.log config.status config.cache include/config.h Make.conf
+	$(RM) -r autom4te.cache
 
-devclean :
-	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) devclean) || exit 1; done
-	$(RM) config.log config.status config.cache include/config.h Make.conf configure
+devclean : distclean
+	$(RM) configure
 
 texts : CHANGES ChangeLog
 
