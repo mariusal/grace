@@ -292,7 +292,7 @@ ListTreeClassRec listtreeClassRec =
   {
 	/* border_highlight      */ XmInheritBorderHighlight,
 	/* border_unhighlight    */ XmInheritBorderUnhighlight,
-	/* translations          */ NULL,
+	/* translations          */ XtInheritTranslations,
 	/* arm_and_activate_proc */ XmInheritArmAndActivate,
 	/* synthetic resources   */ NULL,
 	/* num syn res           */ 0,
