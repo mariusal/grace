@@ -83,9 +83,9 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
     ui->offsetx = CreateViewCoordInput(rc1, "dX:");
-    AddSpinButtonCB(ui->offsetx, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->offsetx, sp_explorer_cb, eui);
     ui->offsety = CreateViewCoordInput(rc1, "dY:");
-    AddSpinButtonCB(ui->offsety, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->offsety, sp_explorer_cb, eui);
     ui->angle = CreateAngleChoice(rc, "Angle");
     AddScaleCB(ui->angle, scale_explorer_cb, eui);
 
@@ -93,7 +93,7 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
     ui->linew = CreateLineWidthChoice(rc1, "Line width:");
-    AddSpinButtonCB(ui->linew, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->linew, sp_explorer_cb, eui);
     ui->lines = CreateLineStyleChoice(rc1, "Line style:");
     AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
@@ -168,7 +168,7 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->length = CreateSpinChoice(rc, "Length:",
         8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
-    AddSpinButtonCB(ui->length, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->length, sp_explorer_cb, eui);
     ui->arrow_end = CreatePanelChoice(rc, "Place arrows at:",
 				      5,
 				      "None",
@@ -189,14 +189,14 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
     AddOptionChoiceCB(ui->a_type, oc_explorer_cb, eui);
     ui->a_length = CreateSpinChoice(rc1, "Length:",
         4, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.5);
-    AddSpinButtonCB(ui->a_length, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->a_length, sp_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
     ui->a_dL_ff = CreateSpinChoice(rc1, "d/L FF:",
         4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
-    AddSpinButtonCB(ui->a_dL_ff, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->a_dL_ff, sp_explorer_cb, eui);
     ui->a_lL_ff = CreateSpinChoice(rc1, "l/L FF:",
         4, SPIN_TYPE_FLOAT, -1.0, 1.0, 0.1);
-    AddSpinButtonCB(ui->a_lL_ff, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->a_lL_ff, sp_explorer_cb, eui);
     
     return ui;
 }
@@ -230,10 +230,10 @@ static BoxUI *create_box_ui(Widget parent, ExplorerUI *eui)
     rc = CreateVContainer(ui->top);
     ui->width = CreateSpinChoice(rc, "Width: ",
         8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
-    AddSpinButtonCB(ui->width, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->width, sp_explorer_cb, eui);
     ui->height = CreateSpinChoice(rc, "Height:",
         8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
-    AddSpinButtonCB(ui->height, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->height, sp_explorer_cb, eui);
     
     return ui;
 }
@@ -286,10 +286,10 @@ static ArcUI *create_arc_ui(Widget parent, ExplorerUI *eui)
 
     ui->width = CreateSpinChoice(rc, "Width: ",
         8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
-    AddSpinButtonCB(ui->width, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->width, sp_explorer_cb, eui);
     ui->height = CreateSpinChoice(rc, "Height:",
         8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
-    AddSpinButtonCB(ui->height, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->height, sp_explorer_cb, eui);
     
     ui->angle1 = CreateAngleChoice(rc, "Start angle");
     AddScaleCB(ui->angle1, scale_explorer_cb, eui);
@@ -366,7 +366,7 @@ static StringUI *create_string_ui(Widget parent, ExplorerUI *eui)
     AddOptionChoiceCB(ui->font, oc_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
     ui->size = CreateCharSizeChoice(rc1, "Size:");
-    AddSpinButtonCB(ui->size, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->size, sp_explorer_cb, eui);
     ui->just = CreateJustChoice(rc1, "Justification:");
     AddOptionChoiceCB(ui->just, oc_explorer_cb, eui);
 
@@ -374,7 +374,7 @@ static StringUI *create_string_ui(Widget parent, ExplorerUI *eui)
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
     ui->linew = CreateLineWidthChoice(rc1, "Width:");
-    AddSpinButtonCB(ui->linew, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->linew, sp_explorer_cb, eui);
     ui->lines = CreateLineStyleChoice(rc1, "Style:");
     AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
     rc1 = CreateHContainer(rc);

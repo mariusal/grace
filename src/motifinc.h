@@ -451,7 +451,7 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
                         int type, double min, double max, double incr);
 double GetSpinChoice(SpinStructure *spinp);
 void SetSpinChoice(SpinStructure *spinp, double value);
-void AddSpinButtonCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
+void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
 
 TextStructure *CreateTextInput(Widget parent, char *s);
 TextStructure *CreateCSText(Widget parent, char *s);

@@ -1241,7 +1241,7 @@ static void sp_double_cb_proc(Widget w, XtPointer client_data, XtPointer call_da
 }
 
 
-void AddSpinButtonCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
+void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
 {
     Spin_CBdata *cbdata;
     

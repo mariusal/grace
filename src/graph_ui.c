@@ -125,7 +125,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->main_tp, "XY charts");
     ui->bargap = CreateSpinChoice(fr, "Bar gap:", 5,
         SPIN_TYPE_FLOAT, -1.0, 1.0, 0.005);
-    AddSpinButtonCB(ui->bargap, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->bargap, sp_explorer_cb, eui);
 
 
     /* ------------ Locator tab -------------- */

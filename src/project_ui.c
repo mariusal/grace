@@ -70,10 +70,10 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->fsize_scale = CreateSpinChoice(rc, "Font size:", 5,
         SPIN_TYPE_FLOAT, 0.0, 1.0, 0.005);
-    AddSpinButtonCB(ui->fsize_scale, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->fsize_scale, sp_explorer_cb, eui);
     ui->lwidth_scale = CreateSpinChoice(rc, "Line width:", 6,
         SPIN_TYPE_FLOAT, 0.0, 1.0, 0.0005);
-    AddSpinButtonCB(ui->lwidth_scale, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->lwidth_scale, sp_explorer_cb, eui);
 
     fr = CreateFrame(form, "Dates");
     rc1 = CreateVContainer(fr);

@@ -78,7 +78,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddTextItemCB(ui->tmajor, titem_explorer_cb, eui);
     ui->nminor = CreateSpinChoice(rc2, "Minor ticks:",
         2, SPIN_TYPE_INT, 0.0, (double) MAX_TICKS - 1, 1.0);
-    AddSpinButtonCB(ui->nminor, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->nminor, sp_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
     ui->tlform = CreateFormatChoice(rc2, "Format:");
@@ -130,7 +130,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
 
     rc2 = CreateHContainer(rc);
     ui->labelcharsize = CreateCharSizeChoice(rc2, "Size:");
-    AddSpinButtonCB(ui->labelcharsize, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->labelcharsize, sp_explorer_cb, eui);
 
     ui->labellayout = CreatePanelChoice(rc2, "Layout:",
                                         3,
@@ -167,7 +167,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     ui->barcolor = CreateColorChoice(rc2, "Color:");
     AddOptionChoiceCB(ui->barcolor, oc_explorer_cb, eui);
     ui->barlinew = CreateLineWidthChoice(rc2, "Width:");
-    AddSpinButtonCB(ui->barlinew, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->barlinew, sp_explorer_cb, eui);
 
     ui->barlines = CreateLineStyleChoice(rc, "Line style:");
     AddOptionChoiceCB(ui->barlines, oc_explorer_cb, eui);
@@ -178,7 +178,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->ticklabel_tp, "Labels");
     rc2 = CreateHContainer(fr);
     ui->tlcharsize = CreateCharSizeChoice(rc2, "Char size");
-    AddSpinButtonCB(ui->tlcharsize, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->tlcharsize, sp_explorer_cb, eui);
 
     fr = CreateFrame(ui->ticklabel_tp, "Placement");
     rc = CreateHContainer(fr);
@@ -294,11 +294,11 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->tinout, oc_explorer_cb, eui);
     ui->tlen = CreateSpinChoice(rc, "Tick length",
         4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
-    AddSpinButtonCB(ui->tlen, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->tlen, sp_explorer_cb, eui);
     ui->tgridcol = CreateColorChoice(rc, "Color:");
     AddOptionChoiceCB(ui->tgridcol, oc_explorer_cb, eui);
     ui->tgridlinew = CreateLineWidthChoice(rc, "Line width:");
-    AddSpinButtonCB(ui->tgridlinew, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->tgridlinew, sp_explorer_cb, eui);
     ui->tgridlines = CreateLineStyleChoice(rc, "Line style:");
     AddOptionChoiceCB(ui->tgridlines, oc_explorer_cb, eui);
 
@@ -311,11 +311,11 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->tminout, oc_explorer_cb, eui);
     ui->tmlen = CreateSpinChoice(rc, "Tick length",
         4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
-    AddSpinButtonCB(ui->tmlen, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->tmlen, sp_explorer_cb, eui);
     ui->tmgridcol = CreateColorChoice(rc, "Color:");
     AddOptionChoiceCB(ui->tmgridcol, oc_explorer_cb, eui);
     ui->tmgridlinew = CreateLineWidthChoice(rc, "Line width:");
-    AddSpinButtonCB(ui->tmgridlinew, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->tmgridlinew, sp_explorer_cb, eui);
     ui->tmgridlines = CreateLineStyleChoice(rc, "Line style:");
     AddOptionChoiceCB(ui->tmgridlines, oc_explorer_cb, eui);
 
@@ -333,7 +333,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
 
     ui->nspec = CreateSpinChoice(ui->special_tp, "Number of user ticks to use:",
         3, SPIN_TYPE_INT, 0.0, (double) MAX_TICKS, 1.0);
-    AddSpinButtonCB(ui->nspec, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->nspec, sp_explorer_cb, eui);
     CreateLabel(ui->special_tp, "Tick location - Label:");
 
     sw = XtVaCreateManagedWidget("sw",

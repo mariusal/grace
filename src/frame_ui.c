@@ -92,7 +92,7 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
 
     rc2 = CreateHContainer(rc);
     ui->frame_linew_choice = CreateLineWidthChoice(rc2, "Width:");
-    AddSpinButtonCB(ui->frame_linew_choice, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->frame_linew_choice, sp_explorer_cb, eui);
     ui->frame_lines_choice = CreateLineStyleChoice(rc2, "Style:");
     AddOptionChoiceCB(ui->frame_lines_choice, oc_explorer_cb, eui);
 
@@ -121,17 +121,17 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     rc1 = CreateHContainer(rc);
     ui->legend_x = CreateSpinChoice(rc1, "dX:", 4,
         SPIN_TYPE_FLOAT, -1.0, 1.0, 0.01);
-    AddSpinButtonCB(ui->legend_x, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->legend_x, sp_explorer_cb, eui);
     ui->legend_y = CreateSpinChoice(rc1, "dY:", 4,
         SPIN_TYPE_FLOAT, -1.0, 1.0, 0.01);
-    AddSpinButtonCB(ui->legend_y, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->legend_y, sp_explorer_cb, eui);
 
     fr = CreateFrame(ui->legendbox_tp, "Frame box");
     rc = CreateVContainer(fr);
 
     rc2 = CreateHContainer(rc);
     ui->legend_boxlinew = CreateLineWidthChoice(rc2, "Width:");
-    AddSpinButtonCB(ui->legend_boxlinew, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->legend_boxlinew, sp_explorer_cb, eui);
     ui->legend_boxlines = CreateLineStyleChoice(rc2, "Style:");
     AddOptionChoiceCB(ui->legend_boxlines, oc_explorer_cb, eui);
 
@@ -151,7 +151,7 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->legend_font, oc_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
     ui->legend_charsize = CreateCharSizeChoice(rc1, "Size:");
-    AddSpinButtonCB(ui->legend_charsize, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->legend_charsize, sp_explorer_cb, eui);
     ui->legend_color = CreateColorChoice(rc1, "Color:");
     AddOptionChoiceCB(ui->legend_color, oc_explorer_cb, eui);
 
@@ -160,13 +160,13 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     rc1 = CreateHContainer(rc);
     ui->legends_vgap = CreateSpinChoice(rc1, "V-gap:",
         4, SPIN_TYPE_FLOAT, 0.0, 1.0, 0.01);
-    AddSpinButtonCB(ui->legends_vgap, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->legends_vgap, sp_explorer_cb, eui);
     ui->legends_hgap = CreateSpinChoice(rc1, "H-gap:",
         4, SPIN_TYPE_FLOAT, 0.0, 1.0, 0.01);
-    AddSpinButtonCB(ui->legends_hgap, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->legends_hgap, sp_explorer_cb, eui);
     ui->legends_len = CreateSpinChoice(rc, "Line length:",
         4, SPIN_TYPE_FLOAT, 0.0, 1.0, 0.01);
-    AddSpinButtonCB(ui->legends_len, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->legends_len, sp_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
     ui->legends_invert = CreateToggleButton(rc1, "Put in reverse order");
     AddToggleButtonCB(ui->legends_invert, tb_explorer_cb, eui);

@@ -166,7 +166,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
                                              NULL);
     AddOptionChoiceCB(ui->symbols, oc_explorer_cb, eui);
     ui->symsize = CreateCharSizeChoice(rc, "Size:");
-    AddSpinButtonCB(ui->symsize, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->symsize, sp_explorer_cb, eui);
     ui->sympen = CreatePenChoice(rc, "Outline pen:");
     AddPenChoiceCB(ui->sympen, pen_explorer_cb, eui);
     ui->symchar = CreateTextItem2(rc, 3, "Symbol char:");
@@ -187,7 +187,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     ui->lines = CreateLineStyleChoice(rc, "Style:");
     AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
     ui->width = CreateLineWidthChoice(rc, "Width:");
-    AddSpinButtonCB(ui->width, sp_explorer_cb, eui); 
+    AddSpinChoiceCB(ui->width, sp_explorer_cb, eui); 
     ui->pen = CreatePenChoice(rc, "Pen:");
     AddPenChoiceCB(ui->pen, pen_explorer_cb, eui);
 
@@ -214,7 +214,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     ui->symlines = CreateLineStyleChoice(rc2, "Style:");
     AddOptionChoiceCB(ui->symlines, oc_explorer_cb, eui);
     ui->symlinew = CreateLineWidthChoice(rc2, "Width:");
-    AddSpinButtonCB(ui->symlinew, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->symlinew, sp_explorer_cb, eui);
 
     fr = CreateFrame(ui->symbol_tp, "Symbol fill");
     rc = CreateHContainer(fr);
@@ -225,7 +225,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->symskip = CreateSpinChoice(rc, "Symbol skip:",
         5, SPIN_TYPE_INT, (double) 0, (double) 100000, (double) 1);
-    AddSpinButtonCB(ui->symskip, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->symskip, sp_explorer_cb, eui);
     ui->char_font = CreateFontChoice(rc, "Font for char symbol:");
     AddOptionChoiceCB(ui->char_font, oc_explorer_cb, eui);
 
@@ -285,7 +285,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->avalue_font, oc_explorer_cb, eui);
     rc2 = CreateHContainer(rc);
     ui->avalue_charsize = CreateCharSizeChoice(rc2, "Size:");
-    AddSpinButtonCB(ui->avalue_charsize, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->avalue_charsize, sp_explorer_cb, eui);
     ui->avalue_color = CreateColorChoice(rc2, "Color:");
     AddOptionChoiceCB(ui->avalue_color, oc_explorer_cb, eui);
 
@@ -354,7 +354,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddToggleButtonCB(ui->errbar_aclip, tb_explorer_cb, eui);
     ui->errbar_cliplen = CreateSpinChoice(rc, "Max length:",
         3, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
-    AddSpinButtonCB(ui->errbar_cliplen, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->errbar_cliplen, sp_explorer_cb, eui);
 
     rc1 = CreateVContainer(rc2);
 
@@ -362,16 +362,16 @@ SetUI *create_set_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->errbar_size = CreateSpinChoice(rc, "Size",
         4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
-    AddSpinButtonCB(ui->errbar_size, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->errbar_size, sp_explorer_cb, eui);
     ui->errbar_width = CreateLineWidthChoice(rc, "Width:");
-    AddSpinButtonCB(ui->errbar_width, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->errbar_width, sp_explorer_cb, eui);
     ui->errbar_lines = CreateLineStyleChoice(rc, "Style:");
     AddOptionChoiceCB(ui->errbar_lines, oc_explorer_cb, eui);
 
     fr = CreateFrame(rc1, "Riser line");
     rc = CreateVContainer(fr);
     ui->errbar_riserlinew = CreateLineWidthChoice(rc, "Width:");
-    AddSpinButtonCB(ui->errbar_riserlinew, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->errbar_riserlinew, sp_explorer_cb, eui);
     ui->errbar_riserlines = CreateLineStyleChoice(rc, "Style:");
     AddOptionChoiceCB(ui->errbar_riserlines, oc_explorer_cb, eui);
 
