@@ -2087,7 +2087,7 @@ void draw_legend_syms(Quark *pset,
     Quark *gr = get_parent_graph(pset);
 
     if (set_is_drawable(pset) &&
-        !is_empty_string(p->legstr) &&
+        !string_is_empty(p->legstr) &&
         graph_get_type(gr) != GRAPH_PIE) {
         
         Canvas *canvas = plot_rt->canvas;
@@ -2184,7 +2184,7 @@ static int is_legend_drawable(Quark *pset)
     Quark *gr = get_parent_graph(pset);
     
     if (set_is_drawable(pset)       &&
-        !is_empty_string(p->legstr) &&
+        !string_is_empty(p->legstr) &&
         quark_is_active(gr)         &&
         graph_get_type(gr) != GRAPH_PIE) {
         

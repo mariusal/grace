@@ -126,7 +126,7 @@ static int jpg_op_parser(const Canvas *canvas, void *data, const char *opstring)
     } else if (!strncmp(opstring, "quality:", 8)) {
         bufp = strchr(opstring, ':');
         bufp++;
-        if (!is_empty_string(bufp)) {
+        if (!string_is_empty(bufp)) {
             jpgdata->quality = atoi(bufp);
             return RETURN_SUCCESS;
         } else {
@@ -135,7 +135,7 @@ static int jpg_op_parser(const Canvas *canvas, void *data, const char *opstring)
     } else if (!strncmp(opstring, "smoothing:", 10)) {
         bufp = strchr(opstring, ':');
         bufp++;
-        if (!is_empty_string(bufp)) {
+        if (!string_is_empty(bufp)) {
             jpgdata->smoothing = atoi(bufp);
             return RETURN_SUCCESS;
         } else {

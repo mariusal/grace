@@ -595,7 +595,7 @@ reenter:
                 nmajor++;
             }
         }
-	if (!is_empty_string(t->tl_formula)) {
+	if (!string_is_empty(t->tl_formula)) {
             double *tt = xmalloc(nmajor*SIZEOF_DOUBLE);
 
             itmaj = 0;

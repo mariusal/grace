@@ -91,7 +91,7 @@ static int png_op_parser(const Canvas *canvas, void *data, const char *opstring)
     } else if (!strncmp(opstring, "compression:", 12)) {
         bufp = strchr(opstring, ':');
         bufp++;
-        if (!is_empty_string(bufp)) {
+        if (!string_is_empty(bufp)) {
             pngdata->compression = atoi(bufp);
             return RETURN_SUCCESS;
         } else {
@@ -211,7 +211,7 @@ static int png_output(const Canvas *canvas, void *data,
     text_ptr[2].compression = PNG_TEXT_COMPRESSION_NONE;
     num_text = 3;
     s = canvas_get_description(canvas);
-    if (!is_empty_string(s)) {
+    if (!string_is_empty(s)) {
         text_ptr[3].key         = "Description";
         text_ptr[3].text        = s;
         if (strlen(s) > 1024) {

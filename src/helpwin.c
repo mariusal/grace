@@ -354,7 +354,7 @@ static int find_cb(void *data)
     
     s = GetTextString(ui->input);
 
-    if (is_empty_string(s)) {
+    if (string_is_empty(s)) {
         xfree(s);
         return RETURN_FAILURE;
     }

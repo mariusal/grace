@@ -2062,7 +2062,7 @@ parmset:
             atext_set_just($1, $3);
         }
 	| atext DEF CHRSTR {
-	    if (!compare_strings("timestamp", quark_idstr_get($1))) {
+	    if (!strings_are_equal("timestamp", quark_idstr_get($1))) {
                 atext_set_string($1, $3);
             }
             xfree($3);
@@ -4326,7 +4326,7 @@ static int parser(char *s, int type)
     char *seekpos;
     int i;
     
-    if (is_empty_string(s)) {
+    if (string_is_empty(s)) {
         if (type == PARSER_TYPE_VOID) {
             /* don't consider an empty string as error for generic parser */
             return RETURN_SUCCESS;

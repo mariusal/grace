@@ -172,7 +172,7 @@ void draw_atext(Canvas *canvas, Quark *q)
     int savebg;
     AText *at = atext_get_data(q);
     
-    if (!at || is_empty_string(at->s)) {
+    if (!at || string_is_empty(at->s)) {
         return;
     }
 

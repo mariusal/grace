@@ -151,14 +151,14 @@ static void writeCB(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     }
     
-    if (cs->row >= nrows && !is_empty_string(cs->string)) {
+    if (cs->row >= nrows && !string_is_empty(cs->string)) {
         ssd_set_nrows(ui->q, cs->row + 1);
         changed = TRUE;
     }
     
     if (cs->column < ncols) {
         char *old_value = get_cell_content(ui, cs->row, cs->column, &format);
-        if (!compare_strings(old_value, cs->string)) {
+        if (!strings_are_equal(old_value, cs->string)) {
             double value;
 	    switch (format) {
             case FFORMAT_STRING:

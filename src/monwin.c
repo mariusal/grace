@@ -267,7 +267,7 @@ static void cmd_cb(TextStructure *cst, char *s, void *data)
     
     ui->eohistory = TRUE;
     
-    if (!is_empty_string(s)) {
+    if (!string_is_empty(s)) {
         scanner(s);
         
         if (ui->auto_redraw) {

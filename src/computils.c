@@ -1443,7 +1443,7 @@ int do_runavg(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
     
-    if (is_empty_string(formula)) {
+    if (string_is_empty(formula)) {
 	errmsg("Empty formula");
 	return RETURN_FAILURE;
     }
@@ -1804,7 +1804,7 @@ int do_sample(Quark *psrc, Quark *pdest, char *formula)
     double *result;
     char buf[256];
 
-    if (is_empty_string(formula)) {
+    if (string_is_empty(formula)) {
 	errmsg("Empty formula");
 	return RETURN_FAILURE;
     }

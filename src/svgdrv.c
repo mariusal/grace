@@ -309,7 +309,7 @@ static char *escape_specials(const Canvas *canvas,
         int found = FALSE;
         char *cname = get_charname(canvas, font, s[i]);
         for (j = 0; svg_charnames[j] != '\0'; j++) {
-            if (compare_strings(cname, svg_charnames[j])) {
+            if (strings_are_equal(cname, svg_charnames[j])) {
                 es = strcat(es, svg_charcodes[j]);
                 found = TRUE;
                 break;
@@ -385,7 +385,7 @@ int svg_initgraphics(const Canvas *canvas, void *data,
 
     /* project description */
     s = canvas_get_description(canvas);
-    if (!is_empty_string(s)) {
+    if (!string_is_empty(s)) {
         fprintf(prstream,
             " <desc>%s</desc>\n", s);
     }

@@ -297,7 +297,7 @@ static void update_device_setup(PrintUI *ui, int device_id)
             SetSensitive(ui->device_opts, True);
         }
 
-        if (is_empty_string(grace->rt->print_file)) {
+        if (string_is_empty(grace->rt->print_file)) {
             strcpy(grace->rt->print_file,
                 mybasename(project_get_docname(grace->project))); 
         }
@@ -735,7 +735,7 @@ void create_destopts_popup(Widget but, void *data)
                 nopts++;
             }
             
-            if (compare_strings(og->text, "General")) {
+            if (strings_are_equal(og->text, "General")) {
                 SelectTabPage(tab, page);
             }
         }

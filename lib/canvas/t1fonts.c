@@ -808,7 +808,7 @@ CompositeString *rasterize_string(Canvas *canvas,
     bbox->xv1 = bbox->xv2 = vp->x;
     bbox->yv1 = bbox->yv2 = vp->y;
     
-    if (is_empty_string(s)) {
+    if (string_is_empty(s)) {
 	return NULL;
     }
     

@@ -458,7 +458,7 @@ char *utf2iso(const char *s)
         $$ = utf2iso($?);
     ]]></attribute-type>
     <attribute-type name="bval" ctype="int"><![CDATA[
-        $$ = compare_strings($?, "yes");
+        $$ = strings_are_equal($?, "yes");
     ]]></attribute-type>
     <attribute-type name="rgb" ctype="RGB *"><![CDATA[
         unsigned int r, g, b;

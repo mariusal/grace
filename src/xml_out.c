@@ -174,7 +174,7 @@ static void xmlio_write_line_spec(XFile *xf, Attributes *attrs,
 
 static void xmlio_write_text(XFile *xf, char *text)
 {
-    if (is_empty_string(text)) {
+    if (string_is_empty(text)) {
         xfile_empty_element(xf, EStrText, NULL);
     } else {
         xfile_text_element(xf, EStrText, NULL, text, TRUE);
@@ -1015,7 +1015,7 @@ int save_project(Quark *project, char *fn)
     save_unsupported = TRUE;
 
     noask_save = gui->noask;
-    if (compare_strings(project_get_docname(project), fn)) {
+    if (strings_are_equal(project_get_docname(project), fn)) {
         /* If saving under the same name, don't warn about overwriting */
         gui->noask = TRUE;
     }

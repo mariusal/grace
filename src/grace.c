@@ -191,7 +191,7 @@ RunTime *runtime_new(Grace *grace)
         rt->ptofile = FALSE;
     } else
     /* if no print command defined, print to file by default */
-    if (is_empty_string(rt->print_cmd)) {
+    if (string_is_empty(rt->print_cmd)) {
         rt->ptofile = TRUE;
     } else {
         rt->ptofile = FALSE;
@@ -221,9 +221,9 @@ RunTime *runtime_new(Grace *grace)
 
     /* username */
     s = getenv("LOGNAME");
-    if (is_empty_string(s)) {
+    if (string_is_empty(s)) {
         s = getlogin();
-        if (is_empty_string(s)) {
+        if (string_is_empty(s)) {
             s = "a user";
         }
     }
@@ -731,7 +731,7 @@ void do_hardcopy(const Quark *project)
     canvas = rt->canvas;
     
     if (get_ptofile(grace)) {
-        if (is_empty_string(rt->print_file)) {
+        if (string_is_empty(rt->print_file)) {
             Device_entry *dev = get_device_props(canvas, rt->hdevice);
             sprintf(rt->print_file, "%s.%s",
                 get_docbname(project), dev->fext);
@@ -739,7 +739,7 @@ void do_hardcopy(const Quark *project)
         strcpy(fname, rt->print_file);
     } else {
         s = get_print_cmd(grace);
-        if (is_empty_string(s)) {
+        if (string_is_empty(s)) {
             errmsg("No print command defined, output aborted");
             return;
         }

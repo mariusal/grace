@@ -58,7 +58,7 @@ static void save_wisdom(void){
     final_wisdom = fftw_export_wisdom_to_string();
     
     if (!initial_wisdom ||
-        compare_strings(initial_wisdom, final_wisdom) != TRUE) {
+        strings_are_equal(initial_wisdom, final_wisdom) != TRUE) {
         FILE *wf;
         wf = grace_openw(grace, wisdom_file);
         if (wf) {

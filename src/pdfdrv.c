@@ -338,7 +338,7 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
     
     s = canvas_get_description(canvas);
 
-    if (!is_empty_string(s)) {
+    if (!string_is_empty(s)) {
         PDF_set_border_style(pdfdata->phandle, "dashed", 3.0);
         PDF_set_border_dash(pdfdata->phandle, 5.0, 1.0);
         PDF_set_border_color(pdfdata->phandle, 1.0, 0.0, 0.0);
@@ -806,7 +806,7 @@ int pdf_op_parser(const Canvas *canvas, void *data, const char *opstring)
         char *bufp;
         bufp = strchr(opstring, ':');
         bufp++;
-        if (!is_empty_string(bufp)) {
+        if (!string_is_empty(bufp)) {
             pdfdata->compression = atoi(bufp);
             return RETURN_SUCCESS;
         } else {
@@ -817,7 +817,7 @@ int pdf_op_parser(const Canvas *canvas, void *data, const char *opstring)
         char *bufp;
         bufp = strchr(opstring, ':');
         bufp++;
-        if (!is_empty_string(bufp)) {
+        if (!string_is_empty(bufp)) {
             pdfdata->fpprec = atoi(bufp);
             return RETURN_SUCCESS;
         } else {

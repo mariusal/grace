@@ -101,7 +101,7 @@ int xstack_decrement(XStack *xs, const char *name)
 {
     if (xs->depth < 1) {
         return RETURN_FAILURE;
-    } else if (!compare_strings(name, xs->entries[xs->depth - 1].name)) {
+    } else if (!strings_are_equal(name, xs->entries[xs->depth - 1].name)) {
         return RETURN_FAILURE;
     } else {
         xfree(xs->entries[xs->depth - 1].name);
@@ -509,7 +509,7 @@ int xfile_empty_element(XFile *xf, char *name, Attributes *attrs)
 int xfile_text_element(XFile *xf,
     char *name, Attributes *attrs, char *text, int cdata)
 {
-    if (is_empty_string(text)) {
+    if (string_is_empty(text)) {
         return xfile_empty_element(xf, name, attrs);
     } else {
         xfile_output(xf, "<");

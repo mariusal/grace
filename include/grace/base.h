@@ -107,8 +107,8 @@ char *amem_strcpy(AMem *amem, char *dest, const char *src);
 
 
 /* string comparison etc */
-int compare_strings(const char *s1, const char *s2);
-int is_empty_string(const char *s);
+int strings_are_equal(const char *s1, const char *s2);
+int string_is_empty(const char *s);
 
 /* bit manipulations */
 #define PADBITS(bits, pad)  (((bits)+(pad)-1)&-(pad))

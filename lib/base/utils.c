@@ -38,7 +38,7 @@
 #  include <locale.h>
 #endif
 
-int compare_strings(const char *s1, const char *s2)
+int strings_are_equal(const char *s1, const char *s2)
 {
     if (s1 == NULL && s2 == NULL) {
         return TRUE;
@@ -49,7 +49,7 @@ int compare_strings(const char *s1, const char *s2)
     }
 }
 
-int is_empty_string(const char *s)
+int string_is_empty(const char *s)
 {
     if (!s || s[0] == '\0') {
         return TRUE;

@@ -342,7 +342,7 @@ static int find_hook(unsigned int step, void *data, void *udata)
     Quark *q = (Quark *) data;
     QTFindHookData *_cbdata = (QTFindHookData *) udata;
     
-    if (compare_strings(q->idstr, _cbdata->s)) {
+    if (strings_are_equal(q->idstr, _cbdata->s)) {
         _cbdata->child = q;
         return FALSE;
     } else {
@@ -367,7 +367,7 @@ static int find_hook2(Quark *q,
 {
     QTFindHookData *_cbdata = (QTFindHookData *) udata;
     
-    if (compare_strings(q->idstr, _cbdata->s)) {
+    if (strings_are_equal(q->idstr, _cbdata->s)) {
         _cbdata->child = q;
         return FALSE;
     } else {
