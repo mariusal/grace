@@ -37,7 +37,7 @@ regionutils$(O) : regionutils.c globals.h defines.h graphs.h draw.h \
 objutils$(O) : objutils.c globals.h defines.h graphs.h draw.h utils.h \
  protos.h missing.h noxprotos.h xprotos.h
 computils$(O) : computils.c globals.h defines.h graphs.h draw.h utils.h \
- parser.h protos.h missing.h noxprotos.h xprotos.h
+ ssdata.h parser.h protos.h missing.h noxprotos.h xprotos.h
 defaults$(O) : defaults.c defines.h globals.h graphs.h draw.h utils.h \
  protos.h missing.h noxprotos.h xprotos.h
 params$(O) : params.c globals.h defines.h graphs.h draw.h utils.h files.h \
@@ -65,7 +65,7 @@ psdrv$(O) : psdrv.c defines.h utils.h draw.h device.h t1fonts.h devlist.h \
  motifinc.h
 pdfdrv$(O) : pdfdrv.c defines.h utils.h draw.h device.h t1fonts.h \
  devlist.h patterns.h pdfdrv.h protos.h missing.h noxprotos.h graphs.h \
- xprotos.h
+ xprotos.h motifinc.h
 svgdrv$(O) : svgdrv.c defines.h utils.h ../cmath.h draw.h graphs.h \
  device.h t1fonts.h devlist.h patterns.h svgdrv.h
 gd$(O) : gd.c gd.h
