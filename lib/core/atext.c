@@ -58,7 +58,11 @@ AText *atext_data_new(void)
 {
     AText *at;
     at = xmalloc(sizeof(AText));
-    memset(at, 0, sizeof(AText));
+    if (at) {
+        memset(at, 0, sizeof(AText));
+        set_default_arrow(&at->arrow);
+        at->frame_offset = 0.005;
+    }
     
     return at;
 }
