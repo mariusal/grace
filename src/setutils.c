@@ -481,6 +481,19 @@ int copy_set_params(Quark *src, Quark *dest)
     }
 }
 
+int set_set_dataset(Quark *q, Dataset *dsp)
+{
+    set *pset = set_get_data(q);
+    if (pset) {
+        dataset_free(pset->data);
+        pset->data = dsp;
+    
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 Dataset *dataset_get(Quark *pset)
 {
     set *p = (set *) pset->data;

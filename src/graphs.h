@@ -459,6 +459,7 @@ int number_of_sets(Quark *gr);
 
 set *set_get_data(const Quark *p);
 Dataset *dataset_get(Quark *p);
+int set_set_dataset(Quark *q, Dataset *dsp);
 
 int load_comments_to_legend(Quark *p);
 
