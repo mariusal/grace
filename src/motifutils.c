@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -936,6 +936,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
     retval->FSB = XmCreateFileSelectionDialog(parent, resname, NULL, 0);
     xfree(resname);
     retval->dialog = XtParent(retval->FSB);
+    handle_close(retval->dialog);
     bufp = copy_string(NULL, "Grace: ");
     bufp = concat_strings(bufp, s);
     XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
