@@ -199,7 +199,7 @@ void killsetdata(int gno, int setno);
 int number_of_active_sets(int gno);
 int swapset(int gfrom, int j1, int gto, int j2);
 int pushset(int gno, int setno, int push_type);
-void droppoints(int gno, int setno, int startno, int endno, int dist);
+void droppoints(int gno, int setno, int startno, int endno);
 int join_sets(int gno, int *sets, int nsets);
 void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype);
 void reverse_set(int gno, int setno);

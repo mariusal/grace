@@ -2844,10 +2844,7 @@ actions:
 	| selectset DROP nexpr ',' nexpr {
 	    int start = $3 - index_shift;
 	    int stop = $5 - index_shift;
-	    int dist = stop - start + 1;
-	    if (dist > 0 && start >= 0) {
-	        droppoints($1->gno, $1->setno, start, stop, dist);
-	    }
+	    droppoints($1->gno, $1->setno, start, stop);
 	}
 	| SORT selectset sorton sortdir {
 	    if (is_set_active($2->gno, $2->setno)) {

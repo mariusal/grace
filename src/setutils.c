@@ -1095,17 +1095,28 @@ int number_of_active_sets(int gno)
 /*
  * drop points from a set
  */
-void droppoints(int gno, int setno, int startno, int endno, int dist)
+void droppoints(int gno, int setno, int startno, int endno)
 {
     double *x;
     char **s;
-    int i, j, len, ncols;
+    int i, j, len, ncols, dist;
 
     if (is_valid_setno(gno, setno) != TRUE) {
         return;
     }
 
+    dist = endno - startno + 1;
+    if (dist <= 0) {
+        return;
+    }
+    
     len = getsetlength(gno, setno);
+    
+    if (dist == len) {
+        killsetdata(gno, setno);
+        return;
+    }
+    
     ncols = dataset_cols(gno, setno);
     for (j = 0; j < ncols; j++) {
 	x = getcol(gno, setno, j);
@@ -1667,7 +1678,6 @@ void do_splitsets(int gno, int setno, int lpart)
  */
 void do_drop_points(int gno, int setno, int startno, int endno)
 {
-    int dist;
     int setlength;
     char buf[256];
 
@@ -1678,29 +1688,27 @@ void do_drop_points(int gno, int setno, int startno, int endno)
     }
 
     setlength = getsetlength(gno, setno);
-    if (startno < 0) startno = setlength + 1 + startno;
-    if (endno   < 0) endno   = setlength + 1 + endno;
-
-    if(startno > endno) {
-      dist=startno; startno=endno; endno=dist;
+    if (startno < 0) {
+        startno = setlength + 1 + startno;
+    }
+    if (endno < 0) {
+        endno = setlength + 1 + endno;
     }
 
-    dist = endno - startno + 1;
+    if (startno > endno) {
+        iswap(&startno, &endno);
+    }
 
     if (startno < 0) {
-	errmsg("Start # < 1");
+	errmsg("Start # < 0");
 	return;
     }
     if (endno >= setlength) {
-	errmsg("Ending # > set length");
+	errmsg("Ending # >= set length");
 	return;
     }
 
-    if (dist == setlength) {
-	errmsg("# of points to drop = set length, use kill");
-	return;
-    }
-    droppoints(gno, setno, startno, endno, dist);
+    droppoints(gno, setno, startno, endno);
 }
 
 
