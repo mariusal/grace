@@ -241,7 +241,7 @@ static void compute_aac(void *data)
 typedef struct _Histo_ui {
     Widget top;
     SetChoiceItem sel;
-    Widget binw_item;
+    Widget nbins_item;
     Widget hxmin_item;
     Widget hxmax_item;
     Widget *type_item;
@@ -284,9 +284,9 @@ void create_histo_frame(void *data)
 	XtVaCreateManagedWidget("Ending value: ", xmLabelWidgetClass, rc, NULL);
 	hui.hxmax_item = XtVaCreateManagedWidget("xmax", xmTextWidgetClass, rc, NULL);
 	XtVaSetValues(hui.hxmax_item, XmNcolumns, 10, NULL);
-	XtVaCreateManagedWidget("Bin width: ", xmLabelWidgetClass, rc, NULL);
-	hui.binw_item = XtVaCreateManagedWidget("binwidth", xmTextWidgetClass, rc, NULL);
-	XtVaSetValues(hui.binw_item, XmNcolumns, 10, NULL);
+	XtVaCreateManagedWidget("Number of bins: ", xmLabelWidgetClass, rc, NULL);
+	hui.nbins_item = XtVaCreateManagedWidget("nbins", xmTextWidgetClass, rc, NULL);
+	XtVaSetValues(hui.nbins_item, XmNcolumns, 10, NULL);
 	XtManageChild(rc);
 
 	CreateSeparator(dialog);
@@ -315,9 +315,9 @@ void create_histo_frame(void *data)
 static void do_histo_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int *selsets;
-    int i, cnt;
+    int i, cnt, nbins;
     int fromset, toset, tograph, hist_type;
-    double binw, xmin, xmax;
+    double xmin, xmax;
     Histo_ui *ui = (Histo_ui *) client_data;
     cnt = GetSelectedSets(ui->sel, &selsets);
     if (cnt == SET_SELECT_ERROR) {
@@ -329,16 +329,16 @@ static void do_histo_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	errmsg("Please select single graph");
 	return;
     }
-    if(xv_evalexpr(ui->binw_item, &binw) != RETURN_SUCCESS ||
-       xv_evalexpr(ui->hxmin_item, &xmin) != RETURN_SUCCESS ||
-       xv_evalexpr(ui->hxmax_item, &xmax) != RETURN_SUCCESS ) {
+    if (xv_evalexpri(ui->nbins_item, &nbins) != RETURN_SUCCESS ||
+        xv_evalexpr(ui->hxmin_item, &xmin) != RETURN_SUCCESS ||
+        xv_evalexpr(ui->hxmax_item, &xmax) != RETURN_SUCCESS ) {
         return;
     }
     hist_type = GetChoice(ui->type_item);
     set_wait_cursor();
     for (i = 0; i < cnt; i++) {
 	fromset = selsets[i];
-	do_histo(get_cg(), fromset, tograph, toset, binw, xmin, xmax, hist_type);
+	do_histo(get_cg(), fromset, tograph, toset, xmin, xmax, nbins, hist_type);
     }
     xfree(selsets);
     update_all();

@@ -58,7 +58,7 @@ void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invfla
 void do_window(int setno, int type, int wind);
 void apply_window(double *xx, double *yy, int ilen, int type, int wind);
 void do_histo(int fromgraph, int fromset, int tograph, int toset,
-	      double binw, double xmin, double xmax, int hist_type);
+	      double xmin, double xmax, int nbins, int hist_type);
 int histogram(int ndata, double *data, int nbins, double *bins, int *hist);
 
 void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno);

@@ -42,6 +42,7 @@
 
 #include "globals.h"
 #include "utils.h"
+#include "ssdata.h"
 #include "graphs.h"
 #include "parser.h"
 #include "protos.h"
@@ -985,23 +986,21 @@ void apply_window(double *xx, double *yy, int ilen, int type, int wind)
  * histograms
  */
 void do_histo(int fromgraph, int fromset, int tograph, int toset,
-	      double binw, double xmin, double xmax, int hist_type)
+	      double xmin, double xmax, int nbins, int hist_type)
 {
-    int i, ndata, nbins;
-    int bsign;
+    int i, ndata;
     int *hist;
-    double *x, *y, *data, *bins;
+    double *x, *y, *data, binw, *bins;
     plotarr p;
     
     if (!is_set_active(fromgraph, fromset)) {
 	errmsg("Set not active");
 	return;
     }
-    if (binw <= 0.0) {
-	errmsg("Bin width <= 0");
+    if (nbins <= 0) {
+	errmsg("Number of bins <= 0");
 	return;
     }
-
     if (toset == SET_SELECT_NEXT) {
 	toset = nextset(tograph);
     }
@@ -1010,10 +1009,10 @@ void do_histo(int fromgraph, int fromset, int tograph, int toset,
         return;
     }
     
+    binw = (xmax - xmin)/nbins;
+
     ndata = getsetlength(fromgraph, fromset);
     data = gety(fromgraph, fromset);
-    
-    nbins = (int) ceil(fabs((xmax - xmin)/binw));
     
     hist = xmalloc(nbins*SIZEOF_INT);
     if (hist == NULL) {
@@ -1021,19 +1020,11 @@ void do_histo(int fromgraph, int fromset, int tograph, int toset,
         return;
     }
 
-    bins = xmalloc((nbins + 1)*SIZEOF_DOUBLE);
+    bins = allocate_mesh(xmin, xmax, nbins + 1);
     if (bins == NULL) {
         errmsg("xmalloc failed in do_histo()");
         xfree(hist);
         return;
-    }
-    
-    bsign = sign(xmax - xmin);
-    for (i = 0; i < nbins + 1; i++) {
-        bins[i] = xmin + bsign*i*binw;
-    }
-    if (bsign*bins[nbins] > bsign*xmax) {
-        bins[nbins] = xmax;
     }
     
     if (histogram(ndata, data, nbins, bins, hist) == RETURN_FAILURE){
@@ -1090,7 +1081,7 @@ int histogram(int ndata, double *data, int nbins, double *bins, int *hist)
         }
         for (i = 1; i < nbins; i++) {
             if (bsign != sign(bins[i + 1] - bins[i])) {
-                errmsg("Non-monothonic bins");
+                errmsg("Non-monotonic bins");
                 return RETURN_FAILURE;
             }
         }

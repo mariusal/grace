@@ -2941,7 +2941,7 @@ actions:
 	}
 	| HISTO '(' selectset ',' expr ',' expr ',' nexpr ')' {
             do_histo($3->gno, $3->setno, get_cg(), SET_SELECT_NEXT,
-                $7, $5, $5 + $9*$7, HISTOGRAM_TYPE_ORDINARY);
+                $5, $5 + $9*$7, $9, HISTOGRAM_TYPE_ORDINARY);
 	}
 	| DIFFERENCE '(' selectset ',' nexpr ')' {
 	    do_differ($3->gno, $3->setno, $5);
