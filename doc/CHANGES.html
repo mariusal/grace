@@ -11,25 +11,51 @@
 
 <H2>5.0.5</H2>
 
- *  [HS] #661
+<H3>New functionality</H3>
+ !  [ES] long drawing paths (of polylines and polygons) with length exceeding
+         a threshold are transformed to be shorter than the limit; the latter
+         is adjustable in "Edit/Preferences" popup. This works around internal
+         restrictions of some devices, notably old X11 and PS, causing visual
+         data point drops (rep. #634, #651)
+
+<H3>Interface</H3>
+ *  [ES] the "Autoscale on read" option moved back from "Edit/Preferences"
+         to "File/Read sets"
+ !  [ES] added "Autoscale on load" for creating sets from block data
+ *  [ES] added possibility to select target set(s) produced from a block
+         data (rep. #87)
+
+<H3>Documentation/Info</H3>
+ *  [ES] added docs on adding/replacing fonts
+ *  [AM] miscellaneous FAQ updates
+
+<H3>Portability/Compilation</H3>
  *  [AM] OS/2 updates
- *  [LM/ES] NULL strings in printf() (rep. #678)
+ *  [JH] VMS updates, including rep. #681
+ *  [ES] fixed compilation on HP/UX-11.0
+ *  [ES] compilation outside of the source tree is now possible
+
+<H3>Bug fixes</H3>
+ *  [HS] fixed text string copy/edit bug (rep. #661)
+ *  [LM/ES] under some conditions, project or parameter saving caused
+         crash (rep. #678)
  *  [ES] quotes were not escaped in several places (append/prepend strings
          of tick labels, avalues etc)
- *  [ES] Linux libc5/locale memory leak workaround (rep. #676)
- *  [ES] parser memory leak fixed
- *  [LM] set_ref_date()
- *  [ES] t1lib-0.9.2plus (memory leak fixed)
- !  [ES] autoscale_onread
- !  [ES] eblockwin changes (autoscale + target set selector - #87)
- *  [ES] get_pagelayout (rep. #680)
- !  [ES] max_path_limit
- *  [JH] VMS updates
- *  [ES] compilation outside of the source tree is possible
- *  [ES/HS] #685
- *  [ES] fixed compilation on HP/UX-11.0
- *  [ES] #689. Thanks to Ovidiu Toader
- *  [AM/ES] #688
+ *  [LM] setting reference date worked incorrectly since did not ignore
+         current reference date 
+ *  [ES] a Linux libc5/locale memory leak workaround (rep. #676)
+ *  [ES] a parser memory leak fixed
+ *  [ES] applied a patch to fix a nasty memory leak in the bundled T1lib
+ *  [ES] compiling GUI-less version failed (rep. #680)
+ *  [ES/HS] a workaround for bug in Motif-2.1 (&lt;Ctrl&gt;+&lt;left mouse
+         button&gt crashed) (rep. #685)
+ *  [OT/ES] fixed a floating point overflow, causing crashes on non-IEEE
+         compliant FPU (rep. #689)
+ *  [AM/ES] problems with autoscale and log axis scales (rep. #325, #688)
+ *  [ES] killing set data erroneously set the "hidden" flag of the set on
+         (rep. #691)
+ *  [ES] hidden sets won't saved
+
 
 <H2>5.0.4</H2>
 
@@ -625,7 +651,7 @@
 
     [EV]  - Ed Vigmond &lt;vigmonde@IGB.UMontreal.CA&gt;
     [RN]  - Rolf Niepraschk &lt;niepraschk@ChbRB.berlin.ptb.de&gt;
-    [HS]  - Henrik Seidel &lt;seidel@mpimg-berlin-dahlem.mpg.de&gt;
+    [HS]  - Henrik Seidel &lt;henrik.seidel@gmx.de&gt;
     [JH]  - John Hasstedt &lt;John.Hasstedt@sunysb.edu&gt;
     [AM]  - Alexander Mai &lt;st002279@hrzpub.tu-darmstadt.de&gt;
     [CM]  - Charles Myers &lt;myers@oicinc.com&gt;
@@ -635,6 +661,7 @@
     [MR]  - Mark Rintoul &lt;rintoul@cs.sandia.gov&gt;
     [HF]  - Harald Freyer &lt;hf@nike.cup.uni-muenchen.de&gt;
     [JB]  - Jesko Brudermann &lt;jbruder@gwdg.de&gt;
+    [OT]  - Ovidiu Toader &lt;ovidiut@ostrich.physics.utoronto.ca&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)

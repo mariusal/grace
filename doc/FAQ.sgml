@@ -6,7 +6,7 @@
 
       <title>Grace FAQ (v0.7)
       <author>by the Grace Team
-      <date>08.10.1999
+      <date>16.10.1999
       <abstract>
 	This document contains Frequently Asked Questions (FAQ) about
 	<bf/Grace/, a WYSIWYG 2D plotting tool for scientific data.
@@ -139,7 +139,7 @@
 
 	    <item> <ref id="t1lib" name="T1lib">
 	    
-	    <item> <url url="http://www.lesstif.org/Xbae/" name="Xbae">
+	    <item> <url url="http://www.lesstif.org/Xbae.html/" name="Xbae">
 	    
 	  </itemize>
 
@@ -149,8 +149,8 @@
 
 	  Yes. It is written in SGML which means that all the above
 	  versions can easily be created using <tt/sgml-tools/ (see
-	  their <url name="home page"
-	  url="http://www.sgmltools.org/">). At the Grace home page
+	  their <url name="home page" url="http://www.sgmltools.org/">).
+	  At the Grace home page
 	  (see question <ref id="homepage" name="Home Page">), all
 	  these versions are available.
 
@@ -224,10 +224,13 @@
 	    <item>Have a look at the Grace home page (question <ref
 		id="homepage" name="Home Page">).
 
-	    <item>On the Grace mailing list (see question <ref
-		id="mailinglist" name="Mailing Lists"> for details)
-	      you can easily get in contact with users and
-	      developers of Grace.
+	    <item>On the Grace mailing list (see question 
+	        <ref id="mailinglist" name="Mailing Lists"> for details)
+                you can easily get in contact with users and
+                developers of Grace. However be aware that people
+		here are trying to help in their spare time -
+		so you can't always expect quick responses.
+		
 
 	  </itemize>
 
@@ -355,7 +358,11 @@
 	      Grace and where you got the build and the operating system
 	      you use. You should submit the system info as provided by
 	      ``uname -a'' (if this utility exists, of course) and the output of
-	      ``xmgrace -version''.
+	      ``xmgrace -version''. Often the problem is related to
+	      some specific data set. Please try hard on reducing this
+	      to the minimum which is sufficient of reproducing the
+	      bug. If it's only a few lines of data please submit
+	      it together with the other details.
 	      Once you submit the bug report, it will be automatically
 	      relayed to the mailing list. You will usually be notified when
 	      the bug is fixed or if we need more information, so please
@@ -379,18 +386,18 @@
 	  Some bugs and fixes may not appear in w3todo, but are
 	  covered on the <ref id="mailinglist" name="mailinglists">.
 
-      <sect1>The bug report #xxx is marked as "fixed" in the w3todo, but I
+      <sect1>The bug report #xxx is marked as "Fixed" in the w3todo, but I
              checked the last version of Grace and the bug is still there!
 	<p>
              
           The term "fixed" means the bug is fixed in the current 
           <it>development</it> version, and the next <it>public</it> version
           will have the fix in it. Reports with fixes incorporated in an
-          existing public version are marked as "closed".
+          existing public version are marked as "Closed".
 
 
-      <sect1>The bug report #xxx I reported is marked as "ignored" in the w3todo
-             and I even got no reply?!
+      <sect1>The bug report #xxx I reported is marked as "Ignored" in
+             the w3todo and I even got no reply?!
 	<p>
              
           You must have missed something very obvious. Check out how to properly
@@ -417,17 +424,32 @@
 	  Fine! There are always things to do.
 
 	  If you are a C programmer, you can almost certainly find
-	  something useful to do. Just ask the mailing list. The same
-	  applies if you are a technical writer. The documentation
+	  something useful to do. Just ask the mailing list.
+	  The same applies if you are a technical writer. The documentation
 	  will certainly need to be updated, corrected or completed.
+	  Every small contribution is appreciated!
 
 	  Make Grace known to your friends and colleagues. The more
 	  users Grace has, the faster it will be improved.
 
-      <sect1>I like Grace! Can I donate anything to its authors?
+      <sect1>How do I submit patches/contributions?
+        <p>
+	 
+	  Prepare diffs against the most recent version. Use
+	  either unified (-u) or context (-c) diff format.
+	  Specify exactly against which version the diff is
+	  supposed to work.
+	  Finally send them to
+	  <url url="fnevgeny@plasma-gate.weizmann.ac.il">
+	  
+	  In case you plan to help this way more than once
+	  you should join the
+	  <ref id="mailinglist" name="developer mailinglist">
+
+      <sect1>I like Grace! Should I donate anything to its authors?
 	<p>
 
-	  No need to (yet). But if you feel like making a donation,
+	  No need to. But if you feel like making a donation,
 	  choose any charity organization you like. You wanted to give
 	  them some money, anyway, right? ;-)
 
@@ -444,7 +466,7 @@
 	  the <url url="http://plasma-gate.weizmann.ac.il/Grace/"
 	  name="Grace Home Page">. Whether binaries for your platforms
 	  are available (see question <ref id="binaries" name="Binaries">)
-      depends on whether one of the developers
+          depends on whether one of the developers
 	  has access to the respective platform and has had time to do
 	  it.
 
@@ -486,29 +508,30 @@
 	    Motif is a toolkit library for X11. It provides widgets
 	    (buttons, boxes, etc) to be used in graphical user
 	    interfaces. Graces makes heavy use of Motif. The original
-        OSF Motif (see <url url="http://www.osf.org">) is <em/not/
+            OSF Motif (see <url url="http://www.osf.org">) is <em/not/
 	    free. You can buy it from several vendors (at approx. $100
 	    for Linux).
 
         There is, however, a free replacement for Motif called LessTif (see
         <url url="http://www.lesstif.org">). LessTif is intended to be a
-        100% source(!) compatible replacement for Motif, but is still under
+        100% source compatible replacement for Motif, but is still under
         development, so don't expect everything to work exactly as it
         should. For the purposes of Grace, try using the latest version of
         LessTif (at least 0.89.0 and above) - if you don't
         mind that it might be a bit slower than commercial versions of Motif
-	    and graphical details may be different. Be aware, however, that
+        and graphical details may be different. Be aware, however, that
         occasional crashes might occur under certain circumstances. The
         LessTif people usually receive many bug reports from the Grace
         developers, so you might hope that bugs in LessTif will be fixed
-	    rather quickly.
+        rather quickly.
         In addition to the source compatibility it may work with
         binaries prepared for real Motif (binary compatibility).
-	    This is not guaranteed at all and you also have to install the
-	    correct version (compatible to either Motif 1.2 or 2.0).
-	    Most Lesstif binary packages ship only with the 1.2 version,
-	    so you might have to build the 2.0 version yourself. To build Grace
-	    from its sources you only need the Motif 1.2 compatible version.
+        This is not guaranteed at all and you also have to install the
+	correct version, i.e. compatible to either Motif 1.2 or 2.0.
+	Most Lesstif binary packages ship only with the 1.2 version,
+	so you might have to build the 2.0 version yourself.
+	If you want to build Grace from its sources you only need the
+	Motif 1.2 compatible version.
 
 	<sect2>While compiling Grace I get error messages about missing include files.
 	  <p>
@@ -550,11 +573,11 @@
 
           As for Win32 (Windows 95/98/NT) and OS/2, there are ports for these
           platforms, though they are not "native", i.e. in order to run them,
-	  one needs an X server for respective platform.
+	  one needs an X server for the respective platform.
           
           Both OS/2 and Win32 ports may lack some of the functionality (notably,
-          direct/native printing; probably you will have to use the
-	  Postscript output for printing).
+          support for "direct"/native printing; probably you will have to use
+	  the Postscript output for printing).
 
 	  A port to OS/2 made by <url name="Alexander Mai"
 	    url="mailto:st002279@hrzpub.tu-darmstadt.de"> can be found
@@ -639,10 +662,11 @@
 	  1st January 4713 before Christ (don't ask me why). The
 	  following days are numbered sequentially, each day starting
 	  at noon.
-
 	  This numbering scheme is in wide use, especially in
 	  astronomy, and is used for the internal representation of
-	  dates in Grace.
+	  dates in Grace. Some further explanations are given on
+	  <url url="http://www.magnet.ch/serendipity/hermetic/cal_stud/jdn.htm"
+	  name="this page">.
 
 	  The <tt/convcal/ utility in <tt>$GRACE_HOME/auxiliary/</tt> can
           be used for about any to Julian date convertion.
@@ -984,39 +1008,36 @@ XMgrace*background: ...
     <sect>Runtime Problems
       <p>
 
-      <sect1>When I start Grace I get the message ``can't find library libXXX.so'' or similar.
+      <sect1>When I start Grace I get the message ``Can't find library libXXX.so'' or similar.
 	<p>
 
 	  For certain tasks, Grace needs external libraries which are
 	  neither provided by Grace nor the operating system. You will
 	  need to install these libraries yourself. This applies to
-	  Motif (see question <ref id="motif" name="Motif">), PDF
-	  (see question <ref id="export" name="Output Devices">)
+	  Motif, PDF (see question <ref id="export" name="Output Devices">)
 	  and probably other libraries.
+          If the message is exactly <tt>Can't find library libXm.so</tt>
+	  (usually this happens on Linux systems ...) then you don't have Motif
+	  (the Xm libraries) installed (see question
+	  <ref id="motif" name="Motif">), or the linker doesn't
+	  know where it is.
+	  In the first case, try downloading Lesstif. In the second case,
+	  you have to tell your linker  where it is this (may be
+	  a platform-specific task). On Linux look at the file
+	  <tt>/etc/ld.so.conf</tt>. It  contains pathnames of the directories
+	  where dynamic libraries are stored. Add (as root) your directory
+	  to this file and run <tt>ldconfig -v</tt>. Now the libraries
+          should be in the list. If you're not root you may try
+	  to adjust the environment variable <tt>LD_LIBRARY_PATH</tt>
+	  to include the required pathname.
 
-	<sect2>Can't find library libXm.so (on Linux)
-	  <p>
-
-	    If this message occurs, then you don't have Motif (the Xm
-	    libraries, see question <ref id="motif" name="Motif">)
-	    installed (see the question above), or the linker doesn't
-	    know where it is. In the first case, try downloading
-	    Lesstif. In the second case, you have to tell your linker
-	    where it is. Look at the file <tt>/etc/ld.so.conf</tt>. It
-	    contains pathnames of the directories where dynamic
-	    libraries are stored. Add (as root) your directory to this
-	    file and run <tt>ldconfig -v</tt>. Now the libraries
-	    should be in the list. If you're not root you may try
-	    to adjust the environment variable <tt>LD_LIBRARY_PATH</tt>
-	    to include the required pathname.
-
-	    For some versions of Motif, the ``soname'' (which
-	    identifies the version of the library and is stored
-	    somewhere in the library) on your computer doesn't match
-	    the soname of the library on the computer where your copy
-	    of Grace was compiled on. Then you should use a
-	    (semi)statically linked version or compile Grace on your
-	    computer.
+          For some versions of Motif, the ``soname'' (which
+	  identifies the version of the library and is stored
+	  somewhere in the library) on your computer doesn't match
+	  the soname of the library on the computer where your copy
+	  of Grace was compiled on. Then you should use a
+	  (semi)statically linked version or compile Grace on your
+	  computer.
 
       <sect1>I get errors like "X Error of failed request: BadValue (integer parameter out of range for operation)"
 	<p>
@@ -1037,14 +1058,15 @@ XMgrace*background: ...
 	   "xmgrace -version" and "ldd xmgrace" are 
 	   useful commands for this purpose.
         <p>
-	   If you're using Lesstif read the according FAQ
+	   If you are using Lesstif, read the according FAQ
 	    <ref id="motif" name="Motif">
 	   else report it as a bug (<ref id="bugreport" name="Bug Reports">).
 
-      <sect1>I run Grace and get the following error messages: Warning:
+      <sect1>I run Grace and get the following error messages:
+             "Warning:
              translation table syntax error: Unknown keysym name: osfPageLeft
              Warning: ... found while parsing
-             '&lt;Key>osfPageLeft:SWLeftPage()'
+             '&lt;Key>osfPageLeft:SWLeftPage()'"
 	<p>
 
 	  Get the XKeySymDB file from the X11R6 distribution. Put it
@@ -1243,10 +1265,10 @@ XMgrace*translations: #override\n\
 	  software, Grace uses a variable type called <tt/time_t/
 	  (count of seconds since New Year's Day 1970) to represent
           time internally. On a 32-bit OS, this counter will overflow in early
-          2038, or (depending on implementation) in the next century, and <bf/not/
-          2000. By that time, for sure, everyone will be running a 64- or 
-          higher- bit operating system, which would overflow in so distant
-          future, that only cosmologists dare to think of it.
+          2038, or (depending on implementation) in the next century, and
+	  <bf/not/ 2000. By that time, for sure, everyone will be running
+	  a 64- or higher- bit operating system, which would overflow in
+	  so distant future, that only cosmologists dare to think of it.
 
 	  See also <url
 	  url="http://plasma-gate.weizmann.ac.il/Grace/y2k.html">.
@@ -1290,7 +1312,7 @@ XMgrace*translations: #override\n\
 	  You can also try the command psresize from the
 	  <url name="psutils package"
 	  url="http://www.dcs.ed.ac.uk/~ajcd/psutils/"> in order to
-	  resize a postscript file generated by Grace.
+	  resize a Postscript file generated by Grace.
 
 
 <!-- **************************************** -->

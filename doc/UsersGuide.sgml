@@ -341,20 +341,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
         <p>
           Note that Grace no longer supports GIF due to
-           the copyright policy of Unisys. Grace can also be
-           instructed to launch conversion programs automatically
-           based on file name. As an example you can produce MIF
-           (FrameMaker Interchange Format) or Java applets using
-           pstoedit, or almost any image format using the netpbm suite
-           (see the <url name="FAQ" url="FAQ.html">).
+          the copyright policy of Unisys. Grace can also be
+          instructed to launch conversion programs automatically
+          based on file name. As an example you can produce MIF
+          (FrameMaker Interchange Format) or Java applets using
+          pstoedit, or almost any image format using the netpbm suite
+          (see the <url name="FAQ" url="FAQ.html">).
 
       <sect2>Magic path<label id="magic-path">
 	<p>
-
-          In many cases, when Grace needs to access a file given with a
-          relative <tt>pathname</tt>, it searches for the file along the
-          following path:
-          <tt>./pathname:./.grace/pathname:~/.grace/pathname:$GRACE_HOME/pathname</tt>
+        In many cases, when Grace needs to access a file given with a
+        relative <tt>pathname</tt>, it searches for the file along the
+        following path:
+        <tt>./pathname:./.grace/pathname:~/.grace/pathname:$GRACE_HOME/pathname</tt>
 
       <sect2>Dynamic modules<label id="dynamic-modules">
 	<p>
@@ -741,10 +740,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          automatically detected. Several formats are recognized (see
          appendix <ref id="dates" name="dates in grace">). Calendar
          dates are converted to numerical dates upon reading.
+         
+         The "Autoscale on read" menu controls whether, upon reading in new
+         sets, which axes of the graph should be autoscaled.
 
          <sect3> NetCDF <label id="read-netCDF">
          <p>
-         This entry exists only if Grace has been installed with
+         This entry exists only if Grace has been compiled with
          support for the NetCDF data format (see <ref
          id="configuration" name="configuration">).
 
@@ -2557,4 +2559,3 @@ C
 </article>
 
 <!-- End of USerGuide.sgml -->
-
