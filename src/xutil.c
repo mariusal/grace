@@ -320,7 +320,6 @@ void expose_resize(Widget w, XtPointer client_data,
     Dimension ww, wh;
     Page_geometry pg;
     static int inc = 0;
-    Input_buffer *ib;
 
 #if defined(DEBUG)
     if (debuglevel == 7) {
@@ -354,14 +353,6 @@ void expose_resize(Widget w, XtPointer client_data,
 	    getdata(get_cg(), "stdin", SOURCE_DISK, curtype);
 	    inpipe = FALSE;
 	}
-
-        if (ib_tblsize > 0) {
-            for (ib = ib_tbl; ib < ib_tbl + ib_tblsize; ib++) {
-                if (ib->fd >= 0) {
-                    xregister_rti(ib);
-                }
-            }
-        }
 
         update_all();
         drawgraph();
@@ -474,27 +465,31 @@ void switch_current_graph(int gno)
 
 static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId)
 {
+    set_wait_cursor();
+    
     monitor_input((Input_buffer *) ib, 1, 1);
+    
+    unset_wait_cursor();
 }
 
 void xunregister_rti(XtInputId id)
 {
-  if (disp != (Display *) NULL) {
-      /* the screen has been initialized : we can remove the buffer */
-      XtRemoveInput(id);
-  }
+    if (disp != (Display *) NULL) {
+        /* the screen has been initialized : we can remove the buffer */
+        XtRemoveInput(id);
+    }
 }
 
 void xregister_rti(Input_buffer *ib)
 {
-  if (disp != (Display *) NULL) {
-      /* the screen has been initialized : we can register the buffer */
-      ib->id = (unsigned long) XtAppAddInput(app_con,
-                                             ib->fd,
-                                             (XtPointer) XtInputReadMask,
-                                             xmonitor_rti,
-                                             (XtPointer) ib);
-  }
+    if (disp != (Display *) NULL) {
+        /* the screen has been initialized : we can register the buffer */
+        ib->id = (unsigned long) XtAppAddInput(app_con,
+                                               ib->fd,
+                                               (XtPointer) XtInputReadMask,
+                                               xmonitor_rti,
+                                               (XtPointer) ib);
+    }
 }
 
 /*
