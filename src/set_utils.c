@@ -295,6 +295,22 @@ int get_point(Quark *pset, int seti, WPoint *wp)
     return RETURN_SUCCESS;
 }
 
+int set_point_shift(Quark *pset, int seti, const VVector *vshift)
+{
+    WPoint wp;
+    VPoint vp;
+    
+    if (get_point(pset, seti, &wp) == RETURN_SUCCESS &&
+        Wpoint2Vpoint(pset, &wp, &vp) == RETURN_SUCCESS) {
+        vp.x += vshift->x;
+        vp.y += vshift->y;
+        Vpoint2Wpoint(pset, &vp, &wp);
+        return set_point(pset, seti, &wp);
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 void copycol2(Quark *psrc, Quark *pdest, int col)
 {
     int i, n1, n2;

@@ -110,6 +110,7 @@ int getsetminmax_c(Quark **sets, int nsets, double *xmin, double *xmax, double *
 int set_point(Quark *pset, int seti, const WPoint *wp);
 int get_point(Quark *pset, int seti, WPoint *wp);
 int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint);
+int set_point_shift(Quark *pset, int seti, const VVector *vshift);
 
 Datapoint *datapoint_new(void);
 void datapoint_free(Datapoint *dpoint);
