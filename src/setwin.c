@@ -740,12 +740,12 @@ static int leval_aac_cb(void *data)
     
     set_parser_setno(pset);
 
-#if 0
     for (i = 0; i < nscols; i++) {
         char buf[32], *expr;
+        int res;
         
         /* preparing the expression */
-        sprintf(buf, "GRAPH[%d].SET[%d].%s = ", pset, dataset_colname(i));
+        sprintf(buf, "%s = ", dataset_colname(i));
         expr = copy_string(NULL, buf);
         expr = concat_strings(expr, formula[i]);
         
@@ -763,9 +763,11 @@ static int leval_aac_cb(void *data)
             return RETURN_FAILURE;
         }
     }
-#endif    
+
     XCFREE(t->data);
     t->length = 0;
+
+    setcomment(pset, "Formula");
     
     update_set_lists(gr);
     xdrawgraph();

@@ -2257,10 +2257,12 @@ static int ngraph_selectors = 0;
 
 #define GSS_HIDE_CB          0
 #define GSS_SHOW_CB          1
+#define GSS_FOCUS_CB         2
 
 typedef struct {
     Widget hide_bt;
     Widget show_bt;
+    Widget focus_bt;
 } GSSData;
 
 static void gss_any_cb(void *udata, int cbtype)
@@ -2282,6 +2284,9 @@ static void gss_any_cb(void *udata, int cbtype)
                 break;
             case GSS_SHOW_CB:
                 set_graph_hidden(gr, FALSE);
+                break;
+            case GSS_FOCUS_CB:
+                switch_current_graph(gr);
                 break;
             }
         }
@@ -2305,19 +2310,18 @@ static void g_show_cb(void *udata)
     gss_any_cb(udata, GSS_SHOW_CB);
 }
 
+static void g_focus_cb(void *udata)
+{
+    gss_any_cb(udata, GSS_FOCUS_CB);
+}
+
 static void g_popup_cb(StorageStructure *ss, int nselected)
 {
     GSSData *gssdata = (GSSData *) ss->data;
-    int selected;
     
-    if (nselected != 0) {
-        selected = TRUE;
-    } else {
-        selected = FALSE;
-    }
-    
-    SetSensitive(gssdata->hide_bt, selected);
-    SetSensitive(gssdata->show_bt, selected);
+    SetSensitive(gssdata->hide_bt,  (nselected > 0));
+    SetSensitive(gssdata->show_bt,  (nselected > 0));
+    SetSensitive(gssdata->focus_bt, (nselected == 1));
 }
 
 static void g_new_cb(void *udata)
@@ -2328,6 +2332,11 @@ static void g_new_cb(void *udata)
     UpdateStorageChoice(ss);
     set_dirtystate();
     xdrawgraph();
+}
+
+static void g_dc_cb(void *value, void *data)
+{
+    switch_current_graph((Quark *) value);
 }
 
 static char *graph_labeling(unsigned int step, void *data)
@@ -2355,6 +2364,7 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, graph_labeling);
     SetStorageChoiceStorage(ss, pr->graphs);
+    AddStorageChoiceDblClickCB(ss, g_dc_cb, NULL);
     AddHelpCB(ss->rc, "doc/UsersGuide.html#graph-selector");
 
     ngraph_selectors++;
@@ -2375,6 +2385,11 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     CreateMenuSeparator(popup);
 
     CreateMenuButton(popup, "Create new", '\0', g_new_cb, ss);
+    
+    CreateMenuSeparator(popup);
+
+    gssdata->focus_bt =
+        CreateMenuButton(popup, "Focus to selected", '\0', g_focus_cb, ss);
     
     return ss;
 }
@@ -2407,17 +2422,20 @@ static StorageStructure **set_selectors = NULL;
 static int nset_selectors = 0;
 
 
-
-
-
-
 #define SSS_HIDE_CB          0
 #define SSS_SHOW_CB          1
+#define SSS_EDITS_CB         2
+#define SSS_EDITE_CB         3
+#define SSS_NEWF_CB          4
+#define SSS_NEWS_CB          5
+#define SSS_NEWE_CB          6
+#define SSS_NEWB_CB          7
 
 typedef struct {
     StorageStructure *graphss;
     Widget hide_bt;
     Widget show_bt;
+    Widget edit_menu;
 } SSSData;
 
 Quark *get_set_choice_gr(StorageStructure *ss)
@@ -2439,6 +2457,7 @@ Quark *get_set_choice_gr(StorageStructure *ss)
 static void sss_any_cb(void *udata, int cbtype)
 {
     StorageStructure *ss = (StorageStructure *) udata;
+    Quark *gr = get_set_choice_gr(ss), *pset;
     int i, n;
     void **values;
     
@@ -2448,7 +2467,7 @@ static void sss_any_cb(void *udata, int cbtype)
         void *data = values[i];
         
         if (storage_data_exists(ss->sto, data) == TRUE) {
-            Quark *pset = (Quark *) data;
+            pset = (Quark *) data;
             switch (cbtype) {
             case SSS_HIDE_CB:
                 set_set_hidden(pset, TRUE);
@@ -2456,16 +2475,46 @@ static void sss_any_cb(void *udata, int cbtype)
             case SSS_SHOW_CB:
                 set_set_hidden(pset, FALSE);
                 break;
+            case SSS_EDITS_CB:
+                create_ss_frame(pset);
+                break;
+            case SSS_EDITE_CB:
+                do_ext_editor(pset);
+                break;
             }
         }
     }
     
+    switch (cbtype) {
+    case SSS_NEWF_CB:
+        create_leval_frame(gr);
+        break;
+    case SSS_NEWS_CB:
+        if ((pset = set_new(gr))) {
+            setcomment(pset, "Editor");
+            set_set_hidden(pset, FALSE);
+            create_ss_frame(pset);
+        }
+        break;
+    case SSS_NEWE_CB:
+        if ((pset = set_new(gr))) {
+            setcomment(pset, "Editor");
+            set_set_hidden(pset, FALSE);
+            do_ext_editor(pset);
+        }
+        break;
+    case SSS_NEWB_CB:
+        create_eblock_frame(gr);
+        break;
+    }
+    
     if (n > 0) {
         xfree(values);
-        UpdateStorageChoice(ss);
-        set_dirtystate();
-        xdrawgraph();
     }
+    
+    UpdateStorageChoice(ss);
+    set_dirtystate();
+    xdrawgraph();
 }
 
 static void s_hide_cb(void *udata)
@@ -2476,6 +2525,36 @@ static void s_hide_cb(void *udata)
 static void s_show_cb(void *udata)
 {
     sss_any_cb(udata, SSS_SHOW_CB);
+}
+
+static void s_editS_cb(void *udata)
+{
+    sss_any_cb(udata, SSS_EDITS_CB);
+}
+
+static void s_editE_cb(void *udata)
+{
+    sss_any_cb(udata, SSS_EDITE_CB);
+}
+
+static void s_newF_cb(void *udata)
+{
+    sss_any_cb(udata, SSS_NEWF_CB);
+}
+
+static void s_newS_cb(void *udata)
+{
+    sss_any_cb(udata, SSS_NEWS_CB);
+}
+
+static void s_newE_cb(void *udata)
+{
+    sss_any_cb(udata, SSS_NEWE_CB);
+}
+
+static void s_newB_cb(void *udata)
+{
+    sss_any_cb(udata, SSS_NEWB_CB);
 }
 
 static void s_popup_cb(StorageStructure *ss, int nselected)
@@ -2491,13 +2570,12 @@ static void s_popup_cb(StorageStructure *ss, int nselected)
     
     SetSensitive(sssdata->hide_bt, selected);
     SetSensitive(sssdata->show_bt, selected);
+    SetSensitive(sssdata->edit_menu, selected);
 }
 
-static void s_new_cb(void *udata)
+static void s_dc_cb(void *value, void *data)
 {
-    StorageStructure *ss = (StorageStructure *) udata;
-    Quark *gr = get_set_choice_gr(ss);
-    set_new(gr);
+    create_ss_frame((Quark *) value);
 }
 
 static char *set_labeling(unsigned int step, void *data)
@@ -2518,12 +2596,13 @@ StorageStructure *CreateSetChoice(Widget parent,
 {
     StorageStructure *ss;
     SSSData *sssdata;
-    Widget popup;
+    Widget popup, submenupane;
     int nvisible;
     
     nvisible = (type == LIST_TYPE_SINGLE) ? 4 : 8; 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, set_labeling);
+    AddStorageChoiceDblClickCB(ss, s_dc_cb, NULL);
     AddHelpCB(ss->rc, "doc/UsersGuide.html#set-selector");
 
     nset_selectors++;
@@ -2541,10 +2620,18 @@ StorageStructure *CreateSetChoice(Widget parent,
     sssdata->graphss = graphss;
     sssdata->hide_bt = CreateMenuButton(popup, "Hide", '\0', s_hide_cb, ss);
     sssdata->show_bt = CreateMenuButton(popup, "Show", '\0', s_show_cb, ss);
-    
     CreateMenuSeparator(popup);
 
-    CreateMenuButton(popup, "Create new", '\0', s_new_cb, ss);
+    sssdata->edit_menu = CreateMenu(popup, "Edit", 'E', FALSE);
+    CreateMenuButton(sssdata->edit_menu, "In spreadsheet", '\0',
+    	s_editS_cb, ss);
+    CreateMenuButton(sssdata->edit_menu, "In text editor", '\0',
+    	s_editE_cb, ss);
+    submenupane = CreateMenu(popup, "Create new", '\0', FALSE);
+    CreateMenuButton(submenupane, "By formula", '\0', s_newF_cb, ss);
+    CreateMenuButton(submenupane, "In spreadsheet", '\0', s_newS_cb, ss);
+    CreateMenuButton(submenupane, "In text editor", '\0', s_newE_cb, ss);
+    CreateMenuButton(submenupane, "From block data", '\0', s_newB_cb, ss);
 
     UpdateSetChoice(ss);
     
