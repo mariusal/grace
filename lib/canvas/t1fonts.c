@@ -926,3 +926,52 @@ int get_string_bbox(Canvas *canvas,
 	return RETURN_FAILURE;
     }
 }
+
+
+CPixmap *canvas_raster_char(int font, char c, float size, int *vshift, int *hshift)
+{
+    T1_TMATRIX UNITY_MATRIX = {1.0, 0.0, 0.0, 1.0};
+    CPixmap *pm;
+    GLYPH *glyph;
+    size_t memsize;
+    int pad = T1_GetBitmapPad();
+    
+    glyph = T1_SetChar(font, c, size, &UNITY_MATRIX);
+    if (!glyph || !glyph->bits) {
+        return NULL;
+    }
+    
+    memsize = PAD((glyph->metrics.rightSideBearing -
+                   glyph->metrics.leftSideBearing)*glyph->bpp, pad)*
+              (glyph->metrics.ascent - glyph->metrics.descent)/8;
+
+    pm = xmalloc(sizeof(CPixmap));
+    if (!pm) {
+        return NULL;
+    }
+    pm->bits = xmalloc(memsize);
+    if (!pm->bits) {
+        xfree(pm);
+        return NULL;
+    }
+    memcpy(pm->bits, glyph->bits, memsize);
+    pm->width = glyph->metrics.rightSideBearing -
+                glyph->metrics.leftSideBearing;
+    pm->height = glyph->metrics.ascent - glyph->metrics.descent;
+    pm->bpp    = glyph->bpp;
+    pm->pad    = pad;
+    pm->type   = PIXMAP_TRANSPARENT;
+
+    *vshift = glyph->metrics.ascent;
+    *hshift = glyph->metrics.leftSideBearing;
+    
+    return pm;
+}
+
+void canvas_cpixmap_free(CPixmap *pm)
+{
+    if (pm) {
+        xfree(pm->bits);
+        xfree(pm);
+    }
+}
