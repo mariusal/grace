@@ -124,7 +124,7 @@ void create_nonl_frame(void *data)
         OptionItem np_option_items[MAXPARM + 1], option_items[4];
         Widget menubar, menupane;
         Widget nonl_tab, nonl_main, nonl_advanced;
-        Widget sw, fr, title_fr, fr3, rc, rc1, rc2, rc3, lab;
+        Widget sw, title_fr, fr3, rc1, rc2, rc3, lab;
 
 	nonl_frame = XmCreateDialogShell(app_shell, "Non-linear curve fitting", NULL, 0);
 	handle_close(nonl_frame);
@@ -171,16 +171,26 @@ void create_nonl_frame(void *data)
 		      XmNrightAttachment, XmATTACH_FORM,
 		      NULL);
 		      
-	fr = CreateFrame(nonl_panel, NULL);
-	rc = XmCreateRowColumn(fr, "nonl_rc", NULL, 0);
 	
-	title_fr = CreateFrame(rc, NULL);
+	title_fr = CreateFrame(nonl_panel, NULL);
 	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
 	nonl_title_item = CreateLabel(title_fr, nonl_opts.title);
+	XtVaSetValues(title_fr,
+		      XmNtopAttachment, XmATTACH_WIDGET,
+		      XmNtopWidget, nonl_set_item->form,
+		      XmNleftAttachment, XmATTACH_FORM,
+		      XmNrightAttachment, XmATTACH_FORM,
+		      NULL);
 
         /* ------------ Tabs --------------*/
 
-        nonl_tab = CreateTab(rc);        
+        nonl_tab = CreateTab(nonl_panel);        
+	XtVaSetValues(nonl_tab,
+		      XmNtopAttachment, XmATTACH_WIDGET,
+		      XmNtopWidget, title_fr,
+		      XmNleftAttachment, XmATTACH_FORM,
+		      XmNrightAttachment, XmATTACH_FORM,
+		      NULL);
 
 
         /* ------------ Main tab --------------*/
@@ -283,22 +293,13 @@ void create_nonl_frame(void *data)
 	XtManageChild(rc3);
 
 
-	XtManageChild(rc);
-
-        XtVaSetValues(fr,
-                      XmNtopAttachment, XmATTACH_WIDGET,
-                      XmNtopWidget, nonl_set_item->form,
-                      XmNleftAttachment, XmATTACH_FORM,
-                      XmNrightAttachment, XmATTACH_FORM,
-                      NULL);
-                      
 	fr3 = CreateFrame(nonl_panel, NULL);
 
 	CreateAACButtons(fr3, nonl_panel, do_nonl_proc);
 
 	XtVaSetValues(fr3,
 	              XmNtopAttachment, XmATTACH_WIDGET,
-                      XmNtopWidget, fr,
+                      XmNtopWidget, nonl_tab,
 		      XmNleftAttachment, XmATTACH_FORM,
 		      XmNrightAttachment, XmATTACH_FORM,
 		      XmNbottomAttachment, XmATTACH_FORM,
