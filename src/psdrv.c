@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -248,6 +248,7 @@ static int ps_initgraphics(int format)
     }
     fprintf(prstream, "%%%%Title: %s\n", get_docname());
     fprintf(prstream, "%%%%For: %s\n", get_username());
+    fprintf(prstream, "%%%%DocumentNeededResources: (atend)\n");
     fprintf(prstream, "%%%%EndComments\n");
 
     /* Definitions */
@@ -831,6 +832,7 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
 void ps_leavegraphics(void)
 {
     view v;
+    int i, first;
     
     if (curformat == PS_FORMAT) {
         fprintf(prstream, "showpage\n");
@@ -855,6 +857,19 @@ void ps_leavegraphics(void)
         }
     }
     
+    first = TRUE;
+    for (i = 0; i < number_of_fonts(); i++) {
+        if (psfont_status[i] == TRUE) {
+            if (first) {
+                fprintf(prstream, "%%%%DocumentNeededResources: font %s\n",
+                    get_fontalias(i));
+                first = FALSE;
+            } else {
+                fprintf(prstream, "%%%%+ font %s\n", get_fontalias(i));
+            }
+        }
+    }
+
     fprintf(prstream, "%%%%EOF\n");
 }
 
