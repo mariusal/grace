@@ -49,19 +49,10 @@
 #include "plotone.h"
 
 #include "device.h"
-#include "dummydrv.h"
-#include "psdrv.h"
-#include "mfdrv.h"
+#include "devlist.h"
 #ifndef NONE_GUI
 #  include "x11drv.h"
 #endif
-#ifdef HAVE_LIBPDF         
-#  include "pdfdrv.h"
-#endif
-#ifdef HAVE_LIBGD         
-#  include "rstdrv.h"
-#endif
-#include "t1fonts.h"
 #include "protos.h"
 
 #include "buildinfo.h"
@@ -78,109 +69,6 @@ static void usage(FILE *stream, char *progname);
 static void VersionInfo(void);
 
 int inpipe = FALSE;		/* if xmgrace is to participate in a pipe */
-
-Device_entry dev_dummy = {DEVICE_TERM,
-          "Dummy",
-          dummyinitgraphics,
-          NULL,
-          NULL,
-          "",
-          TRUE,
-          FALSE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
-         };
-
-#ifndef NONE_GUI
-Device_entry dev_x11 = {DEVICE_TERM,
-          "X11",
-          xlibinitgraphics,
-          NULL,
-          NULL,
-          "",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
-         };
-#endif
-
-Device_entry dev_ps = {DEVICE_PRINT,
-          "PostScript",
-          psprintinitgraphics,
-          ps_op_parser,
-          ps_gui_setup,
-          "ps",
-          TRUE,
-          FALSE,
-          {3300, 2550, 300.0, 300.0}
-         };
-
-Device_entry dev_eps = {DEVICE_FILE,
-          "EPS",
-          epsinitgraphics,
-          eps_op_parser,
-          eps_gui_setup,
-          "eps",
-          TRUE,
-          FALSE,
-          {2500, 2500, 300.0, 300.0}
-         };
-
-Device_entry dev_mf = {DEVICE_FILE,
-          "Metafile",
-          mfinitgraphics,
-          NULL,
-          NULL,
-          "gmf",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
-         };
-
-#ifdef HAVE_LIBPDF         
-Device_entry dev_pdf = {DEVICE_FILE,
-          "PDF",
-          pdfinitgraphics,
-          pdf_op_parser,
-          pdf_gui_setup,
-          "pdf",
-          TRUE,
-          FALSE,
-          {612, 792, 72.0, 72.0}
-         };
-#endif
-
-#ifdef HAVE_LIBGD         
-Device_entry dev_gd = {DEVICE_FILE,
-          "GD",
-          gdinitgraphics,
-          NULL,
-          NULL,
-          "gd",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
-         };
-Device_entry dev_gif = {DEVICE_FILE,
-          "GIF",
-          gifinitgraphics,
-          gif_op_parser,
-          gif_gui_setup,
-          "gif",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
-         };
-Device_entry dev_pnm = {DEVICE_FILE,
-          "PNM",
-          pnminitgraphics,
-          pnm_op_parser,
-          pnm_gui_setup,
-          "pnm",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
-         };
-#endif
 
 #if defined(DEBUG)    
     extern int yydebug;
@@ -300,28 +188,31 @@ int main(int argc, char *argv[])
     /* initialize devices */
 #ifndef NONE_GUI
     if (cli == TRUE) {
-        tdevice = register_device(dev_dummy);
+        tdevice = register_dummy_drv();
     } else {
-        tdevice = register_device(dev_x11);
+        tdevice = register_x11_drv();
     }
 #else
-    tdevice = register_device(dev_dummy);
+    tdevice = register_dummy_drv();
 #endif
     select_device(tdevice);
 
-    hdevice = register_device(dev_ps);
-    register_device(dev_eps);
+    hdevice = register_ps_drv();
+    register_eps_drv();
 
-    register_device(dev_mf);
+    register_mf_drv();
 
 #ifdef HAVE_LIBPDF
-    register_device(dev_pdf);
+    register_pdf_drv();
 #endif
 
 #ifdef HAVE_LIBGD
-    register_device(dev_gd);
-    register_device(dev_gif);
-    register_device(dev_pnm);
+    register_gd_drv();
+    register_gif_drv();
+    register_pnm_drv();
+#  ifdef HAVE_LIBJPEG
+    register_jpg_drv();
+#  endif
 #endif
 
     /* check whether locale is correctly set */

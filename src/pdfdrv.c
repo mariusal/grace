@@ -43,6 +43,7 @@
 #include "utils.h"
 #include "draw.h"
 #include "device.h"
+#include "devlist.h"
 #include "patterns.h"
 #include "t1fonts.h"
 #include "pdfdrv.h"
@@ -80,6 +81,22 @@ static int pdf_setup_binary = TRUE;
 extern FILE *prstream;
 
 static PDF *phandle;
+
+static Device_entry dev_pdf = {DEVICE_FILE,
+          "PDF",
+          pdfinitgraphics,
+          pdf_op_parser,
+          pdf_gui_setup,
+          "pdf",
+          TRUE,
+          FALSE,
+          {612, 792, 72.0, 72.0}
+         };
+
+int register_pdf_drv(void)
+{
+    return register_device(dev_pdf);
+}
 
 int pdfinitgraphics(void)
 {

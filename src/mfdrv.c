@@ -40,9 +40,26 @@
 #include "utils.h"
 #include "draw.h"
 #include "device.h"
+#include "devlist.h"
 #include "mfdrv.h"
 
 extern FILE *prstream;
+
+static Device_entry dev_mf = {DEVICE_FILE,
+          "Metafile",
+          mfinitgraphics,
+          NULL,
+          NULL,
+          "gmf",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+         };
+
+int register_mf_drv(void)
+{
+    return register_device(dev_mf);
+}
 
 int mfinitgraphics(void)
 {

@@ -36,7 +36,24 @@
 #include "defines.h"
 #include "draw.h"
 #include "device.h"
+#include "devlist.h"
 #include "dummydrv.h"
+
+static Device_entry dev_dummy = {DEVICE_TERM,
+          "Dummy",
+          dummyinitgraphics,
+          NULL,
+          NULL,
+          "",
+          TRUE,
+          FALSE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+         };
+
+int register_dummy_drv(void)
+{
+    return register_device(dev_dummy);
+}
 
 int dummyinitgraphics(void)
 {

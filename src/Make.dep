@@ -1,8 +1,7 @@
 # Generated automatically by `make depend'
 main$(O) : main.c globals.h defines.h graphs.h draw.h utils.h files.h \
- graphutils.h plotone.h device.h t1fonts.h dummydrv.h psdrv.h mfdrv.h \
- x11drv.h pdfdrv.h rstdrv.h protos.h missing.h noxprotos.h xprotos.h \
- buildinfo.h
+ graphutils.h plotone.h device.h t1fonts.h devlist.h x11drv.h protos.h \
+ missing.h noxprotos.h xprotos.h buildinfo.h
 plotone$(O) : plotone.c globals.h defines.h graphs.h draw.h utils.h \
  files.h t1fonts.h device.h plotone.h protos.h missing.h noxprotos.h \
  xprotos.h
@@ -48,22 +47,23 @@ missing$(O) : missing.c defines.h missing.h
 alloca$(O) : alloca.c
 iofilters$(O) : iofilters.c defines.h utils.h files.h protos.h missing.h \
  noxprotos.h graphs.h xprotos.h
-t1fonts$(O) : t1fonts.c defines.h draw.h utils.h device.h t1fonts.h \
- protos.h missing.h noxprotos.h graphs.h xprotos.h
+t1fonts$(O) : t1fonts.c defines.h draw.h utils.h files.h device.h \
+ t1fonts.h protos.h missing.h noxprotos.h graphs.h xprotos.h
 device$(O) : device.c defines.h globals.h graphs.h draw.h utils.h \
  device.h t1fonts.h
 mfdrv$(O) : mfdrv.c defines.h globals.h graphs.h draw.h utils.h device.h \
- t1fonts.h mfdrv.h
+ t1fonts.h devlist.h mfdrv.h
 psdrv$(O) : psdrv.c defines.h globals.h graphs.h draw.h utils.h device.h \
- t1fonts.h patterns.h psdrv.h protos.h missing.h noxprotos.h xprotos.h \
- motifinc.h
+ t1fonts.h devlist.h patterns.h psdrv.h protos.h missing.h noxprotos.h \
+ xprotos.h motifinc.h
 pdfdrv$(O) : pdfdrv.c defines.h globals.h graphs.h draw.h utils.h \
- device.h t1fonts.h patterns.h pdfdrv.h protos.h missing.h noxprotos.h \
+ device.h t1fonts.h devlist.h patterns.h pdfdrv.h protos.h missing.h \
+ noxprotos.h xprotos.h motifinc.h
+rstdrv$(O) : rstdrv.c defines.h utils.h draw.h device.h t1fonts.h \
+ devlist.h patterns.h rstdrv.h protos.h missing.h noxprotos.h graphs.h \
  xprotos.h motifinc.h
-rstdrv$(O) : rstdrv.c defines.h globals.h graphs.h draw.h utils.h \
- device.h t1fonts.h patterns.h rstdrv.h protos.h missing.h noxprotos.h \
- xprotos.h motifinc.h
-dummydrv$(O) : dummydrv.c defines.h draw.h device.h t1fonts.h dummydrv.h
+dummydrv$(O) : dummydrv.c defines.h draw.h device.h t1fonts.h devlist.h \
+ dummydrv.h
 Tab$(O) : Tab.c TabP.h Tab.h
 motifutils$(O) : motifutils.c Tab.h motifinc.h defines.h globals.h \
  graphs.h draw.h patterns.h t1fonts.h plotone.h utils.h events.h \
@@ -127,8 +127,8 @@ xutil$(O) : xutil.c defines.h globals.h graphs.h draw.h utils.h files.h \
  graphutils.h plotone.h device.h t1fonts.h x11drv.h protos.h missing.h \
  noxprotos.h xprotos.h
 x11drv$(O) : x11drv.c defines.h globals.h graphs.h draw.h utils.h \
- device.h t1fonts.h patterns.h x11drv.h protos.h missing.h noxprotos.h \
- xprotos.h
+ device.h t1fonts.h devlist.h patterns.h x11drv.h protos.h missing.h \
+ noxprotos.h xprotos.h
 xmgrace$(O) : xmgrace.c globals.h defines.h graphs.h draw.h bitmaps.h \
  utils.h files.h device.h t1fonts.h x11drv.h graphutils.h plotone.h \
  events.h protos.h missing.h noxprotos.h xprotos.h motifinc.h

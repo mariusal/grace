@@ -43,6 +43,7 @@
 #include "globals.h"
 #include "utils.h"
 #include "device.h"
+#include "devlist.h"
 #include "draw.h"
 #include "graphs.h"
 #include "patterns.h"
@@ -89,6 +90,21 @@ unsigned int win_h = 0, win_w = 0;
 
 Pixmap resize_bufpixmap(unsigned int w, unsigned int h);
 
+static Device_entry dev_x11 = {DEVICE_TERM,
+          "X11",
+          xlibinitgraphics,
+          NULL,
+          NULL,
+          "",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+         };
+
+int register_x11_drv(void)
+{
+    return register_device(dev_x11);
+}
 
 int xlibinit(void)
 {

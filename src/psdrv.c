@@ -44,6 +44,7 @@
 #include "utils.h"
 #include "draw.h"
 #include "device.h"
+#include "devlist.h"
 #include "patterns.h"
 #include "psdrv.h"
 #include "protos.h"
@@ -90,6 +91,38 @@ static int eps_setup_grayscale = FALSE;
 static int eps_setup_tight_bb = TRUE;
 
 static int tight_bb;
+
+static Device_entry dev_ps = {DEVICE_PRINT,
+          "PostScript",
+          psprintinitgraphics,
+          ps_op_parser,
+          ps_gui_setup,
+          "ps",
+          TRUE,
+          FALSE,
+          {3300, 2550, 300.0, 300.0}
+         };
+
+static Device_entry dev_eps = {DEVICE_FILE,
+          "EPS",
+          epsinitgraphics,
+          eps_op_parser,
+          eps_gui_setup,
+          "eps",
+          TRUE,
+          FALSE,
+          {2500, 2500, 300.0, 300.0}
+         };
+
+int register_ps_drv(void)
+{
+    return register_device(dev_ps);
+}
+
+int register_eps_drv(void)
+{
+    return register_device(dev_eps);
+}
 
 static int ps_initgraphics(int format)
 {
