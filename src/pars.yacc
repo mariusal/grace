@@ -318,7 +318,7 @@ symtab_entry *key;
 %token <ival> INCREMENT
 %token <ival> INOUT
 %token <ival> INTEGRATE
-%token <ival> INTERP
+%token <ival> INTERPOLATE
 %token <ival> INVDFT
 %token <ival> INVERT
 %token <ival> INVFFT
@@ -331,6 +331,7 @@ symtab_entry *key;
 %token <ival> LEGEND
 %token <ival> LENGTH
 %token <ival> LINE
+%token <ival> LINEAR
 %token <ival> LINESTYLE
 %token <ival> LINEWIDTH
 %token <ival> LINK
@@ -572,7 +573,9 @@ symtab_entry *key;
 
 %type <ival> sourcetype
 
+%type <ival> interpmethod
 %type <ival> stattype
+
 %type <ival> datacolumn
 
 %type <ival> runtype
@@ -2939,14 +2942,10 @@ actions:
 	        break;
 	    }
         }
-	| SPLINE '(' selectset ',' expr ',' expr ',' nexpr ')' {
-	    do_spline($3->gno, $3->setno, $5, $7, $9, SPLINE_CUBIC);
-	}
-	| ASPLINE '(' selectset ',' expr ',' expr ',' nexpr ')' {
-	    do_spline($3->gno, $3->setno, $5, $7, $9, SPLINE_AKIMA);
-	}
-	| INTERP '(' selectset ',' selectset ',' nexpr ')' {
-	    do_interp($3->gno, $3->setno, $5->gno, $5->setno, $7);
+	| INTERPOLATE '(' selectset ',' array ',' interpmethod ',' onoff ')' {
+            int igno = get_cg(), iset = nextset(igno);
+            do_interp($3->gno, $3->setno, igno, iset,
+                $5->data, $5->length, $7, $9);
 	}
 	| HISTO '(' selectset ',' expr ',' expr ',' nexpr ')' {
             do_histo($3->gno, $3->setno, get_cg(), SET_SELECT_NEXT,
@@ -3869,6 +3868,12 @@ windowtype:
 	| BLACKMAN {$$=5;}
 	| PARZEN {$$=6;}
 	;
+
+interpmethod:
+        LINEAR    { $$ = INTERP_LINEAR; }
+        | SPLINE  { $$ = INTERP_SPLINE; }
+        | ASPLINE { $$ = INTERP_ASPLINE; }
+	;
 	
 stattype: MINP { $$ = MINP; }
 	| MAXP { $$ = MAXP; }
@@ -4494,7 +4499,7 @@ symtab_entry ikey[] = {
 	{"INDEX", INDEX, NULL},
 	{"INOUT", INOUT, NULL},
 	{"INTEGRATE", INTEGRATE, NULL},
-	{"INTERP", INTERP, NULL},
+	{"INTERPOLATE", INTERPOLATE, NULL},
 	{"INVDFT", INVDFT, NULL},
 	{"INVERT", INVERT, NULL},
 	{"INVFFT", INVFFT, NULL},
@@ -4516,6 +4521,7 @@ symtab_entry ikey[] = {
 	{"LENGTH", LENGTH, NULL},
 	{"LGAMMA", FUNC_D, (void *) lgamma},
 	{"LINE", LINE, NULL},
+	{"LINEAR", LINEAR, NULL},
 	{"LINESTYLE", LINESTYLE, NULL},
 	{"LINEWIDTH", LINEWIDTH, NULL},
 	{"LINK", LINK, NULL},
