@@ -114,7 +114,8 @@ int main(int argc, char *argv[])
     gui     = grace->gui     = gui_new(grace);
     canvas  = rt->canvas     = canvas_new();
     canvas_set_udata(canvas, grace);
-    canvas_set_csparse(canvas, csparse);
+    canvas_set_csparse_proc(canvas, csparse_proc);
+    canvas_set_fmap_proc(canvas, fmap_proc);
     
     /* initialize the parser symbol table */
     init_symtab();

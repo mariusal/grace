@@ -99,8 +99,7 @@ static void xmlio_set_angle(Attributes *attrs, double angle)
 
 static void xmlio_set_font_ref(Attributes *attrs, int font)
 {
-    attributes_set_ival(attrs, AStrFontId,
-        get_font_mapped_id(grace->rt->canvas, font));
+    attributes_set_ival(attrs, AStrFontId, font);
 }
 
 static void xmlio_set_color_ref(Attributes *attrs, int color)
@@ -190,7 +189,7 @@ static void xmlio_write_arrow(XFile *xf, Attributes *attrs, Arrow *arrow)
     xfile_empty_element(xf, EStrArrow, attrs);
 }
 
-int save_fontmap(XFile *xf, const Canvas *canvas)
+int save_fontmap(XFile *xf, const Project *pr)
 {
     int i;
     Attributes *attrs;
@@ -202,14 +201,13 @@ int save_fontmap(XFile *xf, const Canvas *canvas)
     }
 
     xfile_begin_element(xf, EStrFontmap, NULL);
-    for (i = 0; i < number_of_fonts(canvas); i++) {
-        if (get_font_mapped_id(canvas, i) != BAD_FONT_ID) {
-            attributes_reset(attrs);
-            attributes_set_ival(attrs, AStrId, get_font_mapped_id(canvas, i));
-            attributes_set_sval(attrs, AStrName, get_fontalias(canvas, i));
-            attributes_set_sval(attrs, AStrFallback, get_fontfallback(canvas, i));
-            xfile_empty_element(xf, EStrFontDef, attrs);
-        }
+    for (i = 0; i < pr->nfonts; i++) {
+        Fontdef *f = &pr->fontmap[i];
+        attributes_reset(attrs);
+        attributes_set_ival(attrs, AStrId, f->id);
+        attributes_set_sval(attrs, AStrName, f->fontname);
+        attributes_set_sval(attrs, AStrFallback, f->fallback);
+        xfile_empty_element(xf, EStrFontDef, attrs);
     }
     xfile_end_element(xf, EStrFontmap);
     
@@ -870,7 +868,7 @@ int save_project(char *fn)
         xfile_comment(xf, "Color map");
         save_colormap(xf, grace->rt->canvas);
         xfile_comment(xf, "Font map");
-        save_fontmap(xf, grace->rt->canvas);
+        save_fontmap(xf, pr);
     }
     xfile_end_element(xf, EStrDefinitions);
 

@@ -149,6 +149,8 @@ static void yyerror(char *s);
 
 static int findf(symtab_entry *keytable, char *s);
 
+static void add_xmgr_fonts(Quark *project);
+
 /* Total (intrinsic + user-defined) list of functions and keywords */
 symtab_entry *key;
 
@@ -2005,9 +2007,7 @@ parmset:
                 errmsg("Project version is newer than software!");
             }
             if (project_get_version_id(grace->project) < 50001) {
-                map_fonts(canvas, FONT_MAP_ACEGR);
-            } else {
-                map_fonts(canvas, FONT_MAP_DEFAULT);
+                add_xmgr_fonts(grace->project);
             }
         }
         | PAGE SIZE nexpr ',' nexpr {
@@ -2459,10 +2459,11 @@ parmset:
 	    xfree($3);
 	}
 	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {
-	    if ((map_font_by_name(canvas, $5, $3) != RETURN_SUCCESS) && 
-                (map_font_by_name(canvas,$7, $3) != RETURN_SUCCESS)) {
-                errmsg("Failed mapping a font");
-            }
+	    Fontdef f;
+            f.id = $3;
+            f.fontname = $5;
+            f.fallback = $7;
+            project_add_font(grace->project, &f);
             xfree($5);
 	    xfree($7);
 	}
@@ -3841,11 +3842,11 @@ stattype: MINP { $$ = MINP; }
 font_select:
         FONTP nexpr
         {
-            $$ = get_mapped_font(canvas, $2);
+            $$ = $2;
         }
         | FONTP CHRSTR
         {
-            $$ = get_font_by_name(canvas, $2);
+            $$ = get_font_by_name(grace->project, $2);
             xfree($2);
         }
         ;
@@ -5353,3 +5354,25 @@ static void yyerror(char *s)
     interr = 1;
 }
 
+static void add_xmgr_font(Quark *project, char *fname, int mapped_id)
+{
+    Fontdef f;
+    f.id = mapped_id;
+    f.fontname = fname;
+    f.fallback = fname;
+    project_add_font(project, &f);
+}
+
+static void add_xmgr_fonts(Quark *project)
+{    
+    add_xmgr_font(project, "Times-Roman", 0);
+    add_xmgr_font(project, "Times-Bold", 1);
+    add_xmgr_font(project, "Times-Italic", 2);
+    add_xmgr_font(project, "Times-BoldItalic", 3);
+    add_xmgr_font(project, "Helvetica", 4);
+    add_xmgr_font(project, "Helvetica-Bold", 5);
+    add_xmgr_font(project, "Helvetica-Oblique", 6);
+    add_xmgr_font(project, "Helvetica-BoldOblique", 7);
+    add_xmgr_font(project, "Symbol", 8);
+    add_xmgr_font(project, "ZapfDingbats", 9);
+}

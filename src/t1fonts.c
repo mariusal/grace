@@ -94,9 +94,7 @@ int init_t1(Canvas *canvas)
             fclose(fd);
             return (RETURN_FAILURE);
         }
-        canvas->FontDBtable[i].mapped_id = i;
         canvas->FontDBtable[i].alias     = copy_string(NULL, abuf);
-        canvas->FontDBtable[i].fallback  = copy_string(NULL, fbuf);
     }
     fclose(fd);
     
@@ -119,103 +117,34 @@ int init_t1(Canvas *canvas)
     return (RETURN_SUCCESS);
 }
 
-void map_fonts(Canvas *canvas, int map)
-{
-    int i;
-    
-    if (map == FONT_MAP_ACEGR) {
-        for (i = 0; i < canvas->nfonts; i++) {
-            canvas->FontDBtable[i].mapped_id = BAD_FONT_ID;
-        }
-        map_font_by_name(canvas, "Times-Roman", 0);
-        map_font_by_name(canvas, "Times-Bold", 1);
-        map_font_by_name(canvas, "Times-Italic", 2);
-        map_font_by_name(canvas, "Times-BoldItalic", 3);
-        map_font_by_name(canvas, "Helvetica", 4);
-        map_font_by_name(canvas, "Helvetica-Bold", 5);
-        map_font_by_name(canvas, "Helvetica-Oblique", 6);
-        map_font_by_name(canvas, "Helvetica-BoldOblique", 7);
-        map_font_by_name(canvas, "Symbol", 8);
-        map_font_by_name(canvas, "ZapfDingbats", 9);
-    } else {
-        for (i = 0; i < canvas->nfonts; i++) {
-            canvas->FontDBtable[i].mapped_id = i;
-        }
-    }
-}
-
-int get_font_mapped_id(const Canvas *canvas, int font)
-{
-    if (font >= canvas->nfonts || font < 0) {
-        return(BAD_FONT_ID);
-    } else {
-        return(canvas->FontDBtable[font].mapped_id);
-    }
-}
-
-int get_mapped_font(const Canvas *canvas, int mapped_id)
-{
-    int i;
-    
-    for (i = 0; i < canvas->nfonts; i++) {
-        if (canvas->FontDBtable[i].mapped_id == mapped_id) {
-            return(i);
-        }
-    }
-    
-    return(BAD_FONT_ID);
-}
-
-int map_font(Canvas *canvas, int font, int mapped_id)
-{
-    int i;
-    
-    if (font >= canvas->nfonts || font < 0) {
-        return RETURN_FAILURE;
-    }
-    
-    /* make sure the mapping is unique */
-    for (i = 0; i < canvas->nfonts; i++) {
-        if (canvas->FontDBtable[i].mapped_id == mapped_id) {
-            canvas->FontDBtable[i].mapped_id = BAD_FONT_ID;
-        }
-    }
-    canvas->FontDBtable[font].mapped_id = mapped_id;
-
-    return RETURN_SUCCESS;
-}
-
-int map_font_by_name(Canvas *canvas, const char *fname, int mapped_id)
-{
-    return map_font(canvas, get_font_by_name(canvas, fname), mapped_id);
-}
-
 unsigned int number_of_fonts(const Canvas *canvas)
 {
     return canvas->nfonts;
 }
 
-int get_font_by_name(const Canvas *canvas, const char *fname)
+int canvas_get_font_by_name(const Canvas *canvas, const char *fname)
 {
     int i;
     
     if (fname == NULL) {
         return BAD_FONT_ID;
     }
-    
+#if 0    
+    /* check first the real font name */
+    for (i = 0; i < canvas->nfonts; i++) {
+        if (strcmp(get_fontname(canvas, i), fname) == 0) {
+            return i;
+        }
+    }
+#endif
+    /* if failed, see if an alias fits */
     for (i = 0; i < canvas->nfonts; i++) {
         if (strcmp(get_fontalias(canvas, i), fname) == 0) {
             return i;
         }
     }
 
-    for (i = 0; i < canvas->nfonts; i++) {
-        if (strcmp(get_fontfallback(canvas, i), fname) == 0) {
-            return(i);
-        }
-    }
-
-    return(BAD_FONT_ID);
+    return BAD_FONT_ID;
 }
 
 char *get_fontfilename(const Canvas *canvas, int font, int abspath)
@@ -281,11 +210,6 @@ char *get_fontweight(const Canvas *canvas, int font)
 char *get_fontalias(const Canvas *canvas, int font)
 {
     return (canvas->FontDBtable[font].alias);
-}
-
-char *get_fontfallback(const Canvas *canvas, int font)
-{
-    return (canvas->FontDBtable[font].fallback);
 }
 
 char *get_encodingscheme(const Canvas *canvas, int font)
@@ -608,7 +532,7 @@ static CompositeString *String2Composite(Canvas *canvas, const char *s)
     cstring = cstring_new();
     
     if (cstring) {
-        if (canvas->csparse(canvas, s, cstring) != RETURN_SUCCESS) {
+        if (canvas->csparse_proc(canvas, s, cstring) != RETURN_SUCCESS) {
             cstring_free(cstring);
             cstring = NULL;
         } else {
@@ -718,6 +642,9 @@ static int postprocess_cs(Canvas *canvas,
         if (cs->font == BAD_FONT_ID) {
             cs->font = def_font;
         }
+        /* apply font mapping set by user */
+        cs->font = canvas->fmap_proc(canvas, cs->font);
+        
         if (cs->color == BAD_COLOR) {
             cs->color = def_color;
         }

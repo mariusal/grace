@@ -65,7 +65,6 @@ struct _Quark {
     void *data;
 };
 
-
 typedef struct _Project {
     /* Version ID */
     int version_id;
@@ -91,6 +90,10 @@ typedef struct _Project {
     
     /* page size */
     int page_wpp, page_hpp;
+    
+    /* font map */
+    unsigned int nfonts;
+    Fontdef *fontmap;
     
     /* page fill */
     Pen bgpen;
@@ -248,7 +251,7 @@ void runtime_free(RunTime *rt);
 Grace *grace_new(void);
 void grace_free(Grace *grace);
 
-int grace_set_project(Grace *grace, Project *pr);
+int grace_set_project(Grace *grace, Quark *project);
 
 int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale);
 int set_printer(Grace *grace, int device);
@@ -271,5 +274,7 @@ Storage *project_get_graphs(const Quark *q);
 char *project_get_sformat(const Quark *q);
 void project_set_sformat(Quark *q, const char *s);
 
+int project_add_font(Quark *project, const Fontdef *f);
+int get_font_by_name(const Quark *project, const char *name);
 
 #endif /* __GRACE_H_ */

@@ -97,10 +97,6 @@
 
 #define BAD_FONT_ID     -1
 
-/* Font mappings */
-#define FONT_MAP_DEFAULT    0
-#define FONT_MAP_ACEGR      1
-
 /* TODO */
 #define MAGIC_FONT_SCALE	0.028
 
@@ -267,9 +263,7 @@ typedef struct {
 } CompositeString;
 
 typedef struct {
-    int mapped_id;
     char *alias;
-    char *fallback;
     char used;
     char chars_used[256];
 } FontDB;
@@ -336,6 +330,8 @@ typedef void (*CanvasDrawProc)(Canvas *canvas, void *data);
 
 typedef int (*CanvasCSParseProc)(const Canvas *canvas,
     const char *s, CompositeString *cstring);
+
+typedef int (*CanvasFMapProc)(const Canvas *canvas, int);
 
 typedef struct {
     RGB rgb;
@@ -513,7 +509,9 @@ struct _Canvas {
     char *docname;
     
     /* user-supplied procsedure for parsing composite strings */
-    CanvasCSParseProc csparse;
+    CanvasCSParseProc csparse_proc;
+    /* user-supplied procsedure for mapping font ids */
+    CanvasFMapProc fmap_proc;
     
     /* user data */
     void *udata;
@@ -539,7 +537,8 @@ void canvas_set_docname(Canvas *canvas, const char *s);
 char *canvas_get_username(const Canvas *canvas);
 char *canvas_get_docname(const Canvas *canvas);
 
-void canvas_set_csparse(Canvas *canvas, CanvasCSParseProc csparse);
+void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc);
+void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc);
 
 void canvas_set_pagepen(Canvas *canvas, const Pen *pen);
 
@@ -661,10 +660,6 @@ int make_color_scale(Canvas *canvas,
 
 int init_t1(Canvas *canvas);
 
-int map_font(Canvas *canvas, int font, int mapped_id);
-int map_font_by_name(Canvas *canvas, const char *fname, int mapped_id);
-void map_fonts(Canvas *canvas, int map);
-
 unsigned int number_of_fonts(const Canvas *canvas);
 char *get_fontname(const Canvas *canvas, int font);
 char *get_fontfullname(const Canvas *canvas, int font);
@@ -673,7 +668,6 @@ char *get_fontweight(const Canvas *canvas, int font);
 char *get_fontfilename(const Canvas *canvas, int font, int abspath);
 char *get_afmfilename(const Canvas *canvas, int font, int abspath);
 char *get_fontalias(const Canvas *canvas, int font);
-char *get_fontfallback(const Canvas *canvas, int font);
 char *get_encodingscheme(const Canvas *canvas, int font);
 char **get_default_encoding(const Canvas *canvas);
 double get_textline_width(const Canvas *canvas, int font);
@@ -683,9 +677,7 @@ double get_italic_angle(const Canvas *canvas, int font);
 double *get_kerning_vector(const Canvas *canvas,
     const char *str, int len, int font);
 
-int get_font_by_name(const Canvas *canvas, const char *fname);
-int get_font_mapped_id(const Canvas *canvas, int font);
-int get_mapped_font(const Canvas *canvas, int mapped_id);
+int canvas_get_font_by_name(const Canvas *canvas, const char *fname);
 
 char *font_subset(const Canvas *canvas,
     int font, char *mask, unsigned long *datalen);

@@ -64,12 +64,6 @@ void colordef_free(Colordef *cd)
     }
 }
 
-typedef struct {
-    int id;
-    char *fontname;
-    char *fallback;
-} Fontdef;
-
 Fontdef *fontdef_new()
 {
     Fontdef *retval;
@@ -576,7 +570,7 @@ char *utf2iso(const char *s)
         $$ = get_format_type_by_name($?);
     ]]></attribute-type>
     <attribute-type name="fontid" ctype="int"><![CDATA[
-        $$ = get_mapped_font(grace->rt->canvas, atoi($?));
+        $$ = atoi($?);
     ]]></attribute-type>
     <attribute-type name="offset" ctype="VPoint *"><![CDATA[
         if (!strcmp($?, VStrAuto)) {
@@ -675,8 +669,8 @@ char *utf2iso(const char *s)
     ]]></attribute-type>
     
     <!-- Element types -->
-    <element-type name="project" ctype="Project *"><![CDATA[
-        $$ = project_data_new();
+    <element-type name="project" ctype="Quark *"><![CDATA[
+        $$ = project_new(grace);
     ]]></element-type>
     <element-type name="page" ctype="Page *"><![CDATA[
         $$ = page_new();
@@ -830,26 +824,28 @@ char *utf2iso(const char *s)
     <element name="#EStrGrace" type="project">
         <!-- Attributes -->
         <attribute name="#AStrVersion" type="ival">
-            $$->version_id = $?;
+            project_set_version_id($$, $?);
         </attribute>
 
         <!-- Child elements -->
         <child name="#EStrDescription">
-            $$->description = copy_string($$->description, $?->s);
+            project_set_description($$, $?->s);
             xcc_string_free($?);
         </child>
         <child name="#EStrDefinitions">
         </child>
         <child name="#EStrPage">
-            $$->page_wpp = $?->width;
-            $$->page_hpp = $?->height,
-            $$->bgpen = $?->bgpen;
+            Project *pr = (Project *) $$->data;
+            pr->page_wpp = $?->width;
+            pr->page_hpp = $?->height,
+            pr->bgpen = $?->bgpen;
             xfree($?);
         </child>
         <child name="#EStrDataFormats">
         </child>
         <child name="#EStrGraph">
-            storage_add($$->graphs, $?);
+            Project *pr = (Project *) $$->data;
+            storage_add(pr->graphs, $?);
         </child>
     </element>
     <element name="#EStrDefinitions" type="dummy">
@@ -869,12 +865,7 @@ char *utf2iso(const char *s)
     <element name="#EStrFontmap" type="dummy">
         <!-- Child elements -->
         <child name="#EStrFontDef"><![CDATA[
-            if ((map_font_by_name(grace->rt->canvas,
-                    $?->fontname, $?->id) != RETURN_SUCCESS) && 
-                (map_font_by_name(grace->rt->canvas,
-                    $?->fallback, $?->id) != RETURN_SUCCESS)) {
-                errmsg("Failed mapping a font");
-            }
+	    project_add_font($0, $?);
             fontdef_free($?);
         ]]></child>
     </element>
@@ -957,8 +948,7 @@ char *utf2iso(const char *s)
     <element name="#EStrWorld" type="dummy">
         <!-- Attributes -->
         <attribute name="#AStrFormat" type="sval">
-            Project *pr = (Project *) $0;
-            pr->sformat = copy_string(pr->sformat, $?);
+            project_set_sformat($0, $?);
             xfree($?);
         </attribute>
     </element>
@@ -1993,7 +1983,7 @@ char *utf2iso(const char *s)
 int load_xgr_project(char *fn)
 {
     ParserData udata;
-    Project *pr;
+    Quark *project;
     FILE *fp;
     int ret;
 
@@ -2005,16 +1995,16 @@ int load_xgr_project(char *fn)
     udata.axis = -1;
     udata.nrow = -1;
     
-    ret = xcc_parse(fp, &udata, (void **) &pr, xcc_start_handler, xcc_end_handler);
+    ret = xcc_parse(fp, &udata, (void **) &project, xcc_start_handler, xcc_end_handler);
 
     grace_close(fp);
     
     if (ret == XCC_RETURN_SUCCESS) {
-        pr->docname = copy_string(pr->docname, fn);
+        set_docname(project, fn);
 
-        return grace_set_project(grace, pr);
+        return grace_set_project(grace, project);
     } else {
-        project_data_free(pr);
+        quark_free(project);
         
         return RETURN_FAILURE;
     }

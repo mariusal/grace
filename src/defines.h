@@ -345,6 +345,12 @@ typedef struct {
     double symsize;
 } defaults;
 
+typedef struct {
+    int id;
+    char *fontname;
+    char *fallback;
+} Fontdef;
+
 /* A point in world coordinates */
 typedef struct {
     double x;

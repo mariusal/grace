@@ -36,6 +36,67 @@
 #include "draw.h"
 #include "utils.h"
 
+int project_add_font(Quark *project, const Fontdef *f)
+{
+    Project *pr = (Project *) project->data;
+    Fontdef *fnew;
+    pr->fontmap = xrealloc(pr->fontmap, (pr->nfonts + 1)*sizeof(Fontdef));
+    fnew = &pr->fontmap[pr->nfonts];
+    fnew->id = f->id;
+    fnew->fontname = copy_string(NULL, f->fontname);
+    fnew->fallback = copy_string(NULL, f->fallback);
+    pr->nfonts++;
+    
+    return RETURN_SUCCESS;
+}
+
+/* TODO: optimize, e.g. via a hashed array */
+int fmap_proc(const Canvas *canvas, int font_id)
+{
+    Grace *grace = (Grace *) canvas_get_udata(canvas);
+    Project *pr = (Project *) grace->project->data;
+    int font = BAD_FONT_ID;
+    unsigned int i;
+    
+    for (i = 0; i < pr->nfonts; i++) {
+        Fontdef *f = &pr->fontmap[i];
+
+        if (f->id == font_id) {
+            font = canvas_get_font_by_name(canvas, f->fontname);
+            if (font == BAD_FONT_ID) {
+                font = canvas_get_font_by_name(canvas, f->fallback);
+            }
+
+            if (font == BAD_FONT_ID) {
+                char buf[64];
+                sprintf(buf, "Couldn't map font %d to any existing one", f->id);
+                errmsg("buf");
+
+                font = 0;
+            }
+            
+            break;
+        }
+    }
+    
+    return font;
+}
+
+int get_font_by_name(const Quark *project, const char *name)
+{
+    Project *pr = (Project *) project->data;
+    int i;
+    
+    for (i = 0; i < pr->nfonts; i++) {
+        Fontdef *f = &pr->fontmap[i];
+        if (!strcmp(f->fontname, name)) {
+            return f->id;
+        }
+    }
+    
+    return BAD_FONT_ID;
+}
+
 static const TextMatrix unit_tm = UNIT_TM;
 
 static int get_escape_args(const char *s, char *buf)
@@ -132,8 +193,9 @@ static char *expand_macros(const Canvas *canvas, const char *s)
     return es;
 }
 
-int csparse(const Canvas *canvas, const char *s, CompositeString *cstring)
+int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring)
 {
+    Grace *grace = (Grace *) canvas_get_udata(canvas);
     CStringSegment *cseg;
 
     char *string, *ss, *buf, *acc_buf;
@@ -201,7 +263,7 @@ int csparse(const Canvas *canvas, const char *s, CompositeString *cstring)
             inside_escape = FALSE;
             
             if (isdigit(ccode)) {
-	        new_font = get_mapped_font(canvas, ccode - '0');
+	        new_font = ccode - '0';
 	        continue;
 	    } else if (ccode == 'd') {
                 i++;
@@ -264,8 +326,8 @@ int csparse(const Canvas *canvas, const char *s, CompositeString *cstring)
 		    new_font = BAD_FONT_ID;
 		    break;
 	        case 'x':
-		    new_font = get_font_by_name(canvas, "Symbol");
-		    break;
+		    new_font = get_font_by_name(grace->project, "Symbol");
+                    break;
 	        case 'c':
 	            upperset = TRUE;
 		    break;
@@ -312,9 +374,9 @@ int csparse(const Canvas *canvas, const char *s, CompositeString *cstring)
                     if (j == 0) {
                         new_font = BAD_FONT_ID;
                     } else if (isdigit(buf[0])) {
-                        new_font = get_mapped_font(canvas, atoi(buf));
+                        new_font = atoi(buf);
                     } else {
-                        new_font = get_font_by_name(canvas, buf);
+                        new_font = get_font_by_name(grace->project, buf);
                     }
                     break;
 	        case 'v':

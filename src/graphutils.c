@@ -174,9 +174,7 @@ int wipeout(void)
     quark_free(grace->project);
     grace->project = project_new(grace);
     
-    map_fonts(grace->rt->canvas, FONT_MAP_DEFAULT);
     print_file[0] = '\0';
-    /* a hack! the global "curtype" (as well as all others) should be removed */
     grace->rt->curtype = SET_XY;
     
     return 0;

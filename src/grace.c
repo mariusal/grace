@@ -292,11 +292,12 @@ void grace_free(Grace *grace)
     xfree(grace);
 }
 
-int grace_set_project(Grace *grace, Project *pr)
+int grace_set_project(Grace *grace, Quark *project)
 {
-    if (grace && pr) {
-        quark_data_free(grace->project);
-        grace->project->data = pr;
+    if (grace && project) {
+        Project *pr = (Project *) project->data;
+        quark_free(grace->project);
+        grace->project = project;
         project_clear_dirtystate(grace->project);
         
         /* Set dimensions of all devices */

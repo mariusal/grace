@@ -80,7 +80,7 @@ int mf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
     for (i = 0; i < cstats->nfonts; i++) {
         int font = cstats->fonts[i].font;
         fprintf(canvas->prstream, "\t( %d , \"%s\" , \"%s\" )\n", 
-            font, get_fontalias(canvas, font), get_fontfallback(canvas, font));
+            font, get_fontalias(canvas, font), get_fontname(canvas, font));
     }
     fprintf(canvas->prstream, "}\n");
 

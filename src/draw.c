@@ -154,7 +154,7 @@ void canvas_dev_puttext(Canvas *canvas,
     }
 }
 
-static int csparse_default(const Canvas *canvas,
+static int csparse_proc_default(const Canvas *canvas,
     const char *s, CompositeString *cstring)
 {
     CStringSegment *cseg;
@@ -166,6 +166,11 @@ static int csparse_default(const Canvas *canvas,
     } else {
         return RETURN_FAILURE;
     }
+}
+
+static int fmap_proc_default(const Canvas *canvas, int font)
+{
+    return font;
 }
 
 Canvas *canvas_new(void)
@@ -188,7 +193,8 @@ Canvas *canvas_new(void)
         /* initialize linestyle data */
         initialize_linestyles(canvas);
         
-        canvas->csparse = csparse_default;
+        canvas->csparse_proc = csparse_proc_default;
+        canvas->fmap_proc    = fmap_proc_default;
         
         /* initialize T1lib */
         if (init_t1(canvas) != RETURN_SUCCESS) {
@@ -420,9 +426,14 @@ void *canvas_get_udata(const Canvas *canvas)
     return canvas->udata;
 }
 
-void canvas_set_csparse(Canvas *canvas, CanvasCSParseProc csparse)
+void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc)
 {
-    canvas->csparse = csparse;
+    canvas->csparse_proc = csparse_proc;
+}
+
+void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc)
+{
+    canvas->fmap_proc = fmap_proc;
 }
 
 void canvas_set_pagepen(Canvas *canvas, const Pen *pen)
