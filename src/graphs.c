@@ -151,21 +151,6 @@ graph *graph_data_copy(graph *g)
     return g_new;
 }
 
-static int hook(unsigned int step, void *data, void *udata)
-{
-    Project *project = (Project *) udata;
-    Quark *gr = (Quark *) data;
-    
-    Quark *cg = project->cg;
-    
-    if (cg != gr) {
-        project->cg = gr;
-        return FALSE;
-    } else {
-        return TRUE;
-    }
-}
-
 Quark *get_parent_project(const Quark *q)
 {
     Quark *p = (Quark *) q;
@@ -194,13 +179,31 @@ Quark *get_parent_graph(const Quark *child)
     return NULL;
 }
 
+static int hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    if (q->fid == QFlavorGraph) {
+        Project *project = (Project *) udata;
+
+        closure->descend = FALSE;
+        
+        if (project->cg != q) {
+            project->cg = q;
+            return FALSE;
+        } else {
+            return TRUE;
+        }
+    } else {
+        return TRUE;
+    }
+}
+
 static int graph_free_cb(Quark *gr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {
         Quark *pr = get_parent_project(gr);
         Project *project = project_get_data(pr);
         if (project->cg == gr) {
-            storage_traverse(pr->children, hook, project);
+            quark_traverse(pr, hook, project);
         }
         if (project->cg == gr) {
             project->cg = NULL;
@@ -219,6 +222,10 @@ Quark *graph_new(Quark *q)
     
     g = quark_new(q, QFlavorGraph);
     if (g) {
+        Project *pr = project_get_data(get_parent_project(q));
+        if (pr && pr->cg == NULL) {
+            pr->cg = g;
+        }
         quark_cb_set(g, graph_free_cb, NULL);
     }
     return g;
