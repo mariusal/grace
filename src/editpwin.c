@@ -679,7 +679,8 @@ static EditPoints *new_ep(void)
     CreateMenuButton(menupane, "Column format...", 'f', do_props_cb, ep);
 
     menupane = CreateMenu(menubar, "Help", 'H', TRUE);
-    CreateMenuButton(menupane, "On dataset editor", 'e', HelpCB, NULL);
+    CreateMenuHelpButton(menupane, "On dataset editor", 'e', ep->top,
+        "doc/UsersGuide.html#SSEditor");
 
     fr = CreateFrame(ep->top, NULL);
     AddDialogFormChild(ep->top, fr);
