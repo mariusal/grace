@@ -426,11 +426,41 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
         return;
     }
 
-    PDF_place_image(phandle,
-        image, vp.x, vp.y - height*pixel_size, pixel_size);
+    PDF_place_image(phandle, image, vp.x, vp.y - height*pixel_size, pixel_size);
     PDF_close_image(phandle, image);
     
     xfree(buf);
+}
+
+static char *pdf_builtin_fonts[] = 
+{
+    "Times-Roman",
+    "Times-Italic",
+    "Times-Bold",
+    "Times-BoldItalic",
+    "Helvetica",
+    "Helvetica-Oblique",
+    "Helvetica-Bold",
+    "Helvetica-BoldOblique",
+    "Courier",
+    "Courier-Oblique",
+    "Courier-Bold",
+    "Courier-BoldOblique",
+    "Symbol",
+    "ZapfDingbats"
+};
+
+static int number_of_pdf_builtin_fonts = sizeof(pdf_builtin_fonts)/sizeof(char *);
+
+static int pdf_builtin_font(const char *fname)
+{
+    int i;
+    for (i = 0; i < number_of_pdf_builtin_fonts; i++) {
+        if (strcmp(pdf_builtin_fonts[i], fname) == 0) {
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 void pdf_puttext(VPoint vp, char *s, int len, int font,
@@ -442,23 +472,31 @@ void pdf_puttext(VPoint vp, char *s, int len, int font,
         char buf[GR_MAXPATHLEN];
         char *fontname, *encscheme;
         char *pdflibenc;
+        int embed;
+        
         fontname = get_fontalias(font);
-        sprintf(buf, "%s=%s/fonts/type1/%s",
-            fontname, get_grace_home(), get_afmfilename(font));
-        PDF_set_parameter(phandle, "FontAFM", buf);
-        sprintf(buf, "%s=%s/fonts/type1/%s",
-            fontname, get_grace_home(), get_fontfilename(font));
-        PDF_set_parameter(phandle, "FontOutline", buf);
-
-        encscheme = get_encodingscheme(font);
-        if (strcmp(encscheme, "ISOLatin1Encoding") == 0) {
-            pdflibenc = "default";
-        } else if (strcmp(encscheme, "FontSpecific") == 0) {
-            pdflibenc = "builtin";
+        
+        if (pdf_builtin_font(fontname)) {
+            pdflibenc = "host";
+            embed = 0;
         } else {
-            pdflibenc = "pdfdoc";
+            sprintf(buf, "%s=%s/fonts/type1/%s",
+                fontname, get_grace_home(), get_afmfilename(font));
+            PDF_set_parameter(phandle, "FontAFM", buf);
+            sprintf(buf, "%s=%s/fonts/type1/%s",
+                fontname, get_grace_home(), get_fontfilename(font));
+            PDF_set_parameter(phandle, "FontOutline", buf);
+
+            encscheme = get_encodingscheme(font);
+            if (strcmp(encscheme, "FontSpecific") == 0) {
+                pdflibenc = "builtin";
+            } else {
+                pdflibenc = "host";
+            }
+            embed = 1;
         }
-        pdf_font_ids[font] = PDF_findfont(phandle, fontname, pdflibenc, 1);
+        
+        pdf_font_ids[font] = PDF_findfont(phandle, fontname, pdflibenc, embed);
     } 
     PDF_setfont(phandle, pdf_font_ids[font], 1.0);
 
@@ -466,7 +504,7 @@ void pdf_puttext(VPoint vp, char *s, int len, int font,
                                  (float) tm->cxy, (float) tm->cyy,
                                  vp.x, vp.y);
 
-    PDF_show(phandle, s);
+    PDF_show2(phandle, s, len);
 
     if (underline == TRUE) {
         /* TODO */
