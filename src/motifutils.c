@@ -2811,6 +2811,10 @@ OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,.
 
     retval = CreateOptionChoice(parent, labelstr, 1, nchoices, oi);
     
+    while (i) {
+	xfree(oi[i - 1].label);
+        i--;
+    }
     xfree(oi);
     
     return retval;
