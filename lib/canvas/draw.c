@@ -38,7 +38,7 @@
 #include <string.h>
 
 #include "grace/baseP.h"
-#include "grace/canvas.h"
+#include "grace/canvasP.h"
 #include "patterns.h"
 
 int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
@@ -449,6 +449,15 @@ void canvas_set_pagepen(Canvas *canvas, const Pen *pen)
     canvas->pagepen = *pen;
 }
 
+void canvas_set_prstream(Canvas *canvas, FILE *prstream)
+{
+    canvas->prstream = prstream;
+}
+
+FILE *canvas_get_prstream(const Canvas *canvas)
+{
+    return canvas->prstream;
+}
 
 int get_draw_mode(const Canvas *canvas)
 {

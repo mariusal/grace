@@ -31,7 +31,7 @@
 #include <string.h>
 
 #include "grace/baseP.h"
-#include "grace/canvas.h"
+#include "grace/canvasP.h"
 
 Device_entry *device_new(const char *name, int type, int twopass, void *data)
 {

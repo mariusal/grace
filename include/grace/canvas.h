@@ -28,8 +28,6 @@
 #ifndef __CANVAS_H_
 #define __CANVAS_H_
 
-#include <stdio.h>
-
 #include <t1lib.h>
 /* A hack - until there are T1_MAJORVERSION etc defined */
 #ifndef T1ERR_SCAN_ENCODING
@@ -210,19 +208,6 @@ typedef struct {
     double black;
 } fCMYK;
 
-/* Drawing properties */
-typedef struct {
-    Pen pen;
-    int bgcolor;
-    int lines;
-    double linew;
-    int linecap;
-    int linejoin;
-    double charsize;
-    int font;
-    int fillrule;
-} DrawProps;
-
 typedef struct {
     double cxx, cxy;
     double cyx, cyy;
@@ -257,12 +242,6 @@ typedef struct {
     CStringSegment *segs;
     CSGlyphCache *cglyphs;
 } CompositeString;
-
-typedef struct {
-    char *alias;
-    char used;
-    char chars_used[256];
-} FontDB;
 
 typedef struct {
     int font;
@@ -371,12 +350,6 @@ typedef struct {
 #define BBOX_TYPE_GLOB	0
 #define BBOX_TYPE_TEMP	1
 
-typedef struct {
-    int active;
-    view v;
-    view fv;
-} BBox_type;
-
 /* Standard formats */
 typedef enum {
     PAGE_FORMAT_CUSTOM,
@@ -451,75 +424,6 @@ typedef struct _XrstDevice_entry {
 } XrstDevice_entry;
 
 
-/* Canvas */
-struct _Canvas {
-    /* drawing properties */
-    DrawProps draw_props;
-    
-    /* page background fill */
-    Pen pagepen;
-    
-    /* colors */
-    unsigned int ncolors;
-    CMap_entry *cmap;
-
-    /* patterns */
-    unsigned int npatterns;
-    PMap_entry *pmap;
-    
-    /* linestyles */
-    unsigned int nlinestyles;
-    LMap_entry *lmap;
-    
-    /* fonts */
-    unsigned int nfonts;
-    FontDB *FontDBtable;
-    char **DefEncoding;
-
-    /* clipping */
-    int clipflag;
-    view clipview;
-    
-    int draw_mode;
-    int drypass;
-
-    BBox_type bboxes[2];
-
-    int max_path_length;
-
-    /* device array */
-    unsigned int ndevices;
-    Device_entry **device_table;
-    
-    /* current device */
-    Device_entry *curdevice;
-    
-    /* "device ready" flag */
-    int device_ready;
-    
-    /* output stream */
-    FILE *prstream;
-    
-    /* info */
-    char *username;
-    char *docname;
-    char *description;
-    
-    /* user-supplied procedure for parsing composite strings */
-    CanvasCSParseProc csparse_proc;
-    /* user-supplied procedure for mapping font ids */
-    CanvasFMapProc fmap_proc;
-    
-    /* user data */
-    void *udata;
-
-    /* cached values of the grayscale AA levels and validity flags */
-    int aacolors_low_ok;
-    unsigned long aacolors_low[T1_AALEVELS_LOW];
-    int aacolors_high_ok;
-    unsigned long aacolors_high[T1_AALEVELS_HIGH];
-};
-
 /* The default max drawing path limit */
 #define MAX_DRAWING_PATH  20000
 
@@ -535,6 +439,9 @@ void canvas_set_description(Canvas *canvas, const char *s);
 char *canvas_get_username(const Canvas *canvas);
 char *canvas_get_docname(const Canvas *canvas);
 char *canvas_get_description(const Canvas *canvas);
+
+void canvas_set_prstream(Canvas *canvas, FILE *prstream);
+FILE *canvas_get_prstream(const Canvas *canvas);
 
 void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc);
 void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc);

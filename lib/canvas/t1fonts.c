@@ -30,7 +30,7 @@
 #include <string.h>
 
 #include "grace/baseP.h"
-#include "grace/canvas.h"
+#include "grace/canvasP.h"
 
 int init_t1(Canvas *canvas)
 {
