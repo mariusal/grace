@@ -75,13 +75,12 @@ static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer
 static void update_eblock(int gno);
 
 /*
- * Create the files Frame and the files Panel
+ * Create the block data panel
  */
-void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_eblock_frame(int gno)
 {
     int i;
     char buf[32];
-    int gno = (int) client_data;
     Widget rc, buts[2];
 
     if (blockncols == 0) {
@@ -116,7 +115,7 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtManageChild(rc);
 
 	eblock_graph_choice_item = CreateGraphChoice(eblock_panel,
-                                    "Load to set in graph:", LIST_TYPE_SINGLE);
+                                    "Load to a new set in graph:", LIST_TYPE_SINGLE);
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, eblock_panel, NULL);
 

@@ -112,7 +112,7 @@ void do_hotupdate_proc(Widget w, XtPointer client_data, XtPointer call_data);
 
 void create_block_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
-void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_eblock_frame(int gno);
 
 void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data);
 

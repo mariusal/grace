@@ -1177,7 +1177,7 @@ static void block_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	    errwin("Number of columns in block data = 0");
 	} else {
 	    XtUnmanageChild(block_dialog);
-	    create_eblock_frame(NULL, NULL, NULL);
+	    create_eblock_frame(get_cg());
 	}
     }
     XtFree(s);

@@ -1366,7 +1366,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
             }
         break;
     case SetMenuNewBCB:
-            create_eblock_frame(listp->list, (XtPointer) gno, NULL);
+            create_eblock_frame(gno);
         break;
     case SetMenuEditSCB:
         if (n == 1) {
