@@ -412,19 +412,6 @@ Pixmap resize_bufpixmap(unsigned int w, unsigned int h)
     }
 }
 
-void switch_current_graph(int gno)
-{
-    int saveg = get_cg();
-    
-    if (is_graph_hidden(gno) == FALSE) {
-        select_graph(gno);
-        draw_focus(saveg);
-        draw_focus(gno);
-        update_all();
-        set_graph_selectors(gno);
-    }
-}
-
 static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId)
 {
     set_wait_cursor();
