@@ -730,7 +730,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(sub2menupane, "Log scale", '\0', load_example, "tlog.agr");
     CreateMenuButton(sub2menupane, "Log2 scale", '\0', load_example, "log2.agr");
     CreateMenuButton(sub2menupane, "Error bars", '\0', load_example, "terr.agr");
-    CreateMenuButton(sub2menupane, "More error bars", '\0', load_example, "terr2.agr");
     CreateMenuButton(sub2menupane, "Date/time axis formats", '\0', load_example, "times.agr");
     CreateMenuButton(sub2menupane, "Australia map", '\0', load_example, "au.agr");
     CreateMenuButton(sub2menupane, "A CO2 analysis", '\0', load_example, "co2.agr");
