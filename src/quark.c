@@ -363,7 +363,7 @@ int quark_child_exist(const Quark *parent, const Quark *child)
 int quark_reparent(Quark *q, Quark *newparent)
 {
     Quark *parent;
-    if (!q || !newparent) {
+    if (!q || !newparent || q == newparent) {
         return RETURN_FAILURE;
     }
     
