@@ -14,6 +14,7 @@ SGML2HTML   = sgml2html --split=0
 SGML2DVI    = sgml2latex
 SGML2LATEX  = sgml2latex --output=tex
 DVI2PS      = dvips
+LATEX       = latex
 PDFLATEX    = pdflatex
 
 .sgml.html :
@@ -25,22 +26,27 @@ PDFLATEX    = pdflatex
 .sgml.tex :
 	$(SGML2LATEX) $<
 
+.tex.dvi :
+	$(LATEX) $<
+
 .dvi.ps :
 	$(DVI2PS) $<
 
 .tex.pdf :
 	$(PDFLATEX) $<
 
-SGMLS = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
+SGMLS    = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
 
 HTMLDOCS = CHANGES.html GPL.html philosophical-gnu-sm.jpg nohelp.html \
-	FAQ.html Tutorial.html UsersGuide.html
+	   FAQ.html Tutorial.html UsersGuide.html
 
-DVIDOCS = FAQ.dvi Tutorial.dvi UsersGuide.dvi
+DVIDOCS  = FAQ.dvi Tutorial.dvi UsersGuide.dvi
 
-PSDOCS = FAQ.ps Tutorial.ps UsersGuide.ps
+PSDOCS   = FAQ.ps Tutorial.ps UsersGuide.ps
 
-PDFDOCS = FAQ.pdf Tutorial.pdf UsersGuide.pdf
+PDFDOCS  = FAQ.pdf Tutorial.pdf UsersGuide.pdf
+
+TEXDOCS  = FAQ.tex Tutorial.tex UsersGuide.tex
 
 TUTDATA = 2.1.dat 3.dat 7.1.2.agr 7.1.3.agr 8.2.dat \
 	10.1.dat 10a.dat 10c.dat 10b.dat shiftdata.sh mygraph.png
@@ -53,11 +59,13 @@ all : html dvi
 
 html : $(HTMLDOCS)
 
-dvi : $(DVIDOCS)
+dvi  : $(DVIDOCS)
 
-pdf : $(PDFDOCS)
+pdf  : $(PDFDOCS)
 
-ps : $(PSDOCS)
+ps   : $(PSDOCS)
+
+tex  : $(TEXDOCS)
 
 clean :
 	$(RM) *.aux *.log
