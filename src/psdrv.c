@@ -306,7 +306,7 @@ int ps_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
     PS_data *psdata = (PS_data *) data;
-    int i, j, first;
+    unsigned int i, j, first;
     Page_geometry *pg;
     int width_pp, height_pp;
     PSFont *psfonts;
@@ -740,7 +740,7 @@ void ps_setpen(const Canvas *canvas, const Pen *pen, PS_data *psdata)
 
 void ps_setdrawbrush(const Canvas *canvas, PS_data *psdata)
 {
-    int i;
+    unsigned int i;
     int ls;
     double lw;
     Pen pen;

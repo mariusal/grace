@@ -480,7 +480,7 @@ void create_datasetop_popup(Widget but, void *data)
 
 static void datasetoptypeCB(OptionStructure *opt, int value, void *data)
 {
-    int i;
+    unsigned int i;
     dataSetOpType type = value;
     
     for (i = 0; i < 5; i++) {

@@ -110,7 +110,7 @@ static void VPoint2XPoint(const VPoint *vp, XPoint *xp)
 
 static void x11_initcmap(const Canvas *canvas, X11_data *x11data)
 {
-    int i;
+    unsigned int i;
     RGB rgb;
     long pixel;
     

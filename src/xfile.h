@@ -50,14 +50,14 @@ typedef struct _ElementAttribute {
 
 typedef struct _Attributes {
     ElementAttribute *args;
-    int size;
-    int count;
+    unsigned int size;
+    unsigned int count;
 } Attributes;
 
 typedef struct _XFile {
     FILE *fp;
     XStack *tree;
-    int indent;
+    unsigned int indent;
     char *indstr;
     int curpos;
     int convert;

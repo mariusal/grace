@@ -103,7 +103,7 @@ static int gotparams = FALSE;
 static char paramfile[GR_MAXPATHLEN] = "";
 
 static char f_string[MAX_PARS_STRING_LENGTH]; /* buffer for string to parse */
-static int pos;
+static unsigned int pos;
 
 
 /* the graph and set of the left part of a vector assignment */
@@ -3535,7 +3535,7 @@ font_select:
 lines_select:
         LINESTYLE nexpr
         {
-	    int lines = $2;
+	    unsigned int lines = $2;
             if (lines >= 0 && lines < number_of_linestyles(canvas)) {
 	        $$ = lines;
 	    } else {
@@ -3548,7 +3548,7 @@ lines_select:
 pattern_select:
         PATTERN nexpr
         {
-	    int patno = $2;
+	    unsigned int patno = $2;
             if (patno >= 0 && patno < number_of_patterns(canvas)) {
 	        $$ = patno;
 	    } else {
@@ -3561,7 +3561,7 @@ pattern_select:
 color_select:
         COLOR nexpr
         {
-            int c = $2;
+            unsigned int c = $2;
             if (c >= 0 && c < number_of_colors(canvas)) {
                 $$ = c;
             } else {

@@ -109,9 +109,9 @@ static int png_output(const Canvas *canvas, void *data,
     FILE *fp;
     png_structp png_ptr;
     png_infop info_ptr;
-    int w, h;
+    unsigned int w, h;
     int interlace_type;
-    int i, j;
+    unsigned int i, j;
     png_color *palette;
     png_byte trans;
     int num_text;
@@ -221,7 +221,7 @@ static int png_output(const Canvas *canvas, void *data,
     for (i = 0; i < h; i++) {
         image[i] = xmalloc(w*sizeof(png_byte));
         for (j = 0; j < w; j++) {
-            int k;
+            unsigned int k;
             png_byte cid = 0;
             for (k = 0; k < ncolors; k++) {
                 if (colors[k] == pm->matrix[i][j]) {

@@ -112,7 +112,7 @@ int argmatch(char *s1, char *s2, int atleast)
  */
 void lowtoupper(char *s)
 {
-    int i, quoteon = FALSE;
+    unsigned int i, quoteon = FALSE;
 
     for (i = 0; i < strlen(s); i++) {
 	if (s[i] == '"') {

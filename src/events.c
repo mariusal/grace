@@ -125,6 +125,56 @@ static void scroll(Widget w, int up, int horiz)
     XmScrollBarSetValues(vbar, value, 0, 0, 0, True);
 }
 
+typedef struct {
+    VPoint vp;
+    Quark *q;
+    int part;
+    view bbox;
+    int found;
+    int depth;
+} canvas_target;
+
+static void target_consider(canvas_target *ct, Quark *q, int part,
+    const view *v, int depth)
+{
+    if ((depth > ct->depth || (depth == ct->depth && part > ct->part)) &&
+        is_vpoint_inside(v, &ct->vp, 0.0)) {
+        ct->q = q;
+        ct->part = part;
+        ct->bbox = *v;
+        ct->found = TRUE;
+        ct->depth = depth;
+    }
+}
+
+static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    canvas_target *ct = (canvas_target *) udata;
+    view v;
+    
+    if (q->fid == QFlavorFrame && frame_is_active(q)) {
+        legend *l;
+        
+        frame_get_view(q, &v);
+        target_consider(ct, q, 0, &v, (int) closure->depth);
+        
+        if ((l = frame_get_legend(q)) && l->active) {
+            target_consider(ct, q, 1, &l->bb, (int) closure->depth);
+        }
+    }
+    
+    return TRUE;
+}
+
+static int find_target(Quark *pr, canvas_target *ct)
+{
+    ct->found = FALSE;
+    ct->depth = -1;
+    quark_traverse(pr, target_hook, ct);
+
+    return ct->found ? RETURN_SUCCESS:RETURN_FAILURE;
+}
+
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 {
     int x, y;                /* pointer coordinates */
@@ -146,6 +196,8 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     int abort_action = FALSE;
     int collect_points = FALSE;
     int npoints = 0, npoints_requested = 0;
+    
+    canvas_target ct;
     
     x = event->xmotion.x;
     y = event->xmotion.y;
@@ -190,10 +242,19 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             lastc_y = y;
 
             if (!dbl_click) {
-                if (grace->gui->focus_policy == FOCUS_CLICK) {
-                    cg = next_graph_containing(cg, &vp);
+                if (xbe->state & ControlMask) {
+                    ct.vp = vp;
+                    if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
+                        fprintf(stderr, "%s(%d) [%f %f %f %f]\n",
+                            QIDSTR(ct.q), ct.part,
+                            ct.bbox.xv1, ct.bbox.yv1, ct.bbox.xv2, ct.bbox.yv2);
+                    }
+                } else {
+                    if (grace->gui->focus_policy == FOCUS_CLICK) {
+                        cg = next_graph_containing(cg, &vp);
+                    }
+                    update_locator_lab(cg, &vp);
                 }
-                update_locator_lab(cg, &vp);
             } else {
                 fprintf(stderr, "DblClick\n");
             }

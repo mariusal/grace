@@ -239,7 +239,7 @@ static int test_pattern( char *ext, char *fn )
  */
 static void hex2char( Filter *f, char *hex )
 {
-	int i;
+	unsigned int i;
 	char tmp[3], *ptr;
 
 	tmp[2] = '\0';

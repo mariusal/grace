@@ -55,7 +55,7 @@ typedef ListTreeItem * (*Quark_CreateProc)(
 typedef struct {
     Quark *q;
     Widget tree;
-    int nchoices;
+    unsigned int nchoices;
     Quark_LabelingProc labeling_proc;
 } TreeItemData;
 
@@ -264,7 +264,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             item = ret->items[i];
             ti_data = (TreeItemData *) item->user_data;
             
-            if (ti_data->q->fid != fid) {
+            if ((int) ti_data->q->fid != fid) {
                 homogeneous_selection = FALSE;
             }
             if (quark_parent_get(ti_data->q) != parent) {

@@ -157,7 +157,7 @@ Attributes *attributes_new(void)
 void attributes_free(Attributes *attrs)
 {
     if (attrs) {
-        int i;
+        unsigned int i;
         for (i = 0; i < attrs->size; i++) {
             xfree(attrs->args[i].name);
             xfree(attrs->args[i].value);
@@ -167,7 +167,7 @@ void attributes_free(Attributes *attrs)
     }
 }
 
-static int attributes_resize(Attributes *attrs, int count)
+static int attributes_resize(Attributes *attrs, unsigned int count)
 {
     if (count > attrs->size) {
         int newsize = attrs->size + ATTR_CHUNK_SIZE;
@@ -326,7 +326,7 @@ static void xfile_convert(XFile *xf, int flag)
 
 static int xfile_output(XFile *xf, char *str)
 {
-    int i;
+    unsigned int i;
     
     if (!str) {
         return RETURN_SUCCESS;

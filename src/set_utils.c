@@ -925,7 +925,7 @@ int load_comments_to_legend(Quark *pset)
     return set_set_legstr(pset, set_get_comment(pset));
 }
 
-int setcolors(Quark *pset, int color)
+int setcolors(Quark *pset, unsigned int color)
 {
     set *p = set_get_data(pset);
     RunTime *rt = rt_from_quark(pset);
@@ -933,7 +933,7 @@ int setcolors(Quark *pset, int color)
         return RETURN_FAILURE;
     }
     
-    if (color < number_of_colors(rt->canvas) && color >= 0) {
+    if (color < number_of_colors(rt->canvas)) {
         p->line.line.pen.color    = color;
         p->sym.line.pen.color = color;
         p->sym.fillpen.color  = color;

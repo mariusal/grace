@@ -130,7 +130,7 @@ int register_svg_drv(Canvas *canvas)
     return register_device(canvas, d);
 }
 
-static void define_pattern(const Canvas *canvas, Svg_data *svgdata, int i, int c)
+static void define_pattern(const Canvas *canvas, Svg_data *svgdata, unsigned int i, unsigned int c)
 {
     int j, k, l;
     Pattern *pat = canvas_get_pattern(canvas, i);
@@ -261,7 +261,7 @@ int svg_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
     Svg_data *svgdata = (Svg_data *) data;
-    int i;
+    unsigned int i;
     char *s;
     FILE *prstream = canvas_get_prstream(canvas);
 
@@ -326,7 +326,7 @@ int svg_initgraphics(const Canvas *canvas, void *data,
 static void svg_group_props(const Canvas *canvas, Svg_data *svgdata,
     int draw, int fill)
 {
-    int i, needs_group;
+    unsigned int i, needs_group;
     double lw;
     Pen pen;
     int fillrule, linecap, linejoin, linestyle;

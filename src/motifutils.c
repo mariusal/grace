@@ -116,9 +116,9 @@ static unsigned long xvlibcolors[MAXCOLORS];
 
 
 static OptionItem *color_option_items = NULL;
-static int ncolor_option_items = 0;
+static unsigned int ncolor_option_items = 0;
 static OptionStructure **color_selectors = NULL;
-static int ncolor_selectors = 0;
+static unsigned int ncolor_selectors = 0;
 
 static char *label_to_resname(const char *s, const char *suffix)
 {
@@ -1827,7 +1827,7 @@ static BitmapOptionItem *lines_option_items;
 static void init_xvlibcolors(void)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
-    int i;
+    unsigned int i;
     
     for (i = 0; i < number_of_colors(canvas); i++) {
         long pixel = -1;
@@ -1846,7 +1846,7 @@ static void init_xvlibcolors(void)
 }
 
 int init_option_menus(void) {
-    int i, j, k, l, n;
+    unsigned int i, j, k, l, n;
     
     init_xvlibcolors();
     
@@ -2125,7 +2125,7 @@ static Widget CreateColorChoicePopup(Widget button)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
     Widget popup;
-    int ci;
+    unsigned int ci;
     
     popup = XmCreatePopupMenu(button, "colorPopupMenu", NULL, 0);
     XtVaSetValues(popup,
@@ -2780,7 +2780,7 @@ void UpdateSrcDestSelector(SrcDestStructure *srcdest)
 void paint_color_selector(OptionStructure *optp)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
-    int i, color;
+    unsigned int i, color;
     long bg, fg;
     
     for (i = 0; i < ncolor_option_items; i++) {
@@ -2800,7 +2800,7 @@ void paint_color_selector(OptionStructure *optp)
 
 void update_color_selectors(void)
 {
-    int i, j;
+    unsigned int i, j;
     Color *color;
     
     for (i = 0, j = 0; i < number_of_colors(canvas); i++) {

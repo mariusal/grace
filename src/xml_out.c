@@ -200,7 +200,7 @@ static void xmlio_write_text_props(XFile *xf, Attributes *attrs,
 
 int save_fontmap(XFile *xf, const Project *pr)
 {
-    int i;
+    unsigned int i;
     Attributes *attrs;
     
     attrs = attributes_new();
@@ -227,7 +227,7 @@ int save_fontmap(XFile *xf, const Project *pr)
 
 int save_colormap(XFile *xf, const Canvas *canvas)
 {
-    int i;
+    unsigned int i;
     Attributes *attrs;
     
     attrs = attributes_new();

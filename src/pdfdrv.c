@@ -192,7 +192,7 @@ static int pdf_builtin_font(const char *fname)
 int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     PDF_data *pdfdata = (PDF_data *) data;
-    int i;
+    unsigned int i;
     Page_geometry *pg;
     char *s;
    
@@ -404,7 +404,7 @@ void pdf_setpen(const Canvas *canvas, const Pen *pen, PDF_data *pdfdata)
 
 void pdf_setdrawbrush(const Canvas *canvas, PDF_data *pdfdata)
 {
-    int i;
+    unsigned int i;
     float lw;
     int ls;
     float *darray;

@@ -243,7 +243,7 @@ int register_mif_drv(Canvas *canvas)
 int mif_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
-    int i;
+    unsigned int i;
     double c, m, y, k;
     double *side;
     fRGB frgb;
@@ -360,7 +360,8 @@ int mif_initgraphics(const Canvas *canvas, void *data,
 
 void mif_object_props(const Canvas *canvas, double side, int draw, int fill)
 {
-    int i, ls;
+    unsigned int i;
+    int ls;
     double lw;
     Pen pen;
     FILE *prstream = canvas_get_prstream(canvas);

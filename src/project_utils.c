@@ -122,7 +122,7 @@ int project_get_graphs(Quark *q, Quark ***graphs)
 int get_font_by_name(const Quark *project, const char *name)
 {
     Project *pr = project_get_data(project);
-    int i;
+    unsigned int i;
     
     for (i = 0; i < pr->nfonts; i++) {
         Fontdef *f = &pr->fontmap[i];

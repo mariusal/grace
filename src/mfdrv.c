@@ -70,7 +70,7 @@ int register_mf_drv(Canvas *canvas)
 
 int mf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
-    int i, j;
+    unsigned int i, j;
     Page_geometry *pg;
     FILE *prstream = canvas_get_prstream(canvas);
 
