@@ -37,35 +37,38 @@
 #include "grace/canvas.h"
 #include "graphs.h"
 
+typedef struct {
+    Canvas *canvas;
+    
+    int refn;
+    double *refx, *refy;
+    double offset, epsilon;
+    
+    int ndsets;
+    
+    int first_pass, last_pass;
+} plot_rt_t;
+
 void drawgraph(Grace *grace);
 void do_hardcopy(Grace *grace);
 
-int draw_graph(Canvas *canvas, Quark *gr);
+int draw_graph(Quark *gr, plot_rt_t *plot_rt);
+void draw_set(Quark *pset, plot_rt_t *plot_rt);
 
-void xyplot(Canvas *canvas, Quark *gr);
-void draw_polar_graph(Canvas *canvas, Quark *gr);
-void draw_smith_chart(Canvas *canvas, Quark *gr);
-void draw_pie_chart(Canvas *canvas, Quark *gr);
-
-void drawframe(Canvas *canvas, Quark *q);
+void draw_frame(Quark *q, plot_rt_t *plot_rt);
 void fillframe(Canvas *canvas, Quark *q);
 
-void drawsetfill(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset);
-void drawsetline(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset);
-void drawsetbars(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset);
-void drawsetsyms(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset);
-void drawsetavalues(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset);
-void drawseterrbars(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset);
-void drawsethilo(Canvas *canvas, Quark *pset);
-void drawcirclexy(Canvas *canvas, Quark *pset);
-void drawsetvmap(Canvas *canvas, Quark *pset);
-void drawsetboxplot(Canvas *canvas, Quark *pset);
+void drawsetfill(Quark *pset, plot_rt_t *plot_rt);
+void drawsetline(Quark *pset, plot_rt_t *plot_rt);
+void drawsetbars(Quark *pset, plot_rt_t *plot_rt);
+void drawsetsyms(Quark *pset, plot_rt_t *plot_rt);
+void drawsetavalues(Quark *pset, plot_rt_t *plot_rt);
+void drawseterrbars(Quark *pset, plot_rt_t *plot_rt);
+void drawsethilo(Quark *pset, plot_rt_t *plot_rt);
+void drawcirclexy(Quark *pset, plot_rt_t *plot_rt);
+void drawsetvmap(Quark *pset, plot_rt_t *plot_rt);
+void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt);
+void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt);
 
 void symplus(Canvas *canvas, const VPoint *vp, double s);
 void symx(Canvas *canvas, const VPoint *vp, double s);
@@ -83,8 +86,7 @@ void draw_object(Canvas *canvas, Quark *q);
 void draw_arrowhead(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
     const Arrow *arrowp, const Pen *pen, const Pen *fill);
 
-void dolegend(Canvas *canvas, Quark *gr);
-void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize);
+void draw_legends(Quark *q, plot_rt_t *plot_rt);
 
 void draw_titles(Canvas *canvas, Quark *gr);
 

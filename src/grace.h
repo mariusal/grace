@@ -79,7 +79,7 @@ struct _Quark {
 typedef struct {
     unsigned int depth;
     unsigned int step;
-    int pass2;
+    int post;
     int descend;
 } QTraverseClosure;
 

@@ -244,7 +244,7 @@ int autoscale_graph(Quark *gr, int autos_type)
 {
     int nsets;
     Quark **sets;
-    nsets = graph_get_sets(gr, &sets);
+    nsets = get_descendant_sets(gr, &sets);
     if (nsets) {
         autoscale_bysets(sets, nsets, autos_type);
         xfree(sets);

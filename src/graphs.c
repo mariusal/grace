@@ -63,7 +63,7 @@ static int graph_count_hook(Quark *q,
     return TRUE;
 }
 
-int number_of_graphs(const Quark *project)
+int number_of_graphs(Quark *project)
 {
     int ngraphs = 0;
     
@@ -704,9 +704,8 @@ int set_set_hidden(Quark *pset, int flag)
     }
 }
 
-static int set_count_hook(unsigned int step, void *data, void *udata)
+static int set_count_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    Quark *q = (Quark *) data;
     int *nsets = (int *) udata;
     
     if (q->fid == QFlavorSet) {
@@ -716,11 +715,11 @@ static int set_count_hook(unsigned int step, void *data, void *udata)
     return TRUE;
 }
 
-int number_of_sets(Quark *gr)
+int number_of_sets(Quark *q)
 {
     int nsets = 0;
     
-    storage_traverse(gr->children, set_count_hook, &nsets);
+    quark_traverse(q, set_count_hook, &nsets);
     
     return nsets;
 }
@@ -730,9 +729,8 @@ typedef struct {
     Quark **sets;
 } set_hook_t;
 
-static int set_hook(unsigned int step, void *data, void *udata)
+static int set_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    Quark *q = (Quark *) data;
     set_hook_t *p = (set_hook_t *) udata;
     
     if (q->fid == QFlavorSet) {
@@ -743,19 +741,19 @@ static int set_hook(unsigned int step, void *data, void *udata)
     return TRUE;
 }
 
-int graph_get_sets(Quark *gr, Quark ***sets)
+int get_descendant_sets(Quark *q, Quark ***sets)
 {
     set_hook_t p;
     
-    if (gr) {
+    if (q) {
         p.nsets = 0;
-        p.sets  = xmalloc(storage_count(gr->children)*SIZEOF_VOID_P);
+        p.sets  = xmalloc(number_of_sets(q)*SIZEOF_VOID_P);
 
         if (p.sets) {
-            storage_traverse(gr->children, set_hook, &p);
+            quark_traverse(q, set_hook, &p);
         }
-
-        *sets = xrealloc(p.sets, p.nsets*SIZEOF_VOID_P);
+        
+        *sets = p.sets;
 
         return p.nsets;
     } else {

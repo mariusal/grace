@@ -787,27 +787,27 @@ static int project_save_hook(Quark *q,
         save_preferences(xf);
         break;
     case QFlavorFrame:
-        if (!closure->pass2) {
+        if (!closure->post) {
             f = frame_get_data(q);
 
             attributes_set_ival(attrs, AStrType, f->type); /* FIXME: textual */
             xfile_begin_element(xf, EStrFrame, attrs);
             save_frame_properties(xf, f);
             
-            closure->pass2 = TRUE;
+            closure->post = TRUE;
         } else {
             xfile_end_element(xf, EStrFrame);
         }
         break;
     case QFlavorGraph:
-        if (!closure->pass2) {
+        if (!closure->post) {
             attributes_set_sval(attrs, AStrId, QIDSTR(q));
             xmlio_set_active(attrs, !is_graph_hidden(q));
 
             xfile_begin_element(xf, EStrGraph, attrs);
             save_graph_properties(xf, q);
     
-            closure->pass2 = TRUE;
+            closure->post = TRUE;
         } else {
             xfile_end_element(xf, EStrGraph);
         }

@@ -1457,7 +1457,7 @@ int write_netcdf(char *fname)
         gr = graphs[i];
         if (gr) {
             Quark **psets;
-            int nsets = graph_get_sets(gr, &psets);
+            int nsets = get_descendant_sets(gr, &psets);
 	    for (j = 0; j < nsets; j++) {
 		Quark *pset = psets[j];
                 if (is_set_active(pset)) {
@@ -1500,7 +1500,7 @@ int write_netcdf(char *fname)
         gr = graphs[i];
 	if (gr) {
             Quark **psets;
-            int nsets = graph_get_sets(gr, &psets);
+            int nsets = get_descendant_sets(gr, &psets);
 	    for (j = 0; j < nsets; j++) {
 		Quark *pset = psets[j];
                 if (is_set_active(pset)) {

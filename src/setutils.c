@@ -1082,7 +1082,7 @@ int number_of_active_sets(Quark *gr)
     int i, nsets, na = 0;
     Quark **psets;
 
-    nsets = graph_get_sets(gr, &psets);
+    nsets = get_descendant_sets(gr, &psets);
     for (i = 0; i < nsets; i++) {
         Quark *pset = psets[i];
         if (is_set_active(pset) == TRUE) {

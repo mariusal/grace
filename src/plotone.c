@@ -51,26 +51,48 @@
 
 char print_file[GR_MAXPATHLEN] = "";
 
-static int plotone_hook(Quark *q,
-    void *udata, QTraverseClosure *closure)
+static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    Canvas *canvas = (Canvas *) udata;
+    plot_rt_t *plot_rt = (plot_rt_t *) udata;
+    Canvas *canvas = plot_rt->canvas;
     
     switch (q->fid) {
+    case QFlavorProject:
+        set_draw_mode(canvas, TRUE);   
+        break;
     case QFlavorFrame:
-        if (!closure->pass2) {
+        if (!closure->post) {
             /* fill frame */
             fillframe(canvas, q);
     
-            closure->pass2 = TRUE;
+            closure->post = TRUE;
         } else {
-            drawframe(canvas, q);
+            draw_frame(q, plot_rt);
         }
         break;
     case QFlavorGraph:
-        if (draw_graph(canvas, q) != RETURN_SUCCESS) {
-            closure->descend = FALSE;
+        if (!closure->post) {
+            /* FIXME: stacked graphs */
+            plot_rt->last_pass  = TRUE;
+            plot_rt->first_pass = TRUE;
+
+            if (draw_graph(q, plot_rt) != RETURN_SUCCESS) {
+                closure->descend = FALSE;
+            }
+
+            closure->post = TRUE;
+        } else {
+            XCFREE(plot_rt->refy);
+
+            /* draw regions and mark the reference points only if in interactive mode */
+            if (terminal_device(plot_rt->canvas) == TRUE) {
+                draw_regions(plot_rt->canvas, q);
+                draw_ref_point(plot_rt->canvas, q);
+            }
         }
+        break;
+    case QFlavorSet:
+        draw_set(q, plot_rt);
         break;
     case QFlavorAxis:
         draw_axis(canvas, q);
@@ -86,10 +108,11 @@ static int plotone_hook(Quark *q,
 static void dproc(Canvas *canvas, void *data)
 {
     Quark *project = (Quark *) data;
-
-    set_draw_mode(canvas, TRUE);   
+    plot_rt_t plot_rt;
     
-    quark_traverse(project, plotone_hook, canvas);
+    plot_rt.canvas = canvas;
+
+    quark_traverse(project, plotone_hook, &plot_rt);
 }
 
 /*
@@ -186,7 +209,7 @@ void do_hardcopy(Grace *grace)
 }
 
 
-int draw_graph(Canvas *canvas, Quark *gr)
+int draw_graph(Quark *gr, plot_rt_t *plot_rt)
 {
     GraphType gtype;
     graph *g = graph_get_data(gr);
@@ -198,489 +221,281 @@ int draw_graph(Canvas *canvas, Quark *gr)
     if (select_graph(gr) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
-    
-    gtype = get_graph_type(gr);
-    
-    /* plot type specific routines */
-    switch (gtype) {
-    case GRAPH_POLAR:
-        draw_polar_graph(canvas, gr);
-        break;
-    case GRAPH_SMITH:
-        draw_smith_chart(canvas, gr);
-        break;
-    case GRAPH_PIE:
-        draw_pie_chart(canvas, gr);
-        break;
-    default:
-        xyplot(canvas, gr);
-        break;
-    }
 
-    /* draw regions and mark the reference points only if in interactive mode */
-    if (terminal_device(canvas) == TRUE) {
-        draw_regions(canvas, gr);
-        draw_ref_point(canvas, gr);
+    plot_rt->ndsets = 0;
+    plot_rt->offset = 0.0;
+
+    if (plot_rt->first_pass) {
+        plot_rt->refn = 0;
+        plot_rt->refx = NULL;
+        plot_rt->refy = NULL;
+        
+        gtype = get_graph_type(gr);
+
+        if (gtype == GRAPH_CHART) {
+            int setno, nsets;
+            Quark **psets;
+
+            nsets = get_descendant_sets(gr, &psets);
+            for (setno = 0; setno < nsets; setno++) {
+                Quark *pset = psets[setno];
+                if (is_set_drawable(pset)) {
+                    set *p = (set *) pset->data;
+                    if (getsetlength(pset) > plot_rt->refn) {
+                        plot_rt->refn = getsetlength(pset);
+                        plot_rt->refx = getx(pset);
+                    }
+                    if (is_graph_stacked(gr) != TRUE) {
+                        plot_rt->offset -= 0.5*0.02*p->sym.size;
+                    }
+                }
+            }
+            plot_rt->offset -= 0.5*(number_of_active_sets(gr) - 1)*get_graph_bargap(gr);
+
+            if (is_graph_stacked(gr) == TRUE) {
+                plot_rt->refy = xcalloc(plot_rt->refn, SIZEOF_DOUBLE);
+                if (plot_rt->refy == NULL) {
+                    return FALSE;
+                }
+            }
+
+
+            if (plot_rt->refx) {
+                double xmin, xmax;
+                int imin, imax;
+                minmax(plot_rt->refx, plot_rt->refn, &xmin, &xmax, &imin, &imax);
+                plot_rt->epsilon = 1.0e-3*(xmax - xmin)/plot_rt->refn;
+            } else {
+                plot_rt->epsilon = 0.0;
+            }
+
+        }
+   
+    } else
+    if (plot_rt->refy) {
+        int j;
+        for (j = 0; j < plot_rt->refn; j++) {
+            plot_rt->refy[j] = 0.0;
+        }
     }
     
     return RETURN_SUCCESS;
 }
 
-void draw_smith_chart(Canvas *canvas, Quark *gr)
+void draw_set(Quark *pset, plot_rt_t *plot_rt)
 {
-}
+    Quark *gr;
+    int x_ok;
+    double *x;
+    int j;
+    set *p;
+    int gtype;
 
-void draw_pie_chart(Canvas *canvas, Quark *gr)
-{
-    int i, setno, nsets, ndsets = 0;
-    view v;
-    world w;
-    int sgn;
-    VPoint vpc, vp1, vp2, vps[3], vpa;
-    VVector offset;
-    double r, start_angle, stop_angle;
-    double e_max, norm;
-    double *x, *c, *e, *pt;
-    AValue avalue;
-    char str[MAX_STRING_LENGTH];
-    Quark **psets;
 
-    get_graph_viewport(gr, &v);
-    vpc.x = (v.xv1 + v.xv2)/2;
-    vpc.y = (v.yv1 + v.yv2)/2;
-
-    get_graph_world(gr, &w);
-    sgn = is_graph_xinvert(gr) ? -1:1;
-    
-    nsets = graph_get_sets(gr, &psets);
-    
-    for (setno = 0; setno < nsets; setno++) {
-        Quark *pset = psets[setno];
-        if (is_set_drawable(pset)) {
-            set *p = (set *) pset->data;
-            ndsets++;
-            if (ndsets > 1) {
-                errmsg("Only one set per pie chart can be drawn");
-                return;
-            }
-            
-            switch (dataset_type(pset)) {
-            case SET_XY:
-            case SET_XYCOLOR:
-            case SET_XYCOLPAT:
-                /* data */
-                x = getcol(pset, DATA_X);
-                /* explode factor */
-                e = getcol(pset, DATA_Y);
-                /* colors */
-                c = getcol(pset, DATA_Y1);
-                /* patterns */
-                pt = getcol(pset, DATA_Y2);
-                
-                /* get max explode factor */
-                e_max = 0.0;
-                for (i = 0; i < getsetlength(pset); i++) {
-                    e_max = MAX2(e_max, e[i]);
-                }
-                
-                r = 0.8/(1.0 + e_max)*MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2;
-
-                norm = 0.0;
-                for (i = 0; i < getsetlength(pset); i++) {
-                    if (x[i] < 0.0) {
-                        errmsg("No negative values in pie charts allowed");
-                        return;
-                    }
-                    if (e[i] < 0.0) {
-                        errmsg("No negative offsets in pie charts allowed");
-                        return;
-                    }
-                    norm += x[i];
-                }
-                
-                stop_angle = w.xg1;
-                for (i = 0; i < getsetlength(pset); i++) {
-                    Pen pen;
-                    
-                    start_angle = stop_angle;
-                    stop_angle = start_angle + sgn*2*M_PI*x[i]/norm;
-                    offset.x = e[i]*r*cos((start_angle + stop_angle)/2.0);
-                    offset.y = e[i]*r*sin((start_angle + stop_angle)/2.0);
-                    vps[0].x = vpc.x + r*cos(start_angle) + offset.x;
-                    vps[0].y = vpc.y + r*sin(start_angle) + offset.y;
-                    vps[1].x = vpc.x + offset.x;
-                    vps[1].y = vpc.y + offset.y;
-                    vps[2].x = vpc.x + r*cos(stop_angle) + offset.x;
-                    vps[2].y = vpc.y + r*sin(stop_angle) + offset.y;
-                    vp1.x = vpc.x - r + offset.x;
-                    vp1.y = vpc.y - r + offset.y;
-                    vp2.x = vpc.x + r + offset.x;
-                    vp2.y = vpc.y + r + offset.y;
-                    
-                    if (c != NULL) {
-                        pen.color   = (int) rint(c[i]);
-                    } else {
-                        pen.color = p->sym.fillpen.color;
-                    }
-                    if (pt != NULL) {
-                        pen.pattern   = (int) rint(pt[i]);
-                    } else {
-                        pen.pattern = p->sym.fillpen.pattern;
-                    }
-                    setpen(canvas, &pen);
-                    DrawFilledArc(canvas, &vp1, &vp2,
-                        180.0/M_PI*start_angle,
-                        180.0/M_PI*(stop_angle - start_angle),
-                        ARCFILL_PIESLICE);
-                    
-                    setline(canvas, &p->sym.line);
-                    DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
-                    DrawArc(canvas, &vp1, &vp2,
-                        180.0/M_PI*start_angle,
-                        180.0/M_PI*(stop_angle - start_angle));
-
-                    avalue = p->avalue;
-
-                    if (avalue.active == TRUE) {
-
-                        vpa.x = vpc.x + ((1 + e[i])*r + avalue.offset.y)*
-                            cos((start_angle + stop_angle)/2.0);
-                        vpa.y = vpc.y + ((1 + e[i])*r + avalue.offset.y)*
-                            sin((start_angle + stop_angle)/2.0);
-
-                        strcpy(str, avalue.prestr);
-
-                        switch (avalue.type) {
-                        case AVALUE_TYPE_X:
-                            strcat(str, create_fstring(avalue.format, avalue.prec, x[i], 
-                                                                 LFORMAT_TYPE_EXTENDED));
-                            break;
-                        case AVALUE_TYPE_STRING:
-                            if (p->data->s != NULL && p->data->s[i] != NULL) {
-                                strcat(str, p->data->s[i]);
-                            }
-                            break;
-                        default:
-                            continue;
-                        }
-
-                        strcat(str, avalue.appstr);
-
-                        setcharsize(canvas, avalue.size);
-                        setfont(canvas, avalue.font);
-                        setcolor(canvas, avalue.color);
-
-                        WriteString(canvas, &vpa,
-                            (double) avalue.angle, JUST_CENTER|JUST_MIDDLE, str);
-                    }
-                }
-                break;
-            default:
-                errmsg("Unsupported in pie chart set type");
-                break;
-            }
-        }
+    if (!is_set_drawable(pset)) {
+        return;
     }
-    xfree(psets);
-}
 
-void draw_polar_graph(Canvas *canvas, Quark *gr)
-{
-    int setno, nsets;
-    Quark **psets;
-
-    nsets = graph_get_sets(gr, &psets);
+    gr = get_parent_graph(pset);
     
-    for (setno = 0; setno < nsets; setno++) {
-        Quark *pset = psets[setno];
-        if (is_set_drawable(pset)) {
-            switch (dataset_type(pset)) {
-            case SET_XY:
-            case SET_XYSIZE:
-            case SET_XYCOLOR:
-            case SET_XYZ:
-                drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
-                drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
-                drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                break;
-            default:
-                errmsg("Unsupported in polar graph set type");
-                break;
-            }
-        }
-    }
-    xfree(psets);
-}
-
-void xyplot(Canvas *canvas, Quark *gr)
-{
-    int j, setno, nsets;
-    int refn;
-    double *refx, *refy;
-    double offset, epsilon;
-    Quark **psets;
-
-    refn = 0;
-    offset = 0.0;
-    refx = NULL;
-    refy = NULL;
-
-    nsets = graph_get_sets(gr, &psets);
+    p = set_get_data(pset);
 
     /* draw sets */
-    switch (get_graph_type(gr)) {
+    gtype = get_graph_type(gr);
+    switch (gtype) {
     case GRAPH_XY:
-        for (setno = 0; setno < nsets; setno++) {
-            Quark *pset = psets[setno];
-            if (is_set_drawable(pset)) {
-                switch (dataset_type(pset)) {
-                case SET_XY:
-                case SET_XYSIZE:
-                case SET_XYCOLOR:
-                case SET_XYZ:
-                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_BAR:
-                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetbars(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_XYDX:
-                case SET_XYDY:
-                case SET_XYDXDX:
-                case SET_XYDYDY:
-                case SET_XYDXDY:
-                case SET_XYDXDXDYDY:
-                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawseterrbars(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_XYHILO:
-                    drawsethilo(canvas, pset);
-                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_XYVMAP:
-                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetvmap(canvas, pset);
-                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_BOXPLOT:
-                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetboxplot(canvas, pset);
-                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                    break;
-                default:
-                    errmsg("Unsupported in XY graph set type");
-                    break;
-                }
-            }
-        }
-        break;
-    case GRAPH_CHART:
-        for (setno = 0; setno < nsets; setno++) {
-            Quark *pset = psets[setno];
-            if (is_set_drawable(pset)) {
-                set *p = (set *) pset->data;
-                if (getsetlength(pset) > refn) {
-                    refn = getsetlength(pset);
-                    refx = getx(pset);
-                }
-                if (is_graph_stacked(gr) != TRUE) {
-                    offset -= 0.5*0.02*p->sym.size;
-                }
-            }
-        }
-        offset -= 0.5*(number_of_active_sets(gr) - 1)*get_graph_bargap(gr);
-        
-        if (is_graph_stacked(gr) == TRUE) {
-            refy = xcalloc(refn, SIZEOF_DOUBLE);
-            if (refy == NULL) {
-                return;
-            }
-        }
-
-        
-        if (refx) {
-            double xmin, xmax;
-            int imin, imax;
-            minmax(refx, refn, &xmin, &xmax, &imin, &imax);
-            epsilon = 1.0e-3*(xmax - xmin)/refn;
-        } else {
-            epsilon = 0.0;
-        }
-
-        for (setno = 0; setno < nsets; setno++) {
-            Quark *pset = psets[setno];
-            int x_ok;
-            double *x;
-            
-            if (is_set_drawable(pset)) {
-                set *p = set_get_data(pset);
-
-                /* check that abscissas are identical with refx */
-                x = getcol(pset, DATA_X);
-                x_ok = TRUE;
-                for (j = 0; j < getsetlength(pset); j++) {
-                    if (fabs(x[j] - refx[j]) > epsilon) {
-                        x_ok = FALSE;
-                        break;
-                    }
-                }
-                if (x_ok != TRUE) {
-                    char buf[128];
-                    sprintf(buf, "Set %s has different abscissas, "
-                                 "skipped from the chart.",
-                                 quark_idstr_get(pset));
-                    errmsg(buf);
-                    continue;
-                }
-
-
-                if (is_graph_stacked(gr) != TRUE) {
-                    offset += 0.5*0.02*p->sym.size;
-                }
-                switch (dataset_type(pset)) {
-                case SET_XY:
-                case SET_XYSIZE:
-                case SET_XYCOLOR:
-                    drawsetline(canvas, pset, refn, refx, refy, offset);
-                    if (is_graph_stacked(gr) != TRUE) {
-                        drawsetsyms(canvas, pset, refn, refx, refy, offset);
-                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
-                    }
-                    break;
-                case SET_BAR:
-                    drawsetline(canvas, pset, refn, refx, refy, offset);
-                    drawsetbars(canvas, pset, refn, refx, refy, offset);
-                    if (is_graph_stacked(gr) != TRUE) {
-                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
-                    }
-                    break;
-                case SET_BARDY:
-                case SET_BARDYDY:
-                    drawsetline(canvas, pset, refn, refx, refy, offset);
-                    drawsetbars(canvas, pset, refn, refx, refy, offset);
-                    if (is_graph_stacked(gr) != TRUE) {
-                        drawseterrbars(canvas, pset, refn, refx, refy, offset);
-                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
-                    }
-                    break;
-                case SET_XYDY:
-                case SET_XYDYDY:
-                    drawsetline(canvas, pset, refn, refx, refy, offset);
-                    if (is_graph_stacked(gr) != TRUE) {
-                        drawseterrbars(canvas, pset, refn, refx, refy, offset);
-                        drawsetsyms(canvas, pset, refn, refx, refy, offset);
-                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
-                    }
-                    break;
-                default:
-                    errmsg("Unsupported in XY chart set type");
-                    break;
-                }
-                if (is_graph_stacked(gr) != TRUE) {
-                    offset += 0.5*0.02*p->sym.size + get_graph_bargap(gr);
-                } else {
-                    for (j = 0; j < getsetlength(pset); j++) {
-                        refy[j] += p->data->ex[1][j];
-                    }
-                }
-            }
-        }
-        
-        if (is_graph_stacked(gr) == TRUE) {
-            /* Second pass for stacked charts: symbols and avalues */
-            offset = 0.0;
-            for (j = 0; j < refn; j++) {
-                refy[j] = 0.0;
-            }
-            
-            for (setno = 0; setno < nsets; setno++) {
-                Quark *pset = psets[setno];
-                if (is_set_drawable(pset)) {
-                    switch (dataset_type(pset)) {
-                    case SET_XY:
-                    case SET_XYSIZE:
-                    case SET_XYCOLOR:
-                        drawsetsyms(canvas, pset, refn, refx, refy, offset);
-                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
-                        break;
-                    case SET_BAR:
-                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
-                        break;
-                    case SET_BARDY:
-                    case SET_BARDYDY:
-                        drawseterrbars(canvas, pset, refn, refx, refy, offset);
-                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
-                        break;
-                    case SET_XYDY:
-                    case SET_XYDYDY:
-                        drawseterrbars(canvas, pset, refn, refx, refy, offset);
-                        drawsetsyms(canvas, pset, refn, refx, refy, offset);
-                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
-                        break;
-                    }
-                    
-                    for (j = 0; j < getsetlength(pset); j++) {
-                        refy[j] += gety(pset)[j];
-                    }
-                }
-            }
-        }
-
-        if (refy != NULL) {
-            xfree(refy);
+        switch (dataset_type(pset)) {
+        case SET_XY:
+        case SET_XYSIZE:
+        case SET_XYCOLOR:
+        case SET_XYZ:
+            drawsetline(pset, plot_rt);
+            drawsetsyms(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        case SET_BAR:
+            drawsetline(pset, plot_rt);
+            drawsetbars(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        case SET_XYDX:
+        case SET_XYDY:
+        case SET_XYDXDX:
+        case SET_XYDYDY:
+        case SET_XYDXDY:
+        case SET_XYDXDXDYDY:
+            drawsetline(pset, plot_rt);
+            drawseterrbars(pset, plot_rt);
+            drawsetsyms(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        case SET_XYHILO:
+            drawsethilo(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        case SET_XYVMAP:
+            drawsetline(pset, plot_rt);
+            drawsetvmap(pset, plot_rt);
+            drawsetsyms(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        case SET_BOXPLOT:
+            drawsetline(pset, plot_rt);
+            drawsetboxplot(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        default:
+            errmsg("Unsupported in XY graph set type");
+            break;
         }
         break;
     case GRAPH_FIXED:
-        for (setno = 0; setno < nsets; setno++) {
-            Quark *pset = psets[setno];
-            if (is_set_drawable(pset)) {
-                switch (dataset_type(pset)) {
-                case SET_XY:
-                case SET_XYSIZE:
-                case SET_XYCOLOR:
-                case SET_XYZ:
-                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_XYDX:
-                case SET_XYDY:
-                case SET_XYDXDX:
-                case SET_XYDYDY:
-                case SET_XYDXDY:
-                case SET_XYDXDXDYDY:
-                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawseterrbars(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_XYR:
-                    drawcirclexy(canvas, pset);
-                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_XYVMAP:
-                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetvmap(canvas, pset);
-                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
-                    break;
-                default:
-                    errmsg("Unsupported in XY graph set type");
-                    break;
-                }
-            }
+        switch (dataset_type(pset)) {
+        case SET_XY:
+        case SET_XYSIZE:
+        case SET_XYCOLOR:
+        case SET_XYZ:
+            drawsetline(pset, plot_rt);
+            drawsetsyms(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        case SET_XYDX:
+        case SET_XYDY:
+        case SET_XYDXDX:
+        case SET_XYDYDY:
+        case SET_XYDXDY:
+        case SET_XYDXDXDYDY:
+            drawsetline(pset, plot_rt);
+            drawseterrbars(pset, plot_rt);
+            drawsetsyms(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        case SET_XYR:
+            drawcirclexy(pset, plot_rt);
+            drawsetsyms(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        case SET_XYVMAP:
+            drawsetline(pset, plot_rt);
+            drawsetvmap(pset, plot_rt);
+            drawsetsyms(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        default:
+            errmsg("Unsupported in XY graph set type");
+            break;
         }
         break;
-    } /* end g.type */
+    case GRAPH_POLAR:
+        switch (dataset_type(pset)) {
+        case SET_XY:
+        case SET_XYSIZE:
+        case SET_XYCOLOR:
+        case SET_XYZ:
+            drawsetline(pset, plot_rt);
+            drawsetsyms(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
+        default:
+            errmsg("Unsupported in polar graph set type");
+            break;
+        }
+        break;
+    case GRAPH_PIE:
+        switch (dataset_type(pset)) {
+        case SET_XY:
+        case SET_XYCOLOR:
+        case SET_XYCOLPAT:
+            draw_pie_chart_set(pset, plot_rt);
+            break;
+        default:
+            errmsg("Unsupported in pie chart set type");
+            break;
+        }
+        break;
+    case GRAPH_CHART:
+        /* check that abscissas are identical with refx */
+        x = getcol(pset, DATA_X);
+        x_ok = TRUE;
+        for (j = 0; j < getsetlength(pset); j++) {
+            if (fabs(x[j] - plot_rt->refx[j]) > plot_rt->epsilon) {
+                x_ok = FALSE;
+                break;
+            }
+        }
+        if (x_ok != TRUE) {
+            char buf[128];
+            sprintf(buf, "Set %s has different abscissas, "
+                         "skipped from the chart.",
+                         quark_idstr_get(pset));
+            errmsg(buf);
+            return;
+        }
 
-    xfree(psets);
+        if (is_graph_stacked(gr) != TRUE) {
+            plot_rt->offset += 0.5*0.02*p->sym.size;
+        }
+
+        switch (dataset_type(pset)) {
+        case SET_XY:
+        case SET_XYSIZE:
+        case SET_XYCOLOR:
+            if (plot_rt->first_pass) {
+                drawsetline(pset, plot_rt);
+            }
+            if (plot_rt->last_pass) {
+                drawsetsyms(pset, plot_rt);
+                drawsetavalues(pset, plot_rt);
+            }
+            break;
+        case SET_BAR:
+            if (plot_rt->first_pass) {
+                drawsetline(pset, plot_rt);
+                drawsetbars(pset, plot_rt);
+            }
+            if (plot_rt->last_pass) {
+                drawsetavalues(pset, plot_rt);
+            }
+            break;
+        case SET_BARDY:
+        case SET_BARDYDY:
+            if (plot_rt->first_pass) {
+                drawsetline(pset, plot_rt);
+                drawsetbars(pset, plot_rt);
+            }
+            if (plot_rt->last_pass) {
+                drawseterrbars(pset, plot_rt);
+                drawsetavalues(pset, plot_rt);
+            }
+            break;
+        case SET_XYDY:
+        case SET_XYDYDY:
+            if (plot_rt->first_pass) {
+                drawsetline(pset, plot_rt);
+            }
+            if (plot_rt->last_pass) {
+                drawseterrbars(pset, plot_rt);
+                drawsetsyms(pset, plot_rt);
+                drawsetavalues(pset, plot_rt);
+            }
+            break;
+        default:
+            if (plot_rt->first_pass) {
+                errmsg("Unsupported in XY chart set type");
+            }
+            break;
+        }
+
+        if (is_graph_stacked(gr) != TRUE) {
+            plot_rt->offset += 0.5*0.02*p->sym.size + get_graph_bargap(gr);
+        } else {
+            for (j = 0; j < getsetlength(pset); j++) {
+                plot_rt->refy[j] += p->data->ex[1][j];
+            }
+        }
+        
+        break;
+    }
 }
 
 void draw_regions(Canvas *canvas, Quark *gr)
@@ -758,8 +573,9 @@ void draw_titles(Canvas *canvas, Quark *q)
 /*
  * draw the graph frame
  */
-void drawframe(Canvas *canvas, Quark *q)
+void draw_frame(Quark *q, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     view *v;
     frame *f;
     VPoint vps[4];
@@ -834,13 +650,8 @@ void drawframe(Canvas *canvas, Quark *q)
         break;
     }
 
-#if 0
-    if (gtype != GRAPH_PIE) {
-        /* plot legends */
-        dolegend(canvas, q);
-    }
-#endif
-    
+    draw_legends(q, plot_rt);
+
     /* draw title and subtitle */
     draw_titles(canvas, q);
 }
@@ -870,9 +681,9 @@ void fillframe(Canvas *canvas, Quark *q)
 /*
  * draw a set filling polygon
  */
-void drawsetfill(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset)
+void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     Quark *gr = pset->parent;
     set *p = (set *) pset->data;
     int i, len, setlen, polylen;
@@ -890,8 +701,8 @@ void drawsetfill(Canvas *canvas, Quark *pset,
     }
     
     if (get_graph_type(gr) == GRAPH_CHART) {
-        x = refx;
-        setlen = MIN2(getsetlength(pset), refn);
+        x = plot_rt->refx;
+        setlen = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
         setlen = getsetlength(pset);
@@ -927,17 +738,17 @@ void drawsetfill(Canvas *canvas, Quark *pset,
             wptmp.x = x[i];
             wptmp.y = y[i];
             if (stacked_chart == TRUE) {
-                wptmp.y += refy[i];
+                wptmp.y += plot_rt->refy[i];
             }
             vps[i] = Wpoint2Vpoint(wptmp);
-    	    vps[i].x += offset;
+    	    vps[i].x += plot_rt->offset;
         }
         if (stacked_chart == TRUE && p->line.filltype == SETFILL_BASELINE) {
             for (i = 0; i < setlen; i++) {
                 wptmp.x = x[setlen - i - 1];
-                wptmp.y = refy[setlen - i - 1];
+                wptmp.y = plot_rt->refy[setlen - i - 1];
                 vps[setlen + i] = Wpoint2Vpoint(wptmp);
-    	        vps[setlen + i].x += offset;
+    	        vps[setlen + i].x += plot_rt->offset;
             }
         }
         break;
@@ -954,10 +765,10 @@ void drawsetfill(Canvas *canvas, Quark *pset,
             wptmp.x = x[i];
             wptmp.y = y[i];
             if (stacked_chart == TRUE) {
-                wptmp.y += refy[i];
+                wptmp.y += plot_rt->refy[i];
             }
             vps[2*i] = Wpoint2Vpoint(wptmp);
-    	    vps[2*i].x += offset;
+    	    vps[2*i].x += plot_rt->offset;
         }
         for (i = 1; i < len; i += 2) {
             if (line_type == LINE_TYPE_LEFTSTAIR) {
@@ -987,11 +798,11 @@ void drawsetfill(Canvas *canvas, Quark *pset,
             wptmp.x = MIN2(xmax, w.xg2);
             wptmp.y = ybase;
             vps[len] = Wpoint2Vpoint(wptmp);
-    	    vps[len].x += offset;
+    	    vps[len].x += plot_rt->offset;
             wptmp.x = MAX2(xmin, w.xg1);
             wptmp.y = ybase;
             vps[len + 1] = Wpoint2Vpoint(wptmp);
-    	    vps[len + 1].x += offset;
+    	    vps[len + 1].x += plot_rt->offset;
         }
         break;
     default:
@@ -1009,9 +820,9 @@ void drawsetfill(Canvas *canvas, Quark *pset,
 /*
  * draw set's connecting line
  */
-void drawsetline(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset)
+void drawsetline(Quark *pset, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     Quark *gr = pset->parent;
     set *p = (set *) pset->data;
     int setlen, len;
@@ -1026,8 +837,8 @@ void drawsetline(Canvas *canvas, Quark *pset,
     int stacked_chart;
     
     if (get_graph_type(gr) == GRAPH_CHART) {
-        x = refx;
-        setlen = MIN2(getsetlength(pset), refn);
+        x = plot_rt->refx;
+        setlen = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
         setlen = getsetlength(pset);
@@ -1048,7 +859,7 @@ void drawsetline(Canvas *canvas, Quark *pset,
     
     setclipping(canvas, TRUE);
 
-    drawsetfill(canvas, pset, refn, refx, refy, offset);
+    drawsetfill(pset, plot_rt);
 
     setline(canvas, &p->line.line);
 
@@ -1074,10 +885,10 @@ void drawsetline(Canvas *canvas, Quark *pset,
                 wp.x = x[i];
                 wp.y = y[i];
                 if (stacked_chart == TRUE) {
-                    wp.y += refy[i];
+                    wp.y += plot_rt->refy[i];
                 }
                 vpstmp[i] = Wpoint2Vpoint(wp);
-    	        vpstmp[i].x += offset;
+    	        vpstmp[i].x += plot_rt->offset;
                 
                 vpstmp[i].y -= lw/2.0;
             }
@@ -1089,17 +900,17 @@ void drawsetline(Canvas *canvas, Quark *pset,
                 wp.x = x[i];
                 wp.y = y[i];
                 if (stacked_chart == TRUE) {
-                    wp.y += refy[i];
+                    wp.y += plot_rt->refy[i];
                 }
                 vps[0] = Wpoint2Vpoint(wp);
-    	        vps[0].x += offset;
+    	        vps[0].x += plot_rt->offset;
                 wp.x = x[i + 1];
                 wp.y = y[i + 1];
                 if (stacked_chart == TRUE) {
-                    wp.y += refy[i + 1];
+                    wp.y += plot_rt->refy[i + 1];
                 }
                 vps[1] = Wpoint2Vpoint(wp);
-    	        vps[1].x += offset;
+    	        vps[1].x += plot_rt->offset;
                 
                 vps[0].y -= lw/2.0;
                 vps[1].y -= lw/2.0;
@@ -1112,24 +923,24 @@ void drawsetline(Canvas *canvas, Quark *pset,
                 wp.x = x[i];
                 wp.y = y[i];
                 if (stacked_chart == TRUE) {
-                    wp.y += refy[i];
+                    wp.y += plot_rt->refy[i];
                 }
                 vps[0] = Wpoint2Vpoint(wp);
-    	        vps[0].x += offset;
+    	        vps[0].x += plot_rt->offset;
                 wp.x = x[i + 1];
                 wp.y = y[i + 1];
                 if (stacked_chart == TRUE) {
-                    wp.y += refy[i + 1];
+                    wp.y += plot_rt->refy[i + 1];
                 }
                 vps[1] = Wpoint2Vpoint(wp);
-    	        vps[1].x += offset;
+    	        vps[1].x += plot_rt->offset;
                 wp.x = x[i + 2];
                 wp.y = y[i + 2];
                 if (stacked_chart == TRUE) {
-                    wp.y += refy[i + 2];
+                    wp.y += plot_rt->refy[i + 2];
                 }
                 vps[2] = Wpoint2Vpoint(wp);
-    	        vps[2].x += offset;
+    	        vps[2].x += plot_rt->offset;
                 DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
                 
                 vps[0].y -= lw/2.0;
@@ -1140,17 +951,17 @@ void drawsetline(Canvas *canvas, Quark *pset,
                 wp.x = x[i];
                 wp.y = y[i];
                 if (stacked_chart == TRUE) {
-                    wp.y += refy[i];
+                    wp.y += plot_rt->refy[i];
                 }
                 vps[0] = Wpoint2Vpoint(wp);
-    	        vps[0].x += offset;
+    	        vps[0].x += plot_rt->offset;
                 wp.x = x[i + 1];
                 wp.y = y[i + 1];
                 if (stacked_chart == TRUE) {
-                    wp.y += refy[i + 1];
+                    wp.y += plot_rt->refy[i + 1];
                 }
                 vps[1] = Wpoint2Vpoint(wp);
-    	        vps[1].x += offset;
+    	        vps[1].x += plot_rt->offset;
                 
                 vps[0].y -= lw/2.0;
                 vps[1].y -= lw/2.0;
@@ -1170,10 +981,10 @@ void drawsetline(Canvas *canvas, Quark *pset,
                 wp.x = x[i];
                 wp.y = y[i];
                 if (stacked_chart == TRUE) {
-                    wp.y += refy[i];
+                    wp.y += plot_rt->refy[i];
                 }
                 vpstmp[2*i] = Wpoint2Vpoint(wp);
-    	        vpstmp[2*i].x += offset;
+    	        vpstmp[2*i].x += plot_rt->offset;
             }
             for (i = 1; i < len; i += 2) {
                 if (line_type == LINE_TYPE_LEFTSTAIR) {
@@ -1197,19 +1008,19 @@ void drawsetline(Canvas *canvas, Quark *pset,
         for (i = 0; i < setlen; i ++) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
-                wp.y = refy[i];
+                wp.y = plot_rt->refy[i];
             } else {
                 wp.y = ybase;
             }
             vps[0] = Wpoint2Vpoint(wp);
-    	    vps[0].x += offset;
+    	    vps[0].x += plot_rt->offset;
             wp.x = x[i];
             wp.y = y[i];
             if (stacked_chart == TRUE) {
-                wp.y += refy[i];
+                wp.y += plot_rt->refy[i];
             }
             vps[1] = Wpoint2Vpoint(wp);
-    	    vps[1].x += offset;
+    	    vps[1].x += plot_rt->offset;
             
             vps[1].y -= lw/2.0;
  
@@ -1223,19 +1034,19 @@ void drawsetline(Canvas *canvas, Quark *pset,
         wp.x = xmin;
         wp.y = ybase;
         vps[0] = Wpoint2Vpoint(wp);
-    	vps[0].x += offset;
+    	vps[0].x += plot_rt->offset;
         wp.x = xmax;
         vps[1] = Wpoint2Vpoint(wp);
-    	vps[1].x += offset;
+    	vps[1].x += plot_rt->offset;
  
         DrawLine(canvas, &vps[0], &vps[1]);
     }
 }    
 
 /* draw the symbols */
-void drawsetsyms(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset)
+void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     Quark *gr = pset->parent;
     set *p = (set *) pset->data;
     int setlen;
@@ -1248,8 +1059,8 @@ void drawsetsyms(Canvas *canvas, Quark *pset,
     double znorm = get_graph_znorm(gr);
     
     if (get_graph_type(gr) == GRAPH_CHART) {
-        x = refx;
-        setlen = MIN2(getsetlength(pset), refn);
+        x = plot_rt->refx;
+        setlen = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
         setlen = getsetlength(pset);
@@ -1290,7 +1101,7 @@ void drawsetsyms(Canvas *canvas, Quark *pset,
             wp.x = x[i];
             wp.y = y[i];
             if (stacked_chart == TRUE) {
-                wp.y += refy[i];
+                wp.y += plot_rt->refy[i];
             }
             
             if (!is_validWPoint(wp)){
@@ -1298,7 +1109,7 @@ void drawsetsyms(Canvas *canvas, Quark *pset,
             }
         
             vp = Wpoint2Vpoint(wp);
-    	    vp.x += offset;
+    	    vp.x += plot_rt->offset;
             
             if (z) {
                 sym.size = z[i]/znorm;
@@ -1319,9 +1130,9 @@ void drawsetsyms(Canvas *canvas, Quark *pset,
 
 
 /* draw the annotative values */
-void drawsetavalues(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset)
+void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     Quark *gr = pset->parent;
     set *p = (set *) pset->data;
     int i;
@@ -1340,8 +1151,8 @@ void drawsetavalues(Canvas *canvas, Quark *pset,
     }
 
     if (get_graph_type(gr) == GRAPH_CHART) {
-        x = refx;
-        setlen = MIN2(getsetlength(pset), refn);
+        x = plot_rt->refx;
+        setlen = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
         setlen = getsetlength(pset);
@@ -1367,7 +1178,7 @@ void drawsetavalues(Canvas *canvas, Quark *pset,
         wp.x = x[i];
         wp.y = y[i];
         if (stacked_chart == TRUE) {
-            wp.y += refy[i];
+            wp.y += plot_rt->refy[i];
         }
         
         if (!is_validWPoint(wp)){
@@ -1378,7 +1189,7 @@ void drawsetavalues(Canvas *canvas, Quark *pset,
         
         vp.x += avalue.offset.x;
         vp.y += avalue.offset.y;
-    	vp.x += offset;
+    	vp.x += plot_rt->offset;
         
         strcpy(str, avalue.prestr);
         
@@ -1424,9 +1235,9 @@ void drawsetavalues(Canvas *canvas, Quark *pset,
     } 
 }
 
-void drawseterrbars(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset)
+void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     Quark *gr = pset->parent;
     set *p = (set *) pset->data;
     int i, n;
@@ -1443,8 +1254,8 @@ void drawseterrbars(Canvas *canvas, Quark *pset,
     }
     
     if (get_graph_type(gr) == GRAPH_CHART) {
-        x = refx;
-        n = MIN2(getsetlength(pset), refn);
+        x = plot_rt->refx;
+        n = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
         n = getsetlength(pset);
@@ -1517,41 +1328,41 @@ void drawseterrbars(Canvas *canvas, Quark *pset,
         wp1.x = x[i];
         wp1.y = y[i];
         if (stacked_chart == TRUE) {
-            wp1.y += refy[i];
+            wp1.y += plot_rt->refy[i];
         }
         if (is_validWPoint(wp1) == FALSE) {
             continue;
         }
 
         vp1 = Wpoint2Vpoint(wp1);
-        vp1.x += offset;
+        vp1.x += plot_rt->offset;
 
         if (dx_plus != NULL) {
             wp2 = wp1;
             wp2.x += fabs(dx_plus[i]);
             vp2 = Wpoint2Vpoint(wp2);
-            vp2.x += offset;
+            vp2.x += plot_rt->offset;
             drawerrorbar(canvas, &vp1, &vp2, &p->errbar);
         }
         if (dx_minus != NULL) {
             wp2 = wp1;
             wp2.x -= fabs(dx_minus[i]);
             vp2 = Wpoint2Vpoint(wp2);
-            vp2.x += offset;
+            vp2.x += plot_rt->offset;
             drawerrorbar(canvas, &vp1, &vp2, &p->errbar);
         }
         if (dy_plus != NULL) {
             wp2 = wp1;
             wp2.y += fabs(dy_plus[i]);
             vp2 = Wpoint2Vpoint(wp2);
-            vp2.x += offset;
+            vp2.x += plot_rt->offset;
             drawerrorbar(canvas, &vp1, &vp2, &p->errbar);
         }
         if (dy_minus != NULL) {
             wp2 = wp1;
             wp2.y -= fabs(dy_minus[i]);
             vp2 = Wpoint2Vpoint(wp2);
-            vp2.x += offset;
+            vp2.x += plot_rt->offset;
             drawerrorbar(canvas, &vp1, &vp2, &p->errbar);
         }
     }
@@ -1560,8 +1371,9 @@ void drawseterrbars(Canvas *canvas, Quark *pset,
 /*
  * draw hi/lo-open/close
  */
-void drawsethilo(Canvas *canvas, Quark *pset)
+void drawsethilo(Quark *pset, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     set *p = (set *) pset->data;
     int i;
     double *x = p->data->ex[0], *y1 = p->data->ex[1];
@@ -1597,9 +1409,9 @@ void drawsethilo(Canvas *canvas, Quark *pset)
 /*
  * draw 2D bars
  */
-void drawsetbars(Canvas *canvas, Quark *pset,
-                 int refn, double *refx, double *refy, double offset)
+void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     Quark *gr = pset->parent;
     set *p = (set *) pset->data;
     int i, n;
@@ -1612,8 +1424,8 @@ void drawsetbars(Canvas *canvas, Quark *pset,
     int stacked_chart;
     
     if (get_graph_type(gr) == GRAPH_CHART) {
-        x = refx;
-        n = MIN2(getsetlength(pset), refn);
+        x = plot_rt->refx;
+        n = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
         n = getsetlength(pset);
@@ -1647,13 +1459,13 @@ void drawsetbars(Canvas *canvas, Quark *pset,
         for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
-                wp.y = refy[i];
+                wp.y = plot_rt->refy[i];
             } else {
                 wp.y = ybase;
             }
     	    vp1 = Wpoint2Vpoint(wp);
             vp1.x -= bw;
-    	    vp1.x += offset;
+    	    vp1.x += plot_rt->offset;
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y += y[i];
@@ -1662,7 +1474,7 @@ void drawsetbars(Canvas *canvas, Quark *pset,
             }
     	    vp2 = Wpoint2Vpoint(wp);
             vp2.x += bw;
-    	    vp2.x += offset;
+    	    vp2.x += plot_rt->offset;
             
             vp1.x += lw/2.0;
             vp2.x -= lw/2.0;
@@ -1676,13 +1488,13 @@ void drawsetbars(Canvas *canvas, Quark *pset,
         for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
-                wp.y = refy[i];
+                wp.y = plot_rt->refy[i];
             } else {
                 wp.y = ybase;
             }
     	    vp1 = Wpoint2Vpoint(wp);
             vp1.x -= bw;
-    	    vp1.x += offset;
+    	    vp1.x += plot_rt->offset;
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y += y[i];
@@ -1691,7 +1503,7 @@ void drawsetbars(Canvas *canvas, Quark *pset,
             }
     	    vp2 = Wpoint2Vpoint(wp);
             vp2.x += bw;
-    	    vp2.x += offset;
+    	    vp2.x += plot_rt->offset;
 
             vp1.x += lw/2.0;
             vp2.x -= lw/2.0;
@@ -1702,8 +1514,9 @@ void drawsetbars(Canvas *canvas, Quark *pset,
     }
 }
 
-void drawcirclexy(Canvas *canvas, Quark *pset)
+void drawcirclexy(Quark *pset, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     set *p = (set *) pset->data;
     int i, setlen;
     double *x, *y, *r;
@@ -1744,8 +1557,9 @@ void drawcirclexy(Canvas *canvas, Quark *pset)
 }
 
 /* Arrows for vector map plots */
-void drawsetvmap(Canvas *canvas, Quark *pset)
+void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     Quark *gr = pset->parent;
     set *p = (set *) pset->data;
     int i, setlen;
@@ -1794,8 +1608,9 @@ void drawsetvmap(Canvas *canvas, Quark *pset)
     }
 }
 
-void drawsetboxplot(Canvas *canvas, Quark *pset)
+void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     set *p = (set *) pset->data;
     int i;
     double *x, *md, *lb, *ub, *lw, *uw;
@@ -1849,6 +1664,149 @@ void drawsetboxplot(Canvas *canvas, Quark *pset)
         DrawLine(canvas, &vp1, &vp2);
     }
 }
+
+void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
+{
+    int i;
+    view v;
+    world w;
+    int sgn;
+    VPoint vpc, vp1, vp2, vps[3], vpa;
+    VVector offset;
+    double r, start_angle, stop_angle;
+    double e_max, norm;
+    double *x, *c, *e, *pt;
+    AValue avalue;
+    char str[MAX_STRING_LENGTH];
+    set *p;
+    Quark *gr;
+    Canvas *canvas = plot_rt->canvas;
+
+    gr = get_parent_graph(pset);
+
+    get_graph_viewport(gr, &v);
+    vpc.x = (v.xv1 + v.xv2)/2;
+    vpc.y = (v.yv1 + v.yv2)/2;
+
+    get_graph_world(gr, &w);
+    sgn = is_graph_xinvert(gr) ? -1:1;
+    
+    p = set_get_data(pset);
+    
+    plot_rt->ndsets++;
+    if (plot_rt->ndsets > 1) {
+        errmsg("Only one set per pie chart can be drawn");
+        return;
+    }
+
+    /* data */
+    x = getcol(pset, DATA_X);
+    /* explode factor */
+    e = getcol(pset, DATA_Y);
+    /* colors */
+    c = getcol(pset, DATA_Y1);
+    /* patterns */
+    pt = getcol(pset, DATA_Y2);
+
+    /* get max explode factor */
+    e_max = 0.0;
+    for (i = 0; i < getsetlength(pset); i++) {
+        e_max = MAX2(e_max, e[i]);
+    }
+
+    r = 0.8/(1.0 + e_max)*MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2;
+
+    norm = 0.0;
+    for (i = 0; i < getsetlength(pset); i++) {
+        if (x[i] < 0.0) {
+            errmsg("No negative values in pie charts allowed");
+            return;
+        }
+        if (e[i] < 0.0) {
+            errmsg("No negative offsets in pie charts allowed");
+            return;
+        }
+        norm += x[i];
+    }
+
+    stop_angle = w.xg1;
+    for (i = 0; i < getsetlength(pset); i++) {
+        Pen pen;
+
+        start_angle = stop_angle;
+        stop_angle = start_angle + sgn*2*M_PI*x[i]/norm;
+        offset.x = e[i]*r*cos((start_angle + stop_angle)/2.0);
+        offset.y = e[i]*r*sin((start_angle + stop_angle)/2.0);
+        vps[0].x = vpc.x + r*cos(start_angle) + offset.x;
+        vps[0].y = vpc.y + r*sin(start_angle) + offset.y;
+        vps[1].x = vpc.x + offset.x;
+        vps[1].y = vpc.y + offset.y;
+        vps[2].x = vpc.x + r*cos(stop_angle) + offset.x;
+        vps[2].y = vpc.y + r*sin(stop_angle) + offset.y;
+        vp1.x = vpc.x - r + offset.x;
+        vp1.y = vpc.y - r + offset.y;
+        vp2.x = vpc.x + r + offset.x;
+        vp2.y = vpc.y + r + offset.y;
+
+        if (c != NULL) {
+            pen.color   = (int) rint(c[i]);
+        } else {
+            pen.color = p->sym.fillpen.color;
+        }
+        if (pt != NULL) {
+            pen.pattern   = (int) rint(pt[i]);
+        } else {
+            pen.pattern = p->sym.fillpen.pattern;
+        }
+        setpen(canvas, &pen);
+        DrawFilledArc(canvas, &vp1, &vp2,
+            180.0/M_PI*start_angle,
+            180.0/M_PI*(stop_angle - start_angle),
+            ARCFILL_PIESLICE);
+
+        setline(canvas, &p->sym.line);
+        DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
+        DrawArc(canvas, &vp1, &vp2,
+            180.0/M_PI*start_angle,
+            180.0/M_PI*(stop_angle - start_angle));
+
+        avalue = p->avalue;
+
+        if (avalue.active == TRUE) {
+
+            vpa.x = vpc.x + ((1 + e[i])*r + avalue.offset.y)*
+                cos((start_angle + stop_angle)/2.0);
+            vpa.y = vpc.y + ((1 + e[i])*r + avalue.offset.y)*
+                sin((start_angle + stop_angle)/2.0);
+
+            strcpy(str, avalue.prestr);
+
+            switch (avalue.type) {
+            case AVALUE_TYPE_X:
+                strcat(str, create_fstring(avalue.format, avalue.prec, x[i], 
+                                                     LFORMAT_TYPE_EXTENDED));
+                break;
+            case AVALUE_TYPE_STRING:
+                if (p->data->s != NULL && p->data->s[i] != NULL) {
+                    strcat(str, p->data->s[i]);
+                }
+                break;
+            default:
+                continue;
+            }
+
+            strcat(str, avalue.appstr);
+
+            setcharsize(canvas, avalue.size);
+            setfont(canvas, avalue.font);
+            setcolor(canvas, avalue.color);
+
+            WriteString(canvas, &vpa,
+                (double) avalue.angle, JUST_CENTER|JUST_MIDDLE, str);
+        }
+    }
+}
+
 
 void symplus(Canvas *canvas, const VPoint *vp, double s)
 {
@@ -2255,86 +2213,228 @@ void draw_region(Canvas *canvas, region *this)
 
 /* ---------------------- legends ---------------------- */
 
+void draw_legend_syms(Quark *pset,
+    plot_rt_t *plot_rt, const VPoint *vp, const legend *l)
+{
+    set *p = set_get_data(pset);
+    Quark *gr = get_parent_graph(pset);
+
+    if (is_set_drawable(pset) &&
+        !is_empty_string(p->legstr) &&
+        get_graph_type(gr) != GRAPH_PIE) {
+        
+        Canvas *canvas = plot_rt->canvas;
+        double symvshift;
+        int draw_line, singlesym;
+        VPoint vp1, vp2;
+
+        setfont(canvas, p->sym.charfont);
+
+        if (l->len <= 0.0 || p->line.type == 0 ||
+            ((p->line.line.style == 0 ||
+              p->line.line.pen.pattern == 0) &&
+             (p->line.filltype == SETFILL_NONE ||
+              p->line.fillpen.pattern == 0))) {
+            draw_line = FALSE;
+        } else {
+            draw_line = TRUE;
+        }
+
+        symvshift = 0.0;
+        if (draw_line) {
+            vp1.x = vp->x - l->len/2;
+            vp2.x = vp->x + l->len/2;
+            vp2.y = vp1.y = vp->y;
+
+            setline(canvas, &p->line.line);
+            if (p->line.filltype != SETFILL_NONE &&
+                p->line.fillpen.pattern != 0) {
+                VPoint vpf1, vpf2;
+                
+                vpf1.x = vp1.x;
+                vpf1.y = vp1.y - 0.01*l->charsize;
+                vpf2.x = vp2.x;
+                vpf2.y = vp2.y + 0.01*l->charsize;
+
+                /* TODO: settable option for setfill presentation */
+                setpen(canvas, &p->line.fillpen);
+                if (1) {
+                    FillRect(canvas, &vpf1, &vpf2);
+                } else {
+                    DrawFilledEllipse(canvas, &vpf1, &vpf2);
+                }
+                setpen(canvas, &p->line.line.pen);
+                if (1) {
+                    DrawRect(canvas, &vpf1, &vpf2);
+                } else {
+                    DrawEllipse(canvas, &vpf1, &vpf2);
+                }
+
+                symvshift = 0.01*l->charsize;
+            } else {
+                DrawLine(canvas, &vp1, &vp2);
+            }
+        }
+
+        if (draw_line) {
+            singlesym = l->singlesym;
+        } else {
+            singlesym = TRUE;
+        }
+
+        setline(canvas, &p->sym.line);
+        if (!singlesym) {
+            if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
+                p->type == SET_BARDY || p->type == SET_BARDYDY) {
+                drawlegbarsym(canvas,
+                    &vp1, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
+                drawlegbarsym(canvas,
+                    &vp2, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
+            } else {
+                drawxysym(canvas, &vp1, &p->sym);
+                drawxysym(canvas, &vp2, &p->sym);
+            }
+        } else {
+            VPoint vptmp;
+            vptmp.x = vp->x;
+            vptmp.y = vp->y + symvshift;
+
+            if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
+                p->type == SET_BARDY || p->type == SET_BARDYDY) {
+                drawlegbarsym(canvas,
+                    &vptmp, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
+            } else {
+                drawxysym(canvas, &vptmp, &p->sym);
+            }
+        }
+    }
+}
+
+static int is_legend_drawable(Quark *pset)
+{
+    set *p = set_get_data(pset);
+    Quark *gr = get_parent_graph(pset);
+    
+    if (is_set_drawable(pset) &&
+        !is_empty_string(p->legstr) &&
+        get_graph_type(gr) != GRAPH_PIE) {
+        
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+typedef struct {
+    view sym_bbox;
+    view str_bbox;
+    Quark *pset;
+} leg_rt_t;
 
 /*
- * draw the legend
+ * draw the legends
  */
-void dolegend(Canvas *canvas, Quark *q)
+void draw_legends(Quark *q, plot_rt_t *plot_rt)
 {
-#if 0
-    int setno, nsets;
-    int draw_flag;
-    double maxsymsize;
-    
+    Canvas *canvas = plot_rt->canvas;
     VPoint vp, vp2;
     double bb_width, bb_height;
+    int i, nsets, setno, nleg_entries;
+    double max_sym_width, max_str_width;
     
-    view v;
+    view sym_bbox, str_bbox, *v;
     legend *l;
-    set *p;
 
     Quark **psets;
+    
+    leg_rt_t *leg_entries;
 
-    l = frame_get_legend(gr);
+    l = frame_get_legend(q);
     if (l->active == FALSE) {
         return;
     }
-    
-    maxsymsize = 0.0;
-    draw_flag = FALSE;
-    nsets = graph_get_sets(gr, &psets);
-    for (setno = 0; setno < nsets; setno++) {
-        Quark *pset = psets[setno];
-        if (is_set_drawable(pset)) {
-            p = (set *) pset->data;
-            if (!is_empty_string(p->legstr)) {
-                draw_flag = TRUE;
-            }
-            if (p->sym.size > maxsymsize) {
-                maxsymsize = p->sym.size;
-            }
-        }  
-    }
-    xfree(psets);
-    
-    if (draw_flag == FALSE) {
-        l->bb.xv1 = l->bb.xv2 = l->bb.yv1 = l->bb.yv2 = 0.0;
-        return;
-    }
-        
+
     setclipping(canvas, FALSE);
     
     vp.x = vp.y = 0.0;
-    activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
-    reset_bbox(canvas, BBOX_TYPE_TEMP);
-    update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
-    
+    bb_height = l->vgap;
+    max_sym_width = 0.0;
+    max_str_width = 0.0;
+
     set_draw_mode(canvas, FALSE);
-    putlegends(canvas, gr, &vp, maxsymsize);
-    get_bbox(canvas, BBOX_TYPE_TEMP, &v);
     
-    bb_width  = fabs(v.xv2 - v.xv1) + 2*l->hgap;
-    bb_height = fabs(v.yv2 - v.yv1) + 2*l->vgap;
+    nsets = get_descendant_sets(q, &psets);
+    leg_entries = xmalloc(nsets*sizeof(leg_rt_t));
+    nleg_entries = 0;
+    for (setno = 0; setno < nsets; setno++) {
+        Quark *pset;
+        double sym_width, str_width, y_middle, ascent, descent, height;
+
+        pset = psets[setno];
+        
+        if (is_legend_drawable(pset)) {
+            set *p = set_get_data(pset);
+
+            activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
+            reset_bbox(canvas, BBOX_TYPE_TEMP);
+            update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
+            draw_legend_syms(pset, plot_rt, &vp, l);
+            get_bbox(canvas, BBOX_TYPE_TEMP, &sym_bbox);
+            sym_width = fabs(sym_bbox.xv2 - sym_bbox.xv1);
+            if (sym_width > max_sym_width) {
+                max_sym_width = sym_width;
+            }
+            
+            setcharsize(canvas, l->charsize);
+            setfont(canvas, l->font);
+
+            get_string_bbox(canvas,
+                &vp, 0.0, JUST_LEFT|JUST_BLINE, p->legstr, &str_bbox);
+                
+            y_middle = str_bbox.yv2/2;
+            str_width = fabs(str_bbox.xv2 - str_bbox.xv1);
+            if (str_width > max_str_width) {
+                max_str_width = str_width;
+            }
+            
+            ascent  = MAX2(sym_bbox.yv2 + y_middle, str_bbox.yv2);
+            descent = MIN2(sym_bbox.yv1 + y_middle, str_bbox.yv1);
+            
+            height  = ascent - descent;
+            bb_height += height + l->vgap;
+            
+            leg_entries[nleg_entries].pset     = pset;
+            leg_entries[nleg_entries].sym_bbox = sym_bbox;
+            leg_entries[nleg_entries].str_bbox = str_bbox;
+            nleg_entries++;
+        }
+    }
     
-    get_graph_viewport(gr, &v);
+    xfree(psets);
+
+    set_draw_mode(canvas, TRUE);
+    
+    bb_width = max_sym_width + max_str_width + 3*l->hgap;
+    
+    v = frame_get_view(q);
     
     switch (l->acorner) {
     case CORNER_LL:
-        vp.x = v.xv1 + l->offset.x;
-        vp.y = v.yv1 + l->offset.y + bb_height;
+        vp.x = v->xv1 + l->offset.x;
+        vp.y = v->yv1 + l->offset.y + bb_height;
         break;
     case CORNER_UL:
-        vp.x = v.xv1 + l->offset.x;
-        vp.y = v.yv2 - l->offset.y;
+        vp.x = v->xv1 + l->offset.x;
+        vp.y = v->yv2 - l->offset.y;
         break;
     case CORNER_UR:
     default:
-        vp.x = v.xv2 - l->offset.x - bb_width;
-        vp.y = v.yv2 - l->offset.y;
+        vp.x = v->xv2 - l->offset.x - bb_width;
+        vp.y = v->yv2 - l->offset.y;
         break;
     case CORNER_LR:
-        vp.x = v.xv2 - l->offset.x - bb_width;
-        vp.y = v.yv1 + l->offset.y + bb_height;
+        vp.x = v->xv2 - l->offset.x - bb_width;
+        vp.y = v->yv1 + l->offset.y + bb_height;
         break;
     }
     
@@ -2342,153 +2442,59 @@ void dolegend(Canvas *canvas, Quark *q)
     vp2.y = vp.y - bb_height;
 
     l->bb.xv1 = vp.x;
-    l->bb.yv1 = vp2.y;
+    l->bb.yv1 = vp.y;
     l->bb.xv2 = vp2.x;
     l->bb.yv2 = vp.y;
     
-    set_draw_mode(canvas, TRUE);
-    
-    setpen(canvas, &l->boxfillpen);
-    FillRect(canvas, &vp, &vp2);
+    if (nleg_entries) {
+        setpen(canvas, &l->boxfillpen);
+        FillRect(canvas, &vp, &vp2);
 
-    setline(canvas, &l->boxline);
-    DrawRect(canvas, &vp, &vp2);
-    
-    /* correction */
-    vp.x += l->hgap;
-    vp.y -= l->vgap;
-   
-    reset_bbox(canvas, BBOX_TYPE_TEMP);
-    update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
+        setline(canvas, &l->boxline);
+        DrawRect(canvas, &vp, &vp2);
 
-    putlegends(canvas, gr, &vp, maxsymsize);
-#endif
-}
+        /* correction */
+        vp.x += l->hgap + max_sym_width/2;
+        vp.y -= l->vgap;
 
-void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
-{
-    int i, setno, nsets;
-    VPoint vp1, vp2, vpstr;
-    set *p;
-    legend *l;
-    int draw_line, singlesym;
-    Quark **psets;
+    }
     
-    l = frame_get_legend(gr);
-
-    vp1.x = vp->x + 0.01*maxsymsize;
-    vp2.y = vp->y;
-    vp2.x = vp1.x + l->len;
-    vpstr.y = vp->y;
-    vpstr.x = vp2.x + l->hgap + 0.01*maxsymsize;
-    
-    nsets = graph_get_sets(gr, &psets);
-    for (i = 0; i < nsets; i++) {
+    for (i = 0; i < nleg_entries; i++) {
+        leg_rt_t *leg_entry;
         Quark *pset;
-        
+        set *p;
+        double y_middle, ascent, descent;
+        VPoint vpsym, vpstr;
+
         if (l->invert == FALSE) {
             setno = i;
         } else {
-            setno = nsets - i - 1;
+            setno = nleg_entries - i - 1;
         }
         
-        pset = psets[setno];
+        leg_entry = &leg_entries[setno];
+        pset = leg_entry->pset;
+        p = set_get_data(pset);
         
-        if (is_set_drawable(pset)) {
-            view vtmp;
-            double symvshift;
-            
-            p = (set *) pset->data;
-            
-            if (is_empty_string(p->legstr)) {
-                continue;
-            }
-            
-            setcharsize(canvas, l->charsize);
-            setfont(canvas, l->font);
-            setcolor(canvas, l->color);
-            WriteString(canvas, &vpstr, 0.0, JUST_LEFT|JUST_TOP, p->legstr);
-            get_bbox(canvas, BBOX_TYPE_TEMP, &vtmp);
-            vp1.y = (vpstr.y + vtmp.yv1)/2;
-            vp2.y = vp1.y;
-            vpstr.y = vtmp.yv1 - l->vgap;
-            
-            setfont(canvas, p->sym.charfont);
-            
-            if (l->len <= 0.0 || p->line.type == 0 ||
-                ((p->line.line.style == 0 ||
-                  p->line.line.pen.pattern == 0) &&
-                 (p->line.filltype == SETFILL_NONE ||
-                  p->line.fillpen.pattern == 0))) {
-                draw_line = FALSE;
-            } else {
-                draw_line = TRUE;
-            }
-            
-            symvshift = 0.0;
-            if (draw_line) {
-                setline(canvas, &p->line.line);
-                if (p->line.filltype != SETFILL_NONE &&
-                    p->line.fillpen.pattern != 0) {
-                    VPoint vpf1, vpf2;
-                    vpf1.x = vp1.x;
-                    vpf1.y = vp1.y - 0.01*l->charsize;
-                    vpf2.x = vp2.x;
-                    vpf2.y = vp2.y + 0.01*l->charsize;
+        y_middle = leg_entry->str_bbox.yv2/2;
+        ascent  = MAX2(leg_entry->sym_bbox.yv2 + y_middle, leg_entry->str_bbox.yv2);
+        descent = MIN2(leg_entry->sym_bbox.yv1 + y_middle, leg_entry->str_bbox.yv1);
 
-                    /* TODO: settable option for setfill presentation */
-                    setpen(canvas, &p->line.fillpen);
-                    if (1) {
-                        FillRect(canvas, &vpf1, &vpf2);
-                    } else {
-                        DrawFilledEllipse(canvas, &vpf1, &vpf2);
-                    }
-                    setpen(canvas, &p->line.line.pen);
-                    if (1) {
-                        DrawRect(canvas, &vpf1, &vpf2);
-                    } else {
-                        DrawEllipse(canvas, &vpf1, &vpf2);
-                    }
-                    
-                    /* FIXME: BBox calculations */
-                    symvshift = 0.01*l->charsize;
-                } else {
-                    DrawLine(canvas, &vp1, &vp2);
-                }
-            }
-            
-            if (draw_line) {
-                singlesym = l->singlesym;
-            } else {
-                singlesym = TRUE;
-            }
-            
-            setline(canvas, &p->sym.line);
-            if (!singlesym) {
-                if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
-                    p->type == SET_BARDY || p->type == SET_BARDYDY) {
-                    drawlegbarsym(canvas,
-                        &vp1, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
-                    drawlegbarsym(canvas,
-                        &vp2, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
-                } else {
-                    drawxysym(canvas, &vp1, &p->sym);
-                    drawxysym(canvas, &vp2, &p->sym);
-                }
-            } else {
-                VPoint vptmp;
-                vptmp.x = (vp1.x + vp2.x)/2;
-                vptmp.y = vp1.y + symvshift;
-                
-                if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
-                    p->type == SET_BARDY || p->type == SET_BARDYDY) {
-                    drawlegbarsym(canvas,
-                        &vptmp, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
-                } else {
-                    drawxysym(canvas, &vptmp, &p->sym);
-                }
-            }
-        }
+        vp.y -= ascent;
+        
+        vpsym.x = vp.x;
+        vpsym.y = vp.y + y_middle;
+        draw_legend_syms(pset, plot_rt, &vpsym, l);
+
+        vpstr.x = vp.x + max_sym_width/2 + l->hgap;
+        vpstr.y = vp.y;
+        setcharsize(canvas, l->charsize);
+        setfont(canvas, l->font);
+        setcolor(canvas, l->color);
+        WriteString(canvas, &vpstr, 0.0, JUST_LEFT|JUST_BLINE, p->legstr);
+
+        vp.y -= (l->vgap - descent);
     }
-    xfree(psets);
+    
+    xfree(leg_entries);
 }

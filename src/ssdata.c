@@ -371,7 +371,7 @@ Quark *nextset(Quark *gr)
     } else {
         int i, nsets;
         
-        nsets = graph_get_sets(gr, &psets);
+        nsets = get_descendant_sets(gr, &psets);
         for (i = 0; i < nsets; i++) {
             pset = psets[i];
             if (!is_set_active(pset) == TRUE) {

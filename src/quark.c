@@ -301,7 +301,7 @@ static int _quark_traverse(Quark *q, QTHookData *_cbdata)
     
     closure.depth   = _cbdata->depth;
     closure.step    = _cbdata->step;
-    closure.pass2   = FALSE;
+    closure.post    = FALSE;
     closure.descend = TRUE;
     
     res = _cbdata->hook(q, _cbdata->udata, &closure);
@@ -312,7 +312,7 @@ static int _quark_traverse(Quark *q, QTHookData *_cbdata)
             storage_traverse(q->children, hook, _cbdata);
         }
         
-        if (closure.pass2) {
+        if (closure.post) {
             res = _cbdata->hook(q, _cbdata->udata, &closure);
         }
         

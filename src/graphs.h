@@ -424,7 +424,7 @@ int islogity(Quark *gr);
 int is_log_axis(const Quark *q);
 int is_logit_axis(const Quark *q);
 
-int number_of_graphs(const Quark *project);
+int number_of_graphs(Quark *project);
 int select_graph(Quark *g);
 
 int realloc_graphs(Quark *project, int n);
@@ -509,7 +509,7 @@ int graph_world_stack_size(Quark *gr);
 int get_world_stack_current(Quark *gr);
 int get_world_stack_entry(Quark *gr, int n, world_stack *ws);
 
-int graph_get_sets(Quark *gr, Quark ***sets);
+int get_descendant_sets(Quark *q, Quark ***sets);
 
 int set_set_colors(Quark *p, int color);
 
