@@ -120,6 +120,9 @@ $GRACE xyz.agr
 # a graph with HILO data
 $GRACE hilo.agr 
 #
+# a graph with BOXPLOT data
+$GRACE boxplot.agr 
+#
 # polar plots
 $GRACE polar.agr
 #
