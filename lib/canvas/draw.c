@@ -194,6 +194,8 @@ Canvas *canvas_new(void)
         
         canvas->csparse_proc = csparse_proc_default;
         canvas->fmap_proc    = fmap_proc_default;
+        canvas->fscale       = 1.0;
+        canvas->lscale       = 1.0;
         
         /* initialize T1lib */
         if (init_t1(canvas) != RETURN_SUCCESS) {
@@ -396,12 +398,12 @@ int getfillrule(const Canvas *canvas)
 
 double getlinewidth(const Canvas *canvas)
 {
-    return MAGIC_LINEW_SCALE*canvas->draw_props.linew;
+    return canvas->lscale*canvas->draw_props.linew;
 }
 
 double getcharsize(const Canvas *canvas)
 {
-    return canvas->draw_props.charsize;
+    return canvas->fscale*canvas->draw_props.charsize;
 }
 
 int getfont(const Canvas *canvas)
@@ -442,6 +444,16 @@ void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc)
 void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc)
 {
     canvas->fmap_proc = fmap_proc;
+}
+
+void canvas_set_fontsize_scale(Canvas *canvas, double fscale)
+{
+    canvas->fscale = fscale;
+}
+
+void canvas_set_linewidth_scale(Canvas *canvas, double lscale)
+{
+    canvas->lscale = lscale;
 }
 
 void canvas_set_pagefill(Canvas *canvas, int flag)

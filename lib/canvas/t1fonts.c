@@ -595,7 +595,7 @@ static int postprocess_cs(Canvas *canvas,
     int gotomark, setmark;
  
     /* charsize (in VP units) */
-    double charsize = MAGIC_FONT_SCALE*getcharsize(canvas);
+    double charsize = getcharsize(canvas);
 
     if (charsize <= 0.0) {
         return RETURN_FAILURE;

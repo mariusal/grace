@@ -137,6 +137,11 @@ struct _Canvas {
     /* user-supplied procedure for mapping font ids */
     CanvasFMapProc fmap_proc;
     
+    /* font size scale */
+    double fscale;
+    /* line width scale */
+    double lscale;
+    
     /* user data */
     void *udata;
 

@@ -81,10 +81,6 @@
 
 #define BAD_FONT_ID     -1
 
-/* TODO */
-#define MAGIC_FONT_SCALE    0.028
-#define MAGIC_LINEW_SCALE   0.0015
-
 
 #define TEXT_ADVANCING_LR   0
 #define TEXT_ADVANCING_RL   1
@@ -457,6 +453,8 @@ void canvas_set_description(Canvas *canvas, const char *s);
 
 void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc);
 void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc);
+void canvas_set_fontsize_scale(Canvas *canvas, double fscale);
+void canvas_set_linewidth_scale(Canvas *canvas, double lscale);
 
 void canvas_set_pagefill(Canvas *canvas, int flag);
 
