@@ -536,18 +536,6 @@ int main(int argc, char *argv[])
 		    noask = TRUE;
 		} else if (argmatch(argv[i], "-mono", 5)) {
 		    monomode = TRUE;
-		} else if (argmatch(argv[i], "-dc", 3)) {
-		    allow_dc = 1;
-		} else if (argmatch(argv[i], "-nodc", 5)) {
-		    allow_dc = 0;
-		} else if (argmatch(argv[i], "-redraw", 7)) {
-		    auto_redraw = 1;
-		} else if (argmatch(argv[i], "-noredraw", 9)) {
-		    auto_redraw = 0;
-		} else if (argmatch(argv[i], "-GXxor", 6)) {
-		    invert = 0;
-		} else if (argmatch(argv[i], "-GXinvert", 6)) {
-		    invert = 1;
 		} else if (argmatch(argv[i], "-hdevice", 5)) {
 		    i++;
 		    if (i == argc) {
@@ -913,8 +901,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        using the current set type from columns\n");
     fprintf(stream, "                                        given in the argument\n");
     fprintf(stream, "-cols      [gcols]                    Arrange graphs in gcols columns\n");
-    fprintf(stream, "-dc                                   Allow double click operations on the\n");
-    fprintf(stream, "                                        canvas\n");
 #if defined(DEBUG)
     fprintf(stream, "-debug     [debug_level]              Set debugging options\n");
 #endif
@@ -924,10 +910,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-free                                 Use free page layout\n");
     fprintf(stream, "-graph     [graph_number]             Set the current graph number\n");
     fprintf(stream, "-graphtype [graph_type]               Set the type of the current graph\n");
-    fprintf(stream, "-GXxor                                Use xor to draw rubberband lines and graph\n");
-    fprintf(stream, "                                        focus markers\n");
-    fprintf(stream, "-GXinvert                             Use invert to draw rubberband lines and\n");
-    fprintf(stream, "                                        graph focus markers\n");
     fprintf(stream, "-hardcopy                             No interactive session, just print and\n");
     fprintf(stream, "                                        quit\n");
     fprintf(stream, "-hilo      [hilo_file]                Assume data is in X HI LO OPEN CLOSE\n");
@@ -956,13 +938,9 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-noask                                Assume the answer is yes to all requests -\n");
     fprintf(stream, "                                        if the operation would overwrite a file,\n");
     fprintf(stream, "                                        grace will do so without prompting\n");
-    fprintf(stream, "-nodc                                 Ignore double clicks on the canvas\n");
     fprintf(stream, "-noinstall                            Don't use private colormap\n");
     fprintf(stream, "-nologwindow                          No log window, overrides resource setting\n");
     fprintf(stream, "-noprint                              In batch mode, do not print\n");
-    fprintf(stream, "-noredraw                             Don't do a redraw for refreshing the\n");
-    fprintf(stream, "                                        canvas when the server doesn't do\n");
-    fprintf(stream, "                                        backing store\n");
     fprintf(stream, "-nosigcatch                           Don't catch signals\n");
     fprintf(stream, "-npipe     [file]                     Read data from named pipe on startup\n");
     fprintf(stream, "-nxy       [nxy_file]                 Assume data file is in X Y1 Y2 Y3 ...\n");
@@ -972,15 +950,13 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-pexec     [parameter_string]         Interpret string as a parameter setting\n");
     fprintf(stream, "-pipe                                 Read data from stdin on startup\n");
     fprintf(stream, "-printfile [file for hardcopy output] Save print output to file \n");
-    fprintf(stream, "-redraw                               Do a redraw for refreshing the canvas when\n");
-    fprintf(stream, "                                        the server doesn't do backing store\n");
     fprintf(stream, "-remove                               Remove data file after read\n");
     fprintf(stream, "-results   [results_file]             Write the results from regression to\n");
     fprintf(stream, "                                        results_file\n");
     fprintf(stream, "-rows      [grows]                    Arrange graphs in grows rows \n");
     fprintf(stream, "-rvideo                               Exchange the color indices for black and\n");
     fprintf(stream, "                                        white\n");
-    fprintf(stream, "-saveall   [save_file]                Save all graphs to save_file\n");
+    fprintf(stream, "-saveall   [save_file]                Save all to save_file\n");
     fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator\n");
     fprintf(stream, "-source    [disk|pipe]                Source type of next data file\n");
     fprintf(stream, "-timer     [delay]                    Set timer for named pipes to delay ms \n");
