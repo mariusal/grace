@@ -81,7 +81,7 @@ void dummy_drawarc(VPoint vp1, VPoint vp2, int a1, int a2){}
 void dummy_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode){}
 void dummy_putpixmap(VPoint vp, int width, int height, 
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type){}
-void dummy_puttext (VPoint start, VPoint end, double size, 
-                                            CompositeString *cstring){}
+void dummy_puttext(VPoint vp, char *s, int len, int font,
+     TextMatrix *tm, int underline, int overline, int kerning){}
 
 void dummy_leavegraphics(void){}
