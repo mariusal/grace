@@ -43,7 +43,6 @@ typedef struct {
     OptionStructure *bg_color;
     Widget          bg_fill;
 
-    OptionStructure *datehint;
     Widget          refdate;
     Widget          wrap_year;
     Widget          two_digits_years;

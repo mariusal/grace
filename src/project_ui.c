@@ -46,13 +46,6 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     ProjectUI *ui;
     Widget form, fr, rc, rc1;
 
-    OptionItem opitems[4] = {
-        {FMT_iso,      "ISO"     },
-        {FMT_european, "European"},
-        {FMT_us,       "US"      },
-        {FMT_nohint,   "None"    }
-    };
-    
     form = CreateVContainer(eui->scrolled_window);
     
     ui = xmalloc(sizeof(ProjectUI));
@@ -74,8 +67,6 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
 
     fr = CreateFrame(form, "Dates");
     rc1 = CreateVContainer(fr);
-    ui->datehint = CreateOptionChoice(rc1, "Date hint", 0, 4, opitems);
-    AddOptionChoiceCB(ui->datehint, oc_explorer_cb, eui);
     ui->refdate = CreateTextItem2(rc1, 20, "Reference date:");
     AddTextItemCB(ui->refdate, titem_explorer_cb, eui);
     rc = CreateHContainer(rc1);
@@ -104,7 +95,6 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         SetOptionChoice(ui->bg_color, pr->bgcolor);
         SetToggleButtonState(ui->bg_fill, pr->bgfill);
 
-    	SetOptionChoice(ui->datehint, get_date_hint());
 	jul_to_cal_and_time(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
 	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
                 y, m, d, h, mm, sec);
@@ -140,9 +130,6 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             pr->bgfill = GetToggleButtonState(ui->bg_fill);
         }
 
-        if (!caller || caller == ui->datehint) {
-            set_date_hint(GetOptionChoice(ui->datehint));
-        }
         if (!caller || caller == ui->refdate) {
             if (parse_date_or_number(q, xv_getstr(ui->refdate), TRUE, &jul) ==
                 RETURN_SUCCESS) {

@@ -128,6 +128,7 @@ typedef struct {
     OptionStructure *ftype_item;   /* set type choice item */
     OptionStructure *load_item;    /* load as single/nxy/block */
     OptionStructure *auto_item;    /* autoscale on read */
+    OptionStructure *datehint;
 } rdataGUI;
 
 void create_file_popup(Widget but, void *data)
@@ -141,6 +142,12 @@ void create_file_popup(Widget but, void *data)
         Widget lab, rc, rc2, fr, rb, w[2];
         rdataGUI *gui;
         OptionItem option_items[3];
+        OptionItem opitems[4] = {
+            {FMT_iso,      "ISO"     },
+            {FMT_european, "European"},
+            {FMT_us,       "US"      },
+            {FMT_nohint,   "None"    }
+        };
         
         gui = xmalloc(sizeof(rdataGUI));
         
@@ -161,9 +168,9 @@ void create_file_popup(Widget but, void *data)
 	option_items[1].label = "NXY";
 	option_items[2].value = LOAD_BLOCK;
 	option_items[2].label = "Block data";
-	gui->load_item = CreateOptionChoice(rc2, "Load as", 1, 3, option_items);
+	gui->load_item = CreateOptionChoice(rc2, "Load as:", 1, 3, option_items);
         AddOptionChoiceCB(gui->load_item, set_load_proc, (void *) gui);
-	gui->ftype_item = CreateSetTypeChoice(rc2, "Set type:");
+        gui->ftype_item = CreateSetTypeChoice(rc2, "Set type:");
 
 	rc2 = CreateHContainer(rc);
 	lab = CreateLabel(rc2, "Data source:");
@@ -180,7 +187,10 @@ void create_file_popup(Widget but, void *data)
 	ManageChild(w[1]);
 	SetToggleButtonState(w[0], TRUE);
 
-	gui->auto_item = CreateASChoice(rc, "Autoscale on read:");
+	rc2 = CreateHContainer(rc);
+	gui->auto_item = CreateASChoice(rc2, "Autoscale on read:");
+        gui->datehint = CreateOptionChoice(rc2, "Date hint:", 0, 4, opitems);
+	SetOptionChoice(gui->datehint, get_date_hint());
 
         ManageChild(rdata_dialog->FSB);
     }
@@ -207,6 +217,7 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
         }
 
         grace->rt->autoscale_onread = GetOptionChoice(gui->auto_item);
+        set_date_hint(GetOptionChoice(gui->datehint));
         
         getdata(gr, filename, grace->rt->cursource, load);
 
