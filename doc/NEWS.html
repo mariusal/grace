@@ -5,7 +5,7 @@
 
 <BODY>
 
-<H1>Grace list of changes (since 5.1.*) </H1>
+<H1>Grace list of changes (since 5.1.*)</H1>
 
 <PRE>
 
@@ -53,8 +53,8 @@ Rotated arcs
  !  [ES] no more world coordinates for the legend placement
  !  [ES] allow legend entries to contain a single symbol instead of two
  !  [ES] set filling in legends
- !  [ES] define legend frame placement via anchor corner + offset vector
-         (including rep. #833)
+ !  [ES] define legend frame placement via anchor point (in the frame
+         coordinates) + justification and offset vector (including rep. #833)
  !  [ES] titles/subtitles are separate objects (thus solving rep. #1075)
  !  [ES] justification for annotated values (rep. #1382)
  !  [SJ] "minimum symbol separation" option for set presentation
@@ -62,6 +62,12 @@ Rotated arcs
          session, your data will be saved
  *  [AG] netCDF: parse and use calibration attributes add_offset, scale_factor
          and understand 1 byte variables
+ *  [RA] enabled inout tick direction be set separately for major and minor
+         ticks
+ !  [ES] implemented fontsize and linewidth scales per project
+ !  [ES] got rid of world stacks
+ *  [ES] hotlinks now work for all set types
+ !  [ES] arrows now can be filled with different from the line color/pattern
 
 <H3>Interface</H3>
  !  [ES] all "Plot/* appearance" dialogs replaced with Tools/Explorer for easy
@@ -83,7 +89,27 @@ Rotated arcs
  !  [ES] sym char in set presentation (rep. #1284)
  *  [ES] dropped the "-remove", "-timestamp", and "-rvideo" command line flags
  *  [ES] dropped the "-param" and "-pexec" command line flags
-
+ *  [ES] dropped the "-batch" and "-pipe" command line flags
+ *  [ES] fonttool enhancements: preserve cursor positions, be smart about font
+	 selection escape strings (rep. #1110)
+ !  [ES] context-sensitive menu on canvas
+ !  [ES] some enhancements to the built-in HTML viewer
+ *  [ES] added -hdevice-options command line option
+ *  [ES] enabled support for wheel mouse to scroll the canvas
+ *  [ES/MO] enabled support for wheel mouse for spinboxes
+ !  [ES] removed all page dimension settings from View/Page setup. Page
+         dimensions are properties of Project, as it should be. Also,
+         sync/rescale options removed
+ *  [ES] removed grace_np library
+ *  [ES] draw crosshair cursor not exceeding the current frame limits
+ *  [ES] removed the "autoscale on set" button from the toolbar
+ !  [KK/ES] new toolbar icons
+ !  [ES] implemented moving of some plot objects with Ctrl+mouse dragging
+ *  [ES] got rid of "Overlay graphs" dialog
+ !  [ES] moved project desription and sformat UIs from "Save as" to Explorer
+ !  [ES] moved Date settings from Preferences to the Project UI
+ !  [ES] moved Locator UI to Graph UI
+ 
 <H3>Drivers</H3>
  *  [ES] the drivers' framework heavily reworked
  !  [ES] imeplemented color transformations per device (including rep. #690)
@@ -105,11 +131,19 @@ Rotated arcs
 	 things fixed (including rep. #1275)
  *  [ES] per a popular demand, added "printable" option for EPS as a
          workaround for brain-damaged EPS importing software
+ *  [ES] implemented page clipping in *PS
+
+<H3>Defaults</H3>
+ *  [ES] gracerc no longer used
+ *  [ES] default template is now Default.xgr
+ *  [ES] removed allowDoubleClick Xresource
 
 <H3>Portability/Compilation</H3>
  *  [RB] VMS updates
  *  [ES] dropped support for libhelp
  *  [ES] switched to autoconf-2.5 (rep. #1392)
+ *  [ES] Xpm library is now a must for GUI
+ *  [ES] require PDFlib >= 6.0.0 for the PDF driver
 
 <H3>Bug fixes</H3>
  *  [ES] polygon regions were displayed incorrectly for non-linear scales
@@ -123,6 +157,7 @@ Rotated arcs
          (rep. #1281)
  *  [ES] when a set was killed, the next set was often plotted black
          (rep. #1362)
+ *  [ES] fixed font width calculation in the Xbae widget
 
 
  <B>Legend:</B>
@@ -132,6 +167,9 @@ Rotated arcs
     [AG]  - Alexey Goldin &lt;Alexey.Goldin(at-nospam)jpl.nasa.gov&gt;
     [RB]  - Richard Brodie &lt;R.Brodie(at-nospam)rl.ac.uk&gt;
     [SJ]  - Steven G. Johnson &lt;stevenj(at-nospam)deas.harvard.edu&gt;
+    [MO]  - Marius Olechnovicius &lt;img(at-nospam)patikimi.lt&gt;
+    [RA]  - Robert Atwood &lt;r.atwood(at-nospam)imperial.ac.uk&gt;
+    [KK]  - Karim Kaschani &lt;karim.kaschani(at-nospam)arcormail.de&gt;
     [ES]  - Evgeny Stambulchik &lt;evgeny(at-nospam)stambulchik.net&gt;
 
     "!" means no documentation provided (yet)
