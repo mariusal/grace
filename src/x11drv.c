@@ -132,7 +132,6 @@ int register_x11_drv(void)
 
 int xlibinit(void)
 {
-    XSetWindowAttributes sw;
     XGCValues gc_val;
     XPixmapFormatValues *pmf;
     int i, n;
@@ -141,9 +140,6 @@ int xlibinit(void)
     visual = DefaultVisual(disp, screennumber);
     root = RootWindow(disp, screennumber);
  
-    sw.backing_store = Always;
-    XChangeWindowAttributes(disp, root, CWBackingStore, &sw);
-
     gc = DefaultGC(disp, screennumber);
     
     depth = DisplayPlanes(disp, screennumber);
