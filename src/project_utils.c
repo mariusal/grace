@@ -177,7 +177,6 @@ static int project_postprocess_hook(Quark *q,
     void *udata, QTraverseClosure *closure)
 {
     int version_id = *((int *) udata);
-    RunTime *rt = rt_from_quark(q);
     Project *pr;
     frame *f;
     tickmarks *t;
@@ -211,8 +210,9 @@ static int project_postprocess_hook(Quark *q,
             GUI *gui = gui_from_quark(q);
             gui_set_page_free(gui, FALSE);
 #endif
-            get_page_viewport(rt->canvas, &ext_x, &ext_y);
-            rescale_viewport(q, ext_x, ext_y);
+            if (project_get_viewport(q, &ext_x, &ext_y) == RETURN_SUCCESS) {
+                rescale_viewport(q, ext_x, ext_y);
+            }
         }
         break;
     case QFlavorFrame:
@@ -459,4 +459,21 @@ void project_postprocess(Quark *project)
     }
     
     quark_traverse(project, project_postprocess_hook, &version_id);
+}
+
+int project_get_viewport(const Quark *project, double *vx, double *vy)
+{
+    Project *pr = project_get_data(project);
+    if (pr && pr->page_wpp > 0 && pr->page_hpp > 0) {
+        if (pr->page_wpp < pr->page_hpp) {
+            *vy = (double) pr->page_hpp/pr->page_wpp;
+            *vx = 1.0;
+        } else {
+            *vx = (double) pr->page_wpp/pr->page_hpp;
+            *vy = 1.0;
+        }
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
