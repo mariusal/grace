@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -50,8 +50,8 @@ static Device_entry dev_mf = {DEVICE_FILE,
           NULL,
           NULL,
           "gmf",
-          FALSE,
           TRUE,
+          FALSE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
           NULL
          };
@@ -214,7 +214,7 @@ void mf_putpixmap(VPoint vp, int width, int height, char *databits,
 void mf_puttext (VPoint start, VPoint end, double size, 
                                             CompositeString *cstring)
 {
-    int iglyph;
+    int i, iglyph;
     
     mf_setpen();
     
@@ -224,14 +224,17 @@ void mf_puttext (VPoint start, VPoint end, double size,
 
     iglyph = 0;
     while (cstring[iglyph].s != NULL) {
-        fprintf(prstream, "\t %d %.4f %.4f %.4f %d %d \"%s\"\n", 
+        fprintf(prstream, "\t %d %.4f %.4f %.4f %d %d \"", 
                             cstring[iglyph].font,
                             size * cstring[iglyph].scale,
                             size * cstring[iglyph].hshift,
                             size * cstring[iglyph].vshift,
                             cstring[iglyph].underline,
-                            cstring[iglyph].overline,
-                            cstring[iglyph].s);
+                            cstring[iglyph].overline);
+        for (i = 0; i < cstring[iglyph].len; i++) {
+            fputc(cstring[iglyph].s[i], prstream);
+        }
+        fprintf(prstream, "\"\n");
         iglyph++;
     }
 
