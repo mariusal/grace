@@ -33,7 +33,6 @@
  * Contents:
  *
  * void stasum() - compute mean and variance
- * void filterser() - apply a digital filter
  * void linearconv() - convolve one set with another
  * int crosscorr() - cross/auto correlation
  * void spline() - compute a spline fit
@@ -80,12 +79,11 @@ void stasum(double *x, int n, double *xbar, double *sd)
     *sd = sqrt(*sd/n);
 }
 
-
 /*
-	linear convolution of set x (length n) with h (length m) and
-	result to y. the length of y is set by the caller
-*/
-void linearconv(double *x, double *h, double *y, int n, int m)
+ * linear convolution of set x (length n) with h (length m) and
+ * result to y (length n + m - 1).
+ */
+void linearconv(double *x, int n, double *h, int m, double *y)
 {
     int i, j, itmp;
 

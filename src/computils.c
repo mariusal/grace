@@ -219,35 +219,85 @@ double trapint(double *x, double *y, double *resx, double *resy, int n)
     return sum;
 }
 
-
 /*
  * linear convolution
  */
-void do_linearc(int set1, int set2)
+int do_linearc(int gsrc, int setfrom, int gdest, int setto,
+    int gconv, int setconv)
 {
-    int linearcset, i, itmp;
-    double *xtmp;
+    int srclen, convlen, destlen, i, ncols, nc;
+    double xspace1, xspace2, *xsrc, *xconv, *xdest, *yconv;
 
-    if (!(is_set_active(get_cg(), set1) && is_set_active(get_cg(), set2))) {
+    if (!is_set_active(gsrc, setfrom)) {
 	errmsg("Set not active");
-	return;
+	return RETURN_FAILURE;
     }
-    if ((getsetlength(get_cg(), set1) < 3) || (getsetlength(get_cg(), set2) < 3)) {
-	errmsg("Set length < 3");
-	return;
+    
+    srclen  = getsetlength(gsrc, setfrom);
+    convlen = getsetlength(gconv, setconv);
+    if (srclen < 2 || convlen < 2) {
+	errmsg("Set length < 2");
+	return RETURN_FAILURE;
     }
-    linearcset = nextset(get_cg());
-    if (linearcset != (-1)) {
-	activateset(get_cg(), linearcset);
-	setlength(get_cg(), linearcset, (itmp = getsetlength(get_cg(), set1) + getsetlength(get_cg(), set2) - 1));
-	linearconv(gety(get_cg(), set2), gety(get_cg(), set1), gety(get_cg(), linearcset), getsetlength(get_cg(), set2), getsetlength(get_cg(), set1));
-	xtmp = getx(get_cg(), linearcset);
-	for (i = 0; i < itmp; i++) {
-	    xtmp[i] = i;
-	}
-	sprintf(buf, "Linear convolution of set %d with set %d", set1, set2);
-	setcomment(get_cg(), linearcset, buf);
+    
+    destlen = srclen + convlen - 1;
+
+    xsrc  = getcol(gsrc, setfrom, DATA_X);
+    if (monospaced(xsrc, srclen, &xspace1) != TRUE) {
+        errmsg("Abscissas of the set are not monospaced");
+        return RETURN_FAILURE;
+    } else {
+        if (xspace1 == 0.0) {
+            errmsg("The set spacing is 0");
+            return RETURN_FAILURE;
+        }
     }
+
+    xconv = getcol(gconv, setconv, DATA_X);
+    if (monospaced(xconv, convlen, &xspace2) != TRUE) {
+        errmsg("Abscissas of the set are not monospaced");
+        return RETURN_FAILURE;
+    } else {
+        if (fabs(xspace2/xspace1 - 1) > 0.01/(srclen + convlen)) {
+            errmsg("The source and convoluting functions are not equally sampled");
+            return RETURN_FAILURE;
+        }
+    }
+    
+    activateset(gdest, setto);
+    if (setlength(gdest, setto, destlen) != RETURN_SUCCESS) {
+	return RETURN_FAILURE;
+    }
+
+    ncols = dataset_cols(gsrc, setfrom);
+    if (dataset_cols(gdest, setto) != ncols) {
+        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    }
+    
+    yconv = getcol(gconv, setconv, DATA_Y);
+    
+    for (nc = 1; nc < ncols; nc++) {
+        double *d1, *d2;
+        
+        d1 = getcol(gsrc, setfrom, nc);
+        d2 = getcol(gdest, setto, nc);
+        
+        linearconv(d1, srclen, yconv, convlen, d2);
+        for (i = 0; i < destlen; i++) {
+            d2[i] *= xspace1;
+        }
+    }
+
+    xdest = getcol(gdest, setto, DATA_X);
+    for (i = 0; i < destlen; i++) {
+	xdest[i] = (xsrc[0] + xconv[0]) + i*xspace1;
+    }
+    
+    sprintf(buf, "Linear convolution of set G%d.S%d with set G%d.S%d",
+        gsrc, setfrom, gconv, setconv);
+    setcomment(gdest, setto, buf);
+    
+    return RETURN_SUCCESS;
 }
 
 /*

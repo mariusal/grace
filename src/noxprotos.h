@@ -45,7 +45,8 @@ int filter_set(int gno, int setno, char *rarray);
 
 int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *fstr);
 double trapint(double *x, double *y, double *resx, double *resy, int n);
-void do_linearc(int set1, int set2);
+int do_linearc(int gsrc, int setfrom, int gdest, int setto,
+    int gconv, int setconv);
 void do_xcor(int gno1, int set1, int gno2, int set2, int lag);
 int do_int(int gsrc, int setfrom, int gdest, int setto,
     int disponly, double *sum);
@@ -85,8 +86,7 @@ int real_time_under_monitoring(void);
 int monitor_input(Input_buffer *tbl, int tblsize, int no_wait);
 
 void stasum(double *x, int n, double *xbar, double *sd);
-void filterser(int n, double *x, double *y, double *resx, double *resy, double *h, int len);
-void linearconv(double *x, double *h, double *y, int n, int m);
+void linearconv(double *x, int n, double *h, int m, double *y);
 int crosscorr(double *x, double *y, int n, int lag, double *xcor);
 
 void spline(int n, double *x, double *y, double *b, double *c, double *d);

@@ -56,7 +56,6 @@
 #include "motifinc.h"
 #include "protos.h"
 
-static Widget but1[3];
 static Widget but2[3];
 
 static int compute_aac(void *data);
@@ -66,7 +65,7 @@ static int do_interp_proc(void *data);
 static int do_runavg_proc(void *data);
 static int do_differ_proc(void *data);
 static int do_int_proc(void *data);
-static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_linearc_proc(void *data);
 static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data);
@@ -1470,71 +1469,86 @@ static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data)
 /* linear convolution */
 
 typedef struct _Lconv_ui {
-    Widget top;
-    SetChoiceItem sel1;
-    SetChoiceItem sel2;
-    Widget *type_item;
-    Widget lag_item;
-    Widget *region_item;
-    Widget rinvert_item;
+    TransformStructure *tdialog;
+    GraphSetStructure *convsel;
 } Lconv_ui;
-
-static Lconv_ui lconvui;
 
 void create_lconv_frame(void *data)
 {
-    Widget dialog;
+    static Lconv_ui *ui = NULL;
 
     set_wait_cursor();
-    if (lconvui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	lconvui.top = XmCreateDialogShell(app_shell, "Linear convolution", NULL, 0);
-	handle_close(lconvui.top);
-	dialog = XmCreateRowColumn(lconvui.top, "dialog_rc", NULL, 0);
 
-	lconvui.sel1 = CreateSetSelector(dialog, "Convolve set:",
-					 SET_SELECT_ACTIVE,
-					 FILTER_SELECT_NONE,
-					 GRAPH_SELECT_CURRENT,
-					 SELECTION_TYPE_SINGLE);
-	lconvui.sel2 = CreateSetSelector(dialog, "With set:",
-					 SET_SELECT_ACTIVE,
-					 FILTER_SELECT_NONE,
-					 GRAPH_SELECT_CURRENT,
-					 SELECTION_TYPE_SINGLE);
+    if (ui == NULL) {
+        Widget rc;
 
-	CreateSeparator(dialog);
+        ui = xmalloc(sizeof(Lconv_ui));
+        
+        ui->tdialog = CreateTransformDialogForm(app_shell,
+            "Linear convolution", LIST_TYPE_MULTIPLE);
 
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_linearc_proc, (XtPointer) & lconvui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) lconvui.top);
+	rc = CreateVContainer(ui->tdialog->form);
+	ui->convsel = CreateGraphSetSelector(rc,
+            "Convolve with:", LIST_TYPE_SINGLE);
 
-	ManageChild(dialog);
+        CreateAACDialog(ui->tdialog->form, rc, do_linearc_proc, (void *) ui);
     }
-    RaiseWindow(lconvui.top);
+    
+    RaiseWindow(GetParent(ui->tdialog->form));
+    
     unset_wait_cursor();
 }
 
 /*
  * linear convolution
  */
-static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_linearc_proc(void *data)
 {
-    int set1, set2;
-    Lconv_ui *ui = (Lconv_ui *) client_data;
-    set1 = GetSelectedSet(ui->sel1);
-    set2 = GetSelectedSet(ui->sel2);
-    if (set1 == SET_SELECT_ERROR || set2 == SET_SELECT_ERROR) {
-	errwin("Select 2 sets");
-	return;
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int i, res, err = FALSE;
+    int gconv, setconv;
+    Lconv_ui *ui = (Lconv_ui *) data;
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
-    set_wait_cursor();
-    do_linearc(set1, set2);
-    update_set_lists(get_cg());
+    
+    if (GetSingleListChoice(ui->convsel->graph_sel, &gconv) != RETURN_SUCCESS ||
+        GetSingleListChoice(ui->convsel->set_sel, &setconv) != RETURN_SUCCESS) {
+        errmsg("Please select a single set to be convoluted with");
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < nssrc; i++) {
+	int setfrom, setto;
+        setfrom = svaluessrc[i];
+	if (nsdest) {
+            setto = svaluesdest[i];
+        } else {
+            setto = nextset(gdest);
+        }
+        res = do_linearc(gsrc, setfrom, gdest, setto, gconv, setconv);
+        if (res != RETURN_SUCCESS) {
+            err = TRUE;
+        }
+    }
+
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    
+    update_set_lists(gdest);
     xdrawgraph();
-    unset_wait_cursor();
+
+    if (err) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
 }
 
 
