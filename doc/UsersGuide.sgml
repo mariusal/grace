@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.1)
-<author>by the Grace Team
-<date>27.06.2000
+<title>Grace User's Guide (for Grace-5.1.1)</title>
+<author>by the Grace Team</author>
+<date>30.06.2000</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -859,13 +859,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> swap
           <item> edit
           <itemize>
-            <item> in spreadsheet
+            <item> in spreadsheet (see
+                   <ref name="Spreadsheet data set editor" id="SSEditor">)
             <item> in text editor
           </itemize>
           <item> create new
           <itemize>
             <item> by formula
-            <item> in spreadsheet
+            <item> in spreadsheet (see
+                   <ref name="Spreadsheet data set editor" id="SSEditor">)
             <item> in text editor
             <item> from block data
           </itemize>
@@ -882,7 +884,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           </itemize>
         </itemize>
 
-        Double-clicking on a list entry will open the spreadsheet editor on
+        Double-clicking on a list entry will open the spreadsheet editor
+        (see <ref name="Spreadsheet data set editor" id="SSEditor">) on
         the set data.
 
   <sect1>The main window<label id="main-window">
@@ -1054,11 +1057,35 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <p>
       Using the data set popup, you can view the properties of
       datasets. This include its type, length, associated comment and
-      main some statistics (min, max, mean, standard deviation). A
+      some statistics (min, max, mean, standard deviation). A
       horizontal scrollbar at the bottom allows to get the two last
       properties, they are not displayed by default. Also note that if
       you find some columns are too narrow to show all significant
       digits, you can drag the vertical rules using Shift+Button 2.
+
+      Using the menu on the top of this dialog, you can manipulate existing
+      sets or add new ones. Among the most important entries in the menu,
+      are options to create or modify a set using the spreadsheet data set
+      editor (see <ref name="Spreadsheet data set editor" id="SSEditor">).
+      
+        <sect3>Spreadsheet data set editor<label id="SSEditor">
+        <p>
+          The dialog presents an editable matrix of numbers, corresponding
+          to the data set being edited. The set type (and hence, the number
+          of data columns) can be changed using the "Type:" selector.
+          Clicking on a column label pops up a dialog allowing to adjust
+          the column formatting. Clicking on the row labels toggles the
+          respective row state (selected/unselected). The selected rows can
+          be deleted via the dialog's "Edit" menu. Another entry in this
+          menu lets you add a row; the place of the new row is determined
+          by the row containing a cell with the keyboard focus on. As well,
+          just typing in an empty cell will add one or several rows
+          (filling the intermediate rows with zeros).
+
+          To resize columns, drag the vertical rules using Shift+Button 2.
+        </p>
+        </sect3> <!-- Spreadsheet data set editor -->
+
 
       <sect2> Set operations <label id="set-operations">
       <p>
@@ -1221,9 +1248,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          sin, but also lgamma, j1, erf, ...). As usual all
          trigonometric functions use radians by default but you can
          specify a unit if you prefer to say cos (x rad) or sin (3 * y
-         deg). Other predefined names include pi (for the constant)
-         and a, b, c and d for scratch arrays you can use to store
-         data between evaluations.
+         deg). For the full list of available numerical functions and
+         operators, see
+         <ref name="Operators and functions" id="operators-and-functions">.
 
          In the formula, you can use X, Y, Y1, ..., Y4 to denote any
          coordinate you like from the source set. An implicit loop
@@ -1765,7 +1792,7 @@ integral     | cumulative sum @
       The interpreter parses its input in a line-by-line manner. There may
       be several statements per line, separated by semicolon (<tt>;</tt>).
       The maximal line length is 4 kbytes (hardcoded). The parser is
-      case-insensitive.
+      case-insensitive and ignores lines beginning with the "<tt>#</tt>" sign.
     </p>
 
   <sect1>Definitions
@@ -1966,7 +1993,7 @@ integral     | cumulative sum @
       </table>
 
 
-  <sect1>Numerical operators and functions
+  <sect1>Numerical operators and functions<label id="operators-and-functions">
     <p>
 
       In numerical expressions, the infix format is used. Arguments of
@@ -2165,6 +2192,9 @@ integral     | cumulative sum @
 
   <sect1>Procedures
     <p>
+     Methods of directly manipulating the data corresponding to the
+     Data|Transformation menu are described in table
+     <ref id="transformations">. 
 
       <table loc="htbp">
       <tabular ca="p{3cm}p{5cm}p{3.5cm}p{3cm}">
@@ -2194,6 +2224,9 @@ integral     | cumulative sum @
 
   <sect1>Device parameters
     <p>
+    For producing "hard copy", several parameters can be set via the command
+    interpreter.  They are summarized in table 
+    <ref id="device-parameters" name="Device parameters">.
 
       <table loc="htbp">
       <tabular ca="lp{7cm}">
@@ -2245,8 +2278,10 @@ integral     | cumulative sum @
     </p>
 
   <sect1>Declarations
-
     <p>
+    User-defined variables are set and used according to the syntax
+    described in table <ref id="user-variables" name="User variables">.
+
       <table loc="htbp">
       <tabular ca="lp{7cm}ll">
         <hline>
@@ -2288,8 +2323,18 @@ integral     | cumulative sum @
     </p>
 
   <sect1>Graph properties
+  <p>
+  We divide the commands pertaining to the properties and appearance of
+  graphs into those which directly manipulate the graphs and those that 
+  affect the appearance of graph elements---the parameters that can appear
+  in a Grace project file.
+  </p>
+  
   <sect2>Command operations
     <p>
+     General graph creation/annihilation and control commands appear in
+     table <ref id="graph-ops" name="Graph operations">.
+
       <table loc="htbp">
       <tabular ca="p{3.5cm}p{4.5cm}p{3cm}p{3.5cm}">
         <hline>
@@ -2315,6 +2360,9 @@ integral     | cumulative sum @
     </p>
    <sect2>Parameter settings
     <p>
+    Setting the active graph and its type is accomplished with the commands
+    found in table <ref id="graphsel-pars" name="Graph selection parameters">.
+    
       <table loc="htbp">
       <tabular ca="p{3.25cm}p{4.5cm}p{3.5cm}p{3.25cm}">
         <hline>
@@ -2330,11 +2378,14 @@ integral     | cumulative sum @
 	          graphsel <it>graph</it>, graphtype <it>type</it> | G0 TYPE XYDY @
       </tabular>
       <caption>
+        <label id="graphsel-pars">
         Graph selection parameters
       </caption>
       </table>
-      </p>
-      <p>
+
+      The axis range and scale of the current graph as well as its  location
+      on the plot viewport are set with the commands listed in table
+      <ref id="graphaxis-pars" name="Axis parameters">.
       <table loc="htbp">
       <tabular ca="p{3.25cm}p{4.5cm}p{3.5cm}p{3.25cm}">
         <hline>
@@ -2366,11 +2417,15 @@ integral     | cumulative sum @
  	          onoff | YAXES INVERT OFF @
       </tabular>
       <caption>
+        <label id="graphaxis-pars">
         Axis parameters
       </caption>
       </table>
-      </p>
-      <p>
+
+      The commands to set the appearance and textual content of titles and
+      legends are given in table 
+      <ref id="graphlegend-pars" name="Titles and legends">.
+
       <table loc="htbp">
       <tabular ca="p{3.5cm}p{4.5cm}p{3.25cm}p{3.25cm}">
         <hline>
@@ -2429,6 +2484,7 @@ integral     | cumulative sum @
 	   LEGEND BOX FILL PATTERN 1@
       </tabular>
       <caption>
+        <label id="graphlegend-pars">
         Titles and legends
       </caption>
       </table>
@@ -2439,8 +2495,16 @@ integral     | cumulative sum @
    
   <sect1>Set properties
     <p>
+    Again, as with the graphs, we separate those parser commands that
+    manipulate the data in a set from the commands that determine
+    parameters---elements that are saved in a project file.
+
     <sect2>Commands
     <p>
+    Operations for set I/O are summarized in table 
+    <ref id="set-io" name="Set input, output,  and creation">.  (Note that
+    this is incomplete  and only lists <it>input</it> commands at the moment.)
+
       <table loc="htbp">
       <tabular ca="p{3.5cm}p{4.5cm}p{3cm}p{3.5cm}">
         <hline>
@@ -2462,9 +2526,9 @@ integral     | cumulative sum @
         Set input, output,  and creation
       </caption>
       </table>
-    </p>
-    <p>
-    Not finished yet...
+
+      The parser commands analogous to the Data|Data set operations dialogue
+      can be found in table <ref id="set-ops" name="Set operations">. 
       <table loc="htbp">
       <tabular ca="p{3.5cm}p{4.5cm}p{3cm}p{3.5cm}">
         <hline>
