@@ -39,6 +39,7 @@
 #include "graphutils.h"
 #include "utils.h"
 #include "draw.h"
+#include "cbitmaps.h"
 #include "protos.h"
 
 #include "motifinc.h"
@@ -81,14 +82,15 @@ static SpinStructure *frame_linew_choice_item;
 static OptionStructure *frame_fillcolor_choice_item;
 static OptionStructure *frame_fillpattern_choice_item;
 
-static Widget legend_x_item;
-static Widget legend_y_item;
+static OptionStructure *legend_acorner_item;
+static SpinStructure *legend_x_item;
+static SpinStructure *legend_y_item;
 static Widget toggle_legends_item;
-static OptionStructure *toggle_legendloc_item;
-static OptionStructure *legends_vgap_item;
-static OptionStructure *legends_hgap_item;
-static OptionStructure *legends_len_item;
+static SpinStructure *legends_vgap_item;
+static SpinStructure *legends_hgap_item;
+static SpinStructure *legends_len_item;
 static Widget legends_invert_item;
+static Widget legends_singlesym_item;
 static OptionStructure *legend_font_item;
 static Widget legend_charsize_item;
 static OptionStructure *legend_color_item;
@@ -158,6 +160,13 @@ void create_graphapp_frame(int gno)
         Widget graphapp_tab, graphapp_frame, graphapp_main, graphapp_titles,
              graphapp_legends, graphapp_legendbox, graphapp_spec;
         Widget menubar, menupane, rc, rc1, rc2, fr;
+
+        BitmapOptionItem opitems[4] = {
+            {CORNER_UL, ul_bits},
+            {CORNER_LL, ll_bits},
+            {CORNER_UR, ur_bits},
+            {CORNER_LR, lr_bits}
+        };
 
 	graphapp_dialog = CreateDialogForm(app_shell, "Graph Appearance");
 
@@ -334,21 +343,20 @@ void create_graphapp_frame(int gno)
         
         graphapp_legendbox = CreateTabPage(graphapp_tab, "Leg. box");
 
-	fr = CreateFrame(graphapp_legendbox, "Location");
-	rc = CreateVContainer(fr);
-	toggle_legendloc_item = CreatePanelChoice(rc, "Locate in:",
-						  3,
-						  "World coords",
-						  "Viewport coords",
-						  0, 0);
-        AddOptionChoiceCB(toggle_legendloc_item,
-            oc_graph_cb, toggle_legendloc_item);
-
+	fr = CreateFrame(graphapp_legendbox, "Anchor point");
+        rc = CreateVContainer(fr);
+        legend_acorner_item = CreateBitmapOptionChoice(rc,
+            "Corner:", 2, 4, CBITMAP_WIDTH, CBITMAP_HEIGHT, opitems);
+        AddOptionChoiceCB(legend_acorner_item,
+            oc_graph_cb, legend_acorner_item);
+        
         rc1 = CreateHContainer(rc);
-	legend_x_item = CreateTextItem2(rc1, 10, "X:");
-        AddTextItemCB(legend_x_item, text_graph_cb, legend_x_item);
-	legend_y_item = CreateTextItem2(rc1, 10, "Y:");
-        AddTextItemCB(legend_y_item, text_graph_cb, legend_y_item);
+        legend_x_item = CreateSpinChoice(rc1, "dX:", 4,
+            SPIN_TYPE_FLOAT, -1.0, 1.0, 0.01);
+        AddSpinButtonCB(legend_x_item, sp_graph_cb, legend_x_item);
+        legend_y_item = CreateSpinChoice(rc1, "dY:", 4,
+            SPIN_TYPE_FLOAT, -1.0, 1.0, 0.01);
+        AddSpinButtonCB(legend_y_item, sp_graph_cb, legend_y_item);
 
 	fr = CreateFrame(graphapp_legendbox, "Frame line");
 	rc = CreateVContainer(fr);
@@ -395,24 +403,20 @@ void create_graphapp_frame(int gno)
 	fr = CreateFrame(graphapp_legends, "Placement");
 	rc = CreateVContainer(fr);
         rc1 = CreateHContainer(rc);
-        legends_vgap_item = CreatePanelChoice(rc1, "V-gap:",
-					     7,
-					     "0", "1", "2", "3", "4", "5",
-					     0, 0);
-        AddOptionChoiceCB(legends_vgap_item, oc_graph_cb, legends_vgap_item);
-        legends_hgap_item = CreatePanelChoice(rc1, "H-gap:",
-					     7,
-					     "0", "1", "2", "3", "4", "5",
-					     0, 0);
-        AddOptionChoiceCB(legends_hgap_item, oc_graph_cb, legends_hgap_item);
-	legends_len_item = CreatePanelChoice(rc, "Legend line length:",
-					     10,
-				             "0", "1", "2", "3", "4",
-                                             "5", "6", "7", "8",
-					     0, 0);
-        AddOptionChoiceCB(legends_len_item, oc_graph_cb, legends_len_item);
-	legends_invert_item = CreateToggleButton(rc, "Put in reverse order");
-        AddToggleButtonCB(legends_invert_item, tb_graph_cb,legends_invert_item);
+        legends_vgap_item = CreateSpinChoice(rc1, "V-gap:",
+            4, SPIN_TYPE_FLOAT, 0.0, 1.0, 0.01);
+        AddSpinButtonCB(legends_vgap_item, sp_graph_cb, legends_vgap_item);
+        legends_hgap_item = CreateSpinChoice(rc1, "H-gap:",
+            4, SPIN_TYPE_FLOAT, 0.0, 1.0, 0.01);
+        AddSpinButtonCB(legends_hgap_item, sp_graph_cb, legends_hgap_item);
+	legends_len_item = CreateSpinChoice(rc, "Line length:",
+            4, SPIN_TYPE_FLOAT, 0.0, 1.0, 0.01);
+        AddSpinButtonCB(legends_len_item, sp_graph_cb, legends_len_item);
+        rc1 = CreateHContainer(rc);
+	legends_invert_item = CreateToggleButton(rc1, "Put in reverse order");
+        AddToggleButtonCB(legends_invert_item, tb_graph_cb, legends_invert_item);
+	legends_singlesym_item = CreateToggleButton(rc1, "Single symbol");
+        AddToggleButtonCB(legends_singlesym_item, tb_graph_cb, legends_singlesym_item);
         
 
         /* ------------ Special tab -------------- */
@@ -568,25 +572,28 @@ static int graphapp_aac_cb(void *data)
                 l->active = GetToggleButtonState(toggle_legends_item);
             }
             if (data == legends_vgap_item || data == NULL) {
-                l->vgap = GetOptionChoice(legends_vgap_item);
+                l->vgap = GetSpinChoice(legends_vgap_item);
             }
             if (data == legends_hgap_item || data == NULL) {
-                l->hgap = GetOptionChoice(legends_hgap_item);
+                l->hgap = GetSpinChoice(legends_hgap_item);
             } 
             if (data == legends_len_item || data == NULL) {
-                l->len = GetOptionChoice(legends_len_item);
+                l->len = GetSpinChoice(legends_len_item);
             }
             if (data == legends_invert_item || data == NULL) {
                 l->invert = GetToggleButtonState(legends_invert_item);
             }
-            if (data == toggle_legendloc_item || data == NULL) {
-                l->loctype = GetOptionChoice(toggle_legendloc_item) ? COORD_VIEW : COORD_WORLD;
+            if (data == legends_singlesym_item || data == NULL) {
+                l->singlesym = GetToggleButtonState(legends_singlesym_item);
+            }
+            if (data == legend_acorner_item || data == NULL) {
+                l->acorner = GetOptionChoice(legend_acorner_item);
             }
             if (data == legend_x_item || data == NULL) {
-                xv_evalexpr(legend_x_item, &l->legx);
+                l->offset.x = GetSpinChoice(legend_x_item);
             }
             if (data == legend_y_item || data == NULL) {
-                xv_evalexpr(legend_y_item, &l->legy);
+                l->offset.y = GetSpinChoice(legend_y_item);
             }
             if (data == legend_font_item || data == NULL) {
                 l->font = GetOptionChoice(legend_font_item);
@@ -601,16 +608,16 @@ static int graphapp_aac_cb(void *data)
                 l->boxfillpen.pattern = GetOptionChoice(legend_boxfillpat_item);
             }
             if (data == legend_boxcolor_item || data == NULL) {
-                l->boxpen.color = GetOptionChoice(legend_boxcolor_item);
+                l->boxline.pen.color = GetOptionChoice(legend_boxcolor_item);
             }
             if (data == legend_boxpattern_item || data == NULL) {
-                l->boxpen.pattern = GetOptionChoice(legend_boxpattern_item);
+                l->boxline.pen.pattern = GetOptionChoice(legend_boxpattern_item);
             }
             if (data == legend_boxlinew_item || data == NULL) {
-                l->boxlinew = GetSpinChoice(legend_boxlinew_item);
+                l->boxline.width = GetSpinChoice(legend_boxlinew_item);
             }
             if (data == legend_boxlines_item || data == NULL) {
-                l->boxlines = GetOptionChoice(legend_boxlines_item);
+                l->boxline.style = GetOptionChoice(legend_boxlines_item);
             }
 
             /* g[gno].xyflip = flipxy; */
@@ -708,7 +715,6 @@ void update_view(int gno)
 void updatelegends(int gno)
 {
     legend *l;
-    char buf[32];
     
     if (graphapp_dialog != NULL) {
 	l = get_graph_legend(gno);
@@ -717,25 +723,24 @@ void updatelegends(int gno)
 
 	SetToggleButtonState(toggle_legends_item, l->active == TRUE);
 
-	sprintf(buf, "%.9g", l->legx);
-	xv_setstr(legend_x_item, buf);
-	sprintf(buf, "%.9g", l->legy);
-	xv_setstr(legend_y_item, buf);
+	SetOptionChoice(legend_acorner_item, l->acorner);
+	SetSpinChoice(legend_x_item, l->offset.x);
+	SetSpinChoice(legend_y_item, l->offset.y);
 
-	SetOptionChoice(legends_vgap_item, l->vgap);
-	SetOptionChoice(legends_hgap_item, l->hgap);
-	SetOptionChoice(legends_len_item, l->len);
+	SetSpinChoice(legends_vgap_item, l->vgap);
+	SetSpinChoice(legends_hgap_item, l->hgap);
+	SetSpinChoice(legends_len_item, l->len);
 	SetToggleButtonState(legends_invert_item, l->invert);
+	SetToggleButtonState(legends_singlesym_item, l->singlesym);
 
-	SetOptionChoice(toggle_legendloc_item, l->loctype == COORD_VIEW);
 	SetOptionChoice(legend_font_item, l->font);
 	SetOptionChoice(legend_color_item, l->color);
 	SetOptionChoice(legend_boxfillcolor_item, l->boxfillpen.color);
 	SetOptionChoice(legend_boxfillpat_item, l->boxfillpen.pattern);
-	SetOptionChoice(legend_boxcolor_item, l->boxpen.color);
-	SetOptionChoice(legend_boxpattern_item, l->boxpen.pattern);
-	SetSpinChoice(legend_boxlinew_item, l->boxlinew);
-	SetOptionChoice(legend_boxlines_item, l->boxlines);
+	SetOptionChoice(legend_boxcolor_item, l->boxline.pen.color);
+	SetOptionChoice(legend_boxpattern_item, l->boxline.pen.pattern);
+	SetSpinChoice(legend_boxlinew_item, l->boxline.width);
+	SetOptionChoice(legend_boxlines_item, l->boxline.style);
     }
 }
 

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000,2001 Grace Development Team
+ * Copyright (c) 2000-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -92,6 +92,7 @@
 
 /* Attribute names */
 #define AStrActive              "active"
+#define AStrAnchorCorner        "anchor-corner"
 #define AStrAngle               "angle"
 #define AStrAppend              "append"
 #define AStrArrowClip           "arrow-clip"
@@ -144,6 +145,7 @@
 #define AStrRoundedPosition     "rounded-position"
 #define AStrRows                "rows"
 #define AStrSidePlacement       "side-placement"
+#define AStrSingleSymbol        "single-symbol"
 #define AStrSize                "size"
 #define AStrSkip                "skip"
 #define AStrStacked             "stacked"

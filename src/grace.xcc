@@ -179,7 +179,8 @@ Location *location_new()
 }
 
 typedef struct {
-    Location location;
+    int acorner;
+    VPoint offset;
     Line line;
     Pen fillpen;
 } Legframe;
@@ -189,7 +190,7 @@ legend *legend_new()
     legend *l;
     l = xmalloc(sizeof(legend));
     if (l) {
-        memset(l, 0, sizeof(legend));
+        set_default_legend(l);
     }
     return l;
 }
@@ -200,6 +201,7 @@ Legframe *legframe_new()
     lf = xmalloc(sizeof(Legframe));
     if (lf) {
         memset(lf, 0, sizeof(Legframe));
+        lf->acorner = CORNER_UR;
     }
     return lf;
 }
@@ -1121,17 +1123,20 @@ char *utf2iso(const char *s)
         <attribute name="#AStrActive" type="bval">
             $$->active = $?;
         </attribute>
-        <attribute name="#AStrLength" type="ival">
+        <attribute name="#AStrLength" type="dval">
             $$->len = $?;
         </attribute>
-        <attribute name="#AStrVgap" type="ival">
+        <attribute name="#AStrVgap" type="dval">
             $$->vgap = $?;
         </attribute>
-        <attribute name="#AStrHgap" type="ival">
+        <attribute name="#AStrHgap" type="dval">
             $$->hgap = $?;
         </attribute>
         <attribute name="#AStrInvert" type="bval">
             $$->invert = $?;
+        </attribute>
+        <attribute name="#AStrSingleSymbol" type="bval">
+            $$->singlesym = $?;
         </attribute>
         
         <!-- Child elements -->
@@ -1143,21 +1148,21 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrLegframe">
             $$->boxfillpen = $?->fillpen;
-            $$->boxpen     = $?->line.pen;
-            $$->boxlinew   = $?->line.width;
-            $$->boxlines   = $?->line.style;
-            $$->loctype    = $?->location.type;
-            $$->legx       = $?->location.ap.x;
-            $$->legy       = $?->location.ap.y;
+            $$->boxline    = $?->line;
+            $$->acorner    = $?->acorner;
+            $$->offset     = $?->offset;
             xfree($?);
         </child>
     </element>
     <element name="#EStrLegframe" type="legframe">
-        <!-- Child elements -->
-        <child name="#EStrLocation">
-            $$->location = *($?);
+        <attribute name="#AStrAnchorCorner" type="ival">
+            $$->acorner = $?;
+        </attribute>
+        <attribute name="#AStrOffset" type="offset">
+            $$->offset = *($?);
             xfree($?);
-        </child>
+        </attribute>
+        <!-- Child elements -->
         <child name="#EStrLineSpec">
             $$->line = *($?);
             xfree($?);

@@ -131,6 +131,9 @@ extern char *close_input;
 
 static int filltype_obs;
 
+static int leg_loctype_obs;
+static double leg_x1_obs;
+
 static int index_shift = 0;     /* 0 for C, 1 for F77 index notation */
 
 static void free_tmpvrbl(grarr *vrbl);
@@ -2573,16 +2576,16 @@ parmset:
 	    (graph_get(whichgraph))->l.active = $2;
 	}
 	| LEGEND LOCTYPE worldview {
-	    (graph_get(whichgraph))->l.loctype = $3;
+	    leg_loctype_obs = $3;
 	}
 	| LEGEND VGAP nexpr {
-            (graph_get(whichgraph))->l.vgap = $3;
+            (graph_get(whichgraph))->l.vgap = 0.01*$3;
 	}
 	| LEGEND HGAP nexpr {
-	    (graph_get(whichgraph))->l.hgap = $3;
+	    (graph_get(whichgraph))->l.hgap = 0.01*$3;
 	}
 	| LEGEND LENGTH nexpr {
-	    (graph_get(whichgraph))->l.len = $3;
+	    (graph_get(whichgraph))->l.len = 0.01*$3;
 	}
 	| LEGEND INVERT onoff {
 	    (graph_get(whichgraph))->l.invert = $3;
@@ -2594,20 +2597,29 @@ parmset:
 	    (graph_get(whichgraph))->l.boxfillpen.pattern = $4;
         }
 	| LEGEND BOX color_select {
-	    (graph_get(whichgraph))->l.boxpen.color = $3;
+	    (graph_get(whichgraph))->l.boxline.pen.color = $3;
 	}
 	| LEGEND BOX pattern_select {
-	    (graph_get(whichgraph))->l.boxpen.pattern = $3;
+	    (graph_get(whichgraph))->l.boxline.pen.pattern = $3;
 	}
 	| LEGEND BOX lines_select {
-	    (graph_get(whichgraph))->l.boxlines = $3;
+	    (graph_get(whichgraph))->l.boxline.style = $3;
 	}
 	| LEGEND BOX linew_select {
-	    (graph_get(whichgraph))->l.boxlinew = $3;
+	    (graph_get(whichgraph))->l.boxline.width = $3;
 	}
 	| LEGEND expr ',' expr {
-	    (graph_get(whichgraph))->l.legx = $2;
-	    (graph_get(whichgraph))->l.legy = $4;
+	    VPoint vp;
+            view gv;
+            if (leg_loctype_obs == COORD_VIEW) {
+                vp.x = $2;
+                vp.y = $4;
+            } else {
+                world2view($2, $4, &vp.x, &vp.y);
+            }
+            get_graph_viewport(whichgraph, &gv);
+            (graph_get(whichgraph))->l.offset.x = vp.x - gv.xv1;
+            (graph_get(whichgraph))->l.offset.y = gv.yv2 - vp.y;
 	}
 	| LEGEND CHAR SIZE expr {
 	    (graph_get(whichgraph))->l.charsize = $4;
@@ -3972,14 +3984,24 @@ parmset_obs:
 
 	| LEGEND BOX onoff {
 	    if ($3 == FALSE && project_get_version_id(grace->project) <= 40102) {
-                (graph_get(whichgraph))->l.boxpen.pattern = 0;
+                (graph_get(whichgraph))->l.boxline.pen.pattern = 0;
             }
 	}
 	| LEGEND X1 expr {
-	    (graph_get(whichgraph))->l.legx = $3;
+            leg_x1_obs = $3;
 	}
 	| LEGEND Y1 expr {
-	    (graph_get(whichgraph))->l.legy = $3;
+	    VPoint vp;
+            view gv;
+            if (leg_loctype_obs == COORD_VIEW) {
+                vp.x = leg_x1_obs;
+                vp.y = $3;
+            } else {
+                world2view(leg_x1_obs, $3, &vp.x, &vp.y);
+            }
+            get_graph_viewport(whichgraph, &gv);
+            (graph_get(whichgraph))->l.offset.x = vp.x - gv.xv1;
+            (graph_get(whichgraph))->l.offset.y = gv.yv2 - vp.y;
 	}
 	| LEGEND STRING nexpr CHRSTR {
             if (set_legend_string(whichgraph, $3, $4) != RETURN_SUCCESS) {

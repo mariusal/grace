@@ -752,20 +752,28 @@ int arrange_graphs_simple(int nrows, int ncols,
 
 void move_legend(int gno, VVector shift)
 {
-    double xtmp, ytmp;
-    legend *l;
-
-    if (is_valid_gno(gno)) {
-        l = get_graph_legend(gno);
-        if (l && l->loctype == COORD_VIEW) {
-            l->legx += shift.x;
-            l->legy += shift.y;
-        } else {
-            world2view(l->legx, l->legy, &xtmp, &ytmp);
-            xtmp += shift.x;
-            ytmp += shift.y;
-            view2world(xtmp, ytmp, &l->legx, &l->legy);
+    legend *l = get_graph_legend(gno);
+    if (l) {
+        switch (l->acorner) {
+        case CORNER_LL:
+            l->offset.x += shift.x;
+            l->offset.y += shift.y;
+            break;
+        case CORNER_UL:
+            l->offset.x += shift.x;
+            l->offset.y -= shift.y;
+            break;
+        case CORNER_UR:
+        default:
+            l->offset.x -= shift.x;
+            l->offset.y -= shift.y;
+            break;
+        case CORNER_LR:
+            l->offset.x -= shift.x;
+            l->offset.y += shift.y;
+            break;
         }
+
         set_dirtystate();
     }
 }
@@ -782,10 +790,8 @@ void rescale_viewport(Project *pr, double ext_x, double ext_y)
         g->v.yv1 *= ext_y;
         g->v.yv2 *= ext_y;
         
-        if (g->l.loctype == COORD_VIEW) {
-            g->l.legx *= ext_x;
-            g->l.legy *= ext_y;
-        }
+        g->l.offset.x *= ext_x;
+        g->l.offset.y *= ext_y;
         
         /* TODO: tickmark offsets */
         

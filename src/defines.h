@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -564,27 +564,6 @@ typedef struct {
     char tl_prestr[64];         /* prepend string to tick label */
 
 } tickmarks;
-
-typedef struct {
-    int active;                 /* legend on or off */
-    int loctype;                /* locate in world or viewport coords */
-    int vgap;                   /* verticle gap between entries */
-    int hgap;                   /* horizontal gap(s) between legend string
-                                                                  elements */
-    int len;                    /* length of line to draw */
-    int invert;                 /* switch between ascending and descending
-                                   order of set legends */
-    double legx;                /* location on graph */
-    double legy;
-    int font;
-    double charsize;
-    int color;
-    Pen boxpen;
-    Pen boxfillpen;
-    double boxlinew;            /* legend frame line width */
-    int boxlines;               /* legend frame line style */
-    view bb;
-} legend;
 
 typedef struct {
     int active;                 /* region on or off */

@@ -1275,8 +1275,12 @@ void project_postprocess(Quark *q)
         if (storage_get_data(pr->graphs, (void **) &g) != RETURN_SUCCESS) {
             break;
         }
+
 	if (pr->version_id <= 40102) {
             g->l.vgap -= 1;
+        }
+	if (pr->version_id < 50200) {
+            g->l.acorner = CORNER_UL;
         }
         
         sets = g->sets;

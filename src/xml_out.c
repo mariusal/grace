@@ -448,20 +448,22 @@ int save_graph_properties(XFile *xf, graph *g)
     /* Legend */
     attributes_reset(attrs);
     xmlio_set_active(attrs, g->l.active);
-    attributes_set_ival(attrs, AStrLength, g->l.len);
-    attributes_set_ival(attrs, AStrVgap, g->l.vgap);
-    attributes_set_ival(attrs, AStrHgap, g->l.hgap);
+    attributes_set_dval(attrs, AStrLength, g->l.len);
+    attributes_set_dval(attrs, AStrVgap, g->l.vgap);
+    attributes_set_dval(attrs, AStrHgap, g->l.hgap);
+    attributes_set_bval(attrs, AStrSingleSymbol, g->l.singlesym);
     attributes_set_bval(attrs, AStrInvert, g->l.invert);
     xfile_begin_element(xf, EStrLegend, attrs);
     {
         xmlio_write_face_spec(xf, attrs,
             g->l.font, g->l.charsize, g->l.color);
-        xfile_begin_element(xf, EStrLegframe, NULL);
+        attributes_reset(attrs);
+        attributes_set_ival(attrs, AStrAnchorCorner, g->l.acorner);
+        xmlio_set_offset(attrs, g->l.offset.x, g->l.offset.y);
+        xfile_begin_element(xf, EStrLegframe, attrs);
         {
-            xmlio_write_location(xf, attrs,
-                g->l.loctype, g->l.legx, g->l.legy);
             xmlio_write_line_spec(xf, attrs,
-                &(g->l.boxpen), g->l.boxlinew, g->l.boxlines);
+                &(g->l.boxline.pen), g->l.boxline.width, g->l.boxline.style);
             xmlio_write_fill_spec(xf, attrs, &(g->l.boxfillpen));
         }
         xfile_end_element(xf, EStrLegframe);

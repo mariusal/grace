@@ -31,6 +31,11 @@
 
 #include "grace.h"
 
+#define CORNER_LL   0
+#define CORNER_UL   1
+#define CORNER_UR   2
+#define CORNER_LR   3
+
 /* Graph type */
 typedef enum {
     GRAPH_XY   ,
@@ -140,6 +145,32 @@ typedef struct {
     int fx, fy;                 /* locator format type */
     int px, py;                 /* locator precision */
 } GLocator;
+
+/* Legend box */
+typedef struct {
+    int active;                 /* legend on or off */
+
+    int acorner;                /* anchor corner */
+    VPoint offset;              /* location on graph */
+
+    int singlesym;              /* draw single set symbol in the legend */
+    
+    double vgap;                /* vertical gap between entries */
+    double hgap;                /* horizontal gap(s) between legend string
+                                   elements */
+    double len;                 /* length of line to draw */
+    int invert;                 /* switch between ascending and descending
+                                   order of set legends */
+    int font;
+    double charsize;
+    int color;
+
+    Line boxline;               /* legend frame line */
+    Pen boxfillpen;             /* legend frame fill */
+
+    view bb;
+} legend;
+
 
 /*
  * a graph

@@ -2199,10 +2199,9 @@ void dolegend(Canvas *canvas, int gno)
     int setno, nsets;
     int draw_flag;
     double maxsymsize;
-    double ldist, sdist, yskip;
     
-    WPoint wptmp;
     VPoint vp, vp2;
+    double bb_width, bb_height;
     
     view v;
     legend *l;
@@ -2235,30 +2234,42 @@ void dolegend(Canvas *canvas, int gno)
         
     setclipping(canvas, FALSE);
     
-    if (l->loctype == COORD_WORLD) {
-        wptmp.x = l->legx;
-        wptmp.y = l->legy;
-        vp = Wpoint2Vpoint(wptmp);
-    } else {
-        vp.x = l->legx;
-        vp.y = l->legy;
-    }
-    
-    ldist = 0.01*l->len;
-    sdist = 0.01*(l->hgap + maxsymsize);
-    
-    yskip = 0.01*l->vgap;
-    
+    vp.x = vp.y = 0.0;
     activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
     reset_bbox(canvas, BBOX_TYPE_TEMP);
     update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
     
     set_draw_mode(canvas, FALSE);
-    putlegends(canvas, gno, &vp, ldist, sdist, yskip);
+    putlegends(canvas, gno, &vp, maxsymsize);
     get_bbox(canvas, BBOX_TYPE_TEMP, &v);
     
-    vp2.x = vp.x + (v.xv2 - v.xv1) + 2*0.01*l->hgap;
-    vp2.y = vp.y - (v.yv2 - v.yv1) - 2*0.01*l->vgap;
+    bb_width  = fabs(v.xv2 - v.xv1) + 2*l->hgap;
+    bb_height = fabs(v.yv2 - v.yv1) + 2*l->vgap;
+    
+    get_graph_viewport(gno, &v);
+    
+    switch (l->acorner) {
+    case CORNER_LL:
+        vp.x = v.xv1 + l->offset.x;
+        vp.y = v.yv1 + l->offset.y + bb_height;
+        break;
+    case CORNER_UL:
+        vp.x = v.xv1 + l->offset.x;
+        vp.y = v.yv2 - l->offset.y;
+        break;
+    case CORNER_UR:
+    default:
+        vp.x = v.xv2 - l->offset.x - bb_width;
+        vp.y = v.yv2 - l->offset.y;
+        break;
+    case CORNER_LR:
+        vp.x = v.xv2 - l->offset.x - bb_width;
+        vp.y = v.yv1 + l->offset.y + bb_height;
+        break;
+    }
+    
+    vp2.x = vp.x + bb_width;
+    vp2.y = vp.y - bb_height;
 
     l->bb.xv1 = vp.x;
     l->bb.yv1 = vp2.y;
@@ -2270,37 +2281,34 @@ void dolegend(Canvas *canvas, int gno)
     setpen(canvas, &l->boxfillpen);
     FillRect(canvas, &vp, &vp2);
 
-    if (l->boxlines != 0 && l->boxpen.pattern != 0) {
-        setpen(canvas, &l->boxpen);
-        setlinewidth(canvas, l->boxlinew);
-        setlinestyle(canvas, l->boxlines);
-        DrawRect(canvas, &vp, &vp2);
-    }
+    setline(canvas, &l->boxline);
+    DrawRect(canvas, &vp, &vp2);
     
     /* correction */
-    vp.x += (vp.x - v.xv1) + 0.01*l->hgap;
-    vp.y += (vp.y - v.yv2) - 0.01*l->vgap;
+    vp.x += l->hgap;
+    vp.y -= l->vgap;
    
     reset_bbox(canvas, BBOX_TYPE_TEMP);
     update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
 
-    putlegends(canvas, gno, &vp, ldist, sdist, yskip);
+    putlegends(canvas, gno, &vp, maxsymsize);
 }
 
-void putlegends(Canvas *canvas,
-    int gno, const VPoint *vp, double ldist, double sdist, double yskip)
+void putlegends(Canvas *canvas, int gno, const VPoint *vp, double maxsymsize)
 {
     int i, setno, nsets;
     VPoint vp1, vp2, vpstr;
     set *p;
     legend *l;
-    
-    vp2.y = vp->y;
-    vp2.x = vp->x + ldist;
-    vpstr.y = vp->y;
-    vpstr.x = vp2.x + sdist;
+    int draw_line, singlesym;
     
     l = get_graph_legend(gno);
+
+    vp1.x = vp->x + 0.01*maxsymsize;
+    vp2.y = vp->y;
+    vp2.x = vp1.x + l->len;
+    vpstr.y = vp->y;
+    vpstr.x = vp2.x + l->hgap + 0.01*maxsymsize;
     
     nsets = number_of_sets(gno);
     for (i = 0; i < nsets; i++) {
@@ -2323,18 +2331,29 @@ void putlegends(Canvas *canvas,
             setcolor(canvas, l->color);
             WriteString(canvas, &vpstr, 0.0, JUST_LEFT|JUST_TOP, p->legstr);
             get_bbox(canvas, BBOX_TYPE_TEMP, &vtmp);
-            vp1.x = vp->x;
             vp1.y = (vpstr.y + vtmp.yv1)/2;
             vp2.y = vp1.y;
-            vpstr.y = vtmp.yv1 - yskip;
+            vpstr.y = vtmp.yv1 - l->vgap;
             
             setfont(canvas, p->charfont);
             
-            if (l->len != 0 && p->line.style != 0 && p->linet != 0) { 
+            if (l->len <= 0.0 ||
+                p->line.style == 0 || p->line.pen.pattern == 0 ||
+                p->linet == 0) {
+                draw_line = FALSE;
+                singlesym = TRUE;
+            } else {
+                draw_line = TRUE;
+                singlesym = l->singlesym;
+            }
+            
+            if (draw_line) {
                 setline(canvas, &p->line);
                 DrawLine(canvas, &vp1, &vp2);
-        
-                setline(canvas, &p->symline);
+            }
+            
+            setline(canvas, &p->symline);
+            if (!singlesym) {
                 if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                     p->type == SET_BARDY || p->type == SET_BARDYDY) {
                     drawlegbarsym(canvas,
@@ -2354,7 +2373,6 @@ void putlegends(Canvas *canvas,
                 vptmp.x = (vp1.x + vp2.x)/2;
                 vptmp.y = vp1.y;
                 
-                setline(canvas, &p->symline);
                 if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                     p->type == SET_BARDY || p->type == SET_BARDYDY) {
                     drawlegbarsym(canvas,

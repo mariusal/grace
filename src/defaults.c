@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -118,22 +118,27 @@ void set_default_arrow(Arrow *arrowp)
 void set_default_legend(legend *l)
 {
     l->active = TRUE;
-    l->loctype = COORD_VIEW;
-    l->vgap = 1;
-    l->hgap = 1;
-    l->len = 4;
+    
+    l->acorner = CORNER_UR;
+    l->offset.x = 0.05;
+    l->offset.y = 0.05;
+    
+    l->boxline.pen.color = grdefaults.color;
+    l->boxline.pen.pattern = grdefaults.pattern;
+    l->boxline.width = grdefaults.linew;
+    l->boxline.style = grdefaults.lines;
+    l->boxfillpen.color = 0;
+    l->boxfillpen.pattern = grdefaults.pattern;
+    
+    l->singlesym = FALSE;
+    l->vgap = 0.01;
+    l->hgap = 0.01;
+    l->len = 0.04;
     l->invert = FALSE;
-    l->legx = 0.5;
-    l->legy = 0.8;
+    
     l->font = grdefaults.font;
     l->charsize = grdefaults.charsize;
     l->color = grdefaults.color;
-    l->boxpen.color = grdefaults.color;
-    l->boxpen.pattern = grdefaults.pattern;
-    l->boxfillpen.color = 0;
-    l->boxfillpen.pattern = grdefaults.pattern;
-    l->boxlinew = grdefaults.linew;     /* set plot sym line width */
-    l->boxlines = grdefaults.lines;     /* set plot sym line style */
     
     l->bb.xv1 = l->bb.xv2 = l->bb.yv1 = l->bb.yv2 = 0.0;
 }

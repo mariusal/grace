@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -84,8 +84,7 @@ void draw_arrowhead(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
     const Arrow *arrowp, const Pen *pen, const Pen *fill);
 
 void dolegend(Canvas *canvas, int gno);
-void putlegends(Canvas *canvas,
-    int gno, const VPoint *vp, double ldist, double sdist, double yskip);
+void putlegends(Canvas *canvas, int gno, const VPoint *vp, double maxsymsize);
 
 void draw_titles(Canvas *canvas, int gno);
 
