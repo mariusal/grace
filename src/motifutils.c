@@ -4096,10 +4096,23 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
             ContextHelpCB, NULL);
         CreateSeparator(menupane);
     }
+    
+    SetUserData(menupane, cascade);
 
     return menupane;
 }
 
+void ManageMenu(Widget menupane)
+{
+    Widget cascade = GetUserData(menupane);
+    XtManageChild(cascade);
+}
+
+void UnmanageMenu(Widget menupane)
+{
+    Widget cascade = GetUserData(menupane);
+    XtUnmanageChild(cascade);
+}
 
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
 	Button_CBProc cb, void *data)

@@ -560,6 +560,8 @@ void SetFixedFont(Widget w);
 
 Widget CreateMenuBar(Widget parent);
 Widget CreateMenu(Widget parent, char *label, char mnemonic, int help);
+void ManageMenu(Widget menupane);
+void UnmanageMenu(Widget menupane);
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
 	Button_CBProc cb, void *data);
 Widget CreateMenuCloseButton(Widget parent, Widget shell);
