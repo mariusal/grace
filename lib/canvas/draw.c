@@ -286,12 +286,22 @@ void set_max_path_limit(Canvas *canvas, int limit)
     canvas->max_path_length = limit;
 }
 
+static int is_main_color(const Canvas *canvas, int color)
+{
+    if (get_colortype(canvas, color) == COLOR_MAIN) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 /*
  * set pen properties
  */
 void setpen(Canvas *canvas, const Pen *pen)
 {
-    canvas->draw_props.pen = *pen;
+    setcolor(canvas, pen->color);
+    setpattern(canvas, pen->pattern);
 }
 
 /*
@@ -299,7 +309,7 @@ void setpen(Canvas *canvas, const Pen *pen)
  */
 void setline(Canvas *canvas, const Line *line)
 {
-    canvas->draw_props.pen   = line->pen;
+    setpen(canvas, &line->pen);
     canvas->draw_props.linew = line->width;
     canvas->draw_props.lines = line->style;
 }
@@ -309,12 +319,20 @@ void setline(Canvas *canvas, const Line *line)
  */
 void setcolor(Canvas *canvas, int color)
 {
-    canvas->draw_props.pen.color = color;
+    if (is_main_color(canvas, color)) {
+        canvas->draw_props.pen.color = color;
+    } else {
+        canvas->draw_props.pen.color = 1;
+    }
 }
 
 void setpattern(Canvas *canvas, int pattern)
 {
-    canvas->draw_props.pen.pattern = pattern;
+    if (pattern >= 0 && pattern < canvas->npatterns) {
+        canvas->draw_props.pen.pattern = pattern;
+    } else {
+        canvas->draw_props.pen.pattern = 1;
+    }
 }
 
 /*
@@ -322,7 +340,11 @@ void setpattern(Canvas *canvas, int pattern)
  */
 void setbgcolor(Canvas *canvas, int bgcolor)
 {
-    canvas->draw_props.bgcolor = bgcolor;
+    if (is_main_color(canvas, bgcolor)) {
+        canvas->draw_props.bgcolor = bgcolor;
+    } else {
+        canvas->draw_props.bgcolor = 0;
+    }
 }
 
 /*
@@ -1565,7 +1587,7 @@ int get_colortype(const Canvas *canvas, unsigned int cindex)
     if (cindex < canvas->ncolors) {
         return (canvas->cmap[cindex].ctype);
     } else {
-        return (BAD_COLOR);
+        return -1;
     }
 }
 
