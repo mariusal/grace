@@ -1,8 +1,8 @@
 /*
  * grace_np - a library for interfacing with Grace using pipes
  * 
- * Copyright (c) 1997-98 Henrik Seidel
- * Copyright (c) 1999 Grace Development Team
+ * Copyright (c) 1997-1998 Henrik Seidel
+ * Copyright (c) 1999-2000 Grace Development Team
  *
  *
  *                           All Rights Reserved
@@ -43,7 +43,11 @@ typedef void (*GraceErrorFunctionType) (const char *);
 GraceErrorFunctionType GraceRegisterErrorFunction(GraceErrorFunctionType f);
 
 /* launch a grace subprocess and a communication channel with it */
-int GraceOpen(const int);
+int GraceOpenVA(char* exe, int bs, ...);
+
+#ifndef GraceOpen
+#  define GraceOpen(A)    GraceOpenVA("xmgrace", A, "-noask", NULL)
+#endif
 
 /* test if a grace subprocess is currently connected */
 int GraceIsOpen(void);

@@ -1,8 +1,8 @@
 /*
  * grace_np - a library for interfacing with Grace using pipes
  * 
- * Copyright (c) 1997-98 Henrik Seidel
- * Copyright (c) 1999 Grace Development Team
+ * Copyright (c) 1997-1998 Henrik Seidel
+ * Copyright (c) 1999-2000 Grace Development Team
  *
  *
  *                           All Rights Reserved
@@ -113,7 +113,6 @@ GracePerror(const char *prefix)
 #endif
 
     error_function(msg);
-
 }
 
 /*
@@ -170,11 +169,15 @@ GraceRegisterErrorFunction(GraceErrorFunctionType f)
 }
 
 int
-GraceOpen(const int arg)
+GraceOpenVA(char* exe, int bs, ...)
 {
     int i, fd[2];
     int retval;
-    char fd_number [4];
+    char fd_number[4];
+    va_list ap;
+    char **arglist;
+    char *s;
+    int numarg;
 
     if (fd_pipe != -1) {
         error_function("Grace subprocess already running");
@@ -182,12 +185,12 @@ GraceOpen(const int arg)
     }
 
     /* Set the buffer sizes according to arg */
-    if (arg < 64) {
-        error_function("The buffer size in GraceOpen should be >= 64");
+    if (bs < 64) {
+        error_function("The buffer size in GraceOpenVA should be >= 64");
         return (-1);
     }
-    bufsize = arg;
-    bufsizeforce = arg / 2;
+    bufsize = bs;
+    bufsizeforce = bs / 2;
 
     /* make sure the grace subprocess is notified at the end */
 #ifdef HAVE_ON_EXIT
@@ -204,14 +207,14 @@ GraceOpen(const int arg)
 
     /* Make the pipe */
     if (pipe(fd)) {
-        GracePerror("GraceOpen");
+        GracePerror("GraceOpenVA");
         return (-1);
     }
 
     /* Fork a subprocess for starting grace */
     pid = vfork();
     if (pid == (pid_t) (-1)) {
-        GracePerror("GraceOpen");
+        GracePerror("GraceOpenVA");
         return (-1);
     }
 
@@ -220,25 +223,46 @@ GraceOpen(const int arg)
         for (i = 0; i < OPEN_MAX; i++) {
             /* we close everything except stdin, stdout, stderr
                and the read part of the pipe */
-            if (i != fd[0] &&
-                i != STDIN_FILENO && i != STDOUT_FILENO && i != STDERR_FILENO) {
+            if (i != fd[0]         &&
+                i != STDIN_FILENO  &&
+                i != STDOUT_FILENO &&
+                i != STDERR_FILENO) {
                 close(i);
             }
         }
+
+        /* build the argument list */
+        va_start(ap, bs);
+        numarg = 3;
+        arglist = malloc((numarg + 1)*sizeof(char *));
+        arglist[0] = exe;
+        arglist[1] = "-dpipe";
         sprintf(fd_number, "%d", fd[0]);
-        retval = execlp("xmgrace", "xmgrace", "-noask", "-dpipe",
-                        fd_number, (char *) NULL);
+        arglist[2] = fd_number;
+        while ((s = va_arg(ap, char *)) != NULL) {
+	    numarg++;
+            arglist = realloc(arglist, (numarg + 1)*sizeof(char *));
+            arglist[numarg - 1] = malloc((strlen(s) + 1)*SIZEOF_CHAR);
+            strcpy(arglist[numarg - 1], s);
+        }
+        arglist[numarg] = NULL;
+        va_end(ap);
+
+        retval = execvp(exe, arglist);
+        
         if (retval == -1) {
-            fprintf(stderr, "GraceOpen: Could not start xmgrace\n");
+            fprintf(stderr, "GraceOpenVA: Could not start %s\n", exe);
             exit(1);
+        } else {
+            exit(0);
         }
     }
 
     /* We are the parent -> keep the write part of the pipe
        and allocate the write buffer */
-    buf = (char *) malloc ((size_t) bufsize);
+    buf = malloc(bufsize);
     if (buf == NULL) {
-        error_function("GraceOpen: Not enough memory");
+        error_function("GraceOpenVA: Not enough memory");
         close(fd[0]);
         close(fd[1]);
         return (-1);
@@ -250,7 +274,6 @@ GraceOpen(const int arg)
     broken_pipe = 0;
 
     return (0);
-
 }
 
 int
@@ -412,5 +435,4 @@ GraceCommand(const char* cmd)
     }
 
     return (0);
-
 }
