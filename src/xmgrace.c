@@ -196,6 +196,10 @@ String fallbackResourcesCommon[] = {
     "XMgrace*pageZoomMenu.largerButton.accelerator: Ctrl<Key>plus",
     "XMgrace*pageZoomMenu.originalSizeButton.acceleratorText: Ctrl+1",
     "XMgrace*pageZoomMenu.originalSizeButton.accelerator: Ctrl<Key>1",
+    "XMgrace*findButton.acceleratorText: Ctrl+F",
+    "XMgrace*findButton.accelerator: Ctrl<Key>f",
+    "XMgrace*findAgainButton.acceleratorText: Ctrl+G",
+    "XMgrace*findAgainButton.accelerator: Ctrl<Key>g",
     "XMgrace*saveLogsFSB*pattern: *.log",
     "XMgrace*openProjectFSB*pattern: *.*gr",
     "XMgrace*saveProjectFSB*pattern: *.xgr",
@@ -211,8 +215,8 @@ String fallbackResourcesCommon[] = {
 };
 
 String fallbackResourcesHighRes[] = {
-    "XMgrace*mainWin.width: 680",
-    "XMgrace*mainWin.height: 700",
+    "XMgrace*mainWin.width: 780",
+    "XMgrace*mainWin.height: 660",
     "XMgrace*explorerDialog.form.width: 650",
     "XMgrace*explorerDialog.form.height: 600",
     "XMgrace*fontList:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
@@ -223,8 +227,8 @@ String fallbackResourcesHighRes[] = {
 };
 
 String fallbackResourcesLowRes[] = {
-    "XMgrace*mainWin.width: 530",
-    "XMgrace*mainWin.height: 545",
+    "XMgrace*mainWin.width: 600",
+    "XMgrace*mainWin.height: 520",
     "XMgrace*explorerDialog.form.width: 530",
     "XMgrace*explorerDialog.form.height: 485",
     "XMgrace*fontList:-*-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*",
