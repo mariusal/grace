@@ -165,8 +165,7 @@ void update_app_title(const Quark *pr)
     static char *ts_save = NULL;
     char *ts;
     static int dstate_save = 0;
-    int dstate = quark_dirtystate_get(pr);
-    
+    int dstate;
     
     if (!pr || !gui->inwin) {
         return;
@@ -494,9 +493,9 @@ void xdrawgraph(const Quark *q, int force)
 {
     Quark *project = get_parent_project(q);
     Grace *grace = grace_from_quark(q);
-    X11Stuff *xstuff = grace->gui->xstuff;
     
     if (grace && grace->gui->inwin && (force || grace->gui->auto_redraw)) {
+        X11Stuff *xstuff = grace->gui->xstuff;
         Quark *gr = graph_get_current(project);
         Device_entry *d = get_device_props(grace->rt->canvas, grace->rt->tdevice);
         
