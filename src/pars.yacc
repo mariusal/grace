@@ -2697,11 +2697,11 @@ actions:
 	| COPY SETNUM TO SETNUM {
 	    do_copyset(get_cg(), $2, get_cg(), $4);
 	}
-	| JOIN SETNUM TO SETNUM {
+	| APPEND SETNUM TO SETNUM {
 		int sets[2];
-		sets[0] = $2;
-		sets[1] = $4;
-		join_sets( get_cg(), sets, 2 );
+		sets[0] = $4;
+		sets[1] = $2;
+		join_sets(get_cg(), sets, 2);
 	}
 	| REVERSE SETNUM {
 		reverse_set( get_cg(), $2 );
