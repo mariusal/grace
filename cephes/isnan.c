@@ -184,6 +184,9 @@ return(0);
 #endif
 }
 
+#endif /* HAVE_ISNAN */
+
+#if !defined(HAVE_FINITE) && !defined(HAVE_ISFINITE)
 
 /* Return 1 if x is not infinite and is not a NaN.  */
 
@@ -207,7 +210,7 @@ if( sizeof(int) == 4 )
 		return 1;
 #endif
 #ifdef DEC
-	if( (u.s[3] & 0x7fff) != 0)
+	if( (u.i[0] & 0x7fffffff) != 0x7fffffff)
 		return 1;
 #endif
 #ifdef MIEEE
@@ -238,4 +241,4 @@ return(1);
 #endif
 }
 
-#endif /* HAVE_ISNAN */
+#endif /* HAVE_(IS)FINITE */
