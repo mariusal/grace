@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -66,7 +66,7 @@ static Widget duplegs_item;
 static OptionStructure *type_item;
 static Widget *toggle_symbols_item;
 static Widget symsize_item;
-static Widget symskip_item;
+static SpinStructure *symskip_item;
 static OptionStructure *symcolor_item;
 static OptionStructure *sympattern_item;
 static OptionStructure *symfillcolor_item;
@@ -269,7 +269,8 @@ void define_symbols_popup(void *data)
 
         fr = CreateFrame(setapp_symbols, "Extra");
         rc = CreateVContainer(fr);
-        symskip_item = CreateTextItem2(rc, 4, "Symbol skip:");
+        symskip_item = CreateSpinChoice(rc, "Symbol skip:",
+            5, SPIN_TYPE_INT, (double) 0, (double) 100000, (double) 1);
         char_font_item = CreateFontChoice(rc, "Font for char symbol:");
 
 
@@ -454,7 +455,7 @@ static int setapp_aac_cb(void *data)
     fillrule = GetChoice(toggle_fillrule_item);
     fillpat = GetOptionChoice(toggle_fillpat_item);
     fillcol = GetOptionChoice(toggle_fillcol_item);
-    xv_evalexpri(symskip_item, &symskip);
+    symskip = GetSpinChoice(symskip_item);
     symcolor = GetOptionChoice(symcolor_item);
     sympattern = GetOptionChoice(sympattern_item);
     symfillcolor = GetOptionChoice(symfillcolor_item);
@@ -564,8 +565,7 @@ static void UpdateSymbols(int gno, int value)
         }
 
         SetCharSizeChoice(symsize_item, p.symsize);
-        sprintf(val, "%d", p.symskip);
-        xv_setstr(symskip_item, val);
+        SetSpinChoice(symskip_item, p.symskip);
         sprintf(val, "%d", p.symchar);
         xv_setstr(symchar_item, val);
         SetChoice(toggle_symbols_item, p.sym);
