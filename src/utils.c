@@ -474,8 +474,8 @@ char *create_fstring(int form, int prec, double loc, int type)
     char format[64], eng_prefix[6];
     static char s[MAX_STRING_LENGTH];
     double tmp;
-    int m, d, y, h, mm;
-    double sec;
+    int m, d, y, h, mm, sec;
+    double arcmin, arcsec;
     int exponent;
     double mantissa;
 
@@ -611,32 +611,32 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DDMMYY:
 	strcpy(format, "%02d-%02d-%d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, d, m, y);
 	break;
     case FORMAT_MMDDYY:
 	strcpy(format, "%02d-%02d-%d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, m, d, y);
 	break;
     case FORMAT_YYMMDD:
 	strcpy(format, "%d-%02d-%02d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, y, m, d);
 	break;
     case FORMAT_MMYY:
 	strcpy(format, "%02d-%d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, m, y);
 	break;
     case FORMAT_MMDD:
 	strcpy(format, "%02d-%02d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, m, d);
 	break;
     case FORMAT_MONTHDAY:
 	strcpy(format, "%s-%02d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
@@ -645,7 +645,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DAYMONTH:
 	strcpy(format, "%02d-%s");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
@@ -654,7 +654,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_MONTHS:
 	strcpy(format, "%s");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
@@ -663,7 +663,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_MONTHSY:
 	strcpy(format, "%s-%d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
@@ -672,7 +672,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_MONTHL:
 	strcpy(format, "%s");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
@@ -689,29 +689,29 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DAYOFYEAR:
 	strcpy(format, "%d");
-        jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
+        jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format,
                 1 + (int) (cal_to_jul(y, m, d) - cal_to_jul(y, 1, 1)));
 	break;
     case FORMAT_HMS:
 	strcpy(format, "%02d:%02d:%02d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, h, mm, (int) sec);
+	jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+	sprintf(s, format, h, mm, sec);
 	break;
     case FORMAT_MMDDHMS:
 	strcpy(format, "%02d-%02d %02d:%02d:%02d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d, h, mm, (int) sec);
+	jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+	sprintf(s, format, m, d, h, mm, sec);
 	break;
     case FORMAT_MMDDYYHMS:
 	strcpy(format, "%02d-%02d-%d %02d:%02d:%02d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d, y, h, mm, (int) sec);
+	jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+	sprintf(s, format, m, d, y, h, mm, sec);
 	break;
     case FORMAT_YYMMDDHMS:
 	strcpy(format, "%d-%02d-%02d %02d:%02d:%02d");
-	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, y, m, d, h, mm, (int) sec);
+	jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+	sprintf(s, format, y, m, d, h, mm, sec);
 	break;
     case FORMAT_DEGREESLON:
 	if (loc < 0.0) {
@@ -734,8 +734,8 @@ char *create_fstring(int form, int prec, double loc, int type)
 	    strcpy(format, "0 0'");
 	}
 	y = loc;
-	sec = (loc - y) * 60.0;
-	sprintf(s, format, y, prec, sec);
+	arcmin = (loc - y) * 60.0;
+	sprintf(s, format, y, prec, arcmin);
 	break;
     case FORMAT_DEGREESMMSSLON:
 	if (loc < 0.0) {
@@ -747,10 +747,10 @@ char *create_fstring(int form, int prec, double loc, int type)
 	    strcpy(format, "0 0' 0\"");
 	}
 	y = loc;
-	sec = (loc - y) * 3600.0;
-	m = sec / 60.0;
-	sec = (sec - m * 60);
-	sprintf(s, format, y, m, prec, sec);
+	arcsec = (loc - y) * 3600.0;
+	m = arcsec / 60.0;
+	arcsec = (arcsec - m * 60);
+	sprintf(s, format, y, m, prec, arcsec);
 	break;
     case FORMAT_MMSSLON:
 	if (loc < 0.0) {
@@ -762,10 +762,10 @@ char *create_fstring(int form, int prec, double loc, int type)
 	    strcpy(format, "0 0' 0\"");
 	}
 	y = loc;
-	sec = (loc - y) * 3600.0;
-	m = sec / 60.0;
-	sec = (sec - m * 60);
-	sprintf(s, format, m, prec, sec);
+	arcsec = (loc - y) * 3600.0;
+	m = arcsec / 60.0;
+	arcsec = (arcsec - m * 60);
+	sprintf(s, format, m, prec, arcsec);
 	break;
     case FORMAT_DEGREESLAT:
 	if (loc < 0.0) {
@@ -788,8 +788,8 @@ char *create_fstring(int form, int prec, double loc, int type)
 	    strcpy(format, "0 0'");
 	}
 	y = loc;
-	sec = (loc - y) * 60.0;
-	sprintf(s, format, y, prec, sec);
+	arcsec = (loc - y) * 60.0;
+	sprintf(s, format, y, prec, arcsec);
 	break;
     case FORMAT_DEGREESMMSSLAT:
 	if (loc < 0.0) {
@@ -801,10 +801,10 @@ char *create_fstring(int form, int prec, double loc, int type)
 	    strcpy(format, "0 0' 0\"");
 	}
 	y = loc;
-	sec = (loc - y) * 3600.0;
-	m = sec / 60.0;
-	sec = (sec - m * 60);
-	sprintf(s, format, y, m, prec, sec);
+	arcsec = (loc - y) * 3600.0;
+	m = arcsec / 60.0;
+	arcsec = (arcsec - m * 60);
+	sprintf(s, format, y, m, prec, arcsec);
 	break;
     case FORMAT_MMSSLAT:
 	if (loc < 0.0) {
@@ -816,10 +816,10 @@ char *create_fstring(int form, int prec, double loc, int type)
 	    strcpy(format, "0 0' 0\"");
 	}
 	y = loc;
-	sec = (loc - y) * 3600.0;
-	m = sec / 60.0;
-	sec = (sec - m * 60);
-	sprintf(s, format, m, prec, sec);
+	arcsec = (loc - y) * 3600.0;
+	m = arcsec / 60.0;
+	arcsec = (arcsec - m * 60);
+	sprintf(s, format, m, prec, arcsec);
 	break;
     default:
 	sprintf(s, format, prec, loc);

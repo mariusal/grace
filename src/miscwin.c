@@ -203,8 +203,7 @@ void update_props_items(void)
     int itest = 0;
     Arg a;
     int iv;
-    int y, m, d, h, mm;
-    double sec;
+    int y, m, d, h, mm, sec;
     char date_string[64], wrap_year_string[64];
     
     if (props_frame) {
@@ -253,9 +252,9 @@ void update_props_items(void)
             break;
         }
     	SetChoice(hint_item, itest);
-	jul_to_cal_and_time(0.0, 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
 	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
-                y, m, d, h, mm, (int) sec);
+                y, m, d, h, mm, sec);
         xv_setstr(date_item, date_string);
         SetToggleButtonState(two_digits_years_item, two_digits_years_allowed());
         sprintf(wrap_year_string, "%04d", get_wrap_year());

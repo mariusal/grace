@@ -737,6 +737,13 @@ typedef enum   { FMT_iso,
                  FMT_nohint
                } Dates_format;
 
+/* rounding types for dates */
+#define ROUND_SECOND 1
+#define ROUND_MINUTE 2
+#define ROUND_HOUR   3
+#define ROUND_DAY    4
+#define ROUND_MONTH  5
+
 /* tokens for the calendar dates parser */
 typedef struct { int value;
                  int digits;

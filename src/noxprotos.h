@@ -296,9 +296,9 @@ void jul_to_cal(long n, int *y, int *m, int *d);
 double jul_and_time_to_jul(long jul, int hour, int min, double sec);
 double cal_and_time_to_jul(int y, int m, int d,
                            int hour, int min, double sec);
-void jul_to_cal_and_time(double jday, double rounding_tol,
+void jul_to_cal_and_time(double jday, int rounding,
                          int *y, int *m, int *d,
-                         int *hour, int *min, double *sec);
+                         int *hour, int *min, int *sec);
 int parse_float(const char* s, double *value, const char **after);
 int parse_date(const char* s, Dates_format preferred,
                double *jul, Dates_format *recognized);

@@ -427,14 +427,10 @@ double cal_and_time_to_jul(int y, int m, int d,
 
 /*
  * convert julian day to calendar and hourly elements
- * rounding_tol allows to say 1999-12-31 23:59:59.501
- * should be rounded to 2000-01-01 00:00:00.000 assuming
- * it is set to 0.5 second. It is wise to set it according
- * to the display accuracy of seconds.
  */
-void jul_to_cal_and_time(double jday, double rounding_tol,
+void jul_to_cal_and_time(double jday, int rounding,
                          int *y, int *m, int *d,
-                         int *hour, int *min, double *sec)
+                         int *hour, int *min, int *sec)
 {
     long n;
     double tmp;
@@ -448,26 +444,58 @@ void jul_to_cal_and_time(double jday, double rounding_tol,
     *hour = (int) floor(tmp);
     tmp = 60.0*(tmp - *hour);
     *min = (int) floor(tmp);
-    *sec = 60.0*(tmp - *min);
-    if (*sec + rounding_tol >= 60.0) {
-        /* we should round to next minute */
-        *sec = 0.0;
-        *min += 1;
-        if (*min == 60) {
+    tmp  = 60.0*(tmp - *min);
+    *sec = (int) floor(tmp + 0.5);
+
+    /* perform some rounding */
+    if (*sec >= 60 || rounding > ROUND_SECOND) {
+        /* we should round to at least nearest minute */
+        if (*sec >= 30) {
+            (*min)++;
+        }
+        *sec = 0;
+        if (*min == 60 || rounding > ROUND_MINUTE) {
+            /* we should round to at least nearest hour */
+            if (*min >= 30) {
+                (*hour)++;
+            }
             *min = 0;
-            *hour += 1;
-            if (*hour == 24) {
+            if (*hour == 24 || rounding > ROUND_HOUR) {
+                /* we should round to at least nearest day */
+                if (*hour >= 12) {
+                    n++;
+                }
                 *hour = 0;
-                n++;
             }
         }
     }
 
     /* now find the date */
     jul_to_cal(n, y, m, d);
-    
+
+    /* perform more rounding */
+    if (rounding == ROUND_MONTH) {
+
+        int m2, y2;
+        if (*m < 12) {
+            m2 = *m + 1;
+            y2 = *y;
+        } else {
+            m2 = 1;
+            y2 = *y + 1;
+        }
+
+        if ((cal_to_jul(y2, m2, 1) - n) <= (n - cal_to_jul(*y, *m, 1))) {
+            *m = m2;
+            *y = y2;
+        }
+        *d = 1;
+
+    }
+
     /* introduce the y2k bug for those who want it :) */
     *y = reduced_year(*y);
+
 }
 
 /*
