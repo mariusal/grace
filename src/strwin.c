@@ -41,7 +41,6 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
-#include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
 
 #include "globals.h"
@@ -91,10 +90,10 @@ static OptionStructure *ellip_fillpat_item;
 static OptionStructure *ellip_fillcol_item;
 static Widget *ellip_loc_item;
 
-static void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data);
-static void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data);
-static void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data);
-static void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_data);
+static void define_ellip_popup(void *data);
+static void define_strings_popup(void *data);
+static void define_lines_popup(void *data);
+static void define_boxes_popup(void *data);
 
 void ellip_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
@@ -192,9 +191,9 @@ void define_string_defaults(Widget w, XtPointer client_data, XtPointer call_data
     }
 }
 
-void clear_objects_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void clear_objects_cb(void *data)
 {
-    int type = (int) client_data;
+    int type = (int) data;
     
     switch (type) {
     case OBJECT_LINE:
@@ -238,85 +237,52 @@ void define_objects_popup(void *data)
         XtVaSetValues(panel, XmNorientation, XmHORIZONTAL, NULL);
 
         rc = XmCreateRowColumn(panel, "rc", NULL, 0);
-
-	wbut = XtVaCreateManagedWidget("Text", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) STR_LOC);
-
-	wbut = XtVaCreateManagedWidget("Text props...", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) define_strings_popup, (XtPointer) NULL);
-
-	wbut = XtVaCreateManagedWidget("Line", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) MAKE_LINE_1ST);
-
-	wbut = XtVaCreateManagedWidget("Line props...", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) define_lines_popup, (XtPointer) NULL);
-
-	wbut = XtVaCreateManagedWidget("Box", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) MAKE_BOX_1ST);
-
-	wbut = XtVaCreateManagedWidget("Box props...", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) define_boxes_popup, (XtPointer) NULL);
-
-	wbut = XtVaCreateManagedWidget("Ellipse", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) MAKE_ELLIP_1ST);
-
-	wbut = XtVaCreateManagedWidget("Ellipse props...", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) define_ellip_popup, (XtPointer) NULL);
+	wbut = CreateButton(rc, "Text");
+        AddButtonCB(wbut, set_actioncb, (void *) STR_LOC);
+	wbut = CreateButton(rc, "Text props...");
+        AddButtonCB(wbut, define_strings_popup, NULL);
+	wbut = CreateButton(rc, "Line");
+        AddButtonCB(wbut, set_actioncb, (void *) MAKE_LINE_1ST);
+	wbut = CreateButton(rc, "Line props...");
+        AddButtonCB(wbut, define_lines_popup, NULL);
+	wbut = CreateButton(rc, "Box");
+        AddButtonCB(wbut, set_actioncb, (void *) MAKE_BOX_1ST);
+	wbut = CreateButton(rc, "Box props...");
+        AddButtonCB(wbut, define_boxes_popup, NULL);
+	wbut = CreateButton(rc, "Ellipse");
+        AddButtonCB(wbut, set_actioncb, (void *) MAKE_ELLIP_1ST);
+	wbut = CreateButton(rc, "Ellipse props...");
+        AddButtonCB(wbut, define_ellip_popup, NULL);
 	XtManageChild(rc);
 
         rc = XmCreateRowColumn(panel, "rc", NULL, 0);
-
-	wbut = XtVaCreateManagedWidget("Edit object", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) EDIT_OBJECT);
-
-	wbut = XtVaCreateManagedWidget("Move object", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) MOVE_OBJECT_1ST);
-
-	wbut = XtVaCreateManagedWidget("Copy object", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) COPY_OBJECT1ST);
-
-	wbut = XtVaCreateManagedWidget("Delete object", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) DEL_OBJECT);
-
-	wbut = XtVaCreateManagedWidget("Clear all text", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) clear_objects_cb, (XtPointer) OBJECT_STRING);
-
-	wbut = XtVaCreateManagedWidget("Clear all lines", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) clear_objects_cb, (XtPointer) OBJECT_LINE);
-
-	wbut = XtVaCreateManagedWidget("Clear all boxes", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) clear_objects_cb, (XtPointer) OBJECT_BOX);
-
-	wbut = XtVaCreateManagedWidget("Clear all ellipses", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) clear_objects_cb, (XtPointer) OBJECT_ELLIPSE);
-
-	wbut = XtVaCreateManagedWidget("Close", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) objects_frame);
+	wbut = CreateButton(rc, "Edit object");
+        AddButtonCB(wbut, set_actioncb, (void *) EDIT_OBJECT);
+	wbut = CreateButton(rc, "Move object");
+        AddButtonCB(wbut, set_actioncb, (void *) MOVE_OBJECT_1ST);
+	wbut = CreateButton(rc, "Copy object");
+        AddButtonCB(wbut, set_actioncb, (void *) COPY_OBJECT1ST);
+	wbut = CreateButton(rc, "Delete object");
+        AddButtonCB(wbut, set_actioncb, (void *) DEL_OBJECT);
+	wbut = CreateButton(rc, "Clear all text");
+        AddButtonCB(wbut, clear_objects_cb, (void *) OBJECT_STRING);
+	wbut = CreateButton(rc, "Clear all lines");
+        AddButtonCB(wbut, clear_objects_cb, (void *) OBJECT_LINE);
+	wbut = CreateButton(rc, "Clear all boxes");
+        AddButtonCB(wbut, clear_objects_cb, (void *) OBJECT_BOX);
+	wbut = CreateButton(rc, "Clear all ellipses");
+        AddButtonCB(wbut, clear_objects_cb, (void *) OBJECT_ELLIPSE);
+	wbut = CreateButton(rc, "Close");
+	XtAddCallback(wbut, XmNactivateCallback, destroy_dialog, (XtPointer) objects_frame);
 	XtManageChild(rc);
+
 	XtManageChild(panel);
     }
     XtRaise(objects_frame);
     unset_wait_cursor();
 }
 
-static void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data)
+static void define_ellip_popup(void *data)
 {
     Widget rc;
     Widget buts[2];
@@ -353,9 +319,9 @@ static void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_d
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
-		      (XtCallbackProc) ellip_def_proc, (XtPointer) 0);
+		      ellip_def_proc, (XtPointer) 0);
 	XtAddCallback(buts[1], XmNactivateCallback,
-		  (XtCallbackProc) destroy_dialog, (XtPointer) ellip_frame);
+		  destroy_dialog, (XtPointer) ellip_frame);
 
 	XtManageChild(panel);
     }
@@ -364,7 +330,7 @@ static void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_d
     unset_wait_cursor();
 }
 
-static void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data)
+static void define_strings_popup(void *data)
 {
     Widget rc;
     Widget buts[2];
@@ -409,9 +375,9 @@ static void define_strings_popup(Widget w, XtPointer client_data, XtPointer call
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
-		    (XtCallbackProc) define_string_defaults, (XtPointer) 0);
+		    define_string_defaults, (XtPointer) 0);
 	XtAddCallback(buts[1], XmNactivateCallback,
-		(XtCallbackProc) destroy_dialog, (XtPointer) strings_frame);
+		destroy_dialog, (XtPointer) strings_frame);
 
 	XtManageChild(panel);
     }
@@ -420,7 +386,7 @@ static void define_strings_popup(Widget w, XtPointer client_data, XtPointer call
     unset_wait_cursor();
 }
 
-static void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
+static void define_lines_popup(void *data)
 {
     Widget rc, fr, rc2;
     Widget buts[2];
@@ -480,9 +446,9 @@ static void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_d
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
-		      (XtCallbackProc) lines_def_proc, (XtPointer) 0);
+		      lines_def_proc, (XtPointer) 0);
 	XtAddCallback(buts[1], XmNactivateCallback,
-		  (XtCallbackProc) destroy_dialog, (XtPointer) lines_frame);
+		  destroy_dialog, (XtPointer) lines_frame);
 
 	XtManageChild(panel);
     }
@@ -491,7 +457,7 @@ static void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_d
     unset_wait_cursor();
 }
 
-static void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_data)
+static void define_boxes_popup(void *data)
 {
     Widget rc;
     Widget buts[2];
@@ -528,9 +494,9 @@ static void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_d
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
-		      (XtCallbackProc) boxes_def_proc, (XtPointer) 0);
+		      boxes_def_proc, (XtPointer) 0);
 	XtAddCallback(buts[1], XmNactivateCallback,
-		  (XtCallbackProc) destroy_dialog, (XtPointer) boxes_frame);
+		  destroy_dialog, (XtPointer) boxes_frame);
 
 	XtManageChild(panel);
     }
@@ -737,9 +703,9 @@ void box_edit_popup(int boxno)
 					   0);
                                           
         XtAddCallback(box_ui.loc_item[2], XmNactivateCallback, 
-               (XtCallbackProc) swap_boxwv_coords, (XtPointer) &box_ui);
+               swap_boxwv_coords, (XtPointer) &box_ui);
         XtAddCallback(box_ui.loc_item[3], XmNactivateCallback, 
-               (XtCallbackProc) swap_boxwv_coords, (XtPointer) &box_ui);
+               swap_boxwv_coords, (XtPointer) &box_ui);
 
 
 	box_ui.x1_item = CreateTextItem2(rc, 12, "Xmin = ");
@@ -752,9 +718,9 @@ void box_edit_popup(int boxno)
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
-	  	(XtCallbackProc) box_edit_proc, (XtPointer) &box_ui);
+	  	box_edit_proc, (XtPointer) &box_ui);
 	XtAddCallback(buts[1], XmNactivateCallback,
-		(XtCallbackProc) destroy_dialog, (XtPointer) box_ui.top);
+		destroy_dialog, (XtPointer) box_ui.top);
 	XtManageChild(panel);
     }
     box_ui.boxno = boxno;
@@ -796,9 +762,9 @@ void ellipse_edit_popup(int boxno)
 					   0,
 					   0);
         XtAddCallback(ellip_ui.loc_item[2], XmNactivateCallback, 
-               (XtCallbackProc) swap_ellipwv_coords, (XtPointer) &ellip_ui );
+               swap_ellipwv_coords, (XtPointer) &ellip_ui );
         XtAddCallback(ellip_ui.loc_item[3], XmNactivateCallback, 
-               (XtCallbackProc) swap_ellipwv_coords, (XtPointer) &ellip_ui );
+               swap_ellipwv_coords, (XtPointer) &ellip_ui );
 
 
 	ellip_ui.x1_item = CreateTextItem2(rc, 12, "Xcentre = ");
@@ -812,9 +778,9 @@ void ellipse_edit_popup(int boxno)
     	ellip_ui.boxno = boxno;
     	CreateCommandButtons(panel, 2, buts, label1);
     	XtAddCallback(buts[0], XmNactivateCallback,
-		    	  (XtCallbackProc) ellipse_edit_proc, (XtPointer) &ellip_ui);
+		    	  ellipse_edit_proc, (XtPointer) &ellip_ui);
     	XtAddCallback(buts[1], XmNactivateCallback,
-			  (XtCallbackProc) destroy_dialog, (XtPointer) ellip_ui.top);
+			  destroy_dialog, (XtPointer) ellip_ui.top);
     	XtManageChild(panel);
     }
     ellip_ui.boxno = boxno;
@@ -974,9 +940,9 @@ void line_edit_popup(int lineno)
 					   0,
 					   0);
         XtAddCallback(line_ui.loc_item[2], XmNactivateCallback,
-                   (XtCallbackProc) swap_linewv_coords, (XtPointer) &line_ui);
+                   swap_linewv_coords, (XtPointer) &line_ui);
         XtAddCallback(line_ui.loc_item[3], XmNactivateCallback,
-                   (XtCallbackProc) swap_linewv_coords, (XtPointer) &line_ui);
+                   swap_linewv_coords, (XtPointer) &line_ui);
 
 
 	line_ui.x1_item = CreateTextItem2(rc, 12, "X1 = ");
@@ -989,9 +955,9 @@ void line_edit_popup(int lineno)
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
-		(XtCallbackProc) line_edit_proc, (XtPointer) &line_ui);
+		line_edit_proc, (XtPointer) &line_ui);
 	XtAddCallback(buts[1], XmNactivateCallback,
-		(XtCallbackProc) destroy_dialog, (XtPointer) line_ui.top);
+		destroy_dialog, (XtPointer) line_ui.top);
 
 	XtManageChild(panel);
     }
@@ -1117,9 +1083,9 @@ void string_edit_popup(int stringno)
 					     0,
 					     0);
         XtAddCallback(string_ui.loc_item[2], XmNactivateCallback,
-                  (XtCallbackProc) swap_stringwv_coords, (XtPointer) &string_ui);
+                  swap_stringwv_coords, (XtPointer) &string_ui);
         XtAddCallback(string_ui.loc_item[3], XmNactivateCallback,
-                  (XtCallbackProc) swap_stringwv_coords, (XtPointer) &string_ui);
+                  swap_stringwv_coords, (XtPointer) &string_ui);
 					     
 	string_ui.x1_item = CreateTextItem2(rc, 12, "X = ");
 	string_ui.y1_item = CreateTextItem2(rc, 12, "Y = ");	
@@ -1134,9 +1100,9 @@ void string_edit_popup(int stringno)
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
-		    (XtCallbackProc) string_edit_proc, (XtPointer) &string_ui );
+		    string_edit_proc, (XtPointer) &string_ui );
 	XtAddCallback(buts[1], XmNactivateCallback,
-		(XtCallbackProc) destroy_dialog, (XtPointer) string_ui.top);
+		destroy_dialog, (XtPointer) string_ui.top);
 
 	XtManageChild(panel);
     }
