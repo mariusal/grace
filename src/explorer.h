@@ -387,6 +387,7 @@ void scale_explorer_cb(Widget scale, int a, void *data);
 void sp_explorer_cb(SpinStructure *spinp, double a, void *data);
 void text_explorer_cb(TextStructure *cst, char *s, void *data);
 void titem_explorer_cb(Widget w, char *s, void *data);
+void pen_explorer_cb(Widget but, const Pen *pen, void *data);
 
 ProjectUI *create_project_ui(ExplorerUI *eui);
 void update_project_ui(ProjectUI *ui, Quark *q);

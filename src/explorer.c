@@ -864,3 +864,8 @@ void titem_explorer_cb(Widget w, char *s, void *data)
     ExplorerUI *eui = (ExplorerUI *) data;
     explorer_apply(eui, w);
 }
+void pen_explorer_cb(Widget but, const Pen *pen, void *data)
+{
+    ExplorerUI *eui = (ExplorerUI *) data;
+    explorer_apply(eui, but);
+}
