@@ -165,8 +165,7 @@ int main(int argc, char *argv[])
     /* default is POSIX */
     set_locale_num(FALSE);
     
-    /* load startup file */
-    getparms(grace, "gracerc");
+    /* TODO: load prefs */
 
     /* load default template */
     new_project(grace, NULL);

@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.99.0)
   <author>by the Grace Team
-  <date>24.07.2004
+  <date>14.08.2004
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -928,9 +928,7 @@ XMgrace*background: ...
         In Xmgr-4.1.0, support for the binary file format (the
         former default one) was dropped. You must use the
         <tt>grconvert</tt> utility supplied with the Grace
-        distribution in order to convert the files. This can
-        easily be achieved defining an input filter like in the
-        <tt>gracerc</tt> sample file which comes with Grace.
+        distribution in order to convert the files.
 
     <sect1>When I load a project saved with an earlier version of Xmgr
            (&lt;4.0), symbols of all (some) sets are drawn in black.

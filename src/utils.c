@@ -220,7 +220,6 @@ void bailout(Grace *grace)
  */
 static void rereadConfig(Grace *grace)
 {
-    getparms(grace, "gracerc");
 }
 
 static void please_report_the_bug(void)

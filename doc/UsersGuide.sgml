@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.99.0)</title>
 <author>by the Grace Team</author>
-<date>10.08.2004</date>
+<date>14.08.2004</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -669,25 +669,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                <p>
         </itemize>
     
-    <sect2>Init file<label id="gracerc">
-      <p>
-        Upon start-up, Grace loads its init file, <tt>gracerc</tt>. The file
-        is searched for in the magic path (see
-        <ref id="magic-path" name="magic path">); once found, the rest of the
-        path is ignored. It's recommended that in the <tt>gracerc</tt> file,
-        one doesn't use statements which are part of a project file - such
-        defaults, if needed, should be set in the default template (see 
-        <ref id="default-template" name="default template">).
-
     <sect2>Default template<label id="default-template">
       <p>
         Whenever a new project is started, Grace loads the default template,
         <tt>templates/Default.xgr</tt>. The file is searched for in the magic
         path (see  <ref id="magic-path" name="magic path">); once found, the
-        rest of the path is ignored. It's recommended that in the default
-        template, one doesn't use statements which are NOT part of a project
-        file - such defaults, if needed, should be set in the
-        <tt>gracerc</tt> (see <ref id="gracerc" name="init file">).
+        rest of the path is ignored.
 
     <sect2>X resources
       <p>
@@ -2789,18 +2776,15 @@ C
              used to create a file. You can manually put "@version VERSIONID"
              string at the beginning of the file. The VERSIONID is built as
              MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL; so 40101 corresponds
-             to xmgr-4.1.1. Projects saved with Xmgr-4.1.2 do NOT need the above,
+             to Xmgr-4.1.1. Projects saved with Xmgr-4.1.2 do NOT need the above,
              since they already have the version string in them. If you have no
              idea what version of Xmgr your file was created with, try some.
              In most cases, 40102 would do the trick.
  
       <item> The above relates to the ASCII projects only. The old binary
              projects (saved with xmgr-4.0.*) are not automatically converted
-             anymore. An input filter must be defined to make the conversion
-             work on-the-fly. Add the following line to ~/.gracerc or the
-             system-wide $GRACE_HOME/gracerc resource file: DEFINE IFILTER
-             "grconvert %s -" MAGIC "00000031" See docs for more info on the
-             I/O filters.
+             anymore. You can use the "grconvert" utility that comes with
+             Grace to convert such files to Xmgr-4.1.2-style projects. 
  
       <item> Documentation on the script language is severely lacking still.
  
