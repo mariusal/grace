@@ -21,7 +21,7 @@ CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(T1_INC) $(EXPAT_INC) $(XBAE_INC) $(CPPFLAGS) \
 
 LIBS=$(GUI_LIBS) $(CEPHES_LIB) $(NETCDF_LIBS) $(FFTW_LIB) \
 	$(T1_LIB) $(PDF_LIB) $(TIFF_LIB) $(JPEG_LIB) $(PNG_LIB) $(Z_LIB) \
-	$(EXPAT_LIB) $(NOGUI_LIBS) $(DL_LIB)
+	$(XCC_LIB) $(EXPAT_LIB) $(NOGUI_LIBS) $(DL_LIB)
 
 PREFS=-DGRACE_HOME=\"$(GRACE_HOME)\" -DGRACE_PRINT_CMD=\"$(PRINT_CMD)\" \
 	-DGRACE_EDITOR=\"$(GRACE_EDITOR)\" $(HELPVIEWER) \
@@ -58,6 +58,8 @@ $(PARS_C) : $(PARS_Y)
 	$(YACC) -t $?
 	mv y.tab.c $@
 
+xml_in.c : grace.xcc
+	xcc < $? > $@
 
 install : $(GRACE)
 	$(MKINSTALLDIRS) $(GRACE_HOME)/bin

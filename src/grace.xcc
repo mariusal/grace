@@ -1,0 +1,526 @@
+<?xml version="1.0"?>
+<parser>
+    <!-- Preamble -->
+    <preamble><![CDATA[
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "globals.h"
+#include "defines.h"
+#include "device.h"
+#include "files.h"
+#include "utils.h"
+#include "draw.h"
+#include "graphs.h"
+#include "protos.h"
+
+#include "xstrings.h"
+
+typedef struct {
+    int gid;
+    int sid;
+} ParserData;
+
+typedef struct _Page {
+    int width;
+    int height;
+} Page;
+
+typedef struct {
+    int id;
+    CMap_entry cmap;
+} Colordef;
+
+Colordef *colordef_new()
+{
+    Colordef *retval;
+    retval = xmalloc(sizeof(Colordef));
+    retval->id = -1;
+    retval->cmap.cname = NULL;
+    return retval;
+}
+
+void colordef_free(Colordef *cd)
+{
+    if (cd) {
+        xfree(cd->cmap.cname);
+        xfree(cd);
+    }
+}
+
+typedef struct {
+    int id;
+    char *fontname;
+    char *fallback;
+} Fontdef;
+
+Fontdef *fontdef_new()
+{
+    Fontdef *retval;
+    retval = xmalloc(sizeof(Fontdef));
+    retval->id = -1;
+    retval->fontname = NULL;
+    retval->fallback = NULL;
+    return retval;
+}
+
+void fontdef_free(Fontdef *fd)
+{
+    if (fd) {
+        xfree(fd->fontname);
+        xfree(fd->fallback);
+        xfree(fd);
+    }
+}
+
+typedef struct {
+    int font;
+    int color;
+    double size;
+} FaceSpec;
+
+FaceSpec *facespec_new()
+{
+    FaceSpec *fs;
+    fs = xmalloc(sizeof(FaceSpec));
+    if (fs) {
+        memset(fs, 0, sizeof(FaceSpec));
+    }
+    return fs;
+}
+
+void facespec_free(FaceSpec *fs)
+{
+    if (fs) {
+        xfree(fs);
+    }
+}
+
+typedef struct {
+    GraphType type;
+    int stacked;
+    double bargap;
+} PresentationSpec;
+
+
+PresentationSpec *presentationspec_new()
+{
+    PresentationSpec *ps;
+    ps = xmalloc(sizeof(PresentationSpec));
+    if (ps) {
+        memset(ps, 0, sizeof(PresentationSpec));
+    }
+    return ps;
+}
+
+void presentationspec_free(PresentationSpec *ps)
+{
+    if (ps) {
+        xfree(ps);
+    }
+}
+
+view *view_new()
+{
+    view *v;
+    v = xmalloc(sizeof(view));
+    if (v) {
+        memset(v, 0, sizeof(view));
+    }
+    return v;
+}
+
+typedef struct {
+    int type;
+    double min;
+    double max;
+    int invert;
+} Scale;
+
+Scale *scale_new()
+{
+    Scale *s;
+    s = xmalloc(sizeof(Scale));
+    if (s) {
+        memset(s, 0, sizeof(Scale));
+    }
+    return s;
+}
+
+    ]]></preamble>
+
+    <!-- Attribute types -->
+    <attribute-type name="ival" ctype="int"><![CDATA[
+        $$ = atoi($?);
+    ]]></attribute-type>
+    <attribute-type name="dval" ctype="double"><![CDATA[
+        $$ = atof($?);
+    ]]></attribute-type>
+    <attribute-type name="sval" ctype="char *"><![CDATA[
+        $$ = strdup($?);
+    ]]></attribute-type>
+    <attribute-type name="bval" ctype="int"><![CDATA[
+        $$ = compare_strings($?, "yes");
+    ]]></attribute-type>
+    <attribute-type name="rgb" ctype="RGB *"><![CDATA[
+        $$ = xmalloc(sizeof(RGB));
+        sscanf($?, "#%02x%02x%02x", &($$->red), &($$->green), &($$->blue));
+    ]]></attribute-type>
+
+    <!-- Element types -->
+    <element-type name="project" ctype="Project *"><![CDATA[
+        $$ = project_new();
+    ]]></element-type>
+    <element-type name="page" ctype="Page *"><![CDATA[
+        $$ = xmalloc(sizeof(Page));
+        $$->width = $$->height = 0;
+    ]]></element-type>
+    <element-type name="string" ctype="XCCString *"><![CDATA[
+        $$ = xcc_string_new();
+    ]]></element-type>
+    <element-type name="pen" ctype="Pen *"><![CDATA[
+        $$ = xmalloc(sizeof(Pen));
+        $$->color = $$->pattern = 1;
+    ]]></element-type>
+    <element-type name="dummy" ctype="void *"><![CDATA[
+        $$ = NULL;
+    ]]></element-type>
+    <element-type name="colordef" ctype="Colordef *"><![CDATA[
+        $$ = colordef_new();
+    ]]></element-type>
+    <element-type name="fontdef" ctype="Fontdef *"><![CDATA[
+        $$ = fontdef_new();
+    ]]></element-type>
+    <element-type name="facespec" ctype="FaceSpec *"><![CDATA[
+        $$ = facespec_new();
+    ]]></element-type>
+    <element-type name="graph" ctype="graph *"><![CDATA[
+        $$ = graph_new();
+    ]]></element-type>
+    <element-type name="presentationspec" ctype="PresentationSpec *"><![CDATA[
+        $$ = presentationspec_new();
+    ]]></element-type>
+    <element-type name="view" ctype="view *"><![CDATA[
+        $$ = view_new();
+    ]]></element-type>
+    <element-type name="scale" ctype="Scale *"><![CDATA[
+        $$ = scale_new();
+    ]]></element-type>
+    <element-type name="dptr" ctype="double *"><![CDATA[
+        $$ = xcalloc(1, SIZEOF_DOUBLE);
+    ]]></element-type>
+
+    <!-- Now describe the document structure -->
+    <element name="project" type="project">
+        <!-- Attributes -->
+        <attribute name="#AStrVersion" type="ival">
+            project_set_version_id($$, $?);
+        </attribute>
+
+        <!-- Child elements -->
+        <child name="#EStrDescription">
+            project_set_description($$, $?->s);
+            xcc_string_free($?);
+        </child>
+        <child name="#EStrDefinitions">
+        </child>
+        <child name="#EStrPage">
+            set_page_dimensions($?->width, $?->height, FALSE);
+            xfree($?);
+        </child>
+        <child name="#EStrDataFormats">
+        </child>
+        <child name="#EStrTimeStamp">
+        </child>
+        <child name="#EStrGraph">
+            int gid = ((ParserData *) $U)->gid;
+            storage_add($$->graphs, gid, $?);
+        </child>
+    </element>
+    <element name="#EStrDefinitions" type="dummy">
+        <!-- Child elements -->
+        <child name="#EStrColormap">
+        </child>
+        <child name="#EStrFontmap">
+        </child>
+    </element>
+    <element name="#EStrColormap" type="dummy">
+        <!-- Child elements -->
+        <child name="#EStrColorDef">
+            store_color($?->id, $?->cmap);
+            colordef_free($?);
+        </child>
+    </element>
+    <element name="#EStrFontmap" type="dummy">
+        <!-- Child elements -->
+        <child name="#EStrFontDef"><![CDATA[
+            if ((map_font_by_name($?->fontname, $?->id) != RETURN_SUCCESS) && 
+                (map_font_by_name($?->fallback, $?->id) != RETURN_SUCCESS)) {
+                errmsg("Failed mapping a font");
+            }
+            fontdef_free($?);
+        ]]></child>
+    </element>
+    <element name="#EStrColorDef" type="colordef">
+        <!-- Attributes -->
+        <attribute name="#AStrId" type="ival">
+            $$->id = $?;
+        </attribute>
+        <attribute name="#AStrRgb" type="rgb">
+            $$->cmap.rgb = *($?);
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrName" type="sval">
+            $$->cmap.cname = $?;
+        </attribute>
+    </element>
+    <element name="#EStrFontDef" type="fontdef">
+        <!-- Attributes -->
+        <attribute name="#AStrId" type="ival">
+            $$->id = $?;
+        </attribute>
+        <attribute name="#AStrName" type="sval">
+            $$->fontname = $?;
+        </attribute>
+        <attribute name="#AStrFallback" type="sval">
+            $$->fallback = $?;
+        </attribute>
+    </element>
+    <element name="#EStrPage" type="page">
+        <!-- Attributes -->
+        <attribute name="#AStrWidth" type="ival">
+            $$->width = $?;
+        </attribute>
+        <attribute name="#AStrHeight" type="ival">
+            $$->height = $?;
+        </attribute>
+        <child name="#EStrFillSpec">
+            setbgcolor($?->color);
+            setbgfill($?->pattern);
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrDescription" type="string">
+        <!-- Child elements -->
+        <child name="#EStrText">
+            xcc_string_set($$, $?->s);
+            xcc_string_free($?);
+        </child>
+    </element>
+    <element name="#EStrDataFormats" type="dummy">
+        <!-- Child elements -->
+        <child name="#EStrDates">
+        </child>
+        <child name="#EStrWorld">
+        </child>
+    </element>
+    <element name="#EStrTimeStamp" type="dummy">
+        <!-- Attributes -->
+        <attribute name="#AStrActive" type="bval">
+            /* FIXME */
+        </attribute>
+        <attribute name="#AStrOffset" type="sval">
+            /* FIXME */
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrAngle" type="dval">
+            /* FIXME */
+        </attribute>
+        <attribute name="#AStrValue" type="sval">
+            /* FIXME */
+            xfree($?);
+        </attribute>
+        <child name="#EStrFaceSpec">
+            /* FIXME */
+            facespec_free($?);
+        </child>
+    </element>
+    <element name="#EStrFaceSpec" type="facespec">
+        <!-- Attributes -->
+        <attribute name="#AStrFontId" type="ival">
+            $$->font = $?;
+        </attribute>
+        <attribute name="#AStrColorId" type="ival">
+            $$->color = $?;
+        </attribute>
+        <attribute name="#AStrCharSize" type="dval">
+            $$->size = $?;
+        </attribute>
+    </element>
+    <element name="#EStrDates" type="dummy">
+        <!-- Attributes -->
+        <attribute name="#AStrReference" type="ival">
+            set_ref_date($?);
+        </attribute>
+        <attribute name="#AStrWrap" type="bval">
+            allow_two_digits_years($?);
+        </attribute>
+        <attribute name="#AStrWrapYear" type="ival">
+            set_wrap_year($?);
+        </attribute>
+    </element>
+    <element name="#EStrWorld" type="dummy">
+        <!-- Attributes -->
+        <attribute name="#AStrFormat" type="sval">
+            Project *pr = (Project *) $0;
+            pr->sformat = copy_string(pr->sformat, $?);
+            xfree($?);
+        </attribute>
+    </element>
+    <element name="#EStrText" type="string">
+        <!-- Character data -->
+        <data>
+            xcc_string_set($$, $?);
+        </data>
+    </element>
+    <element name="#EStrFillSpec" type="pen">
+        <!-- Attributes -->
+        <attribute name="#AStrColorId" type="ival">
+            $$->color = $?;
+        </attribute>
+        <attribute name="#AStrPatternId" type="ival">
+            $$->pattern = $?;
+        </attribute>
+    </element>
+    <element name="#EStrGraph" type="graph">
+        <!-- Attributes -->
+        <attribute name="#AStrId" type="ival">
+            ParserData *udata = (ParserData *) $U;
+            udata->gid = $?;
+        </attribute>
+        <attribute name="#AStrActive" type="bval">
+            $$->hidden = !($?);
+        </attribute>
+
+        <!-- Child elements -->
+        <child name="#EStrPresentationSpec">
+            $$->type    = $?->type;
+            $$->stacked = $?->stacked;
+            $$->bargap  = $?->bargap;
+            presentationspec_free($?);
+        </child>
+        <child name="#EStrViewport">
+            $$->v = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrXscale">
+            $$->xscale  = $?->type;
+            $$->xinvert = $?->invert;
+            $$->w.xg1   = $?->min;
+            $$->w.xg2   = $?->max;
+            xfree($?);
+        </child>
+        <child name="#EStrYscale">
+            $$->yscale  = $?->type;
+            $$->yinvert = $?->invert;
+            $$->w.yg1   = $?->min;
+            $$->w.yg2   = $?->max;
+            xfree($?);
+        </child>
+        <child name="#EStrZscale">
+            $$->znorm = *($?);
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrPresentationSpec" type="presentationspec">
+        <!-- Attributes -->
+        <attribute name="#AStrType" type="sval">
+            $$->type = get_graph_type_by_name($?);
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrStacked" type="bval">
+            $$->stacked = $?;
+        </attribute>
+        <attribute name="#AStrBargap" type="dval">
+            $$->bargap = $?;
+        </attribute>
+    </element>
+    <element name="#EStrViewport" type="view">
+        <!-- Attributes -->
+        <attribute name="#AStrXmin" type="dval">
+            $$->xv1 = $?;
+        </attribute>
+        <attribute name="#AStrYmin" type="dval">
+            $$->yv1 = $?;
+        </attribute>
+        <attribute name="#AStrXmax" type="dval">
+            $$->xv2 = $?;
+        </attribute>
+        <attribute name="#AStrYmax" type="dval">
+            $$->yv2 = $?;
+        </attribute>
+    </element>
+    <element name="#EStrXscale" type="scale">
+        <!-- Attributes -->
+        <attribute name="#AStrMin" type="dval">
+            $$->min = $?;
+        </attribute>
+        <attribute name="#AStrMax" type="dval">
+            $$->max = $?;
+        </attribute>
+        <attribute name="#AStrType" type="sval">
+            $$->type = get_scale_type_by_name($?);
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrInvert" type="bval">
+            $$->invert = $?;
+        </attribute>
+    </element>
+    <element name="#EStrYscale" type="scale">
+        <!-- Attributes -->
+        <attribute name="#AStrMin" type="dval">
+            $$->min = $?;
+        </attribute>
+        <attribute name="#AStrMax" type="dval">
+            $$->max = $?;
+        </attribute>
+        <attribute name="#AStrType" type="sval">
+            $$->type = get_scale_type_by_name($?);
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrInvert" type="bval">
+            $$->invert = $?;
+        </attribute>
+    </element>
+    <element name="#EStrZscale" type="dptr">
+        <!-- Attributes -->
+        <attribute name="#AStrNorm" type="dval">
+            *($$) = $?;
+        </attribute>
+    </element>
+
+    <!-- Postamble -->
+    <postamble><![CDATA[
+int load_xgr_project(char *fn)
+{
+    ParserData udata;
+    Project *pr;
+    FILE *fp;
+    int ret;
+
+    fp = grace_openr(fn, SOURCE_DISK);
+    if (fp == NULL) {
+	return RETURN_FAILURE;
+    }
+
+    udata.gid = -1;
+    udata.sid = -1;
+    
+    ret = xcc_parse(fp, &udata, (void **) &pr, xcc_start_handler, xcc_end_handler);
+
+    grace_close(fp);
+    
+    if (ret == XCC_RETURN_SUCCESS) {
+        project_free(grace->project);
+        grace->project = pr;
+
+        return RETURN_SUCCESS;
+    } else {
+        project_free(pr);
+        
+        return RETURN_FAILURE;
+    }
+}
+    ]]></postamble>
+</parser>
