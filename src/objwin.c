@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001,2002 Grace Development Team
+ * Copyright (c) 2001-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -325,7 +325,7 @@ static void selectobjectCB(int n, void **values, void *data)
         DObject *o;
         char *format, buf[32];
         
-        o = (DObject *) values[0];
+        o = object_get_data((Quark *) values[0]);
         
         ui->dobject = o;
         
@@ -414,7 +414,7 @@ static int objects_aac(void *data)
     n = GetStorageChoices(ui->ss, &values);
     for (i = 0; i < n; i++) {
         int active;
-        o = (DObject *) values[i];
+        o = object_get_data((Quark *) values[i]) ;
         
         active = GetToggleButtonState(ui->active);
         if (o->active != active) {
@@ -437,7 +437,7 @@ static int objects_aac(void *data)
     }
 
     if (n == 1) {
-        o = (DObject *) values[0];
+        o = object_get_data((Quark *) values[0]);
         switch (o->type) {
         case DO_LINE:
             set_line_odata(ui->line_ui, (DOLineData *) o->odata);
@@ -468,7 +468,7 @@ static int objects_aac(void *data)
 static char *dobject_labeling(unsigned int step, void *data)
 {
     char buf[128];
-    DObject *o = (DObject *) data;
+    DObject *o = object_get_data((Quark *) data);
     
     sprintf(buf, "(%c) DObject #%d (%s)",
         o->active ? '+':'-', step, object_types(o->type));
@@ -545,7 +545,7 @@ static void doss_any_cb(void *udata, int cbtype)
         void *data = values[i];
         
         if (storage_data_exists(ss->sto, data) == TRUE) {
-            DObject *o = (DObject *) data;
+            DObject *o = object_get_data((Quark *) data);
             switch (cbtype) {
             case DOSS_HIDE_CB:
                 o->active = FALSE;
@@ -729,7 +729,7 @@ void define_objects_popup(void *data)
     RaiseWindow(GetParent(oui->top));
     unset_wait_cursor();
 }
-
+/*
 void object_edit_popup(Quark *gr, int id)
 {
     if (gr) {
@@ -740,3 +740,4 @@ void object_edit_popup(Quark *gr, int id)
         SelectStorageChoice(oui->ss, o);
     }
 }
+*/

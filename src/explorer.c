@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2002 Grace Development Team
+ * Copyright (c) 2002,2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -150,7 +150,7 @@ typedef struct {
 static char *graph_labeling(unsigned int step, void *data)
 {
     char buf[128];
-    graph *g = (graph *) data;
+    graph *g = graph_get_data((Quark *) data);
     
     sprintf(buf, "(%c) Graph #%d", !g->hidden ? '+':'-', step);
     
@@ -160,7 +160,7 @@ static char *graph_labeling(unsigned int step, void *data)
 static char *set_labeling(unsigned int step, void *data)
 {
     char buf[128];
-    set *s = (set *) data;
+    set *s = set_get_data((Quark *) data);
     
     sprintf(buf, "(%c) Set #%d (%s)",
         !s->hidden ? '+':'-', step, set_types(grace->rt, s->type));
@@ -171,7 +171,7 @@ static char *set_labeling(unsigned int step, void *data)
 static char *dobject_labeling(unsigned int step, void *data)
 {
     char buf[128];
-    DObject *o = (DObject *) data;
+    DObject *o = object_get_data((Quark *) data);
     
     sprintf(buf, "(%c) DObject #%d (%s)",
         o->active ? '+':'-', step, object_types(o->type));
@@ -183,7 +183,7 @@ static ListTreeItem *graph_create(Widget w,
     ListTreeItem *parent, char *string, void *udata)
 {
     ListTreeItem *graph_item, *set_item, *do_item;
-    graph *g = (graph *) udata;
+    graph *g = graph_get_data((Quark *) udata);
     
     graph_item = ListTreeAdd(w, parent, string);
     

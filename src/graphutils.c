@@ -785,7 +785,7 @@ void move_legend(Quark *gr, VVector shift)
 void rescale_viewport(Quark *project, double ext_x, double ext_y)
 {
     Project *pr = (Project *) project->data;
-    Quark *gr;
+    Quark *gr, *q;
     DObject *o;
 
     storage_rewind(pr->graphs);
@@ -802,7 +802,8 @@ void rescale_viewport(Quark *project, double ext_x, double ext_y)
         /* TODO: tickmark offsets */
         
         storage_rewind(g->dobjects);
-        while (storage_get_data(g->dobjects, (void **) &o) == RETURN_SUCCESS) {
+        while (storage_get_data(g->dobjects, (void **) &q) == RETURN_SUCCESS) {
+            o = object_get_data(q);
             if (o->loctype == COORD_VIEW) {
                 o->ap.x     *= ext_x;
                 o->ap.y     *= ext_y;

@@ -818,7 +818,7 @@ static int set_save_hook(unsigned int step, void *data, void *udata)
 
 static int object_save_hook(unsigned int step, void *data, void *udata)
 {
-    DObject *o = (DObject *) data;
+    DObject *o = object_get_data(data);
     XFile *xf = (XFile *) udata;
     
     save_object(xf, o);

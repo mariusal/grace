@@ -705,26 +705,26 @@ char *utf2iso(const char *s)
     <element-type name="tick" ctype="tickloc *"><![CDATA[
         $$ = tick_new();
     ]]></element-type>
-    <element-type name="object" ctype="DObject *"><![CDATA[
-        $$ = object_new();
+    <element-type name="object" ctype="Quark *"><![CDATA[
+        $$ = object_new((Quark *)$P);
     ]]></element-type>
     <element-type name="location" ctype="Location *"><![CDATA[
         $$ = location_new();
     ]]></element-type>
     <element-type name="do_line_data" ctype="DOLineData *"><![CDATA[
-        $$ = object_data_new(DO_LINE);
+        $$ = object_odata_new(DO_LINE);
     ]]></element-type>
     <element-type name="do_box_data" ctype="DOBoxData *"><![CDATA[
-        $$ = object_data_new(DO_BOX);
+        $$ = object_odata_new(DO_BOX);
     ]]></element-type>
     <element-type name="do_arc_data" ctype="DOArcData *"><![CDATA[
-        $$ = object_data_new(DO_ARC);
+        $$ = object_odata_new(DO_ARC);
     ]]></element-type>
     <element-type name="arrow" ctype="Arrow *"><![CDATA[
         $$ = arrow_new();
     ]]></element-type>
     <element-type name="do_string_data" ctype="DOStringData *"><![CDATA[
-        $$ = object_data_new(DO_STRING);
+        $$ = object_odata_new(DO_STRING);
     ]]></element-type>
     <element-type name="set" ctype="Quark *"><![CDATA[
         $$ = set_new((Quark *)$P);
@@ -976,8 +976,6 @@ char *utf2iso(const char *s)
             free_graph_tickmarks($?);
         ]]></child>
         <child name="#EStrObject">
-            graph *g = (graph *) $$->data;
-            storage_add(g->dobjects, (void *) $?);
         </child>
         <child name="#EStrSet">
         </child>
@@ -1537,45 +1535,56 @@ char *utf2iso(const char *s)
     <element name="#EStrObject" type="object">
         <!-- Attributes -->
         <attribute name="#AStrActive" type="bval">
-            $$->active = $?;
+            object_set_active($$, $?);
         </attribute>
         <attribute name="#AStrAngle" type="dval">
-            $$->angle = $?;
+            object_set_angle($$, $?);
         </attribute>
         <attribute name="#AStrOffset" type="offset">
-            $$->offset = *($?);
+            object_set_offset($$, $?);
             xfree($?);
         </attribute>
         
         <!-- Child elements -->
         <child name="#EStrLineSpec">
-            $$->line  = *($?);
+            object_set_line($$, $?);
             xfree($?);
         </child>
-        <child name="#EStrLocation">
-            $$->loctype = $?->type;
-            $$->ap = $?->ap;
+        <child name="#EStrLocation"><![CDATA[
+            object_set_location($$, $?->type, &($?->ap));
             xfree($?);
-        </child>
+        ]]></child>
         <child name="#EStrFillSpec">
-            $$->fillpen = *($?);
+            object_set_fillpen($$, $?);
             xfree($?);
         </child>
         <child name="#EStrLineData">
-            $$->odata = $?;
-            $$->type = DO_LINE;
+            DObject *o = object_get_data($$);
+            if (o) {
+                o->odata = $?;
+                o->type  = DO_LINE;
+            }
         </child>
         <child name="#EStrBoxData">
-            $$->odata = $?;
-            $$->type = DO_BOX;
+            DObject *o = object_get_data($$);
+            if (o) {
+                o->odata = $?;
+                o->type  = DO_BOX;
+            }
         </child>
         <child name="#EStrArcData">
-            $$->odata = $?;
-            $$->type = DO_ARC;
+            DObject *o = object_get_data($$);
+            if (o) {
+                o->odata = $?;
+                o->type  = DO_ARC;
+            }
         </child>
         <child name="#EStrStringData">
-            $$->odata = $?;
-            $$->type = DO_STRING;
+            DObject *o = object_get_data($$);
+            if (o) {
+                o->odata = $?;
+                o->type  = DO_STRING;
+            }
         </child>
     </element>
     <element name="#EStrLocation" type="location">

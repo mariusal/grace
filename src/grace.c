@@ -37,6 +37,7 @@
 #include "dicts.h"
 #include "graphs.h"
 #include "graphutils.h"
+#include "objutils.h"
 #include "protos.h"
 
 static defaults d_d =
@@ -319,6 +320,13 @@ static QuarkFlavor set_qf = {
     NULL
 };
 
+static QuarkFlavor dobject_qf = {
+    (Quark_data_new) object_data_new,
+    (Quark_data_free) object_data_free,
+    (Quark_data_copy) object_data_copy,
+    NULL
+};
+
 
 QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid)
 {
@@ -333,6 +341,9 @@ QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid)
         break;
     case QFlavorSet:
         qf = &set_qf;
+        break;
+    case QFlavorDObject:
+        qf = &dobject_qf;
         break;
     default:
         qf = NULL;

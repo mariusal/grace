@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000,2001 Grace Development Team
+ * Copyright (c) 2000-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -37,9 +37,10 @@
 #include "plotone.h"
 #include "objutils.h"
 
-static void draw_object(Canvas *canvas, DObject *o)
+static void draw_object(Canvas *canvas, Quark *q)
 {
     VPoint anchor;
+    DObject *o = object_get_data(q);
 
     if (o == NULL || o->active == FALSE) {
         return;
@@ -179,10 +180,10 @@ static void draw_object(Canvas *canvas, DObject *o)
 
 static int object_draw_hook(unsigned int step, void *data, void *udata)
 {
-    DObject *o = (DObject *) data;
+    Quark *q = (Quark *) data;
     Canvas *canvas = (Canvas *) udata;
     
-    draw_object(canvas, o);
+    draw_object(canvas, q);
     
     return TRUE;
 }

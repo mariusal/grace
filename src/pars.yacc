@@ -5,7 +5,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -2008,7 +2008,7 @@ parmset:
 
 /* Objects */
 	| WITH objecttype {
-	    curobject = object_new_complete($2);
+	    curobject = object_data_new_complete($2);
 	}
 	| objecttype onoff {
 	    if (!curobject) {
@@ -2237,8 +2237,9 @@ parmset:
                         gr = graph_next(grace->project);
                     }
                     if (gr) {
-                        graph *g = (graph *) gr->data;
-                        storage_add(g->dobjects, curobject);
+                        Quark *q = object_new(gr);
+                        object_data_free(object_get_data(q));
+                        q->data = curobject;
                     }
                 }
             }
@@ -2258,33 +2259,32 @@ parmset:
                     gr = graph_next(grace->project);
                 }
                 if (gr) {
-                    graph *g = (graph *) gr->data;
-                    storage_add(g->dobjects, curobject);
+                    Quark *q = object_new(gr);
+                    object_data_free(object_get_data(q));
+                    q->data = curobject;
                 }
             }
         }
 
 /* timestamp */
 	| TIMESTAMP onoff {
-            curobject = object_new_complete(DO_STRING);
+            curobject = object_data_new_complete(DO_STRING);
             if (curobject) {
 	        DOStringData *s = (DOStringData *) curobject->odata;
                 Quark *gr;
                 
                 curobject->active = $2;
+                curobject->loctype = COORD_VIEW;
                 s->s = copy_string(NULL, "\\${timestamp}");
 
-                if (curobject->loctype == COORD_VIEW) {
-                    gr = graph_get_current(grace->project);
-                } else {
-                    gr = objgno;
-                }
+                gr = graph_get_current(grace->project);
                 if (!gr) {
                     gr = graph_next(grace->project);
                 }
                 if (gr) {
-                    graph *g = (graph *) gr->data;
-                    storage_add(g->dobjects, curobject);
+                    Quark *q = object_new(gr);
+                    object_data_free(object_get_data(q));
+                    q->data = curobject;
                 }
             }
         }

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001 Grace Development Team
+ * Copyright (c) 2001-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -92,20 +92,27 @@ typedef struct _DOStringData {
 
 char *object_types(OType type);
 
-void *object_data_new(OType type);
+void *object_odata_new(OType type);
 
-DObject *object_new(void);
-DObject *object_new_complete(OType type);
-void object_free(DObject *o);
+DObject *object_data_new(void);
+void object_data_free(DObject *o);
+DObject *object_data_copy(DObject *o);
 
-DObject *object_get(Quark *gr, int id);
-DObject *object_copy(DObject *o);
+DObject *object_data_new_complete(OType type);
+
+Quark *object_new(Quark *gr);
+Quark *object_new_complete(Quark *gr, OType type);
+
+DObject *object_get_data(Quark *q);
+
+int object_set_active(Quark *q, int flag);
+int object_set_angle(Quark *q, double angle);
+int object_set_offset(Quark *q, const VPoint *offset);
+int object_set_line(Quark *q, const Line *line);
+int object_set_fillpen(Quark *q, const Pen *pen);
+int object_set_location(Quark *q, int loctype, const APoint *ap);
 
 int isactive_object(DObject *o);
-
-int kill_object(Quark *gr, int id);
-DObject *next_object(Quark *gr, OType type);
-DObject *duplicate_object(Quark *gr, int id);
 
 int get_object_bb(DObject *o, view *bb);
 void move_object(DObject *o, VVector shift);

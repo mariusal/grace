@@ -7,8 +7,8 @@ quark$(O) : quark.c grace.h ../include/grace/baseP.h ../include/grace/base.h \
   defines.h ../include/grace/canvas.h storage.h dict3.h
 grace$(O) : grace.c defines.h ../include/grace/canvas.h \
   ../include/grace/base.h grace.h ../include/grace/baseP.h storage.h \
-  dict3.h utils.h dicts.h graphs.h ctrans.h graphutils.h protos.h \
-  noxprotos.h xprotos.h
+  dict3.h utils.h dicts.h graphs.h ctrans.h graphutils.h objutils.h \
+  protos.h noxprotos.h xprotos.h
 project$(O) : project.c defines.h ../include/grace/canvas.h \
   ../include/grace/base.h utils.h grace.h ../include/grace/baseP.h \
   storage.h dict3.h objutils.h graphs.h ctrans.h protos.h noxprotos.h \

@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -46,7 +45,7 @@
 #include "objutils.h"
 #include "protos.h"
 
-static int object_data_size(OType type)
+static int object_odata_size(OType type)
 {
     int size;
 
@@ -94,7 +93,7 @@ char *object_types(OType type)
     return s;
 }
 
-DObject *object_new(void)
+DObject *object_data_new(void)
 {
     DObject *o;
 
@@ -128,10 +127,70 @@ DObject *object_new(void)
     return o;
 }
 
-void *object_data_new(OType type)
+static int object_set_data(DObject *o, void *odata)
+{
+    int size = object_odata_size(o->type);
+    
+    if (!size) {
+        return RETURN_FAILURE;
+    }
+
+    memcpy(o->odata, (void *) odata, size);
+    
+    if (o->type == DO_STRING) {
+        ((DOStringData *) (o->odata))->s =
+            copy_string(NULL, ((DOStringData *) odata)->s);
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+DObject *object_data_copy(DObject *osrc)
+{
+    DObject *odest;
+    void *odata;
+    
+    if (!osrc) {
+        return NULL;
+    }
+    
+    odest = object_data_new_complete(osrc->type);
+    if (!odest) {
+        return NULL;
+    }
+    
+    /* Save odata pointer before memcpy overwrites it */
+    odata = odest->odata;
+    
+    memcpy(odest, osrc, sizeof(DObject));
+    
+    /* Restore odata */
+    odest->odata = odata;
+    
+    if (object_set_data(odest, osrc->odata) != RETURN_SUCCESS) {
+        object_data_free(odest);
+        return NULL;
+    }
+    
+    return odest;
+}
+
+void object_data_free(DObject *o)
+{
+    if (o) {
+        if (o->type == DO_STRING) {
+            DOStringData *s = (DOStringData *) o->odata;
+            xfree(s->s);
+        }
+        xfree(o->odata);
+        xfree(o);
+    }
+}
+
+void *object_odata_new(OType type)
 {
     void *odata;
-    odata = xmalloc(object_data_size(type));
+    odata = xmalloc(object_odata_size(type));
     if (odata == NULL) {
         return NULL;
     }
@@ -177,15 +236,29 @@ void *object_data_new(OType type)
     return odata;
 }
 
-DObject *object_new_complete(OType type)
+Quark *object_new(Quark *gr)
+{
+    Quark *o; 
+    o = quark_new(gr, QFlavorDObject);
+    if (o) {
+        graph *g = (graph *) gr->data;
+        if (storage_add(g->dobjects, o) != RETURN_SUCCESS) {
+            quark_free(o);
+            return NULL;
+        }
+    }
+    return o;
+}
+
+DObject *object_data_new_complete(OType type)
 {
     DObject *o;
     
-    o = object_new();
+    o = object_data_new();
     if (o) {
         o->active = TRUE;
         o->type   = type;
-        o->odata  = object_data_new(type);
+        o->odata  = object_odata_new(type);
         if (o->odata == NULL) {
             xfree(o);
             return NULL;
@@ -195,101 +268,33 @@ DObject *object_new_complete(OType type)
     return o;
 }
 
-static int object_set_data(DObject *o, void *odata)
+Quark *object_new_complete(Quark *gr, OType type)
 {
-    int size = object_data_size(o->type);
-    
-    if (!size) {
-        return RETURN_FAILURE;
-    }
-
-    memcpy(o->odata, (void *) odata, size);
-    
-    if (o->type == DO_STRING) {
-        ((DOStringData *) (o->odata))->s =
-            copy_string(NULL, ((DOStringData *) odata)->s);
-    }
-    
-    return RETURN_SUCCESS;
-}
-
-DObject *object_copy(DObject *osrc)
-{
-    DObject *odest;
-    void *odata;
-    
-    if (!osrc) {
-        return NULL;
-    }
-    
-    odest = object_new_complete(osrc->type);
-    if (!odest) {
-        return NULL;
-    }
-    
-    /* Save odata pointer before memcpy overwrites it */
-    odata = odest->odata;
-    
-    memcpy(odest, osrc, sizeof(DObject));
-    
-    /* Restore odata */
-    odest->odata = odata;
-    
-    if (object_set_data(odest, osrc->odata) != RETURN_SUCCESS) {
-        object_free(odest);
-        return NULL;
-    }
-    
-    return odest;
-}
-
-void object_free(DObject *o)
-{
-    if (o) {
-        if (o->type == DO_STRING) {
-            DOStringData *s = (DOStringData *) o->odata;
-            xfree(s->s);
-        }
-        xfree(o->odata);
-        xfree(o);
-    }
-}
-
-DObject *next_object(Quark *gr, OType type)
-{
+    Quark *q;
     DObject *o;
-    Storage *objects;
-    graph *g;
     
-    if (!gr) {
-        return NULL;
-    }
-    
-    g = (graph *) gr->data;
-    objects = g->dobjects;
-    o = object_new_complete(type);
+    q = object_new(gr);
+    o = object_get_data(q);
     if (o) {
-        if (storage_add(objects, (void *) o) == RETURN_SUCCESS) {
-            set_dirtystate();
-            return o;
-        } else {
-            object_free(o);
+        o->active = TRUE;
+        o->type   = type;
+        o->odata  = object_odata_new(type);
+        if (o->odata == NULL) {
+            xfree(o);
             return NULL;
         }
-    } else {
-        return NULL;
     }
+    
+    return q;
 }
 
-DObject *object_get(Quark *gr, int id)
+DObject *object_get_data(Quark *q)
 {
     DObject *o;
-    Storage *objects;
-    graph *g;
     
-    g = (graph *) gr->data;
-    objects = g->dobjects;
-    if (storage_get_data_by_id(objects, id, (void **) &o) != RETURN_SUCCESS) {
+    if (q && q->fid == QFlavorDObject) {
+        o = (DObject *) q->data;
+    } else {
         o = NULL;
     }
     
@@ -300,21 +305,6 @@ int get_object_bb(DObject *o, view *bb)
 {
     if (o) {
         *bb = o->bb;
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-int kill_object(Quark *gr, int id)
-{
-    Storage *objects;
-    graph *g;
-
-    g = (graph *) gr->data;
-    objects = g->dobjects;
-    if (storage_delete_by_id(objects, id) == RETURN_SUCCESS) {
-        set_dirtystate();
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -373,3 +363,83 @@ void set_plotstr_string(plotstr *pstr, char *s)
 {
     pstr->s = copy_string(pstr->s, s);
 }
+
+int object_set_active(Quark *q, int flag)
+{
+    if (q && q->fid == QFlavorDObject) {
+        DObject *o = (DObject *) q->data;
+        
+        o->active = flag;
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int object_set_angle(Quark *q, double angle)
+{
+    if (q && q->fid == QFlavorDObject) {
+        DObject *o = (DObject *) q->data;
+        
+        o->angle = angle;
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int object_set_offset(Quark *q, const VPoint *offset)
+{
+    if (q && q->fid == QFlavorDObject) {
+        DObject *o = (DObject *) q->data;
+        
+        o->offset = *offset;
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int object_set_line(Quark *q, const Line *line)
+{
+    if (q && q->fid == QFlavorDObject) {
+        DObject *o = (DObject *) q->data;
+        
+        o->line = *line;
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int object_set_fillpen(Quark *q, const Pen *pen)
+{
+    if (q && q->fid == QFlavorDObject) {
+        DObject *o = (DObject *) q->data;
+        
+        o->fillpen = *pen;
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int object_set_location(Quark *q, int loctype, const APoint *ap)
+{
+    if (q && q->fid == QFlavorDObject) {
+        DObject *o = (DObject *) q->data;
+        
+        o->loctype = loctype;
+        o->ap      = *ap;
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+

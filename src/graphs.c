@@ -97,12 +97,12 @@ static void *wrap_set_copy(void *data)
 
 static void wrap_object_free(void *data)
 {
-    object_free((DObject *) data);
+    quark_free((Quark *) data);
 }
 
 static void *wrap_object_copy(void *data)
 {
-    return (void *) object_copy((DObject *) data);
+    return (void *) quark_copy((Quark *) data);
 }
 
 static void set_default_graph(graph *g)
@@ -1464,8 +1464,10 @@ void project_postprocess(Quark *project)
             storage_rewind(g->dobjects);
             n = storage_count(g->dobjects);
             for (i = 0; i < n; i++) {
-                if (storage_get_data(g->dobjects, (void **) &o) ==
+                Quark *q;
+                if (storage_get_data(g->dobjects, (void **) &q) ==
                     RETURN_SUCCESS) {
+                    o = object_get_data(q);
                     if (o->type == DO_STRING) {
                         DOStringData *s = (DOStringData *) o->odata;
                         s->just |= JUST_MIDDLE;
@@ -1479,13 +1481,15 @@ void project_postprocess(Quark *project)
 
         if (pr->version_id < 50200) {
             int i, n;
+            Quark *q;
             DObject *o;
 
             storage_rewind(g->dobjects);
             n = storage_count(g->dobjects);
             for (i = 0; i < n; i++) {
-                if (storage_get_data(g->dobjects, (void **) &o) ==
+                if (storage_get_data(g->dobjects, (void **) &q) ==
                     RETURN_SUCCESS) {
+                    o = object_get_data(q);
                     if (o->loctype == COORD_WORLD) {
                         WPoint wp;
                         VPoint vp1, vp2;

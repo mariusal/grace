@@ -232,7 +232,8 @@ struct _Grace {
 enum {
     QFlavorProject,
     QFlavorGraph,
-    QFlavorSet
+    QFlavorSet,
+    QFlavorDObject
 };
 
 QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid);
