@@ -79,7 +79,7 @@
         <axisbar active="yes">
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </axisbar>
-        <axislabel layout="parallel" offset="(0, 0.08)" side-placement="normal">
+        <axislabel layout="parallel" offset="auto" side-placement="normal">
           <text-properties angle="0" justification="0">
             <face-spec font-id="0" color-id="1" char-size="1"/>
           </text-properties>
@@ -108,7 +108,7 @@
         <axisbar active="yes">
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </axisbar>
-        <axislabel layout="parallel" offset="(0, 0.08)" side-placement="normal">
+        <axislabel layout="parallel" offset="auto" side-placement="normal">
           <text-properties angle="0" justification="0">
             <face-spec font-id="0" color-id="1" char-size="1"/>
           </text-properties>
