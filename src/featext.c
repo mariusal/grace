@@ -77,8 +77,7 @@ int get_fall_time( int setl, double *xv, double *yv, double min, double max,
 		double *width );
 int mute_linear_regression(int n, double *x, double *y, double *slope, 
 			double *intercept);
-int get_half_max_width( int setl, double *xv, double *yv, double min, double max,
-			double *width  );
+int get_half_max_width(int len, double *x, double *y, double *width);
 int get_barycenter( int n, double *x, double *y, double *barycenter );
 void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph );
 void get_max_pos( double *a, double *b, int n, double max, double *d );
@@ -379,9 +378,8 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 				datum = getsetlength( cg, cs );
 				break;
 			case 18:		/* half maximal widths */
-				getsetminmax(cg, cs, &xmin, &xmax, &ymin, &ymax);
-                                if( get_half_max_width(getsetlength( cg, cs ), getx(cg,cs), 
-					   gety(cg,cs), ymin, ymax,&datum) ) {
+                                if (get_half_max_width(getsetlength(cg, cs), getx(cg,cs), 
+					   gety(cg,cs), &datum) != RETURN_SUCCESS) {
 					sprintf( tbuf+strlen(tbuf), 
 						"Unable to find half maximal width of set %d\n", cs );
 					extract_err = 1;
@@ -612,32 +610,37 @@ int get_zero_crossing( int setl, double *xv, double *yv, double *crossing )
 }
 
 
-/*
- * assume curve starts at min, rises to max and then drops towards min
- */
-int get_half_max_width( int setl, double *xv, double *yv, double min, double max,
-			double *width  )
+/* Get FWHM of the highest peak */
+int get_half_max_width(int len, double *x, double *y, double *width)
 {
-	int xu=0, xd=0;
-	double amp;
-	
-	amp = (min + max)*0.5;
-	while( xu<setl && yv[xu]<amp )
-		xu++;
-	
-	if( xu==setl )
-		return 1;
-	
-	xd= xu+1;
-	while( xd<setl && yv[xd]>amp  )
-		xd++;
+    int i, imin, imax;
+    double ymin, ymax, yavg;
+    double x_u, x_d;
 
-	if( xd==setl )
-		return 1;
+    minmax(y, len, &ymin, &ymax, &imin, &imax);
+    yavg = (ymin + ymax)/2.0;
 	
-	*width =  linear_interp( yv[xd-1], xv[xd-1], yv[xd], xv[xd], amp ) -
-			  linear_interp( yv[xu-1], xv[xu-1], yv[xu], xv[xu], amp );
-	return 0;
+    i = imax;
+    while (i >= 0 && y[i] > yavg) {
+        i--;
+    }
+    if (i < 0) {
+        return RETURN_FAILURE;
+    }
+    x_d = linear_interp(y[i], x[i], y[i + 1], x[i + 1], yavg);
+
+    i = imax;
+    while (i < len && y[i] > yavg) {
+        i++;
+    }
+    if (i == len) {
+        return RETURN_FAILURE;
+    }
+    x_u = linear_interp(y[i - 1], x[i - 1], y[i], x[i], yavg);
+
+    *width = fabs(x_u - x_d);
+    
+    return RETURN_SUCCESS;
 }
 
 /* linear interpolate between two points, return a y value given an x */
