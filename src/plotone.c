@@ -232,6 +232,8 @@ void draw_pie_chart(Canvas *canvas, int gno)
     int i, setno, nsets, ndsets = 0;
     set *p;
     view v;
+    world w;
+    int sgn;
     VPoint vpc, vp1, vp2, vps[3], vpa;
     VVector offset;
     double r, start_angle, stop_angle;
@@ -244,6 +246,9 @@ void draw_pie_chart(Canvas *canvas, int gno)
     vpc.x = (v.xv1 + v.xv2)/2;
     vpc.y = (v.yv1 + v.yv2)/2;
 
+    get_graph_world(gno, &w);
+    sgn = is_graph_xinvert(gno) ? -1:1;
+    
     nsets = number_of_sets(gno);
     
     for (setno = 0; setno < nsets; setno++) {
@@ -268,7 +273,7 @@ void draw_pie_chart(Canvas *canvas, int gno)
                 /* patterns */
                 pt = getcol(gno, setno, DATA_Y2);
                 
-                /* get max eplode factor */
+                /* get max explode factor */
                 e_max = 0.0;
                 for (i = 0; i < p->data->len; i++) {
                     e_max = MAX2(e_max, e[i]);
@@ -289,12 +294,12 @@ void draw_pie_chart(Canvas *canvas, int gno)
                     norm += x[i];
                 }
                 
-                stop_angle = 0.0;
+                stop_angle = w.xg1;
                 for (i = 0; i < p->data->len; i++) {
                     Pen pen;
                     
                     start_angle = stop_angle;
-                    stop_angle = start_angle + 2*M_PI*x[i]/norm;
+                    stop_angle = start_angle + sgn*2*M_PI*x[i]/norm;
                     offset.x = e[i]*r*cos((start_angle + stop_angle)/2.0);
                     offset.y = e[i]*r*sin((start_angle + stop_angle)/2.0);
                     vps[0].x = vpc.x + r*cos(start_angle) + offset.x;

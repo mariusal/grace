@@ -1343,6 +1343,18 @@ void project_postprocess(Project *pr)
                     t->label_place = TYPE_SPEC;
                 }
             }
+            if (pr->version_id < 50105) {
+                /* Starting with 5.1.5, X axis min & inverting is honored
+                   in pie charts */
+                if (get_graph_type(gno) == GRAPH_PIE) {
+                    world w;
+                    get_graph_world(gno, &w);
+                    w.xg1 = 0.0;
+                    w.xg2 = 2*M_PI;
+                    set_graph_world(gno, w);
+                    set_graph_xinvert(gno, FALSE);
+                }
+            }
         }
         
         if (pr->version_id >= 40200 && pr->version_id <= 50005) {
