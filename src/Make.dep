@@ -130,7 +130,7 @@ setappwin$(O) : setappwin.c globals.h defines.h graphs.h draw.h utils.h \
 tickwin$(O) : tickwin.c Tab.h globals.h defines.h graphs.h draw.h \
  protos.h missing.h noxprotos.h xprotos.h utils.h graphutils.h \
  plotone.h motifinc.h
-worldwin$(O) : worldwin.c globals.h defines.h graphs.h draw.h \
+worldwin$(O) : worldwin.c mbitmaps.h globals.h defines.h graphs.h draw.h \
  graphutils.h plotone.h device.h t1fonts.h utils.h motifinc.h protos.h \
  missing.h noxprotos.h xprotos.h
 fontwin$(O) : fontwin.c t1fonts.h defines.h utils.h motifinc.h protos.h \
