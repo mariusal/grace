@@ -33,6 +33,11 @@
 #ifndef __MOTIFINC_H_
 #define __MOTIFINC_H_
 
+/* for Widget */
+#include <X11/Intrinsic.h>
+/* for XmString; TODO: remove! */
+#include <Xm/Xm.h>
+
 /* 
  * Accept/Apply/Close for aac_cb callbacks
  */
