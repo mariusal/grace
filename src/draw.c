@@ -1105,6 +1105,49 @@ fRGB *get_frgb(unsigned int cindex)
     }
 }
 
+fRGB *get_fsrgb(unsigned int cindex)
+{
+    static fRGB fsrgb;
+    
+    if (cindex < maxcolors) {
+        fsrgb = *get_frgb(cindex);
+        if (fsrgb.red <= 0.0031308) {
+            fsrgb.red *= 12.92;
+        } else {
+            fsrgb.red = 1.055*pow(fsrgb.red,0.4)-0.055;;
+        }
+        if (fsrgb.green <= 0.0031308) {
+            fsrgb.green *= 12.92;
+        } else {
+            fsrgb.green = 1.055*pow(fsrgb.green,0.4)-0.055;;
+        }
+        if (fsrgb.blue <= 0.0031308) {
+            fsrgb.blue *= 12.92;
+        } else {
+            fsrgb.blue = 1.055*pow(fsrgb.blue,0.4)-0.055;;
+        }
+        return &fsrgb;
+    } else {
+        return NULL;
+    }
+}
+
+RGB *get_srgb(unsigned int cindex)
+{
+    static fRGB fsrgb;
+    static RGB srgb;
+    
+    if (cindex < maxcolors) {
+        fsrgb = *get_fsrgb(cindex);
+        srgb.red   = round(fsrgb.red   * (MAXCOLORS - 1));
+        srgb.green = round(fsrgb.green * (MAXCOLORS - 1));
+        srgb.blue  = round(fsrgb.blue  * (MAXCOLORS - 1));
+        return &srgb;
+    } else {
+        return NULL;
+    }
+}
+
 CMap_entry *get_cmap_entry(unsigned int cindex)
 {
     if (cindex < maxcolors) {
