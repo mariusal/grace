@@ -1061,7 +1061,6 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
         NULL);
     XtManageChild(form);
 
-    CreateSeparator(retval->rc);
     XtManageChild(retval->rc);
         
     return retval;
