@@ -49,9 +49,7 @@
 #if defined(HAVE_XPM_H)
 #  include <xpm.h>
 #else
-#  if defined (HAVE_X11_XPM_H)
-#    include <X11/xpm.h>
-#  endif
+#  include <X11/xpm.h>
 #endif
 
 #include "globals.h"
@@ -1060,15 +1058,8 @@ void startup_gui(Grace *grace)
 /*
  * set icon
  */
-#if defined(HAVE_XPM)
     XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
         grace_icon_xpm, &icon, &shape, NULL);
-#else
-    icon = XCreateBitmapFromData(xstuff->disp, xstuff->root,
-        (char *) grace_icon_bits, grace_icon_width, grace_icon_height);
-    shape = XCreateBitmapFromData(xstuff->disp, xstuff->root,
-        (char *) grace_mask_bits, grace_icon_width, grace_icon_height);
-#endif
     XtVaSetValues(app_shell, XtNiconPixmap, icon, XtNiconMask, shape, NULL);
 
     XtRealizeWidget(app_shell);
