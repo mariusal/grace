@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 
-<!-- LinuxDoc file was created by LyX 1.0 (C) 1995-1999 by <vigmonde> Tue May 23 19:09:52 2000
+<!-- LinuxDoc file was created by LyX 1.0 (C) 1995-1999 by <vigmonde> Thu May 25 19:01:06 2000
  -->
  <article>
  <title>
@@ -11,17 +11,17 @@ Edward Vigmond
 <tt>evigmon@mailhost.tcs.tulane.edu</tt>
  </author>
  <date>
-for Grace-5.1.0
+for Grace-5.1.1
  </date>
  <toc>
  <sect>
 Introduction
  <p>
-These tutorials assumes that you are a new user to grace but are somewhat
+These tutorials assumes that you are a new user to Grace but are somewhat
  familiar with a windowing system. They are designed to show you some of the
- basic operation of grace as well as a few of its less intuitive features. Please
+ basic operation of Grace as well as a few of its less intuitive features. Please
  feel free to go beyond the bounds of the actions described herein and explore
- the possibilities of using grace. After all, you will be the one who benefits.<tt>
+ the possibilities of using Grace. After all, you will be the one who benefits.<tt>
  </tt>
  </p>
  <sect1>
@@ -29,8 +29,8 @@ Purpose
  <p>
 The purpose of these tutorials are to give brief examples to show you the
  basics of how to do something. Essentials and some of the more esoteric features
- of grace will be demonstrated to give the user an idea of the capabilities
- of this program. It is not possible to show everything that grace is capable
+ of Grace will be demonstrated to give the user an idea of the capabilities
+ of this program. It is not possible to show everything that Grace is capable
  of doing. That knowledge only comes with use and experimentation. I recommend
  that you do the tutorial and then by playing around with things, you will begin
  to understand them. Finally, when you get stuck, read the user guide to help
@@ -97,9 +97,9 @@ Even though I do my best to keep this up to date with the latest release,
  <sect>
 Making a Simple Graph
  <p>
-The object of this tutorial is to do the most basic function of grace:
+The object of this tutorial is to do the most basic function of Grace:
  read in some data into a graph and then label the graph. Along the way, a few
- of the basic grace commands and widgets will be introduced.
+ of the basic Grace commands and widgets will be introduced.
  </p>
  <sect1>
 Reading the data from a file
@@ -113,7 +113,7 @@ Now we would like to add some more sets to the graph, but this time the
  data file will be in a slightly different format. Looking at the file "2.1.dat"
  (with the program of your choice), you can see that its several columns of
  numbers. One way to interpret this file is the first column gives the x-values
- and the rest of the columns are y-values. From grace, again open the "Read Sets"
+ and the rest of the columns are y-values. From Grace, again open the "Read Sets"
  widget. This time, check the "NXY" button. Now select the file "2.1.dat". At this
  point you will have several differently coloured curves.
  </p>
@@ -236,7 +236,7 @@ Specifying the placement of the graph by entering the coordinates can be
 A challenge
  <p>
 I got bored so I took the data files and produced my own, albeit ugly,
- graph. See if you can copy <htmlurl url="mine" name="mygraph.png"> 
+ graph. See if you can copy <htmlurl url="mygraph.png" name="mygraph.png"> 
  </p>
  <sect>
 Block Data
@@ -282,12 +282,12 @@ Try creating a new set of type XYdY. This is an XY curve with error bars.
  <sect>
 Creating sets within Grace
  <p>
-Besides reading in data files, grace has an extensive scripting language
+Besides reading in data files, Grace has an extensive scripting language
  with a large number of math functions built in, These function include the
  basic add, multiply, square root, etc, and also the cephes library of higher
  order math functions like Bessel functions and the gamma function. Hence, functions
- in grace are basically unlimited. See the user guide for more details. In addition,
- users can dynamically add libraries to grace with any desired function. As
+ in Grace are basically unlimited. See the user guide for more details. In addition,
+ users can dynamically add libraries to Grace with any desired function. As
  well, points may be added manually to a set by the use of editors. To begin,
  choose <em>Main:Edit/Data sets. </em>To create a set, press mouse button 3 (the rightmost
  one for right handed people) anywhere within the data set list (which may be
@@ -372,8 +372,8 @@ Grace supports a large number of command line options which allow the user
  <sect1>
 Simple nonGUI printing
  <p>
-Invoking grace with the command "grbatch"from the command line will cause
- grace to start, produce a plot, send it to the printer (unless a file is specified)
+Invoking Grace with the command "grbatch"from the command line will cause
+ Grace to start, produce a plot, send it to the printer (unless a file is specified)
  and then exit. In its simplest form, to produce a plot of the file a.agr, type
  </p>
  <p>
@@ -400,7 +400,7 @@ Often, one wishes to plot several graphs with each graph having different
  <p>
  <enum>
   <item>
-The first step in plotting multiple graphs is usually telling grace how
+The first step in plotting multiple graphs is usually telling Grace how
  many graphs we have and how to arrange them. The options -rows, -columns, and
  arrange will do this. For example, if we want 4 graphs arranged in a simple
  2x2 table, use "-arrange 2 2".
@@ -474,7 +474,7 @@ xmgrace foo.dat bar.dat -pexec "s0.y = s0.y * 1000"
 Batch example
  <p>
 To do the same as the previous example but also label the axes and recolour
- the curves, make a file called "bfile" with the grace commands
+ the curves, make a file called "bfile" with the Grace commands
  </p>
  <p>
  <code>
@@ -761,8 +761,8 @@ A named pipe is a special case of the pipe previously described. In the
  previous case, after the program has finished execution and the output had
  been read, the pipe was destroyed. A named pipe is a static structure with
  the property that multiple processes can write to and/or read from it. The
- purpose of using a named pipe with grace is to start up a grace window and
- then control grace by sending commands and data through a named pipe. This
+ purpose of using a named pipe with Grace is to start up a Grace window and
+ then control Grace by sending commands and data through a named pipe. This
  is very powerful and lets you do practically anything you can do directly from
  the GUI. To use this feature, try the following:
  </p>
@@ -773,21 +773,21 @@ Start a named pipe (you will have to find the command specific to your
  operating system. For example, it could be <em>mkfifo</em> or <em>mknod</em>): <tt>mkfifo pvc</tt>. If
  you do a directory listing, you should see the file pvc.
   <item>
-Start up grace in the background using the named pipe option: <tt>xmgrace</tt><tt><em> -</em>npipe</tt><em>
+Start up Grace in the background using the named pipe option: <tt>xmgrace</tt><tt><em> -</em>npipe</tt><em>
  </em><em><tt></tt></em><tt>p</tt><tt><em>v</em>c</tt>&amp;. Grace is now monitoring the pipe for any data which might be sent
  to it. It will interpret things as though they were entered using the command
  interpreter. 
   <item>
 For a simple test, we will create a simple graph over the pipe. From your
  command line, type: <tt>echo "read &bsol;"8.2.dat&bsol;"" &gt; pvc</tt><bf>. </bf>(The back slashes
- are needed to escape the quotation marks so that grace really received the
- command :read "8.2.dat".) This just told grace to read the file data. Now we
+ are needed to escape the quotation marks so that Grace really received the
+ command :read "8.2.dat".) This just told Grace to read the file data. Now we
  would like to autoscale. We could simply click on the button but the point
  is to use a named pipe. This time we type <tt>echo</tt><em> </em><em><tt></tt></em><tt>autoscale &gt; pvc</tt><em> </em>followed
  by<em> </em><em><tt></tt></em><tt>echo redraw &gt; pvc</tt><em>.</em> Your graph should now have autoscaled and redrawn.
  Exit Grace with <tt>echo</tt><tt><em> </em>exit</tt><tt><em> &gt; </em>pvc</tt>. You should also clean up by removing pvc.
   <item>
-The true power in named pipes lies in driving grace using another program.
+The true power in named pipes lies in driving Grace using another program.
  The controlling program can open a named pipe for writing, which is treated
  as an ordinary file. It can be opened with the <em>fopen()</em> function or whatever
  other I/O function you prefer. Commands and data are then written to the file
@@ -944,23 +944,12 @@ Sometimes a data file may contain multiple columns of data and we would
  the graph will be updated.
  </p>
  <sect1>
-Binding Updating to a key
+Updating by hot keys
  <p>
 Instead of having to keep the Hot links window open all the time, the update
- action may be bound to a key. 
- </p>
- <p>
-To do this, add a line to your .Xdefaults (or .Xresources) file that looks
- like:
- </p>
- <p>
-Grace*canvas.Translations: &num;override:&bsol;
- </p>
- <p>
-Alt &lt;Key&gt; U: refresh_hotlink()
- </p>
- <p>
-Now, you will just have to hit Alt-U to update the links.
+ action is bound to alt-u. If you find that alt-u has no effect, try double
+ clicking inside the graph you want to update and close the window that pops
+ up. This will "alert" the canvas to process future hot key strokes.
  </p>
 
 
