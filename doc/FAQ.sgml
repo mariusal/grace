@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (v0.99 - for Grace-5.1.0)
+  <title>Grace FAQ (for Grace-5.1.1)
   <author>by the Grace Team
-  <date>02.03.2000
+  <date>19.04.2000
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -572,7 +572,7 @@
 
         A port to OS/2 made by <url name="Alexander Mai"
           url="mailto:st002279@hrzpub.tu-darmstadt.de"> can be found
-        at <url url="http://www.tu.darmstadt.de/~st002279/os2">.
+        at <url url="http://www.tu-darmstadt.de/~st002279/os2/">.
         It requires XFree86.
 
 <!-- **************************************** -->

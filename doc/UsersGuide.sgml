@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.7 - for Grace-5.1.1)
 <author>by the Grace Team
-<date>07.04.2000
+<date>27.04.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -1129,8 +1129,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          <p>
          The histograms popup allows you to compute either standard
          or cumulative histograms from the Y coordinates of
-         your data. You can select only a range using the start and
-         end fields and you can specify the bin width.
+         your data. Optionally, the histograms can be normalized to 1 (hence
+         producing a PDF (Probability Distribution Function).
+
+         The bins can be either a linear mesh defined by its min, max, and
+         length values, or a mesh formed by abscissas of another set (in which
+         case abscissas of the set must form a strictly monotonic array).
 
          <sect3> Fourier transforms <label id="fourier-transforms">
          <p>
@@ -1188,29 +1192,28 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          the end value, selecting "sum only" will only compute the end
          value.
 
-         <sect3> Interpolation <label id="interpolation">
+         <sect3> Interpolation/Splines <label id="interpolation">
          <p>
-         The interpolation popup is used to force the abscissas of one
-         set to correspond exactly to the abscissas of another
-         set. This is mainly used before performing some complex
-         operations between the two sets with the <ref name="evaluate
-         expression" id="evaluate-expression"> popup. Several
-         interpolation methods can be used: linear, spline or Akima
-         splines. Note that if the interpolated set is not wider than
-         the reference set, some extremal points will be missing. You
-         can check this with the number of points of each set (it
-         appears in the set selectors of the popup). In this case you
-         can perform a second run interpolating the reference set at
-         the abscissas of the newly created set, this will remove the
-         extra points.
-
-         <sect3> Splines <label id="splines">
-         <p>
-         Using the splines popup you can fit a part of a set with
-         cubic or Akima splines. You select which part you want to
-         operate on with the start and stop fields, they are both
-         expressed in abscissa units. The number of points refer to
-         the spline you want to create.
+         This popup is used to interpolate a set on an array of alternative X
+         coordinates. This is mainly used before performing some complex
+         operations between two sets with the <ref name="evaluate
+         expression" id="evaluate-expression"> popup.
+         
+         The sampling array can be either a linear mesh defined by its min,
+         max, and length values, or a mesh formed by abscissas of another set. 
+         
+         Several interpolation methods can be used: linear, spline or Akima
+         spline.
+         
+         Note that if the sampling mesh is not entirely within the source set
+         X bounds, evaluation at the points beyond the bounds will be performed
+         using interpolation parameters from the first (or the last) segment
+         of the source set, which can be considered a primitive extrapolation.
+         This behaviour can be disabled by checking the "Strict" option on the
+         popup.
+         
+         The abscissas of the set being interpolated must form a strictly
+         monotonic array.
 
          <sect3> Regression <label id="regression">
          <p>
@@ -1963,10 +1966,13 @@ integral     | cumulative sum @
 	log10(x)        | log base 10 @
 	log2(x)         | base 2 logarithm of x @
 	maxof(x,y)      | returns greater of x and y @
+	mesh(n)         | mesh array (0 ... n - 1) @
+	mesh(x1, x2, n) | mesh array of n equally spaced points between x1 and x2 inclusive @
 	minof(x,y)      | returns lesser of x and y @
 	mod(x,y)        | mod function (also x % y) @
 	pi              | the PI constant @
 	rand            | pseudo random number distributed uniformly on (0.0,1.0) @
+	rand(n)         | array of n random numbers @
 	rint(x)         | round to closest integer @
 	sin(x)          | sine function @
 	sinh(x)         | hyperbolic sine @
@@ -2068,9 +2074,31 @@ integral     | cumulative sum @
   <sect1>Procedures
     <p>
 
+      <table loc="htbp">
+      <tabular ca="p{3cm}p{5cm}p{3.5cm}p{3cm}">
+        <hline>
+        Statement | Description | Types | Example @
+        <hline>
+        INTERPOLATE (set, mesh, method, strict) |
+          interpolate <it>set</it> on a sampling <it>mesh</it> using <it>method</it>. <it>strict</it> flag controls whether result should be bound within the source set |
+          array <it>mesh</it>, <it>method</it>: one of LINEAR, SPLINE, and ASPLINE, onoff <it>strict</it> |
+          INTERPOLATE (S0, S1.X, ASPLINE, OFF) @
+        HISTOGRAM (set, bins, cumulative, normalize) |
+          calculate histogram of <it>set</it> on defined <it>bins</it>. <it>cumulative</it> and <it>normalize</it> flags control whether to calculate cumulative and normalized (aka PDF) histograms, respectively |
+          array <it>bins</it>, onoff <it>cumulative</it>, onoff <it>normalize</it> |
+          HISTOGRAM (S0, MESH(0, 1, 11), OFF, ON) @
+        <hline>
+      </tabular>
+      <caption>
+        <label id="transformations">
+        Transformations
+      </caption>
+      </table>
+    </p>
 
-      Not written yet...
-
+    <p>
+      Not finished yet...
+    </p>
 
   <sect1>Device parameters
     <p>
@@ -2164,7 +2192,7 @@ integral     | cumulative sum @
     </p>
 
     <p>
-      Not written yet...
+      Not finished yet...
     </p>
 
   <sect1>Graph properties
