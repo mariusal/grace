@@ -111,7 +111,7 @@ void putparms(int gno, FILE *pp, int embed)
     CMap_entry *cmap;
     GLocator locator;
     char *p1, *p2, *tmpbuf;
-    Page_geometry pg;
+    int wpp, hpp;
 
     if (embed) {
         strcpy(embedstr, "@");
@@ -124,11 +124,9 @@ void putparms(int gno, FILE *pp, int embed)
     /* Print some global variables */
     fprintf(pp, "%sversion %ld\n", embedstr, bi_version_id());
 
-    pg = get_page_geometry();
-    fprintf(pp, "%spage size %ld %ld\n", embedstr, pg.width, pg.height);
+    get_device_page_dimensions(tdevice, &wpp, &hpp);
+    fprintf(pp, "%spage size %d, %d\n", embedstr, wpp, hpp);
 
-    fprintf(pp, "%srefdate %.12g\n", embedstr, get_ref_date());
-    
     tmpbuf = copy_string(NULL, get_project_description());
     if (tmpbuf != NULL) {
         p1 = tmpbuf;
@@ -169,6 +167,8 @@ void putparms(int gno, FILE *pp, int embed)
                                                     cmap->cname);
         }
     }
+    
+    fprintf(pp, "%srefdate %.12g\n", embedstr, get_ref_date());
     
     fprintf(pp, "%sdefault linewidth %.1f\n", embedstr, grdefaults.linew);
     fprintf(pp, "%sdefault linestyle %d\n", embedstr, grdefaults.lines);

@@ -1850,30 +1850,23 @@ parmset:
                 map_fonts(FONT_MAP_DEFAULT);
             }
         }
-        | PAGE SIZE NUMBER NUMBER {
-            Page_geometry pg;
-            pg = get_page_geometry();
-            pg.width =  (long) $3;
-            pg.height = (long) $4;
-            set_page_geometry(pg);
+        | PAGE SIZE nexpr ',' nexpr {
+            set_page_dimensions($3, $5);
         }
-        | REFDATE jdate {
-            set_ref_date($2);
-	}
-	| DEVICE CHRSTR PAGE SIZE NUMBER NUMBER {
+	| DEVICE CHRSTR PAGE SIZE nexpr ',' nexpr {
             int device_id;
             Device_entry dev;
             
             device_id = get_device_by_name($2);
+            free($2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
                 dev = get_device_props(device_id);
-                dev.pg.width =  (long) $5;
-                dev.pg.height = (long) $6;
+                dev.pg.width =  (long) ($5*dev.pg.dpi/72);
+                dev.pg.height = (long) ($7*dev.pg.dpi/72);
                 set_device_props(device_id, dev);
             }
-            free($2);
         }
         | DEVICE CHRSTR DPI expr {
             int device_id;
@@ -1936,6 +1929,9 @@ parmset:
             set_printer_by_name($3);
             free($3);
         }
+        | REFDATE jdate {
+            set_ref_date($2);
+	}
 	| BACKGROUND color_select {
 	    setbgcolor($2);
 	}
@@ -3852,16 +3848,18 @@ opchoice: NORMAL { $$ = PLACEMENT_NORMAL; }
 parmset_obs:
         PAGE LAYOUT pageorient
         {
-            Page_geometry pg;
+            int wpp, hpp;
             if ($3 == PAGE_ORIENT_LANDSCAPE) {
-                pg.width =  792;
-                pg.height = 612;
+                wpp = 792;
+                hpp = 612;
             } else {
-                pg.width =  612;
-                pg.height = 792;
+                wpp = 612;
+                hpp = 792;
             }
-            pg.dpi = 72.0;
-            set_page_geometry(pg);
+            set_page_dimensions(wpp, hpp);
+        }
+        | PAGE SIZE NUMBER NUMBER {
+            set_page_dimensions((int) $3, (int) $4);
         }
 	| PAGE nexpr {
 	    scroll_proc($2);

@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 
     char fd_name[GR_MAXPATHLEN];
 
-    Page_geometry pg;
+    int wpp, hpp;
     
     /*
      * set version
@@ -381,11 +381,10 @@ int main(int argc, char *argv[])
 			    fprintf(stderr, "Missing argument for fixed canvas height\n");
 			    usage(stderr, argv[0]);
 		        } else {
-		            pg = get_page_geometry();
-                            pg.width = atoi(argv[i]);
+                            wpp = atoi(argv[i]);
 		    	    i++;
-		    	    pg.height = atoi(argv[i]);
-                            set_page_geometry(pg);
+		    	    hpp = atoi(argv[i]);
+                            set_page_dimensions(wpp, hpp);
 #ifndef NONE_GUI
 		    	    set_pagelayout(PAGE_FIXED);
 #endif

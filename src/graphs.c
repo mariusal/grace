@@ -1181,17 +1181,13 @@ void postprocess_project(int version)
 {
     int gno, setno, naxis;
     double ext_x, ext_y;
-    Page_geometry pg;
     
     if (version >= bi_version_id()) {
         return;
     }
 
     if (version < 40005) {
-        pg.width  = 792;
-        pg.height = 612;
-        pg.dpi = 72.0;
-        set_page_geometry(pg);
+        set_page_dimensions(792, 612);
 #ifndef NONE_GUI
         set_pagelayout(PAGE_FIXED);
 #endif
