@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.12)</title>
+<title>Grace User's Guide (for Grace-5.1.13)</title>
 <author>by the Grace Team</author>
-<date>22.02.2003</date>
+<date>26.08.2003</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -1313,17 +1313,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
          <sect3> Fourier transforms <label id="fourier-transforms">
          <p>
-         This popup is devoted to direct and inverse Fourier
-         transforms. The default is to perform a direct transform on
-         unfiltered data and to produce a set with the index as
-         abscissa and magnitude as ordinate. You can filter the input
-         data window through triangular, Hanning, Welch, Hamming,
+         This popup is devoted to direct and inverse Fourier transforms
+         (actually, what is computed is a power spectrum). The default is to
+         perform a direct transform on unfiltered data and to produce a set
+         with the index as abscissa and magnitude as ordinate. You can filter
+         the input data window through triangular, Hanning, Welch, Hamming,
          Blackman and Parzen filters. You can load magnitude, phase or
-         coefficients and use either index, frequency or period as
-         abscissas. You can choose between direct and inverse Fourier
-         transforms. If you specify real input data, X is assumed to
-         be equally spaced and ignored; if you specify complex input
-         data X is taken as the real part and Y as the imaginary part.
+         coefficients and use either index, frequency or period as abscissas.
+         You can choose between direct and inverse Fourier transforms. If you
+         specify real input data, X is assumed to be equally spaced and
+         ignored; if you specify complex input data X is taken as the real part
+         and Y as the imaginary part.
 
          If Grace was configured with the FFTW library (see <ref
          name="configuration" id="configuration">), then the DFT and
@@ -1697,6 +1697,14 @@ integral     | cumulative sum @
       the font tool, the character or command will be inserted at this
       position, not at the end of the string!
 
+      Most of the controls in the dialog should be self-explanatory. One
+      that is not (and frequently missed) is the "Axis transform"
+      input field in the "Tick labels" tab. Entering there e.g. "-$t"
+      will make the tick labels show negates of the real coordinates their
+      ticks are placed at. You can use any expression understood by the
+      interpreter (see <ref id="command-interpreter"
+      name="command interpreter">).
+      
       Once you have set the options as you want, you can apply
       them. One useful feature is that you can set several axes at
       once with the bottom pulldown menu (current axis, all axes
@@ -2060,7 +2068,9 @@ integral     | cumulative sum @
 
       In numerical expressions, the infix format is used. Arguments of
       both operators and functions can be either scalars or vector arrays.
-      
+      Arithmetic, logical, and comparison operators are 
+      given in tables below.
+            
       <p>
 
       <table loc="htbp">
@@ -2121,6 +2131,15 @@ integral     | cumulative sum @
       </caption>
       </table>
       
+      <p>
+        
+        Another conditional operator is the "?:" (or ternary) operator, which
+        operates as in C and many other languages.
+
+        (expr1) ? (expr2) : (expr3);
+
+        This expression evaluates to expr2 if expr1 evaluates to TRUE, and
+        expr3 if expr1 evaluates to FALSE.
       <p>
 
       <table loc="htbp">
@@ -2266,6 +2285,8 @@ integral     | cumulative sum @
 	SD(x)       | standard deviation of array x  @
 	SUM(x)      | sum of all elements of array x @
 	INT(x,y)    | integral of y dx               @
+	IMIN(x)     | index of min value of array x  @
+	IMAX(x)     | index of max value of array x  @
         <hline>
       </tabular>
       <caption>

@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.12)
+  <title>Grace FAQ (for Grace-5.1.13)
   <author>by the Grace Team
-  <date>19.02.2003
+  <date>26.08.2003
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -509,7 +509,7 @@
       <p>
 
         Throughout the Grace docs, saying "M*tif" we actually refer to
-        the M*tif <it>API</it>, defining a set of functions for building
+        the Motif <it>API</it>, defining a set of functions for building
         graphical user interfaces (GUI) via numerous widgets
         (buttons, labels, etc). Grace makes a heavy use of the M*tif API. 
         
@@ -563,6 +563,14 @@
         at <url url="http://www.tu-darmstadt.de/~st002279/os2/">.
         It requires the XFree86 libraries and an X Server (e.g. XFree86,
 	Hob X11, Exceed, etc.).
+
+    <sect1>Compilation with gcc fails on Solaris complaining about unresolved symbols.
+      <p>
+        
+        If you get such a message at the linkage stage, telling about
+        .LL794 (or similar) unresolved symbols, try compiling with native
+        cc compiler instead (./configure --with-cc=cc).
+        
 
 <!-- **************************************** -->
 
@@ -677,15 +685,6 @@ T1_InitLib(): Fatal error scanning Font Database File
         not set the <tt>GRACE_HOME</tt> environment variable, see a few lines 
         above.
 
-    <sect1>Grace can not find help files.
-      <p>
-
-        Set the <tt>GRACE_HOME</tt> environment variable to your Grace
-        directory. The help files are in
-        <tt>$GRACE_HOME/doc</tt>. See question <ref
-        id="environment" name="Environment Variables"> on how to
-        set environment variables.
-
     <sect1>Pressing Ctrl and clicking with the left mouse button on the
            canvas or dialog panels make Grace crash.
       <p>
@@ -720,9 +719,27 @@ XMgrace*XmMessageBox.translations: #override\n\
     <sect1>The size of the canvas is huge.
       <p>
 
-        It should be exactly of the size of the hardcopy (A4/US letter). If
+        It should be exactly the size of the hardcopy (A4/US letter). If
         not, check your X server settings (run `xdpyinfo' and watch the
         "dimensions:" line; check the numbers with a ruler).
+
+
+    <sect1>Extended ASCII characters do not appear and/or appear as incorrect
+           control characters in text input fields.
+      <p>
+
+        Are you using OpenMotif 2.2 (see Help/About)? It's known to behave
+        wrongly with several locale settings. Try setting the shell variable
+        LANG to a safe value, e.g. "C". The proper solution, though, is to
+        either downgrade to OpenMotif 2.1.30 or use LessTif instead
+        (see <ref id="motif" name="M*tif">).
+
+
+    <sect1>File selection dialogs are unusable.
+      <p>
+
+        It happens with OpenMotif 2.2 and some locale settings. See the
+        previous entry for a remedy.
 
 
 <!-- **************************************** -->
@@ -1087,7 +1104,8 @@ XMgrace*background: ...
        You may edit your Default.agr file in
        <tt>$GRACE_HOME/templates</tt>. Just add lines similar to
        <verb> @map color 2 to (255, 0, 0), "red" </verb> defining a RGB
-       value and an according name for that color triplet.
+       value and an according name for that color triplet. Please notice
+       that altering colors 0 (white) and 1 (black) is strongly discouraged.
 
     <sect1>How can I use pipes with Grace?
       <p>
@@ -1204,6 +1222,14 @@ XMgrace*background: ...
         your script creates several plots, use 'new from "filename"' to
         initialize a new project from the non-default template.
  
+
+    <sect1>How can I save my 'preferences' options?
+      <p>
+        
+        A part of them are saved with the project; most of the rest are
+        available via command-line options and/or X resources. A more
+        homogeneous approach will be implemented in a future version. 
+
 
 <!-- **************************************** -->
 
@@ -1323,6 +1349,14 @@ XMgrace*background: ...
         the mailing list (question <ref id="mailinglist"
         name="Mailing Lists">) or post it as a wish to the w3todo web
         page (see question <ref id="w3todo" name="Known Bugs">).
+
+    <sect1>How should Grace be acknowledged when it
+           is used to prepare a publication?
+      <p>
+
+        You are not required to, but you wish, refer to the home page link
+        (see <url url="http://plasma-gate.weizmann.ac.il/Grace/" name="Grace
+        home page">).
 
 </article>
 
