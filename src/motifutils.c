@@ -808,12 +808,43 @@ Widget CreateButton(Widget parent, char *label)
     button = XtVaCreateManagedWidget("button",
         xmPushButtonWidgetClass, parent, 
     	XmNlabelString, xmstr,
-        XmNmarginLeft, 5,
-        XmNmarginRight, 5,
-        XmNmarginTop, 3,
-        XmNmarginBottom, 2,
+/*
+ *         XmNmarginLeft, 5,
+ *         XmNmarginRight, 5,
+ *         XmNmarginTop, 3,
+ *         XmNmarginBottom, 2,
+ */
     	NULL);
     XmStringFree(xmstr);
+
+    return button;
+}
+
+static Pixel pm_fg, pm_bg;
+
+/*
+ * initialize pixel values for bitmap buttons
+ */
+void init_pm(Pixel fg, Pixel bg)
+{
+    pm_fg = fg;
+    pm_bg = bg;
+}
+
+Widget CreateBitmapButton(Widget parent,
+    int width, int height, const unsigned char *bits)
+{
+    Widget button;
+    Pixmap pm;
+
+    pm = XCreatePixmapFromBitmapData(disp,
+        root, (char *) bits, width, height, pm_fg, pm_bg, depth);
+    
+    button = XtVaCreateManagedWidget("button",
+        xmPushButtonWidgetClass, parent, 
+	XmNlabelType, XmPIXMAP,
+	XmNlabelPixmap, pm,
+    	NULL);
 
     return button;
 }
@@ -1312,59 +1343,59 @@ void graph_menu_cb(ListStructure *listp, GraphMenuCBtype type)
     }
 }
 
-void switch_focus_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void switch_focus_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuFocusCB);
+    graph_menu_cb((ListStructure *) data, GraphMenuFocusCB);
 }
 
-void hide_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void hide_graph_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuHideCB);
+    graph_menu_cb((ListStructure *) data, GraphMenuHideCB);
 }
 
-void show_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void show_graph_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuShowCB);
+    graph_menu_cb((ListStructure *) data, GraphMenuShowCB);
 }
 
-void duplicate_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void duplicate_graph_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuDuplicateCB);
+    graph_menu_cb((ListStructure *) data, GraphMenuDuplicateCB);
 }
 
-void kill_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void kill_graph_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuKillCB);
+    graph_menu_cb((ListStructure *) data, GraphMenuKillCB);
 }
 
-void copy12_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void copy12_graph_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuCopy12CB);
+    graph_menu_cb((ListStructure *) data, GraphMenuCopy12CB);
 }
 
-void copy21_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void copy21_graph_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuCopy21CB);
+    graph_menu_cb((ListStructure *) data, GraphMenuCopy21CB);
 }
 
-void move12_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void move12_graph_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuMove12CB);
+    graph_menu_cb((ListStructure *) data, GraphMenuMove12CB);
 }
 
-void move21_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void move21_graph_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuMove21CB);
+    graph_menu_cb((ListStructure *) data, GraphMenuMove21CB);
 }
 
-void swap_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void swap_graph_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuSwapCB);
+    graph_menu_cb((ListStructure *) data, GraphMenuSwapCB);
 }
 
-void create_new_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void create_new_graph_proc(void *data)
 {
-    graph_menu_cb((ListStructure *) client_data, GraphMenuNewCB);
+    graph_menu_cb((ListStructure *) data, GraphMenuNewCB);
 }
 
 GraphPopupMenu *CreateGraphPopupEntries(ListStructure *listp)
@@ -1379,31 +1410,31 @@ GraphPopupMenu *CreateGraphPopupEntries(ListStructure *listp)
     
     graph_popup_menu->label_item = CreateMenuLabel(popup, "Selection:");
     CreateMenuSeparator(popup);
-    graph_popup_menu->focus_item = CreateMenuButton(popup, "switchFocus", "Focus to", 'F',
-    	switch_focus_proc, (XtPointer) listp, 0);
+    graph_popup_menu->focus_item = CreateMenuButton(popup, "Focus to", 'F',
+    	switch_focus_proc, (void *) listp);
     CreateMenuSeparator(popup);
-    graph_popup_menu->hide_item = CreateMenuButton(popup, "hide", "Hide", 'H',
-    	hide_graph_proc, (XtPointer) listp, 0);
-    graph_popup_menu->show_item = CreateMenuButton(popup, "show", "Show", 'S',
-    	show_graph_proc, (XtPointer) listp, 0);
-    graph_popup_menu->duplicate_item = CreateMenuButton(popup, "duplicate", "Duplicate", 'D',
-    	duplicate_graph_proc, (XtPointer) listp, 0);
-    graph_popup_menu->kill_item = CreateMenuButton(popup, "kill", "Kill", 'K',
-    	kill_graph_proc, (XtPointer) listp, 0);
+    graph_popup_menu->hide_item = CreateMenuButton(popup, "Hide", 'H',
+    	hide_graph_proc, (void *) listp);
+    graph_popup_menu->show_item = CreateMenuButton(popup, "Show", 'S',
+    	show_graph_proc, (void *) listp);
+    graph_popup_menu->duplicate_item = CreateMenuButton(popup,"Duplicate", 'D',
+    	duplicate_graph_proc, (void *) listp);
+    graph_popup_menu->kill_item = CreateMenuButton(popup, "Kill", 'K',
+    	kill_graph_proc, (void *) listp);
     CreateMenuSeparator(popup);
-    graph_popup_menu->copy12_item = CreateMenuButton(popup, "copy12", "Copy 1 to 2", 'C',
-    	copy12_graph_proc, (XtPointer) listp, 0);
-    graph_popup_menu->copy21_item = CreateMenuButton(popup, "copy21", "Copy 2 to 1", 'C',
-    	copy21_graph_proc, (XtPointer) listp, 0);
-    graph_popup_menu->move12_item = CreateMenuButton(popup, "move12", "Move 1 to 2", 'M',
-    	move12_graph_proc, (XtPointer) listp, 0);
-    graph_popup_menu->move21_item = CreateMenuButton(popup, "move21", "Move 2 to 1", 'M',
-    	move21_graph_proc, (XtPointer) listp, 0);
-    graph_popup_menu->swap_item = CreateMenuButton(popup, "swap", "Swap", 'w',
-    	swap_graph_proc, (XtPointer) listp, 0);
+    graph_popup_menu->copy12_item = CreateMenuButton(popup, "Copy 1 to 2", 'C',
+    	copy12_graph_proc, (void *) listp);
+    graph_popup_menu->copy21_item = CreateMenuButton(popup, "Copy 2 to 1", 'C',
+    	copy21_graph_proc, (void *) listp);
+    graph_popup_menu->move12_item = CreateMenuButton(popup, "Move 1 to 2", 'M',
+    	move12_graph_proc, (void *) listp);
+    graph_popup_menu->move21_item = CreateMenuButton(popup, "Move 2 to 1", 'M',
+    	move21_graph_proc, (void *) listp);
+    graph_popup_menu->swap_item = CreateMenuButton(popup, "Swap", 'w',
+    	swap_graph_proc, (void *) listp);
     CreateMenuSeparator(popup);
-    CreateMenuButton(popup, "createNew", "Create new", 'C',
-    	create_new_graph_proc, (XtPointer) listp, 0);
+    CreateMenuButton(popup, "Create new", 'C',
+    	create_new_graph_proc, (void *) listp);
 
     return graph_popup_menu;
 }
@@ -1513,9 +1544,9 @@ void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
     list_selectall(w);
 }
 
-void list_selectall_cb(Widget w, XtPointer client_data, XtPointer call_data)
+void list_selectall_cb(void *data)
 {
-    ListStructure *listp = (ListStructure *) client_data;
+    ListStructure *listp = (ListStructure *) data;
     list_selectall(listp->list);
 }
 
@@ -1529,9 +1560,9 @@ void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
     list_unselectall(w);
 }
 
-void list_unselectall_cb(Widget w, XtPointer client_data, XtPointer call_data)
+void list_unselectall_cb(void *data)
 {
-    ListStructure *listp = (ListStructure *) client_data;
+    ListStructure *listp = (ListStructure *) data;
     list_unselectall(listp->list);
 }
 
@@ -1755,7 +1786,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
         }
         break;
     case SetMenuNewFCB:
-            create_leval_frame(listp->list, (XtPointer) gno, NULL);
+            create_leval_frame((void *) gno);
         break;
     case SetMenuNewSCB:
             if ((setno = nextset(gno)) != -1) {
@@ -1813,112 +1844,123 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
 }
 
 
-void hide_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void hide_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuHideCB);
+    set_menu_cb((ListStructure *) data, SetMenuHideCB);
 }
 
-void show_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void show_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuShowCB);
+    set_menu_cb((ListStructure *) data, SetMenuShowCB);
 }
 
-void bringf_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void bringf_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuBringfCB);
+    set_menu_cb((ListStructure *) data, SetMenuBringfCB);
 }
 
-void sendb_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void sendb_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuSendbCB);
+    set_menu_cb((ListStructure *) data, SetMenuSendbCB);
 }
 
-void duplicate_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void duplicate_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuDuplicateCB);
+    set_menu_cb((ListStructure *) data, SetMenuDuplicateCB);
 }
 
-void kill_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void kill_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuKillCB);
+    set_menu_cb((ListStructure *) data, SetMenuKillCB);
 }
 
-void killd_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void killd_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuKillDCB);
+    set_menu_cb((ListStructure *) data, SetMenuKillDCB);
 }
 
-void copy12_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void copy12_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuCopy12CB);
+    set_menu_cb((ListStructure *) data, SetMenuCopy12CB);
 }
 
-void copy21_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void copy21_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuCopy21CB);
+    set_menu_cb((ListStructure *) data, SetMenuCopy21CB);
 }
 
-void move12_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void move12_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuMove12CB);
+    set_menu_cb((ListStructure *) data, SetMenuMove12CB);
 }
 
-void move21_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void move21_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuMove21CB);
+    set_menu_cb((ListStructure *) data, SetMenuMove21CB);
 }
 
-void swap_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void swap_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuSwapCB);
+    set_menu_cb((ListStructure *) data, SetMenuSwapCB);
 }
 
-void newF_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void newF_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuNewFCB);
+    set_menu_cb((ListStructure *) data, SetMenuNewFCB);
 }
 
-void newS_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void newS_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuNewSCB);
+    set_menu_cb((ListStructure *) data, SetMenuNewSCB);
 }
 
-void newE_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void newE_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuNewECB);
+    set_menu_cb((ListStructure *) data, SetMenuNewECB);
 }
 
-void newB_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void newB_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuNewBCB);
+    set_menu_cb((ListStructure *) data, SetMenuNewBCB);
 }
 
-void editS_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void editS_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuEditSCB);
+    set_menu_cb((ListStructure *) data, SetMenuEditSCB);
 }
 
-void editE_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void editE_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuEditECB);
+    set_menu_cb((ListStructure *) data, SetMenuEditECB);
 }
 
-void pack_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void pack_set_proc(void *data)
 {
-    set_menu_cb((ListStructure *) client_data, SetMenuPackCB);
+    set_menu_cb((ListStructure *) data, SetMenuPackCB);
 }
 
-void update_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void shownd_set_proc(int onoff, void *data)
 {
-    ListStructure *listp = (ListStructure *) client_data;
+    ListStructure *listp = (ListStructure *) data;
     SetChoiceData *sdata = (SetChoiceData *) listp->anydata;
     
-    if (w == sdata->menu->shownd_item) {
-        sdata->show_nodata = GetToggleButtonState(w);
-    }
-    if (w == sdata->menu->showh_item) {
-        sdata->show_hidden = GetToggleButtonState(w);
-    }
+    sdata->show_nodata = onoff;
+    UpdateSetChoice(listp, sdata->gno);
+}
+
+void showh_set_proc(int onoff, void *data)
+{
+    ListStructure *listp = (ListStructure *) data;
+    SetChoiceData *sdata = (SetChoiceData *) listp->anydata;
+    
+    sdata->show_hidden = onoff;
+    UpdateSetChoice(listp, sdata->gno);
+}
+
+void update_set_proc(void *data)
+{
+    ListStructure *listp = (ListStructure *) data;
+    SetChoiceData *sdata = (SetChoiceData *) listp->anydata;
     
     UpdateSetChoice(listp, sdata->gno);
 }
@@ -1936,70 +1978,68 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
 
     CreateMenuSeparator(popup);
 
-    set_popup_menu->hide_item = CreateMenuButton(popup, "hide", "Hide", '\0',
-    	hide_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->show_item = CreateMenuButton(popup, "show", "Show", '\0',
-    	show_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->bringf_item = CreateMenuButton(popup, "bringToFront", "Bring to front", '\0',
-    	bringf_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->sendb_item = CreateMenuButton(popup, "sendToBack", "Send to back", '\0',
-    	sendb_set_proc, (XtPointer) listp, 0);
+    set_popup_menu->hide_item = CreateMenuButton(popup, "Hide", '\0',
+    	hide_set_proc, (void *) listp);
+    set_popup_menu->show_item = CreateMenuButton(popup, "Show", '\0',
+    	show_set_proc, (void *) listp);
+    set_popup_menu->bringf_item = CreateMenuButton(popup, "Bring to front", '\0',
+    	bringf_set_proc, (void *) listp);
+    set_popup_menu->sendb_item = CreateMenuButton(popup, "Send to back", '\0',
+    	sendb_set_proc, (void *) listp);
     CreateMenuSeparator(popup);
-    set_popup_menu->duplicate_item = CreateMenuButton(popup, "duplicate", "Duplicate", '\0',
-    	duplicate_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->kill_item = CreateMenuButton(popup, "kill", "Kill", '\0',
-    	kill_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->killd_item = CreateMenuButton(popup, "killData", "Kill data", '\0',
-    	killd_set_proc, (XtPointer) listp, 0);
+    set_popup_menu->duplicate_item = CreateMenuButton(popup, "Duplicate", '\0',
+    	duplicate_set_proc, (void *) listp);
+    set_popup_menu->kill_item = CreateMenuButton(popup, "Kill", '\0',
+    	kill_set_proc, (void *) listp);
+    set_popup_menu->killd_item = CreateMenuButton(popup, "Kill data", '\0',
+    	killd_set_proc, (void *) listp);
     CreateMenuSeparator(popup);
-    set_popup_menu->copy12_item = CreateMenuButton(popup, "copy12", "Copy 1 to 2", '\0',
-    	copy12_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->copy21_item = CreateMenuButton(popup, "copy21", "Copy 2 to 1", '\0',
-    	copy21_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->move12_item = CreateMenuButton(popup, "move12", "Move 1 to 2", '\0',
-    	move12_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->move21_item = CreateMenuButton(popup, "move21", "Move 2 to 1", '\0',
-    	move21_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->swap_item = CreateMenuButton(popup, "swap", "Swap", '\0',
-    	swap_set_proc, (XtPointer) listp, 0);
+    set_popup_menu->copy12_item = CreateMenuButton(popup, "Copy 1 to 2", '\0',
+    	copy12_set_proc, (void *) listp);
+    set_popup_menu->copy21_item = CreateMenuButton(popup, "Copy 2 to 1", '\0',
+    	copy21_set_proc, (void *) listp);
+    set_popup_menu->move12_item = CreateMenuButton(popup, "Move 1 to 2", '\0',
+    	move12_set_proc, (void *) listp);
+    set_popup_menu->move21_item = CreateMenuButton(popup, "Move 2 to 1", '\0',
+    	move21_set_proc, (void *) listp);
+    set_popup_menu->swap_item = CreateMenuButton(popup, "Swap", '\0',
+    	swap_set_proc, (void *) listp);
     CreateMenuSeparator(popup);
-    set_popup_menu->edit_item = CreateMenu(popup, "edit", "Edit", 'E', NULL, NULL);
-    CreateMenuButton(set_popup_menu->edit_item, "inShpreadsheet", "In spreadsheet", '\0',
-    	editS_set_proc, (XtPointer) listp, 0);
-    CreateMenuButton(set_popup_menu->edit_item, "inEditor", "In text editor", '\0',
-    	editE_set_proc, (XtPointer) listp, 0);
-    submenupane = CreateMenu(popup, "createNew", "Create new", '\0', NULL, NULL);
-    CreateMenuButton(submenupane, "byFormula", "By formula", '\0',
-    	newF_set_proc, (XtPointer) listp, 0);
-    CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", '\0',
-    	newS_set_proc, (XtPointer) listp, 0);
-    CreateMenuButton(submenupane, "inEditor", "In text editor", '\0',
-    	newE_set_proc, (XtPointer) listp, 0);
-    CreateMenuButton(submenupane, "fromBlockData", "From block data", '\0',
-    	newB_set_proc, (XtPointer) listp, 0);
+    set_popup_menu->edit_item = CreateMenu(popup, "Edit", 'E', FALSE);
+    CreateMenuButton(set_popup_menu->edit_item, "In spreadsheet", '\0',
+    	editS_set_proc, (void *) listp);
+    CreateMenuButton(set_popup_menu->edit_item, "In text editor", '\0',
+    	editE_set_proc, (void *) listp);
+    submenupane = CreateMenu(popup, "Create new", '\0', FALSE);
+    CreateMenuButton(submenupane, "By formula", '\0',
+    	newF_set_proc, (void *) listp);
+    CreateMenuButton(submenupane, "In spreadsheet", '\0',
+    	newS_set_proc, (void *) listp);
+    CreateMenuButton(submenupane, "In text editor", '\0',
+    	newE_set_proc, (void *) listp);
+    CreateMenuButton(submenupane, "From block data", '\0',
+    	newB_set_proc, (void *) listp);
 
     CreateMenuSeparator(popup);
 
-    CreateMenuButton(popup, "packAllSets", "Pack all sets", '\0',
-    	pack_set_proc, (XtPointer) listp, 0);
+    CreateMenuButton(popup, "Pack all sets", '\0',
+    	pack_set_proc, (void *) listp);
 
     CreateMenuSeparator(popup);
 
-    submenupane = CreateMenu(popup, "selectorOperations", "Selector operations", 'o', NULL, NULL);
-    set_popup_menu->shownd_item = CreateToggleButton(submenupane, "Show data-less");
-    XtAddCallback(set_popup_menu->shownd_item, XmNvalueChangedCallback,
-        (XtCallbackProc) update_set_proc, (XtPointer) listp);
-    set_popup_menu->showh_item = CreateToggleButton(submenupane, "Show hidden");
-    XtAddCallback(set_popup_menu->showh_item, XmNvalueChangedCallback,
-        (XtCallbackProc) update_set_proc, (XtPointer) listp);
+    submenupane = CreateMenu(popup, "Selector operations", 'o', FALSE);
+    set_popup_menu->shownd_item = CreateMenuToggle(submenupane,
+        "Show data-less", '\0', shownd_set_proc, NULL);
+    set_popup_menu->showh_item = CreateMenuToggle(submenupane,
+        "Show hidden", '\0', showh_set_proc, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "selectAll", "Select all", '\0',
-    	list_selectall_cb, (XtPointer) listp, 0);
-    CreateMenuButton(submenupane, "unSelectAll", "Unselect all", '\0',
-    	list_unselectall_cb, (XtPointer) listp, 0);
+    CreateMenuButton(submenupane, "Select all", '\0',
+    	list_selectall_cb, (void *) listp);
+    CreateMenuButton(submenupane, "Unselect all", '\0',
+    	list_unselectall_cb, (void *) listp);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "update", "Update", '\0',
-    	update_set_proc, (XtPointer) listp, 0);
+    CreateMenuButton(submenupane, "Update", '\0',
+    	update_set_proc, (void *) listp);
 
     return set_popup_menu;
 }
@@ -3162,96 +3202,6 @@ void update_set_lists(int gno)
 }
 
 
-Widget CreateMenuBar(Widget parent, char *name, char *help_anchor)
-{
-    Widget menubar;
-    
-    menubar = XmCreateMenuBar(parent, name, NULL, 0);
-    
-    if (help_anchor) {
-     	XtAddCallback(menubar, XmNhelpCallback, (XtCallbackProc) HelpCB,
-    			(XtPointer) help_anchor);
-    }
-
-    return menubar;
-}
-
-Widget CreateMenu(Widget parent, char *name, char *label, char mnemonic,
-	Widget *cascade, char *help_anchor)
-{
-    Widget menu, cascadeTmp;
-    XmString str;
-    
-    menu = XmCreatePulldownMenu(parent, name, NULL, 0);
-
-    str = XmStringCreateLocalized(label);
-    cascadeTmp = XtVaCreateManagedWidget(name,
-        xmCascadeButtonGadgetClass, parent, 
-    	XmNsubMenuId, menu, 
-    	XmNlabelString, str, 
-    	XmNmnemonic, mnemonic,
-    	NULL);
-    XmStringFree(str);
-
-    if (help_anchor) {
-     	XtAddCallback(menu, XmNhelpCallback, (XtCallbackProc) HelpCB,
-    			(XtPointer) help_anchor);
-    }
-
-    if (cascade != NULL) {
-    	*cascade = cascadeTmp;
-    }
-
-    return menu;
-}
-
-
-Widget CreateMenuButton(Widget parent, char *name, char *label, char mnemonic,
-	XtCallbackProc cb, XtPointer data, char *help_anchor)
-{
-    Widget button;
-    XmString str;
-    
-    str = XmStringCreateLocalized(label);
-    button = XtVaCreateManagedWidget((String) name, xmPushButtonWidgetClass, parent, 
-    	XmNlabelString, str,
-    	XmNmnemonic, mnemonic,
-    	NULL);
-    XmStringFree(str);
-    XtAddCallback(button, XmNactivateCallback, cb, data);
-    if (help_anchor) {
-     	XtAddCallback(button, XmNhelpCallback, (XtCallbackProc) HelpCB,
-    			(XtPointer) help_anchor);
-    }
-
-    return button;
-}
-
-Widget CreateMenuToggle(Widget parent, char *name, char *label, char mnemonic,
-	XtCallbackProc cb, XtPointer data, char *help_anchor)
-{
-    Widget button;
-    XmString str;
-    
-    str = XmStringCreateLocalized(label);
-    button = XtVaCreateManagedWidget((String) name, xmToggleButtonWidgetClass, parent, 
-    	XmNlabelString, str,
-    	XmNmnemonic, mnemonic,
-    	XmNvisibleWhenOff, True,
-    	XmNindicatorOn, True,
-    	NULL);
-    XmStringFree(str);
-    if (cb) {
-        XtAddCallback(button, XmNvalueChangedCallback, cb, data);
-    }
-    if (help_anchor) {
-     	XtAddCallback(button, XmNhelpCallback, (XtCallbackProc) HelpCB,
-    			(XtPointer) help_anchor);
-    }
-
-    return button;
-}
-
 Widget CreateSeparator(Widget parent)
 {
     Widget sep;
@@ -3259,6 +3209,92 @@ Widget CreateSeparator(Widget parent)
     sep = XmCreateSeparator(parent, "sep", NULL, 0);
     XtManageChild(sep);
     return sep;
+}
+
+Widget CreateMenuBar(Widget parent)
+{
+    Widget menubar;
+    
+    menubar = XmCreateMenuBar(parent, "menubar", NULL, 0);
+    return menubar;
+}
+
+Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
+{
+    Widget menupane, cascade;
+    XmString str;
+    char *name;
+    
+    menupane = XmCreatePulldownMenu(parent, "pulldown", NULL, 0);
+
+    str = XmStringCreateLocalized(label);
+    name = label_to_resname(label, "Menu");
+    cascade = XtVaCreateManagedWidget(name,
+        xmCascadeButtonGadgetClass, parent, 
+    	XmNsubMenuId, menupane, 
+    	XmNlabelString, str, 
+    	XmNmnemonic, mnemonic,
+    	NULL);
+    xfree(name);
+    XmStringFree(str);
+
+    if (help) {
+        XtVaSetValues(parent, XmNmenuHelpWidget, cascade, NULL);
+        CreateMenuButton(menupane, "On context", 'x',
+            ContextHelpCB, NULL);
+        CreateSeparator(menupane);
+    }
+
+    return menupane;
+}
+
+
+Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
+	Button_CBProc cb, void *data)
+{
+    Widget button;
+    XmString str;
+    char *name;
+    
+    str = XmStringCreateLocalized(label);
+    name = label_to_resname(label, NULL);
+    button = XtVaCreateManagedWidget(name,
+        xmPushButtonWidgetClass, parent, 
+    	XmNlabelString, str,
+    	XmNmnemonic, mnemonic,
+    	NULL);
+    xfree(name);
+    XmStringFree(str);
+
+    AddButtonCB(button, cb, data);
+
+    return button;
+}
+
+Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
+	TB_CBProc cb, void *data)
+{
+    Widget button;
+    XmString str;
+    char *name;
+    
+    str = XmStringCreateLocalized(label);
+    name = label_to_resname(label, NULL);
+    button = XtVaCreateManagedWidget(name,
+        xmToggleButtonWidgetClass, parent, 
+    	XmNlabelString, str,
+    	XmNmnemonic, mnemonic,
+    	XmNvisibleWhenOff, True,
+    	XmNindicatorOn, True,
+    	NULL);
+    xfree(name);
+    XmStringFree(str);
+
+    if (cb) {
+        AddToggleButtonCB(button, cb, data);
+    }
+
+    return button;
 }
 
 Widget CreateMenuLabel(Widget parent, char *name)
@@ -3409,16 +3445,16 @@ void errwin(char *s)
     XtRaise(error_popup);
 }
 
-Widget CreateAACButtons(Widget parent, Widget form, XtCallbackProc aac_cb)
+Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb)
 {
     Widget w;
     Widget aacbut[3];
     static char *aaclab[3] = {"Apply", "Accept", "Close"};
     
     w = CreateCommandButtons(parent, 3, aacbut, aaclab);
-    XtAddCallback(aacbut[0], XmNactivateCallback, aac_cb, (XtPointer) AAC_APPLY);
-    XtAddCallback(aacbut[1], XmNactivateCallback, aac_cb, (XtPointer) AAC_ACCEPT);
-    XtAddCallback(aacbut[2], XmNactivateCallback, aac_cb, (XtPointer) AAC_CLOSE);
+    AddButtonCB(aacbut[0], aac_cb, (void *) AAC_APPLY);
+    AddButtonCB(aacbut[1], aac_cb, (void *) AAC_ACCEPT);
+    AddButtonCB(aacbut[2], aac_cb, (void *) AAC_CLOSE);
     
     if (form != NULL) {
         XtVaSetValues(form, XmNcancelButton, aacbut[2], NULL);
@@ -3484,7 +3520,7 @@ void update_all(void)
     set_left_footer(NULL);
 }
 
-void update_all_cb(Widget w, XtPointer client_data, XtPointer call_data)
+void update_all_cb(void *data)
 {
     update_all();
 }

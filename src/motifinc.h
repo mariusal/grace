@@ -215,9 +215,11 @@ void SetToggleButtonState(Widget w, int value);
 void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata);
 
 Widget CreateButton(Widget parent, char *label);
+Widget CreateBitmapButton(Widget parent,
+    int width, int height, const unsigned char *bits);
 void AddButtonCB(Widget button, Button_CBProc cbproc, void *data);
 
-Widget CreateAACButtons(Widget parent, Widget form, XtCallbackProc aac_cb);
+Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb);
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items);
@@ -242,8 +244,8 @@ void list_selectall(Widget list);
 void list_unselectall(Widget list);
 void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
-void list_selectall_cb(Widget w, XtPointer client_data, XtPointer call_data);
-void list_unselectall_cb(Widget w, XtPointer client_data, XtPointer call_data);
+void list_selectall_cb(void *data);
+void list_unselectall_cb(void *data);
 
 
 SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
@@ -275,22 +277,22 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
                                         int type, int standalone);
 void UpdateSetChoice(ListStructure *listp, int gno);
 
-void hide_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void show_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void duplicate_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void kill_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void killd_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void copy12_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void copy21_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void move12_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void move21_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void swap_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void newF_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void newS_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void newE_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void newB_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void editS_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void editE_set_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void hide_set_proc(void *data);
+void show_set_proc(void *data);
+void duplicate_set_proc(void *data);
+void kill_set_proc(void *data);
+void killd_set_proc(void *data);
+void copy12_set_proc(void *data);
+void copy21_set_proc(void *data);
+void move12_set_proc(void *data);
+void move21_set_proc(void *data);
+void swap_set_proc(void *data);
+void newF_set_proc(void *data);
+void newS_set_proc(void *data);
+void newE_set_proc(void *data);
+void newB_set_proc(void *data);
+void editS_set_proc(void *data);
+void editE_set_proc(void *data);
 
 SpinStructure *CreateLineWidthChoice(Widget parent, char *s);
 
@@ -323,13 +325,12 @@ Widget *CreatePrecisionChoice(Widget parent, char *s);
 void SetLabel(Widget w, char *s);
 void SetFixedFont(Widget w);
 
-Widget CreateMenuBar(Widget parent, char *name, char *help_anchor);
-Widget CreateMenu(Widget parent, char *name, char *label, char mnemonic,
-	Widget *cascade, char *help_anchor);
-Widget CreateMenuButton(Widget parent, char *name, char *label, char mnemonic,
-	XtCallbackProc cb, XtPointer data, char *help_anchor);
-Widget CreateMenuToggle(Widget parent, char *name, char *label, char mnemonic,
-	XtCallbackProc cb, XtPointer data, char *help_anchor);
+Widget CreateMenuBar(Widget parent);
+Widget CreateMenu(Widget parent, char *label, char mnemonic, int help);
+Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
+	Button_CBProc cb, void *data);
+Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
+	TB_CBProc cb, void *data);
 Widget CreateMenuLabel(Widget parent, char *name);
 
 char *GetStringSimple(XmString xms);
