@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -244,10 +244,10 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     ra = rarray;
     wts = warray;
 
-    sprintf(buf, "Fitting with formula: %s\n", nonl_opts.formula);
-    stufftext(buf, 0);
-    sprintf(buf, "Initial guesses:\n");
-    stufftext(buf, 0);
+    stufftext("Fitting with formula: ", 0);
+    stufftext(nonl_opts.formula, 0);
+    stufftext("\n", 0);
+    stufftext("Initial guesses:\n", 0);
     for (i = 0; i < nonl_opts.parnum; i++) {
         sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
         stufftext(buf, 0);
@@ -326,18 +326,15 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
             break;
         }
         stufftext(s, 0);
-        stufftext("\n", 0);
     }
     
     if ((info > 0 && info < 4) || (info == 5)) {
-        sprintf(buf, "Computed values:\n");
-        stufftext(buf, 0);
+        stufftext("Computed values:\n", 0);
         for (i = 0; i < nonl_opts.parnum; i++) {
             sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
             stufftext(buf, 0);
         }
-        sprintf(buf, "\n");
-        stufftext(buf, 0);
+        stufftext("\n", 0);
         sprintf(buf, "Chi-square: %g\n", chisq);
         stufftext(buf, 0);
         sprintf(buf, "Correlation coefficient: %f\n", cor);
