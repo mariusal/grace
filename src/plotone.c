@@ -161,7 +161,7 @@ void do_hardcopy(void)
     if (get_ptofile() == FALSE) {
         sprintf(tbuf, "%s %s", get_print_cmd(), fname);
         if (truncated_out == FALSE ||
-            !yesno("Printout is truncated. Abort?", NULL, NULL, NULL)) {
+            yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
             system_wrap(tbuf);
         }
 #ifndef PRINT_CMD_UNLINKS
