@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.10)</title>
+<title>Grace User's Guide (for Grace-5.1.11)</title>
 <author>by the Grace Team</author>
-<date>03.01.2003</date>
+<date>08.01.2003</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -325,6 +325,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
              <item> Fixed Graph
              <item> Pie chart
           </itemize>
+          
+          The idea of "XY Chart" is to plot bars (or symbols in general) of
+          several sets side by side, assuming the abscissas of all the sets are
+          the same (or subsets of the longest set).
 
       <sect2>Datasets <label id="datasets">
 	<p>
@@ -2806,7 +2810,7 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
         int GraceOpenVA    | (char *<it>exe</it>, int <it>buf&lowbar;size</it>, ...)
                                                 | launch a Grace executable <it>exe</it> and open a communication channel with it using <it>buf&lowbar;size</it> bytes for data buffering. The remaining NULL-terminated list of options is command line arguments passed to the Grace process @
         int GraceOpen      | (int <it>buf&lowbar;size</it>)
-                                                | equivalent to GraceOpenVA("xmgrace", buf&lowbar;size, "-noask", NULL) @
+                                                | equivalent to GraceOpenVA("xmgrace", buf&lowbar;size, "-nosafe", "-noask", NULL) @
         int GraceIsOpen    | (void)             | test if a Grace subprocess is currently connected @
         int GraceClose     | (void)             | close the communication channel and exit the Grace subprocess @
         int GraceClosePipe | (void)             | close the communication channel and leave the Grace subprocess alone @
@@ -2852,12 +2856,12 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
       </caption>
       </table>
 
-      <p> There is no fortran equivalent for the GracePrintf function,
+      <p> There is no Fortran equivalent for the GracePrintf function,
       you should format all the data and commands yourself before
       sending them with GraceCommandF.
 
-      The Grace subprocess listen for the commands you send and
-      interpret them as if they were given in a batch file. You can
+      The Grace subprocess listens for the commands you send and
+      interprets them as if they were given in a batch file. You can
       send any command you like (redraw, autoscale, ...). If you want
       to send data, you should include them in a command like "g0.s0
       point 3.5, 4.2".
