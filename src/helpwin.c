@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -151,8 +151,8 @@ void create_about_grtool(void *data)
 
 	fr = CreateFrame(about_panel, "Legal stuff");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-	CreateLabel(rc, "Copyright (c) 1991-95 Paul J Turner");
-	CreateLabel(rc, "Copyright (c) 1996-99 Grace Development Team");
+	CreateLabel(rc, "Copyright (c) 1991-1995 Paul J Turner");
+	CreateLabel(rc, "Copyright (c) 1996-2000 Grace Development Team");
 	CreateLabel(rc, "Maintained by Evgeny Stambulchik");
 	CreateLabel(rc, "All rights reserved");
 	CreateLabel(rc,
@@ -167,14 +167,14 @@ void create_about_grtool(void *data)
 	CreateLabel(rc,
             "      Copyright (c) 1991, 1992 Bell Communications Research, Inc. (Bellcore)");
 	CreateLabel(rc,
-            "      Copyright (c) 1995-99 Andrew Lister");
+            "      Copyright (c) 1995-1999 Andrew Lister");
 	CreateLabel(rc, "Raster driver based on the GD-1.3 library,");
 	CreateLabel(rc,
-            "      Portions copyright (c) 1994-98 Cold Spring Harbor Laboratory");
+            "      Portions copyright (c) 1994-1998 Cold Spring Harbor Laboratory");
 	CreateLabel(rc,
-            "      Portions copyright (c) 1996-98 Boutell.Com, Inc");
+            "      Portions copyright (c) 1996-1998 Boutell.Com, Inc");
 #ifdef HAVE_LIBPDF
-	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-99 Thomas Merz");
+	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-2000 Thomas Merz");
 #endif
 	XtManageChild(rc);
 
