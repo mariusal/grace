@@ -72,6 +72,7 @@ void quark_free(Quark *q)
         qf->data_free(q->data);
         
         if (q->refcount == 0) {
+            xfree(q->idstr);
             xfree(q);
         } else {
             errmsg("Tried freeing a referenced quark!");
