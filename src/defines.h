@@ -171,38 +171,42 @@ typedef enum {
 
 
 /* Tick label/display formats */
-#define FORMAT_INVALID         -1
-#define FORMAT_DECIMAL          0
-#define FORMAT_EXPONENTIAL      1
-#define FORMAT_GENERAL          2
-#define FORMAT_POWER            3
-#define FORMAT_SCIENTIFIC       4
-#define FORMAT_ENGINEERING      5
-#define FORMAT_DDMMYY           6
-#define FORMAT_MMDDYY           7
-#define FORMAT_YYMMDD           8
-#define FORMAT_MMYY             9
-#define FORMAT_MMDD            10
-#define FORMAT_MONTHDAY        11
-#define FORMAT_DAYMONTH        12
-#define FORMAT_MONTHS          13
-#define FORMAT_MONTHSY         14
-#define FORMAT_MONTHL          15
-#define FORMAT_DAYOFWEEKS      16
-#define FORMAT_DAYOFWEEKL      17
-#define FORMAT_DAYOFYEAR       18
-#define FORMAT_HMS             19
-#define FORMAT_MMDDHMS         20
-#define FORMAT_MMDDYYHMS       21
-#define FORMAT_YYMMDDHMS       22
-#define FORMAT_DEGREESLON      23
-#define FORMAT_DEGREESMMLON    24
-#define FORMAT_DEGREESMMSSLON  25
-#define FORMAT_MMSSLON         26
-#define FORMAT_DEGREESLAT      27
-#define FORMAT_DEGREESMMLAT    28
-#define FORMAT_DEGREESMMSSLAT  29
-#define FORMAT_MMSSLAT         30
+typedef enum {
+    FORMAT_DECIMAL,
+    FORMAT_EXPONENTIAL,
+    FORMAT_GENERAL,
+    FORMAT_POWER,
+    FORMAT_SCIENTIFIC,
+    FORMAT_ENGINEERING,
+    FORMAT_DDMMYY,
+    FORMAT_MMDDYY,
+    FORMAT_YYMMDD,
+    FORMAT_MMYY,
+    FORMAT_MMDD,
+    FORMAT_MONTHDAY,
+    FORMAT_DAYMONTH,
+    FORMAT_MONTHS,
+    FORMAT_MONTHSY,
+    FORMAT_MONTHL,
+    FORMAT_DAYOFWEEKS,
+    FORMAT_DAYOFWEEKL,
+    FORMAT_DAYOFYEAR,
+    FORMAT_HMS,
+    FORMAT_MMDDHMS,
+    FORMAT_MMDDYYHMS,
+    FORMAT_YYMMDDHMS,
+    FORMAT_DEGREESLON,
+    FORMAT_DEGREESMMLON,
+    FORMAT_DEGREESMMSSLON,
+    FORMAT_MMSSLON,
+    FORMAT_DEGREESLAT,
+    FORMAT_DEGREESMMLAT,
+    FORMAT_DEGREESMMSSLAT,
+    FORMAT_MMSSLAT,
+    FORMAT_BAD
+} FormatType;
+
+#define NUMBER_OF_FORMATTYPES   FORMAT_BAD
 
 /* Focus policy */
 #define FOCUS_CLICK     0

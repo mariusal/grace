@@ -50,7 +50,7 @@ extern char print_file[];
 
 static void auto_ticks(int gno, int axis);
 
-char *get_format_types(int f)
+char *get_format_types(FormatType f)
 {
     char *s;
 
@@ -155,6 +155,18 @@ char *get_format_types(int f)
 	break;
     }
     return s;
+}
+
+FormatType get_format_type_by_name(const char *name)
+{
+    FormatType i;
+    for (i = 0; i < NUMBER_OF_FORMATTYPES; i++) {
+        if (!strcmp(get_format_types(i), name)) {
+            return i;
+        }
+    }
+    
+    return FORMAT_BAD;
 }
 
 

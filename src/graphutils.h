@@ -60,7 +60,8 @@
 #define GA_OFFSET_DEFAULT    0.15
 #define GA_GAP_DEFAULT       0.2
 
-char *get_format_types(int f);
+char *get_format_types(FormatType f);
+FormatType get_format_type_by_name(const char *name);
 
 int wipeout(void);
 
