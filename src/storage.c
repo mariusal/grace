@@ -661,6 +661,10 @@ int storage_get_id(Storage *sto)
        
     STORAGE_SAFETY_CHECK(sto, return -1)
     
+    if (!sto->count) {
+        return -1;
+    }
+    
     llnode = sto->start;
     while (llnode && llnode != sto->cp) {
         llnode = llnode->next;
