@@ -181,6 +181,7 @@ int clip_polygon(VPoint *vps, int n);
 
 int is_valid_color(RGB rgb);
 int find_color(RGB rgb);
+int get_color_by_name(char *cname);
 int realloc_color(int n);
 int store_color(int n, CMap_entry cmap);
 int add_color(CMap_entry cmap);

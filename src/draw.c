@@ -889,6 +889,22 @@ int find_color(RGB rgb)
     return (cindex);
 }
 
+int get_color_by_name(char *cname)
+{
+    int i;
+    int cindex = BAD_COLOR;
+    
+    for (i = 0; i < maxcolors; i++) {
+        if (cmap_table[i].ctype == COLOR_MAIN &&
+            strcmp(cmap_table[i].cname, cname) == 0) {
+            cindex = i;
+            break;
+        }
+    }
+    
+    return (cindex);
+}
+
 int realloc_colors(int n)
 {
     int i;
