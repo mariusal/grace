@@ -384,6 +384,8 @@ void set_graph_locator(int gno, GLocator *locator)
     }
 
     memcpy(&g[gno].locator, locator, sizeof(GLocator));
+
+    set_dirtystate();
 }
 
 void set_graph_world(int gno, world w)
