@@ -156,6 +156,7 @@ typedef enum {
 typedef struct {
     int standalone;
     int gno;
+    int view_comments;
     int show_hidden;
     int show_nodata;
     SetPopupMenu *menu;

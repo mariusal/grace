@@ -1762,10 +1762,19 @@ void UpdateSetChoice(ListStructure *listp, int gno)
         if ((sdata->show_nodata == TRUE || is_set_active(gno, i) == TRUE) &&
             (sdata->show_hidden == TRUE || is_set_hidden(gno, i) != TRUE )) {
             set_select_items[j].value = i;
-            sprintf(buf, "G%d.S%d[%d] (%d cols, %s)", gno, i,
-                getsetlength(gno, i), dataset_cols(gno, i),
-                is_set_hidden(gno, i) ? "hidden":"shown");
+            sprintf(buf, "(%c) G%d.S%d[%d][%d]",
+                is_set_hidden(gno, i) ? '-':'+',
+                gno, i, dataset_cols(gno, i), getsetlength(gno, i));
             set_select_items[j].label = copy_string(NULL, buf);
+            if (sdata->view_comments == TRUE) {
+                set_select_items[j].label =
+                    concat_strings(set_select_items[j].label, " \"");
+                set_select_items[j].label =
+                    concat_strings(set_select_items[j].label,
+                    getcomment(gno, i));
+                set_select_items[j].label =
+                    concat_strings(set_select_items[j].label, "\"");
+            }
             j++;
         }
     }
@@ -2087,6 +2096,15 @@ void showh_set_proc(int onoff, void *data)
     UpdateSetChoice(listp, sdata->gno);
 }
 
+void view_comments_set_proc(int onoff, void *data)
+{
+    ListStructure *listp = (ListStructure *) data;
+    SetChoiceData *sdata = (SetChoiceData *) listp->anydata;
+    
+    sdata->view_comments = onoff;
+    UpdateSetChoice(listp, sdata->gno);
+}
+
 void update_set_proc(void *data)
 {
     ListStructure *listp = (ListStructure *) data;
@@ -2158,6 +2176,9 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     CreateMenuSeparator(popup);
 
     submenupane = CreateMenu(popup, "Selector operations", 'o', FALSE);
+    CreateMenuToggle(submenupane,
+        "View set comments", '\0', view_comments_set_proc, (void *) listp);
+    CreateMenuSeparator(submenupane);
     set_popup_menu->shownd_item = CreateMenuToggle(submenupane,
         "Show data-less", '\0', shownd_set_proc, (void *) listp);
     set_popup_menu->showh_item = CreateMenuToggle(submenupane,
@@ -2283,6 +2304,7 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
     }
     
     sdata->standalone = standalone;
+    sdata->view_comments = FALSE;
     sdata->show_hidden = TRUE;
     sdata->show_nodata = FALSE;
     sdata->menu = CreateSetPopupEntries(retvalp);
