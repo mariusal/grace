@@ -3102,27 +3102,38 @@ Widget CreateTextItem4(Widget parent, int len, char *label)
  */
 Widget CreateScrollTextItem2(Widget parent, int hgt, char *s)
 {
-    Widget w;
-    Widget rc;
+    Widget w, form, label;
     XmString str;
 	
-    rc = XmCreateRowColumn(parent, "rc", NULL, 0);
+    form = XmCreateForm(parent, "form", NULL, 0);
 
     str = XmStringCreateLocalized(s);
-    XtVaCreateManagedWidget("label",
-        xmLabelWidgetClass, rc,
+    label = XtVaCreateManagedWidget("label",
+        xmLabelWidgetClass, form,
 	XmNlabelString, str,
+	XmNtopAttachment, XmATTACH_FORM,
+	XmNleftAttachment, XmATTACH_FORM,
+	XmNrightAttachment, XmATTACH_FORM,
 	NULL);
     XmStringFree(str);
 
-    w = XmCreateScrolledText(rc, "text", NULL, 0);
+    w = XmCreateScrolledText(form, "text", NULL, 0);
     XtVaSetValues(w,
 	XmNrows, hgt,
 	XmNeditMode, XmMULTI_LINE_EDIT,
 	XmNwordWrap, True,
+        XmNvisualPolicy, XmVARIABLE,
+	NULL);
+    XtVaSetValues(XtParent(w),
+	XmNtopAttachment, XmATTACH_WIDGET,
+        XmNtopWidget, label,
+	XmNleftAttachment, XmATTACH_FORM,
+	XmNrightAttachment, XmATTACH_FORM,
+	XmNbottomAttachment, XmATTACH_FORM,
 	NULL);
     XtManageChild(w);
-    XtManageChild(rc);
+    
+    XtManageChild(form);
     return w;
 }
 
