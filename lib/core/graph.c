@@ -109,7 +109,7 @@ Quark *get_parent_graph(const Quark *child)
     
     while (p) {
         p = quark_parent_get(p);
-        if (p->fid == QFlavorGraph) {
+        if (p && p->fid == QFlavorGraph) {
             return p;
         }
     }
