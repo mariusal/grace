@@ -71,6 +71,13 @@ typedef struct _Storage {
     Storage_exception_handler exception_handler;
 } Storage;
 
+typedef struct _StorageTData {
+    unsigned int step;
+    int id;
+    void *data;
+} StorageTData;
+
+typedef int (*Storage_traverse_hook)(StorageTData *stdata, void *udata); 
 
 Storage *storage_new(Storage_data_free data_free, Storage_data_copy data_copy,
                      Storage_exception_handler exception_handler);
@@ -87,6 +94,7 @@ int storage_prev(Storage *sto);
 int storage_rewind(Storage *sto);
 int storage_eod(Storage *sto);
 
+int storage_scroll(Storage *sto, int skip, int loop);
 int storage_scroll_to_id(Storage *sto, int id);
 
 int storage_id_exists(Storage *sto, int id);
@@ -103,6 +111,8 @@ int storage_get_data(Storage *sto, void **datap);
 
 int storage_get_unique_id(Storage *sto);
 
+int storage_get_all_ids(Storage *sto, int **ids);
+
 int storage_get_data_next(Storage *sto, void **datap);
 int storage_get_data_by_id(Storage *sto, int id, void **datap);
 int storage_delete_by_id(Storage *sto, int id);
@@ -110,6 +120,8 @@ int storage_delete_by_id(Storage *sto, int id);
 int storage_data_copy(Storage *sto, int id1, int id2, int create);
 int storage_data_move(Storage *sto, int id1, int id2, int create);
 int storage_data_swap(Storage *sto, int id1, int id2, int create);
+
+void storage_traverse(Storage *sto, Storage_traverse_hook hook, void *udata);
 
 int storage2_data_copy(Storage *sto1, int id1, Storage *sto2, int id2, int create);
 int storage2_data_move(Storage *sto1, int id1, Storage *sto2, int id2, int create);

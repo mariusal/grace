@@ -227,6 +227,47 @@ int storage_scroll_to_id(Storage *sto, int id)
     }
 }
 
+int storage_scroll(Storage *sto, int skip, int loop)
+{
+    STORAGE_SAFETY_CHECK(sto, return RETURN_FAILURE)
+    
+    if (abs(skip) >= sto->count) {
+        if (loop) {
+            skip %= sto->count;
+        } else {
+            sto->ierrno = STORAGE_EPARAM;
+            return RETURN_FAILURE;
+        }
+    }
+    
+    if (skip == 0) {
+        return RETURN_SUCCESS;
+    } else if (skip > 0) {
+        while (sto->cp) {
+            sto->cp = sto->cp->next ? sto->cp->next : sto->start;
+            skip--;
+            if (skip == 0) {
+                return RETURN_SUCCESS;
+            }
+        }
+        /* should never happen */
+        sto->ierrno = STORAGE_EFATAL;
+        return RETURN_FAILURE;
+    } else {
+        /* skip < 0 */
+        while (sto->cp) {
+            sto->cp = sto->cp->prev ? sto->cp->prev : sto->start;
+            skip++;
+            if (skip == 0) {
+                return RETURN_SUCCESS;
+            }
+        }
+        /* should never happen */
+        sto->ierrno = STORAGE_EFATAL;
+        return RETURN_FAILURE;
+    }
+}
+
 int storage_id_exists(Storage *sto, int id)
 {
     STORAGE_SAFETY_CHECK(sto, return FALSE)
@@ -251,7 +292,7 @@ int storage_id_exists(Storage *sto, int id)
 
 static int storage_id_cmp(const void *p1, const void *p2)
 {
-    if ((const int *)p1 > (const int *)p2) {
+    if (*(const int *)p1 > *(const int *)p2) {
         return 1;
     } else {
         return -1;
@@ -488,6 +529,18 @@ int storage_get_unique_id(Storage *sto)
     }
 }
 
+int storage_get_all_ids(Storage *sto, int **ids)
+{
+    STORAGE_SAFETY_CHECK(sto, return 0)
+    
+    if (sto->count) {
+        *ids = sto->ids;
+        return sto->count;
+    } else {
+        return 0;
+    }
+}
+
 int storage_duplicate(Storage *sto, int id)
 {
     int id_new;
@@ -601,6 +654,25 @@ int storage_data_swap(Storage *sto, int id1, int id2, int create)
     }
 }
 
+void storage_traverse(Storage *sto, Storage_traverse_hook hook, void *udata)
+{
+    LLNode *cllnode;
+    StorageTData stdata;
+    
+    STORAGE_SAFETY_CHECK(sto, return)
+
+    cllnode = sto->start;
+    stdata.step = 0;
+    while (cllnode) {
+        stdata.id   = cllnode->id;
+        stdata.data = cllnode->data;
+        if (hook(&stdata, udata) != TRUE) {
+            return;
+        }
+        stdata.step++;
+        cllnode = cllnode->next;
+    }
+}
 
 int storage2_data_copy(Storage *sto1, int id1, Storage *sto2, int id2, int create)
 {
