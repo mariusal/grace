@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.7 - for Grace-5.1.1)
 <author>by the Grace Team
-<date>27.04.2000
+<date>18.05.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -1537,6 +1537,55 @@ integral     | cumulative sum @
         configuration details. More details can be found when running Grace
         with the "-version" command line flag.
 
+  <sect1>Toolbar Buttons<label id="toolbar">
+    <p>
+    Along the left-hand side of the canvas (if shown) is the ToolBar.  It
+    is armed with several buttons to provide quick and easy access to the
+    more commonly used Grace functions.
+
+    <itemize> 
+      <item> <tt>  Draw</tt>: This will redraw the canvas and sets.
+	Useful after editing drawing objects such as boxes, circles, and
+	text.
+        <p>
+
+      <item> <tt>  Lens</tt>: A zoom lens.  Click on the lens, then select the
+        area of interest on the graph with the "rubber band".  The region
+	enclosed by the rubber band will fill the entire graph.
+      <item> <tt>    AS</tt>: AutoScale.  Autoscales the graph to contain all
+        data points of all visible (not hidden) sets.
+      <item> <tt>   Z/z</tt>:  Zoom in/out by 5%.
+      <item> <tt>Arrows</tt>:  Scroll active graph by 5% in the arrow's
+        direction.
+
+        <p>
+      <item> <tt>AutoT</tt>: AutoTick Axes.  This will find the optimum
+        number of major and minor tick marks for both axes.
+      <item> <tt>AutoO</tt>: Autoscale On set.  Click the <tt>AutoO</tt>
+        button, then click on the graph near the set you wish to use for
+	determining the autoscale boundaries of the graph.
+        <p>
+      <item> <tt>ZX,ZY</tt>: Zoom along an axis.  These buttons work like the
+        zoom lens above but are restricted to a single axis. 
+      <item> <tt>AX,AY</tt>: Autoscale one axis only.
+        <p>
+      The following buttons deal with the graph stack and there is a good
+      example under Help|Examples|General Intro|World Stack.
+      <item> <tt>Pu/Po</tt>: Push and pop the current world settings to/from
+        the graph stack.  When popping, makes the new stack top current.
+      <item> <tt>PZ</tt>: Push before Zooming.  Functions as the zoom lens,
+        but first pushes the current world settings to the stack.  
+      <item> <tt>Cy</tt>: Cycles through the stack settings of the active
+        graph.  Each graph may have up to twenty layers on the stack.
+        <p>      
+      <item> <tt>Exit</tt>: Pretty obvious, eh?
+    </itemize>
+
+  <sect1>The Drawing Canvas
+   <p>
+     Shortcuts bound to mouse actions on the drawing canvas
+     are detailed in the <ref name="Canvas actions" id="canvas"> section.
+
 <!-- **************************************** -->
 <sect>GUI controls
   <p>
@@ -1614,8 +1663,9 @@ integral     | cumulative sum @
          </itemize>
 
 
-<!-- **************************************** -->
-<sect>Canvas actions
+    
+<!-- **************************************** --> 
+<sect>Canvas actions<label id="canvas">
   <p>
 
   <sect1>Hotkeys
@@ -1662,7 +1712,7 @@ integral     | cumulative sum @
 
       The double clicking actions can be enabled/disabled from the
       "Edit/Preferences" popup.
-
+  
 <!-- **************************************** -->
 <sect>Command interpreter <label id="command-interpreter">
   <p>
@@ -2081,11 +2131,11 @@ integral     | cumulative sum @
         <hline>
         INTERPOLATE (set, mesh, method, strict) |
           interpolate <it>set</it> on a sampling <it>mesh</it> using <it>method</it>. <it>strict</it> flag controls whether result should be bound within the source set |
-          array <it>mesh</it>, <it>method</it>: one of LINEAR, SPLINE, and ASPLINE, onoff <it>strict</it> |
+          vexpr <it>mesh</it>, <it>method</it>: one of LINEAR, SPLINE, and ASPLINE, onoff <it>strict</it> |
           INTERPOLATE (S0, S1.X, ASPLINE, OFF) @
         HISTOGRAM (set, bins, cumulative, normalize) |
-          calculate histogram of <it>set</it> on defined <it>bins</it>. <it>cumulative</it> and <it>normalize</it> flags control whether to calculate cumulative and normalized (aka PDF) histograms, respectively |
-          array <it>bins</it>, onoff <it>cumulative</it>, onoff <it>normalize</it> |
+          calculate Histogram of <it>set</it> on defined <it>bins</it>. <it>cumulative</it> and <it>normalize</it> flags control whether to calculate cumulative and normalized (aka PDF) histograms, respectively.  Data points are placed at upper limit of the bin |
+          vexpr <it>bins</it>, onoff <it>cumulative</it>, onoff <it>normalize</it> |
           HISTOGRAM (S0, MESH(0, 1, 11), OFF, ON) @
         <hline>
       </tabular>
@@ -2337,8 +2387,10 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
         <hline>
         Function           | Arguments          |  Description                 @
         <hline>
+        int GraceOpenVA    | (char *<it>exe</it>, int <it>buf&lowbar;size</it>, ...)
+                                                | launch a Grace executable <it>exe</it> and open a communication channel with it using <it>buf&lowbar;size</it> bytes for data buffering. The remaining NULL-terminated list of options is command line arguments passed to the Grace process @
         int GraceOpen      | (int <it>buf&lowbar;size</it>)
-                                                | launch a Grace subprocess and open a communication channel with it @
+                                                | equivalent to GraceOpenVA("xmgrace", buf&lowbar;size, "-noask", NULL) @
         int GraceIsOpen    | (void)             | test if a Grace subprocess is currently connected @
         int GraceClose     | (void)             | close the communication channel and exit the Grace subprocess @
         int GraceClosePipe | (void)             | close the communication channel and leave the Grace subprocess alone @

@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.1.1)
   <author>by the Grace Team
-  <date>19.04.2000
+  <date>19.05.2000
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -84,11 +84,11 @@
         <tt>Xmgr to Grace migration guide</tt> in the
         User's Guide (question <ref id="manual" name="User's Guide">.
 
-        As Grace is still under development, there are currently
-        several features of Xmgr which are not yet implemented in
-        Grace (of course, alongside with a lot of new stuff not found in
-        Xmgr). A full compatibility is desirable except for ``bad'' features
-        of Xmgr.
+        There are currently several features of Xmgr which are not yet
+        implemented in Grace (of course, alongside with a lot of new stuff
+        not found in Xmgr). A full compatibility is desirable except for
+        ``bad'' features of Xmgr.
+ 
 
         Among the Xmgr features not (yet) implemented in Grace are:
 
@@ -412,7 +412,7 @@
         some good reason, so it may be necessary to persuade (better
         convince) them to get at it.
 
-    <sect1>I want to help! How can I contribute to grace?
+    <sect1>I want to help! How can I contribute to Grace?
       <p>
 
         Fine! There are always things to do.
@@ -434,7 +434,7 @@
         Specify exactly against which version the diff is
         supposed to work.
         Finally send them to
-        <url url="fnevgeny@plasma-gate.weizmann.ac.il">
+        <url url="mailto:fnevgeny@plasma-gate.weizmann.ac.il">
         
         In case you plan to help this way more than once
         you should join the
@@ -496,32 +496,28 @@
     <sect1>What is Motif (LessTif)? <label id="motif">
       <p>
 
-        Motif is a toolkit library for X11. It provides widgets
-        (buttons, boxes, etc) to be used in graphical user
-        interfaces. Graces makes heavy use of Motif. The original
-        OSF Motif (see <url url="http://www.osf.org">) is <em>not</em>
-        free. You can buy it from several vendors (at approx. $100
-        for Linux).
-
+        Throughout the Grace docs, saying "Motif" we actually refer to
+        the Motif <it>API</it>, defining a set of functions for building
+        graphical user interfaces (GUI) via numerous widgets
+        (buttons, boxes, etc). Grace makes heavy use of the Motif API. 
+        
+        There are several <it>implementations</it> of the interface. The
+        original OSF Motif (see <url url="http://www.osf.org">) is
+        <em>not</em> free.
+ 
         There is, however, a free replacement for Motif called LessTif (see
         <url url="http://www.lesstif.org">). LessTif is intended to be a 100%
         source compatible replacement for Motif, but is still under
-        development, so don't expect everything to work exactly as it should.
-        For the purposes of Grace, try using the latest version of LessTif
-        (at least 0.89.9 and above) - if you don't mind that it might be a
-        bit slower than commercial versions of Motif and graphical details
-        may be different. Be aware, however, that occasional crashes might
-        occur under certain circumstances. The LessTif people usually receive
-        many bug reports from the Grace developers, so you might hope that
-        bugs in LessTif will be fixed rather quickly. In addition to the
-        source compatibility it may work with binaries prepared for real
-        Motif (binary compatibility). This is not guaranteed at all and you
-        also have to install the correct version, i.e. compatible to either
-        Motif 1.2 or 2.0. Most Lesstif binary packages ship only with the 1.2
-        version, so you might have to build the 2.0 version yourself. If you
-        want to build Grace from its sources you only need the Motif 1.2
-        compatible version.
-
+        development. For the purposes of Grace, try using the latest version
+        of LessTif (at least 0.89.9 and above) - if you don't mind that it
+        might be a bit slower than commercial versions of Motif and graphical
+        details may be different. Be aware, however, that occasional crashes
+        might occur under certain circumstances. The LessTif people usually
+        receive many bug reports from the Grace developers, so you might hope
+        that bugs in LessTif will be fixed rather quickly.
+ 
+        
+        
     <sect1>While compiling Grace I get error messages about missing include
            files.
       <p>
@@ -537,7 +533,7 @@
               you don't have Motif development kit installed (or
               again, you have to tell explicitly to compiler where
               to look for the header files). This mostly concerns
-              Linux.
+              GNU/Linux.
 
           </itemize>
 
@@ -590,13 +586,13 @@
         Motif, PDF (see question <ref id="export" name="Output Devices">)
         and probably other libraries.
         If the message is exactly <tt>Can't find library libXm.so</tt>
-        (usually this happens on Linux systems ...) then you don't have Motif
+        (usually this happens on GNU/Linux systems ...) then you don't have Motif
         (the Xm libraries) installed (see question
         <ref id="motif" name="Motif">), or the linker doesn't
         know where it is.
         In the first case, try downloading Lesstif. In the second case,
         you have to tell your linker  where it is this (may be
-        a platform-specific task). On Linux look at the file
+        a platform-specific task). On GNU/Linux look at the file
         <tt>/etc/ld.so.conf</tt>. It  contains pathnames of the directories
         where dynamic libraries are stored. Add (as root) your directory
         to this file and run <tt>ldconfig -v</tt>. Now the libraries
@@ -625,7 +621,7 @@
         report it as a bug (question <ref id="bugreport" name="Bug
           Reports">).
 
-    <sect1>Grace crashes with "Oops Got SIGSEV" (on linux)
+    <sect1>Grace crashes with "Oops Got SIGSEV" (on GNU/Linux)
       <p>
          Detect whether you are using a version linked against
          Lesstif instead of <ref id="motif" name="Motif">.
@@ -702,11 +698,12 @@ T1_InitLib(): Fatal error scanning Font Database File
            canvas or dialog panels make Grace crash.
       <p>
 
-        This is a known bug in Motif-2.1. Most vendors have fixed it in
-        their ports and/or have a patch ready, but not all, a notable
-        exception being Motif libraries shipped by Red Hat for Linux/Intel.
-        Grace has a workaround for this bug. In order to enable it, add
-        the following lines to the X resources:
+        This is a known bug in Motif-2.1. Most vendors have fixed it in their
+        ports and/or have a patch ready, but not all, a notable exception
+        being Motif libraries shipped by Red Hat for GNU/Linux for Intel
+        hardware. Grace has a workaround for this bug. In order to enable it,
+        add the following lines to the X resources:
+ 
         <tscreen><code>
 XMgrace*XmDrawingArea.translations: #override\n\
         Ctrl <Btn1Down>: do_nothing()
@@ -738,7 +735,7 @@ XMgrace*XmMessageBox.translations: #override\n\
       <p>
 
         A project is a file which contains all information necessary
-        to restore a Graph created by Grace.
+        to restore a plot created by Grace.
 
     <sect1>What is a parameter file? <label id="parameter">
       <p>
@@ -886,14 +883,6 @@ XMgrace*fontList: -adobe-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*
 XMgrace*tabFontList: -adobe-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*
 </verb></tscreen>
 
-    <sect1>What different kinds of sets can Grace plot?
-      <p>
-
-        The standard set is the regular (x,y) set, but there are
-        others including error bars or descriptive strings. See the
-        User's Guide (question <ref id="manual" name="User's Guide">)
-        for details.
-
     <sect1>Can one change the colour selecton for the menu,
            locator, tool and status bars, and all the popup menues?
       <p>
@@ -906,6 +895,14 @@ XMgrace*tabFontList: -adobe-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*
 XMgrace*foreground: ...
 XMgrace*background: ...
 </verb></tscreen>
+
+    <sect1>What different kinds of sets can Grace plot?
+      <p>
+
+        The standard set is the regular (x,y) set, but there are
+        others including error bars or descriptive strings. See the
+        User's Guide (question <ref id="manual" name="User's Guide">)
+        for details.
 
     <sect1>I'd like to plot data against an axis on the right (top) and
            another data set in a different scale against an axis on the
@@ -1004,6 +1001,13 @@ XMgrace*background: ...
         easily be achieved defining an input filter like in the
         <tt>gracerc</tt> sample file which comes with Grace.
 
+    <sect1>When I load a project saved with an earlier version of Xmgr
+           (&lt;4.0), symbols of all (some) sets are drawn in black.
+      <p>
+
+        Make sure you added a valid <tt>@VERSION versionid</tt> line to the
+        beginning of the file.
+
     <sect1>How do I save disk space? Can I use compressed project files?
       <p>
 
@@ -1083,13 +1087,6 @@ XMgrace*background: ...
         <ref id="jdate" name="Julian Date"> format, like the one (convcal)
         that is supplied with Grace.
 
-    <sect1>When I load a project saved with an earlier version of Xmgr
-           (&lt;4.0), symbols of all (some) sets are drawn in black.
-      <p>
-
-        Make sure you added a valid <tt>@VERSION versionid</tt> line to the
-        beginning of the file.
-
     <sect1>How do I set the background color of a plot, outside of the graph
            frame?
       <p>
@@ -1099,7 +1096,7 @@ XMgrace*background: ...
         This changes the background of the entire canvas, not only
         the background of graphs.
 
-    <sect1>How do I use more than 16 colors for objects/lines in grace?
+    <sect1>How do I use more than 16 colors for objects/lines in Grace?
       <p>
 
        You may edit your Default.agr file in
@@ -1283,8 +1280,8 @@ XMgrace*background: ...
     <sect1>Does Grace have an UNDO function?
       <p>
 
-        No. Sorry. Although it would be nice to have such a
-        function, it is very hard to implement. We can only ask you
+        Not yet. Although it would be nice to have such a
+        function, it is quite hard to implement. We can only ask you
         to be careful with certain actions and remember to <tt>save
         often and early (TM)</tt>.
 
@@ -1298,10 +1295,11 @@ XMgrace*background: ...
       <p>
 
         Among the many features planned to be introduced in the
-        future are 3D plots, a spreadsheet-like frontend for set
-        operations, contour plots and XPM/PNG/... image import and
-        manipulations.
-
+        future are enhancing the spreadsheet-like frontend for dataset
+        operations, contour plots, many-level undo/redo, image import and
+        manipulations, a library for 2-way communication, ... Then 3D plots
+        would come :-)
+        
     <sect1>Are there things that Grace can't do?
       <p>
 
