@@ -90,6 +90,11 @@ if FileExists(cf_make_conf) = True then
       call FileCopy systemdir'\'cf_make_conf'.os2', curdir'\'cf_make_conf
       call Execute 'touch 'curdir'\'cf_make_conf
       end
+    else
+       do
+       /* not a good idea perhaps ... */
+       call Execute 'touch 'curdir'\'cf_make_conf
+       end
     end
   end
 else 
@@ -109,10 +114,15 @@ if FileExists(cf_config_h) = True then
     call CharOut , 'Install default file instead ? (y/n) '
     Parse Upper Pull answer
     if answer = 'Y' then
-      do
-      call FileCopy systemdir'\'cf_config_h'.os2', curdir'\'cf_config_h
-      call Execute 'touch 'curdir'\'cf_config_h
-      end
+       do
+       call FileCopy systemdir'\'cf_config_h'.os2', curdir'\'cf_config_h
+       call Execute 'touch 'curdir'\'cf_config_h
+       end
+    else
+       do
+       /* not a good idea perhaps ... */
+       call Execute 'touch 'curdir'\'cf_config_h
+       end
     end
   end
 else 
@@ -126,7 +136,6 @@ else
 */
 
 call Execute "cd .\arch\os2 && x11make.exe -f dlfcn.mak all & cd ..\.."
-
 
 /* Calling x11make.exe cause make.cmd won't work here
    due to the sh command embedded in the Makefiles*/

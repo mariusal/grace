@@ -1,5 +1,5 @@
-                           Grace 5.1.x for XFree86 OS/2
-                                (April 2000)
+                           Grace 5.x for XFree86 OS/2
+                                (May 2000)
 
 
                           Contents of this document:
@@ -14,8 +14,7 @@
    ------------
 
   This is (xm)grace compiled for OS/2. Since it's an X11 application
-  (well, most of the time and therefore the lon or executable name "xmgrace")
-  it requires XFree86 to be installed.
+  (well, most of the time) it requires XFree86 to be installed.
   Like every piece of software this port of Grace may have
   some bugs. Some of them are just related to the general problems
   un*x based applications have on non-un*x filesystems. So read the
@@ -35,9 +34,9 @@
    --------------------
    
   Here I try to give a complete list what you need to build Grace.
-  The first listed packages have be installed in any case:
+  The first listed packages have be installed even if you
 
-  - EMX 0.9d development package
+  - EMX 0.9d development package (use Fixpack 3)
       http://hobbes.nmsu.edu, http://www.leo.org
 
   - XFree86 for OS/2, including its development package(s)
@@ -61,10 +60,10 @@
   See the FAQ where to find the sources for these.
 
     - libhelp and it's little application xmhelp
-                    display the online help written in HTML)
-    - libpng:       create PNG files
-    - pdflib:       create PDF files
-    - fftw library: Fast Fourier transformations
+                     Display the online help written in HTML)
+    - libpng:        Create PNG files
+    - pdflib:        Create PDF files
+    - fftw library:  Fast Fourier transformations
 
   By now the supplied configure script may not work under OS/2
   (even using the existing Autoconf port). As a small replacement I offer
@@ -98,6 +97,8 @@
   fit in the tree below $(X11ROOT)\. I supply a small REXX-script 
   'xmgrace1.cmd' which sets up the necessary environment variable(s)
   so that xmgrace can run within this setup.
+  Check out the webpage or section 2) How to build Grace for
+  other packages which are required to run Grace!
   
   A major remaining problem is how to access installed printers without
   manual processing the Postscript files. But this is not only tied to Grace
@@ -109,7 +110,7 @@
     http://www.tu-darmstadt.de/~st002279/os2/printing.html
   might contain useful hints as well.
 
+
 ---
 Alexander Mai
 st002279@hrzpub.tu-darmstadt.de
-Alexander.Mai@physik.tu-darmstadt.de

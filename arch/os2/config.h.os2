@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -364,6 +364,9 @@
 
 /* Define if you have (and want to use) libhelp  */
 #define WITH_LIBHELP 1
+
+/* Define if you have (and want to use) XmHTML widget  */
+#undef WITH_XMHTML
 
 /* Define if you have (and want to use) editres  */
 #define WITH_EDITRES 1
