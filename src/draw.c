@@ -1170,6 +1170,18 @@ static int RGB2CMY(const RGB *rgb, CMY *cmy)
     }
 }
 
+static int fRGB2RGB(const fRGB *frgb, RGB *rgb)
+{
+    if (frgb && rgb) {
+        rgb->red   = (int) rint(frgb->red  *(MAXCOLORS - 1));
+        rgb->green = (int) rint(frgb->green*(MAXCOLORS - 1));
+        rgb->blue  = (int) rint(frgb->blue *(MAXCOLORS - 1));
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 static Color cmap_init[] = {
     /* white  */
     {{255, 255, 255}, "white", COLOR_MAIN},
@@ -1564,6 +1576,46 @@ int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk)
         return RETURN_FAILURE;
     }
 }
+
+int make_color_scale(Canvas *canvas,
+    unsigned int fg, unsigned int bg,
+    unsigned int ncolors, unsigned long *colors)
+{
+    int i;
+    fRGB fg_frgb, bg_frgb, delta_frgb;
+
+    if (ncolors < 2 || !colors) {
+        return RETURN_FAILURE;
+    }
+    
+    if (get_frgb(canvas, fg, &fg_frgb) != RETURN_SUCCESS ||
+        get_frgb(canvas, bg, &bg_frgb) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+
+    delta_frgb.red   = (fg_frgb.red   - bg_frgb.red)  /(ncolors - 1);
+    delta_frgb.green = (fg_frgb.green - bg_frgb.green)/(ncolors - 1);
+    delta_frgb.blue  = (fg_frgb.blue  - bg_frgb.blue) /(ncolors - 1);
+    colors[0] = bg;
+    for (i = 1; i < ncolors - 1; i++) {
+    	fRGB frgb;
+        Color color;
+        int c;
+        
+        frgb.red   = bg_frgb.red   + i*delta_frgb.red;
+    	frgb.green = bg_frgb.green + i*delta_frgb.green;
+    	frgb.blue  = bg_frgb.blue  + i*delta_frgb.blue;
+    	fRGB2RGB(&frgb, &color.rgb);
+        color.cname = "";
+    	color.ctype = COLOR_AUX;
+    	c = add_color(canvas, &color);
+        colors[i] = (c == BAD_COLOR) ? 0:c;
+    }
+    colors[ncolors - 1] = fg;
+    
+    return RETURN_SUCCESS;
+}
+
 
 /* 
  * ------------------ Pattern routines ---------------

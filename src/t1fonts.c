@@ -412,11 +412,50 @@ static void tm_slant(TextMatrix *tm, double slant)
     }
 }
 
+/* Set the colors for Anti-Aliasing */
+static void set_aa_gray_values(Canvas *canvas,
+    unsigned long fg, unsigned long bg, int t1aa)
+{
+    unsigned n;
+    unsigned long *colors, last_bg, last_fg;
+    
+    switch (t1aa) {
+    case T1_AA_LOW:
+        n = T1_AALEVELS_LOW;
+        colors = canvas->aacolors_low;
+        break;
+    case T1_AA_HIGH:
+        n = T1_AALEVELS_HIGH;
+        colors = canvas->aacolors_high;
+        break;
+    default:
+        return;
+        break;
+    }
+    
+    last_bg = colors[0];
+    last_fg = colors[n - 1];
+    
+    if (last_fg != fg || last_bg != bg) {
+        make_color_scale(canvas, fg, bg, n, colors);
+
+        if (t1aa == T1_AA_LOW) {
+            T1_AASetGrayValues(colors[0],
+    			       colors[1],
+    			       colors[2],
+    			       colors[3],
+    			       colors[4]);
+        } else {
+    	    T1_AAHSetGrayValues(colors);
+        }
+    }
+
+    T1_AASetLevel(t1aa);
+}
+
 static GLYPH *GetGlyphString(Canvas *canvas,
     CompositeString *cs, double dpv, FontRaster fontrast)
 {
-    int i;
-    
     int len = cs->len;
     int FontID = cs->font;
     float Size;
@@ -425,19 +464,12 @@ static GLYPH *GetGlyphString(Canvas *canvas,
     
     GLYPH *glyph;
     
-    static unsigned long aacolors_low[T1_AALEVELS_LOW],
-                         aacolors_high[T1_AALEVELS_HIGH];
     int mono, t1aa;
     unsigned long fg, bg;
-    static unsigned long last_bg_low = 0, last_fg_low = 0,
-        last_bg_high = 0, last_fg_high = 0;
 
     int modflag;
     T1_TMATRIX matrix, *matrixP;
 
-    RGB fg_rgb, bg_rgb, delta_rgb;
-    Color color;
-    
     if (cs->len == 0) {
         return NULL;
     }
@@ -490,74 +522,13 @@ static GLYPH *GetGlyphString(Canvas *canvas,
     default:
         break;
     }
+    
     if (mono != TRUE) {
-    	Color *cp;
-    	
         fg = cs->color;
     	bg = getbgcolor(canvas);
 
-        /* Get RGB values for fore- and background */
-    	cp = get_color_def(canvas, fg);
-        if (!cp) {
-    	    return NULL;
-    	}
-        fg_rgb = cp->rgb;
-
-    	cp = get_color_def(canvas, bg);
-        if (!cp) {
-    	    return NULL;
-    	}
-        bg_rgb = cp->rgb;
-
-        /* Set the colors for Anti-Aliasing */
-        if (t1aa == T1_AA_LOW &&
-            (fg != last_fg_low || bg != last_bg_low)) {
-            delta_rgb.red   = (fg_rgb.red   - bg_rgb.red)  /(T1_AALEVELS_LOW - 1);
-    	    delta_rgb.green = (fg_rgb.green - bg_rgb.green)/(T1_AALEVELS_LOW - 1);
-    	    delta_rgb.blue  = (fg_rgb.blue  - bg_rgb.blue) /(T1_AALEVELS_LOW - 1);
-    	    for (i = 1; i < T1_AALEVELS_LOW - 1; i++) {
-    		color.rgb.red   = bg_rgb.red + i*delta_rgb.red;
-    		color.rgb.green = bg_rgb.green + i*delta_rgb.green;
-    		color.rgb.blue  = bg_rgb.blue + i*delta_rgb.blue;
-    		color.cname = "";
-    		color.ctype = COLOR_AUX;
-    		aacolors_low[i] = add_color(canvas, &color);
-    	    }
-    	    aacolors_low[0] = bg;
-    	    aacolors_low[T1_AALEVELS_LOW - 1] = fg;
-
-            T1_AASetGrayValues(aacolors_low[0],
-    			       aacolors_low[1],
-    			       aacolors_low[2],
-    			       aacolors_low[3],
-    			       aacolors_low[4]);
-
-    	    last_fg_low = fg;
-    	    last_bg_low = bg;
-        } else
-        if (t1aa == T1_AA_HIGH &&
-            (fg != last_fg_high || bg != last_bg_high)) {
-    	    delta_rgb.red   = (fg_rgb.red   - bg_rgb.red)  /(T1_AALEVELS_HIGH - 1);
-    	    delta_rgb.green = (fg_rgb.green - bg_rgb.green)/(T1_AALEVELS_HIGH - 1);
-    	    delta_rgb.blue  = (fg_rgb.blue  - bg_rgb.blue) /(T1_AALEVELS_HIGH - 1);
-    	    for (i = 1; i < T1_AALEVELS_HIGH - 1; i++) {
-    		color.rgb.red   = bg_rgb.red + i*delta_rgb.red;
-    		color.rgb.green = bg_rgb.green + i*delta_rgb.green;
-    		color.rgb.blue  = bg_rgb.blue + i*delta_rgb.blue;
-    		color.cname = "";
-    		color.ctype = COLOR_AUX;
-    		aacolors_high[i] = add_color(canvas, &color);
-    	    }
-    	    aacolors_high[0] = bg;
-    	    aacolors_high[T1_AALEVELS_HIGH - 1] = fg;
-
-    	    T1_AAHSetGrayValues(aacolors_high);
-
-    	    last_fg_high = fg;
-    	    last_bg_high = bg;
-        }
-
-        T1_AASetLevel(t1aa);
+        set_aa_gray_values(canvas, fg, bg, t1aa);
+        
     	glyph = T1_AASetString(FontID, cs->s, len,
     				   Space, modflag, Size, matrixP);
     } else {

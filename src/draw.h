@@ -471,6 +471,10 @@ struct _Canvas {
     /* info */
     char *username;
     char *docname;
+
+    /* cached values of the grayscale AA levels */
+    unsigned long aacolors_low[T1_AALEVELS_LOW];
+    unsigned long aacolors_high[T1_AALEVELS_HIGH];
 };
 
 /* The default max drawing path limit */
@@ -590,6 +594,10 @@ int get_cmyk(const Canvas *canvas, unsigned int cindex, CMYK *cmyk);
 int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk);
 
 void initialize_cmap(Canvas *canvas);
+
+int make_color_scale(Canvas *canvas,
+    unsigned int fg, unsigned int bg,
+    unsigned int ncolors, unsigned long *colors);
 
 int init_t1(Canvas *canvas);
 
