@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -768,6 +768,7 @@ typedef struct _DOStringData {
 
 
 QuarkFactory *qfactory_new(void);
+void qfactory_free(QuarkFactory *qfactory);
 int quark_flavor_add(QuarkFactory *qfactory, const QuarkFlavor *qf);
 QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid);
 int quark_factory_set_udata(QuarkFactory *qfactory, void *udata);

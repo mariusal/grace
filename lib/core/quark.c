@@ -61,6 +61,14 @@ QuarkFactory *qfactory_new(void)
     return qfactory;
 }
 
+void qfactory_free(QuarkFactory *qfactory)
+{
+    if (qfactory) {
+        xfree(qfactory->qflavours);
+        xfree(qfactory);
+    }
+}
+
 int quark_factory_set_udata(QuarkFactory *qfactory, void *udata)
 {
     if (qfactory) {
