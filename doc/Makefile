@@ -8,7 +8,7 @@ TOP=..
 
 include $(TOP)/Make.conf
 
-.SUFFIXES : .dvi .html .pdf .ps .tex .sgml
+.SUFFIXES : .sgml .dvi .html .pdf .ps .tex
 
 SGML2HTML   = sgml2html --split=0
 SGML2DVI    = sgml2latex
@@ -28,11 +28,13 @@ PDFLATEX    = pdflatex
 
 .tex.dvi :
 	$(LATEX) $<
+	$(LATEX) $<
 
 .dvi.ps :
 	$(DVI2PS) $<
 
 .tex.pdf :
+	$(PDFLATEX) $<
 	$(PDFLATEX) $<
 
 SGMLS    = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
@@ -48,8 +50,8 @@ PDFDOCS  = FAQ.pdf Tutorial.pdf UsersGuide.pdf
 
 TEXDOCS  = FAQ.tex Tutorial.tex UsersGuide.tex
 
-TUTDATA = 2.1.dat 3.dat 7.1.2.agr 7.1.3.agr 8.2.dat \
-	10.1.dat 10a.dat 10c.dat 10b.dat shiftdata.sh mygraph.png
+TUTDATA  = 2.1.dat 3.dat 7.1.2.agr 7.1.3.agr 8.2.dat \
+           10.1.dat 10a.dat 10c.dat 10b.dat shiftdata.sh mygraph.png
 
 GRACEMAN = grace.1
 MANLINKS = xmgrace.1 gracebat.1
@@ -68,13 +70,13 @@ ps   : $(PSDOCS)
 tex  : $(TEXDOCS)
 
 clean :
-	$(RM) *.aux *.log
+	$(RM) $(TEXDOCS) *.aux *.log *.toc
 
-distclean : 
+distclean : clean
 	$(RM) *.orig
 
-devclean : 
-	$(RM) *.orig $(DVIDOCS) $(PSDOCS)
+devclean : distclean
+	$(RM) $(DVIDOCS) $(PSDOCS)
 
 install : $(HTMLDOCS) $(DVIDOCS) $(TUTDATA) $(MANPAGES)
 	$(MKINSTALLDIRS) $(GRACE_HOME)/doc
