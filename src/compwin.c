@@ -1956,15 +1956,19 @@ void loadset(int gno, int selset, int toval, double startno, double stepno)
 	ltmp = ytmp;
 	break;
     case 3:
-	ltmp = get_scratch(0);
+	init_scratch_arrays(lenset);
+        ltmp = get_scratch(0);
 	break;
     case 4:
+	init_scratch_arrays(lenset);
 	ltmp = get_scratch(1);
 	break;
     case 5:
+	init_scratch_arrays(lenset);
 	ltmp = get_scratch(2);
 	break;
     case 6:
+	init_scratch_arrays(lenset);
 	ltmp = get_scratch(3);
 	break;
     default:

@@ -148,7 +148,7 @@ void fcn(int * m, int * n, double * x, double * fvec,
     a_to_parms(x);
 
     errpos = 0;
-    scanner(nonl_opts.formula, 1, curset, &errpos);
+    scanner(nonl_opts.formula, *m, curset, &errpos);
     if (errpos) {
 	errmsg("error in fcn");
 	*iflag = -1;
