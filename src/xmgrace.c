@@ -785,6 +785,11 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "redraw", "Redraw", 'R',
     	    (XtCallbackProc) do_drawgraph, (XtPointer) NULL, 0);
 
+    CreateMenuSeparator(menupane);
+
+    CreateMenuButton(menupane, "updateAll", "Update all", 'U',
+    	    (XtCallbackProc) update_all_cb, (XtPointer) NULL, 0);
+
 /* Window menu */
     menupane = CreateMenu(menubar, "windowMenu", "Window", 'W', NULL, NULL);
    
