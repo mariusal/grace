@@ -114,17 +114,8 @@ int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint);
 int set_point_shift(Quark *pset, int seti, const VVector *vshift);
 
 void killsetdata(Quark *pset);
-void sortset(Quark *pset, int sorton, int stype);
-void droppoints(Quark *pset, int startno, int endno);
-int join_sets(Quark **sets, int nsets);
-void reverse_set(Quark *pset);
 
 void del_point(Quark *pset, int pt);
-
-int do_splitsets(Quark *pset, int lpart);
-void do_drop_points(Quark *pset, int startno, int endno);
-void do_sort(Quark *pset, int sorton, int stype);
-
 
 /* dates.c */
 void set_date_hint(Dates_format preferred);

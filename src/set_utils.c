@@ -241,12 +241,121 @@ int set_point_shift(Quark *pset, int seti, const VVector *vshift)
 }
 
 /*
- * drop points from a set
+ * delete the point pt in setno
  */
-void droppoints(Quark *pset, int startno, int endno)
+void del_point(Quark *pset, int pt)
 {
-    ssd_delete_rows(get_parent_ssd(pset), startno, endno);
+    ssd_delete_rows(get_parent_ssd(pset), pt, pt);
 }
+
+int load_comments_to_legend(Quark *pset)
+{
+    return set_set_legstr(pset, set_get_comment(pset));
+}
+
+int set_set_colors(Quark *pset, unsigned int color)
+{
+    set *p = set_get_data(pset);
+    RunTime *rt = rt_from_quark(pset);
+    if (!p || !rt) {
+        return RETURN_FAILURE;
+    }
+    
+    if (color < number_of_colors(rt->canvas)) {
+        p->line.line.pen.color    = color;
+        p->sym.line.pen.color = color;
+        p->sym.fillpen.color  = color;
+        p->errbar.pen.color  = color;
+
+        quark_dirtystate_set(pset, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+Quark *grace_set_new(Quark *gr)
+{
+    Quark *pset = set_new(gr);
+    RunTime *rt = rt_from_quark(pset);
+    if (!pset || !rt) {
+        return NULL;
+    }
+    
+    rt->setcolor++;
+    rt->setcolor %= number_of_colors(rt->canvas);
+    if (rt->setcolor == 0) {
+        rt->setcolor = 1;
+    }
+    set_set_colors(pset, rt->setcolor);
+
+    return pset;
+}
+
+Symbol *symbol_new()
+{
+    Symbol *retval;
+    retval = xmalloc(sizeof(Symbol));
+    if (retval) {
+        memset(retval, 0, sizeof(Symbol));
+    }
+    return retval;
+}
+
+void symbol_free(Symbol *sym)
+{
+    xfree(sym);
+}
+
+SetLine *setline_new()
+{
+    SetLine *retval;
+    retval = xmalloc(sizeof(SetLine));
+    if (retval) {
+        memset(retval, 0, sizeof(SetLine));
+    }
+    return retval;
+}
+
+void setline_free(SetLine *sl)
+{
+    xfree(sl);
+}
+
+BarLine *barline_new(void)
+{
+    BarLine *retval;
+    retval = xmalloc(sizeof(BarLine));
+    if (retval) {
+        memset(retval, 0, sizeof(BarLine));
+    }
+    return retval;
+}
+
+RiserLine *riserline_new(void)
+{
+    RiserLine *retval;
+    retval = xmalloc(sizeof(RiserLine));
+    if (retval) {
+        memset(retval, 0, sizeof(RiserLine));
+    }
+    return retval;
+}
+
+#if 0
+/*
+ * sort sets
+ */
+void do_sort(Quark *pset, int sorton, int stype)
+{
+    if (set_is_dataless(pset)) {
+	errmsg("Set not active");
+	return;
+    } else {
+	sortset(pset, sorton, stype);
+    }
+}
+
 
 /*
  * join several sets together; all but the first set in the list will be killed 
@@ -303,36 +412,6 @@ int join_sets(Quark **sets, int nsets)
     }
     
     return RETURN_SUCCESS;
-}
-
-void reverse_set(Quark *pset)
-{
-    int n, i, j, k, ncols;
-    double *x;
-    char **s;
-
-    if (!pset) {
-	return;
-    }
-    n = set_get_length(pset);
-    ncols = set_get_ncols(pset);
-    for (k = 0; k < ncols; k++) {
-	x = set_get_col(pset, k);
-	for (i = 0; i < n / 2; i++) {
-	    j = (n - 1) - i;
-	    fswap(&x[i], &x[j]);
-	}
-    }
-    if ((s = set_get_strings(pset)) != NULL) {
-	char *stmp;
-        for (i = 0; i < n / 2; i++) {
-	    j = (n - 1) - i;
-	    stmp = s[i];
-            s[i] = s[j];
-            s[j] = stmp;
-	}
-    }
-    quark_dirtystate_set(pset, TRUE);
 }
 
 /*
@@ -463,14 +542,6 @@ void sortset(Quark *pset, int sorton, int stype)
     quark_dirtystate_set(pset, TRUE);
 }
 
-/*
- * delete the point pt in setno
- */
-void del_point(Quark *pset, int pt)
-{
-    droppoints(pset, pt, pt);
-}
-
 int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint)
 {
     int n, col;
@@ -501,7 +572,6 @@ int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint)
  */
 int do_splitsets(Quark *pset, int lpart)
 {
-#if 0
     int i, j, k, ncols, len, plen, npsets;
     double *x;
     char s[256];
@@ -570,151 +640,6 @@ int do_splitsets(Quark *pset, int lpart)
     
     /* kill the original set */
     quark_free(pset);
-#endif    
     return RETURN_SUCCESS;
 }
-
-/*
- * drop points from an active set
- */
-void do_drop_points(Quark *pset, int startno, int endno)
-{
-    int set_set_length;
-
-    if (!pset) {
-	errmsg("Set not active");
-	return;
-    }
-
-    set_set_length = set_get_length(pset);
-    if (startno < 0) {
-        startno = set_set_length + 1 + startno;
-    }
-    if (endno < 0) {
-        endno = set_set_length + 1 + endno;
-    }
-
-    if (startno > endno) {
-        iswap(&startno, &endno);
-    }
-
-    if (startno < 0) {
-	errmsg("Start # < 0");
-	return;
-    }
-    if (endno >= set_set_length) {
-	errmsg("Ending # >= set length");
-	return;
-    }
-
-    droppoints(pset, startno, endno);
-}
-
-
-/*
- * sort sets
- */
-void do_sort(Quark *pset, int sorton, int stype)
-{
-    if (set_is_dataless(pset)) {
-	errmsg("Set not active");
-	return;
-    } else {
-	sortset(pset, sorton, stype);
-    }
-}
-
-
-int load_comments_to_legend(Quark *pset)
-{
-    return set_set_legstr(pset, set_get_comment(pset));
-}
-
-int set_set_colors(Quark *pset, unsigned int color)
-{
-    set *p = set_get_data(pset);
-    RunTime *rt = rt_from_quark(pset);
-    if (!p || !rt) {
-        return RETURN_FAILURE;
-    }
-    
-    if (color < number_of_colors(rt->canvas)) {
-        p->line.line.pen.color    = color;
-        p->sym.line.pen.color = color;
-        p->sym.fillpen.color  = color;
-        p->errbar.pen.color  = color;
-
-        quark_dirtystate_set(pset, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-Quark *grace_set_new(Quark *gr)
-{
-    Quark *pset = set_new(gr);
-    RunTime *rt = rt_from_quark(pset);
-    if (!pset || !rt) {
-        return NULL;
-    }
-    
-    rt->setcolor++;
-    rt->setcolor %= number_of_colors(rt->canvas);
-    if (rt->setcolor == 0) {
-        rt->setcolor = 1;
-    }
-    set_set_colors(pset, rt->setcolor);
-
-    return pset;
-}
-
-Symbol *symbol_new()
-{
-    Symbol *retval;
-    retval = xmalloc(sizeof(Symbol));
-    if (retval) {
-        memset(retval, 0, sizeof(Symbol));
-    }
-    return retval;
-}
-
-void symbol_free(Symbol *sym)
-{
-    xfree(sym);
-}
-
-SetLine *setline_new()
-{
-    SetLine *retval;
-    retval = xmalloc(sizeof(SetLine));
-    if (retval) {
-        memset(retval, 0, sizeof(SetLine));
-    }
-    return retval;
-}
-
-void setline_free(SetLine *sl)
-{
-    xfree(sl);
-}
-
-BarLine *barline_new(void)
-{
-    BarLine *retval;
-    retval = xmalloc(sizeof(BarLine));
-    if (retval) {
-        memset(retval, 0, sizeof(BarLine));
-    }
-    return retval;
-}
-
-RiserLine *riserline_new(void)
-{
-    RiserLine *retval;
-    retval = xmalloc(sizeof(RiserLine));
-    if (retval) {
-        memset(retval, 0, sizeof(RiserLine));
-    }
-    return retval;
-}
+#endif    
