@@ -112,7 +112,7 @@ GUI_FLAGS=
 
 # LDFLAGS
 # -Zbin-files is removed. Not sure where this will hurt us (fftw, ?! ) ...
-LDFLAGS=-s -Zmt -Zcrtdll -Zbsd-signals -Zstack 0x4000
+LDFLAGS=-s -Zmt -Zcrtdll -Zbsd-signals -Zstack 0x3000
 
 # Libraries (all but GUI)
 NOGUI_LIBS=

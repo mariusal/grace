@@ -1,5 +1,5 @@
-                          Grace 5.1x for XFree86 OS/2
-                          ===========================
+                         Grace 5.1.xx for XFree86 OS/2
+                         =============================
 
 
                           Contents of this document:
@@ -14,13 +14,13 @@
    ------------
 
   This is (xm)Grace compiled for OS/2. Since it's an X11 application
-  (well, most of the time) it requires XFree86 to be installed.
-  Like every piece of software this port of Grace may have
-  some bugs. Some of them are just related to the general problems
-  un*x based applications have on non-un*x filesystems. So read the
-  documentation and FAQs of XFree86 carefully to get some hints how to
-  avoid running into these bugs/limitations, e.g. it is a good idea to
-  install TVFS, the Toronto Virtual File System.
+  (well, mostly) it requires XFree86 to be installed.
+  Like every piece of software this port of Grace may have a few bugs. 
+  Some of them are just related to the general problems which un*x based 
+  applications have on non-un*x filesystems. So read the documentation and 
+  FAQs for XFree86 carefully to get some hints how to avoid running into these 
+  bugs&limitations, e.g. it might be a good idea to install TVFS, 
+  the Toronto Virtual File System.
 
   A pre-compiled version should always be available from
 
@@ -35,27 +35,27 @@
    --------------------
    
   Here I try to give a complete list what you need to build Grace.
-  The first listed packages have be installed if you're going to
-  use the prebuilt binaries. For your convenience I also give
+  The first listed packages have be installed even if you're only going to
+  use the prebuilt binaries. For your convenience I also point to
   locations where you can retrieve the packages.
 
-  - EMX 0.9d (use Fixpack 3)
+  - EMX 0.9d (use Fixpack 4)
     Either development (lots of files) or runtime package (emxrt.zip)
       http://hobbes.nmsu.edu, http://www.leo.org
 
   - XFree86 for OS/2, including its development package(s)
       http://borneo.gmd.de/~veit/os2/xf86os2.html
 
-  - LessTif for XFree/2 (version 0.91.8 or above)
+  - LessTif for XFree/2 (version 0.92.26 or above)
       http://www.tu-darmstadt.de/~st002279/os2/lesstif.html
 
-  - libXbae (for LessTif)
+  - libXbae (for LessTif; see above for version information)
       http://www.tu-darmstadt.de/~st002279/os2/lesstif.html
 
   - t1lib for XFree/2
       http://www.tu-darmstadt.de/~st002279/os2/tools.html
 
-  - pdflib for XFree/2
+  - pdflib for XFree/2 (versions 3.0.x)
       http://www.tu-darmstadt.de/~st002279/os2/tools.html
 
 
@@ -75,7 +75,7 @@
     - fftw library:     Fast Fourier transformations
 
   By now the supplied configure script may not work under OS/2
-  (even using the existing Autoconf port). As a small replacement I offer
+  (even using the existing Autoconf 2.13 port). As a small replacement I offer
   a small REXX-script 'configos2.cmd' which should
 
     - copy standard OS/2 configuration files (config.h and Make.conf)
@@ -84,9 +84,9 @@
       functions in dynamic load libraries = DLLs)
     - build the complete package
 
-  configos2.cmd is located in .\arch\os2 and has to be copied
+  configos2.cmd is located in arch/os2 and has to be copied
   to the toplevel source directory before executing it.
-  Please check .\arch\os2\config.h.os2 and .\arch\os2\Make.conf.os2
+  Please check arch/os2/config.h.os2 and arch/os2/Make.conf.os2
   and modify them if necessary. Especially make changes to
   make use of pre-installed libraries like T1lib and fftw.
   Finally this script wil call 'x11make.exe'.
@@ -99,11 +99,11 @@
 3) How to install
    ---------------
 
-  At this moment the OS/2 Makefiles don't offer an installation target.
+  So far the OS/2 Makefiles don't offer an installation target.
   You have to do it manually ...
 
   The binary distribution archive can just be unpacked and will
-  fit in the tree below $(X11ROOT)\. I supply a small REXX-script 
+  fit in the tree below $(X11ROOT). I supply a small REXX-script 
   'xmgrace1.cmd' which sets up the necessary environment variable(s)
   so that xmgrace runs fine within this setup.
   Check out the webpage or section 2) How to build Grace for
@@ -118,9 +118,10 @@
   and do the further processing (e.g. running Ghostscript) manually.
   The document on
     http://www.tu-darmstadt.de/~st002279/os2/printing.html
-  is still work in progress but may contain useful hints as well.
+  is however still work in progress.
 
 
----
+-- 
 Alexander Mai
 st002279@hrzpub.tu-darmstadt.de
+amai@lesstif.org
