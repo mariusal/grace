@@ -95,6 +95,7 @@ static int ps_initgraphics(int format)
     int i, j;
     Page_geometry pg;
     fRGB *frgb;
+    int page_offset_x, page_offset_y;
     
     time_t time_value;
     
@@ -146,10 +147,14 @@ static int ps_initgraphics(int format)
     case PS_FORMAT:
         fprintf(prstream, "%%!PS-Adobe-3.0\n");
         tight_bb = FALSE;
+        page_offset_x = ps_setup_offset_x;
+        page_offset_y = ps_setup_offset_y;
         break;
     case EPS_FORMAT:
         fprintf(prstream, "%%!PS-Adobe-3.0 EPSF-3.0\n");
         tight_bb = eps_setup_tight_bb;
+        page_offset_x = 0;
+        page_offset_y = 0;
         break;
     default:
         errmsg("Invalid PS format");
@@ -160,13 +165,17 @@ static int ps_initgraphics(int format)
         fprintf(prstream, "%%%%BoundingBox: (atend)\n");
     } else {
         if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
-            fprintf(prstream, "%%%%BoundingBox: 0 0 %d %d\n", 
-                                            (int) (72.0*pg.height/pg.dpi_y),
-                                            (int) (72.0*pg.width/pg.dpi_x));
+            fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n", 
+                page_offset_x,
+                page_offset_y,
+                (int) (72.0*pg.height/pg.dpi_y) + page_offset_x,
+                (int) (72.0*pg.width/pg.dpi_x)  + page_offset_y);
         } else {
-            fprintf(prstream, "%%%%BoundingBox: 0 0 %d %d\n", 
-                                            (int) (72.0*pg.width/pg.dpi_x),
-                                            (int) (72.0*pg.height/pg.dpi_y));
+            fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n", 
+                page_offset_x,
+                page_offset_y,
+                (int) (72.0*pg.width/pg.dpi_x)  + page_offset_x,
+                (int) (72.0*pg.height/pg.dpi_y) + page_offset_y);
         }
     }
     
@@ -199,8 +208,8 @@ static int ps_initgraphics(int format)
     /* Definitions */
     fprintf(prstream, "%%%%BeginProlog\n");
     if (curformat == PS_FORMAT) {
-        fprintf(prstream, "/PAGE_OFFSET_X %d def\n", ps_setup_offset_x);
-        fprintf(prstream, "/PAGE_OFFSET_Y %d def\n", ps_setup_offset_y);
+        fprintf(prstream, "/PAGE_OFFSET_X %d def\n", page_offset_x);
+        fprintf(prstream, "/PAGE_OFFSET_Y %d def\n", page_offset_y);
     }
     fprintf(prstream, "/m {moveto} def\n");
     fprintf(prstream, "/l {lineto} def\n");
