@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -109,7 +109,7 @@ int register_pdf_drv(Canvas *canvas)
     return register_device(canvas, &dev_pdf);
 }
 
-int pdfinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
+int pdfinitgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     int i;
     Page_geometry *pg;
@@ -345,7 +345,7 @@ void pdf_setlineprops(const Canvas *canvas)
     }
 }
 
-void pdf_drawpixel(const Canvas *canvas, const VPoint *vp)
+void pdf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
 {
     Pen pen;
 
@@ -380,7 +380,8 @@ void pdf_poly_path(const VPoint *vps, int n)
     }
 }
 
-void pdf_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
+void pdf_drawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode)
 {
     if (getlinestyle(canvas) == 0) {
         return;
@@ -398,7 +399,8 @@ void pdf_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
     }
 }
 
-void pdf_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
+void pdf_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc)
 {
     Pen pen;
 
@@ -461,7 +463,7 @@ void pdf_arc_path(const VPoint *vp1, const VPoint *vp2,
     }
 }
 
-void pdf_drawarc(const Canvas *canvas,
+void pdf_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     if (getlinestyle(canvas) == 0) {
@@ -475,7 +477,7 @@ void pdf_drawarc(const Canvas *canvas,
     PDF_restore(phandle);
 }
 
-void pdf_fillarc(const Canvas *canvas,
+void pdf_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     Pen pen;
@@ -506,7 +508,7 @@ void pdf_fillarc(const Canvas *canvas,
 }
 
 /* TODO: transparent pixmaps */
-void pdf_putpixmap(const Canvas *canvas,
+void pdf_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
@@ -604,7 +606,7 @@ static int pdf_builtin_font(const char *fname)
     return FALSE;
 }
 
-void pdf_puttext(const Canvas *canvas,
+void pdf_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning)
 {
@@ -659,7 +661,8 @@ void pdf_puttext(const Canvas *canvas,
     PDF_restore(phandle);
 }
 
-void pdf_leavegraphics(const Canvas *canvas, const CanvasStats *cstats)
+void pdf_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
 {
     view v;
     v = cstats->bbox;
@@ -694,7 +697,7 @@ static void pdf_error_handler(PDF *p, int type, const char *msg)
     }
 }
 
-int pdf_op_parser(const Canvas *canvas, const char *opstring)
+int pdf_op_parser(const Canvas *canvas, void *data, const char *opstring)
 {
     if (!strcmp(opstring, "compatibility:PDF-1.2")) {
         pdf_setup_compat = PDF_1_2;
@@ -757,7 +760,7 @@ static SpinStructure *pdf_setup_compression_item;
 static SpinStructure *pdf_setup_fpprec_item;
 static OptionStructure *pdf_setup_colorspace_item;
 
-void pdf_gui_setup(const Canvas *canvas)
+void pdf_gui_setup(const Canvas *canvas, void *data)
 {
     set_wait_cursor();
     

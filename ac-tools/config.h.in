@@ -332,6 +332,9 @@
 /* Define if PNG library is available */
 #undef HAVE_LIBPNG
 
+/* Define if XMI library is available */
+#undef HAVE_LIBXMI
+
 /* Define if JPEG library is available */
 #undef HAVE_LIBJPEG
 

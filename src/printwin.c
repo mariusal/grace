@@ -601,7 +601,7 @@ void create_devopts_popup(void *data)
         /* Should never come to here */
         errmsg("No options can be set for this device");
     } else {
-        (dev->setup)(canvas);
+        (dev->setup)(canvas, dev->data);
     }
 }
 

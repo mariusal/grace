@@ -54,6 +54,9 @@ FFTW_LIB=@FFTW_LIB@
 # netCDF libraries
 NETCDF_LIBS=@NETCDF_LIBS@
 
+# XMI library
+XMI_LIB=@XMI_LIB@
+
 # JPEG library
 JPEG_LIB=@JPEG_LIB@
 

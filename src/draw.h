@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -139,6 +139,7 @@
 #define PAGE_ORIENT_LANDSCAPE  0
 #define PAGE_ORIENT_PORTRAIT   1
 
+#define INTENSITY(r, g, b) ((299*r + 587*g + 114*b)/1000)
 
 typedef struct {
     int red;
@@ -248,8 +249,8 @@ typedef struct {
 } FontStats;
 
 typedef struct {
-    int ncolors;
-    int *colors;
+    unsigned int ncolors;
+    unsigned int *colors;
     int npatterns;
     int *patterns;
     int nlinestyles;
@@ -262,38 +263,40 @@ typedef struct {
 typedef struct _Canvas Canvas;
 
 /* function to initialize device */
-typedef int (*DevInitProc)(const Canvas *canvas, const CanvasStats *cstats);
+typedef int (*DevInitProc)(const Canvas *canvas, void *data,
+    const CanvasStats *cstats);
 /* function to parse device-specific commands */
-typedef int (*DevParserProc)(const Canvas *canvas, const char *s);
+typedef int (*DevParserProc)(const Canvas *canvas, void *data, const char *s);
 /* function (GUI interface) to setup device */
-typedef void (*DevSetupProc)(const Canvas *canvas);
+typedef void (*DevSetupProc)(const Canvas *canvas, void *data);
 /* update color map */
-typedef void (*DevUpdateCmapProc)(const Canvas *canvas);
+typedef void (*DevUpdateCmapProc)(const Canvas *canvas, void *data);
 /* device exit */
-typedef void (*DevLeaveGraphicsProc)(const Canvas *canvas,
+typedef void (*DevLeaveGraphicsProc)(const Canvas *canvas, void *data,
     const CanvasStats *cstats);
 
 
 /* device pixel routine */
-typedef void (*DevDrawPixelProc)(const Canvas *canvas, const VPoint *vp);
+typedef void (*DevDrawPixelProc)(const Canvas *canvas, void *data,
+    const VPoint *vp);
 /* device polyline routine */
-typedef void (*DevDrawPolyLineProc)(const Canvas *canvas,
+typedef void (*DevDrawPolyLineProc)(const Canvas *canvas, void *data,
     const VPoint *vps, int n, int mode);
 /* device polygon routine */
-typedef void (*DevFillPolygonProc)(const Canvas *canvas,
+typedef void (*DevFillPolygonProc)(const Canvas *canvas, void *data,
     const VPoint *vps, int nc);
 /* device arc routine */
-typedef void (*DevDrawArcProc)(const Canvas *canvas,
+typedef void (*DevDrawArcProc)(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2);
 /* device fill arc routine */
-typedef void (*DevFillArcProc)(const Canvas *canvas,
+typedef void (*DevFillArcProc)(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
 /* device pixmap drawing */
-typedef void (*DevPutPixmapProc)(const Canvas *canvas,
+typedef void (*DevPutPixmapProc)(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type);
 /* device text typesetting */
-typedef void (*DevPutTextProc)(const Canvas *canvas,
+typedef void (*DevPutTextProc)(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);
 
@@ -383,6 +386,28 @@ typedef struct {
     
     void *data;                            /* device private data */
 } Device_entry;
+
+typedef struct {
+    unsigned int width;
+    unsigned int height;
+    unsigned int **matrix;
+} Xrst_pixmap;
+
+typedef int (*XrstDumpProc)(const Canvas *canvas, void *data,
+    unsigned int ncolors, unsigned int *colors, Xrst_pixmap *pm);
+
+typedef struct _XrstDevice_entry {
+    int           type;
+    char          *name;
+    char          *fext;
+    int           fontaa;
+    DevParserProc parser;
+    DevSetupProc  setup;
+    
+    XrstDumpProc  dump;
+    
+    void          *data; /* device private data */
+} XrstDevice_entry;
 
 
 /* Canvas */
@@ -596,14 +621,15 @@ LineStyle *canvas_get_linestyle(const Canvas *canvas, unsigned int n);
 void initialize_linestyles(Canvas *canvas);
 
 int register_device(Canvas *canvas, Device_entry *device);
+
+int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev);
+
 int select_device(Canvas *canvas, int dindex);
 
 Device_entry *get_device_props(const Canvas *canvas, int device);
 Device_entry *get_curdevice_props(const Canvas *canvas);
 
 char *get_device_name(const Canvas *canvas, int device);
-
-void *get_curdevice_data(const Canvas *canvas);
 
 int is_valid_page_geometry(const Page_geometry *pg);
 int set_page_geometry(Canvas *canvas, const Page_geometry *pg);

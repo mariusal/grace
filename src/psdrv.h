@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -59,36 +59,41 @@ typedef struct {
 #define FONT_EMBED_BUT35   2
 #define FONT_EMBED_ALL     3
 
-int psprintinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
-int epsinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
+int psprintinitgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats);
+int epsinitgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats);
 
-void ps_drawpixel(const Canvas *canvas, const VPoint *vp);
-void ps_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
-void ps_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc);
-void ps_drawarc(const Canvas *canvas,
+void ps_drawpixel(const Canvas *canvas, void *data, const VPoint *vp);
+void ps_drawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode);
+void ps_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc);
+void ps_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2);
-void ps_fillarc(const Canvas *canvas,
+void ps_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
-void ps_putpixmap(const Canvas *canvas,
+void ps_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void ps_puttext(const Canvas *canvas,
+void ps_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);
 
-void ps_leavegraphics(const Canvas *canvas, const CanvasStats *cstats);
+void ps_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats);
 
-int ps_op_parser(const Canvas *canvas, const char *opstring);
-int eps_op_parser(const Canvas *canvas, const char *opstring);
+int ps_op_parser(const Canvas *canvas, void *data, const char *opstring);
+int eps_op_parser(const Canvas *canvas, void *data, const char *opstring);
 
 #if defined(NONE_GUI)
 #  define ps_gui_setup NULL
 #else
-void ps_gui_setup(const Canvas *canvas);
+void ps_gui_setup(const Canvas *canvas, void *data);
 #endif
 
 #if defined(NONE_GUI)
 #  define eps_gui_setup NULL
 #else
-void eps_gui_setup(const Canvas *canvas);
+void eps_gui_setup(const Canvas *canvas, void *data);
 #endif

@@ -163,12 +163,15 @@ int main(int argc, char *argv[])
 #endif
     register_mif_drv(canvas);
     register_svg_drv(canvas);
+
+#ifdef HAVE_LIBXMI
     register_pnm_drv(canvas);
-#ifdef HAVE_LIBJPEG
+#  ifdef HAVE_LIBJPEG
     register_jpg_drv(canvas);
-#endif
-#ifdef HAVE_LIBPNG
+#  endif
+#  ifdef HAVE_LIBPNG
     register_png_drv(canvas);
+#  endif
 #endif
 
     register_mf_drv(canvas);

@@ -70,6 +70,7 @@ t1fonts$(O) : t1fonts.c globals.h grace.h defines.h storage.h draw.h dict3.h \
   utils.h files.h protos.h missing.h noxprotos.h graphs.h xprotos.h
 device$(O) : device.c ../cmath.h defines.h graphutils.h grace.h storage.h \
   draw.h dict3.h utils.h
+dummydrv$(O) : dummydrv.c defines.h draw.h devlist.h dummydrv.h
 mfdrv$(O) : mfdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
   devlist.h mfdrv.h
 mifdrv$(O) : mifdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
@@ -82,11 +83,15 @@ pdfdrv$(O) : pdfdrv.c ../cmath.h defines.h utils.h grace.h storage.h draw.h \
   xprotos.h motifinc.h
 svgdrv$(O) : svgdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
   ../cmath.h graphs.h devlist.h svgdrv.h
-gd$(O) : gd.c gd.h
-rstdrv$(O) : rstdrv.c ../cmath.h defines.h utils.h grace.h storage.h draw.h \
-  dict3.h devlist.h rstdrv.h protos.h missing.h noxprotos.h graphs.h \
-  xprotos.h gd.h motifinc.h
-dummydrv$(O) : dummydrv.c defines.h draw.h devlist.h dummydrv.h
+xrstdrv$(O) : xrstdrv.c utils.h grace.h defines.h storage.h draw.h dict3.h \
+  devlist.h xrstdrv.h
+pnmdrv$(O) : pnmdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
+  devlist.h motifinc.h protos.h missing.h noxprotos.h graphs.h xprotos.h
+jpgdrv$(O) : jpgdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
+  devlist.h motifinc.h protos.h missing.h noxprotos.h graphs.h xprotos.h
+pngdrv$(O) : pngdrv.c ../cmath.h defines.h utils.h grace.h storage.h draw.h \
+  dict3.h devlist.h motifinc.h protos.h missing.h noxprotos.h graphs.h \
+  xprotos.h
 storage$(O) : storage.c defines.h utils.h grace.h storage.h draw.h dict3.h
 dict3$(O) : dict3.c defines.h utils.h grace.h storage.h draw.h dict3.h
 dicts$(O) : dicts.c grace.h defines.h storage.h draw.h dict3.h graphs.h \

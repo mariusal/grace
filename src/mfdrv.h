@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -29,20 +29,24 @@
 
 #define GMF_VERSION "0.10"
 
-int mfinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
+int mfinitgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats);
 
-void mf_drawpixel(const Canvas *canvas, const VPoint *vp);
-void mf_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
-void mf_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc);
-void mf_drawarc(const Canvas *canvas,
+void mf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp);
+void mf_drawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode);
+void mf_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc);
+void mf_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2);
-void mf_fillarc(const Canvas *canvas,
+void mf_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
-void mf_putpixmap(const Canvas *canvas,
+void mf_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void mf_puttext(const Canvas *canvas,
+void mf_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);
 
-void mf_leavegraphics(const Canvas *canvas, const CanvasStats *cstats);
+void mf_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats);

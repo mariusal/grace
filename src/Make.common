@@ -16,8 +16,9 @@ GRSRCS =  main.c grace.c project.c \
 	graphs.c graphutils.c setutils.c regionutils.c \
 	objutils.c computils.c defaults.c \
 	dlmodule.c missing.c alloca.c \
-	iofilters.c dates.c t1fonts.c device.c mfdrv.c \
-	mifdrv.c psdrv.c pdfdrv.c svgdrv.c gd.c rstdrv.c dummydrv.c \
+	iofilters.c dates.c t1fonts.c device.c \
+	dummydrv.c mfdrv.c mifdrv.c psdrv.c pdfdrv.c svgdrv.c \
+	xrstdrv.c pnmdrv.c jpgdrv.c pngdrv.c \
 	storage.c dict3.c dicts.c mathstuff.c bi.c
 
 
@@ -29,9 +30,9 @@ GROBJS =  main$(O) grace$(O) project$(O) \
 	objutils$(O) computils$(O) defaults$(O) \
 	dlmodule$(O) $(PARS_O) missing$(O) $(ALLOCA) \
 	iofilters$(O) dates$(O) t1fonts$(O) device$(O) \
-	dummydrv$(O) mfdrv$(O) mifdrv$(O) psdrv$(O) \
-	pdfdrv$(O) svgdrv$(O) gd$(O) rstdrv$(O) storage$(O) dict3$(O) \
-	dicts$(O) mathstuff$(O) bi$(O)
+	dummydrv$(O) mfdrv$(O) mifdrv$(O) psdrv$(O) pdfdrv$(O) svgdrv$(O) \
+	xrstdrv$(O) pnmdrv$(O) jpgdrv$(O) pngdrv$(O) \
+	storage$(O) dict3$(O) dicts$(O) mathstuff$(O) bi$(O)
 
 # The following are for a GUI
 #

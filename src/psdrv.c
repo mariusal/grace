@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -768,7 +768,7 @@ void ps_setlineprops(const Canvas *canvas)
     }
 }
 
-void ps_drawpixel(const Canvas *canvas, const VPoint *vp)
+void ps_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
 {
     Pen pen;
     getpen(canvas, &pen);
@@ -790,7 +790,8 @@ void ps_drawpixel(const Canvas *canvas, const VPoint *vp)
     fprintf(canvas->prstream, "%.4f %.4f PXL\n", vp->x, vp->y);
 }
 
-void ps_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
+void ps_drawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode)
 {
     int i;
     
@@ -810,7 +811,8 @@ void ps_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
     fprintf(canvas->prstream, "s\n");
 }
 
-void ps_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
+void ps_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc)
 {
     int i;
     Pen pen;
@@ -847,7 +849,7 @@ void ps_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
     }
 }
 
-void ps_drawarc(const Canvas *canvas,
+void ps_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     VPoint vpc;
@@ -864,7 +866,7 @@ void ps_drawarc(const Canvas *canvas,
                        vpc.x, vpc.y, rx, ry, a1, a2);
 }
 
-void ps_fillarc(const Canvas *canvas,
+void ps_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     VPoint vpc;
@@ -905,7 +907,7 @@ void ps_fillarc(const Canvas *canvas,
     fprintf(canvas->prstream, "fill\n");
 }
 
-void ps_putpixmap(const Canvas *canvas,
+void ps_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
@@ -1035,7 +1037,7 @@ void ps_putpixmap(const Canvas *canvas,
     fprintf(canvas->prstream, "GR\n");
 }
 
-void ps_puttext(const Canvas *canvas,
+void ps_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning)
 {
@@ -1100,7 +1102,8 @@ void ps_puttext(const Canvas *canvas,
 }
 
 
-void ps_leavegraphics(const Canvas *canvas, const CanvasStats *cstats)
+void ps_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
 {
     if (curformat == PS_FORMAT) {
         fprintf(canvas->prstream, "showpage\n");
@@ -1153,7 +1156,8 @@ static void put_string(FILE *fp, const char *s, int len)
     fputc(')', fp);
 }
 
-int psprintinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
+int psprintinitgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
 {
     int result;
     
@@ -1170,7 +1174,7 @@ int psprintinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
     return (result);
 }
 
-int epsinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
+int epsinitgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     int result;
     
@@ -1187,7 +1191,7 @@ int epsinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
     return (result);
 }
 
-int ps_op_parser(const Canvas *canvas, const char *opstring)
+int ps_op_parser(const Canvas *canvas, void *data, const char *opstring)
 {
     if (!strcmp(opstring, "level2")) {
         ps_setup_level2 = TRUE;
@@ -1251,7 +1255,7 @@ int ps_op_parser(const Canvas *canvas, const char *opstring)
     }
 }
 
-int eps_op_parser(const Canvas *canvas, const char *opstring)
+int eps_op_parser(const Canvas *canvas, void *data, const char *opstring)
 {
     if (!strcmp(opstring, "level2")) {
         eps_setup_level2 = TRUE;
@@ -1326,7 +1330,7 @@ static void colorspace_cb(int onoff, void *data)
     }
 }
 
-void ps_gui_setup(const Canvas *canvas)
+void ps_gui_setup(const Canvas *canvas, void *data)
 {
     set_wait_cursor();
     
@@ -1427,7 +1431,7 @@ static OptionStructure *eps_setup_colorspace_item;
 static OptionStructure *eps_setup_docdata_item;
 static OptionStructure *eps_setup_fonts_item;
 
-void eps_gui_setup(const Canvas *canvas)
+void eps_gui_setup(const Canvas *canvas, void *data)
 {
     set_wait_cursor();
     

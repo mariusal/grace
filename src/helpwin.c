@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -178,11 +178,6 @@ void create_about_grtool(void *data)
             "      Copyright (c) 1991, 1992 Bell Communications Research, Inc. (Bellcore)");
 	CreateLabel(rc,
             "      Copyright (c) 1995-1999 Andrew Lister");
-	CreateLabel(rc, "Raster driver based on the GD-1.3 library,");
-	CreateLabel(rc,
-            "      Portions copyright (c) 1994-1998 Cold Spring Harbor Laboratory");
-	CreateLabel(rc,
-            "      Portions copyright (c) 1996-1998 Boutell.Com, Inc");
 #ifdef HAVE_LIBPDF
 	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-2001 Thomas Merz");
 #endif

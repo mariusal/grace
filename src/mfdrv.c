@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -72,7 +72,7 @@ int register_mf_drv(Canvas *canvas)
     return register_device(canvas, &dev_mf);
 }
 
-int mfinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
+int mfinitgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     int i, j;
     Page_geometry *pg;
@@ -143,14 +143,15 @@ void mf_setdrawbrush(const Canvas *canvas)
     fprintf(canvas->prstream, "SetLineStyle { %d }\n", getlinestyle(canvas));
 }
 
-void mf_drawpixel(const Canvas *canvas, const VPoint *vp)
+void mf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
 {
     mf_setpen(canvas);
 
     fprintf(canvas->prstream, "DrawPixel { ( %.4f , %.4f ) }\n", vp->x, vp->y);
 }
 
-void mf_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
+void mf_drawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode)
 {
     int i;
     
@@ -169,7 +170,8 @@ void mf_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
     fprintf(canvas->prstream, "}\n");
 }
 
-void mf_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
+void mf_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc)
 {
     int i;
     
@@ -182,7 +184,7 @@ void mf_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
     fprintf(canvas->prstream, "}\n"); 
 }
 
-void mf_drawarc(const Canvas *canvas,
+void mf_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     mf_setpen(canvas);
@@ -193,7 +195,7 @@ void mf_drawarc(const Canvas *canvas,
         vp1->x, vp1->y, vp2->x, vp2->y, a1, a2);
 }
 
-void mf_fillarc(const Canvas *canvas,
+void mf_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     char *name;
@@ -210,7 +212,7 @@ void mf_fillarc(const Canvas *canvas,
         name, vp1->x, vp1->y, vp2->x, vp2->y, a1, a2);
 }
 
-void mf_putpixmap(const Canvas *canvas,
+void mf_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
@@ -263,7 +265,7 @@ void mf_putpixmap(const Canvas *canvas,
     fprintf(canvas->prstream, "}\n"); 
 }
 
-void mf_puttext(const Canvas *canvas,
+void mf_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning)
 {
@@ -286,7 +288,8 @@ void mf_puttext(const Canvas *canvas,
     fprintf(canvas->prstream, "}\n"); 
 }
 
-void mf_leavegraphics(const Canvas *canvas, const CanvasStats *cstats)
+void mf_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
 {
     view v = cstats->bbox;
     

@@ -209,11 +209,6 @@ char *get_device_name(const Canvas *canvas, int device)
     return canvas->device_table[device]->name;
 }
 
-void *get_curdevice_data(const Canvas *canvas)
-{
-    return canvas->curdevice->data;
-}
-
 int parse_device_options(Canvas *canvas, int dindex, char *options)
 {
     char *p, *oldp, opstring[64];
@@ -223,18 +218,19 @@ int parse_device_options(Canvas *canvas, int dindex, char *options)
             canvas->device_table[dindex]->parser == NULL) {
         return RETURN_FAILURE;
     } else {
+        Device_entry *dev = canvas->device_table[dindex];
         oldp = options;
         while ((p = strchr(oldp, ',')) != NULL) {
 	    n = MIN2((p - oldp), 64 - 1);
             strncpy(opstring, oldp, n);
             opstring[n] = '\0';
-            if (canvas->device_table[dindex]->parser(canvas, opstring) !=
+            if (dev->parser(canvas, dev->data, opstring) !=
                 RETURN_SUCCESS) {
                 return RETURN_FAILURE;
             }
             oldp = p + 1;
         }
-        return canvas->device_table[dindex]->parser(canvas, oldp);
+        return dev->parser(canvas, oldp, dev->data);
     }
 }
 

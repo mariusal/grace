@@ -27,20 +27,25 @@
 
 #include "defines.h"
 
-int svginitgraphics(const Canvas *canvas, const CanvasStats *cstats);
+int svginitgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats);
 
-void svg_drawpixel(const Canvas *canvas, const VPoint *vp);
-void svg_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
-void svg_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc);
-void svg_drawarc(const Canvas *canvas,
+void svg_drawpixel(const Canvas *canvas, void *data,
+    const VPoint *vp);
+void svg_drawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode);
+void svg_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc);
+void svg_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2);
-void svg_fillarc(const Canvas *canvas,
+void svg_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
-void svg_putpixmap(const Canvas *canvas,
+void svg_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void svg_puttext(const Canvas *canvas,
+void svg_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);
 
-void svg_leavegraphics(const Canvas *canvas, const CanvasStats *cstats);
+void svg_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats);

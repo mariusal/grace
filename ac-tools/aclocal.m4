@@ -589,6 +589,57 @@ AC_DEFUN(ACX_CHECK_PNG,
   fi
 ])dnl
 
+dnl ACX_CHECK_XMI
+dnl --------------
+AC_DEFUN(ACX_CHECK_XMI,
+[
+  AC_SUBST(XMI_LIB)
+  AC_ARG_WITH(xmi_library,
+  [  --with-xmi-library=OBJ       use OBJ as XMI library [-lxmi]],
+  xmi_library="$withval")
+  if test "x$xmi_library" = "x"
+  then
+    xmi_library=-lxmi
+  fi
+
+  AC_CACHE_CHECK( "for libxmi \>= $1", acx_cv_xmi,
+    AC_CACHE_VAL(acx_cv_xmi_library, acx_cv_xmi_library=$xmi_library)
+    ACX_SAVE_STATE
+    LIBS="$acx_cv_xmi_library $LIBS"
+    AC_TRY_RUN([
+#include <string.h>
+#include <xmi.h>
+      int main(void) {
+        char *vlib, *vinc;
+        vlib = mi_libxmi_ver;
+        vinc = MI_LIBXMI_VER_STRING;
+        if (strcmp(vinc, "[$1]") < 0) {
+          exit(1);
+        }
+        if (strcmp(vinc, vlib) != 0) {
+          exit(2);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_xmi="yes",
+      acx_cv_xmi="no",
+      acx_cv_xmi="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_xmi" = "yes"
+  then
+    AC_DEFINE(HAVE_LIBXMI)
+    XMI_LIB="$acx_cv_xmi_library"
+    $2
+  else
+    XMI_LIB=
+    $3
+  fi
+])dnl
+
 dnl ACX_CHECK_TIFF
 dnl --------------
 AC_DEFUN(ACX_CHECK_TIFF,

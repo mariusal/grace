@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -74,7 +74,7 @@ void canvas_dev_drawpixel(Canvas *canvas, const VPoint *vp)
 {
     canvas_stats_update(canvas, CANVAS_STATS_COLOR);
     if (!canvas->drypass) {
-        canvas->curdevice->drawpixel(canvas, vp);
+        canvas->curdevice->drawpixel(canvas, canvas->curdevice->data, vp);
     }
 }
 
@@ -83,7 +83,8 @@ void canvas_dev_drawpolyline(Canvas *canvas,
 {
     canvas_stats_update(canvas, CANVAS_STATS_LINE);
     if (!canvas->drypass) {
-        canvas->curdevice->drawpolyline(canvas, vps, n, mode);
+        canvas->curdevice->drawpolyline(canvas, canvas->curdevice->data,
+            vps, n, mode);
     }
 }
 
@@ -91,7 +92,8 @@ void canvas_dev_fillpolygon(Canvas *canvas, const VPoint *vps, int nc)
 {
     canvas_stats_update(canvas, CANVAS_STATS_PEN);
     if (!canvas->drypass) {
-        canvas->curdevice->fillpolygon(canvas, vps, nc);
+        canvas->curdevice->fillpolygon(canvas, canvas->curdevice->data,
+            vps, nc);
     }
 }
 
@@ -100,7 +102,8 @@ void canvas_dev_drawarc(Canvas *canvas,
 {
     canvas_stats_update(canvas, CANVAS_STATS_LINE);
     if (!canvas->drypass) {
-        canvas->curdevice->drawarc(canvas, vp1, vp2, a1, a2);
+        canvas->curdevice->drawarc(canvas, canvas->curdevice->data,
+            vp1, vp2, a1, a2);
     }
 }
 
@@ -109,7 +112,8 @@ void canvas_dev_fillarc(Canvas *canvas,
 {
     canvas_stats_update(canvas, CANVAS_STATS_PEN);
     if (!canvas->drypass) {
-        canvas->curdevice->fillarc(canvas, vp1, vp2, a1, a2, mode);
+        canvas->curdevice->fillarc(canvas, canvas->curdevice->data,
+            vp1, vp2, a1, a2, mode);
     }
 }
 
@@ -132,7 +136,7 @@ void canvas_dev_putpixmap(Canvas *canvas,
         }
     }
     if (!canvas->drypass) {
-        canvas->curdevice->putpixmap(canvas,
+        canvas->curdevice->putpixmap(canvas, canvas->curdevice->data,
             vp, width, height, databits, pixmap_bpp, bitmap_pad, pixmap_type);
     }
 }
@@ -147,7 +151,7 @@ void canvas_dev_puttext(Canvas *canvas,
         canvas_stats_update(canvas, CANVAS_STATS_PEN);
         canvas_char_stats_update(canvas, font, s, len);
         if (!canvas->drypass) {
-            canvas->curdevice->puttext(canvas,
+            canvas->curdevice->puttext(canvas, canvas->curdevice->data,
                 vp, s, len, font, tm, underline, overline, kerning);
         }
     }
@@ -405,7 +409,7 @@ int initgraphics(Canvas *canvas, const CanvasStats *cstats)
 {
     int retval;
     
-    retval = canvas->curdevice->init(canvas, cstats);
+    retval = canvas->curdevice->init(canvas, canvas->curdevice->data, cstats);
     
     if (retval == RETURN_SUCCESS) {
         canvas->device_ready = TRUE;
@@ -418,7 +422,7 @@ int initgraphics(Canvas *canvas, const CanvasStats *cstats)
 
 void leavegraphics(Canvas *canvas, const CanvasStats *cstats)
 {
-    canvas->curdevice->leavegraphics(canvas, cstats);
+    canvas->curdevice->leavegraphics(canvas, canvas->curdevice->data, cstats);
     canvas->device_ready = FALSE;
 }
 
@@ -1309,7 +1313,7 @@ int store_color(Canvas *canvas, int n, const CMap_entry *cmap)
                 
         /* inform current device of changes in the cmap database */
         if (canvas->device_ready && canvas->curdevice->updatecmap != NULL) {
-            canvas->curdevice->updatecmap(canvas);
+            canvas->curdevice->updatecmap(canvas, canvas->curdevice->data);
         }
         if (cmap->ctype == COLOR_MAIN) {
             ReqUpdateColorSel = TRUE;

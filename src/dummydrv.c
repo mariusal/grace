@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -69,24 +69,26 @@ int register_dummy_drv(Canvas *canvas)
     return register_device(canvas, &dev_dummy);
 }
 
-int dummyinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
+int dummyinitgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     return RETURN_SUCCESS;
 }
 
-void dummy_drawpixel(const Canvas *canvas, const VPoint *vp){}
-void dummy_drawpolyline(const Canvas *canvas,
+void dummy_drawpixel(const Canvas *canvas, void *data, const VPoint *vp){}
+void dummy_drawpolyline(const Canvas *canvas, void *data,
     const VPoint *vps, int n, int mode){}
-void dummy_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc){}
-void dummy_drawarc(const Canvas *canvas,
+void dummy_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc){}
+void dummy_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2){}
-void dummy_fillarc(const Canvas *canvas,
+void dummy_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode){}
-void dummy_putpixmap(const Canvas *canvas,
+void dummy_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, 
     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type){}
-void dummy_puttext(const Canvas *canvas,
+void dummy_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font,
     const TextMatrix *tm, int underline, int overline, int kerning){}
 
-void dummy_leavegraphics(const Canvas *canvas, const CanvasStats *cstats){}
+void dummy_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats){}

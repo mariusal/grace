@@ -571,6 +571,10 @@ then
   ACX_CHECK_ZLIB(1.0.3)
 fi
 
+dnl **** check for libxmi - needed for all raster drivers
+ACX_CHECK_XMI(1.2, , jpegdrv = false;pngdrv = false;
+    AC_MSG_RESULT(--> all raster drivers are disabled))
+
 dnl **** check for IJG's libjpeg - also, for PDF driver and XmHTML
 if test $jpegdrv = true || test $pdfdrv = true || test $xmhtml = true
 then

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -41,28 +41,32 @@ typedef enum {
 
 #define DEFAULT_COLORSPACE  COLORSPACE_RGB
 
-int pdfinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
+int pdfinitgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats);
 
-void pdf_drawpixel(const Canvas *canvas, const VPoint *vp);
-void pdf_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
-void pdf_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc);
-void pdf_drawarc(const Canvas *canvas,
+void pdf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp);
+void pdf_drawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode);
+void pdf_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc);
+void pdf_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2);
-void pdf_fillarc(const Canvas *canvas,
+void pdf_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
-void pdf_putpixmap(const Canvas *canvas,
+void pdf_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void pdf_puttext(const Canvas *canvas,
+void pdf_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);
 
-void pdf_leavegraphics(const Canvas *canvas, const CanvasStats *cstats);
+void pdf_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats);
 
-int pdf_op_parser(const Canvas *canvas, const char *opstring);
+int pdf_op_parser(const Canvas *canvas, void *data, const char *opstring);
 
 #if defined(NONE_GUI)
 #  define pdf_gui_setup NULL
 #else
-void pdf_gui_setup(const Canvas *canvas);
+void pdf_gui_setup(const Canvas *canvas, void *data);
 #endif

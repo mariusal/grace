@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -110,24 +110,24 @@ static Svg_data *init_svg_data(const Canvas *canvas)
 /*
  * convert coordinate system
  */
-static double convertX (const Svg_data *data, double x)
+static double convertX (const Svg_data *svgdata, double x)
 {
-    return x*data->side;
+    return x*svgdata->side;
 }
 
-static double convertY (const Svg_data *data, double y)
+static double convertY (const Svg_data *svgdata, double y)
 {
-    return (1.0 - y)*data->side;
+    return (1.0 - y)*svgdata->side;
 }
 
-static double convertW (const Svg_data *data, double width)
+static double convertW (const Svg_data *svgdata, double width)
 {
-    return width*data->side;
+    return width*svgdata->side;
 }
 
-static double convertH (const Svg_data *data, double height)
+static double convertH (const Svg_data *svgdata, double height)
 {
-    return height*data->side;
+    return height*svgdata->side;
 }
 
 int register_svg_drv(Canvas *canvas)
@@ -143,32 +143,32 @@ int register_svg_drv(Canvas *canvas)
     return register_device(canvas, &dev_svg);
 }
 
-static void define_pattern(Svg_data *data, int i)
+static void define_pattern(Svg_data *svgdata, int i)
 {
 #ifndef EXPERIMENTAL_SVG_PATTERNS
-    data->pattern_full[i]  = TRUE;
-    data->pattern_defined[i] = TRUE;
+    svgdata->pattern_full[i]  = TRUE;
+    svgdata->pattern_defined[i] = TRUE;
     return;
 #else
     int j, k, l;
 
-    if (data->pattern_defined[i] == TRUE) {
+    if (svgdata->pattern_defined[i] == TRUE) {
         return;
     }
 
     /* testing if the pattern is either empty or full */
-    data->pattern_empty[i] = TRUE;
-    data->pattern_full[i]  = TRUE;
+    svgdata->pattern_empty[i] = TRUE;
+    svgdata->pattern_full[i]  = TRUE;
     for (j = 0; j < 32; j++) {
         if (pat_bits[i][j] != 0x00) {
-            data->pattern_empty[i] = FALSE;
+            svgdata->pattern_empty[i] = FALSE;
         }
         if (pat_bits[i][j] != 0xff) {
-            data->pattern_full[i] = FALSE;
+            svgdata->pattern_full[i] = FALSE;
         }
     }
 
-    if (data->pattern_empty[i] != TRUE && data->pattern_full[i] != TRUE) {
+    if (svgdata->pattern_empty[i] != TRUE && svgdata->pattern_full[i] != TRUE) {
         /* this is an horrible hack ! */
         /* we define pixels as squares in vector graphics */
         fprintf(canvas->prstream,
@@ -189,7 +189,7 @@ static void define_pattern(Svg_data *data, int i)
         fprintf(canvas->prstream, "   </pattern>\n  </defs>\n");
     }
 
-    data->pattern_defined[i] = TRUE;
+    svgdata->pattern_defined[i] = TRUE;
 #endif
 }
 
@@ -240,41 +240,40 @@ static char *escape_specials(unsigned char *s, int len)
     return (es);
 }
 
-int svginitgraphics(const Canvas *canvas, const CanvasStats *cstats)
+int svginitgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
 {
-    Svg_data *data;
+    Svg_data *svgdata = (Svg_data *) data;
     int i;
 
-    data = get_curdevice_data(canvas);
-    
-    data->pattern_defined = NULL;
-    data->pattern_empty = NULL;
-    data->pattern_full = NULL;
+    svgdata->pattern_defined = NULL;
+    svgdata->pattern_empty = NULL;
+    svgdata->pattern_full = NULL;
 
-    data->side = MIN2(page_width_pp(canvas), page_height_pp(canvas));
+    svgdata->side = MIN2(page_width_pp(canvas), page_height_pp(canvas));
 
-    data->pattern_defined = 
-        xrealloc(data->pattern_defined, number_of_patterns(canvas)*SIZEOF_INT);
-    data->pattern_empty   =
-        xrealloc(data->pattern_empty,   number_of_patterns(canvas)*SIZEOF_INT);
-    data->pattern_full    =
-        xrealloc(data->pattern_full,    number_of_patterns(canvas)*SIZEOF_INT);
+    svgdata->pattern_defined = 
+        xrealloc(svgdata->pattern_defined, number_of_patterns(canvas)*SIZEOF_INT);
+    svgdata->pattern_empty   =
+        xrealloc(svgdata->pattern_empty,   number_of_patterns(canvas)*SIZEOF_INT);
+    svgdata->pattern_full    =
+        xrealloc(svgdata->pattern_full,    number_of_patterns(canvas)*SIZEOF_INT);
     for (i = 0; i < number_of_patterns(canvas); i++) {
-        data->pattern_defined[i] = FALSE;
-        data->pattern_empty[i]   = FALSE;
-        data->pattern_full[i]    = FALSE;
+        svgdata->pattern_defined[i] = FALSE;
+        svgdata->pattern_empty[i]   = FALSE;
+        svgdata->pattern_full[i]    = FALSE;
     }
 
-    data->group_is_open = FALSE;
-    data->line_width    = 0.0;
-    data->pen.color     = 0;
-    data->pen.pattern   = 0;
-    data->fillrule      = 0;
-    data->linecap       = 0;
-    data->linejoin      = 0;
-    data->linestyle     = 0;
-    data->draw          = FALSE;
-    data->fill          = FALSE;
+    svgdata->group_is_open = FALSE;
+    svgdata->line_width    = 0.0;
+    svgdata->pen.color     = 0;
+    svgdata->pen.pattern   = 0;
+    svgdata->fillrule      = 0;
+    svgdata->linecap       = 0;
+    svgdata->linejoin      = 0;
+    svgdata->linestyle     = 0;
+    svgdata->draw          = FALSE;
+    svgdata->fill          = FALSE;
 
     fprintf(canvas->prstream, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
     fprintf(canvas->prstream, "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20000303 Stylable//EN\"");
@@ -296,7 +295,8 @@ int svginitgraphics(const Canvas *canvas, const CanvasStats *cstats)
     return RETURN_SUCCESS;
 }
 
-static void svg_group_props(const Canvas *canvas, int draw, int fill)
+static void svg_group_props(const Canvas *canvas, Svg_data *svgdata,
+    int draw, int fill)
 {
     int i, needs_group;
     double lw;
@@ -304,50 +304,47 @@ static void svg_group_props(const Canvas *canvas, int draw, int fill)
     int fillrule, linecap, linejoin, linestyle;
     RGB rgb;
     int red, green, blue;
-    Svg_data *data;
-
-    data = (Svg_data *) get_curdevice_data(canvas);
 
     /* do we need to redefine a group with new properties ? */
-    needs_group = (data->group_is_open == TRUE) ? FALSE : TRUE;
-    lw        = data->side*getlinewidth(canvas);
+    needs_group = (svgdata->group_is_open == TRUE) ? FALSE : TRUE;
+    lw        = svgdata->side*getlinewidth(canvas);
     fillrule  = getfillrule(canvas);
     linecap   = getlinecap(canvas);
     linejoin  = getlinejoin(canvas);
     linestyle = getlinestyle(canvas);
-    if (fabs(lw - data->line_width) >= 1.0e-6*(1.0 + fabs(data->line_width))) {
+    if (fabs(lw - svgdata->line_width) >= 1.0e-6*(1.0 + fabs(svgdata->line_width))) {
         needs_group = TRUE;
     }
     getpen(canvas, &pen);
-    if ((pen.color != data->pen.color) || (pen.pattern != data->pen.pattern)) {
+    if ((pen.color != svgdata->pen.color) || (pen.pattern != svgdata->pen.pattern)) {
         needs_group = TRUE;
     }
-    if (fillrule != data->fillrule) {
+    if (fillrule != svgdata->fillrule) {
         needs_group = TRUE;
     }
-    if (linecap != data->linecap) {
+    if (linecap != svgdata->linecap) {
         needs_group = TRUE;
     }
-    if (linejoin != data->linejoin) {
+    if (linejoin != svgdata->linejoin) {
         needs_group = TRUE;
     }
-    if (linestyle != data->linestyle) {
+    if (linestyle != svgdata->linestyle) {
         needs_group = TRUE;
     }
-    if ((draw != data->draw) || (fill != data->fill)) {
+    if ((draw != svgdata->draw) || (fill != svgdata->fill)) {
         needs_group = TRUE;
     }
 
     if (needs_group == TRUE) {
         /* we need to write the characteristics of the group */
 
-        if (data->group_is_open == TRUE) {
+        if (svgdata->group_is_open == TRUE) {
             /* first, we should close the preceding group */
             fprintf(canvas->prstream, "  </g>\n");
-            data->group_is_open = FALSE;
+            svgdata->group_is_open = FALSE;
         }
 
-        define_pattern(data, pen.pattern);
+        define_pattern(svgdata, pen.pattern);
         if (get_rgb(canvas, pen.color, &rgb) == RETURN_SUCCESS) {
             red   = rgb.red   >> (GRACE_BPP - 8);
             green = rgb.green >> (GRACE_BPP - 8);
@@ -358,8 +355,8 @@ static void svg_group_props(const Canvas *canvas, int draw, int fill)
             blue  = 0;
         }
 
-        if (fill && data->pattern_empty[pen.pattern] != TRUE) {
-            if (data->pattern_full[pen.pattern] == TRUE) {
+        if (fill && svgdata->pattern_empty[pen.pattern] != TRUE) {
+            if (svgdata->pattern_full[pen.pattern] == TRUE) {
                 fprintf(canvas->prstream,
                     "  <g style=\"fill:#%2.2X%2.2X%2.2X", red, green, blue);
             } else {
@@ -430,38 +427,39 @@ static void svg_group_props(const Canvas *canvas, int draw, int fill)
         fprintf(canvas->prstream, "\">\n");
 
 
-        data->group_is_open = TRUE;
-        data->line_width    = lw;
-        data->pen           = pen;
-        data->fillrule      = fillrule;
-        data->linecap       = linecap;
-        data->linejoin      = linejoin;
-        data->linestyle     = linestyle;
-        data->draw          = draw;
-        data->fill          = fill;
+        svgdata->group_is_open = TRUE;
+        svgdata->line_width    = lw;
+        svgdata->pen           = pen;
+        svgdata->fillrule      = fillrule;
+        svgdata->linecap       = linecap;
+        svgdata->linejoin      = linejoin;
+        svgdata->linestyle     = linestyle;
+        svgdata->draw          = draw;
+        svgdata->fill          = fill;
     }
 }
 
-void svg_drawpixel(const Canvas *canvas, const VPoint *vp)
+void svg_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
 {
-    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
-    svg_group_props(canvas, FALSE, TRUE);
+    Svg_data *svgdata = (Svg_data *) data;
+    svg_group_props(canvas, svgdata, FALSE, TRUE);
     fprintf(canvas->prstream,
             "   <rect x=\"%.4f\" y=\"%.4f\" width=\"%.4f\" height=\"%.4f\"/>\n",
             convertX(data, vp->x), convertY(data, vp->y),
             convertW(data, 1.0), convertH(data, 1.0));
 }
 
-void svg_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
+void svg_drawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode)
 {
-    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
+    Svg_data *svgdata = (Svg_data *) data;
     int i;
 
     if (n <= 0) {
         return;
     }
 
-    svg_group_props(canvas, TRUE, FALSE);
+    svg_group_props(canvas, svgdata, TRUE, FALSE);
     fprintf(canvas->prstream, "   <path d=\"M%.4f,%.4f",
             convertX(data, vps[0].x), convertY(data, vps[0].y));
     for (i = 1; i < n; i++) {
@@ -479,16 +477,17 @@ void svg_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
 
 }
 
-void svg_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
+void svg_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc)
 {
-    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
+    Svg_data *svgdata = (Svg_data *) data;
     int i;
 
     if (nc <= 0) {
         return;
     }
 
-    svg_group_props(canvas, FALSE, TRUE);
+    svg_group_props(canvas, svgdata, FALSE, TRUE);
     fprintf(canvas->prstream, "   <path  d=\"M%.4f,%.4f",
             convertX(data, vps[0].x), convertY(data, vps[0].y));
     for (i = 1; i < nc; i++) {
@@ -501,10 +500,10 @@ void svg_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
     fprintf(canvas->prstream, "z\"/>\n");
 }
 
-void svg_drawarc(const Canvas *canvas,
+void svg_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
-    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
+    Svg_data *svgdata = (Svg_data *) data;
     VPoint center;
     double rx, ry;
 
@@ -517,7 +516,7 @@ void svg_drawarc(const Canvas *canvas,
     rx       = 0.5*fabs(vp2->x - vp1->x);
     ry       = 0.5*fabs(vp2->y - vp1->y);
 
-    svg_group_props(canvas, TRUE, FALSE);
+    svg_group_props(canvas, svgdata, TRUE, FALSE);
 
     if (a2 == 360.0) {
         fprintf(canvas->prstream,
@@ -545,10 +544,10 @@ void svg_drawarc(const Canvas *canvas,
     }
 }
 
-void svg_fillarc(const Canvas *canvas,
+void svg_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
-    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
+    Svg_data *svgdata = (Svg_data *) data;
     VPoint center;
     double rx, ry;
 
@@ -561,7 +560,7 @@ void svg_fillarc(const Canvas *canvas,
     rx       = 0.5*fabs(vp2->x - vp1->x);
     ry       = 0.5*fabs(vp2->y - vp1->y);
 
-    svg_group_props(canvas, FALSE, TRUE);
+    svg_group_props(canvas, svgdata, FALSE, TRUE);
 
     if (a2 == 360.0) {
         fprintf(canvas->prstream,
@@ -601,22 +600,22 @@ void svg_fillarc(const Canvas *canvas,
     }
 }
 
-void svg_putpixmap(const Canvas *canvas,
+void svg_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     /* not implemented yet */
 }
 
-void svg_puttext(const Canvas *canvas,
+void svg_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning)
 {
     char *fontalias, *dash, *family;
-    Svg_data *data = get_curdevice_data(canvas);
-    double fsize = data->side;
+    Svg_data *svgdata = (Svg_data *) data;
+    double fsize = svgdata->side;
 
-    svg_group_props(canvas, FALSE, TRUE);
+    svg_group_props(canvas, svgdata, FALSE, TRUE);
     
     fprintf(canvas->prstream, "   <text  ");
 
@@ -672,12 +671,13 @@ void svg_puttext(const Canvas *canvas,
     fprintf(canvas->prstream, "</text>\n");
 }
 
-void svg_leavegraphics(const Canvas *canvas, const CanvasStats *cstats)
+void svg_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
 {
-    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
-    if (data->group_is_open == TRUE) {
+    Svg_data *svgdata = (Svg_data *) data;
+    if (svgdata->group_is_open == TRUE) {
         fprintf(canvas->prstream, "  </g>\n");
-        data->group_is_open = FALSE;
+        svgdata->group_is_open = FALSE;
     }
     fprintf(canvas->prstream, "</svg>\n");
 }

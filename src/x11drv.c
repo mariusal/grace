@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -225,7 +225,7 @@ void xlibdev2VPoint(int x, int y, VPoint *vp)
 }
 
 
-void xlibupdatecmap(const Canvas *canvas)
+void xlibupdatecmap(const Canvas *canvas, void *data)
 {
     /* TODO: replace!!! */
     if (grace->gui->inwin) {
@@ -278,7 +278,8 @@ void xlibinitcmap(const Canvas *canvas)
     }
 }
 
-int xlibinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
+int xlibinitgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
 {
     int i, j;
     double step;
@@ -308,7 +309,7 @@ int xlibinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
     
     displaybuff = resize_bufpixmap(win_w, win_h);
     
-    xlibupdatecmap(canvas);
+    xlibupdatecmap(canvas, data);
     
     XSetForeground(disp, gc, xvlibcolors[0]);
     XFillRectangle(disp, displaybuff, gc, 0, 0, win_w, win_h);
@@ -441,7 +442,8 @@ void xlib_setdrawbrush(const Canvas *canvas)
     return;
 }
 
-void xlibdrawpixel(const Canvas *canvas, const VPoint *vp)
+void xlibdrawpixel(const Canvas *canvas, void *data,
+    const VPoint *vp)
 {
     XPoint xp;
     
@@ -450,7 +452,8 @@ void xlibdrawpixel(const Canvas *canvas, const VPoint *vp)
     XDrawPoint(disp, displaybuff, gc, xp.x, xp.y);
 }
 
-void xlibdrawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
+void xlibdrawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode)
 {
     int i, xn = n;
     XPoint *p;
@@ -479,7 +482,8 @@ void xlibdrawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
 }
 
 
-void xlibfillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
+void xlibfillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc)
 {
     int i;
     XPoint *p;
@@ -512,7 +516,7 @@ void xlibfillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 /*
  *  xlibdrawarc
  */
-void xlibdrawarc(const Canvas *canvas,
+void xlibdrawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     int x1, y1, x2, y2;
@@ -533,7 +537,7 @@ void xlibdrawarc(const Canvas *canvas,
 /*
  *  xlibfillarc
  */
-void xlibfillarc(const Canvas *canvas,
+void xlibfillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     int x1, y1, x2, y2;
@@ -559,7 +563,7 @@ void xlibfillarc(const Canvas *canvas,
 }
 
 
-void xlibputpixmap(const Canvas *canvas,
+void xlibputpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
@@ -677,7 +681,8 @@ void xlibputpixmap(const Canvas *canvas,
     }    
 }
 
-void xlibleavegraphics(const Canvas *canvas, const CanvasStats *cstats)
+void xlibleavegraphics(const Canvas *canvas, void *data, 
+    const CanvasStats *cstats)
 {
     int cg = get_cg();
     
