@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -50,6 +50,8 @@ extern int lmdif_(U_fp, integer *, integer *, doublereal *,
 	    doublereal *);
 
 static double *xp, *yp, *y_saved;
+static double *wts;
+static char *ra;
 
 int lmdif_drv(U_fp fcn, integer m, integer n, doublereal *x, 
 	doublereal *fvec, doublereal *tol, integer *iwa, 
@@ -139,7 +141,7 @@ void parms_to_a (double *a)
 }
 
 
-void fcn(int * m, int * n, double * x, double * fvec, 
+void fcn(int * m, int * n, double * x, double * fvec,
 		int * iflag)
 {
     int errpos;
@@ -156,9 +158,21 @@ void fcn(int * m, int * n, double * x, double * fvec,
     for (i = 0; i < *m; ++i) {
     	fvec[i] = yp[i] - y_saved[i];
     }
+    /* apply weigh function, if any */
+    if (wts != NULL) {
+         for (i = 0; i < *m; ++i) {
+             fvec[i] *= wts[i];
+         }
+    }
+    /* apply restriction, if any */
+    if (ra != NULL) {
+         for (i = 0; i < *m; ++i) {
+             fvec[i] *= ra[i];
+         }
+    }
 }
 
-int do_nonlfit(int gno, int setno, int nsteps)
+int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
 {
     int info = -1;
     double *fvec, *wa;
@@ -166,9 +180,10 @@ int do_nonlfit(int gno, int setno, int nsteps)
     integer lwa, iwa[MAXPARM];
     double a[MAXPARM];
     int parnum = nonl_opts.parnum;
+    char buf[128];
 
     if (set_parser_setno(gno, setno) != GRACE_EXIT_SUCCESS) {
-	return info;
+	return GRACE_EXIT_FAILURE;
     }
     n = getsetlength(gno, setno);
     
@@ -176,20 +191,20 @@ int do_nonlfit(int gno, int setno, int nsteps)
         
     fvec = (double *) calloc(n, sizeof(double));
     if (fvec == NULL) {
-	return info;
+	return GRACE_EXIT_FAILURE;
     }
       
     y_saved = (double *) calloc(n, sizeof(double));
     if (y_saved == NULL) {
 	free(fvec);
-	return info;
+	return GRACE_EXIT_FAILURE;
     }
 
     wa = (double *) calloc(lwa, sizeof(doublereal));
     if (wa == NULL) {
 	free(y_saved);
 	free(fvec);
-	return info;
+	return GRACE_EXIT_FAILURE;
     }
 
     xp = getx(gno, setno);
@@ -200,6 +215,20 @@ int do_nonlfit(int gno, int setno, int nsteps)
     }
    
     parms_to_a(a);
+    
+    ra = rarray;
+    wts = warray;
+
+    sprintf(buf, "Fitting with formula: %s\n", nonl_opts.formula);
+    stufftext(buf, 0);
+    sprintf(buf, "Initial guesses:\n");
+    stufftext(buf, 0);
+    for (i = 0; i < nonl_opts.parnum; i++) {
+        sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
+        stufftext(buf, 0);
+    }
+    sprintf(buf, "Tolerance = %g\n", nonl_opts.tolerance);
+    stufftext(buf, 0);
     
     info = lmdif_drv((U_fp) fcn, (integer) n, (integer) parnum, a, fvec, 
         &nonl_opts.tolerance, iwa, wa, lwa, (integer) nsteps);
@@ -213,8 +242,53 @@ int do_nonlfit(int gno, int setno, int nsteps)
     free(y_saved);
     free(fvec);
     free(wa);
+
+    if ((info > 0 && info < 4) || (info == 5)) {
+        sprintf(buf, "Computed values:\n");
+        stufftext(buf, 0);
+        for (i = 0; i < nonl_opts.parnum; i++) {
+            sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
+            stufftext(buf, 0);
+        }
+    }
+
+    if (info >= 0 && info <= 7) {
+        char *s;
+        switch (info) {
+        case 0:
+            s = "Improper input parameters.\n";
+            break;
+        case 1:
+            s = "Relative error in the sum of squares is at most tol.\n";
+            break;
+        case 2:
+            s = "Relative error between A and the solution is at most tol.\n";
+            break;
+        case 3:
+            s = "Relative error in the sum of squares and A and the solution is at most tol.\n";
+            break;
+        case 4:
+            s = "Fvec is orthogonal to the columns of the jacobian to machine precision.\n";
+            break;
+        case 5:
+            s = "\n";
+            break;
+        case 6:
+            s = "Tol is too small. No further reduction in the sum of squares is possible.\n";
+            break;
+        case 7:
+            s = "Tol is too small. No further improvement in the approximate solution A is possible.\n";
+            break;
+        default:
+            s = "\n";
+            errmsg("Internal error in do_nonlfit()");
+            break;
+        }
+        stufftext(s, 0);
+        stufftext("\n", 0);
+    }
     
-    return info;
+    return GRACE_EXIT_SUCCESS;
 }
 
 /*
