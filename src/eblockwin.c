@@ -38,14 +38,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <Xm/Xm.h>
-#include <Xm/DialogS.h>
 #include <Xm/Frame.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
 #include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
-#include <Xm/Text.h>
 
 #include "globals.h"
 #include "graphs.h"
@@ -54,8 +51,6 @@
 #include "files.h"
 #include "motifinc.h"
 #include "protos.h"
-
-Widget *CreateBlockChoice(Widget parent, char *labelstr, int ncols, int type);
 
 static char ncolsbuf[128];
 
@@ -67,14 +62,9 @@ static Widget eblock_panel;
 /*
  * Panel item declarations
  */
+static OptionStructure *eblock_choice_items[MAX_SET_COLS];
 static Widget eblock_ncols_item;
 static OptionStructure *eblock_type_choice_item;
-static Widget *eblock_x_choice_item;
-static Widget *eblock_y_choice_item;
-static Widget *eblock_e1_choice_item;
-static Widget *eblock_e2_choice_item;
-static Widget *eblock_e3_choice_item;
-static Widget *eblock_e4_choice_item;
 static ListStructure *eblock_graph_choice_item;
 
 /*
@@ -89,6 +79,8 @@ static void update_eblock(int gno);
  */
 void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int i;
+    char buf[32];
     int gno = (int) client_data;
     Widget rc, buts[2];
 
@@ -98,9 +90,12 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
     }
     set_wait_cursor();
     if (eblock_frame == NULL) {
+        OptionItem blockitem;
 	char *label1[2];
 	label1[0] = "Accept";
 	label1[1] = "Close";
+        blockitem.value = 0;
+        blockitem.label = "Index";
 	eblock_frame = XmCreateDialogShell(app_shell, "Edit block data", NULL, 0);
 	handle_close(eblock_frame);
 	eblock_panel = XmCreateRowColumn(eblock_frame, "eblock_rc", NULL, 0);
@@ -113,17 +108,15 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	eblock_type_choice_item = CreateSetTypeChoice(rc, "Set type:");
         AddOptionChoiceCB(eblock_type_choice_item, eblock_type_notify_proc);
 
-	eblock_x_choice_item = CreateBlockChoice(rc, "X from column:", maxblock, 1);
-	eblock_y_choice_item = CreateBlockChoice(rc, "Y from column:", maxblock, 1);
-	eblock_e1_choice_item = CreateBlockChoice(rc, "E1 from column:", maxblock, 1);
-	eblock_e2_choice_item = CreateBlockChoice(rc, "E2 from column:", maxblock, 1);
-	eblock_e3_choice_item = CreateBlockChoice(rc, "E3 from column:", maxblock, 1);
-	eblock_e4_choice_item = CreateBlockChoice(rc, "E4 from column:", maxblock, 1);
-
-	eblock_graph_choice_item = CreateGraphChoice(rc,
-                                    "Load to set in graph:", LIST_TYPE_SINGLE);
+	for (i = 0; i < MAX_SET_COLS; i++) {
+            sprintf(buf, "%s from column:", dataset_colname(i));
+            eblock_choice_items[i] = CreateOptionChoice(rc, buf, 3, 1, &blockitem);
+        }
 
 	XtManageChild(rc);
+
+	eblock_graph_choice_item = CreateGraphChoice(eblock_panel,
+                                    "Load to set in graph:", LIST_TYPE_SINGLE);
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, eblock_panel, NULL);
 
@@ -138,7 +131,7 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
     XtRaise(eblock_frame);
     update_eblock(gno);
     unset_wait_cursor();
-}				/* end create_eblock_panel */
+}
 
 /*
  * Notify and event procs
@@ -146,55 +139,48 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 static void update_eblock(int gno)
 {
-    XmString string;
-    Arg al;
+    static old_blockncols = 0;
+    int i, ncols;
+    char buf[16];
+    OptionItem *blockitems;
     
-    if (!eblock_frame) {
+    if (eblock_frame == NULL) {
 	return;
     }
     if (blockncols == 0) {
-	errwin("Need to read block data first");
+	errmsg("Need to read block data first");
 	return;
     }
     if (is_valid_gno(gno)) {
         SelectListChoice(eblock_graph_choice_item, gno);
     }
     sprintf(ncolsbuf, "%d columns of length %d", blockncols, blocklen);
-    string = XmStringCreateLtoR(ncolsbuf, charset);
-    XtSetArg(al, XmNlabelString, string);
-    XtSetValues(eblock_ncols_item, &al, 1);
-    XmStringFree(string);
-    switch (settype_cols(block_curtype)) {
-    case 2:
-	XtSetSensitive(eblock_e1_choice_item[0], False);
-	XtSetSensitive(eblock_e2_choice_item[0], False);
-	XtSetSensitive(eblock_e3_choice_item[0], False);
-	XtSetSensitive(eblock_e4_choice_item[0], False);
-	break;
-    case 3:
-	XtSetSensitive(eblock_e1_choice_item[0], True);
-	XtSetSensitive(eblock_e2_choice_item[0], False);
-	XtSetSensitive(eblock_e3_choice_item[0], False);
-	XtSetSensitive(eblock_e4_choice_item[0], False);
-	break;
-    case 4:
-	XtSetSensitive(eblock_e1_choice_item[0], True);
-	XtSetSensitive(eblock_e2_choice_item[0], True);
-	XtSetSensitive(eblock_e3_choice_item[0], False);
-	XtSetSensitive(eblock_e4_choice_item[0], False);
-	break;
-    case 5:
-	XtSetSensitive(eblock_e1_choice_item[0], True);
-	XtSetSensitive(eblock_e2_choice_item[0], True);
-	XtSetSensitive(eblock_e3_choice_item[0], True);
-	XtSetSensitive(eblock_e4_choice_item[0], False);
-	break;
-    case 6:
-	XtSetSensitive(eblock_e1_choice_item[0], True);
-	XtSetSensitive(eblock_e2_choice_item[0], True);
-	XtSetSensitive(eblock_e3_choice_item[0], True);
-	XtSetSensitive(eblock_e4_choice_item[0], True);
-	break;
+    SetLabel(eblock_ncols_item, ncolsbuf);
+    if (blockncols != old_blockncols) {
+        blockitems = malloc((blockncols + 1)*sizeof(OptionItem));
+        for (i = 0; i < blockncols + 1; i++) {
+            blockitems[i].value = i;
+            if (i == 0) {
+                strcpy(buf, "Index");
+            } else {
+                sprintf(buf, "%d", i);
+            }
+            blockitems[i].label = copy_string(NULL, buf);
+        }
+        for (i = 0; i < MAX_SET_COLS; i++) {
+            UpdateOptionChoice(eblock_choice_items[i],
+                blockncols + 1, blockitems);
+        }
+        for (i = 0; i < blockncols + 1; i++) {
+            free(blockitems[i].label);
+        }
+        free(blockitems);
+        old_blockncols = blockncols;
+    }
+
+    ncols = settype_cols(block_curtype);
+    for (i = 0; i < MAX_SET_COLS; i++) {
+        XtSetSensitive(eblock_choice_items[i]->rc, (i < ncols));
     }
 }
 
@@ -209,123 +195,26 @@ static void eblock_type_notify_proc(Widget w, XtPointer client_data, XtPointer c
 
 static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int i, gno;
+    int cs[MAX_SET_COLS];
     char blockcols[32];
-    int n, *values;
-    int cx, cy, c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 
-    cx = GetChoice(eblock_x_choice_item);
-    cy = GetChoice(eblock_y_choice_item);
-    switch (settype_cols(block_curtype)) {
-    case 2:
-	sprintf(blockcols, "%d:%d", cx, cy);
-        break;
-    case 3:
-	c1 = GetChoice(eblock_e1_choice_item);
-	sprintf(blockcols, "%d:%d:%d", cx, cy, c1);
-	break;
-    case 4:
-	c1 = GetChoice(eblock_e1_choice_item);
-	c2 = GetChoice(eblock_e2_choice_item);
-	sprintf(blockcols, "%d:%d:%d:%d", cx, cy, c1, c2);
-	break;
-    case 5:
-	c1 = GetChoice(eblock_e1_choice_item);
-	c2 = GetChoice(eblock_e2_choice_item);
-	c3 = GetChoice(eblock_e3_choice_item);
-	sprintf(blockcols, "%d:%d:%d:%d:%d", cx, cy, c1, c2, c3);
-	break;
-    case 6:
-	c1 = GetChoice(eblock_e1_choice_item);
-	c2 = GetChoice(eblock_e2_choice_item);
-	c3 = GetChoice(eblock_e3_choice_item);
-	c4 = GetChoice(eblock_e4_choice_item);
-	sprintf(blockcols, "%d:%d:%d:%d:%d%d", cx, cy, c1, c2, c3, c4);
-	break;
+    for (i = 0; i < settype_cols(block_curtype); i++) {
+        cs[i] = GetOptionChoice(eblock_choice_items[i]);
+        if (i == 0) {
+            sprintf(blockcols, "%d", cs[i]);
+        } else {
+            sprintf(blockcols, "%s:%d", blockcols, cs[i]);
+        }
     }
     
-    n = GetListChoices(eblock_graph_choice_item, &values);
-
-    if (n != 1) {
+    if (GetSingleListChoice(eblock_graph_choice_item, &gno)
+        != GRACE_EXIT_SUCCESS) {
         errmsg("Please select a single graph");
     } else {
-        create_set_fromblock(values[0], block_curtype, blockcols);
+        create_set_fromblock(gno, block_curtype, blockcols);
         update_status_popup(NULL, NULL, NULL);
         update_all();
         drawgraph();
     }
-    if (n > 0) {
-        free(values);
-    }
-}
-
-Widget *CreateBlockChoice(Widget parent, char *labelstr, int nsets, int type)
-{
-    int nmal, i = 0;
-    XmString str;
-    char *name = "setchoice";
-    char buf[10];
-    Widget *retval;
-
-    switch (type) {
-    case 0:
-	nmal = nsets + 2;
-	retval = (Widget *) XtMalloc(nmal * sizeof(Widget));
-	retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
-	XtVaSetValues(retval[1],
-		      XmNorientation, XmVERTICAL,
-		      XmNpacking, XmPACK_COLUMN,
-		      XmNnumColumns, nsets / 10,
-		      NULL);
-	i = 0;
-	for (i = 0; i < nsets; i++) {
-	    sprintf(buf, "%d", i + 1);
-	    retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
-	}
-	XtManageChildren(retval + 2, nsets);
-
-	str = XmStringCreate(labelstr, charset);
-
-	retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
-	XtVaSetValues(retval[0],
-		      XmNlabelString, str,
-		      XmNsubMenuId, retval[1],
-		      XmNentryBorder, 2,
-		      XmNwhichButton, 1,
-		      NULL);
-	XtManageChild(retval[0]);
-	break;
-    case 1:
-	nmal = nsets + 3;
-	retval = (Widget *) XtMalloc(nmal * sizeof(Widget));
-	retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
-	XtVaSetValues(retval[1],
-		      XmNorientation, XmVERTICAL,
-		      XmNpacking, XmPACK_COLUMN,
-		      XmNnumColumns, nsets / 10,
-		      NULL);
-	i = 0;
-	retval[2] = XmCreatePushButton(retval[1], "Index", NULL, 0);
-	for (i = 1; i < nsets + 1; i++) {
-	    sprintf(buf, "%d", i);
-	    retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
-	}
-	XtManageChildren(retval + 2, nsets + 1);
-
-	str = XmStringCreate(labelstr, charset);
-
-	retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
-	XtVaSetValues(retval[0],
-		      XmNlabelString, str,
-		      XmNsubMenuId, retval[1],
-		      XmNentryBorder, 2,
-		      XmNwhichButton, 1,
-		      NULL);
-	XtManageChild(retval[0]);
-	break;
-    default:
-    	/* error */
-    	retval = (Widget *) NULL;
-    	errmsg("Internal error, CreateBlockChoice called with wrong argument");
-    }
-    return retval;
 }
