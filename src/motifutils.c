@@ -2729,7 +2729,7 @@ Widget *CreatePrecisionChoice(Widget parent, char *s)
 }
     
 
-Widget CreateScale(Widget parent, char *s, int min, int max)
+Widget CreateScale(Widget parent, char *s, int min, int max, int delta)
 {
     Widget w;
     XmString str;
@@ -2741,6 +2741,7 @@ Widget CreateScale(Widget parent, char *s, int min, int max)
 	XmNtitleString, str,
 	XmNminimum, min,
 	XmNmaximum, max,
+        XmNscaleMultiple, delta,
 	XmNvalue, 0,
 	XmNshowValue, True,
 	XmNprocessingDirection, XmMAX_ON_RIGHT,
@@ -2774,7 +2775,7 @@ void SetScaleWidth(Widget w, int width)
 
 Widget CreateAngleChoice(Widget parent, char *s)
 {
-    return CreateScale(parent, s, 0, 360);
+    return CreateScale(parent, s, 0, 360, 10);
 }
 
 int GetAngleChoice(Widget w)
@@ -2789,7 +2790,7 @@ void SetAngleChoice(Widget w, int angle)
 
 Widget CreateCharSizeChoice(Widget parent, char *s)
 {
-    return CreateScale(parent, s, 0, 400);
+    return CreateScale(parent, s, 0, 1000, 25);
 }
 
 double GetCharSizeChoice(Widget w)
