@@ -150,7 +150,7 @@ typedef struct {
     Widget mstart;
     Widget mstop;
     Widget mlength;
-    StorageStructure *sset_sel;
+    GraphSetStructure *sel;
 } Interp_ui;
 
 typedef struct {
@@ -167,10 +167,10 @@ static void sampling_cb(OptionStructure *opt, int value, void *data)
     
     if (value == SAMPLING_MESH) {
         SetSensitive(ui->mrc, TRUE);
-        SetSensitive(ui->sset_sel->list, FALSE);
+        SetSensitive(ui->sel->frame, FALSE);
     } else {
         SetSensitive(ui->mrc, FALSE);
-        SetSensitive(ui->sset_sel->list, TRUE);
+        SetSensitive(ui->sel->frame, TRUE);
     }
 }
 
@@ -211,9 +211,8 @@ static void *interp_build_cb(TransformStructure *tdialog)
         ui->mstop   = CreateTextItem2(ui->mrc, 10, "Stop at:");
         ui->mlength = CreateTextItem2(ui->mrc,  6, "Length:");
 
-        ui->sset_sel = CreateSetChoice(rc,
-            "Sampling set", LIST_TYPE_SINGLE, NULL);
-        SetSensitive(ui->sset_sel->list, FALSE);
+        ui->sel = CreateGraphSetSelector(rc, "Sampling set", LIST_TYPE_SINGLE);
+        SetSensitive(ui->sel->frame, FALSE);
     }
 
     return (void *) ui;
@@ -246,7 +245,7 @@ static void *interp_get_cb(void *gui)
             Quark *psampl;
             int res;
             
-            res = GetSingleStorageChoice(ui->sset_sel, &psampl);
+            res = GetSingleStorageChoice(ui->sel->set_sel, &psampl);
             if (res != RETURN_SUCCESS) {
                 errmsg("Please select a single sampling set");
                 error = TRUE;
@@ -324,7 +323,7 @@ typedef struct {
     Widget mstart;
     Widget mstop;
     Widget mlength;
-    StorageStructure *sset_sel;
+    GraphSetStructure *sel;
 } Histo_ui;
 
 typedef struct {
@@ -341,10 +340,10 @@ static void binsampling_cb(OptionStructure *opt, int value, void *data)
     
     if (value == SAMPLING_MESH) {
         SetSensitive(ui->mrc, TRUE);
-        SetSensitive(ui->sset_sel->list, FALSE);
+        SetSensitive(ui->sel->frame, FALSE);
     } else {
         SetSensitive(ui->mrc, FALSE);
-        SetSensitive(ui->sset_sel->list, TRUE);
+        SetSensitive(ui->sel->frame, TRUE);
     }
 }
 
@@ -377,9 +376,8 @@ static void *histo_build_cb(TransformStructure *tdialog)
 	ui->mstop   = CreateTextItem2(ui->mrc, 10, "Stop at:");
 	ui->mlength = CreateTextItem2(ui->mrc,  6, "# of bins");
         
-        ui->sset_sel = CreateSetChoice(rc,
-            "Sampling set", LIST_TYPE_SINGLE, NULL);
-        SetSensitive(ui->sset_sel->list, FALSE);
+        ui->sel = CreateGraphSetSelector(rc, "Sampling set", LIST_TYPE_SINGLE);
+        SetSensitive(ui->sel->frame, FALSE);
     }
 
     return (void *) ui;
@@ -412,7 +410,7 @@ static void *histo_get_cb(void *gui)
             Quark *psampl;
             int res;
             
-            res = GetSingleStorageChoice(ui->sset_sel, &psampl);
+            res = GetSingleStorageChoice(ui->sel->set_sel, &psampl);
             if (res != RETURN_SUCCESS) {
                 errmsg("Please select a single sampling set");
                 error = TRUE;

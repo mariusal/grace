@@ -255,7 +255,7 @@ static void set_load_proc(OptionStructure *opt, int value, void *data)
 
 
 typedef struct {
-    StorageStructure *sel;
+    GraphSetStructure *sel;
     Widget format_item;
 } wdataGUI;
 
@@ -276,8 +276,7 @@ void create_write_popup(Widget but, void *data)
 	
 	fr = CreateFrame(fsb->rc, NULL);
 	rc = CreateVContainer(fr);
-        gui->sel = CreateSetChoice(rc,
-            "Write set(s):", LIST_TYPE_MULTIPLE, NULL);
+        gui->sel = CreateGraphSetSelector(rc, NULL, LIST_TYPE_MULTIPLE);
 	gui->format_item = CreateTextItem2(rc, 15, "Format: ");
         xv_setstr(gui->format_item, project_get_sformat(grace->project));
 
@@ -304,7 +303,7 @@ static int write_sets_proc(FSBStructure *fsb, char *filename, void *data)
         return FALSE;
     }
 
-    cd = GetStorageChoices(gui->sel, &selset);
+    cd = GetStorageChoices(gui->sel->set_sel, &selset);
     if (cd < 1) {
         errmsg("No set selected");
     } else {

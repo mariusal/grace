@@ -61,7 +61,7 @@ static int leval_aac_cb(void *data);
 
 typedef struct _Type_ui {
     Widget top;
-    StorageStructure *sel;
+    GraphSetStructure *sel;
     TextStructure *comment_item;
     Widget length_item;
     OptionStructure *datatype_item;
@@ -99,9 +99,9 @@ void create_datasetprop_popup(Widget but, void *data)
 
 	dialog = CreateVContainer(tui.top);
 
-	tui.sel = CreateSetChoice(dialog,
-            "Data sets:", LIST_TYPE_MULTIPLE, NULL);
-	AddStorageChoiceCB(tui.sel, changetypeCB, tui.sel);
+	tui.sel = CreateGraphSetSelector(dialog,
+            "Data sets:", LIST_TYPE_MULTIPLE);
+	AddStorageChoiceCB(tui.sel->set_sel, changetypeCB, tui.sel);
 
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
@@ -192,7 +192,7 @@ void create_datasetprop_popup(Widget but, void *data)
 
         XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);	
 
-        CreateAACDialog(tui.top, dialog, datasetprop_aac_cb, tui.sel);
+        CreateAACDialog(tui.top, dialog, datasetprop_aac_cb, tui.sel->set_sel);
     }
     
     RaiseWindow(GetParent(tui.top));
@@ -287,7 +287,7 @@ static int datasetprop_aac_cb(void *data)
     char *s, *hotfile;
     Quark *pset, **selset;
     
-    nsets = GetStorageChoices(tui.sel, &selset);
+    nsets = GetStorageChoices(tui.sel->set_sel, &selset);
     
     if (nsets < 1) {
         errmsg("No set selected");
@@ -369,7 +369,7 @@ typedef enum {
 
 typedef struct _Datasetop_ui {
     Widget top;
-    StorageStructure *sel;
+    GraphSetStructure *sel;
     OptionStructure *optype_item;
     OptionStructure *xy_item;
     OptionStructure *up_down_item;
@@ -411,8 +411,8 @@ void create_datasetop_popup(Widget but, void *data)
 	dialog = CreateVContainer(datasetopui.top);
         XtVaSetValues(dialog, XmNrecomputeSize, True, NULL);
 
-	datasetopui.sel = CreateSetChoice(dialog,
-            "Data sets:", LIST_TYPE_MULTIPLE, NULL);
+	datasetopui.sel = CreateGraphSetSelector(dialog,
+            "Data sets:", LIST_TYPE_MULTIPLE);
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButton(menupane,
@@ -470,7 +470,8 @@ void create_datasetop_popup(Widget but, void *data)
 	UnmanageChild(datasettype_controls[3]);
 	UnmanageChild(datasettype_controls[4]);
 
-        CreateAACDialog(datasetopui.top, dialog, datasetop_aac_cb, datasetopui.sel);
+        CreateAACDialog(datasetopui.top, dialog, datasetop_aac_cb,
+            datasetopui.sel->set_sel);
     }
     
     RaiseWindow(GetParent(datasetopui.top));
@@ -502,7 +503,7 @@ static int datasetop_aac_cb(void *data)
     dataSetOpType optype;
     Quark *pset, **selset, *gr;
        
-    nsets = GetStorageChoices(datasetopui.sel, &selset);
+    nsets = GetStorageChoices(datasetopui.sel->set_sel, &selset);
     if (nsets < 1) {
         errmsg("No set selected");
         return RETURN_FAILURE;
@@ -547,8 +548,8 @@ static int datasetop_aac_cb(void *data)
         
         xfree(selset);
 
-        update_set_lists(get_set_choice_gr((StorageStructure *) data));
         gr = get_set_choice_gr((StorageStructure *) data);
+        update_set_lists(gr);
         xdrawgraph(gr, FALSE);
         
         return RETURN_SUCCESS;

@@ -2487,7 +2487,7 @@ Quark *get_set_choice_gr(StorageStructure *ss)
             gr = NULL;
         }
     } else {
-        gr = graph_get_current(grace->project);
+        gr = NULL;
     }
     
     return gr;
@@ -4284,8 +4284,6 @@ void update_set_lists(Quark *gr)
 
 void update_all(void)
 {
-    Quark *gr = graph_get_current(grace->project);
-    
     if (!grace->gui->inwin) {
         return;
     }
@@ -4303,7 +4301,7 @@ void update_all(void)
         ReqUpdateColorSel = FALSE;
     }
 
-    update_ticks(gr);
+    update_ticks();
     update_props_items();
     update_explorer(grace->gui->eui, TRUE);
     set_left_footer(NULL);

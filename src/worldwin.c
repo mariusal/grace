@@ -250,7 +250,7 @@ void create_arrange_frame(Widget but, void *data)
  */
 typedef struct _Auto_ui {
     Widget top;
-    StorageStructure *sel;
+    GraphSetStructure *sel;
     OptionStructure *astype;
 } Auto_ui;
 
@@ -260,7 +260,7 @@ static int define_autos_proc(void *data)
     Auto_ui *ui = (Auto_ui *) data;
     Quark **sets;
     
-    nsets = GetStorageChoices(ui->sel, &sets);
+    nsets = GetStorageChoices(ui->sel->set_sel, &sets);
     if (nsets <= 0) {
         errmsg("No sets selected");
         return RETURN_FAILURE;
@@ -289,10 +289,10 @@ void create_autos_frame(Widget but, void *data)
         
         aui = xmalloc(sizeof(Auto_ui));
         
-        aui->top = CreateDialogForm(app_shell, "Autoscale graph");
+        aui->top = CreateDialogForm(app_shell, "Autoscale graphs");
 
 	rc = CreateVContainer(aui->top);
-        aui->sel = CreateSetChoice(rc, "Use sets:", LIST_TYPE_MULTIPLE, NULL);
+        aui->sel = CreateGraphSetSelector(rc, NULL, LIST_TYPE_MULTIPLE);
         aui->astype = CreateASChoice(rc, "Autoscale type:");
 
 	CreateAACDialog(aui->top, rc, define_autos_proc, aui);
