@@ -67,20 +67,19 @@ typedef struct _EditPoints {
     Widget mw;
     int cformat[MAX_SET_COLS];
     int cprec[MAX_SET_COLS];
-    short cwidth[MAX_SET_COLS];
 } EditPoints;
 
 void update_cells(EditPoints *ep);
 void do_update_cells(Widget w, XtPointer client_data, XtPointer call_data);
 
 /* default cell value precision */
-#define CELL_PREC 5
+#define CELL_PREC 8
 
 /* default cell value format (0 - Decimal; 1 - General; 2 - Exponential) */
 #define CELL_FORMAT 1
 
 /* default cell width */
-#define CELL_WIDTH 10
+#define CELL_WIDTH 12
 
 char *scformat[3] =
 {"%.*lf", "%.*lg", "%.*le"};
@@ -135,7 +134,6 @@ void add_pt_cb(Widget w, XtPointer client_data, XtPointer call_data)
 static Widget *editp_col_item;
 static Widget *editp_format_item;
 static Widget *editp_precision_item;
-static Widget *editp_width_item;
 
 static void update_props(EditPoints *ep)
 {
@@ -149,31 +147,26 @@ static void update_props(EditPoints *ep)
     SetChoice(editp_format_item, ep->cformat[col]); 
 
     SetChoice(editp_precision_item, ep->cprec[col]);
-    SetChoice(editp_width_item, ep->cwidth[col] - 1);
 }
 
 static void do_accept_props(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int i, col, cformat, cprec, cwidth;
+    int i, col, cformat, cprec;
     EditPoints *ep = (EditPoints *) client_data;
 
     col = GetChoice(editp_col_item);
     cformat = GetChoice(editp_format_item);
     cprec = GetChoice(editp_precision_item);
-    cwidth = GetChoice(editp_width_item) + 1;
     
     if (col < MAX_SET_COLS) {
         ep->cformat[col] = cformat;
         ep->cprec[col] = cprec;
-        ep->cwidth[col] = cwidth;
     } else {	    /* do it for all columns */
     	for (i = 0; i < MAX_SET_COLS; i++) {
     	    ep->cformat[i] = cformat;
     	    ep->cprec[i] = cprec;
-    	    ep->cwidth[i] = cwidth;
         }
     } 	
-    XtVaSetValues(ep->mw, XmNcolumnWidths, ep->cwidth, NULL);
 }
 
 void do_update_cells(Widget w, XtPointer client_data, XtPointer call_data)
@@ -223,7 +216,6 @@ void update_cells(EditPoints *ep)
     XtVaSetValues(ep->mw,
         XmNrowLabels, rowlabels,
 	XmNrowLabelWidth, width,
-        XmNcolumnWidths, ep->cwidth,
 	NULL);
 
     /* free memory used to hold strings */
@@ -266,14 +258,6 @@ void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 						 "5", "6", "7", "8", "9",
 						 "10", "11", "12", "13", "14",
 						 NULL, 0);
-
-	editp_width_item = CreatePanelChoice0(dialog, "Width:",
-					5, 21,
-				"1", "2", "3", "4", "5",
-				"6", "7", "8", "9", "10", 
-				"11", "12", "13", "14", "15",
-				"16", "17", "18", "19", "20",
-					NULL, 0);
 
 	CreateSeparator(dialog);
 
@@ -396,6 +380,8 @@ void create_ss_frame(int gno, int setno)
 {
     int i;
     char *collabels[MAX_SET_COLS];
+    short cwidths[MAX_SET_COLS];
+    unsigned char column_label_alignments[MAX_SET_COLS];
     char wname[256];
     char *label1[3] = {"Props...", "Update", "Close"};
     char *label2[2] = {"Delete", "Add"};
@@ -422,7 +408,8 @@ void create_ss_frame(int gno, int setno)
     ep->nrows = getsetlength(gno, setno);
     for (i = 0; i < MAX_SET_COLS; i++) {
         collabels[i] = copy_string(NULL, dataset_colname(i));
-        ep->cwidth[i] = CELL_WIDTH;
+        cwidths[i] = CELL_WIDTH;
+        column_label_alignments[i] = XmALIGNMENT_CENTER;
         ep->cprec[i] = CELL_PREC;
         ep->cformat[i] = CELL_FORMAT;
     }
@@ -444,7 +431,10 @@ void create_ss_frame(int gno, int setno)
         XmNcolumns, ep->ncols,
         XmNvisibleRows, 10,
         XmNvisibleColumns, 2,
+        XmNcolumnWidths, cwidths,
         XmNcolumnLabels, collabels,
+        XmNcolumnLabelAlignments, column_label_alignments,
+        XmNallowColumnResize, True,
         XmNgridType, XmGRID_CELL_SHADOW,
         XmNcellShadowType, XmSHADOW_ETCHED_OUT,
         XmNcellShadowThickness, 2,
