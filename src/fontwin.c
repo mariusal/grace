@@ -186,53 +186,25 @@ static void DrawCB(Widget w, XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs
 {
     X11Stuff *xstuff = grace->gui->xstuff;
     unsigned char c;
-    CPixmap *pm;
-    int height, width, hshift, vshift;
-    Pixmap pixmap, ptmp;
+    Pixmap pixmap;
     char dummy_bits[1] = {0};
     int valid_char;
-    long bg, fg;
     
         
     c = 16*cbs->row + cbs->column;
         
     if (FontID == BAD_FONT_ID) {
-        pm = NULL;
+        pixmap = 0;
     } else {
-        float fsize = 0.8*(float)csize;
-        pm = canvas_raster_char(FontID, c, fsize, &vshift, &hshift);
-        vshift = csize - vshift - 4;
+        pixmap = char_to_pixmap(w, FontID, c, csize);
     }
        
-    if (pm != NULL && pm->bits != NULL) {
-        valid_char = TRUE;
-        height = pm->height;
-        width = pm->width;
-        
-        ptmp = XCreateBitmapFromData(xstuff->disp, xstuff->root,
-                    pm->bits, width, height);
-        pixmap = XCreatePixmap(xstuff->disp, xstuff->root,
-            csize, csize, xstuff->depth);
-        
-        XtVaGetValues(w, XmNbackground, &bg, XmNforeground, &fg, NULL);
-        XSetForeground(xstuff->disp, xstuff->gc, bg);
-        XFillRectangle(xstuff->disp, pixmap, xstuff->gc, 0, 0, csize, csize);
-        
-        XSetBackground(xstuff->disp, xstuff->gc, bg);
-        XSetForeground(xstuff->disp, xstuff->gc, fg);
-        XCopyPlane(xstuff->disp, ptmp, pixmap, xstuff->gc, 0, 0,
-            width, height, hshift, vshift, 1);
-        
-        XFreePixmap(xstuff->disp, ptmp);
-        canvas_cpixmap_free(pm);
-    } else {
-        if (c == ' ') {
-            valid_char = TRUE;
-        } else {
-            valid_char = FALSE;
-        }
+    if (!pixmap) {
         pixmap = XCreateBitmapFromData(xstuff->disp, xstuff->root,
              dummy_bits, 1, 1);
+        valid_char = FALSE;
+    } else {
+        valid_char = TRUE;
     }
     
     /* Assign it a pixmap */
