@@ -940,9 +940,9 @@ void update_ticks(int gno)
 
         SetToggleButtonState(axis_active, is_axis_active(gno, curaxis));
         if (is_axis_active(gno, curaxis) == FALSE) {
-            XtSetSensitive(axes_tab, False);
+            SetSensitive(axes_tab, False);
         } else {
-            XtSetSensitive(axes_tab, True);
+            SetSensitive(axes_tab, True);
         }
 
         SetChoice(editaxis, curaxis);
@@ -1081,9 +1081,9 @@ void update_ticks(int gno)
 static void set_active_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     if (GetToggleButtonState(axis_active) == TRUE) {
-        XtSetSensitive(axes_tab, True);
+        SetSensitive(axes_tab, True);
     } else {
-        XtSetSensitive(axes_tab, False);
+        SetSensitive(axes_tab, False);
     }
 }
 

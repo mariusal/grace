@@ -369,10 +369,10 @@ void update_nonl_frame(void)
             SetToggleButtonState(nonl_constr_item[i], nonl_parms[i].constr);
             sprintf(buf, "%g", nonl_parms[i].min);
             xv_setstr(nonl_lowb_item[i], buf);
-            XtSetSensitive(nonl_lowb_item[i], nonl_parms[i].constr);
+            SetSensitive(nonl_lowb_item[i], nonl_parms[i].constr);
             sprintf(buf, "%g", nonl_parms[i].max);
             xv_setstr(nonl_uppb_item[i], buf);
-            XtSetSensitive(nonl_uppb_item[i], nonl_parms[i].constr);
+            SetSensitive(nonl_uppb_item[i], nonl_parms[i].constr);
             if (i < nonl_opts.parnum) {
                 if (!XtIsManaged (nonl_parm_item[i])) {
                     ManageChild(nonl_parm_item[i]);
@@ -388,15 +388,15 @@ void update_nonl_frame(void)
         SetOptionChoice(nonl_load_item, nonl_prefs.load);
         
         if (nonl_prefs.load == LOAD_FUNCTION) {
-            XtSetSensitive(nonl_fload_rc, True);
+            SetSensitive(nonl_fload_rc, True);
         } else {
-            XtSetSensitive(nonl_fload_rc, False);
+            SetSensitive(nonl_fload_rc, False);
         }
 
         if (GetOptionChoice(nonl_weigh_item) == WEIGHT_CUSTOM) {
-            XtSetSensitive(GetParent(nonl_wfunc_item), True);
+            SetSensitive(GetParent(nonl_wfunc_item), True);
         } else {
-            XtSetSensitive(GetParent(nonl_wfunc_item), False);
+            SetSensitive(GetParent(nonl_wfunc_item), False);
         }
         
         sprintf(buf, "%g", nonl_prefs.start);
@@ -414,9 +414,9 @@ static void nonl_wf_cb(int value, void *data)
     Widget rc = GetParent((Widget) data);
     
     if (value == WEIGHT_CUSTOM) {
-    	XtSetSensitive(rc, True);
+    	SetSensitive(rc, True);
     } else {
-    	XtSetSensitive(rc, False);
+    	SetSensitive(rc, False);
     }
 }
 
@@ -425,9 +425,9 @@ static void do_nonl_toggle(int value, void *data)
     Widget rc = (Widget) data;
     
     if (value == LOAD_FUNCTION) {
-    	XtSetSensitive(rc, True);
+    	SetSensitive(rc, True);
     } else {
-    	XtSetSensitive(rc, False);
+    	SetSensitive(rc, False);
     }
 }
 
@@ -435,12 +435,12 @@ static void do_constr_toggle(int onoff, void *data)
 {
     int value = (int) data;
     if (onoff) {
-    	XtSetSensitive(nonl_lowb_item[value], True);
-    	XtSetSensitive(nonl_uppb_item[value], True);
+    	SetSensitive(nonl_lowb_item[value], True);
+    	SetSensitive(nonl_uppb_item[value], True);
     	nonl_parms[value].constr = TRUE;
     } else {
-    	XtSetSensitive(nonl_lowb_item[value], False);
-    	XtSetSensitive(nonl_uppb_item[value], False);
+    	SetSensitive(nonl_lowb_item[value], False);
+    	SetSensitive(nonl_uppb_item[value], False);
     	nonl_parms[value].constr = FALSE;
     }
 }

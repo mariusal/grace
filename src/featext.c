@@ -87,9 +87,9 @@ void do_fext_toggle (Widget w, XtPointer client_data, XtPointer call_data)
 {
     int value = (int) client_data;
     if (value == 2 || value == 3) {
-    	XtSetSensitive(feui.legload_rc, True);
+    	SetSensitive(feui.legload_rc, True);
     } else {
-    	XtSetSensitive(feui.legload_rc, False);
+    	SetSensitive(feui.legload_rc, False);
     }
 }
 
@@ -162,7 +162,7 @@ void create_featext_frame(void *data)
 	update_save_set_list( feui.absic_set, 0 );
 	
 	ManageChild(feui.legload_rc);
-	XtSetSensitive(feui.legload_rc, False);
+	SetSensitive(feui.legload_rc, False);
 	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);

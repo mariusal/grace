@@ -261,11 +261,11 @@ static void sampling_cb(int value, void *data)
     Interp_ui *ui = (Interp_ui *) data;
     
     if (value == SAMPLING_MESH) {
-        XtSetSensitive(ui->mrc, True);
-        XtSetSensitive(ui->sset_sel->list, False);
+        SetSensitive(ui->mrc, True);
+        SetSensitive(ui->sset_sel->list, False);
     } else {
-        XtSetSensitive(ui->mrc, False);
-        XtSetSensitive(ui->sset_sel->list, True);
+        SetSensitive(ui->mrc, False);
+        SetSensitive(ui->sset_sel->list, True);
     }
 }
 
@@ -311,7 +311,7 @@ void create_interp_frame(void *data)
         
         interpui->sset_sel = CreateSetChoice(rc,
             "Sampling set", LIST_TYPE_SINGLE, TRUE);
-        XtSetSensitive(interpui->sset_sel->list, False);
+        SetSensitive(interpui->sset_sel->list, False);
         
         CreateAACDialog(interpui->tdialog->form, fr, do_interp_proc, interpui);
     }
@@ -438,11 +438,11 @@ static void binsampling_cb(int value, void *data)
     Interp_ui *ui = (Interp_ui *) data;
     
     if (value == SAMPLING_MESH) {
-        XtSetSensitive(ui->mrc, True);
-        XtSetSensitive(ui->sset_sel->list, False);
+        SetSensitive(ui->mrc, True);
+        SetSensitive(ui->sset_sel->list, False);
     } else {
-        XtSetSensitive(ui->mrc, False);
-        XtSetSensitive(ui->sset_sel->list, True);
+        SetSensitive(ui->mrc, False);
+        SetSensitive(ui->sset_sel->list, True);
     }
 }
 
@@ -480,7 +480,7 @@ void create_histo_frame(void *data)
         
         histoui->sset_sel = CreateSetChoice(rc,
             "Sampling set", LIST_TYPE_SINGLE, TRUE);
-        XtSetSensitive(histoui->sset_sel->list, False);
+        SetSensitive(histoui->sset_sel->list, False);
         
         CreateAACDialog(histoui->tdialog->form, fr, do_histo_proc, histoui);
     }
@@ -935,9 +935,9 @@ static void set_regr_sensitivity(Widget w, XtPointer client_data,
 												XtPointer call_data)
 {
 	if( (int)client_data == 2 )
-		XtSetSensitive( regui.fload_rc, True );
+		SetSensitive( regui.fload_rc, True );
 	else
-		XtSetSensitive( regui.fload_rc, False );
+		SetSensitive( regui.fload_rc, False );
 }
 	
 
@@ -1045,7 +1045,7 @@ void create_reg_frame(void *data)
 	ManageChild(regui.fload_rc);
 
 	ManageChild(rc);
-	XtSetSensitive(regui.fload_rc, False);
+	SetSensitive(regui.fload_rc, False);
 	
 	CreateSeparator(dialog);
 
@@ -1658,45 +1658,45 @@ static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data
 
     switch (typeno) {
         case PRUNE_CIRCLE:
-	    XtSetSensitive(pruneui.dx_rc, TRUE);
-	    XtSetSensitive(pruneui.dy_rc, FALSE);
+	    SetSensitive(pruneui.dx_rc, TRUE);
+	    SetSensitive(pruneui.dy_rc, FALSE);
 	    switch (deltatypeno) {
 		case PRUNE_VIEWPORT:
-		    XtSetSensitive(*pruneui.dxtype_item, FALSE);
-		    XtSetSensitive(*pruneui.dytype_item, FALSE);
+		    SetSensitive(*pruneui.dxtype_item, FALSE);
+		    SetSensitive(*pruneui.dytype_item, FALSE);
 		    break;
 		case PRUNE_WORLD:
-		    XtSetSensitive(*pruneui.dxtype_item, TRUE);
-		    XtSetSensitive(*pruneui.dytype_item, FALSE);
+		    SetSensitive(*pruneui.dxtype_item, TRUE);
+		    SetSensitive(*pruneui.dytype_item, FALSE);
 		    break;
 	    }
 	    break;
         case PRUNE_ELLIPSE:
         case PRUNE_RECTANGLE:
-	    XtSetSensitive(pruneui.dx_rc, TRUE);
-	    XtSetSensitive(pruneui.dy_rc, TRUE);
+	    SetSensitive(pruneui.dx_rc, TRUE);
+	    SetSensitive(pruneui.dy_rc, TRUE);
 	    switch (deltatypeno) {
 		case PRUNE_VIEWPORT:
-		    XtSetSensitive(*pruneui.dxtype_item, FALSE);
-		    XtSetSensitive(*pruneui.dytype_item, FALSE);
+		    SetSensitive(*pruneui.dxtype_item, FALSE);
+		    SetSensitive(*pruneui.dytype_item, FALSE);
 		    break;
 		case PRUNE_WORLD:
-		    XtSetSensitive(*pruneui.dxtype_item, TRUE);
-		    XtSetSensitive(*pruneui.dytype_item, TRUE);
+		    SetSensitive(*pruneui.dxtype_item, TRUE);
+		    SetSensitive(*pruneui.dytype_item, TRUE);
 		    break;
 	    }
 	    break;
         case PRUNE_INTERPOLATION:
-	    XtSetSensitive(pruneui.dx_rc, FALSE);
-	    XtSetSensitive(pruneui.dy_rc, TRUE);
+	    SetSensitive(pruneui.dx_rc, FALSE);
+	    SetSensitive(pruneui.dy_rc, TRUE);
 	    switch (deltatypeno) {
 		case PRUNE_VIEWPORT:
-		    XtSetSensitive(*pruneui.dxtype_item, FALSE);
-		    XtSetSensitive(*pruneui.dytype_item, FALSE);
+		    SetSensitive(*pruneui.dxtype_item, FALSE);
+		    SetSensitive(*pruneui.dytype_item, FALSE);
 		    break;
 		case PRUNE_WORLD:
-		    XtSetSensitive(*pruneui.dxtype_item, FALSE);
-		    XtSetSensitive(*pruneui.dytype_item, TRUE);
+		    SetSensitive(*pruneui.dxtype_item, FALSE);
+		    SetSensitive(*pruneui.dytype_item, TRUE);
 		    break;
 	    }
 	    break;

@@ -662,9 +662,9 @@ static void UpdateSymbols(int gno, int value)
         for (i = 0; i < type_item->nchoices; i++) {
             if (settype_cols(type_item->options[i].value) ==
                                             settype_cols(p.type)) {
-                XtSetSensitive(type_item->options[i].widget, True);
+                SetSensitive(type_item->options[i].widget, True);
             } else {
-                XtSetSensitive(type_item->options[i].widget, False);
+                SetSensitive(type_item->options[i].widget, False);
             }
         }
 
@@ -706,10 +706,10 @@ static void UpdateSymbols(int gno, int value)
         case SET_XYDXDX:
         case SET_XYDYDY:
         case SET_XYDXDXDYDY:
-            XtSetSensitive(errbar_ptype_item[4], False);
+            SetSensitive(errbar_ptype_item[4], False);
             break;
         default:
-            XtSetSensitive(errbar_ptype_item[4], True);
+            SetSensitive(errbar_ptype_item[4], True);
             break;
         }
         SetChoice(errbar_ptype_item, p.errbar.ptype);

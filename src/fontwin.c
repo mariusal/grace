@@ -118,7 +118,7 @@ void create_fonttool(Widget cstext)
     
     if (cstext_parent != NULL) {
         /* unlock previous parent */
-        XtSetSensitive(cstext_parent, True);
+        SetSensitive(cstext_parent, True);
     }
     
     cstext_parent = cstext;
@@ -220,7 +220,7 @@ void create_fonttool(Widget cstext)
     } else {
         SetTextString(string_item, xv_getstr(cstext_parent));
         /* Lock editable text */
-        XtSetSensitive(cstext_parent, False);
+        SetSensitive(cstext_parent, False);
     }
     enable_edit_cb = TRUE;
     
@@ -388,7 +388,7 @@ static void fonttool_aac_cb(void *data)
     if (aac_mode == AAC_CLOSE) {
         UnmanageChild(fonttool_frame);
         if (cstext_parent != NULL) {
-            XtSetSensitive(cstext_parent, True);
+            SetSensitive(cstext_parent, True);
         }
         return;
     }
@@ -400,7 +400,7 @@ static void fonttool_aac_cb(void *data)
     if (aac_mode == AAC_ACCEPT) {
         UnmanageChild(fonttool_frame);
         if (cstext_parent != NULL) {
-            XtSetSensitive(cstext_parent, True);
+            SetSensitive(cstext_parent, True);
         }
     }
 }

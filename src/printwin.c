@@ -275,9 +275,9 @@ static void update_device_setup(int device_id)
         pg = dev.pg;
         	
         if (dev.setup == NULL) {
-            XtSetSensitive(device_opts_item, False);
+            SetSensitive(device_opts_item, False);
         } else {
-            XtSetSensitive(device_opts_item, True);
+            SetSensitive(device_opts_item, True);
         }
 
         strcpy(buf, mybasename(get_docname())); 
@@ -304,20 +304,20 @@ static void update_device_setup(int device_id)
         case DEVICE_FILE:
             ManageChild(output_frame);
             SetChoice(printto_item, TRUE);
-            XtSetSensitive(printto_item[0], False);
-            XtSetSensitive(GetParent(print_string_item), False);
-            XtSetSensitive(rc_filesel, True);
+            SetSensitive(printto_item[0], False);
+            SetSensitive(GetParent(print_string_item), False);
+            SetSensitive(rc_filesel, True);
             break;
         case DEVICE_PRINT:
             ManageChild(output_frame);
             SetChoice(printto_item, get_ptofile());
-            XtSetSensitive(printto_item[0], True);
+            SetSensitive(printto_item[0], True);
             if (get_ptofile() == TRUE) {
-                XtSetSensitive(rc_filesel, True);
-                XtSetSensitive(GetParent(print_string_item), False);
+                SetSensitive(rc_filesel, True);
+                SetSensitive(GetParent(print_string_item), False);
             } else {
-                XtSetSensitive(rc_filesel, False);
-                XtSetSensitive(GetParent(print_string_item), True);
+                SetSensitive(rc_filesel, False);
+                SetSensitive(GetParent(print_string_item), True);
             }
             break;
         }
@@ -331,13 +331,13 @@ static void update_device_setup(int device_id)
         pf = get_page_format(device_id);
         SetChoice(page_format_item, pf); 
         if (pf == PAGE_FORMAT_CUSTOM) {
-            XtSetSensitive(page_x_item, True);
-            XtSetSensitive(page_y_item, True);
-            XtSetSensitive(page_orient_item[0], False);
+            SetSensitive(page_x_item, True);
+            SetSensitive(page_y_item, True);
+            SetSensitive(page_orient_item[0], False);
         } else {
-            XtSetSensitive(page_x_item, False);
-            XtSetSensitive(page_y_item, False);
-            XtSetSensitive(page_orient_item[0], True);
+            SetSensitive(page_x_item, False);
+            SetSensitive(page_y_item, False);
+            SetSensitive(page_orient_item[0], True);
         }
         
         sprintf (buf, "%.0f", pg.dpi); 
@@ -482,11 +482,11 @@ static void do_pr_toggle(Widget w, XtPointer client_data, XtPointer call_data)
     int value = (int) client_data;
     
     if (value == TRUE) {
-        XtSetSensitive(rc_filesel, True);
-        XtSetSensitive(GetParent(print_string_item), False);
+        SetSensitive(rc_filesel, True);
+        SetSensitive(GetParent(print_string_item), False);
     } else {
-        XtSetSensitive(rc_filesel, False);
-        XtSetSensitive(GetParent(print_string_item), True);
+        SetSensitive(rc_filesel, False);
+        SetSensitive(GetParent(print_string_item), True);
     }
 }
 
@@ -501,13 +501,13 @@ static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_dat
     char buf[32];
     
     if (value == PAGE_FORMAT_CUSTOM) {
-        XtSetSensitive(page_x_item, True);
-        XtSetSensitive(page_y_item, True);
-        XtSetSensitive(page_orient_item[0], False);
+        SetSensitive(page_x_item, True);
+        SetSensitive(page_y_item, True);
+        SetSensitive(page_orient_item[0], False);
     } else {
-        XtSetSensitive(page_x_item, False);
-        XtSetSensitive(page_y_item, False);
-        XtSetSensitive(page_orient_item[0], True);
+        SetSensitive(page_x_item, False);
+        SetSensitive(page_y_item, False);
+        SetSensitive(page_orient_item[0], True);
     }
     
     

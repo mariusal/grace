@@ -88,7 +88,7 @@ static void wrap_year_cb(int onoff, void *data)
 {
     Widget wrap_year = (Widget) data;
     
-    XtSetSensitive(wrap_year, onoff);
+    SetSensitive(wrap_year, onoff);
 }
 
 void create_props_frame(void *data)
@@ -263,7 +263,7 @@ void update_props_items(void)
         SetToggleButtonState(two_digits_years_item, two_digits_years_allowed());
         sprintf(wrap_year_string, "%04d", get_wrap_year());
         xv_setstr(wrap_year_item, wrap_year_string);
-        XtSetSensitive(wrap_year_item, two_digits_years_allowed() ? True:False);
+        SetSensitive(wrap_year_item, two_digits_years_allowed() ? True:False);
     }
 }
 

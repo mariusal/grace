@@ -281,10 +281,10 @@ static void set_load_proc(int value, void *data)
     rdataGUI *gui = (rdataGUI *) data;
     
     if (value == LOAD_SINGLE) {
-        XtSetSensitive(gui->ftype_item->menu, True);
+        SetSensitive(gui->ftype_item->menu, True);
     } else {
         SetOptionChoice(gui->ftype_item, SET_XY);
-        XtSetSensitive(gui->ftype_item->menu, False);
+        SetSensitive(gui->ftype_item->menu, False);
     }
 }
 
