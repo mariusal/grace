@@ -1699,7 +1699,7 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrLegendEntry">
             set_set_legstr($$, $?->s);
-            xfree($?);
+            xcc_string_free($?);
         </child>
         <child name="#EStrDataset">
             set *p = (set *) $$->data;
