@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -114,6 +114,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
     int axisno;
     Datapoint dpoint;
     GLocator locator;
+    DObject *o;
     
     cg = get_cg();
     get_tracking_props(&track_setno, &move_dir, &add_at);
@@ -211,7 +212,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                     } else if (legend_clicked(cg, vp, &bb) == TRUE) {
                         create_graphapp_frame(cg);
                     } else if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
-                        object_edit_popup(id);
+                        object_edit_popup(object_get(id));
                     } else if (timestamp_clicked(vp, &bb) == TRUE) {
                         create_plot_frame();
                     } else if (graph_clicked(cg, vp) == TRUE) {
@@ -268,7 +269,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 break;
             case EDIT_OBJECT:
                 if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
-                    object_edit_popup(id);
+                    object_edit_popup(object_get(id));
                 }
                 break;
             case DEL_OBJECT:
@@ -289,7 +290,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case MOVE_OBJECT_2ND:
                 shift.x = vp.x - anchor_vp.x;
                 shift.y = vp.y - anchor_vp.y;
-                move_object(id, shift);
+                move_object(object_get(id), shift);
                 xdrawgraph();
                 set_action(MOVE_OBJECT_1ST);
                 break;
@@ -303,15 +304,15 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case COPY_OBJECT2ND:
                 shift.x = vp.x - anchor_vp.x;
                 shift.y = vp.y - anchor_vp.y;
-                id = duplicate_object(id);
-                move_object(id, shift);
+                o = duplicate_object(id);
+                move_object(o, shift);
                 xdrawgraph();
                 set_action(COPY_OBJECT1ST);
                 break;
             case STR_LOC:
-                id = next_object(DO_STRING);
-                object_place_at_vp(id, vp);
-                object_edit_popup(id);
+                o = next_object(DO_STRING);
+                object_place_at_vp(o, vp);
+                object_edit_popup(o);
                 break;
             case MAKE_LINE_1ST:
                 anchor_point(x, y, vp);
@@ -321,13 +322,12 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case MAKE_LINE_2ND:
 	        select_line(anchor_x, anchor_y, x, y, 0);
                 
-                id = next_object(DO_LINE);
+                o = next_object(DO_LINE);
 	        {
-                    DObject *o = object_get(id);
                     DOLineData *l = (DOLineData *) o->odata;
                     l->length = hypot(vp.y - anchor_vp.y, vp.x - anchor_vp.x);
                     o->angle  = atan2(vp.y - anchor_vp.y, vp.x - anchor_vp.x);
-                    object_place_at_vp(id, anchor_vp);
+                    object_place_at_vp(o, anchor_vp);
                 }
                 
                 xdrawgraph();
@@ -341,16 +341,15 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case MAKE_BOX_2ND:
 	        select_region(anchor_x, anchor_y, x, y, 0);
                 
-                id = next_object(DO_BOX);
+                o = next_object(DO_BOX);
                 {
                     VPoint vptmp;
-                    DObject *o = object_get(id);
 	            DOBoxData *b = (DOBoxData *) o->odata;
                     b->width  = fabs(vp.x - anchor_vp.x);
                     b->height = fabs(vp.y - anchor_vp.y);
                     vptmp.x = (vp.x + anchor_vp.x)/2;
                     vptmp.y = (vp.y + anchor_vp.y)/2;
-                    object_place_at_vp(id, vptmp);
+                    object_place_at_vp(o, vptmp);
                 }
                 
                 xdrawgraph();
@@ -364,10 +363,9 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case MAKE_ELLIP_2ND:
 	        select_region(anchor_x, anchor_y, x, y, 0);
                 
-                id = next_object(DO_ARC);
+                o = next_object(DO_ARC);
                 {
                     VPoint vptmp;
-                    DObject *o = object_get(id);
 	            DOArcData *a = (DOArcData *) o->odata;
                     a->width  = fabs(vp.x - anchor_vp.x);
                     a->height = fabs(vp.y - anchor_vp.y);
@@ -376,7 +374,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                     a->fillmode = ARCFILL_CHORD;
                     vptmp.x = (vp.x + anchor_vp.x)/2;
                     vptmp.y = (vp.y + anchor_vp.y)/2;
-                    object_place_at_vp(id, vptmp);
+                    object_place_at_vp(o, vptmp);
                 }
                 
                 xdrawgraph();
@@ -968,13 +966,13 @@ int next_graph_containing(int cg, VPoint vp)
 
     if (storage_scroll_to_id(grace->project->graphs, cg) != RETURN_SUCCESS) {
         storage_rewind(grace->project->graphs);
-        if (storage_get_id(grace->project->graphs, &cg) != RETURN_SUCCESS) {
+        if ((cg = storage_get_id(grace->project->graphs)) < 0) {
             return -1;
         }
     }
 
     while (storage_scroll(grace->project->graphs, 1, TRUE) == RETURN_SUCCESS &&
-           storage_get_id(grace->project->graphs, &gno) == RETURN_SUCCESS  &&
+           (gno = storage_get_id(grace->project->graphs)) >= 0  &&
            gno != cg) {
 	if (is_graph_hidden(gno)        == FALSE &&
             get_graph_viewport(gno, &v) == RETURN_SUCCESS &&
@@ -1112,11 +1110,12 @@ int title_clicked(int gno, VPoint vp)
  */
 int find_point(int gno, VPoint vp, int *setno, int *loc)
 {
-    int i, nsets, *sids, j, found;
+    int i, nsets, j, found;
     double *xtmp, *ytmp;
     WPoint wptmp;
     VPoint vptmp;
     double dist, mindist = MAXPICKDIST;
+    int locked;
 
     if (is_valid_gno(gno) != TRUE) {
         return RETURN_FAILURE;
@@ -1124,13 +1123,19 @@ int find_point(int gno, VPoint vp, int *setno, int *loc)
         
     if (is_valid_setno(gno, *setno)) {
         nsets = 1;
-        sids = setno;
+        locked = TRUE;
     } else {
-        nsets = get_set_ids(gno, &sids);
+        nsets = number_of_sets(gno);
+        locked = FALSE;
     }
     found = FALSE;
     for (i = 0; i < nsets; i++) {
-	int setno1 = sids[i];
+        int setno1;
+	if (locked) {
+            setno1 = *setno;
+        } else {
+            setno1 = i;
+        }
         if (is_set_hidden(gno, setno1) == FALSE) {
 	    xtmp = getx(gno, setno1);
 	    ytmp = gety(gno, setno1);
@@ -1208,7 +1213,7 @@ int find_item(int gno, VPoint vp, view *bb, int *id)
 	    if (isactive_object(o)) {
                 get_object_bb(o, bb);
 	        if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
-		    storage_get_id(objects, id);
+		    *id = storage_get_id(objects);
                     return RETURN_SUCCESS;
 	        }
             }

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1381,11 +1381,11 @@ void graph_select_cb(Widget list, XtPointer client_data, XtPointer call_data)
 
 void update_graph_selectors(void)
 {
-    int i, *ids, new_n, gno;
+    int i, new_n, gno;
     char buf[64];
     OptionItem *p;
     
-    new_n = get_graph_ids(&ids);
+    new_n = number_of_graphs();
     for (i = 0; i < ngraph_select_items; i++) {
         xfree(graph_select_items[i].label);
     }
@@ -1397,12 +1397,11 @@ void update_graph_selectors(void)
         graph_select_items = p;
     }
 
-    for (i = 0; i < new_n; i++) {
-        gno = ids[i];
-        graph_select_items[i].value = gno;
+    for (gno = 0; gno < new_n; gno++) {
+        graph_select_items[gno].value = gno;
         sprintf(buf, "G%d (%s, %d sets)",
             gno, is_graph_hidden(gno) ? "hidden":"shown", number_of_sets(gno));
-        graph_select_items[i].label = copy_string(NULL, buf);
+        graph_select_items[gno].label = copy_string(NULL, buf);
     }
 
     ngraph_select_items = new_n;
@@ -1544,7 +1543,7 @@ void graph_menu_cb(ListStructure *listp, GraphMenuCBtype type)
         }
         break;
     case GraphMenuNewCB:
-        if (graph_next() < 0) {
+        if (!graph_next()) {
             err = TRUE;
         }
         break;
@@ -1870,7 +1869,7 @@ static int nset_selectors = 0;
 
 void UpdateSetChoice(ListStructure *listp, int gno)
 {
-    int i, j, nsets, *sids;
+    int j, setno, nsets;
     char buf[64];
     OptionItem *set_select_items;
     SetChoiceData *sdata;
@@ -1878,7 +1877,7 @@ void UpdateSetChoice(ListStructure *listp, int gno)
     sdata = (SetChoiceData *) listp->anydata;
     sdata->gno = gno;
     
-    nsets = get_set_ids(gno, &sids);
+    nsets = number_of_sets(gno);
     if (nsets <= 0) {
         UpdateListChoice(listp, 0, NULL);
         return;
@@ -1889,8 +1888,7 @@ void UpdateSetChoice(ListStructure *listp, int gno)
         return;
     }
     
-    for (i = 0, j = 0; i < nsets; i++) {
-        int setno = sids[i];
+    for (setno = 0, j = 0; setno < nsets; setno++) {
         if ((sdata->show_nodata == TRUE || is_set_active(gno, setno) == TRUE) &&
             (sdata->show_hidden == TRUE || is_set_hidden(gno, setno) != TRUE )) {
             set_select_items[j].value = setno;
@@ -2094,9 +2092,6 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
             err = TRUE;
         }
         break;
-    case SetMenuPackCB:
-        packsets(gno);
-        break;
     default:
         err = TRUE;
         break;
@@ -2203,11 +2198,6 @@ void editE_set_proc(void *data)
     set_menu_cb((ListStructure *) data, SetMenuEditECB);
 }
 
-void pack_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuPackCB);
-}
-
 void shownd_set_proc(int onoff, void *data)
 {
     ListStructure *listp = (ListStructure *) data;
@@ -2297,11 +2287,6 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     	newE_set_proc, (void *) listp);
     CreateMenuButton(submenupane, "From block data", '\0',
     	newB_set_proc, (void *) listp);
-
-    CreateMenuSeparator(popup);
-
-    CreateMenuButton(popup, "Pack all sets", '\0',
-    	pack_set_proc, (void *) listp);
 
     CreateMenuSeparator(popup);
 

@@ -1112,7 +1112,7 @@ int load_project_file(char *fn, int as_template)
 
         /* try to switch to the first active graph */
         storage_rewind(grace->project->graphs);
-        while (storage_get_id(grace->project->graphs, &gno) == RETURN_SUCCESS) {
+        while ((gno = storage_get_id(grace->project->graphs)) >= 0) {
             if (is_graph_hidden(gno) == FALSE) {
                 select_graph(gno);
                 break;

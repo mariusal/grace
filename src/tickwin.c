@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -569,7 +569,7 @@ static int axes_aac_cb(void *data)
 {
     int i, j;
     int applyto;
-    int axis_start, axis_stop, ngraphs, *gids;
+    int axis_start, axis_stop, gno, gmin, gmax;
     int scale, invert;
     double axeslim;
     world wo;
@@ -589,36 +589,37 @@ static int axes_aac_cb(void *data)
     case 0:                     /* current axis */
         axis_start = curaxis;
         axis_stop  = curaxis;
-        ngraphs = 1;
-        gids = &cg;
+        gmin = cg;
+        gmax = cg;
         break;
     case 1:                     /* all axes, current graph */
         axis_start = 0;
         axis_stop  = MAXAXES - 1;
-        ngraphs = 1;
-        gids = &cg;
+        gmin = cg;
+        gmax = cg;
         break;
     case 2:                     /* current axis, all graphs */
         axis_start = curaxis;
         axis_stop  = curaxis;
-        ngraphs = get_graph_ids(&gids);
+        gmin = 0;
+        gmax = number_of_graphs();
         break;
     case 3:                     /* all axes, all graphs */
         axis_start = 0;
         axis_stop  = MAXAXES - 1;
-        ngraphs = get_graph_ids(&gids);
+        gmin = 0;
+        gmax = number_of_graphs();
         break;
     default:
         axis_start = curaxis;
         axis_stop  = curaxis;
-        ngraphs = 1;
-        gids = &cg;
+        gmin = cg;
+        gmax = cg;
         break;        
     }
         
 		
-    for (i = 0; i < ngraphs; i++) {
-        int gno = gids[i];
+    for (gno = gmin; gno <= gmax; gno++) {
         for (j = axis_start; j <= axis_stop; j++) {
             tickmarks *ot;
         

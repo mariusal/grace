@@ -254,28 +254,23 @@ void object_free(DObject *o)
     }
 }
 
-int next_object(OType type)
+DObject *next_object(OType type)
 {
-    int id;
     DObject *o;
     Storage *objects = grace->project->objects;
     
-    id = storage_get_unique_id(objects);
-    if (id >= 0) {
-        o = object_new_complete(type);
-        if (o) {
-            if (storage_add(objects, id, (void *) o) != RETURN_SUCCESS) {
-                object_free(o);
-                id = -1;
-            }
+    o = object_new_complete(type);
+    if (o) {
+        if (storage_add(objects, (void *) o) == RETURN_SUCCESS) {
+            set_dirtystate();
+            return o;
         } else {
-            id = -1;
+            object_free(o);
+            return NULL;
         }
-        
-        set_dirtystate();
+    } else {
+        return NULL;
     }
-    
-    return id;
 }
 
 DObject *object_get(int id)
@@ -288,11 +283,6 @@ DObject *object_get(int id)
     }
     
     return o;
-}
-
-int get_object_ids(int **ids)
-{
-    return storage_get_all_ids(grace->project->objects, ids);
 }
 
 void do_clear_objects(void)
@@ -322,40 +312,15 @@ int kill_object(int id)
     }
 }
 
-int duplicate_object(int id)
+DObject *duplicate_object(int id)
 {
     Storage *objects = grace->project->objects;
-    DObject *osrc, *odest;
-    int new_id;
-    
-    osrc = object_get(id);
-    if (!osrc) {
-        return -1;
-    }
-    
-    new_id = storage_get_unique_id(objects);
-    if (new_id < 0) {
-        return -1;
-    }
-    
-    odest = object_copy(osrc);
-    if (!odest) {
-        return -1;
-    }
-    
-    if (storage_add(objects, new_id, (void *) odest) == RETURN_SUCCESS) {
-        return new_id;
-    } else {
-        object_free(odest);
-        return -1;
-    }
+
+    return storage_duplicate(objects, id);
 }
 
-void move_object(int id, VVector shift)
+void move_object(DObject *o, VVector shift)
 {
-    DObject *o;
-    
-    o = object_get(id);
     if (!o) {
         return;
     }
@@ -380,11 +345,8 @@ void move_object(int id, VVector shift)
     set_dirtystate();
 }
 
-int object_place_at_vp(int id, VPoint vp)
+int object_place_at_vp(DObject *o, VPoint vp)
 {
-    DObject *o;
-    
-    o = object_get(id);
     if (!o) {
         return RETURN_FAILURE;
     }
@@ -403,6 +365,13 @@ int object_place_at_vp(int id, VPoint vp)
 int isactive_object(DObject *o)
 {
     return o->active;
+}
+
+int number_of_objects(void)
+{
+    Storage *objects = grace->project->objects;
+    
+    return storage_count(objects);
 }
 
 void set_plotstr_string(plotstr *pstr, char *s)

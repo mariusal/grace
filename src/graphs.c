@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -115,25 +115,6 @@ int number_of_graphs(void)
 int get_cg(void)
 {
     return cg;
-}
-
-
-int get_graph_ids(int **ids)
-{
-    return storage_get_all_ids(graphs, ids);
-}
-
-int get_set_ids(int gno, int **ids)
-{
-    graph *g;
-    
-    g = graph_get(gno);
-    
-    if (g) {
-        return storage_get_all_ids(g->sets, ids);
-    } else {
-        return 0;
-    }
 }
 
 graph *graph_get(int gno)
@@ -258,23 +239,21 @@ void graph_free(graph *g)
     }
 }
 
-int graph_next(void)
+graph *graph_next(void)
 {
     graph *g;
-    int gno;
     
     g = graph_new();
     if (g) {
-        gno = storage_get_unique_id(graphs);
-        if (storage_add(graphs, gno, g) == RETURN_SUCCESS) {
+        if (storage_add(graphs, g) == RETURN_SUCCESS) {
             set_dirtystate();
-            return gno;
+            return g;
         } else {
             graph_free(g);
-            return -1;
+            return NULL;
         }
     } else {
-        return -1;
+        return NULL;
     }
 }
 
@@ -283,17 +262,9 @@ void kill_all_graphs(void)
     storage_empty(graphs);
 }
 
-int duplicate_graph(int gno)
+graph *duplicate_graph(int gno)
 {
-    int new_gno;
-    
-    new_gno = storage_duplicate(graphs, gno);
-    
-    if (new_gno < 0) {
-        return RETURN_FAILURE;
-    } else {
-        return RETURN_SUCCESS;
-    }
+    return storage_duplicate(graphs, gno);
 }
 
 graph *graph_copy(graph *g)
@@ -332,7 +303,7 @@ int copy_graph(int from, int to)
 {
     int res;
     
-    if ((res = storage_data_copy(graphs, from, to, FALSE)) == RETURN_SUCCESS) {
+    if ((res = storage_data_copy(graphs, from, to)) == RETURN_SUCCESS) {
         set_dirtystate();
     }
     return res;
@@ -342,7 +313,7 @@ int move_graph(int from, int to)
 {
     int res;
     
-    if ((res = storage_data_move(graphs, from, to, FALSE)) == RETURN_SUCCESS) {
+    if ((res = storage_data_move(graphs, from, to)) == RETURN_SUCCESS) {
         set_dirtystate();
     }
     return res;
@@ -352,7 +323,7 @@ int swap_graph(int from, int to)
 {
     int res;
     
-    if ((res = storage_data_swap(graphs, from, to, FALSE)) == RETURN_SUCCESS) {
+    if ((res = storage_data_swap(graphs, from, to)) == RETURN_SUCCESS) {
         set_dirtystate();
     }
     return res;
@@ -873,15 +844,9 @@ int get_graph_legend(int gno, legend *leg)
 
 int set_graph_active(int gno, int show)
 {
-    graph *g = graph_get(gno);
-    if (!g) {
-        g = graph_new();
-        if (g) {
-            if (storage_add(graphs, gno, g) != RETURN_SUCCESS) {
-                graph_free(g);
-                return RETURN_FAILURE;
-            }
-        } else {
+    graph *g;
+    while ((g = graph_get(gno)) == NULL) {
+        if (!graph_next()) {
             return RETURN_FAILURE;
         }
     }

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -120,8 +120,6 @@ int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind);
 void setcol(int gno, int setno, int col, double *x, int len);
 
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col);
-
-void packsets(int gno);
 
 set *set_new(void);
 

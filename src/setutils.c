@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -268,7 +268,7 @@ int set_dataset_nrows(Dataset *data, int len)
 
 int set_dataset_ncols(Dataset *data, int ncols)
 {
-    if (ncols < 0 || ncols >= MAX_SET_COLS) {
+    if (ncols < 0 || ncols > MAX_SET_COLS) {
         return RETURN_FAILURE;
     }
     
@@ -607,7 +607,7 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
 	return RETURN_FAILURE;
     }
     
-    res = storage2_data_move(g1->sets, setfrom, g2->sets, setto, FALSE);
+    res = storage2_data_move(g1->sets, setfrom, g2->sets, setto);
 
     if (res == RETURN_SUCCESS) {
         set_dirtystate();
@@ -635,7 +635,7 @@ int copyset(int gnofrom, int setfrom, int gnoto, int setto)
 	return RETURN_FAILURE;
     }
     
-    res = storage2_data_copy(g1->sets, setfrom, g2->sets, setto, FALSE);
+    res = storage2_data_copy(g1->sets, setfrom, g2->sets, setto);
 
     if (res == RETURN_SUCCESS) {
         char buf[64];
@@ -701,7 +701,7 @@ int swapset(int gnofrom, int setfrom, int gnoto, int setto)
 	return RETURN_FAILURE;
     }
     
-    res = storage2_data_swap(g1->sets, setfrom, g2->sets, setto, FALSE);
+    res = storage2_data_swap(g1->sets, setfrom, g2->sets, setto);
 
     if (res == RETURN_SUCCESS) {
         set_dirtystate();
@@ -1270,44 +1270,52 @@ int pushset(int gno, int setno, int push_type)
     }
 }
 
-
-/*
- * pack all sets leaving no gaps in the set ids
- */
-void packsets(int gno)
+set *set_next(int gno)
 {
-    graph *g = graph_get(gno);
+    graph *g;
+    
+    g = graph_get(gno);
     if (g) {
-        storage_pack_ids(g->sets);
+        set *p = set_new();
+        if (p) {
+            if (storage_add(g->sets, p) == RETURN_SUCCESS) {
+                set_dirtystate();
+                return p;
+            } else {
+                set_free(p);
+                return NULL;
+            }
+        } else {
+            return NULL;
+        }
+    } else {
+        return NULL;
     }
 }
 
 int allocate_set(int gno, int setno)
 {
-    graph *g;
+    set *p;
+    int ncolors, color;
+    int new = FALSE;
     
-    g = graph_get(gno);
-    if (!g) {
-        return RETURN_FAILURE;
+    while ((p = set_get(gno, setno)) == NULL) {
+        new = TRUE;
+        if (!set_next(gno)) {
+            return RETURN_FAILURE;
+        }
     }
-    if (storage_id_exists(g->sets, setno)) {
-        return RETURN_SUCCESS;
-    } else {
-        set *p;
-        int ncolors, color;
         
-        p = set_new();
+    if (new) {
         ncolors = number_of_colors();
         if (ncolors > 1) {
             color = setno % (ncolors - 1) + 1;
         } else {
             color = 1;
         }
-        if (!p || set_set_colors(p, color) != RETURN_SUCCESS) {
-            return RETURN_FAILURE;
-        } else {
-            return storage_add(g->sets, setno, p);
-        }
+        return set_set_colors(p, color);
+    } else {
+        return RETURN_SUCCESS;
     }
 }
 
@@ -1338,24 +1346,6 @@ int get_recent_gno(void)
     return recent_target.gno;
 }
 
-int set_next(int gno)
-{
-    int setno;
-    graph *g;
-    
-    g = graph_get(gno);
-    if (g) {
-        setno = storage_get_unique_id(g->sets);
-        if (allocate_set(gno, setno) == RETURN_SUCCESS) {
-            return setno;
-        } else {
-            return -1;
-        }
-    } else {
-        return -1;
-    }
-}
-
 /*
  * return the next available set in graph gno
  * If target is allocated but with no data, choose it (used for loading sets
@@ -1376,20 +1366,23 @@ int nextset(int gno)
 	grace->rt->target_set.gno = -1;
 	grace->rt->target_set.setno = -1;
     } else {
-        int i, nsets, *sets;
-        nsets = get_set_ids(gno, &sets);
+        int i, nsets;
+        nsets = number_of_sets(gno);
         for (i = 0; i < nsets; i++) {
-            int setno1 = sets[i];
-            if (!is_set_active(gno, setno1)) {
-                setno = setno1;
+            if (!is_set_active(gno, i)) {
+                setno = i;
                 break;
             }
         }
         /* if no sets found, try allocating new one */
         if (setno == -1) {
-            setno = set_next(gno);
-            if (setno == -1) {
+            if (!set_next(gno)) {
                 errmsg("Can't allocate more sets");
+            } else {
+                graph *g = graph_get(gno);
+                if (g) {
+                    setno = storage_get_id(g->sets);
+                }
             }
         }
     }
@@ -1412,12 +1405,11 @@ int is_set_active(int gno, int setno)
  */
 int number_of_active_sets(int gno)
 {
-    int i, nsets, *sids, na = 0;
+    int i, nsets, na = 0;
 
-    nsets = get_set_ids(gno, &sids);
+    nsets = number_of_sets(gno);
     for (i = 0; i < nsets; i++) {
-	int setno = sids[i];
-        if (is_set_active(gno, setno) == TRUE) {
+        if (is_set_active(gno, i) == TRUE) {
 	    na++;
 	}
     }

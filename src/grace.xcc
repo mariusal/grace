@@ -20,8 +20,6 @@
 #include "xstrings.h"
 
 typedef struct {
-    int gid;
-    int sid;
     int axis;
     int nrow;
 } ParserData;
@@ -721,8 +719,7 @@ RiserLine *riserline_new(void)
         <child name="#EStrTimeStamp">
         </child>
         <child name="#EStrGraph">
-            int gid = ((ParserData *) $U)->gid;
-            storage_add($$->graphs, gid, $?);
+            storage_add($$->graphs, $?);
         </child>
     </element>
     <element name="#EStrDefinitions" type="dummy">
@@ -873,8 +870,7 @@ RiserLine *riserline_new(void)
     <element name="#EStrGraph" type="graph">
         <!-- Attributes -->
         <attribute name="#AStrId" type="ival">
-            ParserData *udata = (ParserData *) $U;
-            udata->gid = $?;
+            /* FIXME */
         </attribute>
         <attribute name="#AStrActive" type="bval">
             $$->hidden = !($?);
@@ -938,13 +934,11 @@ RiserLine *riserline_new(void)
         ]]></child>
         <child name="#EStrObject">
             Storage *objects = ((Project *) $0)->objects;
-            int id = storage_get_unique_id(objects);
-            $?->gno = ((ParserData *) $U)->gid;
-            storage_add(objects, id, (void *) $?);
+            $?->gno = get_cg();
+            storage_add(objects, (void *) $?);
         </child>
         <child name="#EStrSet">
-            int sid = ((ParserData *) $U)->sid;
-            storage_add($$->sets, sid, $?);
+            storage_add($$->sets, $?);
         </child>
     </element>
     <element name="#EStrPresentationSpec" type="presentationspec">
@@ -1577,8 +1571,7 @@ RiserLine *riserline_new(void)
     <element name="#EStrSet" type="set">
         <!-- Attributes -->
         <attribute name="#AStrId" type="ival">
-            ParserData *udata = (ParserData *) $U;
-            udata->sid = $?;
+            /* FIXME */
         </attribute>
         <attribute name="#AStrActive" type="bval">
             $$->hidden = !($?);
@@ -1845,8 +1838,6 @@ int load_xgr_project(char *fn)
 	return RETURN_FAILURE;
     }
 
-    udata.gid  = -1;
-    udata.sid  = -1;
     udata.axis = -1;
     udata.nrow = -1;
     

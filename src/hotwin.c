@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -143,18 +143,16 @@ static void do_hotunlink_proc(Widget w, XtPointer client_data, XtPointer call_da
  */
 void update_hotlinks(void)
 {
-    int j;
-    char buf[256];
-    XmString xms;
-    int gno = get_cg();
-
     if (hotlink_frame != NULL) {
-	int nsets, *sids;
+        int setno;
+        char buf[256];
+        XmString xms;
+        int gno = get_cg();
+	int nsets;
 	set_wait_cursor();
 	XmListDeleteAllItems(hotlink_list_item);
-        nsets = get_set_ids(gno, &sids);
-        for (j = 0; j < nsets; j++) {
-	    int setno = sids[j];
+        nsets = number_of_sets(gno);
+        for (setno = 0; setno < nsets; setno++) {
             if (is_hotlinked(gno, setno)) {
 		sprintf(buf, "G%d.S%d -> %s -> %s:%d", gno, setno, 
 			get_hotlink_src(gno, setno) == SOURCE_DISK ? "DISK" : "PIPE", 
@@ -173,17 +171,16 @@ void update_hotlinks(void)
  */
 void do_hotupdate_proc(void *data)
 {
-    int i, errpos;
+    int setno, errpos;
     char hotcom[256];
     int gno = get_cg();
-    int nsets, *sids;
+    int nsets;
 
     set_wait_cursor();
 
     /* do links */
-    nsets = get_set_ids(gno, &sids);
-    for (i = 0; i < nsets; i++) {
-        int setno = sids[i];
+    nsets = number_of_sets(gno);
+    for (setno = 0; setno < nsets; setno++) {
         if (is_hotlinked(gno, setno)) {
             do_update_hotlink(gno, setno);
         }

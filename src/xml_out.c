@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000 Grace Development Team
+ * Copyright (c) 2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -770,7 +770,6 @@ int save_objects(XFile *xf, int gno)
 {
     Attributes *attrs;
     int i, n;
-    int *ids;
 
     if (!xf) {
         return RETURN_FAILURE;
@@ -782,11 +781,11 @@ int save_objects(XFile *xf, int gno)
         return RETURN_FAILURE;
     }
 
-    n = get_object_ids(&ids);
+    n = number_of_objects();
     for (i = 0; i < n; i++) {
         DObject *o;
         
-        o = object_get(ids[i]);
+        o = object_get(i);
         if (o->gno == gno) {
             save_object(xf, attrs, o);
         }
@@ -934,7 +933,7 @@ int save_project(char *fn)
 
     xfile_comment(xf, "Graphs");
     storage_rewind(grace->project->graphs);
-    while (storage_get_id(grace->project->graphs, &gno) == RETURN_SUCCESS) {
+    while ((gno = storage_get_id(grace->project->graphs)) >= 0) {
         graph *g = graph_get(gno);
         int setno;
 
@@ -948,7 +947,7 @@ int save_project(char *fn)
             save_graph_objects(xf, gno);
 
             storage_rewind(g->sets);
-            while (storage_get_id(g->sets, &setno) == RETURN_SUCCESS) {
+            while ((setno = storage_get_id(g->sets)) >= 0) {
                 set *p = set_get(gno, setno);
 
                 attributes_reset(attrs);

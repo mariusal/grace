@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -239,9 +239,18 @@ void autoscale_bysets(int gno, int *sets, int nsets, int autos_type)
 int autoscale_graph(int gno, int autos_type)
 {
     int nsets, *sets;
-    nsets = get_set_ids(gno, &sets);
+    nsets = number_of_sets(gno);
     if (nsets) {
+        int i;
+        sets = xmalloc(nsets*SIZEOF_INT);
+        if (!sets) {
+            return RETURN_FAILURE;
+        }
+        for (i = 0; i < nsets; i++) {
+            sets[i] = i;
+        }
         autoscale_bysets(gno, sets, nsets, autos_type);
+        xfree(sets);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -509,17 +518,17 @@ int graph_scroll(int type)
 {
     world w;
     double dwc = 0.0;
-    int ngraphs, *gids, i, gno, cg = get_cg();
+    int gno, cg = get_cg(), gmin, gmax;
 
     if (grace->rt->scrolling_islinked) {
-        ngraphs = get_graph_ids(&gids);
+        gmin = 0;
+        gmax = number_of_graphs() - 1;
     } else {
-        ngraphs = 1;
-        gids = &cg;
+        gmin = cg;
+        gmax = cg;
     }
     
-    for (i = 0; i < ngraphs; i++) {
-        gno = gids[i];
+    for (gno = gmin; gno <= gmax; gno++) {
         if (get_graph_world(gno, &w) == RETURN_SUCCESS) {
             switch (type) {
             case GSCROLL_LEFT:    
@@ -569,17 +578,17 @@ int graph_zoom(int type)
 {
     double dx, dy;
     world w;
-    int ngraphs, *gids, i, gno, cg = get_cg();
+    int gno, cg = get_cg(), gmin, gmax;
 
     if (grace->rt->scrolling_islinked) {
-        ngraphs = get_graph_ids(&gids);
+        gmin = 0;
+        gmax = number_of_graphs() - 1;
     } else {
-        ngraphs = 1;
-        gids = &cg;
+        gmin = cg;
+        gmax = cg;
     }
     
-    for (i = 0; i < ngraphs; i++) {
-        gno = gids[i];
+    for (gno = gmin; gno <= gmax; gno++) {
         if (!islogx(gno) && !islogy(gno)) {
             if (get_graph_world(gno, &w) == RETURN_SUCCESS) {
                 dx = grace->rt->shexper * (w.xg2 - w.xg1);
@@ -713,7 +722,7 @@ int arrange_graphs(int *graphs, int ngraphs,
 int arrange_graphs_simple(int nrows, int ncols,
     int order, double offset, double hgap, double vgap)
 {
-    int *graphs, i, ngraphs, ngraphs_old, *gids, retval;
+    int *graphs, i, gno, ngraphs, ngraphs_old, retval;
     
     ngraphs = nrows*ncols;
     graphs = xmalloc(ngraphs*SIZEOF_INT);
@@ -725,9 +734,8 @@ int arrange_graphs_simple(int nrows, int ncols,
         graphs[i] = i;
     }
     
-    ngraphs_old = get_graph_ids(&gids);
-    for (i = 0; i < ngraphs_old; i++) {
-        int gno = gids[i];
+    ngraphs_old = number_of_graphs();
+    for (gno = 0; gno < ngraphs_old; gno++) {
         if (gno >= ngraphs) {
             kill_graph(gno);
         }

@@ -153,16 +153,15 @@ static void draw_object(int gno, DObject *o)
 void draw_objects(int gno)
 {
     int i, n;
-    int *ids;
                                 
     /* disable (?) clipping for object drawing */
     setclipping(FALSE);
     
-    n = get_object_ids(&ids);
+    n = number_of_objects();
     for (i = 0; i < n; i++) {
         DObject *o;
         
-        o = object_get(ids[i]);
+        o = object_get(i);
         draw_object(gno, o);
     }
     

@@ -101,18 +101,18 @@ void object_free(DObject *o);
 DObject *object_get(int id);
 DObject *object_copy(DObject *o);
 
-int get_object_ids(int **ids);
-
 void do_clear_objects(void);
 
 int isactive_object(DObject *o);
 
 int kill_object(int id);
-int next_object(OType type);
-int duplicate_object(int id);
+DObject *next_object(OType type);
+DObject *duplicate_object(int id);
+
+int number_of_objects(void);
 
 int get_object_bb(DObject *o, view *bb);
-void move_object(int id, VVector shift);
-int object_place_at_vp(int id, VPoint vp);
+void move_object(DObject *o, VVector shift);
+int object_place_at_vp(DObject *o, VPoint vp);
 
 #endif /* __OBJUTILS_H_ */

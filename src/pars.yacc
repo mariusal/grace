@@ -2169,8 +2169,7 @@ parmset:
 
 /* Objects */
 	| WITH objecttype {
-	    int id = next_object($2);
-            curobject = object_get(id);
+	    curobject = next_object($2);
 	}
 	| objecttype onoff {
 	    if (!curobject) {
@@ -4948,14 +4947,12 @@ static int find_set_bydata(double *data, target *tgt)
     if (data == NULL) {
         return RETURN_FAILURE;
     } else {
-	int i, *gids;
-        int ngraphs = get_graph_ids(&gids);
-        for (i = 0; i < ngraphs; i++) {
-	    int gno = gids[i];
-	    int j, *sids;
-            int nsets = get_set_ids(gno, &sids);
-	    for (j = 0; j < nsets; j++) {
-	        int setno = sids[j];
+	int gno;
+        int ngraphs = number_of_graphs();
+        for (gno = 0; gno < ngraphs; gno++) {
+	    int setno;
+            int nsets = number_of_sets(gno);
+	    for (setno = 0; setno < nsets; setno++) {
                 int ncol;
                 for (ncol = 0; ncol < MAX_SET_COLS; ncol++) {
                     if (getcol(gno, setno, ncol) == data) {

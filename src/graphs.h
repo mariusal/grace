@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -197,13 +197,13 @@ GraphType get_graph_type_by_name(const char *name);
 char *set_types(SetType it);
 SetType get_settype_by_name(const char *s);
 
-int graph_next(void);
+graph *graph_next(void);
 int kill_graph(int gno);
 void kill_all_graphs(void);
 int copy_graph(int from, int to);
 int move_graph(int from, int to);
 int swap_graph(int from, int to);
-int duplicate_graph(int gno);
+graph *duplicate_graph(int gno);
 
 tickmarks *new_graph_tickmarks(void);
 tickmarks *copy_graph_tickmarks(tickmarks *);
@@ -347,9 +347,6 @@ void set_free(set *s);
 set *set_copy(set *s);
 graph *graph_get(int gno);
 set *set_get(int gno, int setno);
-
-int get_graph_ids(int **ids);
-int get_set_ids(int gno, int **ids);
 
 void project_postprocess(Project *pr);
 

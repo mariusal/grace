@@ -59,7 +59,7 @@ char print_file[GR_MAXPATHLEN] = "";
  */
 void drawgraph(void)
 {
-    int i, ngraphs, *gids;
+    int i, ngraphs;
     VPoint vp1, vp2;
     Pen pen;
     int saveg;
@@ -89,9 +89,9 @@ void drawgraph(void)
     activate_bbox(BBOX_TYPE_GLOB, TRUE);
     activate_bbox(BBOX_TYPE_TEMP, FALSE);
     
-    ngraphs = get_graph_ids(&gids);
+    ngraphs = number_of_graphs();
     for (i = 0; i < ngraphs; i++) {
-        plotone(gids[i]);
+        plotone(i);
     }
     
     /* draw objects NOT clipped to a particular graph */
@@ -255,7 +255,7 @@ void draw_smith_chart(int gno)
 
 void draw_pie_chart(int gno)
 {
-    int i, j, nsets, *sids, ndsets = 0;
+    int i, setno, nsets, ndsets = 0;
     set *p;
     view v;
     VPoint vpc, vp1, vp2, vps[3], vpa;
@@ -270,10 +270,9 @@ void draw_pie_chart(int gno)
     vpc.x = (v.xv1 + v.xv2)/2;
     vpc.y = (v.yv1 + v.yv2)/2;
 
-    nsets = get_set_ids(gno, &sids);
+    nsets = number_of_sets(gno);
     
-    for (j = 0; j < nsets; j++) {
-        int setno = sids[j];
+    for (setno = 0; setno < nsets; setno++) {
         if (is_set_drawable(gno, setno)) {
             ndsets++;
             if (ndsets > 1) {
@@ -404,13 +403,12 @@ void draw_pie_chart(int gno)
 
 void draw_polar_graph(int gno)
 {
-    int j, nsets, *sids;
+    int setno, nsets;
     set *p;
 
-    nsets = get_set_ids(gno, &sids);
+    nsets = number_of_sets(gno);
     
-    for (j = 0; j < nsets; j++) {
-        int setno = sids[j];
+    for (setno = 0; setno < nsets; setno++) {
         if (is_set_drawable(gno, setno)) {
             p = set_get(gno, setno);
             switch (dataset_type(gno, setno)) {
@@ -431,7 +429,7 @@ void draw_polar_graph(int gno)
 
 void xyplot(int gno)
 {
-    int i, j, nsets, *sids;
+    int j, setno, nsets;
     set *p;
     int refn;
     double *refx, *refy;
@@ -442,13 +440,12 @@ void xyplot(int gno)
     refx = NULL;
     refy = NULL;
 
-    nsets = get_set_ids(gno, &sids);
+    nsets = number_of_sets(gno);
 
     /* draw sets */
     switch (get_graph_type(gno)) {
     case GRAPH_XY:
-        for (i = 0; i < nsets; i++) {
-            int setno = sids[i];
+        for (setno = 0; setno < nsets; setno++) {
             if (is_set_drawable(gno, setno)) {
                 p = set_get(gno, setno);
                 switch (dataset_type(gno, setno)) {
@@ -502,8 +499,7 @@ void xyplot(int gno)
         }
         break;
     case GRAPH_CHART:
-        for (i = 0; i < nsets; i++) {
-            int setno = sids[i];
+        for (setno = 0; setno < nsets; setno++) {
             p = set_get(gno, setno);
             if (is_set_drawable(gno, setno)) {
                 if (p->data->len > refn) {
@@ -524,8 +520,7 @@ void xyplot(int gno)
             }
         }
 
-        for (i = 0; i < nsets; i++) {
-            int setno = sids[i];
+        for (setno = 0; setno < nsets; setno++) {
             p = set_get(gno, setno);
             if (is_set_drawable(gno, setno)) {
                 if (is_graph_stacked(gno) != TRUE) {
@@ -587,8 +582,7 @@ void xyplot(int gno)
                 refy[j] = 0.0;
             }
             
-            for (i = 0; i < nsets; i++) {
-                int setno = sids[i];
+            for (setno = 0; setno < nsets; setno++) {
                 p = set_get(gno, setno);
                 if (is_set_drawable(gno, setno)) {
                     switch (dataset_type(gno, setno)) {
@@ -626,8 +620,7 @@ void xyplot(int gno)
         }
         break;
     case GRAPH_FIXED:
-        for (i = 0; i < nsets; i++) {
-            int setno = sids[i];
+        for (setno = 0; setno < nsets; setno++) {
             if (is_set_drawable(gno, setno)) {
                 p = set_get(gno, setno);
                 switch (dataset_type(gno, setno)) {
@@ -2237,7 +2230,7 @@ void draw_region(region *this)
  */
 void dolegend(int gno)
 {
-    int i, nsets, *sids;
+    int setno, nsets;
     int draw_flag;
     double maxsymsize;
     double ldist, sdist, yskip;
@@ -2256,9 +2249,8 @@ void dolegend(int gno)
     
     maxsymsize = 0.0;
     draw_flag = FALSE;
-    nsets = get_set_ids(gno, &sids);
-    for (i = 0; i < nsets; i++) {
-        int setno = sids[i];
+    nsets = number_of_sets(gno);
+    for (setno = 0; setno < nsets; setno++) {
         if (is_set_drawable(gno, setno)) {
             p = set_get(gno, setno);
             if (!is_empty_string(p->legstr)) {
@@ -2339,7 +2331,7 @@ void dolegend(int gno)
 
 void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
 {
-    int i, setno, nsets, *sids;
+    int i, setno, nsets;
     VPoint vp2, vpstr;
     set *p;
     legend l;
@@ -2351,12 +2343,12 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
     
     get_graph_legend(gno, &l);
     
-    nsets = get_set_ids(gno, &sids);
+    nsets = number_of_sets(gno);
     for (i = 0; i < nsets; i++) {
         if (l.invert == FALSE) {
-            setno = sids[i];
+            setno = i;
         } else {
-            setno = sids[nsets - i - 1];
+            setno = nsets - i - 1;
         }
         if (is_set_drawable(gno, setno)) {
             p = set_get(gno, setno);

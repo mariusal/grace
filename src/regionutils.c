@@ -141,14 +141,13 @@ void activate_region(int r, int type, int linkto)
 void reporton_region(int gno, int rno, int type)
 {
     char buf[256];
-    int i, j, first, contained, nsets, *sids;
+    int i, setno, first, contained, nsets;
     double *x, *y;
     sprintf(buf, "\nRegion R%1d contains:\n", rno);
     stufftext(buf);
     
-    nsets = get_set_ids(gno, &sids);
-    for (j = 0; j < nsets; j++) {
-	int setno = sids[j];
+    nsets = number_of_sets(gno);
+    for (setno = 0; setno < nsets; setno++) {
         if (is_set_active(gno, setno)) {
 	    x = getx(gno, setno);
 	    y = gety(gno, setno);
