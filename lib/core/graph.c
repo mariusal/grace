@@ -216,6 +216,9 @@ int graph_set_type(Quark *gr, int gtype)
             return RETURN_FAILURE;
         }
         g->type = gtype;
+
+        update_graph_ccache(gr);
+
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
