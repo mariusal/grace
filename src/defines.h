@@ -59,11 +59,6 @@
 #define MAXFIT 12               /* max degree of polynomial+1 that can be
                                  * fitted */
 
-
-/* number of extra objects of a given type to allocate if not enough */
-#define OBJECT_BUFNUM 10
-
-
 #define MAX_ARROW 3
 #define MAX_PREC 10
 
@@ -264,25 +259,6 @@ typedef enum {
 #define AUTOSCALE_X       1
 #define AUTOSCALE_Y       2
 #define AUTOSCALE_XY      3
-
-/*
- * for set selector gadgets
- */
-#define SET_SELECT_ERROR -99
-#define SET_SELECT_ACTIVE 0
-#define SET_SELECT_ALL -1
-#define SET_SELECT_NEXT -2
-#define SET_SELECT_NEAREST -3
-#define GRAPH_SELECT_CURRENT -1
-#define GRAPH_SELECT_ALL -2
-#define FILTER_SELECT_NONE 0
-#define FILTER_SELECT_ACTIVE 1
-#define FILTER_SELECT_ALL 2
-#define FILTER_SELECT_INACT 3
-#define FILTER_SELECT_DEACT 4
-#define FILTER_SELECT_SORT 5
-#define SELECTION_TYPE_SINGLE 0
-#define SELECTION_TYPE_MULTIPLE 1
 
 /* Default document name */
 #define NONAME "Untitled"
