@@ -37,10 +37,13 @@ main (int argc, char* argv[])
     GracePrintf ("yaxis tick major 2000");
     GracePrintf ("yaxis tick minor 1000");
     GracePrintf ("s0 on");
+    GracePrintf ("s0 symbol 1");
+    GracePrintf ("s0 symbol size 0.3");
+    GracePrintf ("s0 symbol fill pattern 1");
     GracePrintf ("s1 on");
-    GracePrintf ("sets symbol 2");
-    GracePrintf ("sets symbol fill 1");
-    GracePrintf ("sets symbol size 0.3");
+    GracePrintf ("s1 symbol 1");
+    GracePrintf ("s1 symbol size 0.3");
+    GracePrintf ("s1 symbol fill pattern 1");
 
     /* Display sample data */
     for (i = 1; i <= 100 && GraceIsOpen(); i++) {
