@@ -89,7 +89,7 @@ static int readline = 0;	/* line number in file */
 
 int loops_allowed = 0;		/* periodically reset to stop long inputs */
 
-static Input_buffer dummy_ib = {-1, 0, 0, 0, NULL, 0, 0, NULL, 0l};
+static Input_buffer dummy_ib = {-1, 0, 0, 0, 0, NULL, 0, 0, NULL, 0l};
 
 int nb_rt = 0;		        /* number of real time file descriptors */
 Input_buffer *ib_tbl = 0;	/* table for each open input */
@@ -294,6 +294,7 @@ int register_real_time_input(int fd, const char *name, int reopen)
     /* we keep the current buffer (even if 0),
        and only say everything is available */
     ib->fd     = fd;
+    ib->errors = 0;
     ib->lineno = 0;
     ib->zeros  = 0;
     ib->reopen = reopen;
@@ -368,16 +369,45 @@ static int process_complete_lines(Input_buffer *ib)
     do {
         /* loop over the embedded lines */
         begin_of_line = (end_of_line == NULL) ? ib->buf : (end_of_line + 1);
-        end_of_line   = strchr(begin_of_line, '\n');
+        end_of_line   = begin_of_line;
+        while (*end_of_line != '\0' && *end_of_line != '\n') {
+            ++end_of_line;
+        }
+        if (end_of_line == ib->buf + ib->used) {
+            /* this is not an embedded null character */
+            end_of_line = NULL;
+        }
 
         if (end_of_line != NULL) {
             /* we have a whole line */
 
             ++(ib->lineno);
             *end_of_line = '\0';
-
             close_input = NULL;
-            read_param(begin_of_line); /* this can reset close_input */
+
+            if (read_param(begin_of_line)) {
+                sprintf(buf, "Error at line %d: %s\n",
+                        ib->lineno, begin_of_line);
+                errmsg(buf);
+                ++(ib->errors);
+                if (ib->errors > MAXERR) {
+
+#ifndef NONE_GUI
+                    /* this prevents from being called recursively by
+                       the inner X loop of yesno */
+                    xunregister_rti((XtInputId) ib->id);
+#endif
+                    if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
+                        close_input = copy_string(close_input, "");
+                    }
+#ifndef NONE_GUI
+                    xregister_rti(ib);
+#endif
+                    ib->errors = 0;
+
+                }
+            }
+
             if (close_input != NULL) {
                 /* something should be closed */
                 if (close_input[0] == '\0') {
