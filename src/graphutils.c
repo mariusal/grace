@@ -160,7 +160,8 @@ char *get_format_types(int f)
 
 int wipeout(void)
 {
-    if (is_dirtystate() && !yesno("Abandon unsaved changes?", NULL, NULL, NULL) {
+    if (is_dirtystate() &&
+        !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
         return 1;
     }
     kill_all_graphs();
