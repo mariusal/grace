@@ -454,8 +454,10 @@ static int project_postprocess_hook(Quark *q,
 
         break;
     case QFlavorAText:
-        if (version_id >= 40200 && version_id <= 50005 &&
-            !compare_strings(quark_idstr_get(q), "timestamp")) {
+        if (version_id >= 40200 && version_id <= 50005        &&
+            !compare_strings(quark_idstr_get(q), "timestamp") &&
+            !compare_strings(quark_idstr_get(q), "title")     &&
+            !compare_strings(quark_idstr_get(q), "subtitle")) {
             /* BBox type justification was erroneously set */
             AText *at = atext_get_data(q);
             if (at) {
