@@ -49,6 +49,8 @@
 
 #define cxfree(ptr) xfree(ptr); ptr = NULL
 
+#define PSTRING(s) ((s == NULL) ? "" : escapequotes(s))
+
 void xfree(void *ptr);
 void *xrealloc(void *ptr, size_t size);
 void fswap(double *x, double *y);
