@@ -172,22 +172,15 @@ void update_hotlinks(void)
  */
 void do_hotupdate_proc(void *data)
 {
-    int i, errpos;
-    char hotcom[256];
+    int i;
 
     set_wait_cursor();
 
-	/* do links */
+    /* do links */
     for (i = 0; i < number_of_sets(get_cg()); i++) {
         if (is_hotlinked(get_cg(), i)) {
             do_update_hotlink(get_cg(), i);
         }
-    }
-
-    /* perform specified command */
-    if( hotlink_command != NULL ) {
-        strcpy(hotcom, xv_getstr(hotlink_command));
-        errpos = scanner(hotcom);
     }
 
     unset_wait_cursor();
@@ -232,8 +225,6 @@ void create_hotlinks_popup(void *data)
 						"Pipe",
 						NULL,
 						NULL);
-
-	hotlink_command = CreateTextItem2(dialog, 30, "Command:");
 
 	CreateSeparator(dialog);
 

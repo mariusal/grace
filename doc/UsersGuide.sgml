@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.8)</title>
 <author>by the Grace Team</author>
-<date>24.05.2002</date>
+<date>28.05.2002</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -1205,10 +1205,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <p>
       You can link a set to a file or a pipe using this feature. Once
       a link has been established, you can update it (i.e., read data
-      again) by clicking on the update button. If you have specified a
-      command (using Grace language) in the corresponding text field
-      of the popup, it will be executed after each update. Note that
-      you can use several commands separated by ';' characters.
+      again) by clicking on the update button.
       <p>
       Currently, only simple XY sets can be used for hotlinks.
 
