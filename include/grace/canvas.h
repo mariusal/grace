@@ -133,12 +133,7 @@
 typedef struct {
     double x;
     double y;
-} VPoint;
-
-typedef struct {
-    double x;
-    double y;
-} VVector;
+} VPoint, VVector;
 
 /* Viewport */
 typedef struct {
