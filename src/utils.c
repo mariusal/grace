@@ -1427,10 +1427,12 @@ char *bi_gui(void)
     return BI_GUI;
 }
 
+#ifdef MOTIF_GUI
 char *bi_gui_xbae(void)
 {
     return BI_GUI_XBAE;
 }
+#endif
 
 char *bi_t1lib(void)
 {

@@ -139,7 +139,9 @@ char *bi_version_string(void);
 char *bi_system(void);
 char *bi_date(void);
 char *bi_gui(void);
+#ifdef MOTIF_GUI
 char *bi_gui_xbae(void);
+#endif
 char *bi_ccompiler(void);
 char *bi_t1lib(void);
 
