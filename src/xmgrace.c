@@ -261,9 +261,10 @@ extern const char _XmVersionString[];
 static int is_motif_compatible(void)
 {
     char buf[128];
+    int bd_lesstif;
 #ifdef HAVE__XMVERSIONSTRING
     char *s;
-    int bd_lesstif, rt_lesstif;
+    int rt_lesstif;
 #endif
 
     /* First, check for compatible version */
@@ -275,6 +276,8 @@ static int is_motif_compatible(void)
         return FALSE;
     }
     
+    bd_lesstif = (strstr(bi_gui(), "Motif") == NULL);
+
 #ifdef HAVE__XMVERSIONSTRING
     /* Then, check whether we are in the Motif/LessTif binary compatibility
        mode */
@@ -284,7 +287,6 @@ static int is_motif_compatible(void)
     strncpy(buf, _XmVersionString, 13);
     buf[13] = '\0';
     rt_lesstif = (strstr(buf, "Motif") == NULL);
-    bd_lesstif = (strstr(bi_gui(), "Motif") == NULL);
     if (bd_lesstif != rt_lesstif) {
         sprintf(buf, "The software was built with %s, but is running with %s!",
             bd_lesstif ? "LessTif":"Motif", rt_lesstif ? "LessTif":"Motif");
@@ -303,19 +305,20 @@ static int is_motif_compatible(void)
     }
 #endif
 
+#if XbaeVersion >= 40800
+    /* Now we should compare whether Xbae was built against the
+       runtime version of M*tif/LessTif. */
+    strncpy(buf, XbaeGetXmVersionTxt(), 13);
+    buf[13] = '\0';
+    rt_lesstif = (strstr(buf, "Motif") == NULL);
+    if (bd_lesstif != rt_lesstif) {
+        sprintf(buf, "libXbae was built with %s, but is running with %s!",
+            bd_lesstif ? "LessTif":"Motif", rt_lesstif ? "LessTif":"Motif");
+        errmsg(buf);
+        errmsg("Use a semistatic binary or compile Grace/libXbae yourself!");
+        return FALSE;
 
-#if 0
-/*
- *    Important Reminder:
- *    it is possible that upcoming Xbae versions (i.e. more
- *    recent than this of LessTif 0.90.0) will carry a built-in
- *    version number - we should add a check here then!
- */
-   if (XbaeVersion!=Xbae_Version_runtime) {
-        sprintf(buf, "Xbae runtime version (%i) does not match the build version (%i)!");
-        errmsg(buf);  
-   }
-#endif
+#endif /* XbaeVersion > 40800 */
 
     return TRUE;
 }
