@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -57,6 +57,9 @@ void (*devdrawarc) ();          /* device arc drawing routine */
 void (*devfillarc) ();          /* device arc filling routine */
 
 void (*devleavegraphics) ();    /* device exit */
+
+static int all_points_inside(VPoint *vps, int n);
+static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np);
 
 /* Current drawing properties */
 static DrawProps draw_props =
@@ -359,7 +362,7 @@ void FillRect(VPoint vp1, VPoint vp2)
  */
 void DrawPolyline(VPoint *vps, int n, int mode)
 {
-    int i, j, nmax, nc;
+    int i, j, nmax, nc, max_purge, npurged;
     VPoint vp1, vp2;
     VPoint vp1c, vp2c;
     VPoint *vpsc;
@@ -378,7 +381,13 @@ void DrawPolyline(VPoint *vps, int n, int mode)
         nmax = n;
     }
     
-    if (doclipping()) {
+    max_purge = get_max_path_limit();
+    
+/*
+ *  in most real cases, all points of a set are inside the viewport;
+ *  so we check it prior to going into compilated clipping mode
+ */
+    if (doclipping() && !all_points_inside(vps, n)) {
         
         vpsc = (VPoint *) malloc((nmax)*sizeof(VPoint));
         if (vpsc == NULL) {
@@ -410,7 +419,13 @@ void DrawPolyline(VPoint *vps, int n, int mode)
                         if (nc != nmax) {
                             mode = POLYLINE_OPEN;
                         }
-                        (*devdrawpolyline)(vpsc, nc, mode);
+                        if (max_purge && nc > max_purge) {
+                            npurged = max_purge;
+                            purge_dense_points(vpsc, nc, vpsc, &npurged);
+                        } else {
+                            npurged = nc;
+                        }
+                        (*devdrawpolyline)(vpsc, npurged, mode);
                     }
                     nc = 0;
                 }
@@ -422,10 +437,21 @@ void DrawPolyline(VPoint *vps, int n, int mode)
             update_bboxes(vps[j]);
         }
         if (get_draw_mode() == TRUE) {
-            (*devdrawpolyline)(vps, n, mode);
+            if (max_purge && n > max_purge) {
+                npurged = max_purge;
+                vpsc = malloc(max_purge*sizeof(VPoint));
+                if (vpsc == NULL) {
+                    errmsg ("malloc() failed in DrawPolyline()");
+                    return;
+                }
+                purge_dense_points(vps, n, vpsc, &npurged);
+                (*devdrawpolyline)(vpsc, npurged, mode);
+                free(vpsc);
+            } else {
+                (*devdrawpolyline)(vps, n, mode);
+            }
         }
     }
-    
 }
 
 /*
@@ -448,7 +474,7 @@ void DrawLine(VPoint vp1, VPoint vp2)
  */
 void DrawPolygon(VPoint *vps, int n)
 {
-    int i, nc;
+    int i, nc, max_purge, npurged;
     VPoint *vptmp;
 
     if ((getpen()).pattern == 0) {
@@ -457,10 +483,12 @@ void DrawPolygon(VPoint *vps, int n)
     if (n < 3) {
         return;
     }
+
+    max_purge = get_max_path_limit();
     
-    if (doclipping()) {
+    if (doclipping() && !all_points_inside(vps, n)) {
         /* In the worst case, the clipped polygon may have twice more vertices */
-        vptmp = (VPoint *) malloc((2*n) * sizeof(VPoint));
+        vptmp = malloc((2*n) * sizeof(VPoint));
         if (vptmp == NULL) {
             errmsg("malloc() failed in DrawPolygon");
             return;
@@ -469,7 +497,13 @@ void DrawPolygon(VPoint *vps, int n)
             nc = clip_polygon(vptmp, n);
             if (nc > 2) {
                 if (get_draw_mode() == TRUE) {
-                    (*devfillpolygon) (vptmp, nc);
+                    if (max_purge && nc > max_purge) {
+                        npurged = max_purge;
+                        purge_dense_points(vptmp, nc, vptmp, &npurged);
+                    } else {
+                        npurged = nc;
+                    }
+                    (*devfillpolygon) (vptmp, npurged);
                 }
                 for (i = 0; i < nc; i++) {
                     update_bboxes(vptmp[i]);
@@ -479,7 +513,19 @@ void DrawPolygon(VPoint *vps, int n)
         }
     } else {
         if (get_draw_mode() == TRUE) {
-            (*devfillpolygon) (vps, n);
+            if (max_purge && n > max_purge) {
+                npurged = max_purge;
+                vptmp = malloc(max_purge*sizeof(VPoint));
+                if (vptmp == NULL) {
+                    errmsg ("malloc() failed in DrawPolygon()");
+                    return;
+                }
+                purge_dense_points(vps, n, vptmp, &npurged);
+                (*devfillpolygon) (vptmp, npurged);
+                free(vptmp);
+            } else {
+                (*devfillpolygon) (vps, n);
+            }
         }
         for (i = 0; i < n; i++) {
             update_bboxes(vps[i]);
@@ -615,6 +661,18 @@ int is_vpoint_inside(view v, VPoint vp, double epsilon)
 {
     return ((vp.x >= v.xv1 - epsilon) && (vp.x <= v.xv2 + epsilon) &&
             (vp.y >= v.yv1 - epsilon) && (vp.y <= v.yv2 + epsilon));
+}
+
+static int all_points_inside(VPoint *vps, int n)
+{
+    int i;
+    
+    for (i = 0; i < n; i++) {
+        if (is_vpoint_inside(viewport, vps[i], VP_EPSILON) != TRUE) {
+            return FALSE;
+        }
+    }
+    return TRUE;
 }
 
 /*
@@ -1716,4 +1774,81 @@ int points_overlap(VPoint vp1, VPoint vp2)
     } else {
         return FALSE;
     }
+}
+
+
+static max_path_length = 4000;
+
+void set_max_path_limit(int limit)
+{
+    max_path_length = limit;
+}
+
+int get_max_path_limit(void)
+{
+    return max_path_length;
+}
+
+#define PURGE_INIT_FACTOR   1.0
+#define PURGE_ITER_FACTOR   M_SQRT2
+
+/* Note: vps and pvps may be the same array! */
+static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
+{
+    int i, j, iter;
+    int ok;
+    double eps;
+    VPoint vptmp;
+    
+    if (n <= *np) {
+        memmove(pvps, vps, n*sizeof(VPoint));
+    }
+    
+    if (*np <= 0) {
+        *np = 0;
+        return;
+    }
+    
+    /* Start with 1/np epsilon */
+    eps = PURGE_INIT_FACTOR/(*np);
+    iter = 0;
+    ok = FALSE;
+    while (ok == FALSE) {
+        j = 0;
+        vptmp = vps[0];
+        for (i = 0; i < n - 1; i++) {
+            if (fabs(vps[i].x - vptmp.x) > eps ||
+                fabs(vps[i].y - vptmp.y) > eps) {
+                vptmp = vps[i];
+                j++;
+                if (j >= *np) {
+                    break;
+                }
+            }
+        }
+        if (j < *np - 1) {
+            ok = TRUE;
+        } else {
+            eps *= PURGE_ITER_FACTOR;
+        }
+        iter++;
+    }
+
+    /* actually fill the purged array */
+    pvps[0] = vps[0];
+    j = 0;
+    for (i = 0; i < n - 1; i++) {
+        if (fabs(vps[i].x - pvps[j].x) > eps ||
+            fabs(vps[i].y - pvps[j].y) > eps) {
+            pvps[++j] = vps[i];
+        }
+    }
+    pvps[j++] = vps[n - 1];
+    
+    *np = j;
+#ifdef DEBUG    
+    if (get_debuglevel() == 6) {
+        printf("Purging %d points to %d in %d iteration(s)\n", n, *np, iter);
+    }
+#endif
 }
