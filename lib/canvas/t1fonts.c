@@ -928,7 +928,8 @@ int get_string_bbox(Canvas *canvas,
 }
 
 
-CPixmap *canvas_raster_char(int font, char c, float size, int *vshift, int *hshift)
+CPixmap *canvas_raster_char(Canvas *canvas,
+    int font, char c, float size, int *vshift, int *hshift)
 {
     T1_TMATRIX UNITY_MATRIX = {1.0, 0.0, 0.0, 1.0};
     CPixmap *pm;
@@ -936,7 +937,7 @@ CPixmap *canvas_raster_char(int font, char c, float size, int *vshift, int *hshi
     size_t memsize;
     int pad = T1_GetBitmapPad();
     
-    glyph = T1_SetChar(font, c, size, &UNITY_MATRIX);
+    glyph = T1_SetChar(canvas->fmap_proc(canvas, font), c, size, &UNITY_MATRIX);
     if (!glyph || !glyph->bits) {
         return NULL;
     }

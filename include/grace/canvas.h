@@ -530,7 +530,8 @@ int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data);
 int get_string_bbox(Canvas *canvas,
     const VPoint *vp, double angle, int just, const char *s, view *bbox);
 
-CPixmap *canvas_raster_char(int font, char c, float size, int *vshift, int *hshift);
+CPixmap *canvas_raster_char(Canvas *canvas,
+    int font, char c, float size, int *vshift, int *hshift);
 void canvas_cpixmap_free(CPixmap *pm);
 
 int isvalid_viewport(const view *v);
