@@ -60,17 +60,15 @@ buildinfo$(O) : $(TOP)/Make.conf
 
 buildinfo.h : buildinfo$(EXE) $(GRSRCS) $(GUISRCS)
 	$(RM) t.h
-	./buildinfo$(EXE) > t.h
-	mv t.h $@
+	./buildinfo$(EXE) > t.h && mv t.h $@
 
 bi$(O) : buildinfo.h
 
 $(PARS_C) : $(PARS_Y)
-	$(YACC) -t $?
-	mv y.tab.c $@
+	$(YACC) -t $? && mv y.tab.c $@
 
 xml_in.c : grace.xcc
-	$(XCC) < $? > t.c && mv t.c $@
+	$(XCC) -i $? -o $@
 
 install : $(GRACE)
 	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/bin
