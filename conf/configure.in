@@ -56,39 +56,65 @@ AC_ARG_ENABLE(config,
                           (not recommended!)],
 [CONF_FILE="${enableval}"])
 
+dnl Checks for C compiler
+AC_PROG_CC
+
 if test -z "${CONF_FILE}"
 then
-  case "${host}" in
-    i?86-*-linux-*) CONF_FILE="ix86-linux";;
-    *-*-linux-*) CONF_FILE="linux";;
-    i?86-*-sco-*) CONF_FILE="ix86-sco";;
-    i?86-*-cygwin32) CONF_FILE="ix86-cygwin32";;
-    alpha*-dec-osf4.*) CONF_FILE="alpha-osf4";;
-    hppa*-hp-hpux*) CONF_FILE="hppa-hpux";;
-    mips-sgi-irix6.[4-9]*) CONF_FILE="mips-irix6.4";;
-    mips-sgi-irix*) CONF_FILE="mips-irix";;
-    rs6000-ibm-aix3*) CONF_FILE="rs6000-aix3";;
-    rs6000-ibm-aix4*) CONF_FILE="rs6000-aix4";;
-    mips-dec-ultrix*) CONF_FILE="mips-ultrix";;
-    sparc-sun-sunos4*) CONF_FILE="sparc-sunos4";;
-    sparc-sun-solaris*) CONF_FILE="sparc-sunos5";;
-    m88k-dg-dgux*) CONF_FILE="m88k-dgux";;
-    *-pc-opennt) CONF_FILE="opennt";;
-    *) CONF_FILE="none";
-  esac
+  if test "x${GCC}" = "xyes"
+  then
+    CONF_FILE="generic.gcc"
+  else
+    case "${host}" in
+      alpha*-dec-osf4.*) CONF_FILE="alpha-osf4";;
+      hppa*-hp-hpux*) CONF_FILE="hppa-hpux";;
+      mips-sgi-irix6.[4-9]*) CONF_FILE="mips-irix6.4";;
+      mips-sgi-irix*) CONF_FILE="mips-irix";;
+      rs6000-ibm-aix3*) CONF_FILE="rs6000-aix3";;
+      rs6000-ibm-aix4*) CONF_FILE="rs6000-aix4";;
+      *-pc-opennt) CONF_FILE="opennt";;
+      *) CONF_FILE="generic";
+    esac
+  fi
 fi
 
-if test ${CONF_FILE} = "none"
+if test -r conf/$CONF_FILE
 then
-  AC_MSG_WARN(no predefined configuration found for ${host})
-else
   AC_MSG_RESULT(--> using \`conf/$CONF_FILE' as config file)
-  if test -r conf/$CONF_FILE
+  . conf/$CONF_FILE
+else
+  AC_MSG_ERROR(--> Can't open file \`conf/$CONF_FILE' for reading!)
+  exit 1
+fi
+
+AC_ISC_POSIX
+AC_AIX
+AC_MINIX
+
+if test "x${GCC}" = "xyes"
+then
+  dnl **** some arch-specific optimizations/settings for gcc
+  case "${host}" in
+    i?86-*-linux-*) CFLAGS="-m486 -malign-doubles $CFLAGS";;
+    i?86-*) CFLAGS="-m486 $CFLAGS";;
+  esac
+
+  dnl **** Check for gcc strength-reduce bug ****
+  AC_CACHE_CHECK( "for gcc strength-reduce bug", ac_cv_c_gcc_strength_bug,
+                  AC_TRY_RUN([
+int main(void) {
+  static int Array[[3]];
+  unsigned int B = 3;
+  int i;
+  for(i=0; i<B; i++) Array[[i]] = i - 3;
+  exit( Array[[1]] != -2 );
+}],
+    ac_cv_c_gcc_strength_bug="no",
+    ac_cv_c_gcc_strength_bug="yes",
+    ac_cv_c_gcc_strength_bug="yes") )
+  if test "$ac_cv_c_gcc_strength_bug" = "yes"
   then
-    . conf/$CONF_FILE
-  else
-    AC_MSG_ERROR(--> Can't open file \`conf/$CONF_FILE' for reading!)
-    exit 1
+    CFLAGS="$CFLAGS -fno-strength-reduce"
   fi
 fi
 
@@ -118,11 +144,6 @@ AC_ARG_ENABLE(extra-ldpath,
 ])
 
 
-dnl Checks for C compiler
-AC_PROG_CC
-AC_ISC_POSIX
-AC_AIX
-
 dnl **** Check for some compiler/system characteristics
 
 AC_C_CHAR_UNSIGNED
@@ -136,30 +157,6 @@ AC_CHECK_SIZEOF(double,0)
 AC_CHECK_SIZEOF(long double,0)
 AC_CHECK_SIZEOF(void *,0)
 
-
-dnl **** Check for gcc strength-reduce bug ****
-dnl (this part is stolen from WINE config)
-
-if test "x${GCC}" = "xyes"
-then
-  CFLAGS="$CFLAGS"
-  AC_CACHE_CHECK( "for gcc strength-reduce bug", ac_cv_c_gcc_strength_bug,
-                  AC_TRY_RUN([
-int main(void) {
-  static int Array[[3]];
-  unsigned int B = 3;
-  int i;
-  for(i=0; i<B; i++) Array[[i]] = i - 3;
-  exit( Array[[1]] != -2 );
-}],
-    ac_cv_c_gcc_strength_bug="no",
-    ac_cv_c_gcc_strength_bug="yes",
-    ac_cv_c_gcc_strength_bug="yes") )
-  if test "$ac_cv_c_gcc_strength_bug" = "yes"
-  then
-    CFLAGS="$CFLAGS -fno-strength-reduce"
-  fi
-fi
 
 dnl **** Check for endianess
 AC_C_BIGENDIAN
