@@ -839,8 +839,9 @@ char *utf2iso(const char *s)
         <child name="#EStrDefinitions">
         </child>
         <child name="#EStrPage">
-            set_page_dimensions(grace, $?->width, $?->height, FALSE);
-            $?->bgpen = $?->bgpen;
+            $$->page_wpp = $?->width;
+            $$->page_hpp = $?->height,
+            $$->bgpen = $?->bgpen;
             xfree($?);
         </child>
         <child name="#EStrDataFormats">
@@ -2007,11 +2008,8 @@ int load_xgr_project(char *fn)
     
     if (ret == XCC_RETURN_SUCCESS) {
         pr->docname = copy_string(pr->docname, fn);
-        project_clear_dirtystate(pr);
-        project_free(grace->project);
-        grace->project = pr;
-        
-        return RETURN_SUCCESS;
+
+        return grace_set_project(grace, pr);
     } else {
         project_free(pr);
         
