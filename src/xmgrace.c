@@ -34,6 +34,8 @@
 
 #include <config.h>
 
+#include <unistd.h>
+
 #include <X11/X.h>
 #include <X11/Xatom.h>
 #include <X11/Intrinsic.h>
@@ -116,9 +118,6 @@ Widget loclab;			/* locator label */
 Widget statlab;			/* status line at the bottom */
 Widget stack_depth_item;	/* stack depth item on the main panel */
 Widget curw_item;		/* current world stack item on the main panel */
-XmString sdstring;		/* string for stack depth */
-XmString cystring;		/* string for stack cycle */
-XmString statstring;		/* string for pointer status */
 
 Display *disp = (Display *) NULL;
 Window xwin;
@@ -404,16 +403,32 @@ void autoticks_proc(Widget w, XtPointer client_data, XtPointer call_data)
  */
 void set_left_footer(char *s)
 {
-    Arg al;
-
-    XmStringFree(statstring);
-    statstring = XmStringCreateLtoR(s, charset);
-    XtSetArg(al, XmNlabelString, statstring);
-    XtSetValues(statlab, &al, 1);
-    if (logwindow) {
-	log_results(s);
+    if (s == NULL) {
+        char hbuf[64];
+        char buf[GR_MAXPATHLEN + 100];
+        gethostname(hbuf, 63);
+        sprintf(buf, "%s, %s, %s", hbuf, display_name(), docname);
+        SetLabel(statlab, buf);
+    } else {
+        SetLabel(statlab, s);
     }
-    XmUpdateDisplay(statlab);
+/*
+ *     XmUpdateDisplay(statlab);
+ */
+}
+
+/*
+ * for world stack
+ */
+void set_stack_message(void)
+{
+    char buf[16];
+    if (stack_depth_item) {
+	sprintf(buf, " SD:%1d ", graph_world_stack_size(get_cg()));
+	SetLabel(stack_depth_item, buf);
+        sprintf(buf, " CW:%1d ", get_world_stack_current(get_cg()));
+	SetLabel(curw_item, buf);
+    }
 }
 
 
@@ -843,8 +858,6 @@ void initialize_screen()
     Pixmap icon, shape;
     Atom WM_DELETE_WINDOW;
     Pixel fg, bg;
-    XmString string;		/* string for current location */
-    char buf[256];
 
 /* 
  * Allow users to change tear off menus with X resources
@@ -924,23 +937,16 @@ void initialize_screen()
     XtManageChild(frbot);
     /* formbot = XmCreateForm(frbot, "form", NULL, 0); */
     formbot = XmCreateRowColumn(frbot, "rc", NULL, 0);
-    set_default_message(buf);
-    statstring = XmStringCreateLtoR(buf, charset);
     statlab = XtVaCreateManagedWidget("statlab", xmLabelWidgetClass, formbot,
-				      XmNlabelString, statstring,
 				      XmNalignment, XmALIGNMENT_BEGINNING,
 				      XmNrecomputeSize, True,
 				      NULL);
     XtAddCallback(statlab, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#statbar");
 
-    string = XmStringCreateLtoR("G0:[X, Y] =                                           ",
-				charset);
     loclab = XtVaCreateManagedWidget("label Locate", xmLabelWidgetClass, rctop,
-				     XmNlabelString, string,
 				     XmNalignment, XmALIGNMENT_END,
 				     XmNrecomputeSize, True,
 				     NULL);
-    XmStringFree(string);
     XtAddCallback(loclab, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#locbar");
 
     XtManageChild(formbot);
@@ -1261,17 +1267,13 @@ void initialize_screen()
     XtAddCallback(bt, XmNhelpCallback,
                         (XtCallbackProc) HelpCB, (XtPointer) "main.html#cy");
 
-    sdstring = XmStringCreateLtoR("SD:1 ", charset);
     stack_depth_item = XtVaCreateManagedWidget("stackdepth",
                                                xmLabelWidgetClass, rcleft,
-					       XmNlabelString, sdstring,
 					       NULL);
     XtAddCallback(stack_depth_item, XmNhelpCallback,
                         (XtCallbackProc) HelpCB, (XtPointer) "main.html#sd");
 
-    cystring = XmStringCreateLtoR("CW:0 ", charset);
     curw_item = XtVaCreateManagedWidget("curworld", xmLabelWidgetClass, rcleft,
-					XmNlabelString, cystring,
 					NULL);
     XtAddCallback(curw_item, XmNhelpCallback,
                         (XtCallbackProc) HelpCB, (XtPointer) "main.html#cw");
@@ -1298,6 +1300,10 @@ void initialize_screen()
  * initialize the tool bars
  */
     set_view_items();
+
+    SetLabel(loclab, "G0:[X, Y] = ");
+    set_stack_message();
+    set_left_footer(NULL);
 
 /*
  * set icon

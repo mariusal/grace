@@ -100,7 +100,6 @@ void set_action(CanvasAction act);
 void track_point(int gno, int setno, int *loc, int shift);
 void getpoints(VPoint vp);
 void set_stack_message(void);
-void set_default_message(char *buf);
 void do_select_area(void);
 void do_select_peri(void);
 void do_dist_proc(void);

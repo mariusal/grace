@@ -1309,6 +1309,9 @@ void expand_tilde(char *buf)
 
 void echomsg(char *msg)
 {
+    if (logwindow) {
+	log_results(msg);
+    }
     if (inwin) {
 #ifndef NONE_GUI
         set_left_footer(msg);

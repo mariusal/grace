@@ -38,11 +38,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
-#if defined(HAVE_SYS_PARAM_H)
-#  include <sys/param.h>
-#endif	
-#include <time.h>
 
 #include "globals.h"
 #include "events.h"
@@ -62,19 +57,10 @@
 
 #include "motifinc.h"
 
-#if defined(MAXHOSTNAMELEN)
-#  define GR_MAXHOSTNAMELEN MAXHOSTNAMELEN
-#else
-#  define GR_MAXHOSTNAMELEN 64
-#endif
-
-
 extern Widget loclab;
 extern Widget arealab;
 extern Widget perimlab;
 extern Widget locate_point_item;
-extern Widget stack_depth_item;
-extern Widget curw_item;
 
 int cursortype = 0;
 
@@ -91,8 +77,6 @@ int add_at;			/* where to begin inserting points in the set */
 int move_dir;			/* restriction on point movement */
 
 extern char locator_format[];
-
-static char buf[256];
 
 static int action_flag = 0;
 
@@ -165,7 +149,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
         case ZOOMY_2ND:
         case MAKE_BOX_2ND:
         case MAKE_ELLIP_2ND:
-	    select_region(x, y, anchor_x, anchor_y, 1);
+	    select_region(anchor_x, anchor_y, x, y, 1);
             break;
         case MOVE_OBJECT_2ND:
         case COPY_OBJECT2ND:
@@ -175,23 +159,23 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             break;
         case MAKE_LINE_2ND:
         case DEF_REGION2ND:
-	    select_line(x, y, anchor_x, anchor_y, 1);
+	    select_line(anchor_x, anchor_y, x, y, 1);
             break;
         case DEF_REGION:
 	    if (region_pts > 0) {
-                select_line(x, y, anchor_x, anchor_y, 1);
+                select_line(anchor_x, anchor_y, x, y, 1);
             }
             break;
         case MOVE_POINT2ND:
 	    switch (move_dir) {
 	    case 0:
-	        select_line(x, y, anchor_x, anchor_y, 1);
+	        select_line(anchor_x, anchor_y, x, y, 1);
                 break;
 	    case 1:
 	        select_line(x, anchor_y, anchor_x, anchor_y, 1);
 	        break;
 	    case 2:
-	        select_line(anchor_x, y, anchor_x, anchor_y, 1);
+	        select_line(anchor_x, anchor_y, anchor_x, y, 1);
 	        break;
 	    }
             break;
@@ -222,7 +206,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                     if (focus_clicked(cg, vp, &anchor_vp) == TRUE) {
                         xlibVPoint2dev(anchor_vp, &anchor_x, &anchor_y);
                         set_action(VIEW_2ND);
-	                select_region(x, y, anchor_x, anchor_y, 0);
+	                select_region(anchor_x, anchor_y, x, y, 0);
                     } else if (find_point(cg, vp, &setno, &loc) == GRACE_EXIT_SUCCESS) {
                         define_symbols_popup(parent, (XtPointer) setno, NULL);
                     } else if (axis_clicked(cg, vp, &axisno) == TRUE) {
@@ -258,34 +242,34 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case ZOOM_1ST:
                 anchor_point(x, y, vp);
                 set_action(ZOOM_2ND);
-	        select_region(x, y, anchor_x, anchor_y, 0);
+	        select_region(anchor_x, anchor_y, x, y, 0);
                 break;
             case ZOOMX_1ST:
                 anchor_point(x, y, vp);
                 set_action(ZOOMX_2ND);
-	        select_region(x, y, anchor_x, anchor_y, 0);
+	        select_region(anchor_x, anchor_y, x, y, 0);
                 break;
             case ZOOMY_1ST:
                 anchor_point(x, y, vp);
                 set_action(ZOOMY_2ND);
-	        select_region(x, y, anchor_x, anchor_y, 0);
+	        select_region(anchor_x, anchor_y, x, y, 0);
                 break;
             case VIEW_1ST:
                 anchor_point(x, y, vp);
                 set_action(VIEW_2ND);
-	        select_region(x, y, anchor_x, anchor_y, 0);
+	        select_region(anchor_x, anchor_y, x, y, 0);
                 break;
             case ZOOM_2ND:
                 set_action(DO_NOTHING);
-		newworld(cg, ALL_AXES, vp, anchor_vp);
+		newworld(cg, ALL_AXES, anchor_vp, vp);
                 break;
             case ZOOMX_2ND:
                 set_action(DO_NOTHING);
-		newworld(cg, ALL_X_AXES, vp, anchor_vp);
+		newworld(cg, ALL_X_AXES, anchor_vp, vp);
                 break;
             case ZOOMY_2ND:
                 set_action(DO_NOTHING);
-		newworld(cg, ALL_Y_AXES, vp, anchor_vp);
+		newworld(cg, ALL_Y_AXES, anchor_vp, vp);
                 break;
             case EDIT_OBJECT:
                 if (find_item(cg, vp, &bb, &type, &id) == GRACE_EXIT_SUCCESS) {
@@ -336,37 +320,37 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 break;
             case MAKE_LINE_1ST:
                 anchor_point(x, y, vp);
-	        select_line(x, y, anchor_x, anchor_y, 0);
+	        select_line(anchor_x, anchor_y, x, y, 0);
                 set_action(MAKE_LINE_2ND);
                 break;
             case MAKE_LINE_2ND:
-	        select_line(x, y, anchor_x, anchor_y, 0);
+	        select_line(anchor_x, anchor_y, x, y, 0);
                 id = next_line();
-                init_line(id, vp, anchor_vp);
+                init_line(id, anchor_vp, vp);
                 xdrawgraph();
                 set_action(MAKE_LINE_1ST);
                 break;
             case MAKE_BOX_1ST:
                 anchor_point(x, y, vp);
-	        select_region(x, y, anchor_x, anchor_y, 0);
+	        select_region(anchor_x, anchor_y, x, y, 0);
                 set_action(MAKE_BOX_2ND);
                 break;
             case MAKE_BOX_2ND:
-	        select_region(x, y, anchor_x, anchor_y, 0);
+	        select_region(anchor_x, anchor_y, x, y, 0);
                 id = next_box();
-                init_box(id, vp, anchor_vp);
+                init_box(id, anchor_vp, vp);
                 xdrawgraph();
                 set_action(MAKE_BOX_1ST);
                 break;
             case MAKE_ELLIP_1ST:
                 anchor_point(x, y, vp);
-	        select_region(x, y, anchor_x, anchor_y, 0);
+	        select_region(anchor_x, anchor_y, x, y, 0);
                 set_action(MAKE_ELLIP_2ND);
                 break;
             case MAKE_ELLIP_2ND:
-	        select_region(x, y, anchor_x, anchor_y, 0);
+	        select_region(anchor_x, anchor_y, x, y, 0);
                 id = next_ellipse();
-                init_ellipse(id, vp, anchor_vp);
+                init_ellipse(id, anchor_vp, vp);
                 xdrawgraph();
                 set_action(MAKE_ELLIP_1ST);
                 break;
@@ -397,7 +381,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                     sprintf(buf, "G%d.S%d, loc %d, (%f, %f)",
                         cg, track_setno, track_loc, wp.x, wp.y);
 		    xv_setstr(locate_point_item, buf);
-	            select_line(x, y, anchor_x, anchor_y, 0);
+	            select_line(anchor_x, anchor_y, x, y, 0);
 		    set_action(MOVE_POINT2ND);
                 }
                 break;
@@ -488,12 +472,12 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 		break;
 	    case DEF_REGION1ST:
 		anchor_point(x, y, vp);
-                select_line(x, y, anchor_x, anchor_y, 0);
+                select_line(anchor_x, anchor_y, x, y, 0);
 		set_action(DEF_REGION2ND);
 		break;
 	    case DEF_REGION2ND:
 		set_action(DO_NOTHING);
-                select_line(x, y, anchor_x, anchor_y, 0);
+                select_line(anchor_x, anchor_y, x, y, 0);
 		rg[nr].active = TRUE;
 		rg[nr].type = regiontype;
 		if (regionlinkto) {
@@ -522,7 +506,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 } else {
                     errmsg("Too many points in polygon!");
                 }
-                select_line(x, y, anchor_x, anchor_y, 0);
+                select_line(anchor_x, anchor_y, x, y, 0);
 		break;
             default:
                 break;
@@ -627,7 +611,7 @@ void set_action(CanvasAction act)
         case ZOOMX_2ND:
         case ZOOMY_2ND:
         case VIEW_2ND:
-            select_region(x, y, anchor_x, anchor_y, 0);
+            select_region(anchor_x, anchor_y, x, y, 0);
             break;
         case MOVE_OBJECT_2ND:
         case COPY_OBJECT2ND:
@@ -637,24 +621,24 @@ void set_action(CanvasAction act)
             break;
         case MAKE_LINE_2ND:
         case DEF_REGION2ND:
-	    select_line(x, y, anchor_x, anchor_y, 0);
+	    select_line(anchor_x, anchor_y, x, y, 0);
             break;
         case DEF_REGION:
-	    select_line(x, y, anchor_x, anchor_y, 0);
+	    select_line(anchor_x, anchor_y, x, y, 0);
 	    for (i = 0; i < region_pts - 1; i++) {
-                select_line(iax[i + 1], iay[i + 1], iax[i], iay[i], 0); 
+                select_line(iax[i], iay[i], iax[i + 1], iay[i + 1], 0); 
             }
             break;
         case MOVE_POINT2ND:
 	    switch (move_dir) {
 	    case 0:
-	        select_line(x, y, anchor_x, anchor_y, 0);
+	        select_line(anchor_x, anchor_y, x, y, 0);
                 break;
 	    case 1:
-	        select_line(x, anchor_y, anchor_x, anchor_y, 0);
+	        select_line(anchor_x, anchor_y, x, anchor_y, 0);
 	        break;
 	    case 2:
-	        select_line(anchor_x, y, anchor_x, anchor_y, 0);
+	        select_line(anchor_x, anchor_y, anchor_x, y, 0);
 	        break;
 	    }
             break;
@@ -663,153 +647,152 @@ void set_action(CanvasAction act)
         }
 
 	set_cursor(-1);
-	set_default_message(buf);
-	set_left_footer(buf);
+	set_left_footer(NULL);
 	break;
     case ZOOM_1ST:
 	set_cursor(0);
-	echomsg("Pick first corner for zoom");
+	set_left_footer("Pick first corner for zoom");
 	break;
     case ZOOM_2ND:
-	echomsg("Pick second corner for zoom");
+	set_left_footer("Pick second corner for zoom");
 	break;
     case ZOOMX_1ST:
 	set_cursor(0);
-	echomsg("Pick first point for zoom along X-axis");
+	set_left_footer("Pick first point for zoom along X-axis");
 	break;
     case ZOOMX_2ND:
-	echomsg("Pick second point for zoom along X-axis");
+	set_left_footer("Pick second point for zoom along X-axis");
 	break;
     case ZOOMY_1ST:
 	set_cursor(0);
-	echomsg("Pick first point for zoom along Y-axis");
+	set_left_footer("Pick first point for zoom along Y-axis");
 	break;
     case ZOOMY_2ND:
-	echomsg("Pick second point for zoom along Y-axis");
+	set_left_footer("Pick second point for zoom along Y-axis");
 	break;
     case VIEW_1ST:
 	set_cursor(0);
-	echomsg("Pick first corner of viewport");
+	set_left_footer("Pick first corner of viewport");
 	break;
     case VIEW_2ND:
-	echomsg("Pick second corner of viewport");
+	set_left_footer("Pick second corner of viewport");
 	break;
     case EDIT_OBJECT:
 	set_cursor(1);
-	echomsg("Pick object to edit");
+	set_left_footer("Pick object to edit");
 	break;
     case DEL_OBJECT:
 	set_cursor(3);
-	echomsg("Delete object");
+	set_left_footer("Delete object");
 	break;
     case MOVE_OBJECT_1ST:
 	set_cursor(1);
-	echomsg("Pick object to move");
+	set_left_footer("Pick object to move");
 	break;
     case COPY_OBJECT1ST:
 	set_cursor(1);
-	echomsg("Pick object to copy");
+	set_left_footer("Pick object to copy");
 	break;
     case MOVE_OBJECT_2ND:
     case COPY_OBJECT2ND:
 	set_cursor(4);
-	echomsg("Place object");
+	set_left_footer("Place object");
 	break;
     case STR_LOC:
 	set_cursor(2);
-	echomsg("Pick beginning of text");
+	set_left_footer("Pick beginning of text");
 	break;
     case MAKE_LINE_1ST:
 	set_cursor(0);
-	echomsg("Pick beginning of line");
+	set_left_footer("Pick beginning of line");
 	break;
     case MAKE_LINE_2ND:
-	echomsg("Pick end of line");
+	set_left_footer("Pick end of line");
 	break;
     case MAKE_BOX_1ST:
 	set_cursor(0);
-	echomsg("First corner of box");
+	set_left_footer("First corner of box");
 	break;
     case MAKE_BOX_2ND:
-	echomsg("Second corner of box");
+	set_left_footer("Second corner of box");
 	break;
     case MAKE_ELLIP_1ST:
 	set_cursor(0);
-	echomsg("Pick beginning of bounding box for ellipse");
+	set_left_footer("Pick beginning of bounding box for ellipse");
 	break;
     case MAKE_ELLIP_2ND:
-	echomsg("Pick opposite corner");
+	set_left_footer("Pick opposite corner");
 	break;
     case AUTO_NEAREST:
 	set_cursor(0);
-	echomsg("Autoscale on nearest set - click near a point of the set to autoscale");
+	set_left_footer("Autoscale on nearest set - click near a point of the set to autoscale");
 	break;
     case TRACKER:
 	set_cursor(1);
-	echomsg("Tracker");
+	set_left_footer("Tracker");
 	break;
     case DEL_POINT:
 	set_cursor(3);
-	echomsg("Delete point");
+	set_left_footer("Delete point");
 	break;
     case MOVE_POINT1ST:
 	set_cursor(4);
-	echomsg("Pick point to move");
+	set_left_footer("Pick point to move");
 	break;
     case MOVE_POINT2ND:
-	echomsg("Pick final location");
+	set_left_footer("Pick final location");
 	break;
     case ADD_POINT:
 	set_cursor(0);
-	echomsg("Add point");
+	set_left_footer("Add point");
 	break;
     case PLACE_LEGEND_1ST:
 	set_cursor(1);
-	echomsg("Pick legend");
+	set_left_footer("Pick legend");
 	break;
     case PLACE_LEGEND_2ND:
 	set_cursor(4);
-	echomsg("Move legend");
+	set_left_footer("Move legend");
 	break;
     case PLACE_TIMESTAMP_1ST:
 	set_cursor(1);
-	echomsg("Pick timestamp");
+	set_left_footer("Pick timestamp");
 	break;
     case PLACE_TIMESTAMP_2ND:
 	set_cursor(4);
-	echomsg("Place timestamp");
+	set_left_footer("Place timestamp");
 	break;
     case SEL_POINT:
 	set_cursor(0);
-	echomsg("Pick reference point");
+	set_left_footer("Pick reference point");
 	break;
     case DEF_REGION1ST:
 	set_cursor(0);
-	echomsg("Pick first point for region");
+	set_left_footer("Pick first point for region");
 	break;
     case DEF_REGION2ND:
-	echomsg("Pick second point for region");
+	set_left_footer("Pick second point for region");
 	break;
     case DEF_REGION:
 	set_cursor(0);
-	echomsg("Define region");
+	set_left_footer("Define region");
 	break;
 
     case COMP_AREA:
 	set_cursor(0);
-	echomsg("Compute area");
+	set_left_footer("Compute area");
 	break;
     case COMP_PERIMETER:
 	set_cursor(0);
-	echomsg("Compute perimeter");
+	set_left_footer("Compute perimeter");
 	break;
     case DISLINE1ST:
 	set_cursor(0);
-	echomsg("Pick start of line for distance computation");
+	set_left_footer("Pick start of line for distance computation");
 	break;
     case DISLINE2ND:
 	set_cursor(0);
-	echomsg("Pick ending point");
+	set_left_footer("Pick ending point");
 	break;
     }
 
@@ -822,6 +805,7 @@ void track_point(int gno, int setno, int *loc, int shift)
 {
     int len;
     double *xtmp, *ytmp;
+    char buf[100];
     WPoint wp;
     VPoint vp;
     
@@ -852,6 +836,7 @@ void track_point(int gno, int setno, int *loc, int shift)
  */
 void getpoints(VPoint vp)
 {
+    int cg = get_cg();
     double wx, wy, xtmp, ytmp;
     int x, y;
     double dsx = 0.0, dsy = 0.0;
@@ -859,7 +844,7 @@ void getpoints(VPoint vp)
     GLocator locator;
 
     view2world(vp.x, vp.y, &wx, &wy);
-    get_graph_locator(get_cg(), &locator);
+    get_graph_locator(cg, &locator);
     if (locator.pointset) {
 	dsx = locator.dsx;
 	dsy = locator.dsy;
@@ -871,7 +856,7 @@ void getpoints(VPoint vp)
 
     switch (locator.pt_type) {
     case 0:
-        if (get_graph_type(get_cg()) == GRAPH_POLAR) {
+        if (get_graph_type(cg) == GRAPH_POLAR) {
             polar2xy(wx, wy, &xtmp, &ytmp);
         } else {
             xtmp = wx;
@@ -883,7 +868,7 @@ void getpoints(VPoint vp)
         ytmp = wy - dsy;
         break;
     case 2:
-        if (get_graph_type(get_cg()) == GRAPH_POLAR) {
+        if (get_graph_type(cg) == GRAPH_POLAR) {
             polar2xy(wx, wy, &xtmp, &ytmp);
         } else {
             xtmp = wx;
@@ -913,38 +898,9 @@ void getpoints(VPoint vp)
     default:
         return;
     }
-    sprintf(buf, locator_format, get_cg(), xtmp, ytmp);
+    sprintf(buf, locator_format, cg, xtmp, ytmp);
 
     SetLabel(loclab, buf);
-}
-
-/*
- * for world stack
- */
-void set_stack_message(void)
-{
-    if (stack_depth_item) {
-	sprintf(buf, " SD:%1d ", graph_world_stack_size(get_cg()));
-	SetLabel(stack_depth_item, buf);
-        sprintf(buf, " CW:%1d ", get_world_stack_current(get_cg()));
-	SetLabel(curw_item, buf);
-    }
-}
-
-
-void set_default_message(char *buf)
-{
-    char *str, hbuf[GR_MAXHOSTNAMELEN+1];
-    struct tm tm;
-    time_t time_value;
-    (void) time(&time_value);
-    tm = *localtime(&time_value);
-    str = asctime(&tm);
-    str[strlen(str) - 1] = 0;
-
-    (void) gethostname(hbuf, GR_MAXHOSTNAMELEN);
-
-    sprintf(buf, "%s, %s, %s, %s", hbuf, display_name(), str, docname);
 }
 
 
@@ -1265,8 +1221,13 @@ void newworld(int gno, int axes, VPoint vp1, VPoint vp2)
 {
     world w, wtmp;
 
-    if (vp1.x == vp2.x || vp1.y == vp2.y) {
-        errmsg("Zoomed rectangle is zero along X or Y, zoom cancelled");
+    if (vp1.x == vp2.x && (axes == ALL_AXES || axes == ALL_X_AXES)) {
+        errmsg("Zoomed rectangle is zero along X, zoom cancelled");
+        return;
+    }
+
+    if (vp1.y == vp2.y && (axes == ALL_AXES || axes == ALL_Y_AXES)) {
+        errmsg("Zoomed rectangle is zero along Y, zoom cancelled");
         return;
     }
 

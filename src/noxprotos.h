@@ -74,7 +74,6 @@ void do_prune(int setno, int typeno, int deltatypeno, float deltax, float deltay
 
 void set_program_defaults(void);
 void set_region_defaults(int i);
-void set_default_message(char *buf);
 void set_default_framep(framep * f);
 void set_default_world(world * w);
 void set_default_view(view * v);
