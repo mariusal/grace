@@ -17,7 +17,7 @@ SHELL=sh
 PREFIX=$(X11ROOT)/xfree86
 
 # List of subdirectories
-SUBDIRS=cephes T1lib Xbae src grace_np doc examples auxiliary
+SUBDIRS=cephes T1lib Xbae src grace_np templates doc examples auxiliary
 
 # Name of executable
 GRACE=xmgrace.exe
