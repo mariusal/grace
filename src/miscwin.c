@@ -100,9 +100,8 @@ void create_props_frame(void *data)
 	handle_close(props_frame);
 	panel = XmCreateRowColumn(props_frame, "props_rc", NULL, 0);
 #ifdef DEBUG
-	debug_item = CreatePanelChoice0(panel,
+	debug_item = CreatePanelChoice(panel,
 					"Debug level:",
-					3,
 					10,
 			      "Off", "1", "2", "3", "4", "5", "6", "7", "8",
 					NULL,
