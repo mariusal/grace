@@ -746,6 +746,18 @@ char *get_grace_home(const Grace *grace)
     return grace->rt->grace_home;
 }
 
+int get_print_dest(const Grace *grace)
+{
+    return grace->rt->print_dest;
+}
+
+void set_print_dest(Grace *grace, int dest)
+{
+    if (dest >= 0 && dest < grace->rt->num_print_dests) {
+        grace->rt->print_dest = dest;
+    }
+}
+
 char *get_print_cmd(const Grace *grace)
 {
     return grace->rt->print_cmd;

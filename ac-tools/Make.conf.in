@@ -83,6 +83,10 @@ PDF_LIB=@PDF_LIB@
 # Xbae include path
 XBAE_INC=@XBAE_INC@
 
+# CUPS libs and CFLAGS
+CUPS_LIBS=@CUPS_LIBS@
+CUPS_CFLAGS=@CUPS_CFLAGS@
+
 # Location of yacc (or its substitution)
 YACC=@YACC@
 

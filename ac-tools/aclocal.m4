@@ -922,3 +922,21 @@ AC_DEFUN(ACX_CHECK_XPM,
     $3
   fi
 ])dnl
+
+
+dnl ACX_CHECK_CUPS
+dnl --------------
+AC_DEFUN(ACX_CHECK_CUPS,
+[
+  AC_PATH_PROG(CUPS_CONFIG, cups-config)
+
+  if test "x$CUPS_CONFIG" != x; then
+    CUPS_CFLAGS="`$CUPS_CONFIG --cflags`"
+    CUPS_LIBS="`$CUPS_CONFIG --libs`"
+    $1
+  else
+    CUPS_CFLAGS=
+    CUPS_LIBS=
+    $2
+  fi
+])dnl

@@ -31,6 +31,10 @@
 #include <unistd.h>
 #include <string.h>
 
+#ifdef HAVE_CUPS
+#  include <cups/cups.h>
+#endif
+
 #include "defines.h"
 #include "grace.h"
 #include "utils.h"
@@ -90,6 +94,8 @@ void *container_data_copy(void *data)
 {
     return data;
 }
+
+int grace_init_print(RunTime *rt);
 
 RunTime *runtime_new(Grace *grace)
 {
@@ -196,6 +202,7 @@ RunTime *runtime_new(Grace *grace)
     
     /* allocatables */
     rt->grace_home   = NULL;
+    rt->print_dests  = NULL;
     rt->print_cmd    = NULL;
     rt->grace_editor = NULL;
     rt->help_viewer  = NULL;
@@ -209,11 +216,20 @@ RunTime *runtime_new(Grace *grace)
     }
     rt->grace_home = copy_string(NULL, s);
 
+#ifdef HAVE_CUPS
+    rt->use_cups = TRUE;
+#else
+    rt->use_cups = FALSE;
+#endif
+
     /* print command */
     if ((s = getenv("GRACE_PRINT_CMD")) == NULL) {
 	s = bi_print_cmd();
     }
     rt->print_cmd = copy_string(NULL, s);
+    if (rt->use_cups) {
+        rt->ptofile = FALSE;
+    } else
     /* if no print command defined, print to file by default */
     if (is_empty_string(rt->print_cmd)) {
         rt->ptofile = TRUE;
@@ -277,6 +293,11 @@ RunTime *runtime_new(Grace *grace)
         return NULL;
     }
 
+    if (grace_init_print(rt) != RETURN_SUCCESS) {
+        runtime_free(rt);
+        return NULL;
+    }
+
     rt->print_file[0] = '\0';
 
     rt->tdevice = 0;
@@ -309,7 +330,15 @@ RunTime *runtime_new(Grace *grace)
 
 void runtime_free(RunTime *rt)
 {
+    int i;
+    
     xfree(rt->grace_home);
+    for (i = 0; i < rt->num_print_dests; i++) {
+        xfree(rt->print_dests[i].name);
+        xfree(rt->print_dests[i].inst);
+        xfree(rt->print_dests[i].printer);
+    }
+    xfree(rt->print_dests);
     xfree(rt->print_cmd);
     xfree(rt->grace_editor);
     xfree(rt->help_viewer);
@@ -521,6 +550,176 @@ int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
         }
         return RETURN_SUCCESS;
     }
+}
+
+#ifdef HAVE_CUPS
+static void parse_group(PrintDest *pd, ppd_group_t *group)
+{
+    int           i, j;           /* Looping vars */
+    ppd_option_t  *option;        /* Current option */
+    ppd_choice_t  *choice;        /* Current choice */
+    ppd_group_t   *subgroup;      /* Current subgroup */
+    PrintOptGroup *og;
+    PrintOption   *po;
+
+    pd->ogroups = xrealloc(pd->ogroups, (pd->nogroups + 1)*sizeof(PrintOptGroup));
+    if (!pd->ogroups) {
+        return;
+    }
+    
+    og = &pd->ogroups[pd->nogroups];
+    pd->nogroups++;
+    
+    og->name = copy_string(NULL, group->name);
+    og->text = copy_string(NULL, group->text);
+    
+    og->opts = xcalloc(group->num_options, sizeof(PrintOption));
+    if (!og->opts) {
+        return;
+    }
+    og->nopts = 0;
+
+    for (i = 0, option = group->options, po = og->opts; i < group->num_options; i++, option++) {
+        po->name = copy_string(NULL, option->keyword);
+        po->text = copy_string(NULL, option->text);
+
+        po->choices = dict_new();
+        po->selected = -1;
+        dict_resize(po->choices, option->num_choices);
+        for (j = 0, choice = option->choices; j < option->num_choices; j++, choice++) {
+            DictEntry de;
+            
+            de.key   = j;
+            de.name  = copy_string(NULL, choice->choice);
+            de.descr = copy_string(NULL, choice->text);
+            dict_entry_copy(&po->choices->entries[j], &de);
+
+            if (choice->marked) {
+                po->selected = de.key;
+                dict_entry_copy(&po->choices->defaults, &de);
+            }
+        }
+        if (po->selected != -1) {
+            og->nopts++;
+            po++;
+            pd->nopts++;
+        }
+    }
+
+    for (i = 0, subgroup = group->subgroups; i < group->num_subgroups; i++, subgroup++) {
+        parse_group(pd, subgroup);
+    }
+}
+#endif
+
+int grace_init_print(RunTime *rt)
+{
+#ifdef HAVE_CUPS
+    int i;
+    cups_dest_t *dests;
+    
+    rt->print_dest = 0;
+    rt->num_print_dests = cupsGetDests(&dests);
+    rt->print_dests = xcalloc(rt->num_print_dests, sizeof(PrintDest));
+    
+    if (rt->print_dests == NULL) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < rt->num_print_dests; i++) {
+        cups_dest_t *dest = &dests[i];
+        PrintDest *pd = &rt->print_dests[i];
+
+        char *printer;
+        int           j;
+        const char    *filename;        /* PPD filename */
+        ppd_file_t    *ppd;             /* PPD data */
+        ppd_group_t   *group;           /* Current group */
+        
+        printer = copy_string(NULL, dest->name);
+        if (dest->instance) {
+            printer = concat_strings(printer, "/");
+            printer = concat_strings(printer, dest->instance);
+        }
+        
+        pd->name    = copy_string(NULL, dest->name);
+        pd->inst    = copy_string(NULL, dest->instance);
+        pd->printer = printer;
+        
+        if (dest->is_default) {
+            rt->print_dest = i;
+        }
+        
+        if ((filename = cupsGetPPD(dest->name)) == NULL) {
+            break;
+        }
+
+        if ((ppd = ppdOpenFile(filename)) == NULL) {
+            unlink(filename);
+            break;
+        }
+
+        ppdMarkDefaults(ppd);
+        cupsMarkOptions(ppd, dest->num_options, dest->options);
+
+        for (j = 0, group = ppd->groups; j < ppd->num_groups; j++, group++) {
+            parse_group(pd, group);
+        }
+
+        ppdClose(ppd);
+        unlink(filename);
+    }
+    cupsFreeDests(rt->num_print_dests, dests);
+#else
+    rt->print_dest = 0;
+    rt->num_print_dests = 0;
+#endif
+
+    return RETURN_SUCCESS;
+}
+
+int grace_print(const Grace *grace, const char *fname)
+{
+    char tbuf[128];
+    int retval = RETURN_SUCCESS;
+#ifdef HAVE_CUPS
+    if (grace->rt->use_cups) {
+        PrintDest *pd = &grace->rt->print_dests[grace->rt->print_dest];
+        int i, j;
+        int jobid;
+        int num_options = 0;
+        cups_option_t *options = NULL;
+
+        for (i = 0; i < pd->nogroups; i++) {
+            PrintOptGroup *og = &pd->ogroups[i];
+
+            for (j = 0; j < og->nopts; j++) {
+                PrintOption *po = &og->opts[j];
+                char *value;
+
+                if (po->selected != po->choices->defaults.key) {
+                    dict_get_name_by_key(po->choices, po->selected, &value);
+                    num_options = cupsAddOption(po->name, value, num_options, &options);
+                }
+            }
+        }
+        
+        jobid = cupsPrintFile(pd->name, fname, "Grace", num_options, options);
+        if (jobid == 0) {
+            errmsg(ippErrorString(cupsLastError()));
+            retval = RETURN_FAILURE;
+        }
+    } else
+#endif
+    {
+        sprintf(tbuf, "%s %s", get_print_cmd(grace), fname);
+        system_wrap(tbuf);
+#ifndef PRINT_CMD_UNLINKS
+        unlink(fname);
+#endif
+    }
+    
+    return retval;
 }
 
 int gui_is_page_free(const GUI *gui)

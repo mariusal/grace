@@ -528,6 +528,8 @@ void SetOptionChoice(OptionStructure *opt, int value)
             return;
         }
     }
+
+    errmsg("Value not found in SetOptionChoice()");
 }
 
 int GetOptionChoice(OptionStructure *opt)

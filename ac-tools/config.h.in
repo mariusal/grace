@@ -370,6 +370,9 @@
 #  define NONE_GUI
 #endif
 
+/* Define if the CUPS system is available*/
+#undef HAVE_CUPS
+
 /* Define if the print spooling command itself unlinks the temporary file */
 #undef PRINT_CMD_UNLINKS
 

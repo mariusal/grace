@@ -160,7 +160,7 @@ void do_hardcopy(const Quark *project)
     Grace *grace = grace_from_quark(project);
     RunTime *rt;
     Canvas *canvas;
-    char tbuf[128], *s;
+    char *s;
     char fname[GR_MAXPATHLEN];
     view v;
     double vx, vy;
@@ -219,14 +219,10 @@ void do_hardcopy(const Quark *project)
     }
     
     if (get_ptofile(grace) == FALSE) {
-        sprintf(tbuf, "%s %s", get_print_cmd(grace), fname);
         if (truncated_out == FALSE ||
             yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
-            system_wrap(tbuf);
+            grace_print(grace, fname);
         }
-#ifndef PRINT_CMD_UNLINKS
-        unlink(fname);
-#endif
     } else {
         if (truncated_out == TRUE) {
             errmsg("Output is truncated - tune device dimensions");

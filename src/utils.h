@@ -71,6 +71,8 @@ char *get_grace_home(const Grace *grace);
 char *get_help_viewer(const Grace *grace);
 void set_help_viewer(Grace *grace,const char *dir);
 
+int get_print_dest(const Grace *grace);
+void set_print_dest(Grace *grace, int dest);
 char *get_print_cmd(const Grace *grace);
 void set_print_cmd(Grace *grace, const char *cmd);
 

@@ -38,6 +38,8 @@ AC_SUBST(PDF_LIB)
 AC_SUBST(GRACE_EDITOR)
 AC_SUBST(XBAE_INC)
 AC_SUBST(HELPVIEWER)
+AC_SUBST(CUPS_LIBS)
+AC_SUBST(CUPS_CFLAGS)
 AC_SUBST(SUBDIRS)
 
 AC_SUBST(PAPERSIZE)
@@ -214,6 +216,16 @@ dnl **** define help viewer
 AC_ARG_WITH(helpviewer,
 [  --with-helpviewer=COMMAND    define (alternative) help viewer command],
 [HELPVIEWER="-DGRACE_HELPVIEWER=${withval}"])
+
+dnl **** use CUPS
+AC_ARG_ENABLE(cups,
+[  --enable-cups                enable support for CUPS [[yes]]],
+[case "${enableval}" in
+  yes) cups=true ;;
+  no)  cups=false;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-cups) ;;
+esac],[cups=true])
+
 
 dnl **** define print command
 AC_ARG_WITH(printcmd,
@@ -639,6 +651,12 @@ then
 fi
 if test $pdfdrv != true; then
   AC_MSG_RESULT(--> PDF driver is disabled)
+fi
+
+if test $cups = true
+then
+  ACX_CHECK_CUPS(AC_DEFINE(HAVE_CUPS),
+    AC_MSG_RESULT(--> support for CUPS is disabled))
 fi
 
 dnl **** TODO: undefine unneeded libraries

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2003 Grace Development Team
+ * Copyright (c) 2001-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -86,6 +86,29 @@ typedef struct _GUI {
     ExplorerUI *eui;
 } GUI;
 
+typedef struct {
+    char *name;
+    char *text;
+    Dictionary *choices;
+    int selected;
+} PrintOption;
+
+typedef struct {
+    char *name;
+    char *text;
+    int nopts;
+    PrintOption *opts;
+} PrintOptGroup;
+
+typedef struct {
+    char *name;
+    char *inst;
+    char *printer;
+    int nogroups;
+    PrintOptGroup *ogroups;
+    int nopts;
+} PrintDest;
+
 typedef struct _RunTime {
     /* Parent */
     Grace *P;
@@ -100,9 +123,6 @@ typedef struct _RunTime {
     /* hardcopy device */
     int hdevice;
 
-    /* print to file */
-    int ptofile;
-    
     /* target set */
     Quark *target_set;
 
@@ -129,9 +149,17 @@ typedef struct _RunTime {
     /* location of the Grace home directory */
     char *grace_home;
     
+    /* whether to use CUPS printing system */
+    int use_cups;
     /* print command */
     char *print_cmd;	
-
+    /* print destinations */
+    int num_print_dests;	
+    PrintDest *print_dests;	
+    int print_dest;	
+    /* print to file */
+    int ptofile;
+    
     /* editor */
     char *grace_editor;	
 
@@ -220,5 +248,6 @@ FILE *grace_openw(Grace *grace, char *fn);
 FILE *grace_openr(Grace *grace, char *fn, int src);
 void grace_close(FILE *fp);
 
+int grace_print(const Grace *grace, const char *fname);
 
 #endif /* __GRACE_H_ */
