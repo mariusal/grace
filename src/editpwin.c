@@ -37,88 +37,55 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
-#include <Xm/DialogS.h>
-#include <Xm/FileSB.h>
-#include <Xm/Frame.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
-#include <Xm/RowColumn.h>
-#include <Xm/Text.h>
-#include <Xm/List.h>
-#include <Xm/Separator.h>
-#include <Xm/Protocols.h>
+#include <unistd.h>
 
 #include "globals.h"
 #include "graphs.h"
+#include "utils.h"
 #include "plotone.h"
-#include "motifinc.h"
 #include "protos.h"
 
-static SetChoiceItem editp_set_item;
 
 #ifdef HAVE_LIBXBAE
 
+#include <Xm/Xm.h>
+#include <Xm/DialogS.h>
+#include <Xm/Frame.h>
+#include <Xm/Label.h>
+#include <Xm/PushB.h>
+#include <Xm/RowColumn.h>
+#include <Xm/Protocols.h>
 #include <Xbae/Matrix.h>
+#include "motifinc.h"
 
-void update_cells(Widget, XtPointer, XtPointer);
 
 typedef struct _EditPoints {
+    struct _EditPoints *next;
     int gno;
     int setno;
     int ncols;
     int nrows;
-    String *collabels;
-    short *widths;
     Widget top;
     Widget mw;
-    Widget *editp_format_item;
-    Widget *editp_precision_item;
-    Widget *editp_width_item;
     int cformat[MAX_SET_COLS];
     int cprec[MAX_SET_COLS];
-    int cwidth[MAX_SET_COLS];
+    short cwidth[MAX_SET_COLS];
 } EditPoints;
 
-String **cells;
-Widget ext_editor_item;
+void update_cells(EditPoints *ep);
+void do_update_cells(Widget w, XtPointer client_data, XtPointer call_data);
 
-static short widths[MAX_SET_COLS] =
-{10, 10, 10, 10, 10, 10};
-static int precision[MAX_SET_COLS] =
-{5, 5, 5, 5, 5, 5};
+/* default cell value precision */
+#define CELL_PREC 5
 
-/* 0 - Decimal; 1 - General; 2 - Exponential */
-static int format[MAX_SET_COLS] =
-{1, 1, 1, 1, 1, 1};
+/* default cell value format (0 - Decimal; 1 - General; 2 - Exponential) */
+#define CELL_FORMAT 1
+
+/* default cell width */
+#define CELL_WIDTH 10
 
 char *scformat[3] =
 {"%.*lf", "%.*lg", "%.*le"};
-
-String labels1[2] =
-{"X", "Y"};
-String labels2[3] =
-{"X", "Y", "DX"};
-String labels3[3] =
-{"X", "Y", "DY"};
-String labels4[4] =
-{"X", "Y", "DX1", "DX2"};
-String labels5[4] =
-{"X", "Y", "DY1", "DY2"};
-String labels6[4] =
-{"X", "Y", "DX", "DY"};
-String labels7[3] =
-{"X", "Y", "DZ"};
-String labels8[5] =
-{"X", "HI", "LO", "OPEN", "CLOSE"};
-String labels9[3] =
-{"X", "Y", "Radius"};
-
-String *rowlabels;
-String *collabels = labels1;
 
 typedef enum {
     NoSelection,
@@ -138,97 +105,7 @@ typedef struct _SelectionStruct {
     SelectionMode mode;
     Boolean selected;
     Widget matrix;
-}
-*SelectionPtr, SelectionStruct;
-
-void create_ss_frame(EditPoints * ep);
-
-EditPoints *newep(int gno, int setno)
-{
-    int i;
-    EditPoints *ep;
-    ep = malloc(sizeof(EditPoints));
-    ep->gno = gno;
-    ep->setno = setno;
-    ep->ncols = getncols(gno, setno);
-    ep->nrows = getsetlength(gno, setno);
-    set_ep_structure(gno, setno, ep);
-    switch (dataset_type(gno, setno)) {
-    case SET_XY:
-    case SET_BAR:
-	ep->collabels = labels1;
-	break;
-    case SET_XYDX:
-	ep->collabels = labels2;
-	break;
-    case SET_XYDY:
-    case SET_BARDY:
-	ep->collabels = labels3;
-	break;
-    case SET_XYDXDX:
-	ep->collabels = labels4;
-	break;
-    case SET_XYDYDY:
-    case SET_BARDYDY:
-	ep->collabels = labels5;
-	break;
-    case SET_XYDXDY:
-	ep->collabels = labels6;
-	break;
-    case SET_XYZ:
-	ep->collabels = labels7;
-	break;
-    case SET_XYHILO:
-	ep->collabels = labels8;
-	break;
-    case SET_XYR:
-	ep->collabels = labels9;
-	break;
-    }
-    for (i=0; i < MAX_SET_COLS; i++) {
-		ep->cwidth[i] = widths[i];
-		ep->cprec[i] = precision[i];
-		ep->cformat[i] = format[i];
-    }
-    return ep;
-}
-
-
-/* 
- * Get the selected set and call the routine to open up an Xbae widget 
- */
-void do_ss_frame(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    EditPoints *ep;
-    int gno = get_cg();
-    int setno = GetSelectedSet(editp_set_item);
-    if (setno == SET_SELECT_ERROR) {
-        errwin("No set selected");
-        return;
-    }
-    if( setno == SET_SELECT_NEXT ) {
-        if( (setno=nextset(gno)) != -1 ) { 
-            add_point(gno, setno, 0., 0., 0, 0, SET_XY);
-            add_point(gno, setno, 1, 1, 0, 0, SET_XY);
-            setcomment(gno, setno, "editor");
-            update_set_status( gno, setno );
-        } else {
-            errwin("No set selected");
-            return;
-        }
-    }
-    if (is_set_active(gno, setno)) {
-	if (((ep = get_ep_structure(gno, setno)) != NULL) && (ep->top != NULL)) {
-	    XtRaise(ep->top);
-	} else {
-	    ep = newep(gno, setno);
-	    create_ss_frame(ep);
-	}
-    } else {
-        errwin("Set not active");
-    }
-}
-
+} SelectionStruct, *SelectionPtr;
 
 /*
  * delete the selected row
@@ -246,7 +123,7 @@ void del_point_cb(Widget w, XtPointer client_data, XtPointer call_data)
     del_point( ep->gno, ep->setno, i+1 );
     update_set_status(ep->gno, ep->setno);
     if(is_set_active(ep->gno, ep->setno)) {
-        update_cells(NULL, (XtPointer)ep, 0);
+        update_cells(ep);
     }
 }
 
@@ -274,30 +151,8 @@ void add_pt_cb(Widget w, XtPointer client_data, XtPointer call_data)
         vals[0], vals[1], vals[2], vals[3], dataset_type(gno, setno));
     update_set_status(gno, setno);
     if(is_set_active(gno, setno)) {
-        update_cells(NULL, (XtPointer) ep, 0 );
+        update_cells(ep);
     }
-}
-
-String **MakeCells(EditPoints * ep)
-{
-    char buf[512];
-    int i, j;
-    double *datap;
-    String **cells = NULL;
-    if (ep != NULL) {
-	cells = (String **) XtMalloc(sizeof(String *) * ep->nrows);
-	if (cells != NULL) {
-	    for (i = 0; i < ep->nrows; i++) {
-		cells[i] = (String *) XtMalloc(sizeof(String) * ep->ncols);
-		for (j = 0; j < ep->ncols; j++) {
-		    datap = getcol(ep->gno, ep->setno, j);
-		    sprintf(buf, scformat[(ep->cformat[j])], ep->cprec[j], datap[i]);
-		    cells[i][j] = XtNewString(buf);
-		}
-	    }
-	}
-    }
-    return cells;
 }
 
 static Widget *editp_col_item;
@@ -305,17 +160,14 @@ static Widget *editp_format_item;
 static Widget *editp_precision_item;
 static Widget *editp_width_item;
 
-static void update_props(EditPoints * ep)
+static void update_props(EditPoints *ep)
 {
     int col;
-    short *widths;
-    Widget matrix = ep->mw;
+
     col = GetChoice(editp_col_item);
-    if( col==6 )
+    if (col >= MAX_SET_COLS) {
     	col = 0;
-    XtVaGetValues(matrix,
-		  XmNcolumnWidths, &widths,
-		  NULL);
+    }
 
     SetChoice(editp_format_item, ep->cformat[col]); 
 
@@ -325,128 +177,97 @@ static void update_props(EditPoints * ep)
 
 static void do_accept_props(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int i, col;
-    short widths[6];
+    int i, col, cformat, cprec, cwidth;
     EditPoints *ep = (EditPoints *) client_data;
-    Widget matrix = ep->mw;
-    col = GetChoice(editp_col_item);
 
-	if( col<6 ) {
-    	ep->cformat[col] = GetChoice(editp_format_item);
-    	ep->cprec[col] = GetChoice(editp_precision_item);
-    	ep->cwidth[col] = GetChoice(editp_width_item) + 1;
-   		for (i=0;i<6;i++) {
-			widths[i] = ep->cwidth[i];
-    	}
+    col = GetChoice(editp_col_item);
+    cformat = GetChoice(editp_format_item);
+    cprec = GetChoice(editp_precision_item);
+    cwidth = GetChoice(editp_width_item) + 1;
+    
+    if (col < MAX_SET_COLS) {
+        ep->cformat[col] = cformat;
+        ep->cprec[col] = cprec;
+        ep->cwidth[col] = cwidth;
     } else {	    /* do it for all columns */
-    	for (i=0;i<6;i++) {
-    		ep->cformat[i] = GetChoice(editp_format_item);
-    		ep->cprec[i] = GetChoice(editp_precision_item);
-    		widths[i] = ep->cwidth[i] = GetChoice(editp_width_item) + 1;
-		}
-	} 	
-    XtVaSetValues(matrix, XmNcolumnWidths, widths, NULL);
+    	for (i = 0; i < MAX_SET_COLS; i++) {
+    	    ep->cformat[i] = cformat;
+    	    ep->cprec[i] = cprec;
+    	    ep->cwidth[i] = cwidth;
+        }
+    } 	
+    XtVaSetValues(ep->mw, XmNcolumnWidths, ep->cwidth, NULL);
 }
 
+void do_update_cells(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    update_cells((EditPoints *) client_data);
+}
 
-void update_cells(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  * redo frame since number of data points or set type, etc.,  may change 
  */
+void update_cells(EditPoints *ep)
 {
-	EditPoints *ep = (EditPoints *)client_data;
-	int i, j, nr, nc;
-	short width;
-	char buf[32];
+    int i, nr, nc;
+    short widths[MAX_SET_COLS] =
+       {CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH};
+    short width;
+    char buf[32];
+    char **rowlabels;
 	
     ep->nrows = getsetlength(ep->gno, ep->setno);
-    switch (dataset_type(ep->gno, ep->setno)) {
-    	case SET_XY:
-    	case SET_BAR:
-			ep->collabels = labels1;
-			break;
-    	case SET_XYDX:
-			ep->collabels = labels2;
-			break;
-    	case SET_XYDY:
-    	case SET_BARDY:
-			ep->collabels = labels3;
-			break;
-    	case SET_XYDXDX:
-			ep->collabels = labels4;
-			break;
-    	case SET_XYDYDY:
-    	case SET_BARDYDY:
-			ep->collabels = labels5;
-			break;
-    	case SET_XYDXDY:
-			ep->collabels = labels6;
-			break;
-    	case SET_XYZ:
-			ep->collabels = labels7;
-			break;
-    	case SET_XYHILO:
-			ep->collabels = labels8;
-			break;
-    	case SET_XYR:
-			ep->collabels = labels9;
-			break;
+    ep->ncols = dataset_cols(ep->gno, ep->setno);
+    /* get current size of widget and update rows/columns as needed */
+    XtVaGetValues(ep->mw,
+        XmNcolumns, &nc,
+        XmNrows, &nr,
+        NULL);
+    if (ep->nrows > nr) {
+        XbaeMatrixAddRows(ep->mw, 0, NULL, NULL, NULL, ep->nrows - nr);
+    } else if (ep->nrows < nr) {
+        XbaeMatrixDeleteRows(ep->mw, 0, nr - ep->nrows);
     }
-    ep->ncols = settype_cols(dataset_type(ep->gno, ep->setno));
-
-    cells = MakeCells( ep );
-			
-    rowlabels = (String *) malloc(ep->nrows * sizeof(String));
+    if (ep->ncols > nc) {
+        XbaeMatrixAddColumns(ep->mw, 0, NULL, NULL, widths, NULL, 
+            NULL, NULL, NULL, ep->ncols-nc);
+    } else if (ep->ncols < nc) {
+        XbaeMatrixDeleteColumns(ep->mw, 0, nc - ep->ncols);
+    }
+		
+    rowlabels = malloc(ep->nrows*sizeof(char *));
     for (i = 0; i < ep->nrows; i++) {
-    	sprintf(buf, "%d", i + 1);
-    	rowlabels[i] = (String) malloc((sizeof(buf) + 1) * sizeof(char));
+    	sprintf(buf, "%d", i);
+    	rowlabels[i] = malloc((sizeof(buf) + 1)*SIZEOF_CHAR);
     	strcpy(rowlabels[i], buf);
     }
-    width = (short) ceil(log10(i))+2;	/* increase row label width by 1 */
+    width = (short) ceil(log10(i)) + 2;	/* increase row label width by 1 */
 
-	/* get current size of widget 			*/
-	XtVaGetValues( ep->mw, XmNcolumns, &nc, 
-						   XmNrows, &nr, 
-    					   NULL );
-	if( ep->nrows > nr )
-		XbaeMatrixAddRows( ep->mw, 0, NULL, NULL, NULL, ep->nrows-nr );
-	else if( ep->nrows < nr )
-		XbaeMatrixDeleteRows( ep->mw, 0, nr - ep->nrows );
-	if( ep->ncols > nc )
-		XbaeMatrixAddColumns( ep->mw, 0, NULL, NULL, widths, NULL, 
-					    NULL, NULL, NULL, ep->ncols-nc );
-	else if( ep->ncols < nc )
-		XbaeMatrixDeleteColumns( ep->mw, 0, nc - ep->ncols );
-
-    XtVaSetValues(ep->mw, XmNrowLabels, rowlabels,
-			  XmNcells, cells,
-			  XmNcolumnLabels, ep->collabels,
-			  XmNrowLabelWidth, width,
-			  NULL);
+    XtVaSetValues(ep->mw,
+        XmNrowLabels, rowlabels,
+	XmNrowLabelWidth, width,
+        XmNcolumnWidths, ep->cwidth,
+	NULL);
 
     /* free memory used to hold strings */
     for (i = 0; i < ep->nrows; i++) {
-		for (j = 0; j < ep->ncols; j++) {
-	    	XtFree((XtPointer) cells[i][j]);
-		}
-		XtFree((XtPointer) cells[i]);
-		free( rowlabels[i] );
+	free(rowlabels[i]);
     }
-    XtFree((XtPointer) cells);
+    free(rowlabels);
 }
 
 void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    static Widget top, acceptcallback;
-    Widget dialog;
-    EditPoints *ep = (EditPoints *) client_data;
+    static Widget top, dialog;
+    EditPoints *ep;
+    static Widget but1[2];
 
     set_wait_cursor();
+    ep = (EditPoints *) client_data;
     if (top == NULL) {
-	Widget but1[2];
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
+        char *label1[2];
+        label1[0] = "Accept";
+        label1[1] = "Close";
 	top = XmCreateDialogShell(app_shell, "Edit set props", NULL, 0);
 	handle_close(top);
 	dialog = XmCreateRowColumn(top, "dialog_rc", NULL, 0);
@@ -480,15 +301,13 @@ void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback,
-	    	(XtCallbackProc) do_accept_props, (XtPointer) ep);
 	XtAddCallback(but1[1], XmNactivateCallback,
 	    	(XtCallbackProc) destroy_dialog, (XtPointer) top);
 	XtManageChild(dialog);
-	acceptcallback = but1[0];
     }
-    XtRemoveAllCallbacks(acceptcallback, XmNactivateCallback);
-    XtAddCallback(acceptcallback, XmNactivateCallback,
+    /* TODO: remove the dirty stuff */
+    XtRemoveAllCallbacks(but1[0], XmNactivateCallback);
+    XtAddCallback(but1[0], XmNactivateCallback,
     	    (XtCallbackProc) do_accept_props, (XtPointer) ep);
     update_props(ep);
     XtRaise(top);
@@ -499,19 +318,15 @@ void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
 {
     double *datap;
-    String **cells;
     char buf[128];
     EditPoints *ep = (EditPoints *) client_data;
     XbaeMatrixLeaveCellCallbackStruct *cs =
     	    (XbaeMatrixLeaveCellCallbackStruct *) calld;
-    XtVaGetValues(w, XmNcells, &cells, NULL);
+
     datap = getcol(ep->gno, ep->setno, cs->column);
     sprintf(buf, scformat[(ep->cformat[cs->column])], ep->cprec[cs->column],
     	    datap[cs->row]);
     if (strcmp(buf, cs->value) != 0) {
-	String s = (String) XtMalloc(sizeof(char) * (strlen(buf) + 1));
-	strcpy(s, buf);
-	cells[cs->row][cs->column] = s;
 	datap[cs->row] = atof(cs->value);
 
 	update_set_status(ep->gno, ep->setno);
@@ -522,12 +337,13 @@ void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
 
 void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
 {
+    int i, j;
     double *datap;
     EditPoints *ep = (EditPoints *) client_data;
     static char buf[128];
-    int i, j;
     XbaeMatrixDrawCellCallbackStruct *cs =
     	    (XbaeMatrixDrawCellCallbackStruct *) calld;
+
     i = cs->row;
     j = cs->column;
     datap = getcol(ep->gno, ep->setno, j);
@@ -539,75 +355,130 @@ void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
 void selectCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     XbaeMatrixSelectCellCallbackStruct *sc =
-    (XbaeMatrixSelectCellCallbackStruct *) call_data;
-    XbaeMatrixSelectRow(w, sc->row);
-    XbaeMatrixSelectColumn(w, sc->column);
+        (XbaeMatrixSelectCellCallbackStruct *) call_data;
+
+    XbaeMatrixSelectCell(w, sc->row, sc->column);
 }
 
 
-void writeCB(Widget w, XtPointer client_data, XtPointer calld)
+void writeCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
 }
 
-void create_ss_frame(EditPoints * ep)
+
+static EditPoints *ep_start = NULL;
+
+void delete_ep(EditPoints *ep)
 {
+    EditPoints *ep_tmp = ep_start;
+    
+    if (ep == NULL) {
+        return;
+    }
+    
+    if (ep == ep_start) {
+        ep_start = ep_start->next;
+        cxfree(ep);
+        return;
+    }
+    
+    while (ep_tmp != NULL) {
+        if (ep_tmp->next == ep) {
+            ep_tmp->next = ep->next;
+            cxfree(ep);
+            return;
+        }
+        ep_tmp = ep_tmp->next;
+    }
+}
+
+EditPoints *get_ep(int gno, int setno)
+{
+    EditPoints *ep_tmp = ep_start;
+
+    while (ep_tmp != NULL) {
+        if (ep_tmp->gno == gno && ep_tmp->setno == setno) {
+            break;
+        }
+        ep_tmp = ep_tmp->next;
+    }
+    return ep_tmp;
+}
+
+void destroy_ep(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    EditPoints *ep;
+    
+    ep = (EditPoints *) client_data;
+    deletewidget(ep->top);
+    delete_ep(ep);
+}
+
+void create_ss_frame(int gno, int setno)
+{
+    int i;
+    char *collabels[MAX_SET_COLS] = {"X", "Y", "Y1", "Y2", "Y3", "Y4"};
+    char wname[256];
+    char *label1[3] = {"Props...", "Update", "Close"};
+    char *label2[2] = {"Delete", "Add"};
+    EditPoints *ep;
+    Atom WM_DELETE_WINDOW;
     Widget dialog;
-    char buf[32], wname[256];
-    int i, j;
     Widget but1[3], but2[2];
-    char *label1[3] = { "Props...", "Update", "Close" };
-    char *label2[2] = { "Delete", "Add" };
-    short width;
+    
+    ep = get_ep(gno, setno);
+    if (ep != NULL) {
+        XtRaise(ep->top);
+        return;
+    }
     
     set_wait_cursor();
-    sprintf( wname, "Edit set: S%d of G%d", ep->setno, ep->gno );
+
+    ep = malloc(sizeof(EditPoints));
+    ep->next = ep_start;
+    ep_start = ep;
+    
+    ep->gno = gno;
+    ep->setno = setno;
+    ep->ncols = getncols(gno, setno);
+    ep->nrows = getsetlength(gno, setno);
+    for (i = 0; i < MAX_SET_COLS; i++) {
+        ep->cwidth[i] = CELL_WIDTH;
+        ep->cprec[i] = CELL_PREC;
+        ep->cformat[i] = CELL_FORMAT;
+    }
+
+    sprintf(wname, "Edit set: S%d of G%d", ep->setno, ep->gno);
     ep->top = XmCreateDialogShell(app_shell, wname, NULL, 0);
-    handle_close(ep->top);
+    XtVaSetValues(ep->top, XmNdeleteResponse, XmDO_NOTHING, NULL);
+    WM_DELETE_WINDOW = XmInternAtom(XtDisplay(app_shell),
+        "WM_DELETE_WINDOW", False);
+    XmAddProtocolCallback(ep->top,
+        XM_WM_PROTOCOL_ATOM(ep->top), WM_DELETE_WINDOW,
+        destroy_ep, (XtPointer) ep);
+
     dialog = XmCreateRowColumn(ep->top, "dialog_rc", NULL, 0);
 
-    cells = MakeCells(ep);
-
-    rowlabels = (String *) malloc(ep->nrows * sizeof(String));
-    for (i = 0; i < ep->nrows; i++) {
-    	sprintf(buf, "%d", i + 1);
-    	rowlabels[i] = (String) malloc((sizeof(buf) + 1) * sizeof(char));
-    	strcpy(rowlabels[i], buf);
-    }
-    /* added by Ed Vigmond -- increase row label width by 1 */
-    width = (short) ceil(log10(i))+1;
-
     ep->mw = XtVaCreateManagedWidget("mw",
-				     xbaeMatrixWidgetClass, dialog,
-				     XmNrows, ep->nrows,
-				     XmNcolumns, ep->ncols,
-				     XmNcolumnWidths, widths,
-				     XmNvisibleRows, 10,
-				     XmNvisibleColumns, 2,
-				     XmNrowLabels, rowlabels,
-				     XmNcolumnLabels, ep->collabels,
-				     XmNcells, cells,
-				     XmNgridType, XmGRID_SHADOW_IN,
-				     XmNcellShadowType, XmSHADOW_ETCHED_OUT,
-				     XmNcellShadowThickness, 4,
-				     XmNrowLabelWidth, width,
-				     NULL);
-				     
-    XtAddCallback(ep->mw, XmNselectCellCallback, selectCB, ep);	
+        xbaeMatrixWidgetClass, dialog,
+        XmNrows, ep->nrows,
+        XmNcolumns, ep->ncols,
+        XmNvisibleRows, 10,
+        XmNvisibleColumns, 2,
+        XmNcolumnLabels, collabels,
+        XmNgridType, XmGRID_SHADOW_IN,
+        XmNcellShadowType, XmSHADOW_ETCHED_OUT,
+        XmNcellShadowThickness, 4,
+        NULL);
 
+    update_cells(ep);
+    				     
+    XtAddCallback(ep->mw, XmNselectCellCallback, selectCB, ep);	
     XtAddCallback(ep->mw, XmNdrawCellCallback, drawcellCB, ep);	
     XtAddCallback(ep->mw, XmNleaveCellCallback, leaveCB, ep);
     XtAddCallback(ep->mw, XmNwriteCellCallback, writeCB, ep);  
-        
-    for (i = 0; i < ep->nrows; i++) {
-	for (j = 0; j < ep->ncols; j++) {
-	    XtFree((XtPointer) cells[i][j]);
-	}
-	free( rowlabels[i] );
-	XtFree((XtPointer) cells[i]);
-    }
-    XtFree((XtPointer) cells);
 
-    XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+    CreateSeparator(dialog);
     
     CreateCommandButtons(dialog, 2, but2, label2);
     XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) del_point_cb,
@@ -615,15 +486,15 @@ void create_ss_frame(EditPoints * ep)
     XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) add_pt_cb,
     	    (XtPointer) ep);
     
-    XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+    CreateSeparator(dialog);
 
     CreateCommandButtons(dialog, 3, but1, label1);
     XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_props_proc,
     	    (XtPointer) ep);
-    XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) update_cells,
+    XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) do_update_cells,
     	    (XtPointer) ep);
-    XtAddCallback(but1[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog,
-    	    (XtPointer) ep->top);
+    XtAddCallback(but1[2], XmNactivateCallback, (XtCallbackProc) destroy_ep,
+    	    (XtPointer) ep);
 
     XtManageChild(dialog);
     XtRaise(ep->top);
@@ -631,45 +502,18 @@ void create_ss_frame(EditPoints * ep)
 }
 #endif
 
-void setsel_cred_cb(Widget w, XtPointer client_data, XtPointer call_data)
-/*
- * callback to grey out forumla button if "New set" not selcted
- */
-{
-	if( GetSelectedSet(editp_set_item) != SET_SELECT_NEXT ) 
-		XtSetSensitive( (Widget)client_data, False );
-	else
-		XtSetSensitive( (Widget)client_data, True );
-}
-
-
 /*
  * Start up editor using GRACE_EDITOR variable
  * Note the change to the GRACE_EDITOR variable: If it requires a text 
  * terminal it must provide it explicitly with an xterm -e prefix 
  */
-void do_ext_editor(Widget w, XtPointer client_data, XtPointer call_data)
+void do_ext_editor(int gno, int setno)
 {
     char *fname, ebuf[256], *s;
-    int setno = GetSelectedSet(editp_set_item), curgraph=get_cg();
-
-    if (setno == SET_SELECT_ERROR) {
-        errwin("No set selected");
-        return;
-    }
 
     fname = tmpnam(NULL);
 
-    if( setno == SET_SELECT_NEXT ){ 
-        if( (setno=nextset(curgraph)) == -1 ){ 
-            errwin("Not enough sets");
-            return;
-        }
-        activateset( curgraph, setno );
-        do_writesets(curgraph, setno, 0, fname, sformat);
-    } else {
-        do_writesets(curgraph, setno, 0, fname, sformat);
-    }
+    do_writesets(gno, setno, 0, fname, sformat);
 
     if ((s = getenv("GRACE_EDITOR")) != NULL) {
     	strcpy(ebuf, s);
@@ -678,74 +522,13 @@ void do_ext_editor(Widget w, XtPointer client_data, XtPointer call_data)
     }
     sprintf(ebuf, "%s %s", ebuf, fname);
     system(ebuf);
-    if( is_set_active( curgraph, setno ) ) {
-	killsetdata( curgraph, setno );	
-        getdata(curgraph, fname, SOURCE_DISK, dataset_type( curgraph, setno ) );
+    if (is_set_active(gno, setno)) {
+	killsetdata(gno, setno);	
+        getdata(gno, fname, SOURCE_DISK, dataset_type(gno, setno));
     } else {
-        setcomment( curgraph, setno, "editor" );
-        getdata(curgraph, fname, SOURCE_DISK, SET_XY );
+        getdata(gno, fname, SOURCE_DISK, SET_XY);
     }
-    sprintf(ebuf, "rm %s", fname);
-    system(ebuf);
+    unlink(fname);
     update_all();
     drawgraph();
-}
-
-void edit_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-#ifdef HAVE_LIBXBAE
- 	if( XmToggleButtonGetState(ext_editor_item) == False )
-		do_ss_frame( NULL, NULL, NULL );
-	else
-#endif
-	do_ext_editor( NULL, NULL, NULL );
-}
-
-void create_editp_frame(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    static Widget top;
-    Widget dialog;
-
-    set_wait_cursor();
-
-    if (top == NULL) {
-		Widget but1[3];
-		char *label1[3];
-		label1[0] = "Edit";
-		label1[1] = "Formula";
-		label1[2] = "Close";
-		top = XmCreateDialogShell(app_shell, "Edit/Create set", NULL, 0);
-		handle_close(top);
-		dialog = XmCreateRowColumn(top, "dialog_rc", NULL, 0);
-		editp_set_item = CreateSetSelector(dialog, "Edit set:",
-										   SET_SELECT_NEXT,
-										   FILTER_SELECT_NONE,
-										   GRAPH_SELECT_CURRENT,
-										   SELECTION_TYPE_SINGLE);
-
-		XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-
-#ifdef HAVE_LIBXBAE
-		ext_editor_item = XtVaCreateManagedWidget("Use external editor", 
-                        xmToggleButtonWidgetClass, dialog, 
-                        NULL);
-		XmToggleButtonSetState( ext_editor_item, False, False );
-		XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-#endif
-		CreateCommandButtons(dialog, 3, but1, label1);
-		
-		XtAddCallback(but1[0], XmNactivateCallback,
-				(XtCallbackProc) edit_set_proc, NULL);
-		XtAddCallback(but1[1], XmNactivateCallback,
-				(XtCallbackProc) create_leval_frame, NULL);
-		XtAddCallback(but1[2], XmNactivateCallback,
-				(XtCallbackProc) destroy_dialog, (XtPointer) top);
-
-		XtAddCallback(editp_set_item.list, XmNsingleSelectionCallback,
-				(XtCallbackProc) setsel_cred_cb, (XtPointer)but1[1] );
-
-	XtManageChild(dialog);
-    }
-    XtRaise(top);
-    unset_wait_cursor();
 }

@@ -172,14 +172,16 @@ static int allocxy(plotarr *p, int len)
         cxfree(p->s);
     }
     
+    p->len = len;
+
     for (i = 0; i < ncols; i++) {
-	if ((p->ex[i] = xrealloc(p->ex[i], len*SIZEOF_DOUBLE)) == NULL) {
+	if (len != 0 &&
+            (p->ex[i] = xrealloc(p->ex[i], len*SIZEOF_DOUBLE)) == NULL) {
 	    errmsg("Insufficient memory to allocate for plots");
 	    return GRACE_EXIT_FAILURE;
 	}
     }
     
-    p->len = len;
     set_dirtystate();
     set_lists_dirty(TRUE);
     
@@ -1790,6 +1792,16 @@ int set_dataset_type(int gno, int setno, int type)
         for (i = ncols_new; i < ncols_old; i++) {
             cxfree(g[gno].p[setno].ex[i]);
         }
+        switch (type) {
+        case SET_XYSTRING:
+            g[gno].p[setno].avalue.active = TRUE;
+            g[gno].p[setno].avalue.type = AVALUE_TYPE_STRING;
+            break;
+        case SET_XYZ:
+            g[gno].p[setno].avalue.active = TRUE;
+            g[gno].p[setno].avalue.type = AVALUE_TYPE_Z;
+            break;
+        }
         g[gno].p[setno].type = type;
         return GRACE_EXIT_SUCCESS;
     } else {
@@ -1820,27 +1832,6 @@ int load_comments_to_legend(int gno, int setno)
         return GRACE_EXIT_FAILURE;
     }
 }
-
-void *get_ep_structure(int gno, int setno)
-{
-    if (is_valid_setno(gno, setno)) {
-        return g[gno].p[setno].ep;
-    } else {
-        return NULL;
-    }
-}
-
-int set_ep_structure(int gno, int setno, void *ep)
-{
-    if (is_valid_setno(gno, setno)) {
-        g[gno].p[setno].ep = ep;
-        return GRACE_EXIT_SUCCESS;
-    } else {
-        return GRACE_EXIT_FAILURE;
-    }
-}
-
-
 
 static int dp = 0;
 

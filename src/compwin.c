@@ -70,7 +70,6 @@ static Widget but1[3];
 static Widget but2[3];
 
 static void do_compute_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_load_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_compute_proc2(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_digfilter_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -129,7 +128,6 @@ void create_eval_frame(Widget w, XtPointer client_data, XtPointer call_data)
 				    SELECTION_TYPE_MULTIPLE);
 
 	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
-	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 	eui.load_item = CreatePanelChoice(rc,
 					  "Result to:", 3,
 					  "Same set", "New set", NULL, 0);
@@ -192,114 +190,6 @@ static void do_compute_proc(Widget w, XtPointer client_data, XtPointer call_data
     update_set_lists(get_cg());
     free(selsets);
     unset_wait_cursor();
-    drawgraph();
-}
-
-typedef struct _Load_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget start_item;
-    Widget step_item;
-    Widget *load_item;
-} Load_ui;
-
-static Load_ui lui;
-
-/* load a set */
-
-void create_load_frame(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Widget dialog;
-    Widget rc;
-
-    set_wait_cursor();
-    if (lui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	lui.top = XmCreateDialogShell(app_shell, "Load values", NULL, 0);
-	handle_close(lui.top);
-	dialog = XmCreateRowColumn(lui.top, "dialog_rc", NULL, 0);
-
-	lui.sel = CreateSetSelector(dialog, "Apply to set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, dialog,
-			      XmNpacking, XmPACK_COLUMN,
-			      XmNnumColumns, 3,
-			      XmNorientation, XmHORIZONTAL,
-			      XmNisAligned, True,
-			      XmNadjustLast, False,
-			      XmNentryAlignment, XmALIGNMENT_END,
-			      NULL);
-
-	XtVaCreateManagedWidget("Load to: ", xmLabelWidgetClass, rc, NULL);
-	lui.load_item = CreatePanelChoice(rc,
-					  " ",
-					  7,
-					  "Set X",
-					  "Set Y",
-					  "Scratch A",
-					  "Scratch B",
-					  "Scratch C",
-					  "Scratch D", 0,
-					  0);
-	lui.start_item = CreateTextItem4(rc, 10, "Start:");
-	lui.step_item = CreateTextItem4(rc, 10, "Step:");
-	XtManageChild(rc);
-
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_load_proc, (XtPointer) & lui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) lui.top);
-
-	XtManageChild(dialog);
-    }
-    XtRaise(lui.top);
-    unset_wait_cursor();
-}
-
-/*
- * load a set
- */
-static void do_load_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int *selsets;
-    int i, cnt;
-    int setno, toval;
-    double start, step;
-	
-    Load_ui *ui = (Load_ui *) client_data;
-    if (w == NULL) {
-		cnt = 1;
-		selsets = (int *) malloc(sizeof(int));
-		selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
-    }
-    toval = (int) GetChoice(ui->load_item) + 1;
-    if (xv_evalexpr(ui->step_item, &step ) != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(ui->start_item, &start) != GRACE_EXIT_SUCCESS) {
-        return;
-    }
-
-    set_wait_cursor();
-    set_work_pending(TRUE);
-    for (i = 0; i < cnt; i++) {
-		setno = selsets[i];
-		do_load(setno, toval, start, step);
-    }
-    set_work_pending(FALSE);
-    update_set_lists(get_cg());
-    unset_wait_cursor();
-    free(selsets);
     drawgraph();
 }
 
@@ -2037,6 +1927,7 @@ typedef struct _Leval_ui {
     Widget npts_item;
     Widget *region_item;
     Widget rinvert_item;
+    int gno;
 } Leval_ui;
 
 static Leval_ui levalui;
@@ -2047,6 +1938,7 @@ void create_leval_frame(Widget w, XtPointer client_data, XtPointer call_data)
     Widget rc;
 
     set_wait_cursor();
+    levalui.gno = (int) client_data;
     if (levalui.top == NULL) {
 	char *label1[2];
 	label1[0] = "Accept";
@@ -2104,18 +1996,20 @@ static void do_compute_proc2(Widget w, XtPointer client_data, XtPointer call_dat
     char startstr[256], stopstr[256];
     Leval_ui *ui = (Leval_ui *) client_data;
 
-	if(xv_evalexpri(ui->npts_item, &npts) != GRACE_EXIT_SUCCESS)
-		return;
-    strcpy(fstrx, (char *) xv_getstr(ui->x_item));
-    strcpy(fstry, (char *) xv_getstr(ui->y_item));
-    strcpy(startstr, (char *) xv_getstr(ui->start_item));
-    strcpy(stopstr, (char *) xv_getstr(ui->stop_item));
-    toval = (int) GetChoice(ui->load_item) + 1;
+    if (xv_evalexpri(ui->npts_item, &npts) != GRACE_EXIT_SUCCESS) {
+        return;
+    }
+    strcpy(fstrx, xv_getstr(ui->x_item));
+    strcpy(fstry, xv_getstr(ui->y_item));
+    strcpy(startstr, xv_getstr(ui->start_item));
+    strcpy(stopstr, xv_getstr(ui->stop_item));
+    toval = GetChoice(ui->load_item) + 1;
     set_wait_cursor();
     set_work_pending(TRUE);
-    do_compute2(fstrx, fstry, startstr, stopstr, npts, toval);
+    do_compute2(ui->gno, fstrx, fstry, startstr, stopstr, npts, toval);
     set_work_pending(FALSE);
-    update_set_lists(get_cg());
+    update_all();
+    drawgraph();
     unset_wait_cursor();
 }
 

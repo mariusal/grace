@@ -52,7 +52,7 @@ void do_running_command(int type, int setno, int rlen);
 void do_fourier_command(int ftype, int setno, int ltype);
 int do_compute(int setno, int loadto, int graphto, char *fstr);
 void do_load(int setno, int toval,  double start, double step );
-void do_compute2(char *fstrx, char *fstry, char *startstr, char *stopstr, int npts, int toval);
+void do_compute2(int gno, char *fstrx, char *fstry, char *startstr, char *stopstr, int npts, int toval);
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 void do_digfilter(int set1, int set2);
 void do_linearc(int set1, int set2);
@@ -308,8 +308,5 @@ void  filter_close( FILE * );
 
 int is_xaxis(int axis);
 int is_yaxis(int axis);
-
-void *get_ep_structure(int gno, int setno);
-int set_ep_structure(int gno, int setno, void *ep);
 
 #endif /* __NOXPROTOS_H_ */

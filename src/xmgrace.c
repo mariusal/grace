@@ -178,7 +178,7 @@ static void world_stack_proc(Widget w, XtPointer client_data, XtPointer call_dat
 /*
  * establish action routines
  */
-XtActionsRec canvas_actions[] = {
+static XtActionsRec canvas_actions[] = {
 	{ "autoscale", (XtActionProc) autoscale },	
 	{ "autoscale_on_near", (XtActionProc) autoscale_on_near },	
 	{ "draw_box_action", (XtActionProc) draw_box_action },	
@@ -194,13 +194,14 @@ XtActionsRec canvas_actions[] = {
 };
 
 static XtActionsRec graph_select_actions[] = {
-    {"list_choice_selectall", list_choice_selectall}
+    {"list_choice_selectall",   list_choice_selectall},
+    {"list_choice_unselectall", list_choice_unselectall}
 /*
  *     {"graph_choice_delete", (XtActionProc) graph_choice_delete}
  */
 };
 
-char maincanv_table[] = "#override\n\
+static char canvas_table[] = "#override\n\
 	Ctrl <Key>A: autoscale()\n\
 	Ctrl <Key>B: draw_box_action()\n\
 	Ctrl <Key>D: delete_object()\n\
@@ -680,18 +681,6 @@ static Widget CreateMainMenuBar(Widget parent)
 
     submenupane = CreateMenu(menupane, "dataSetOperationsMenu", "Data set operations", 't', NULL, NULL);
 
-    CreateMenuButton(submenupane, "editCreateSet", "Edit/create set...", 'E',
-    	(XtCallbackProc) create_editp_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "loadValues", "Load values...", 'L',
-    	    (XtCallbackProc) create_load_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "loadEvaluate", "Load & evaluate...", '&',
-    	    (XtCallbackProc) create_leval_frame, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "blockData", "Block data...", 'B',
-    	(XtCallbackProc) create_eblock_frame, (XtPointer) NULL, 0);
-    
-    CreateMenuSeparator(submenupane);
-
     CreateMenuButton(submenupane, "Sort", "Sort...", 'o',
     	    (XtCallbackProc) create_sort_popup, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "reverse", "Reverse...", 'v',
@@ -1065,7 +1054,7 @@ void initialize_screen()
 		      False,
 		      (XtEventHandler) my_proc, NULL);
 		      
-    XtOverrideTranslations(canvas, XtParseTranslationTable(maincanv_table));
+    XtOverrideTranslations(canvas, XtParseTranslationTable(canvas_table));
 		      
 
     XtVaSetValues(frleft,

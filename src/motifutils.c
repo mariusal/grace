@@ -306,7 +306,8 @@ void AddOptionChoiceCB(OptionStructure *opt, XtCallbackProc cb)
 
 
 static char list_translation_table[] = "\
-    Ctrl<Key>A: list_choice_selectall()";
+    Ctrl<Key>A: list_choice_selectall()\n\
+    Ctrl<Key>U: list_choice_unselectall()";
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items)
@@ -406,8 +407,9 @@ int SelectListChoice(ListStructure *listp, int choice)
 
 void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
 {
-    int i, j;
-    int selection_type_save;
+    int i = 0, j;
+    unsigned char selection_type_save;
+    int bottom, visible;
     
     XtVaGetValues(listp->list, XmNselectionPolicy, &selection_type_save, NULL);
     XtVaSetValues(listp->list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
@@ -422,6 +424,16 @@ void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
             i++;
             XmListSelectPos(listp->list, i, True);
         }
+    }
+    
+    /* Rewind list so the last choice is always visible */
+    XtVaGetValues(listp->list, XmNtopItemPosition, &bottom,
+                             XmNvisibleItemCount, &visible,
+                             NULL);
+    if (i > bottom) {
+        XmListSetBottomPos(listp->list, i);
+    } else if (i <= bottom - visible) {
+        XmListSetPos(listp->list, i);
     }
 
     XtVaSetValues(listp->list, XmNselectionPolicy, selection_type_save, NULL);
@@ -952,12 +964,17 @@ void graph_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event
 void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     int i, n;
-    int selection_type_save;
+    unsigned char selection_type_save;
     
     XtVaGetValues(w,
                   XmNselectionPolicy, &selection_type_save,
                   XmNitemCount, &n,
                   NULL);
+    if (selection_type_save == XmSINGLE_SELECT) {
+        XBell(disp, 100);
+        return;
+    }
+    
     XtVaSetValues(w, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
                              
     XmListDeselectAllItems(w);
@@ -966,6 +983,11 @@ void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar)
     }
     
     XtVaSetValues(w, XmNselectionPolicy, selection_type_save, NULL);
+}
+
+void list_choice_unselectall(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+    XmListDeselectAllItems(w);
 }
 
 void set_graph_selectors(int gno)
@@ -1010,15 +1032,19 @@ ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
 typedef struct {
     Widget popup;
     Widget label_item;
+    Widget shownd_item;
+    Widget showh_item;
     Widget hide_item;
     Widget show_item;
     Widget duplicate_item;
     Widget kill_item;
+    Widget killd_item;
     Widget copy12_item;
     Widget copy21_item;
     Widget move12_item;
     Widget move21_item;
     Widget swap_item;
+    Widget edit_item;
 } SetPopupMenu;
 
 typedef enum {
@@ -1026,16 +1052,25 @@ typedef enum {
     SetMenuShowCB,
     SetMenuDuplicateCB,
     SetMenuKillCB,
+    SetMenuKillDCB,
     SetMenuCopy12CB,
     SetMenuCopy21CB,
     SetMenuMove12CB,
     SetMenuMove21CB,
-    SetMenuSwapCB
+    SetMenuSwapCB,
+    SetMenuNewFCB,
+    SetMenuNewSCB,
+    SetMenuNewECB,
+    SetMenuNewBCB,
+    SetMenuEditSCB,
+    SetMenuEditECB
 } SetMenuCBtype;
 
 typedef struct {
     int standalone;
     int gno;
+    int show_hidden;
+    int show_nodata;
     SetPopupMenu *menu;
 } SetChoiceData;
 
@@ -1045,7 +1080,7 @@ static int nset_selectors = 0;
 
 void UpdateSetChoice(ListStructure *listp, int gno)
 {
-    int i, n = number_of_sets(gno);
+    int i, j, n = number_of_sets(gno);
     char buf[64];
     OptionItem *set_select_items;
     SetChoiceData *sdata;
@@ -1063,16 +1098,20 @@ void UpdateSetChoice(ListStructure *listp, int gno)
         return;
     }
     
-    for (i = 0; i < n; i++) {
-        set_select_items[i].value = i;
-        set_select_items[i].label = NULL;
-        sprintf(buf, "G%d.S%d[%d] (%d cols, %s)", gno, i, 
-            getsetlength(gno, i), dataset_cols(gno, i),
-            is_set_hidden(gno, i) ? "hidden":"shown");
-        set_select_items[i].label =
-            copy_string(set_select_items[i].label, buf);
+    for (i = 0, j = 0; i < n; i++) {
+        if ((sdata->show_nodata == TRUE || is_set_active(gno, i) == TRUE) &&
+            (sdata->show_hidden == TRUE || is_set_hidden(gno, i) != TRUE )) {
+            set_select_items[j].value = i;
+            set_select_items[j].label = NULL;
+            sprintf(buf, "G%d.S%d[%d] (%d cols, %s)", gno, i,
+                getsetlength(gno, i), dataset_cols(gno, i),
+                is_set_hidden(gno, i) ? "hidden":"shown");
+            set_select_items[j].label =
+                copy_string(set_select_items[j].label, buf);
+            j++;
+        }
     }
-    UpdateListChoice(listp, n, set_select_items);
+    UpdateListChoice(listp, j, set_select_items);
     
     free(set_select_items);
 }
@@ -1101,7 +1140,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
     SetChoiceData *sdata;
     int err = FALSE;
     int gno;
-    int i, n, *values;
+    int i, n, setno, *values;
     char buf[32];
 
     n = GetListChoices(listp, &values);
@@ -1130,9 +1169,8 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
     case SetMenuDuplicateCB:
         if (n > 0) {
             for (i = 0; i < n; i++) {
-/*
- *                 duplicate_set(gno, values[i]);
- */
+                setno = nextset(gno);
+                do_copyset(gno, values[i], gno, setno);
             }
         } else {
             err = TRUE;
@@ -1149,9 +1187,20 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
             err = TRUE;
         }
         break;
+    case SetMenuKillDCB:
+        if (n > 0) {
+            if (yesno("Kill data in selected set(s)?", NULL, NULL, NULL)) {
+                for (i = 0; i < n; i++) {
+                    killsetdata(gno, values[i]);
+                }
+            }
+        } else {
+            err = TRUE;
+        }
+        break;
     case SetMenuCopy12CB:
         if (n == 2) {
-            sprintf(buf, "Overwrite G%d?", values[1]);
+            sprintf(buf, "Overwrite S%d?", values[1]);
             if (yesno(buf, NULL, NULL, NULL)) {
                 do_copyset(gno, values[0], gno, values[1]);
             }
@@ -1161,7 +1210,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
         break;
     case SetMenuCopy21CB:
         if (n == 2) {
-            sprintf(buf, "Overwrite G%d?", values[0]);
+            sprintf(buf, "Overwrite S%d?", values[0]);
             if (yesno(buf, NULL, NULL, NULL)) {
                 do_copyset(gno, values[1], gno, values[0]);
             }
@@ -1171,7 +1220,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
         break;
     case SetMenuMove12CB:
         if (n == 2) {
-            sprintf(buf, "Replace G%d?", values[1]);
+            sprintf(buf, "Replace S%d?", values[1]);
             if (yesno(buf, NULL, NULL, NULL)) {
                 moveset(gno, values[0], gno, values[1]);
             }
@@ -1181,7 +1230,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
         break;
     case SetMenuMove21CB:
         if (n == 2) {
-            sprintf(buf, "Replace G%d?", values[0]);
+            sprintf(buf, "Replace S%d?", values[0]);
             if (yesno(buf, NULL, NULL, NULL)) {
                 moveset(gno, values[1], gno, values[0]);
             }
@@ -1192,6 +1241,52 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
     case SetMenuSwapCB:
         if (n == 2) {
             swapset(gno, values[0], gno, values[1]);
+        } else {
+            err = TRUE;
+        }
+        break;
+    case SetMenuNewFCB:
+            create_leval_frame(listp->list, (XtPointer) gno, NULL);
+        break;
+#ifdef HAVE_LIBXBAE
+    case SetMenuNewSCB:
+            if ((setno = nextset(gno)) != -1) {
+                add_point(gno, setno, 0., 0., 0, 0, SET_XY);
+                setcomment(gno, setno, "Editor");
+                set_set_hidden(gno, setno, FALSE);
+                update_set_status(gno, setno);
+                create_ss_frame(gno, setno);
+            } else {
+                err = TRUE;
+            }
+        break;
+#endif
+    case SetMenuNewECB:
+            if ((setno = nextset(gno)) != -1) {
+                add_point(gno, setno, 0., 0., 0, 0, SET_XY);
+                setcomment(gno, setno, "Editor");
+                set_set_hidden(gno, setno, FALSE);
+                update_set_status(gno, setno);
+                do_ext_editor(gno, setno);
+            } else {
+                err = TRUE;
+            }
+        break;
+    case SetMenuNewBCB:
+            create_eblock_frame(listp->list, (XtPointer) gno, NULL);
+        break;
+#ifdef HAVE_LIBXBAE
+    case SetMenuEditSCB:
+        if (n == 1) {
+            create_ss_frame(gno, values[0]);
+        } else {
+            err = TRUE;
+        }
+        break;
+#endif
+    case SetMenuEditECB:
+        if (n == 1) {
+            do_ext_editor(gno, values[0]);
         } else {
             err = TRUE;
         }
@@ -1234,6 +1329,11 @@ void kill_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_menu_cb((ListStructure *) client_data, SetMenuKillCB);
 }
 
+void killd_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    set_menu_cb((ListStructure *) client_data, SetMenuKillDCB);
+}
+
 void copy12_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     set_menu_cb((ListStructure *) client_data, SetMenuCopy12CB);
@@ -1259,17 +1359,64 @@ void swap_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_menu_cb((ListStructure *) client_data, SetMenuSwapCB);
 }
 
+void newF_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    set_menu_cb((ListStructure *) client_data, SetMenuNewFCB);
+}
+
+void newS_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    set_menu_cb((ListStructure *) client_data, SetMenuNewSCB);
+}
+
+void newE_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    set_menu_cb((ListStructure *) client_data, SetMenuNewECB);
+}
+
+void newB_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    set_menu_cb((ListStructure *) client_data, SetMenuNewBCB);
+}
+
+void editS_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    set_menu_cb((ListStructure *) client_data, SetMenuEditSCB);
+}
+
+void editE_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    set_menu_cb((ListStructure *) client_data, SetMenuEditECB);
+}
+
+void update_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    ListStructure *listp = (ListStructure *) client_data;
+    SetChoiceData *sdata = (SetChoiceData *) listp->anydata;
+    
+    if (w == sdata->menu->shownd_item) {
+        sdata->show_nodata = GetToggleButtonState(w);
+    }
+    if (w == sdata->menu->showh_item) {
+        sdata->show_hidden = GetToggleButtonState(w);
+    }
+    
+    UpdateSetChoice(listp, sdata->gno);
+}
+
 SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
 {
     SetPopupMenu *set_popup_menu;
-    Widget popup;
+    Widget popup, submenupane;
     
     set_popup_menu = malloc(sizeof(SetPopupMenu));
     popup = XmCreatePopupMenu(listp->list, "setPopupMenu", NULL, 0);
     set_popup_menu->popup = popup;
     
     set_popup_menu->label_item = CreateMenuLabel(popup, "Selection:");
+
     CreateMenuSeparator(popup);
+
     set_popup_menu->hide_item = CreateMenuButton(popup, "hide", "Hide", 'H',
     	hide_set_proc, (XtPointer) listp, 0);
     set_popup_menu->show_item = CreateMenuButton(popup, "show", "Show", 'S',
@@ -1278,6 +1425,8 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     	duplicate_set_proc, (XtPointer) listp, 0);
     set_popup_menu->kill_item = CreateMenuButton(popup, "kill", "Kill", 'K',
     	kill_set_proc, (XtPointer) listp, 0);
+    set_popup_menu->killd_item = CreateMenuButton(popup, "killData", "Kill data", 'a',
+    	killd_set_proc, (XtPointer) listp, 0);
     CreateMenuSeparator(popup);
     set_popup_menu->copy12_item = CreateMenuButton(popup, "copy12", "Copy 1 to 2", 'C',
     	copy12_set_proc, (XtPointer) listp, 0);
@@ -1289,6 +1438,38 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     	move21_set_proc, (XtPointer) listp, 0);
     set_popup_menu->swap_item = CreateMenuButton(popup, "swap", "Swap", 'w',
     	swap_set_proc, (XtPointer) listp, 0);
+    CreateMenuSeparator(popup);
+    set_popup_menu->edit_item = CreateMenu(popup, "edit", "Edit", 'E', NULL, NULL);
+#ifdef HAVE_LIBXBAE
+    CreateMenuButton(set_popup_menu->edit_item, "inShpreadsheet", "In spreadsheet", 's',
+    	editS_set_proc, (XtPointer) listp, 0);
+#endif
+    CreateMenuButton(set_popup_menu->edit_item, "inEditor", "In text editor", 'e',
+    	editE_set_proc, (XtPointer) listp, 0);
+    submenupane = CreateMenu(popup, "createNew", "Create new", 'n', NULL, NULL);
+    CreateMenuButton(submenupane, "byFormula", "By formula", 'f',
+    	newF_set_proc, (XtPointer) listp, 0);
+#ifdef HAVE_LIBXBAE
+    CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
+    	newS_set_proc, (XtPointer) listp, 0);
+#endif
+    CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
+    	newE_set_proc, (XtPointer) listp, 0);
+    CreateMenuButton(submenupane, "fromBlockData", "From block data", 'b',
+    	newB_set_proc, (XtPointer) listp, 0);
+
+    CreateMenuSeparator(popup);
+
+    submenupane = CreateMenu(popup, "selectorOperations", "Selector operations", 'o', NULL, NULL);
+    set_popup_menu->shownd_item = CreateToggleButton(submenupane, "Show data-less");
+    XtAddCallback(set_popup_menu->shownd_item, XmNvalueChangedCallback,
+        (XtCallbackProc) update_set_proc, (XtPointer) listp);
+    set_popup_menu->showh_item = CreateToggleButton(submenupane, "Show hidden");
+    XtAddCallback(set_popup_menu->showh_item, XmNvalueChangedCallback,
+        (XtCallbackProc) update_set_proc, (XtPointer) listp);
+    CreateMenuSeparator(submenupane);
+    CreateMenuButton(submenupane, "update", "Update", 'U',
+    	update_set_proc, (XtPointer) listp, 0);
 
     return set_popup_menu;
 }
@@ -1326,16 +1507,26 @@ void set_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event)
     
     SetLabel(set_popup_menu->label_item, buf);
     
+    SetToggleButtonState(set_popup_menu->shownd_item, sdata->show_nodata);
+    SetToggleButtonState(set_popup_menu->showh_item, sdata->show_hidden);
+    
     if (n == 0) {
         XtSetSensitive(set_popup_menu->hide_item, False);
         XtSetSensitive(set_popup_menu->show_item, False);
         XtSetSensitive(set_popup_menu->duplicate_item, False);
         XtSetSensitive(set_popup_menu->kill_item, False);
+        XtSetSensitive(set_popup_menu->killd_item, False);
     } else {
         XtSetSensitive(set_popup_menu->hide_item, True);
         XtSetSensitive(set_popup_menu->show_item, True);
         XtSetSensitive(set_popup_menu->duplicate_item, True);
         XtSetSensitive(set_popup_menu->kill_item, True);
+        XtSetSensitive(set_popup_menu->killd_item, True);
+    }
+    if (n == 1) {
+        XtSetSensitive(set_popup_menu->edit_item, True);
+    } else {
+        XtSetSensitive(set_popup_menu->edit_item, False);
     }
     if (n == 2) {
         sprintf(buf, "Copy S%d to S%d", values[0], values[1]);
@@ -1384,6 +1575,8 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
     }
     
     sdata->standalone = standalone;
+    sdata->show_hidden = TRUE;
+    sdata->show_nodata = TRUE;
     sdata->menu = CreateSetPopupEntries(retvalp);
     XtAddEventHandler(retvalp->list, ButtonPressMask, False, 
                             (XtEventHandler) set_popup, retvalp);
@@ -1819,6 +2012,7 @@ void SetToggleButtonState(Widget w, int value)
     return;
 }
 
+
 Widget CreateFrame(Widget parent, char *s)
 {
     Widget fr;
@@ -2056,9 +2250,9 @@ void xv_setstr(Widget w, char *s)
 /*
  * generic unmanage popup routine, used elswhere
  */
-void destroy_dialog(Widget w, XtPointer p)
+void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    XtUnmanageChild((Widget) p);
+    XtUnmanageChild((Widget) client_data);
 }
 
 /*
@@ -2067,14 +2261,13 @@ void destroy_dialog(Widget w, XtPointer p)
 void handle_close(Widget w)
 {
     Atom WM_DELETE_WINDOW;
-    XtVaSetValues(w,
-		  XmNdeleteResponse, XmDO_NOTHING,
-		  NULL);
-    WM_DELETE_WINDOW = XmInternAtom(XtDisplay(app_shell), "WM_DELETE_WINDOW",
-                                    False);
-    XmAddProtocolCallback((Widget) w, (Atom) XM_WM_PROTOCOL_ATOM(w),
-                          (Atom) WM_DELETE_WINDOW,
-			  (XtCallbackProc) destroy_dialog, (XtPointer) w);
+    XtVaSetValues(w, XmNdeleteResponse, XmDO_NOTHING, NULL);
+    WM_DELETE_WINDOW = XmInternAtom(disp, "WM_DELETE_WINDOW", False);
+    XmAddProtocolCallback(w,
+        XM_WM_PROTOCOL_ATOM(w),
+        WM_DELETE_WINDOW,
+        destroy_dialog,
+        (XtPointer) w);
 }
 
 /*
@@ -2104,6 +2297,24 @@ void savewidget(Widget w)
     savewidgets = xrealloc(savewidgets, (nsavedwidgets + 1)*sizeof(Widget));
     savewidgets[nsavedwidgets] = w;
     nsavedwidgets++;
+}
+
+void deletewidget(Widget w)
+{
+    int i;
+    
+    for (i = 0; i < nsavedwidgets; i++) {
+        if (w == savewidgets[i]) {
+            nsavedwidgets--;
+            for (; i <  nsavedwidgets; i++) {
+                savewidgets[i] = savewidgets[i + 1];
+            }
+            savewidgets = xrealloc(savewidgets, nsavedwidgets*sizeof(Widget));
+            XtDestroyWidget(w);
+            return;
+        }
+    }
+    
 }
 
 void DefineDialogCursor(Cursor c)

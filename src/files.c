@@ -539,15 +539,15 @@ static int readxyany(int gno, char *fn, FILE * fp, int type)
         
 	if (linebuf[0] == '@') {
 	    change_gno = -1;
-	    change_type = cur_type;
+	    change_type = type;
 	    if (read_param(linebuf + 1) != 0) {
                 retval = -2;
             }
 	    if (change_gno >= 0) {
 		cur_gno = gno = change_gno;
 	    }
-	    if (change_type != cur_type) {
-		if (change_type != cur_type) {
+	    if (change_type != type) {
+		if (change_type != type) {
 		    cur_type = change_type;
                     retval = -1;
 		    break;	/* exit this module and store any set */
@@ -847,6 +847,7 @@ static int readxystring(int gno, char *fn, FILE * fp)
 		    return (readset);
 		}
 		activateset(gno, j);
+                set_dataset_type(gno, j, SET_XYSTRING);
 		setcol(gno, x, j, i, 0);
 		setcol(gno, y, j, i, 1);
 		set_set_strings(gno, j, i, strs);
@@ -891,6 +892,7 @@ static int readxystring(int gno, char *fn, FILE * fp)
 	    return (readset);
 	}
 	activateset(gno, j);
+        set_dataset_type(gno, j, SET_XYSTRING);
 	setcol(gno, x, j, i, 0);
 	setcol(gno, y, j, i, 1);
 	set_set_strings(gno, j, i, strs);

@@ -81,13 +81,14 @@ static ListStructure *eblock_graph_choice_item;
  */
 static void eblock_type_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void update_eblock(void);
+static void update_eblock(int gno);
 
 /*
  * Create the files Frame and the files Panel
  */
 void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int gno = (int) client_data;
     Widget rc, buts[2];
 
     if (blockncols == 0) {
@@ -134,7 +135,7 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtManageChild(eblock_panel);
     }
     XtRaise(eblock_frame);
-    update_eblock();
+    update_eblock(gno);
     unset_wait_cursor();
 }				/* end create_eblock_panel */
 
@@ -142,16 +143,20 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
  * Notify and event procs
  */
 
-static void update_eblock(void)
+static void update_eblock(int gno)
 {
     XmString string;
     Arg al;
+    
     if (!eblock_frame) {
 	return;
     }
     if (blockncols == 0) {
 	errwin("Need to read block data first");
 	return;
+    }
+    if (is_valid_gno(gno)) {
+        SelectListChoice(eblock_graph_choice_item, gno);
     }
     sprintf(ncolsbuf, "%d columns of length %d", blockncols, blocklen);
     string = XmStringCreateLtoR(ncolsbuf, charset);
@@ -198,7 +203,7 @@ static void eblock_type_notify_proc(Widget w, XtPointer client_data, XtPointer c
 
     block_curtype = cd;
 
-    update_eblock();
+    update_eblock(-1);
 }
 
 static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)

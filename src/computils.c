@@ -164,7 +164,7 @@ void do_load(int setno, int toval, double start, double step )
 /*
  * evaluate a formula loading the next set
  */
-void do_compute2(char *fstrx, char *fstry, char *startstr, char *stopstr, int npts, int toval)
+void do_compute2(int gno, char *fstrx, char *fstry, char *startstr, char *stopstr, int npts, int toval)
 {
     int setno, ier;
     double start, stop, step, x, y, a, b, c, d;
@@ -182,12 +182,12 @@ void do_compute2(char *fstrx, char *fstry, char *startstr, char *stopstr, int np
 	    return;
 	}
     }
-    setno = nextset(get_cg());
+    setno = nextset(gno);
     if (setno < 0) {
 	return;
     }
-    activateset(get_cg(), setno);
-    setlength(get_cg(), setno, npts);
+    activateset(gno, setno);
+    setlength(gno, setno, npts);
     if (strlen(fstrx) == 0) {
 	errmsg("Undefined expression for X");
 	return;
@@ -216,16 +216,16 @@ void do_compute2(char *fstrx, char *fstry, char *startstr, char *stopstr, int np
     stop = result;
 
     step = (stop - start) / (npts - 1);
-    loadset(get_cg(), setno, toval, start, step);
+    loadset(gno, setno, toval, start, step);
     strcpy(buf, "X=");
     strcat(buf, fstrx);
     strcat( strcpy( comment, buf ), ", " );
-    formula(get_cg(), setno, buf);
+    formula(gno, setno, buf);
     strcpy(buf, "Y=");
     strcat(buf, fstry);
-    formula(get_cg(), setno, buf);
+    formula(gno, setno, buf);
     strncat( comment, buf, 256-strlen(comment) );
-    setcomment(get_cg(), setno, comment );
+    setcomment(gno, setno, comment );
 }
 
 /*

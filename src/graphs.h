@@ -126,8 +126,6 @@ typedef struct {
 
     Regression *r;              /* coefs from any regression performed on this set */
     Spline *spl;                /* coefs from any spline performed on this set */
-
-    void *ep;                   /* pointer to EditPoints structure */
 } plotarr;
 
 /*

@@ -280,8 +280,6 @@ void set_default_plotarr(plotarr * p)
         p->ex[i] = NULL;
     }
     p->s = NULL;                /* pointer to strings */
-
-    p->ep = NULL;               /* EditPoints pointer */
 }
 
 void set_default_annotation(void)

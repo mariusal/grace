@@ -244,15 +244,6 @@ void create_props_frame(Widget w, XtPointer client_data, XtPointer call_data);
 
 void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data);
 
-char *xv_getstr(Widget w);
-Boolean xv_evalexpr(Widget w, double *);
-Boolean xv_evalexpri(Widget w, int *);
-void xv_setstr(Widget w, char *s);
-void XtFlush(void);
-void destroy_dialog(Widget w, XtPointer p);
-void handle_close(Widget w);
-void XtRaise(Widget w);
-
 void set_wait_cursor(void);
 void unset_wait_cursor(void);
 void set_cursor(int c);
@@ -286,6 +277,9 @@ void create_reverse_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
 void create_featext_frame(Widget w, XtPointer client_data, XtPointer call_data);
+
+void create_ss_frame(int gno, int setno);
+void do_ext_editor(int gno, int setno);
 
 void set_graph_selectors(int gno);
 

@@ -135,6 +135,7 @@ int GetSingleListChoice(ListStructure *listp, int *value);
 void AddListChoiceCB(ListStructure *listp, XtCallbackProc cb);
 
 void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar);
+void list_choice_unselectall(Widget w, XEvent *e, String *par, Cardinal *npar);
 
 OptionStructure *CreateFontChoice(Widget parent, char *s);
 OptionStructure *CreatePatternChoice(Widget parent, char *s);
@@ -186,6 +187,14 @@ Widget CreateMenuToggle(Widget parent, char *name, char *label, char mnemonic,
 	XtCallbackProc cb, XtPointer data, char *help_anchor);
 Widget CreateMenuLabel(Widget parent, char *name);
 
+char *xv_getstr(Widget w);
+Boolean xv_evalexpr(Widget w, double *);
+Boolean xv_evalexpri(Widget w, int *);
+void xv_setstr(Widget w, char *s);
+void handle_close(Widget w);
+void XtRaise(Widget w);
+void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data);
 void savewidget(Widget w);
+void deletewidget(Widget w);
 
 #endif /* __MOTIFINC_H_ */
