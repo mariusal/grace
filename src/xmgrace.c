@@ -426,6 +426,9 @@ int initialize_gui(int *argc, char **argv)
 
     x11_init(grace);
 
+    /* initialize cursors */
+    init_cursors(grace->gui);
+
     return RETURN_SUCCESS;
 }
 
@@ -1040,11 +1043,6 @@ void startup_gui(Grace *grace)
     /* exit */
     bt = CreateBitmapButton(rcleft, 16, 16, exit_bits);
     AddButtonCB(bt, MenuCB, (void *) MENU_EXIT);
-
-/*
- * initialize cursors
- */
-    init_cursors(grace->gui);
 
 /*
  * initialize some option menus
