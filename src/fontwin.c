@@ -237,7 +237,7 @@ static void DrawCB(Widget w, XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs
         glyph = T1_SetChar(FontID, c, Size, &UNITY_MATRIX);
     }
        
-    if (glyph != NULL) {
+    if (glyph != NULL && glyph->bits != NULL) {
         valid_char = TRUE;
         height = glyph->metrics.ascent - glyph->metrics.descent;
         width = glyph->metrics.rightSideBearing - glyph->metrics.leftSideBearing;
