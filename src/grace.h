@@ -58,7 +58,7 @@ typedef struct _Project {
 #endif
     
     /* timestamp */
-    plotstr timestamp;
+    char *timestamp;
     
     /* page size */
     int page_wpp, page_hpp;

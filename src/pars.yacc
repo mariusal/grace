@@ -2404,26 +2404,62 @@ parmset:
 
 /* timestamp */
 	| TIMESTAMP onoff {
-            grace->project->timestamp.active = $2;
+            curobject = object_new_complete(DO_STRING);
+            if (curobject) {
+	        DOStringData *s = (DOStringData *) curobject->odata;
+                graph *g;
+                
+                curobject->active = $2;
+                s->s = copy_string(NULL, "\\${timestamp}");
+
+                g = graph_get(get_cg());
+                if (!g) {
+                    g = graph_next();
+                }
+                if (g) {
+                    storage_add(g->dobjects, curobject);
+                }
+            }
         }
 	| TIMESTAMP font_select {
-            grace->project->timestamp.font = $2;
+	    if (!curobject || curobject->type != DO_STRING) {
+                yyerror("The object is not a string");
+	    } else {
+	        DOStringData *s = (DOStringData *) curobject->odata;
+                s->font = $2;
+            }
         }
 	| TIMESTAMP CHAR SIZE expr {
-            grace->project->timestamp.charsize = $4;
+	    if (!curobject || curobject->type != DO_STRING) {
+                yyerror("The object is not a string");
+	    } else {
+	        DOStringData *s = (DOStringData *) curobject->odata;
+                s->size = $4;
+            }
         }
 	| TIMESTAMP ROT expr {
-            grace->project->timestamp.angle = $3;
+	    if (!curobject || curobject->type != DO_STRING) {
+                yyerror("The object is not a string");
+	    } else {
+                curobject->angle = $3;
+            }
         }
 	| TIMESTAMP color_select {
-            grace->project->timestamp.color = $2;
+	    if (!curobject || curobject->type != DO_STRING) {
+                yyerror("The object is not a string");
+	    } else {
+                curobject->fillpen.color = $2;
+            }
         }
 	| TIMESTAMP expr ',' expr {
-	    grace->project->timestamp.offset.x = $2;
-	    grace->project->timestamp.offset.y = $4;
+	    if (!curobject || curobject->type != DO_STRING) {
+                yyerror("The object is not a string");
+	    } else {
+                curobject->ap.x = $2;
+                curobject->ap.y = $4;
+            }
 	}
 	| TIMESTAMP DEF CHRSTR {
-	    set_plotstr_string(&grace->project->timestamp, $3);
 	    xfree($3);
 	}
 

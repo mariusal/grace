@@ -894,22 +894,6 @@ int save_project(char *fn)
     }
     xfile_end_element(xf, EStrDataFormats);
 
-    xfile_comment(xf, "Time stamp");
-    attributes_reset(attrs);
-    xmlio_set_active(attrs, grace->project->timestamp.active);
-    xmlio_set_offset(attrs, grace->project->timestamp.offset.x,
-        grace->project->timestamp.offset.y);
-    xmlio_set_angle(attrs, grace->project->timestamp.angle);
-    attributes_set_sval(attrs, AStrValue, grace->project->timestamp.s);
-    /* FIXME: justification */
-    xfile_begin_element(xf, EStrTimeStamp, attrs);
-    {
-        xmlio_write_face_spec(xf, attrs,
-            grace->project->timestamp.font, grace->project->timestamp.charsize,
-                grace->project->timestamp.color);
-    }
-    xfile_end_element(xf, EStrTimeStamp);
-    
     save_regions(xf);
     
     save_preferences(xf);

@@ -833,10 +833,6 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrDataFormats">
         </child>
-        <child name="#EStrTimeStamp">
-            $$->timestamp = *($?);
-            xfree($?);
-        </child>
         <child name="#EStrGraph">
             storage_add($$->graphs, $?);
         </child>
@@ -916,32 +912,6 @@ char *utf2iso(const char *s)
         <child name="#EStrDates">
         </child>
         <child name="#EStrWorld">
-        </child>
-    </element>
-    <element name="#EStrTimeStamp" type="plotstr">
-        <!-- Attributes -->
-        <attribute name="#AStrActive" type="bval">
-            $$->active = $?;
-        </attribute>
-        <attribute name="#AStrOffset" type="offset">
-            if ($?) {
-                $$->offset.x = $?->x;
-                $$->offset.y = $?->y;
-                xfree($?);
-            }
-        </attribute>
-        <attribute name="#AStrAngle" type="dval">
-            $$->angle = $?;
-        </attribute>
-        <attribute name="#AStrValue" type="sval">
-            set_plotstr_string($$, $?);
-            xfree($?);
-        </attribute>
-        <child name="#EStrFaceSpec">
-            $$->font     = $?->font;
-            $$->color    = $?->color;
-            $$->charsize = $?->size;
-            xfree($?);
         </child>
     </element>
     <element name="#EStrFaceSpec" type="facespec">

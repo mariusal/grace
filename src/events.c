@@ -151,7 +151,6 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
         case MOVE_OBJECT_2ND:
         case COPY_OBJECT2ND:
         case PLACE_LEGEND_2ND:
-        case PLACE_TIMESTAMP_2ND:
             slide_region(bb, x - anchor_x, y - anchor_y, 1);
             break;
         case MAKE_LINE_2ND:
@@ -215,8 +214,6 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                         create_graphapp_frame(cg);
                     } else if (find_item(g, vp, &bb, &id) == RETURN_SUCCESS) {
                         object_edit_popup(g, id);
-                    } else if (timestamp_clicked(vp, &bb) == TRUE) {
-                        create_plot_frame();
                     } else if (graph_clicked(cg, vp) == TRUE) {
                         define_symbols_popup((void *) -1);
                     }
@@ -470,20 +467,6 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 xdrawgraph();
                 set_action(PLACE_LEGEND_1ST);
                 break;
-            case PLACE_TIMESTAMP_1ST:
-                if (timestamp_clicked(vp, &bb) == TRUE) {
-                    anchor_point(x, y, vp);
-	            slide_region(bb, x - anchor_x, y - anchor_y, 0);
-                    set_action(PLACE_TIMESTAMP_2ND);
-                }
-                break;
-            case PLACE_TIMESTAMP_2ND:
-                shift.x = vp.x - anchor_vp.x;
-                shift.y = vp.y - anchor_vp.y;
-                move_timestamp(&grace->project->timestamp, shift);
-                xdrawgraph();
-                set_action(PLACE_TIMESTAMP_1ST);
-                break;
 	    case SEL_POINT:
 		if (get_graph_locator(cg, &locator) == RETURN_SUCCESS) {
 		    view2world(vp.x, vp.y, &locator.dsx, &locator.dsy);
@@ -615,7 +598,6 @@ void set_action(CanvasAction act)
         case MOVE_OBJECT_2ND:
         case COPY_OBJECT2ND:
         case PLACE_LEGEND_2ND:
-        case PLACE_TIMESTAMP_2ND:
             slide_region(bb, x - anchor_x, y - anchor_y, 0);
             break;
         case MAKE_LINE_2ND:
@@ -752,14 +734,6 @@ void set_action(CanvasAction act)
     case PLACE_LEGEND_2ND:
 	set_cursor(4);
 	set_left_footer("Move legend");
-	break;
-    case PLACE_TIMESTAMP_1ST:
-	set_cursor(1);
-	set_left_footer("Pick timestamp");
-	break;
-    case PLACE_TIMESTAMP_2ND:
-	set_cursor(4);
-	set_left_footer("Place timestamp");
 	break;
     case SEL_POINT:
 	set_cursor(0);
@@ -1017,17 +991,6 @@ int graph_clicked(int gno, VPoint vp)
 	} else {
             return FALSE;
         }
-    } else {
-        return FALSE;
-    }
-}
-
-int timestamp_clicked(VPoint vp, view *bb)
-{
-    plotstr timestamp = grace->project->timestamp;
-    if (timestamp.active && is_vpoint_inside(timestamp.bb, vp, MAXPICKDIST)) {
-        *bb = timestamp.bb;
-        return TRUE;
     } else {
         return FALSE;
     }
@@ -1357,12 +1320,6 @@ void place_legend_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
 {
     set_action(DO_NOTHING);
     set_action(PLACE_LEGEND_1ST);
-}
-
-void place_timestamp_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
-{
-    set_action(DO_NOTHING);
-    set_action(PLACE_TIMESTAMP_1ST);
 }
 
 void move_object_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )

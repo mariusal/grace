@@ -94,8 +94,6 @@ void drawgraph(void)
         plotone(i);
     }
     
-    draw_timestamp(&grace->project->timestamp);
-
     select_graph(saveg);
 
     leavegraphics();
@@ -2389,24 +2387,5 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
                 }
             }
         }
-    }
-}
-
-/* plot time stamp */
-void draw_timestamp(plotstr *timestamp)
-{
-    if (timestamp && timestamp->active) {
-        VPoint vp;
-        setfont(timestamp->font);
-        setcharsize(timestamp->charsize);
-        setcolor(timestamp->color);
-        vp = timestamp->offset;
-
-        activate_bbox(BBOX_TYPE_TEMP, TRUE);
-        reset_bbox(BBOX_TYPE_TEMP);
-
-        WriteString(vp, timestamp->angle, timestamp->just, timestamp->s);
-
-        timestamp->bb = get_bbox(BBOX_TYPE_TEMP);
     }
 }

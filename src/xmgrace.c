@@ -136,7 +136,6 @@ static XtActionsRec canvas_actions[] = {
 	{ "write_string", (XtActionProc) write_string_action },	
 	{ "delete_object", (XtActionProc) delete_object_action },	
 	{ "place_legend", (XtActionProc) place_legend_action },	
-	{ "place_timestamp", (XtActionProc) place_timestamp_action },	
 	{ "move_object", (XtActionProc) move_object_action },	
 	{ "refresh_hotlink", (XtActionProc) refresh_hotlink_action },
 	{ "set_viewport", (XtActionProc) set_viewport_action },	
@@ -162,7 +161,6 @@ static char canvas_table[] = "#override\n\
 	Ctrl <Key>d: delete_object()\n\
 	Ctrl <Key>l: place_legend()\n\
 	Ctrl <Key>m: move_object()\n\
-	Ctrl <Key>t: place_timestamp()\n\
 	Ctrl <Key>u: refresh_hotlink()\n\
 	Ctrl <Key>v: set_viewport()\n\
 	Ctrl <Key>z: enable_zoom()";

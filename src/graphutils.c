@@ -766,13 +766,6 @@ void move_legend(int gno, VVector shift)
     }
 }
 
-void move_timestamp(plotstr *timestamp, VVector shift)
-{
-    timestamp->offset.x += shift.x;
-    timestamp->offset.y += shift.y;
-    set_dirtystate();
-}
-
 void rescale_viewport(Project *pr, double ext_x, double ext_y)
 {
     graph *g;

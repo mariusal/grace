@@ -70,9 +70,7 @@ Project *project_new(void)
     
     pr->sformat = copy_string(NULL, "%.8g");
 
-    set_default_string(&pr->timestamp);
-    pr->timestamp.offset.x = 0.03;
-    pr->timestamp.offset.y = 0.03;
+    pr->timestamp = copy_string(NULL, "");
 
     /* FIXME: #defines */
     pr->page_wpp = 792;
@@ -99,8 +97,9 @@ void project_free(Project *pr)
     xfree(pr->sformat);
     xfree(pr->docname);
     
+    xfree(pr->timestamp);
+    
     /* FIXME regions */
-    /* FIXME timestamp */
     
     xfree(pr);
 }
@@ -147,7 +146,7 @@ void project_set_dirtystate(Project *pr)
 {
     if (pr->dirtystate_lock == FALSE) {
         pr->dirtystate++;
-        update_timestamp();
+        update_timestamp(NULL);
         update_app_title();
 
 /*

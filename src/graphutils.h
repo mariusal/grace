@@ -86,7 +86,6 @@ void autoscale_bysets(int gno, int *sets, int nsets, int autos_type);
 int autoscale_graph(int gno, int autos_type);
 
 void move_legend(int gno, VVector shift);
-void move_timestamp(plotstr *timestamp, VVector shift);
 
 void rescale_viewport(Project *pr, double ext_x, double ext_y);
 

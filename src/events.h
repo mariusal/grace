@@ -71,8 +71,6 @@ typedef enum {
     DEF_REGION1ST,
     DEF_REGION2ND,
     EDIT_OBJECT,
-    PLACE_TIMESTAMP_1ST,
-    PLACE_TIMESTAMP_2ND,
     COPY_OBJECT1ST,
     COPY_OBJECT2ND,
     AUTO_NEAREST,
@@ -118,7 +116,6 @@ int next_graph_containing(int cg, VPoint vp);
 int graph_clicked(int gno, VPoint vp);
 int focus_clicked(int cg, VPoint vp, VPoint *avp);
 int legend_clicked(int gno, VPoint vp, view *bb);
-int timestamp_clicked(VPoint vp, view *bb);
 int axis_clicked(int gno, VPoint vp, int *axisno);
 int title_clicked(int gno, VPoint vp);
 int find_insert_location(int gno, int setno, VPoint vp);
@@ -138,7 +135,6 @@ void write_string_action( Widget, XKeyEvent *, String *, Cardinal * );
 void delete_object_action( Widget, XKeyEvent *, String *, Cardinal * );
 void move_object_action( Widget, XKeyEvent *, String *, Cardinal * );
 void place_legend_action( Widget, XKeyEvent *, String *, Cardinal * );
-void place_timestamp_action( Widget, XKeyEvent *, String *, Cardinal * );
 void refresh_hotlink_action( Widget, XKeyEvent *, String *, Cardinal * );
 void exit_abruptly_action( Widget, XKeyEvent *, String *, Cardinal * );
 

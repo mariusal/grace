@@ -1180,9 +1180,25 @@ int load_project_file(char *fn, int as_template)
     }
 
     if (retval == RETURN_SUCCESS) {
+        char *tfn;
+        struct stat statb;
+        time_t mtime;
+        
         if (as_template == FALSE) {
             set_docname(fn);
         }
+        
+        /* Set timestamp */
+        tfn = grace_path(fn);
+        if (tfn && !stat(tfn, &statb)) {
+            mtime = statb.st_mtime;
+        } else {
+            /* Probably, piped */
+            time(&mtime);
+        }
+
+        update_timestamp(&mtime);
+        
         clear_dirtystate();
     }
 

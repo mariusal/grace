@@ -32,6 +32,18 @@
 /* for size_t */
 #include <sys/types.h>
 
+/* for time_t */
+#ifdef TIME_WITH_SYS_TIME
+#  include <sys/time.h>
+#  include <time.h>
+#else
+#  ifdef HAVE_SYS_TIME_H
+#    include <sys/time.h>
+#  else
+#    include <time.h>
+#  endif
+#endif
+
 #define  PAD(bits, pad)  (((bits)+(pad)-1)&-(pad))
 
 #define MIN2(a, b) (((a) < (b)) ? a : b)
@@ -116,7 +128,7 @@ char *get_username(void);
 
 char *get_userhome(void);
 
-void update_timestamp(void);
+void update_timestamp(time_t *t);
 char *get_timestamp(void);
 
 void update_app_title(void);
