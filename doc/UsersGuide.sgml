@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.2.0)</title>
 <author>by the Grace Team</author>
-<date>11.08.2000</date>
+<date>24.08.2000</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -131,7 +131,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
               <item> The PDF driver requires the PDFlib library of Thomas
                      Merz to be installed, which is available
                      <url name="here" url="http://www.pdflib.com/">, version
-                     3.00 or above.
+                     3.02 or above.
               <item> If your computer has the FFTW library installed when
                      Grace is compiled, Grace will link itself to this, and
                      drop all conventional FFT's and DFT's. All transforms
@@ -3253,7 +3253,6 @@ C
                <itemize>
                  <item> patterned fills are not implemented
                  <item> bitmapped text strings are not transparent
-                 <item> arcs of angles != 90*n are approximated very roughly
                </itemize>
         <item> MIF driver:
                the driver is a brand new one and still in beta test
