@@ -14,9 +14,9 @@
 #include <t1lib.h>
 
 #define MAJOR_REV 5
-#define MINOR_REV 0
-#define PATCHLEVEL 6
-#define BETA_VER "(991103)"
+#define MINOR_REV 1
+#define PATCHLEVEL 0
+#define BETA_VER "(991121)"
 
 #ifndef GRACE_HOME
 #  define GRACE_HOME "/usr/local/grace"
