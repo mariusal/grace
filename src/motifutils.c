@@ -404,6 +404,18 @@ typedef struct {
     void *anydata;
 } OC_CBdata;
 
+typedef struct {
+    SpinStructure *spin;
+    void (*cbproc)();
+    void *anydata;
+} Spin_CBdata;
+
+typedef struct {
+    Widget scale;
+    void (*cbproc)();
+    void *anydata;
+} Scale_CBdata;
+
 static void oc_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int value;
@@ -654,6 +666,36 @@ static void spin_arrow_cb(Widget w, XtPointer client_data, XtPointer call_data)
     }
     value += incr;
     SetSpinChoice(spinp, value);
+}
+
+static void sp_double_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
+    XmAnyCallbackStruct* xmcb = call_data;
+
+    if (w == cbdata->spin->arrow_up   ||
+        w == cbdata->spin->arrow_down ||
+        xmcb->reason == XmCR_ACTIVATE) {
+        cbdata->cbproc(GetSpinChoice(cbdata->spin), cbdata->anydata);
+    }
+}
+
+
+void AddSpinButtonCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
+{
+    Spin_CBdata *cbdata;
+    
+    cbdata = xmalloc(sizeof(OC_CBdata));
+    
+    cbdata->spin = spinp;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+    XtAddCallback(spinp->text,
+        XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
+    XtAddCallback(spinp->arrow_up,
+        XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
+    XtAddCallback(spinp->arrow_down,
+        XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
 }
 
 SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
@@ -2577,82 +2619,27 @@ SpinStructure *CreateLineWidthChoice(Widget parent, char *s)
 
 
 
-Widget *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,...)
+OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,...)
 {
+    OptionItem *oi;
     va_list var;
     int i = 0;
-    XmString str;
     char *s;
-    Widget *retval;
+    OptionStructure *retval;
 
     nchoices--;
 
-    retval = (Widget *) XtMalloc((nchoices + 2) * sizeof(Widget));
-
-    retval[1] = XmCreatePulldownMenu(parent, "pulldown", NULL, 0);
-    
+    oi = (OptionItem *)calloc( nchoices, sizeof(OptionItem) );
     va_start(var, nchoices);
     i = 0;
     while ((s = va_arg(var, char *)) != NULL) {
-	retval[i + 2] = XmCreatePushButton(retval[1], s, NULL, 0);
+        oi[i].value = i;
+        oi[i].label = strdup(s);
 	i++;
     }
-    if (i != nchoices) {
-	errmsg("Incorrect number of selections in CreatePanelChoice()");
-    }
-    va_end(var);
 
-    XtManageChildren(retval + 2, nchoices);
-
-    retval[0] = XmCreateOptionMenu(parent, "optionmenu", NULL, 0);
-    str = XmStringCreateLocalized(labelstr);
-    XtVaSetValues(retval[0],
-		  XmNlabelString, str,
-		  XmNsubMenuId, retval[1],
-		  NULL);
-    XmStringFree(str);
-    XtManageChild(retval[0]);
-
+    retval = CreateOptionChoice(parent, labelstr, 1, nchoices, oi);
     return retval;
-}
-
-
-void SetChoice(Widget * w, int value)
-{
-    Arg a;
-
-    if (w == (Widget *) NULL) {
-	return;
-    }
-    if (w[value + 2] == (Widget) NULL) {
-	errwin("Internal error, SetChoice: Attempt to set NULL Widget");
-	return;
-    }
-    XtSetArg(a, XmNmenuHistory, w[value + 2]);
-    XtSetValues(w[0], &a, 1);
-}
-
-int GetChoice(Widget * w)
-{
-    Arg a;
-    Widget warg;
-    int i;
-
-    if (w == NULL) {
-	errwin("Internal error, GetChoice called with NULL argument");
-	return 0;
-    }
-    XtSetArg(a, XmNmenuHistory, &warg);
-    XtGetValues(w[0], &a, 1);
-    i = 0;
-    while (w[i + 2] != warg) {
-	if (w[i + 2] == NULL) {
-	    errwin("Internal error, GetChoice: Found NULL in Widget list");
-	    return 0;
-	}
-	i++;
-    }
-    return i;
 }
 
 static OptionItem fmt_option_items[31] =
@@ -2718,18 +2705,14 @@ OptionStructure *CreateASChoice(Widget parent, char *s)
     return(retval);
 }
 
-Widget *CreatePrecisionChoice(Widget parent, char *s)
+OptionStructure *CreatePrecisionChoice(Widget parent, char *s)
 {
-    Widget *w;
-    
-    w = CreatePanelChoice(parent, s,
+    return CreatePanelChoice(parent, s,
                           11,
                           "0", "1", "2", "3", "4",
                           "5", "6", "7", "8", "9",
                           NULL,
                           0);
-
-    return(w);
 }
     
 
@@ -2758,6 +2741,27 @@ Widget CreateScale(Widget parent, char *s, int min, int max)
     
     return w;
 }
+
+void scale_int_cb_proc( Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Scale_CBdata *cbdata = (Scale_CBdata *) client_data;
+ 
+    cbdata->cbproc(GetScaleValue(cbdata->scale), cbdata->anydata);
+}
+
+void AddScaleCB(Widget w, Scale_CBProc cbproc, void *anydata)
+{
+    Scale_CBdata *cbdata;
+    
+    cbdata = xmalloc(sizeof(Scale_CBdata));
+    
+    cbdata->scale = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+    XtAddCallback(w,
+        XmNvalueChangedCallback, scale_int_cb_proc, (XtPointer) cbdata);
+}
+
 
 void SetScaleValue(Widget w, int value)
 {
@@ -3278,6 +3282,27 @@ Widget CreateScrollTextItem2(Widget parent, int hgt, char *s)
     
     XtManageChild(form);
     return w;
+}
+
+typedef struct {
+    void (*cbproc)();
+    void *anydata;
+} TI_CBdata;
+
+static void ti_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    TI_CBdata *cbdata = (TI_CBdata *) client_data;
+    cbdata->cbproc(cbdata->anydata);
+}
+
+void AddTextItemCB(Widget ti, TI_CBProc cbproc, void *data)
+{
+    TI_CBdata *cbdata;
+    
+    cbdata = xmalloc(sizeof(Button_CBdata));
+    cbdata->anydata = data;
+    cbdata->cbproc = cbproc;
+    XtAddCallback(ti, XmNactivateCallback, ti_int_cb_proc, (XtPointer) cbdata);
 }
 
 

@@ -218,9 +218,28 @@ typedef void (*List_CBProc)(
     void *               /* data the application registered */
 );
 
+/* Spin Button CB procedure */
+typedef void (*Spin_CBProc)(
+    double,             /* value of spinner                 */
+    void *              /* data the application registered */
+);
+
 /* Text input CB procedure */
 typedef void (*Text_CBProc)(
     void *               /* data the application registered */
+);
+
+/* TextItem CB procedure */
+typedef void (*TI_CBProc)(
+    void *               /* data the application registered */
+);
+
+
+/*
+ * Scale input CB procedure */
+typedef void (*Scale_CBProc )(
+    int,                /* scale value                     */
+    void *              /* data the application registered */
 );
 
 /* AAC Dialog CB procedure */
@@ -260,6 +279,7 @@ Widget CreateScale(Widget parent, char *s, int min, int max);
 void SetScaleValue(Widget w, int value);
 int GetScaleValue(Widget w);
 void SetScaleWidth(Widget w, int width);
+void AddScaleCB(Widget w, Scale_CBProc cbproc, void *);
 
 Widget CreateCharSizeChoice(Widget parent, char *s);
 double GetCharSizeChoice(Widget w);
@@ -312,6 +332,7 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
                         int type, double min, double max, double incr);
 double GetSpinChoice(SpinStructure *spinp);
 void SetSpinChoice(SpinStructure *spinp, double value);
+void AddSpinButtonCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
 
 TextStructure *CreateTextInput(Widget parent, char *s);
 TextStructure *CreateCSText(Widget parent, char *s);
@@ -380,18 +401,16 @@ void editE_set_proc(void *data);
 
 SpinStructure *CreateLineWidthChoice(Widget parent, char *s);
 
-Widget *CreatePanelChoice(Widget parent, char *labstr, int nchoices, ...);
-void SetChoice(Widget * w, int value);
-int GetChoice(Widget * w);
+OptionStructure *CreatePanelChoice(Widget parent, char *labstr, int nchoices, ...);
+OptionStructure *CreatePrecisionChoice(Widget parent, char *s);
 
 Widget CreateTextItem2(Widget parent, int len, char *s);
 Widget CreateTextItem4(Widget parent, int len, char *s);
 Widget CreateScrollTextItem2(Widget parent, int hgt, char *s);
+void AddTextItemCB(Widget ti, TI_CBProc cbproc, void *data);
 
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
 Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);
-
-Widget *CreatePrecisionChoice(Widget parent, char *s);
 
 TransformStructure *CreateTransformDialogForm(Widget parent,
     char *s, int sel_type);
