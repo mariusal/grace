@@ -1,4 +1,4 @@
-README for GRACE on VMS -- 17-Feb-1999
+README for GRACE on VMS --  8-Mar-1999
 
 Rolf Niepraschk (niepraschk@ptb.de)
 John Hasstedt (John.Hasstedt@sunysb.edu)
@@ -146,8 +146,9 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
 
 3. Installation
 
- To run, you need the files in [.doc] and [.fonts...]; and you probably
- want the files in [.examples].
+ To run, you need the files in [.doc] and [.fonts...], and
+ [.templates]default.agr.  You probably want the files in [.examples].
+ These directories should be subdirectories of the home directory.
 
  Define a symbol for the executable:
 
@@ -156,11 +157,11 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
  Define the following logicals if necessary:
 
   $ define GRACE_HOME "/disk/dir1/dir2/grace"
-  ! the path of the directory for [.doc] and [.fonts] in Unix format
-  ! see the description of the HOME= option above
+  ! The path to the directory containing [.doc], [.fonts], and [.templates]
+  ! in Unix format.  See the description of the HOME= option above.
 
   $ define GRACE_HELPVIEWER "www-browser %s"
-  ! see the description of the HELP= option above
+  ! See the description of the HELP= option above.
 
  X-resources:
 
@@ -178,5 +179,6 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
 
 5. Bugs
 
- Please send bug reports to the grace mailing list.
+ Send questions about building on VMS to John.Hasstedt@sunysb.edu.  Send
+ questions about use or bug reports to the grace mailing list.
 
