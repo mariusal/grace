@@ -69,34 +69,22 @@ char *display_name(void);
 void xunregister_rti(XtInputId);
 void xregister_rti(Input_buffer *ib);
 
-void yesnoCB(Widget w, Boolean * keep_grab, XmAnyCallbackStruct * reason);
 int yesnowin(char *msg1, char *msg2, char *s1, char *help_anchor);
 
-void create_workingdir_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data);
 void create_netcdfs_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_rparams_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_wparam_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void update_saveproject_popup(void);
 void create_saveproject_popup(void);
 void create_openproject_popup(void);
-void create_newproject_popup(void);
 void update_describe_popup (void);
 void do_hotupdate_proc(Widget w, XtPointer client_data, XtPointer call_data);
-
-void create_block_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
 void create_eblock_frame(int gno);
 
 void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data);
 
-void create_draw_frame(Widget w, XtPointer client_data, XtPointer call_data);
-
 void open_command(Widget w, XtPointer client_data, XtPointer call_data);
-void close_rhist_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void do_rhist_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void create_rhist_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_whist_frame(Widget w, XtPointer client_data, XtPointer call_data);
 
 void do_pick_compose(Widget w, XtPointer client_data, XtPointer call_data);
 void create_eval_frame(Widget w, XtPointer client_data, XtPointer call_data);
