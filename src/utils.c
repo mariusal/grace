@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
+ * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -385,27 +385,6 @@ int getndays(double j)
 }
 
 /*
- * strip special chars from a string
- */
-void stripspecial(char *s, char *cs)
-{
-    int i, slen = strlen(s), curcnt = 0;
-
-    for (i = 0; i < slen; i++) {
-	if (s[i] == '\\' && isdigit(s[i + 1])) {
-	    i++;
-	} else if (s[i] == '\\' && isoneof(s[i + 1], "cCbxsSNuU+-")) {
-	    i++;
-	} else if (s[i] == '\\' && s[i + 1] == '\\') {
-	    i++;
-	} else {
-	    cs[curcnt++] = s[i];
-	}
-    }
-    cs[curcnt] = 0;
-}
-
-/*
  * escape quotes
  */
 char *escapequotes (char *s)
@@ -449,6 +428,15 @@ int sign(double a)
         return -1;
     } else {
         return 0;
+    }
+}
+
+double mytrunc(double a)
+{
+    if (a > 0.0) {
+        return floor(a);
+    } else {
+        return ceil(a);
     }
 }
 

@@ -66,10 +66,10 @@ int leapyear(int year);
 void getmoday(int days, int yr, int *mo, int *da);
 int getndays(double j);
 char *create_fstring(int form, int prec, double loc, int type);
-void stripspecial(char *s, char *cs);
 char *escapequotes (char *s);
 
 int sign(double a);
+double mytrunc(double a);
 
 void bailout(void);
 
