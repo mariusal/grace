@@ -341,6 +341,21 @@ char *exe_path_translate(char *path)
 #endif
 
 #ifdef __VMS
+#  include <unixlib.h>
+char *path_translate(char *path)
+{
+    char *st;
+
+    st = decc$translate_vms(path);
+    if ((int) st == 0 || (int) st == -1) {
+        return NULL;
+    } else {
+        return st;
+    }
+}
+#endif
+
+#ifdef __VMS
 #  ifndef __CRTL_VER
 #    define __CRTL_VER __VMS_VER
 #  endif

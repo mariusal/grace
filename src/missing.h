@@ -122,4 +122,12 @@ char *exe_path_translate(char *path);
 #  define exe_path_translate(p) (p)
 #endif
 
+#ifdef __VMS
+char *exe_path_translate(char *path);
+#else
+#  define path_translate(p) (p)
+#endif
+
+
+
 #endif /* __MISSING_H_ */
