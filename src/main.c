@@ -758,6 +758,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-noinstall                            Don't use private colormap\n");
 #endif
     fprintf(stream, "-noprint                              In batch mode, do not print\n");
+    fprintf(stream, "-nosafe                               Disable safe mode\n");
     fprintf(stream, "-nosigcatch                           Don't catch signals\n");
     fprintf(stream, "-npipe     [file]                     Read data from named pipe on startup\n");
     fprintf(stream, "-nxy       [nxy_file]                 Assume data file is in X Y1 Y2 Y3 ...\n");
@@ -771,6 +772,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        to results_file\n");
     fprintf(stream, "-rvideo                               Exchange the color indices for black and\n");
     fprintf(stream, "                                        white\n");
+    fprintf(stream, "-safe                                 Safe mode (default)\n");
     fprintf(stream, "-saveall   [save_file]                Save all to save_file\n");
     fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator\n");
     fprintf(stream, "-source    [disk|pipe]                Source type of next data file\n");
