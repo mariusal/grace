@@ -79,12 +79,11 @@ motifutils$(O) : motifutils.c Tab.h motifinc.h defines.h globals.h \
  graphs.h draw.h patterns.h jbitmaps.h t1fonts.h plotone.h utils.h \
  events.h parser.h protos.h missing.h noxprotos.h xprotos.h
 compwin$(O) : compwin.c globals.h defines.h graphs.h draw.h plotone.h \
- utils.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
+ utils.h ssdata.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
 comwin$(O) : comwin.c globals.h defines.h graphs.h draw.h utils.h files.h \
  motifinc.h parser.h protos.h missing.h noxprotos.h xprotos.h
-eblockwin$(O) : eblockwin.c globals.h defines.h graphs.h draw.h plotone.h \
- utils.h files.h ssdata.h motifinc.h protos.h missing.h noxprotos.h \
- xprotos.h
+eblockwin$(O) : eblockwin.c graphs.h defines.h utils.h ssdata.h protos.h \
+ missing.h noxprotos.h xprotos.h motifinc.h
 editpwin$(O) : editpwin.c globals.h defines.h graphs.h draw.h utils.h \
  files.h plotone.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
 events$(O) : events.c globals.h defines.h graphs.h draw.h events.h \
@@ -96,7 +95,7 @@ fileswin$(O) : fileswin.c globals.h defines.h graphs.h draw.h \
  graphutils.h plotone.h utils.h files.h motifinc.h protos.h missing.h \
  noxprotos.h xprotos.h
 plotwin$(O) : plotwin.c globals.h defines.h graphs.h draw.h utils.h \
- plotone.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
+ plotone.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
 graphappwin$(O) : graphappwin.c Tab.h graphs.h defines.h graphutils.h \
  utils.h plotone.h draw.h motifinc.h protos.h missing.h noxprotos.h \
  xprotos.h
@@ -116,8 +115,8 @@ nonlwin$(O) : nonlwin.c globals.h defines.h graphs.h draw.h utils.h \
 printwin$(O) : printwin.c ../cmath.h globals.h defines.h graphs.h draw.h \
  device.h t1fonts.h utils.h graphutils.h plotone.h motifinc.h protos.h \
  missing.h noxprotos.h xprotos.h
-ptswin$(O) : ptswin.c globals.h defines.h graphs.h draw.h utils.h \
- events.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
+ptswin$(O) : ptswin.c utils.h draw.h defines.h graphs.h events.h protos.h \
+ missing.h noxprotos.h xprotos.h motifinc.h
 regionwin$(O) : regionwin.c globals.h defines.h graphs.h draw.h plotone.h \
  utils.h events.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
 setwin$(O) : setwin.c globals.h defines.h graphs.h draw.h utils.h \
