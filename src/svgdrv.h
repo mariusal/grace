@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -29,6 +28,8 @@
 #include "defines.h"
 
 int svginitgraphics(void);
+
+void svg_updatecmap(void);
 
 void svg_drawpixel(VPoint vp);
 void svg_drawpolyline(VPoint *vps, int n, int mode);
