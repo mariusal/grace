@@ -223,11 +223,11 @@ static void define_pattern(int i, int c, Svg_data *data)
            applying a colorfilter to change white to the background-color
            and black to the patterncolor. */
         if (c < number_of_colors() && data->colorfilter_defined[c] != TRUE) {
-            frgb = get_fsrgb(getbgcolor());
+            frgb = get_frgb(getbgcolor());
             bg_red=frgb->red;
             bg_green=frgb->green;
             bg_blue=frgb->blue;
-            frgb = get_fsrgb(c);
+            frgb = get_frgb(c);
             fprintf(prstream, "   <filter id=\"tocolor%d\" filterUnits=\"objectBoundingBox\"\n", c);
             fprintf(prstream, "    color-interpolation-filters=\"sRGB\" x=\"0%%\" y=\"0%%\" width=\"100%%\" height=\"100%%\">\n");
             fprintf(prstream, "    <feComponentTransfer>\n");
@@ -383,7 +383,7 @@ static void svg_group_props (int draw, int fill)
         }
 
         define_pattern(pen.pattern, pen.color, data);
-        prgb = get_srgb(pen.color);
+        prgb = get_rgb(pen.color);
         if (prgb != NULL) {
             red   = prgb->red   >> (GRACE_BPP - 8);
             green = prgb->green >> (GRACE_BPP - 8);
