@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -58,7 +58,11 @@ typedef struct _EditPoints {
     Widget mw;
     Widget label;
     OptionStructure *stype;
+    Widget length;
     TextStructure *comment;
+    Widget hotlink;
+    OptionStructure *hotsrc;
+    Widget hotfile;
 } EditPoints;
 
 static void update_cells(EditPoints *ep);
@@ -544,7 +548,13 @@ static void update_cells(EditPoints *ep)
     SetLabel(ep->label, buf);
 
     SetOptionChoice(ep->stype, set_get_type(ep->pset));
+    sprintf(buf, "%d", set_get_length(ep->pset));
+    xv_setstr(ep->length, buf);
     SetTextString(ep->comment, set_get_comment(ep->pset));
+
+    SetToggleButtonState(ep->hotlink, set_is_hotlinked(ep->pset));
+    SetOptionChoice(ep->hotsrc, set_get_hotlink_src(ep->pset));
+    xv_setstr(ep->hotfile, set_get_hotlink_file(ep->pset));
     
     /* get current size of widget and update rows/columns as needed */
     get_ep_dims(ep, &nr, &nc);
@@ -641,12 +651,27 @@ int ep_aac_proc(void *data)
     int stype;
     char *comment;
     int cur_row, cur_col;
+    int len;
+    int hotlink, hotsrc;
+    char *hotfile;
     
     stype = GetOptionChoice(ep->stype);
+    xv_evalexpri(ep->length, &len);
+    if (len < 0) {
+        errmsg("Negative set length!");
+        return RETURN_FAILURE;
+    }
     comment = GetTextString(ep->comment);
     
     set_set_type(ep->pset, stype);
+    set_set_length(ep->pset, len);
     set_set_comment(ep->pset, comment);
+
+    hotlink = GetToggleButtonState(ep->hotlink);
+    hotsrc  = GetOptionChoice(ep->hotsrc);
+    hotfile = xv_getstr(ep->hotfile);
+    set_set_hotlink(ep->pset, hotlink, hotfile, hotsrc);
+
     /* commit the last entered cell changes */
     XbaeMatrixGetCurrentCell(ep->mw, &cur_row, &cur_col);
     XbaeMatrixEditCell(ep->mw, cur_row, cur_col);
@@ -659,6 +684,34 @@ int ep_aac_proc(void *data)
     return RETURN_SUCCESS;
 }
 
+static int do_hotlinkfile_proc(FSBStructure *fsb, char *filename, void *data)
+{
+    EditPoints *ep = (EditPoints *) data;
+    
+    xv_setstr(ep->hotfile, filename);
+    
+    return TRUE;
+}
+
+/*
+ * create file selection pop up to choose the file for hotlink
+ */
+static void create_hotfiles_popup(Widget but, void *data)
+{
+    static FSBStructure *fsb = NULL;
+
+    set_wait_cursor();
+
+    if (fsb == NULL) {
+        fsb = CreateFileSelectionBox(app_shell, "Hotlinked file");
+	AddFileSelectionBoxCB(fsb, do_hotlinkfile_proc, data);
+        ManageChild(fsb->FSB);
+    }
+    
+    RaiseWindow(fsb->dialog);
+
+    unset_wait_cursor();
+}
 
 static EditPoints *new_ep(void)
 {
@@ -666,7 +719,7 @@ static EditPoints *new_ep(void)
     short widths[MIN_SS_COLS];
     char *rowlabels[MIN_SS_ROWS];
     EditPoints *ep;
-    Widget fr, rc, menubar, menupane;
+    Widget fr, rc, rc1, wbut, menubar, menupane;
     
     ep = xmalloc(sizeof(EditPoints));
     ep->next = ep_start;
@@ -706,8 +759,24 @@ static EditPoints *new_ep(void)
     fr = CreateFrame(ep->top, NULL);
     AddDialogFormChild(ep->top, fr);
     rc = CreateVContainer(fr);
-    ep->stype = CreateSetTypeChoice(rc, "Type:");
+    rc1 = CreateHContainer(rc);
+    ep->stype = CreateSetTypeChoice(rc1, "Type:");
+    ep->length = CreateTextItem2(rc1, 6, "Length:");
     ep->comment = CreateTextInput(rc, "Comment:");
+
+    fr = CreateFrame(ep->top, "Hotlink");
+    AddDialogFormChild(ep->top, fr);
+    rc = CreateVContainer(fr);
+    rc1 = CreateHContainer(rc);
+    ep->hotlink = CreateToggleButton(rc1, "Enabled");
+    ep->hotsrc  = CreateOptionChoiceVA(rc1, "Source type:",
+        "Disk", SOURCE_DISK,
+        "Pipe", SOURCE_PIPE,
+        NULL);
+    rc1 = CreateHContainer(rc);
+    ep->hotfile = CreateTextItem2(rc1, 20, "File name:");
+    wbut = CreateButton(rc1, "Browse...");
+    AddButtonCB(wbut, create_hotfiles_popup, ep);
 
     for (i = 0; i < MIN_SS_ROWS; i++) {
     	char buf[32];

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -51,8 +51,6 @@
 
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
 static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data);
-static int datasetprop_aac_cb(void *data);
-static void create_hotfiles_popup(Widget but, void *data);
 
 static int datasetop_aac_cb(void *data);
 static void datasetoptypeCB(OptionStructure *opt, int value, void *data);
@@ -62,12 +60,6 @@ static int leval_aac_cb(void *data);
 typedef struct _Type_ui {
     Widget top;
     GraphSetStructure *sel;
-    TextStructure *comment_item;
-    Widget length_item;
-    OptionStructure *datatype_item;
-    Widget hotlink_item;
-    OptionStructure *hotsrc_item;
-    Widget hotfile_item;
     Widget mw;
     char *rows[MAX_SET_COLS][6];
 } Type_ui;
@@ -79,17 +71,13 @@ void create_datasetprop_popup(Widget but, void *data)
     set_wait_cursor();
 
     if (tui.top == NULL) {
-        Widget menubar, menupane, dialog, rc, rc1, fr, wbut;
+        Widget menubar, menupane, dialog, fr;
         int i, j;
         char *rowlabels[MAX_SET_COLS];
         char *collabels[6] = {"Min", "at", "Max", "at", "Mean", "Stdev"};
         short column_widths[6] = {10, 6, 10, 6, 10, 10};
         unsigned char column_alignments[6];
         unsigned char column_label_alignments[6];
-        OptionItem optype_items[] = {
-            {SOURCE_DISK,  "File"},
-            {SOURCE_PIPE,  "Pipe"}
-        };
 
 	tui.top = CreateDialogForm(app_shell, "Data set properties");
 
@@ -100,7 +88,7 @@ void create_datasetprop_popup(Widget but, void *data)
 	dialog = CreateVContainer(tui.top);
 
 	tui.sel = CreateGraphSetSelector(dialog,
-            "Data sets:", LIST_TYPE_MULTIPLE);
+            "Data sets:", LIST_TYPE_SINGLE);
 	AddStorageChoiceCB(tui.sel->set_sel, changetypeCB, tui.sel);
 
 
@@ -108,52 +96,9 @@ void create_datasetprop_popup(Widget but, void *data)
         CreateMenuButton(menupane,
             "Close", 'C', destroy_dialog_cb, GetParent(tui.top));
 
-        menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
-#if 0
-        CreateMenuButton(menupane, "Duplicate", 'D',
-            duplicate_set_proc, (void *) tui.sel);
-        CreateMenuButton(menupane, "Kill data", 'a',
-            killd_set_proc, (void *) tui.sel);
-        CreateMenuSeparator(menupane);
-        submenupane = CreateMenu(menupane, "Edit data", 'E', FALSE);
-        CreateMenuButton(submenupane, "In spreadsheet", 's',
-            editS_set_proc, (void *) tui.sel);
-        CreateMenuButton(submenupane, "In text editor", 'e',
-            editE_set_proc, (void *) tui.sel);
-        submenupane = CreateMenu(menupane, "Create new", 'n', FALSE);
-        CreateMenuButton(submenupane, "By formula", 'f',
-            newF_set_proc, (void *) tui.sel);
-        CreateMenuButton(submenupane, "In spreadsheet", 's',
-            newS_set_proc, (void *) tui.sel);
-        CreateMenuButton(submenupane, "In text editor", 'e',
-            newE_set_proc, (void *) tui.sel);
-        CreateMenuButton(submenupane, "From block data", 'b',
-            newB_set_proc, (void *) tui.sel);
-        CreateMenuSeparator(menupane);
-        CreateMenuButton(menupane, "Set appearance...", 'S',
-            define_symbols_popup, (void *) -1);
-#endif 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On data sets", 's',
             tui.top, "doc/UsersGuide.html#data-sets");
-
-	fr = CreateFrame(dialog, NULL);
-	rc = CreateVContainer(fr);
-	rc1 = CreateHContainer(rc);
-	tui.datatype_item = CreateSetTypeChoice(rc1, "Type:");
-	tui.length_item = CreateTextItem2(rc1, 6, "Length:");
-	tui.comment_item = CreateTextInput(rc, "Comment:");
-
-	fr = CreateFrame(dialog, "Hotlink");
-	rc = CreateVContainer(fr);
-	rc1 = CreateHContainer(rc);
-        tui.hotlink_item = CreateToggleButton(rc1, "Enabled");
-        tui.hotsrc_item  = CreateOptionChoice(rc1,
-            "Source type: ", 1, 2, optype_items);
-	rc1 = CreateHContainer(rc);
-	tui.hotfile_item = CreateTextItem2(rc1, 20, "File name:");
-	wbut = CreateButton(rc1, "Browse...");
-	AddButtonCB(wbut, create_hotfiles_popup, &tui);
 
         for (i = 0; i < 6; i++) {
             column_alignments[i] = XmALIGNMENT_END;
@@ -192,7 +137,7 @@ void create_datasetprop_popup(Widget but, void *data)
 
         XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);	
 
-        CreateAACDialog(tui.top, dialog, datasetprop_aac_cb, tui.sel->set_sel);
+        CreateAACDialog(tui.top, dialog, NULL, NULL);
     }
     
     RaiseWindow(GetParent(tui.top));
@@ -218,13 +163,6 @@ static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data
     if (n == 1) {
 	pset = values[0];
         ncols = set_get_ncols(pset);
-        SetTextString(tui.comment_item, set_get_comment(pset));
-	sprintf(buf, "%d", set_get_length(pset));
-        xv_setstr(tui.length_item, buf);
-        SetOptionChoice(tui.datatype_item, set_get_type(pset));
-        SetToggleButtonState(tui.hotlink_item, set_is_hotlinked(pset));
-        SetOptionChoice(tui.hotsrc_item, set_get_hotlink_src(pset));
-        xv_setstr(tui.hotfile_item, set_get_hotlink_file(pset));
     } else {
 	pset = NULL;
         ncols = 0;
@@ -275,88 +213,6 @@ static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
     
     cbs->doit = False;
     cbs->map  = False;
-}
-
-/*
- * change dataset properties
- */
-static int datasetprop_aac_cb(void *data)
-{
-    int error = FALSE;
-    int nsets, i, len, type, hotlink, hotsrc;
-    char *s, *hotfile;
-    Quark *pset, **selset;
-    
-    nsets = GetStorageChoices(tui.sel->set_sel, &selset);
-    
-    if (nsets < 1) {
-        errmsg("No set selected");
-        return RETURN_FAILURE;
-    } else {
-        type = GetOptionChoice(tui.datatype_item);
-        xv_evalexpri(tui.length_item, &len);
-        if (len < 0) {
-            errmsg("Negative set length!");
-            error = TRUE;
-        }
-        
-        hotlink = GetToggleButtonState(tui.hotlink_item);
-        hotsrc  = GetOptionChoice(tui.hotsrc_item);
-        hotfile = xv_getstr(tui.hotfile_item);
- 
-        s = GetTextString(tui.comment_item);
-        
-        if (error == FALSE) {
-            for (i = 0; i < nsets; i++) {
-                pset = selset[i];
-                set_set_type(pset, type);
-                set_set_length(pset, len);
-                set_set_comment(pset, s);
-                set_set_hotlink(pset, hotlink, hotfile, hotsrc);
-            }
-        }
- 
-        xfree(s);
-        xfree(selset);
-
-        if (error == FALSE) {
-            Quark *gr = get_set_choice_gr((StorageStructure *) data);
-            update_set_lists(gr);
-            xdrawgraph(gr, FALSE);
-            return RETURN_SUCCESS;
-        } else {
-            return RETURN_FAILURE;
-        }
-    }
-}
-
-static int do_hotlinkfile_proc(FSBStructure *fsb, char *filename, void *data)
-{
-    Type_ui *ui = (Type_ui *) data;
-    
-    xv_setstr(ui->hotfile_item, filename);
-    
-    return TRUE;
-}
-
-/*
- * create file selection pop up to choose the file for hotlink
- */
-static void create_hotfiles_popup(Widget but, void *data)
-{
-    static FSBStructure *fsb = NULL;
-
-    set_wait_cursor();
-
-    if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Hotlinked file");
-	AddFileSelectionBoxCB(fsb, do_hotlinkfile_proc, data);
-        ManageChild(fsb->FSB);
-    }
-    
-    RaiseWindow(fsb->dialog);
-
-    unset_wait_cursor();
 }
 
 typedef enum {
