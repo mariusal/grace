@@ -1203,12 +1203,36 @@ vexpr:
 	    }
 	}
 	| vexpr '?' expr ':' expr {
+           int i;
+           $$ = calloc(lxy, SIZEOF_DOUBLE); 
+           freelist[fcnt++] = $$;
+           for (i = 0; i < lxy; i++) { 
+               if ((int) $1[i]) {
+                   $$[i] = $3;
+               } else {
+                   $$[i] = $5;
+               }
+           }
+	}
+	| vexpr '?' expr ':' vexpr {
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 	        if ((int) $1[i]) {
 		    $$[i] = $3;
+	        } else {
+		    $$[i] = $5[i];
+	        }
+	    }
+	}
+	| vexpr '?' vexpr ':' expr {
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+	        if ((int) $1[i]) {
+		    $$[i] = $3[i];
 	        } else {
 		    $$[i] = $5;
 	        }
@@ -1235,6 +1259,24 @@ vexpr:
 		$$[i] = $2[i] > $4[i];
 	    }
 	}
+	| '(' expr GT vexpr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2 > $4[i];
+	    }
+	}
+	| '(' vexpr GT expr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2[i] > $4;
+	    }
+	}
 	| '(' vexpr LT vexpr ')'
 	{
 	    int i;
@@ -1242,6 +1284,24 @@ vexpr:
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $2[i] < $4[i];
+	    }
+	}
+	| '(' expr LT vexpr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2 < $4[i];
+	    }
+	}
+	| '(' vexpr LT expr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2[i] < $4;
 	    }
 	}
 	| '(' vexpr LE vexpr ')'
@@ -1253,6 +1313,24 @@ vexpr:
 		$$[i] = $2[i] <= $4[i];
 	    }
 	}
+	| '(' expr LE vexpr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2 <= $4[i];
+	    }
+	}
+	| '(' vexpr LE expr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2[i] <= $4;
+	    }
+	}
 	| '(' vexpr GE vexpr ')'
 	{
 	    int i;
@@ -1260,6 +1338,24 @@ vexpr:
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $2[i] >= $4[i];
+	    }
+	}
+	| '(' expr GE vexpr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2 >= $4[i];
+	    }
+	}
+	| '(' vexpr GE expr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2[i] >= $4;
 	    }
 	}
 	| '(' vexpr EQ vexpr ')'
@@ -1271,6 +1367,24 @@ vexpr:
 		$$[i] = $2[i] == $4[i];
 	    }
 	}
+	| '(' expr EQ vexpr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2 == $4[i];
+	    }
+	}
+	| '(' vexpr EQ expr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2[i] == $4;
+	    }
+	}
 	| '(' vexpr NE vexpr ')'
 	{
 	    int i;
@@ -1278,6 +1392,24 @@ vexpr:
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $2[i] != $4[i];
+	    }
+	}
+	| '(' expr NE vexpr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2 != $4[i];
+	    }
+	}
+	| '(' vexpr NE expr ')'
+	{
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+		$$[i] = $2[i] != $4;
 	    }
 	}
 	| vexpr AND vexpr
