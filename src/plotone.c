@@ -277,6 +277,7 @@ void draw_pie_chart(int gno)
             
             switch (dataset_type(gno, setno)) {
             case SET_XY:
+            case SET_XYCOLOR:
             case SET_XYCOLPAT:
                 get_graph_plotarr(gno, setno, &p);
                 /* data */
@@ -405,7 +406,8 @@ void draw_polar_graph(int gno)
             get_graph_plotarr(gno, i, &p);
             switch (dataset_type(gno, i)) {
             case SET_XY:
-            case SET_XYSYMSIZE:
+            case SET_XYSIZE:
+            case SET_XYCOLOR:
                 drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                 drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                 drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -439,7 +441,8 @@ void xyplot(int gno)
                 get_graph_plotarr(gno, i, &p);
                 switch (dataset_type(gno, i)) {
                 case SET_XY:
-                case SET_XYSYMSIZE:
+                case SET_XYSIZE:
+                case SET_XYCOLOR:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -516,7 +519,8 @@ void xyplot(int gno)
                 }
                 switch (dataset_type(gno, i)) {
                 case SET_XY:
-                case SET_XYSYMSIZE:
+                case SET_XYSIZE:
+                case SET_XYCOLOR:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
                         drawsetsyms(gno, i, &p, refn, refx, refy, offset);
@@ -574,7 +578,8 @@ void xyplot(int gno)
                 if (is_set_drawable(gno, i)) {
                     switch (dataset_type(gno, i)) {
                     case SET_XY:
-                    case SET_XYSYMSIZE:
+                    case SET_XYSIZE:
+                    case SET_XYCOLOR:
                         drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                         break;
@@ -611,7 +616,8 @@ void xyplot(int gno)
                 get_graph_plotarr(gno, i, &p);
                 switch (dataset_type(gno, i)) {
                 case SET_XY:
-                case SET_XYSYMSIZE:
+                case SET_XYSIZE:
+                case SET_XYCOLOR:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -1234,7 +1240,7 @@ void drawsetsyms(int gno, int setno, plotarr *p,
     double symsize;
     VPoint vp;
     WPoint wp;
-    double *x, *y, *z;
+    double *x, *y, *z, *c;
     int skip = p->symskip;
     int stacked_chart;
     double znorm = get_graph_znorm(gno);
@@ -1254,13 +1260,19 @@ void drawsetsyms(int gno, int setno, plotarr *p,
         stacked_chart = FALSE;
     }
     
-    if (p->type == SET_XYSYMSIZE) {
+    if (p->type == SET_XYSIZE) {
         if (znorm == 0.0) {
             return;
         }
         z = p->data.ex[2];
     } else {
         z = NULL;
+    }
+    
+    if (p->type == SET_XYCOLOR) {
+        c = p->data.ex[2];
+    } else {
+        c = NULL;
     }
     
     skip++;
@@ -1270,6 +1282,8 @@ void drawsetsyms(int gno, int setno, plotarr *p,
     if ((p->sympen.pattern != 0 && p->symlines != 0) ||
                         (p->symfillpen.pattern != 0)) {
               
+        Pen fillpen;
+        
         setlinewidth(p->symlinew);
         setlinestyle(p->symlines);
         setfont(p->charfont);
@@ -1292,7 +1306,13 @@ void drawsetsyms(int gno, int setno, plotarr *p,
             } else {
                 symsize = p->symsize;
             }
-            if (drawxysym(vp, symsize, sy, p->sympen, p->symfillpen, p->symchar)
+            if (c) {
+                fillpen.color = c[i];
+            } else {
+                fillpen.color = p->symfillpen.color;
+            }
+            fillpen.pattern = p->symfillpen.pattern;
+            if (drawxysym(vp, symsize, sy, p->sympen, fillpen, p->symchar)
                 != RETURN_SUCCESS) {
                 return;
             }

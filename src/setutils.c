@@ -95,6 +95,9 @@ char *set_types(int it)
     case SET_XYR:
 	s = "xyr";
 	break;
+    case SET_XYCOLOR:
+	s = "xycolor";
+	break;
     case SET_XYCOLPAT:
 	s = "xycolpat";
 	break;
@@ -104,8 +107,8 @@ char *set_types(int it)
     case SET_BOXPLOT:
 	s = "xyboxplot";
 	break;
-    case SET_XYSYMSIZE:
-	s = "xysymsize";
+    case SET_XYSIZE:
+	s = "xysize";
 	break;
     }
     return s;
@@ -137,7 +140,8 @@ int settype_cols(int type)
     case SET_XYZ:
     case SET_BARDY:
     case SET_XYR:
-    case SET_XYSYMSIZE:
+    case SET_XYCOLOR:
+    case SET_XYSIZE:
 	ncols = 3;
 	break;
     case SET_XYDXDX:

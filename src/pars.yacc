@@ -488,6 +488,7 @@ symtab_entry *key;
 %token <ival> XMIN
 %token <ival> XY
 %token <ival> XYBOXPLOT
+%token <ival> XYCOLOR
 %token <ival> XYCOLPAT
 %token <ival> XYDX
 %token <ival> XYDXDX
@@ -497,8 +498,8 @@ symtab_entry *key;
 %token <ival> XYDYDY
 %token <ival> XYHILO
 %token <ival> XYR
+%token <ival> XYSIZE
 %token <ival> XYSTRING
-%token <ival> XYSYMSIZE
 %token <ival> XYVMAP
 %token <ival> XYZ
 %token <ival> Y_TOK
@@ -3691,7 +3692,8 @@ xytype:
 	| XYDXDXDYDY { $$ = SET_XYDXDXDYDY; }
 	| XYHILO { $$ = SET_XYHILO; }
 	| XYR { $$ = SET_XYR; }
-	| XYSYMSIZE { $$ = SET_XYSYMSIZE; }
+	| XYSIZE { $$ = SET_XYSIZE; }
+	| XYCOLOR { $$ = SET_XYCOLOR; }
 	| XYCOLPAT { $$ = SET_XYCOLPAT; }
 	| XYVMAP { $$ = SET_XYVMAP; }
 	| XYBOXPLOT { $$ = SET_BOXPLOT; }
@@ -4702,6 +4704,7 @@ symtab_entry ikey[] = {
 	{"XMIN", XMIN, NULL},
 	{"XY", XY, NULL},
 	{"XYBOXPLOT", XYBOXPLOT, NULL},
+	{"XYCOLOR", XYCOLOR, NULL},
 	{"XYCOLPAT", XYCOLPAT, NULL},
 	{"XYDX", XYDX, NULL},
 	{"XYDXDX", XYDXDX, NULL},
@@ -4711,8 +4714,8 @@ symtab_entry ikey[] = {
 	{"XYDYDY", XYDYDY, NULL},
 	{"XYHILO", XYHILO, NULL},
 	{"XYR", XYR, NULL},
+	{"XYSIZE", XYSIZE, NULL},
 	{"XYSTRING", XYSTRING, NULL},
-	{"XYSYMSIZE", XYSYMSIZE, NULL},
 	{"XYVMAP", XYVMAP, NULL},
 	{"XYZ", XYZ, NULL},
 	{"Y", Y_TOK, NULL},
