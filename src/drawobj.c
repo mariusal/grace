@@ -67,6 +67,12 @@ void draw_object(Canvas *canvas, Quark *q)
     anchor.x += o->offset.x;
     anchor.y += o->offset.y;
     
+    if (loctype == COORD_VIEW) {
+        setclipping(canvas, FALSE);
+    } else {
+        setclipping(canvas, TRUE);
+    }
+    
     activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
     reset_bbox(canvas, BBOX_TYPE_TEMP);
 
