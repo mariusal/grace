@@ -787,20 +787,20 @@ typedef struct {
 
 static int hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    graph *g;
+    frame *f;
     DObject *o;
     ext_xy_t *ext_xy = (ext_xy_t *) udata;
     
     switch (q->fid) {
-    case QFlavorGraph:
-        g = graph_get_data(q);
-        // g->v.xv1 *= ext_xy->x;
-        // g->v.xv2 *= ext_xy->x;
-        // g->v.yv1 *= ext_xy->y;
-        // g->v.yv2 *= ext_xy->y;
+    case QFlavorFrame:
+        f = frame_get_data(q);
+        f->v.xv1 *= ext_xy->x;
+        f->v.xv2 *= ext_xy->x;
+        f->v.yv1 *= ext_xy->y;
+        f->v.yv2 *= ext_xy->y;
         
-        // g->l.offset.x *= ext_xy->x;
-        // g->l.offset.y *= ext_xy->y;
+        f->l.offset.x *= ext_xy->x;
+        f->l.offset.y *= ext_xy->y;
         
         /* TODO: tickmark offsets */
         quark_dirtystate_set(q, TRUE);
@@ -812,8 +812,9 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
             o->ap.y     *= ext_xy->y;
             o->offset.x *= ext_xy->x;
             o->offset.y *= ext_xy->y;
+            
+            quark_dirtystate_set(q, TRUE);
         }
-        quark_dirtystate_set(q, TRUE);
         break;
     }
     
