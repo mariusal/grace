@@ -884,11 +884,9 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "Usage of %s command line arguments: \n", progname);
 
     fprintf(stream, "-arrange   [rows] [cols]              Arrange the graphs in a grid rows by cols\n");
-    fprintf(stream, "-autoscale [x|y|xy]                   Override any parameter file settings\n");
+    fprintf(stream, "-autoscale [x|y|xy|none]              Set autoscale type\n");
     fprintf(stream, "-batch     [batch_file]               Execute batch_file on start up\n");
     fprintf(stream, "-block     [block_data]               Assume data file is block data\n");
-    fprintf(stream, "-boxplot   [boxplot_file]             Assume data is in X MEDIAN Y1 Y2 Y3 Y4\n");
-    fprintf(stream, "                                        format\n");
     fprintf(stream, "-bxy       [x:y:etc.]                 Form a set from the current block data set\n");
     fprintf(stream, "                                        using the current set type from columns\n");
     fprintf(stream, "                                        given in the argument\n");
@@ -913,7 +911,8 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        format\n");
     fprintf(stream, "-install                              Install private colormap\n");
     fprintf(stream, "-legend    [load]                     Turn the graph legend on\n");
-    fprintf(stream, "-log       [x|y|xy]                   Set the graph type to logarithmic\n");
+    fprintf(stream, "-log       [x|y|xy]                   Set the axis scaling of the current graph\n");
+    fprintf(stream, "                                        to logarithmic\n");
     fprintf(stream, "-logwindow                            Open the log window\n");
     fprintf(stream, "-maxblock  [number_of_columns]        Set the number of columns for block data\n");
     fprintf(stream, "                                        (default is %d)\n", MAXPLOT);
@@ -934,7 +933,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-noask                                Assume the answer is yes to all requests -\n");
     fprintf(stream, "                                        if the operation would overwrite a file,\n");
     fprintf(stream, "                                        grace will do so without prompting\n");
-    fprintf(stream, "-noauto    [x|y|xy]                   Supress autoscaling for the specified axis\n");
     fprintf(stream, "-nodc                                 Ignore double clicks on the canvas\n");
     fprintf(stream, "-noinstall                            Don't use private colormap\n");
     fprintf(stream, "-nologwindow                          No log window, overrides resource setting\n");
@@ -961,14 +959,14 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        white\n");
     fprintf(stream, "-saveall   [save_file]                Save all graphs to save_file\n");
     fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator\n");
-    fprintf(stream, "-source    [disk|pipe]                Source of next data file\n");
+    fprintf(stream, "-source    [disk|pipe]                Source type of next data file\n");
     fprintf(stream, "-timer     [delay]                    Set timer for named pipes to delay ms \n");
     fprintf(stream, "-timestamp                            Add timestamp to plot\n");
     fprintf(stream, "-settype   [xy|xydx|...]              Set the type of the next data file\n");
     fprintf(stream, "-version                              Show the program version\n");
     fprintf(stream, "-viewport  [xmin ymin xmax ymax]      Set the viewport for the current graph\n");
     fprintf(stream, "-wd        [directory]                Set the working directory\n");
-    fprintf(stream, "-world     [xmin ymin xmax ymax]      Set the user coordinate system for the\n");
+    fprintf(stream, "-world     [xmin ymin xmax ymax]      Set the world coordinates for the\n");
     fprintf(stream, "                                        current graph\n");
 
     fprintf(stream, "-usage|-help                          This message\n");
