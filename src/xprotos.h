@@ -89,7 +89,6 @@ void create_seasonal_frame(void *data);
 void create_interp_frame(void *data);
 void create_int_frame(void *data);
 void create_xcor_frame(void *data);
-void create_spline_frame(void *data);
 void create_samp_frame(void *data);
 void create_prune_frame(void *data);
 void create_digf_frame(void *data);
