@@ -805,17 +805,7 @@ void set_docname(Quark *q, const char *s)
 
 char *get_docbname(const Quark *q)
 {
-    Project *pr = (Project *) grace->project->data;
-    static char buf[GR_MAXPATHLEN];
-    char *bufp;
-    
-    strcpy(buf, mybasename(pr->docname)); 
-    bufp = strrchr(buf, '.');
-    if (bufp) {
-        *(bufp) = '\0';
-    }
-    
-    return buf;
+    return QIDSTR(q);
 }
 
 

@@ -1102,6 +1102,8 @@ int load_project_file(char *fn, int as_template)
         char *tfn;
         struct stat statb;
         time_t mtime;
+        static char buf[GR_MAXPATHLEN];
+        char *bufp;
         
         if (as_template == FALSE) {
             set_docname(grace->project, fn);
@@ -1117,6 +1119,14 @@ int load_project_file(char *fn, int as_template)
         }
 
         update_timestamp(&mtime);
+
+        strcpy(buf, mybasename(fn)); 
+        bufp = strrchr(buf, '.');
+        if (bufp) {
+            *(bufp) = '\0';
+        }
+        
+        quark_idstr_set(grace->project, buf);
         
         clear_dirtystate();
     }
