@@ -132,13 +132,13 @@ void putparms(int gno, FILE *pp, int embed)
         p1 = tmpbuf;
         while ((p2 = strchr (p1, '\n')) != NULL) {
             *p2 = 0;
-            fprintf (pp, "%sdescription \"%s\"\n", embedstr, escapequotes(p1));
+            fprintf (pp, "%sdescription \"%s\"\n", embedstr, PSTRING(p1));
             *p2 = '\n';
             p1 = p2;
             p1++;
         }
         if (*p1) {
-            fprintf (pp, "%sdescription \"%s\"\n", embedstr, escapequotes(p1));
+            fprintf (pp, "%sdescription \"%s\"\n", embedstr, PSTRING(p1));
         }
         free(tmpbuf);
     }
@@ -160,11 +160,8 @@ void putparms(int gno, FILE *pp, int embed)
         cmap = get_cmap_entry(i);
         if (cmap != NULL && cmap->ctype == COLOR_MAIN) {
             fprintf(pp, "%smap color %d to (%d, %d, %d), \"%s\"\n", embedstr,
-                                                    i,
-                                                    cmap->rgb.red,
-                                                    cmap->rgb.green,
-                                                    cmap->rgb.blue,
-                                                    cmap->cname);
+                i, cmap->rgb.red, cmap->rgb.green, cmap->rgb.blue,
+                PSTRING(cmap->cname));
         }
     }
     
@@ -180,7 +177,7 @@ void putparms(int gno, FILE *pp, int embed)
     fprintf(pp, "%sdefault font %d\n", embedstr, get_font_mapped_id(grdefaults.font));
     fprintf(pp, "%sdefault char size %f\n", embedstr, grdefaults.charsize);
     fprintf(pp, "%sdefault symbol size %f\n", embedstr, grdefaults.symsize);
-    fprintf(pp, "%sdefault sformat \"%s\"\n", embedstr, sformat);
+    fprintf(pp, "%sdefault sformat \"%s\"\n", embedstr, PSTRING(sformat));
     
     fprintf(pp, "%sbackground color %d\n", embedstr, getbgcolor());
     fprintf(pp, "%spage background fill %s\n", embedstr, on_or_off(getbgfill()));
@@ -191,7 +188,7 @@ void putparms(int gno, FILE *pp, int embed)
     fprintf(pp, "%stimestamp rot %d\n", embedstr, timestamp.rot);
     fprintf(pp, "%stimestamp font %d\n", embedstr, get_font_mapped_id(timestamp.font));
     fprintf(pp, "%stimestamp char size %f\n", embedstr, timestamp.charsize);
-    fprintf(pp, "%stimestamp def \"%s\"\n", embedstr, escapequotes(timestamp.s));
+    fprintf(pp, "%stimestamp def \"%s\"\n", embedstr, PSTRING(timestamp.s));
 
 
     put_objects(gno, pp, embed);
@@ -263,11 +260,11 @@ void putparms(int gno, FILE *pp, int embed)
             fprintf(pp, "%s    view ymax %f\n", embedstr, v.yv2);
 
             get_graph_labels(gno, &lab);
-            fprintf(pp, "%s    title \"%s\"\n", embedstr, escapequotes(lab.title.s));
+            fprintf(pp, "%s    title \"%s\"\n", embedstr, PSTRING(lab.title.s));
             fprintf(pp, "%s    title font %d\n", embedstr, get_font_mapped_id(lab.title.font));
             fprintf(pp, "%s    title size %f\n", embedstr, lab.title.charsize);
             fprintf(pp, "%s    title color %d\n", embedstr, lab.title.color);
-            fprintf(pp, "%s    subtitle \"%s\"\n", embedstr, escapequotes(lab.stitle.s));
+            fprintf(pp, "%s    subtitle \"%s\"\n", embedstr, PSTRING(lab.stitle.s));
             fprintf(pp, "%s    subtitle font %d\n", embedstr, get_font_mapped_id(lab.stitle.font));
             fprintf(pp, "%s    subtitle size %f\n", embedstr, lab.stitle.charsize);
             fprintf(pp, "%s    subtitle color %d\n", embedstr, lab.stitle.color);
@@ -309,7 +306,7 @@ void putparms(int gno, FILE *pp, int embed)
                 fprintf(pp, "%s bar linewidth %.1f\n", buf, t.t_drawbarlinew);
 
 
-                fprintf(pp, "%s label \"%s\"\n", buf, t.label.s);
+                fprintf(pp, "%s label \"%s\"\n", buf, PSTRING(t.label.s));
                 if (t.label_layout == LAYOUT_PERPENDICULAR) {
                     fprintf(pp, "%s label layout perp\n", buf);
                 } else {
@@ -367,8 +364,8 @@ void putparms(int gno, FILE *pp, int embed)
                 fprintf(pp, "%s ticklabel %s\n", buf, on_or_off(t.tl_flag));
                 fprintf(pp, "%s ticklabel prec %d\n", buf, t.tl_prec);
                 fprintf(pp, "%s ticklabel format %s\n", buf, get_format_types(t.tl_format));
-                fprintf(pp, "%s ticklabel append \"%s\"\n", buf, t.tl_appstr);
-                fprintf(pp, "%s ticklabel prepend \"%s\"\n", buf, t.tl_prestr);
+                fprintf(pp, "%s ticklabel append \"%s\"\n", buf, PSTRING(t.tl_appstr));
+                fprintf(pp, "%s ticklabel prepend \"%s\"\n", buf, PSTRING(t.tl_prestr));
                 fprintf(pp, "%s ticklabel angle %d\n", buf, t.tl_angle);
                 fprintf(pp, "%s ticklabel skip %d\n", buf, t.tl_skip);
                 fprintf(pp, "%s ticklabel stagger %d\n", buf, t.tl_staggered);
@@ -438,8 +435,8 @@ void putparms(int gno, FILE *pp, int embed)
                                     buf, j, tmpstr1);
                             }
                             if (t.tl_type == TYPE_SPEC) {
-                                fprintf(pp, "%s ticklabel %d, \"%s\"\n", buf, j,
-                                                            t.tloc[j].label);
+                                fprintf(pp, "%s ticklabel %d, \"%s\"\n",
+                                    buf, j, PSTRING(t.tloc[j].label));
                             }
                         } else {
                             if (t.t_type == TYPE_SPEC) {
@@ -524,8 +521,8 @@ void putparms(int gno, FILE *pp, int embed)
                     fprintf(pp, "%s    s%1d avalue rot %d\n", embedstr, i, p.avalue.angle);
                     fprintf(pp, "%s    s%1d avalue format %s\n", embedstr, i, get_format_types(p.avalue.format));
                     fprintf(pp, "%s    s%1d avalue prec %d\n", embedstr, i, p.avalue.prec);
-                    fprintf(pp, "%s    s%1d avalue prepend \"%s\"\n", embedstr, i, escapequotes(p.avalue.prestr));
-                    fprintf(pp, "%s    s%1d avalue append \"%s\"\n", embedstr, i, escapequotes(p.avalue.appstr));
+                    fprintf(pp, "%s    s%1d avalue prepend \"%s\"\n", embedstr, i, PSTRING(p.avalue.prestr));
+                    fprintf(pp, "%s    s%1d avalue append \"%s\"\n", embedstr, i, PSTRING(p.avalue.appstr));
                     fprintf(pp, "%s    s%1d avalue offset %f , %f\n", embedstr, i, p.avalue.offset.x, p.avalue.offset.y);
 
                     fprintf(pp, "%s    s%1d errorbar %s\n", embedstr, i, on_or_off(p.errbar.active));
@@ -555,9 +552,9 @@ void putparms(int gno, FILE *pp, int embed)
                                 p.hotsrc == SOURCE_DISK ? "disk" : "pipe", p.hotfile);
                     }
                     
-                    fprintf(pp, "%s    s%1d comment \"%s\"\n", embedstr, i, escapequotes(p.comments));
+                    fprintf(pp, "%s    s%1d comment \"%s\"\n", embedstr, i, PSTRING(p.comments));
                 
-                    fprintf(pp, "%s    s%1d legend  \"%s\"\n", embedstr, i, escapequotes(p.lstr));
+                    fprintf(pp, "%s    s%1d legend  \"%s\"\n", embedstr, i, PSTRING(p.lstr));
                 }
             }
         }
@@ -651,7 +648,7 @@ static void put_objects(int gno, FILE * pp, int embed)
             fprintf(pp, "%s    string font %d\n", embedstr, get_font_mapped_id(s.font));
             fprintf(pp, "%s    string just %d\n", embedstr, s.just);
             fprintf(pp, "%s    string char size %f\n", embedstr, s.charsize);
-            fprintf(pp, "%s    string def \"%s\"\n", embedstr, escapequotes(s.s));
+            fprintf(pp, "%s    string def \"%s\"\n", embedstr, PSTRING(s.s));
         }
     }
 }
@@ -736,8 +733,8 @@ void put_fitparms(FILE * pp, int embed)
     fprintf(pp, "# Grace fit description file\n");
     fprintf(pp, "#\n");
 
-    fprintf(pp, "%sfit title \"%s\"\n", embedstr, nonl_opts.title);
-    fprintf(pp, "%sfit formula \"%s\"\n", embedstr, nonl_opts.formula);
+    fprintf(pp, "%sfit title \"%s\"\n", embedstr, PSTRING(nonl_opts.title));
+    fprintf(pp, "%sfit formula \"%s\"\n", embedstr, PSTRING(nonl_opts.formula));
     fprintf(pp, "%sfit with %1d parameters\n", embedstr, nonl_opts.parnum);
     fprintf(pp, "%sfit prec %g\n", embedstr, nonl_opts.tolerance);
     
