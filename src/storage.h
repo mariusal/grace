@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001 Grace Development Team
+ * Copyright (c) 2001,2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -90,6 +90,7 @@ int storage_scroll_to_id(Storage *sto, int id);
 int storage_scroll_to_data(Storage *sto, const void *data);
 
 int storage_id_exists(Storage *sto, int id);
+int storage_data_exists(Storage *sto, const void *data);
 
 int storage_add(Storage *sto, void *data);
 int storage_delete(Storage *sto);

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001 Grace Development Team
+ * Copyright (c) 2001,2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -239,6 +239,15 @@ static LLNode *storage_get_node_by_data(Storage *sto, const void *data)
 
     sto->ierrno = STORAGE_ENOENT;
     return NULL;
+}
+
+int storage_data_exists(Storage *sto, const void *data)
+{
+    if (storage_get_node_by_data(sto, data) != NULL) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
 }
 
 int storage_scroll_to_id(Storage *sto, int id)
