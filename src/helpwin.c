@@ -136,11 +136,21 @@ void ContextHelpCB(void *data)
 {
     Widget whelp;
     Cursor cursor;
+    int ok = FALSE;
     
     cursor = XCreateFontCursor(disp, XC_question_arrow);
     whelp = XmTrackingLocate(app_shell, cursor, False);
-    if (whelp != NULL) {
-        errmsg("Not implemented yet");
+    while (whelp != NULL) {
+        if (XtHasCallbacks(whelp, XmNhelpCallback) == XtCallbackHasSome) {
+            XtCallCallbacks(whelp, XmNhelpCallback, NULL);
+            ok = TRUE;
+            break;
+        } else {
+            whelp = GetParent(whelp);
+        }
+    }
+    if (!ok) {
+        HelpCB(NO_HELP);
     }
     XFreeCursor(disp, cursor);
 }
