@@ -1025,21 +1025,23 @@ int is_set_active(int gno, int setno)
 }
 
 /*
- * return TRUE if there are active set(s) in the gno graph
+ * return number of active set(s) in gno
  */
-int activeset(int gno)
+int number_of_active_sets(int gno)
 {
-    int i;
+    int setno, na;
 
     if (is_valid_gno(gno) != TRUE) {
-        return FALSE;
+        return -1;
     }
-    for (i = 0; i < number_of_sets(gno); i++) {
-	if (is_set_active(gno, i) == TRUE) {
-	    return TRUE;
+    
+    na = 0;
+    for (setno = 0; setno < number_of_sets(gno); setno++) {
+	if (is_set_active(gno, setno) == TRUE) {
+	    na++;
 	}
     }
-    return FALSE;
+    return na;
 }
 
 /*

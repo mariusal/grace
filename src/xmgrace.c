@@ -369,12 +369,11 @@ static void autoscale_proc(void *data)
 {
     int cg = get_cg();
     
-    if (activeset(cg)) {
-	autoscale_graph(cg, (int) data);
+    if (autoscale_graph(cg, (int) data) == GRACE_EXIT_SUCCESS) {
 	update_ticks(cg);
         drawgraph();
     } else {
-	errwin("No active sets!");
+	errmsg("Can't autoscale (no active sets?)");
     }
 }
 

@@ -228,6 +228,16 @@ void autoscale_byset(int gno, int setno, int autos_type)
     }
 }
 
+int autoscale_graph(int gno, int autos_type)
+{
+    if (number_of_active_sets(gno) > 0) {
+        autoscale_byset(gno, ALL_SETS, autos_type);
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
+
 static void round_axis_limits(double *amin, double *amax, int scale)
 {
     double smin, smax;

@@ -60,12 +60,11 @@ void define_arrange(int nrows, int ncols, int pack,
 
 void autotick_axis(int gno, int axis);
 void autoscale_byset(int gno, int setno, int autos_type);
+int autoscale_graph(int gno, int autos_type);
 
 void move_legend(int gno, VVector shift);
 void move_timestamp(VVector shift);
 
 void rescale_viewport(double ext_x, double ext_y);
-
-#define autoscale_graph(gno, axis) autoscale_byset(gno, ALL_SETS, axis)
 
 #endif /* __GRAPHUTILS_H_ */

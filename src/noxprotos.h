@@ -195,7 +195,7 @@ void packsets(int gno);
 int nextset(int gno);
 void killset(int gno, int setno);
 void killsetdata(int gno, int setno);
-int activeset(int gno);
+int number_of_active_sets(int gno);
 int swapset(int gfrom, int j1, int gto, int j2);
 int pushset(int gno, int setno, int push_type);
 void droppoints(int gno, int setno, int startno, int endno, int dist);
