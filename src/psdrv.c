@@ -59,7 +59,7 @@
 
 extern FILE *prstream;
 
-static char *escape_paren(char *s);
+static void put_string(FILE *fp, char *s, int len);
 
 static int curformat = DEFAULT_PS_FORMAT;
 
@@ -222,7 +222,7 @@ static int ps_initgraphics(int format)
 
     time(&time_value);
     fprintf(prstream, "%%%%CreationDate: %s", ctime(&time_value));
-    fprintf(prstream, "%%%%DocumentData: Clean7Bit\n");
+    fprintf(prstream, "%%%%DocumentData: Clean8Bit\n");
 
     if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
         fprintf(prstream, "%%%%Orientation: Landscape\n");
@@ -705,9 +705,11 @@ void ps_puttext(VPoint start, VPoint end, double size, CompositeString *cstring)
         fprintf(prstream, "/Font%d findfont\n", font);
         fprintf(prstream, "%.4f scalefont\n", size*cstring[iglyph].scale);
         fprintf(prstream, "setfont\n");
+
         /* pop removes unneeded Y coordinate from the stack */
-        fprintf(prstream, "(%s) stringwidth pop\n", escape_paren(cstring[iglyph].s));
-        fprintf(prstream, "pslength add\n");
+        put_string(prstream, cstring[iglyph].s, cstring[iglyph].len);
+        fprintf(prstream, " stringwidth pop pslength add\n");
+
         fprintf(prstream, "%.4f add\n", size*cstring[iglyph].hshift);
         fprintf(prstream, "/pslength exch def\n");
         iglyph++;
@@ -737,10 +739,12 @@ void ps_puttext(VPoint start, VPoint end, double size, CompositeString *cstring)
         if (cstring[iglyph].vshift != 0.0 || cstring[iglyph].hshift != 0.0) {
             fprintf(prstream, "%.4f %.4f rmoveto\n",
                                cstring[iglyph].hshift, cstring[iglyph].vshift);
-            fprintf(prstream, "(%s) show\n", escape_paren(cstring[iglyph].s));
+            put_string(prstream, cstring[iglyph].s, cstring[iglyph].len);
+            fprintf(prstream, " show\n");
             fprintf(prstream, "0.0 %.4f rmoveto\n", -cstring[iglyph].vshift);
         } else {
-            fprintf(prstream, "(%s) show\n", escape_paren(cstring[iglyph].s));
+            put_string(prstream, cstring[iglyph].s, cstring[iglyph].len);
+            fprintf(prstream, " show\n");
         }
         
         if (cstring[iglyph].underline == TRUE) {
@@ -789,33 +793,20 @@ void ps_leavegraphics(void)
 }
 
 /*
- * escape parentheses
+ * Put a NOT NULL-terminated string escaping parentheses
  */
-static char *escape_paren(char *s)
+static void put_string(FILE *fp, char *s, int len)
 {
-    static char *es = NULL;
-    int i, elen = 0;
+    int i;
     
-    elen = 0;
-    for (i = 0; i < strlen(s); i++) {
+    fputc('(', fp);
+    for (i = 0; i < len; i++) {
         if (s[i] == '(' || s[i] == ')') {
-            elen++;
+            fputc('\\', fp);
         }
-        elen++;
+        fputc(s[i], fp);
     }
-    
-    es = xrealloc(es, (elen + 1)*SIZEOF_CHAR);
-    
-    elen = 0;
-    for (i = 0; i < strlen(s); i++) {
-        if (s[i] == '(' || s[i] == ')') {
-            es[elen++] = '\\';
-        }
-        es[elen++] = s[i];
-    }
-    es[elen] = '\0';
-    
-    return (es);
+    fputc(')', fp);
 }
 
 int psprintinitgraphics(void)
