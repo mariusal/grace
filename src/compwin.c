@@ -1936,9 +1936,14 @@ void create_leval_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget dialog;
     Widget rc;
+    int gno = (int) client_data;
 
     set_wait_cursor();
-    levalui.gno = (int) client_data;
+    if (is_valid_gno(gno)) {
+        levalui.gno = gno;
+    } else {
+        levalui.gno = get_cg();
+    }
     if (levalui.top == NULL) {
 	char *label1[2];
 	label1[0] = "Accept";
