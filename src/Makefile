@@ -69,15 +69,13 @@ links : $(GRACE)
 	cd $(PREFIX)/bin; $(RM) $(GRBATCH); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRBATCH)
 
 clean : 
-	$(RM) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O)
+	$(RM) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo.h buildinfo$(O) buildinfo$(EXE)
 
-distclean : 
-	$(RM) $(GRACE) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) buildinfo$(EXE)\
-	tags *.orig *.*gr .gdb_history t1lib.log
+distclean : clean
+	$(RM) $(GRACE) tags *.orig *.*gr .gdb_history t1lib.log
 
-devclean : 
-	$(RM) $(GRACE) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) \
-	tags *.orig *.*gr .gdb_history t1lib.log $(PARS_C)
+devclean : distclean
+	$(RM) $(PARS_C)
 
 depend :
 	echo "# Generated automatically by \`make depend'" > Make.dep
