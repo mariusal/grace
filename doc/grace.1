@@ -1,4 +1,4 @@
-.TH GRACE 1 "May 21, 2002"
+.TH GRACE 1 "Dec 07, 2002"
 .LO 1
 .SH NAME
 grace \- command line interface
@@ -187,9 +187,9 @@ Specifies the directory where the Grace docs and libs are stored. Default is
 .BR /usr/local/grace
 .TP
 .B GRACE_HELPVIEWER
-Specifies the browser which is used to display the Grace HTML help pages.
-Default is
-.BR netscape
+The shell command to run an HTML viewer for on-line browsing of the help
+documents. Must include at least one instance of "%s" which will be replaced
+with the actual URL by Grace.
 .TP
 .B GRACE_EDITOR
 Specifies the editor which is used to edit sets. Default is 
@@ -243,7 +243,7 @@ over by a team of volunteers under the coordination of Evgeny Stambulchik.
 .SH COPYRIGHT
 Copyright (c) 1991-1995 Paul J Turner, Portland, OR
 .br
-Copyright (c) 1996-2001 Grace Development Team
+Copyright (c) 1996-2002 Grace Development Team
 
 .SH LICENSE
 The program is distributed under the terms of the GNU General Public License as

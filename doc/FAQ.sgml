@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.10)
+  <title>Grace FAQ (for Grace-5.1.11)
   <author>by the Grace Team
-  <date>11.09.2002
+  <date>07.12.2002
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -725,6 +725,13 @@ XMgrace*XmMessageBox.translations: #override\n\
       Ctrl <Btn1Down>: do_nothing()
         </code></tscreen>
 
+    <sect1>The size of the canvas is huge.
+      <p>
+
+        It should be exactly of the size of the hardcopy (A4/US letter). If
+        not, check your X server settings (run `xdpyinfo' and watch the
+        "dimensions:" line; check the numbers with a ruler).
+
 
 <!-- **************************************** -->
 
@@ -1194,6 +1201,16 @@ XMgrace*background: ...
       <p>
         
         Use "Create new-&gt;By formula" from any set selector popup menu.
+ 
+    <sect1>How can I specify a template other than the default one on the
+           command line? In the scripts?
+      <p>
+        
+        Template is just an empty (in the sense that there are no data sets)
+        but otherwise a valid project file. So just put your favorite
+        template's filename as the first argument on the command line. If
+        your script creates several plots, use 'new from "filename"' to
+        initialize a new project from the non-default template.
  
 
 <!-- **************************************** -->

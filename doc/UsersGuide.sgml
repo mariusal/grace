@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.10)</title>
 <author>by the Grace Team</author>
-<date>12.08.2002</date>
+<date>07.12.2002</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -698,7 +698,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                <p>
         <item> GRACE&lowbar;HELPVIEWER
                <p>
-               The HTML viewer for on-line browsing of help documents
+               The shell command to run an HTML viewer for on-line browsing of
+               the help documents. Must include at least one instance of "%s"
+               which will be replaced with the actual URL by Grace.
                <p>
         <item> GRACE&lowbar;FFTW&lowbar;WISDOM&lowbar;FILE and
                GRACE&lowbar;FFTW&lowbar;RAM&lowbar;WISDOM
@@ -1895,10 +1897,10 @@ integral     | cumulative sum @
           set <it>nn</it> in the current graph|
           <it>nn</it>: 0-99 |
           S1 @
-        S_ |
+        S&lowbar; |
           the last allocated set in the current graph|
           - |
-          S_ @
+          S&lowbar; @
         S$ |
           the active set in the current graph|
           - |
@@ -2344,14 +2346,6 @@ integral     | cumulative sum @
         <hline>
         Statement | Description | Types | Example @
         <hline>
-        PRINT |
-          execute print job |
-          &nbsp; |
-          PRINT @
-        SLEEP <it>n</it> |
-          sleep for <it>n</it> seconds |
-          expr <it>n</it> |
-          SLEEP(3) @
         EXIT(<it>status</it>) |
           cause normal program termination with exit status <it>status</it> |
           iexpr <it>status</it> |
@@ -2368,6 +2362,22 @@ integral     | cumulative sum @
           open User's Guide |
           &nbsp; |
           HELP @
+        PRINT |
+          execute print job |
+          &nbsp; |
+          PRINT @
+        REDRAW |
+          refresh the canvas to reflect the current project state |
+          &nbsp; |
+          REDRAW @
+        SLEEP <it>n</it> |
+          sleep for <it>n</it> seconds |
+          expr <it>n</it> |
+          SLEEP(3) @
+        UPDATEALL |
+          update the GUI (graph and set selectors etc) to reflect the current project state |
+          &nbsp; |
+          UPDATEALL @
         <hline>
       </tabular>
       <caption>
