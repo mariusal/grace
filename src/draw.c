@@ -1899,7 +1899,7 @@ static void canvas_stats_update(Canvas *canvas, int type)
         canvas->pmap[getpattern(canvas)].used = 1;
     }
     if (type & CANVAS_STATS_LINESTYLE) {
-        canvas->pmap[getlinestyle(canvas)].used = 1;
+        canvas->lmap[getlinestyle(canvas)].used = 1;
     }
 }
 
