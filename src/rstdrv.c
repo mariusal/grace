@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -65,7 +65,7 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream);
 extern FILE *prstream;
 
 /* Declare the image */
-gdImagePtr ihandle;
+static gdImagePtr ihandle = NULL;
 
 static int curformat = DEFAULT_RASTER_FORMAT;
 
@@ -163,6 +163,10 @@ static void rst_updatecmap(void)
     int i, c;
     RGB rgb;
     int red, green, blue;
+    
+    if (!ihandle) {
+        return;
+    }
     
     for (i = 0; i < number_of_colors(); i++) {
         if (get_rgb(i, &rgb) == RETURN_SUCCESS) {
@@ -532,6 +536,7 @@ void rst_leavegraphics(void)
     
     /* Destroy the image in memory. */
     gdImageDestroy(ihandle);
+    ihandle = NULL;
 }
 
 int pnminitgraphics(void)
