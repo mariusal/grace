@@ -80,7 +80,7 @@ struct passwd *getpwnam(char *name);
 #  define lrand48 rand
 double drand48(void);
 #else
-#  ifndef HAVE_DRAND48_IN_STDLIB_H
+#  ifndef HAVE_DRAND48_DECL
 extern double drand48(void);
 #  endif
 #endif

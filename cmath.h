@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -71,9 +71,13 @@ extern double MAXNUM;
 extern double round ( double x );
 #ifndef HAVE_RINT
 #  define rint round
+#else
+#  ifndef HAVE_RINT_DECL
+extern double rint ( double x );
+#  endif
 #endif
 
-#ifndef HAVE_CBRT
+#ifndef HAVE_CBRT_DECL
 extern double cbrt ( double x );
 #endif
 
@@ -82,7 +86,7 @@ extern double cbrt ( double x );
 #  undef log2
 #endif
 
-#ifndef HAVE_LOG2
+#ifndef HAVE_LOG2_DECL
 extern double log2 ( double x );
 #endif
 
@@ -92,62 +96,62 @@ extern int sgngam;
 #  define signgam sgngam
 extern double lgam ( double x );
 #else
-#  ifndef HAVE_LGAMMA_IN_MATH_H
+#  ifndef HAVE_LGAMMA_DECL
 extern double lgamma ( double x );
 #  endif
-#  ifndef HAVE_SIGNGAM_IN_MATH_H
+#  ifndef HAVE_SIGNGAM_DECL
 extern int signgam;
 #  endif
 #  define lgam lgamma
 #  define sgngam signgam
 #endif
 
-#ifndef HAVE_ACOSH
+#ifndef HAVE_ACOSH_DECL
 extern double acosh ( double x );
 #endif
 
-#ifndef HAVE_ASINH
+#ifndef HAVE_ASINH_DECL
 extern double asinh ( double x );
 #endif
 
-#ifndef HAVE_ATANH
+#ifndef HAVE_ATANH_DECL
 extern double atanh ( double x );
 #endif
 
-#ifndef HAVE_ERF
+#ifndef HAVE_ERF_DECL
 extern double erf ( double x );
 #endif
 
-#ifndef HAVE_ERFC
+#ifndef HAVE_ERFC_DECL
 extern double erfc ( double x );
 #endif
 
-#ifndef HAVE_Y0
+#ifndef HAVE_Y0_DECL
 extern double y0 ( double x );
 #endif
-#ifndef HAVE_Y1
+#ifndef HAVE_Y1_DECL
 extern double y1 ( double x );
 #endif
-#ifndef HAVE_YN
+#ifndef HAVE_YN_DECL
 extern double yn ( int n, double x );
 #endif
-#ifndef HAVE_J0
+#ifndef HAVE_J0_DECL
 extern double j0 ( double x );
 #endif
-#ifndef HAVE_J1
+#ifndef HAVE_J1_DECL
 extern double j1 ( double x );
 #endif
-#ifndef HAVE_JN
+#ifndef HAVE_JN_DECL
 extern double jn ( int n, double x );
 #endif
 
 #ifndef HAVE_FINITE
 #  define finite isfinite
-#  ifndef HAVE_ISFINITE
+#  ifndef HAVE_ISFINITE_DECL
 extern int isfinite ( double x );
 #  endif
 #endif
 
-#ifndef HAVE_ISNAN
+#ifndef HAVE_ISNAN_DECL
 extern double isnan ( double x );
 #endif
