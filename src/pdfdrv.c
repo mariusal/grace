@@ -41,7 +41,6 @@
 
 #include <pdflib.h>
 
-#include "defines.h"
 #include "utils.h"
 #include "draw.h"
 #include "devlist.h"
@@ -678,19 +677,23 @@ void pdf_leavegraphics(const Canvas *canvas, void *data,
 
 static void pdf_error_handler(PDF *p, int type, const char *msg)
 {
-    char buf[MAX_STRING_LENGTH];
+    char *buf, *s;
 
     switch (type) {
     case PDF_NonfatalError:
         /* continue on a non-fatal error */
-        sprintf(buf, "PDFlib: %s", msg);
-        errmsg(buf);
+        s = "PDFlib warning: ";
         break;
     default:
+        s = "PDFlib error: ";
         /* give up in all other cases */
-        sprintf(buf, "PDFlib: %s", msg);
+        break;
+    }
+    buf = xmalloc(strlen(msg) + strlen(s) + 1);
+    if (buf) {
+        sprintf(buf, "%s%s", s, msg);
         errmsg(buf);
-        return;
+        xfree(buf);
     }
 }
 
