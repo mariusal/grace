@@ -216,12 +216,12 @@ esac
 
 dnl **** Checks for programs.
 AC_PROG_INSTALL
-case "$INSTALL" in
-  /*) ;;
-   *) INSTALL=`pwd`/"$INSTALL" ;
+case "x$INSTALL" in
+   x/*) ;;
+   *) INSTALL=`pwd`/ac-tools/"shtool install" ;
 esac
 
-MKINSTALLDIRS=`pwd`/ac-tools/mkinstalldirs
+MKINSTALLDIRS=`pwd`/ac-tools/"shtool mkdir -p -f"
 
 AC_CHECK_PROG(AR, ar, ar, NONE)
 if test "$AR" = "NONE"; then
