@@ -1088,6 +1088,9 @@ void startup_gui(Grace *grace)
     XtVaSetValues(app_shell, XtNiconPixmap, icon, XtNiconMask, shape, NULL);
 
     XtRealizeWidget(app_shell);
+    
+    XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
+    
     xstuff->xwin = XtWindow(xstuff->canvas);
     grace->gui->inwin = TRUE;
 
