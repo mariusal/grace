@@ -243,6 +243,11 @@ void canvas_set_docname(Canvas *canvas, const char *s)
     canvas->docname = copy_string(canvas->docname, s);
 }
 
+void canvas_set_description(Canvas *canvas, const char *s)
+{
+    canvas->description = copy_string(canvas->description, s);
+}
+
 
 void set_draw_mode(Canvas *canvas, int mode)
 {
@@ -412,6 +417,11 @@ char *canvas_get_username(const Canvas *canvas)
 char *canvas_get_docname(const Canvas *canvas)
 {
     return canvas->docname;
+}
+
+char *canvas_get_description(const Canvas *canvas)
+{
+    return canvas->description;
 }
 
 void canvas_set_udata(Canvas *canvas, void *data)

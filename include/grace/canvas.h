@@ -498,10 +498,11 @@ struct _Canvas {
     /* info */
     char *username;
     char *docname;
+    char *description;
     
-    /* user-supplied procsedure for parsing composite strings */
+    /* user-supplied procedure for parsing composite strings */
     CanvasCSParseProc csparse_proc;
-    /* user-supplied procsedure for mapping font ids */
+    /* user-supplied procedure for mapping font ids */
     CanvasFMapProc fmap_proc;
     
     /* user data */
@@ -525,8 +526,10 @@ void *canvas_get_udata(const Canvas *canvas);
 
 void canvas_set_username(Canvas *canvas, const char *s);
 void canvas_set_docname(Canvas *canvas, const char *s);
+void canvas_set_description(Canvas *canvas, const char *s);
 char *canvas_get_username(const Canvas *canvas);
 char *canvas_get_docname(const Canvas *canvas);
+char *canvas_get_description(const Canvas *canvas);
 
 void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc);
 void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc);
