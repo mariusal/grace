@@ -55,7 +55,7 @@
 typedef struct _Featext_ui {
     Widget top;
     ListStructure *tograph;
-    Widget *feature_item;
+    OptionStructure *feature_item;
     Widget *xval_item;
     ListStructure *absic_graph;
     SetChoiceItem absic_set;
@@ -95,11 +95,39 @@ void do_fext_toggle (Widget w, XtPointer client_data, XtPointer call_data)
 
 void create_featext_frame(void *data)
 {
-    int i;
-    Widget dialog;
     set_wait_cursor();
+    
     if (feui.top == NULL) {
-	char *label2[3];
+        Widget dialog;
+	char *label2[2];
+        int i;
+        OptionItem feature_option_items[] = {
+            { 0, "Y minimum"         },
+            { 1, "Y maximum"         },
+            { 2, "Y average"         },
+            { 3, "Y std. dev."       },
+            { 4, "Y median"          },
+            { 5, "X minimum"         },
+            { 6, "X maximum"         },
+            { 7, "X average"         },
+            { 8, "X std. dev."       },
+            { 9, "X median"          },
+            {10, "Frequency"         },
+            {11, "Period"            },
+            {12, "Zero crossing"     },
+            {13, "Rise time"         },
+            {14, "Fall time"         },
+            {15, "Slope"             },
+            {16, "Y intercept"       },
+            {17, "Set length"        },
+            {18, "Half maximal width"},
+            {19, "Barycenter X"      },
+            {20, "Barycenter Y"      },
+            {21, "X(Y max)"          },
+            {22, "Y(X max)"          },
+            {23, "Integral"          }
+        };
+
 	label2[0] = "Accept";
 	label2[1] = "Close";
 	feui.top = XmCreateDialogShell(app_shell, "Feature Extraction", NULL, 0);
@@ -107,19 +135,8 @@ void create_featext_frame(void *data)
 	dialog = XmCreateRowColumn(feui.top, "dialog_rc", NULL, 0);
 
 	feui.tograph = CreateGraphChoice(dialog, "Results to graph:", LIST_TYPE_SINGLE);
-	feui.feature_item = CreatePanelChoice0(dialog,
-					  "Feature:", 3, 25,
-					  "Y minimum", "Y maximum", "Y average", "Y std. dev.",
-					  "Y median",
-					  "X minimum", "X maximum", "X average", "X std. dev.",
-					  "X median",
-					  "Frequency", "Period", "Zero crossing", 
-					  "Rise time", "Fall time", "Slope", "Y intercept", 
-					  "Set length", "Half maximal width", 
-					  "Barycenter X", "Barycenter Y", 
-					  "X(Y max)", "Y(X max)",
-					  "Integral",
-					  NULL, 0);
+	feui.feature_item =
+            CreateOptionChoice(dialog, "Feature:", 3, 24, feature_option_items);
 	feui.xval_item = CreatePanelChoice(dialog,
 						"X values from:", 5,
 						"Index", "Legends", "X from Set", "Y from set",
@@ -167,7 +184,7 @@ void do_fext_proc( Widget w, XtPointer client_data, XtPointer call_data )
 
     Featext_ui *ui = (Featext_ui *) client_data;
 
-    feature = (int) GetChoice(ui->feature_item);
+    feature = GetOptionChoice(ui->feature_item);
     GetSingleListChoice(ui->tograph, &gto);
     if( gto == -1 )
             gto = get_cg();
