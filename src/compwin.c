@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1408,7 +1408,7 @@ static int do_fext_proc(void *data)
         Quark *destgr;
         if (GetSingleStorageChoice(ui->dest->graph_sel, &destgr)
             != RETURN_SUCCESS) {
-            xfree(*srcsets);
+            xfree(srcsets);
             errmsg("No destination graph selected");
 	    return RETURN_FAILURE;
         }
@@ -1502,7 +1502,7 @@ static int do_cumulative_proc(void *data)
         Quark *destgr;
         if (GetSingleStorageChoice(ui->dest->graph_sel, &destgr)
             != RETURN_SUCCESS) {
-            xfree(*srcsets);
+            xfree(srcsets);
             errmsg("No destination graph selected");
 	    return RETURN_FAILURE;
         }
