@@ -843,7 +843,30 @@ char *GetTextString(TextStructure *cst)
 
 void SetTextString(TextStructure *cst, char *s)
 {
-    XmTextSetString(cst->text, s);
+    XmTextSetString(cst->text, s ? s : "");
+}
+
+typedef struct {
+    void (*cbproc)();
+    void *anydata;
+} Text_CBdata;
+
+static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Text_CBdata *cbdata = (Text_CBdata *) client_data;
+    cbdata->cbproc(cbdata->anydata);
+}
+
+void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
+{
+    Text_CBdata *cbdata;
+    
+    cbdata = xmalloc(sizeof(Text_CBdata));
+    cbdata->anydata = data;
+    cbdata->cbproc = cbproc;
+    
+    XtAddCallback(cst->text,
+        XmNactivateCallback, text_int_cb_proc, (XtPointer) cbdata);
 }
 
 int GetTextCursorPos(TextStructure *cst)

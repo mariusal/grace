@@ -227,6 +227,11 @@ typedef void (*List_CBProc)(
     void *               /* data the application registered */
 );
 
+/* Text input CB procedure */
+typedef void (*Text_CBProc)(
+    void *               /* data the application registered */
+);
+
 /* AAC Dialog CB procedure */
 typedef int (*AACDialog_CBProc)(
     void *               /* data the application registered */
@@ -318,6 +323,7 @@ TextStructure *CreateTextInput(Widget parent, char *s);
 TextStructure *CreateCSText(Widget parent, char *s);
 char *GetTextString(TextStructure *cst);
 void SetTextString(TextStructure *cst, char *s);
+void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data);
 int GetTextCursorPos(TextStructure *cst);
 void TextInsert(TextStructure *cst, int pos, char *s);
 void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar);
