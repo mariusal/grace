@@ -1611,7 +1611,8 @@ TextStructure *CreateTextInput(Widget parent, char *s)
 
 void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
-    create_fonttool(w);
+    TextStructure *cst = (TextStructure *) GetUserData(w);
+    create_fonttool(cst);
 }
 
 static char cstext_translation_table[] = "\
@@ -1622,6 +1623,7 @@ TextStructure *CreateCSText(Widget parent, char *s)
     TextStructure *retval;
 
     retval = CreateTextInput(parent, s);
+    SetUserData(retval->text, retval);
     XtOverrideTranslations(retval->text, 
         XtParseTranslationTable(cstext_translation_table));
         
@@ -1676,6 +1678,11 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
 int GetTextCursorPos(TextStructure *cst)
 {
     return XmTextGetInsertionPosition(cst->text);
+}
+
+void SetTextCursorPos(TextStructure *cst, int pos)
+{
+    XmTextSetInsertionPosition(cst->text, pos);
 }
 
 void TextInsert(TextStructure *cst, int pos, char *s)

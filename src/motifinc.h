@@ -463,6 +463,7 @@ char *GetTextString(TextStructure *cst);
 void SetTextString(TextStructure *cst, char *s);
 void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data);
 int GetTextCursorPos(TextStructure *cst);
+void SetTextCursorPos(TextStructure *cst, int pos);
 void TextInsert(TextStructure *cst, int pos, char *s);
 void SetTextEditable(TextStructure *cst, int onoff);
 void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar);

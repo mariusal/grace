@@ -34,10 +34,9 @@
 #ifndef __XPROTOS_H_
 #define __XPROTOS_H_
 
-#include <Xm/Xm.h>
-
 #include "defines.h"
 #include "core_utils.h"
+#include "motifinc.h"
 
 typedef int (*CanvasPointSink) (
     unsigned int npoints,
@@ -187,7 +186,7 @@ void create_nonl_frame(Widget but, void *data);
 
 void create_props_frame(Widget but, void *data);
 
-void create_fonttool(Widget w);
+void create_fonttool(TextStructure *cstext_parent);
 void create_fonttool_cb(Widget but, void *data);
 
 void create_datasetprop_popup(Widget but, void *data);
