@@ -53,6 +53,8 @@ static int RGB2CMY(const RGB *rgb, CMY *cmy);
 static void canvas_stats_update(Canvas *canvas, int type);
 static void canvas_char_stats_update(Canvas *canvas,
     int font, const char *s, int len);
+static int realloc_patterns(Canvas *canvas, unsigned int n);
+static int realloc_linestyles(Canvas *canvas, unsigned int n);
 
 /* Default drawing properties */
 static DrawProps default_draw_props = 
@@ -212,7 +214,23 @@ void canvas_free(Canvas *canvas)
 {
     if (canvas) {
         /* FIXME!!! */
-        /* free_cmap(); */
+        /* free_devices(); */
+        
+        while (canvas->nfonts) {
+            FontDB *f = &canvas->FontDBtable[canvas->nfonts - 1];
+            xfree(f->alias);
+            canvas->nfonts--;
+        }
+        xfree(canvas->FontDBtable);
+        
+        realloc_colors(canvas, 0);
+        realloc_patterns(canvas, 0);
+        realloc_linestyles(canvas, 0);
+        
+        xfree(canvas->username);
+        xfree(canvas->docname);
+        xfree(canvas->description);
+        
         xfree(canvas);
     }
 }
@@ -1383,7 +1401,7 @@ static int realloc_colors(Canvas *canvas, int n)
             XCFREE(canvas->cmap[i].color.cname);
         }
         cmap_tmp = xrealloc(canvas->cmap, n*sizeof(CMap_entry));
-        if (cmap_tmp == NULL) {
+        if (n != 0 && cmap_tmp == NULL) {
             return RETURN_FAILURE;
         } else {
             canvas->cmap = cmap_tmp;
@@ -1717,7 +1735,7 @@ static int realloc_patterns(Canvas *canvas, unsigned int n)
     }
     
     p_tmp = xrealloc(canvas->pmap, n*sizeof(PMap_entry));
-    if (p_tmp == NULL) {
+    if (n > 0 && p_tmp == NULL) {
         return RETURN_FAILURE;
     } else {
         canvas->pmap = p_tmp;
@@ -1802,7 +1820,7 @@ static int realloc_linestyles(Canvas *canvas, unsigned int n)
     }
     
     p_tmp = xrealloc(canvas->lmap, n*sizeof(LMap_entry));
-    if (p_tmp == NULL) {
+    if (n != 0 && p_tmp == NULL) {
         return RETURN_FAILURE;
     } else {
         canvas->lmap = p_tmp;
@@ -1817,6 +1835,8 @@ static int realloc_linestyles(Canvas *canvas, unsigned int n)
 
 int canvas_set_linestyle(Canvas *canvas, unsigned int n, const LineStyle *ls)
 {
+    LineStyle *pls;
+    
     if (n >= canvas->nlinestyles) {
         if (realloc_linestyles(canvas, n + 1) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
@@ -1824,7 +1844,10 @@ int canvas_set_linestyle(Canvas *canvas, unsigned int n, const LineStyle *ls)
     }
     
     xfree(canvas->lmap[n].linestyle.array);
-    canvas->lmap[n].linestyle = *ls;
+    pls = &canvas->lmap[n].linestyle;
+    pls->length = ls->length;
+    pls->array = xmalloc(ls->length*SIZEOF_INT);
+    memcpy(pls->array, ls->array, ls->length*SIZEOF_INT);
     
     return RETURN_SUCCESS;
 }
