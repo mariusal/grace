@@ -2234,6 +2234,7 @@ integral     | cumulative sum @
         Command                                           | Description   @
         <hline>
         PAGE SIZE xdim, ydim                              | set page dimensions (in pp) of all devices  @
+        PAGE RESIZE xdim, ydim                            | same as above plus rescale the current plot accordingly  @
         DEVICE <it>"devname"</it> PAGE SIZE xdim, ydim    | set page dimensions (in pp) of device <it>devname</it>  @
         DEVICE <it>"devname"</it> DPI dpi                 | set device's dpi (dots per pixel) @
         DEVICE <it>"devname"</it> FONT onoff              | enable/disable usage of built-in fonts for device <it>devname</it> @
