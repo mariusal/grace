@@ -248,6 +248,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         UnmanageChild(ui->project_ui->top);
         UnmanageChild(ui->frame_ui->top);
         UnmanageChild(ui->graph_ui->top);
+        UnmanageChild(ui->set_ui->top);
         UnmanageChild(ui->axis_ui->top);
         UnmanageChild(ui->object_ui->top);
     } else {
