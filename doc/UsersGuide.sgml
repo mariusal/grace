@@ -153,7 +153,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
   <sect1>Alternative packaging schemes (RPM, ...)
     <p>
-
+      
+      Not written yet...
 
   <sect1>General concepts
     <p>
@@ -387,7 +388,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                <p>
         <item> GRACE&lowbar;PRINT&lowbar;CMD
                <p>
-               Print command.
+               Print command. If the variable is defined but is an empty
+               string, "Print to file" will be selected as default.
                <p>
         <item> GRACE&lowbar;EDITOR
                <p>
@@ -407,6 +409,173 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
     <sect2>X resources
       <p>
+
+        The following Grace-specific X resource settings are supported:
+
+        <itemize>
+        <item> XMgrace.invertDraw
+               <newline>
+               Use GXinvert rather than GXxor for rubberband lines.
+               If the rubberbanding for zooms and lines, etc. doesn't
+               appear on the canvas, set this resource to yes.
+               <newline>
+
+        <item> XMgrace.verifyAction
+
+               <newline>
+               Allows an opportunity to accept or cancel any operation
+               performed.
+               <newline>
+
+        <item> XMgrace.allowDoubleClick
+
+               <newline>
+               When Yes, allow double clicks on the canvas to bring up various
+               popups depending on  the location of the pointer when the double
+               click occurs.
+               <newline>
+
+        <item> XMgrace.toolBar
+               <newline>
+               Enables button toolbar
+               <newline>
+
+        <item> XMgrace.statusBar
+               <newline>
+               Enables status bar
+               <newline>
+
+        <item> XMgrace.locatorBar
+               <newline>
+               Enables locator bar
+               <newline>
+
+       </itemize>
+
+
+        It is also possible to customize menus by assigning key accelerators to
+        any item.
+
+        The list below describes the menu X resources. For
+        example, in order to make Grace popup the Non-linear curve fitting by
+        pressing Control+F, you would add the following two lines
+
+        <tt>
+          XMgrace*transformationsMenu.nonLinearFit.acceleratorText: Ctrl+F
+          <newline>
+          XMgrace*transformationsMenu.nonLinearFit.accelerator: Ctrl&lt;Key&gt;f
+        </tt>
+
+
+        to your <tt>.Xresources</tt> file (the file which is read when an X
+        session starts; it could be <tt>.Xdefaults</tt>, <tt>.Xsession</tt> or
+        some other file - ask your system administrator when in doubt). 
+
+<tscreen><verb>
+-> fileMenu
+	* open
+	* save
+	* saveAs
+	* describe
+	-------------
+	-> readMenu
+		* sets
+		* parameters
+		* blockData
+	-> writeMenu
+		* sets
+		* parameters
+	-------------
+	* clearAll
+	-------------
+	* print
+	* deviceSetup
+	-------------
+	* workingDirectory
+	-------------
+	* exit
+-> editMenu
+	* dataSets
+	* setOperations
+	-------------
+	* arrangeGraphs
+	* overlayGraphs
+	* autoscale
+	-------------
+	-> regionsMenu
+		* status
+		* define
+		* clear
+		* reportOn
+	* hotLinks
+	-------------
+	* setLocatorFixedPoint
+	* clearLocatorFixedPoint
+	* locatorProps
+	-------------
+	* preferences
+-> dataMenu
+	-> dataSetOperationsMenu
+		* Sort
+		* reverse
+		-------------
+		* dropPoints
+		* pruneData
+		* geometricTransforms
+	-> regionOperationsMenu
+		* evaluate
+		* extractPoints
+		* extractSets
+		* deletePoints
+		* killSets
+	-------------
+	-> transformationsMenu
+		* join
+		* split
+		* evaluateExpression
+		* histograms
+		* fourierTransforms
+		* regression
+		* nonLinearFit
+		* runningAverages
+		* differences
+		* seasonalDifferences
+		* integration
+		* correlation
+		* interpolation
+		* splines
+		* samplePoints
+		* digitalFilter
+		* linearConvolution
+		* featureExtraction
+-> plotMenu
+	* plotAppearance
+	* graphAppearance
+	* setAppearance
+	* axisProperties
+-> viewMenu
+	() showLocatorBar
+	() showStatusBar
+	() showToolBar
+	-------------
+	* redraw
+-> windowMenu
+	* commands
+	* pointTracking
+	* drawingObjects
+	* fontTool
+	* results
+-> helpMenu
+	* onContext
+	* migrationGuide
+	* userGiude
+	* faq
+	* changes
+	* comments
+	-------------
+	* licenseTerms
+	* about
+</verb></tscreen>
 
 
   <sect1>Output devices

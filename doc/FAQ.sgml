@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 
-<!-- $Id: FAQ.sgml,v 1.2 1999-02-18 01:13:36 fnevgeny Exp $ -->
+<!-- $Id: FAQ.sgml,v 1.3 1999-03-03 00:12:52 fnevgeny Exp $ -->
 
 <!-- This is the FAQ for Grace, the 2d plotting tool -->
 
@@ -12,7 +12,7 @@
 
       <title>Grace FAQ
       <author>by the Grace Team
-      <date>v0.3  1998/09/14
+      <date>v0.4  1999/02/23
       <abstract>
 	This document contains Frequently Asked Questions (FAQ) about
 	<bf/Grace/, the free 2d plotting tool for scientific data.
@@ -74,11 +74,8 @@
       <sect1>What is the current version of Grace? <label id="current">
 	<p>
 
-	  Grace is still in the development phase. The current
-	  official release is 5.0.1 from September 15, 1998.
-
-	 <!-- The latest development snapshot is grace-980827 from August
-	  27, 1998 (what a surprise!). -->
+	  Grace is still in the "beta" phase. The current
+	  official release is 5.0.2 from March, 1999.
 
       <sect1>Where can I get the most recent information about Grace? <label id="homepage">
 	<p>
@@ -91,17 +88,18 @@
       <sect1>What is the difference between Xmgr and Grace?
 	<p>
 
-	  Apart from the licensing, the main difference is that Grace
-	  is closer to WYSIWYG (What You See Is What You Get) than
-	  Xmgr. This was achieved mainly through the use of the string
-	  rendering library T1lib written by <url name="Rainer
-	  Menzner"
-	  url="mailto:Rainer.Menzner@neuroinformatik.ruhr-uni-bochum.de">.
-	  See question <ref id="t1lib" name="T1lib"> for more information about
-	  T1lib.
+          Apart from the licensing, the main difference is that Grace is
+          WYSIWYG (What You See Is What You Get). This was achieved through a
+          major rewrite of all the mid-level drawing routines and the use of
+          the device-independent Type 1 font rendering library T1lib written by
+          <url name="Rainer Menzner"
+          url="mailto:Rainer.Menzner@neuroinformatik.ruhr-uni-bochum.de">. See
+          question <ref id="t1lib" name="T1lib"> for more information about
+          T1lib.
 
-	  For help with changing from Xmgr to Grace see the file
-	  <tt/MIGRATION/ in the Grace distribution.
+	  For help with changing from Xmgr to Grace see section 
+          <tt/Xmgr to Grace migration guide/ in the
+          User's Guide (question <ref id="manual" name="User's Guide">.
 
 	  As Grace is still under development, there are currently
 	  several features of Xmgr which are not yet implemented in
@@ -114,16 +112,9 @@
 
 	    <item>Horizontal and vertical lines as symbols.
 
-	    <item>Bar charts.
-
-	    <item>Placement of legends by mouseclick.
-
-	    <item>Update display on 'Move object' etc. without having to click <tt/Draw/.
-
 	    <item>Smith plots.
 
-	    <item>Automatic coloring of data sets at load time (now
-	      all sets are colored black).
+	    <item>Box plot sets.
 
 	  </itemize>
 
@@ -150,7 +141,8 @@
 	  since then, see the file <tt/CHANGES/ in the Grace
 	  distribution.
 
-      <sect1>Is there a Postscript&verbar;LaTeX&verbar;HTML&verbar;SGML version of this document?
+      <sect1>Is there a Postscript&verbar;LaTeX&verbar;HTML&verbar;SGML
+          version of this document?
 	<p>
 
 	  Yes. It is written in SGML which means that all the above
@@ -163,10 +155,10 @@
       <sect1>Who maintains the FAQ?
 	<p>
 
-	  Currently, the FAQ is maintained by <url name="Heiko Selber"
-	    url="mailto:selber@fhi-berlin.mpg.de">. If you have any
-	  comments or a question about Grace which you feel should
-	  be included here, send me an e-mail.
+          Until recently, the FAQ had been maintained by <url name="Heiko
+          Selber" url="mailto:selber@fhi-berlin.mpg.de">. There is no
+          "official" maintainer right now. If you'd like to take the job,
+          please let us know.
 
 <!-- **************************************** -->
 
@@ -176,15 +168,14 @@
       <sect1>Is there any Literature about Grace?
 	<p>
 
-	  As of now, Grace is a purely virtual creature living in the
-	  net, i.e. there is no printed literature. All relevant
-	  literature is currently bundled with Grace. See questions
-	  <ref id="homepage" name="Home Page"> and <ref id="manual"
-	  name="User Guide"> for details. You can print your own
-	  copy of the FAQ and the User Guide by converting the SGML
-	  sources to LaTeX and making a postscript file out of it.
+          As of now, Grace is a purely virtual creature living in the net, i.e.
+          there is no printed literature. All relevant literature is currently
+          bundled with Grace. See questions <ref id="homepage" name="Home
+          Page"> and <ref id="manual" name="User's Guide"> for details. You can
+          print your own copy of the FAQ, the User's Guide and the Tutorial by
+          converting the DVI files to postscript output.
 
-      <sect1>Is there a User Guide available for Grace? <label id="manual">
+      <sect1>Is there a User's Guide available for Grace? <label id="manual">
 	<p>
 
 	  Yes. It is part of the Grace distribution and usually is
@@ -198,9 +189,9 @@
 	  from the Grace homepage (see question <ref id="homepage"
 	  name="Home Page">).
 
-	  The User Guide is currently being rewritten.
+	  The User's Guide is currently quite incomplete, though.
 
-      <sect1>Is there a tutorial available for Grace? <label id="tutorial">
+      <sect1>Is there a Tutorial available for Grace? <label id="tutorial">
 	<p>
 
 	  Yes. There are several tutorials which give detailed
@@ -213,9 +204,6 @@
 	  simple ones, interpolation, feature extraction, using the
 	  command line), using pipes, overlaying graphs, hot links.
 
-	  The tutorials are currently being written from scratch, so
-	  the one you are looking for might not be finished yet.
-
       <sect1>Where do I get support for Grace? <label id="support">
 	<p>
 
@@ -223,8 +211,8 @@
 
 	  <itemize>
 
-	    <item>There is a User Guide (see question <ref id="manual"
-		name="User Guide">) which came with Grace on your
+	    <item>There is a User's Guide (see question <ref id="manual"
+		name="User's Guide">) which came with Grace on your
 		computer. It is usually located in
 		<tt>$GRACE_HOME/doc/</tt> along with other files which
 		may contain useful help for your problem. If you
@@ -442,12 +430,10 @@
 	<sect2>What do I need in order to compile Grace?
 	  <p>
 
-	    Grace usually compiles out of the box on a regular UNIX
-	    machine. You need an ANSI C compiler (gcc is just fine), the X11
-	    libraries, the T1 font libraries (which currently come
-	    with Grace, see question <ref id="t1lib" name="T1lib">)
-	    and Motif-1.2 or above (see question <ref id="motif"
-	    name="Motif">).
+            Grace usually compiles out of the box on a regular UNIX machine.
+            You need an ANSI C compiler (gcc is just fine), the X11 libraries, 
+            and Motif-1.2 or above (see question <ref id="motif"
+            name="Motif">).
 
 	    You also need certain libraries if you want to export
 	    special file formats (see question <ref id="export"
@@ -476,19 +462,20 @@
 	  <p>
 
 	    After getting the sources (question <ref id="install"
-	    name="Installation">) and un<tt/zip/ping and un<tt/tar/ing
-	    them (use e.g. <tt/tar xvzf grace-5.0.1.tar.gz/), change
-	    to the Grace directory and have a look at the files
-	    <tt/INSTALL/ and <tt/README.configure/.
+	    name="Installation">) and un<tt/gzip/ping and un<tt/tar/ing
+	    them (use e.g. <tt/gzip -dc grace-5.0.1.tar.gz | tar xvf -/),
+            change to the Grace directory and have a look at the files
+            <tt/INSTALL/ and <tt/README.configure/.
 
 	    Type <tt>./configure</tt>. This checks for the
 	    availability of libraries and other stuff on your
-	    system. If all went well, edit <tt/Make.conf/
-            and <tt/config.h/, if necessary.
+	    system. If all went well, two new files, <tt/Make.conf/
+            and <tt/config.h/, are created. In very rare cases you may
+            want to manually edit them.
 
 	    Type <tt/make/. When the compilation is finished, you can
 	    test Grace using <tt/make tests/. This will give you a
-	    slide show showing some nice features of Grace. Then
+	    slide show demonstrating some nice features of Grace. Then
 	    install it to the directory <tt>$GRACE_HOME/</tt> (see
 	    question <ref id="environment" name="Environment
 	    Variables">) using <tt/make install/ (probably as root).
@@ -518,41 +505,18 @@
 	    free. You can buy it from several vendors (at approx. $100
 	    for Linux).
 
-	    There is, however, a free replacement for Motif called
-	    LessTif (see <url url="http://www.lesstif.org">). LessTif
-	    is intended to be a 100% compatible replacement for Motif,
-	    but is still under development, so don't expect everything
-	    to work exactly as it should. For the purposes of Grace,
-	    the latest version of LessTif (currently 0.86.0) is
-	    sufficient if you don't mind that it's a bit slower than
-	    commercial versions of Motif and graphical details may be
-	    different. Be aware, however, that occasional crashes
-	    might occur under certain circumstances. The LessTif
-	    people usually receive many bug reports from the Grace
-	    developers, so you can expect bugs in LessTif to be fixed
-	    rather quickly.
-
-	<sect2>Can't find library libXm.so (on Linux)
-	  <p>
-
-	    If this message occurs, then you don't have Motif (the Xm
-	    libraries, see question <ref id="motif" name="Motif">)
-	    installed (see the question above), or the linker doesn't
-	    know where it is. In the first case, try downloading
-	    Lesstif. In the second case, you have to tell your linker
-	    where it is. Look at the file <tt>/etc/ld.so.conf</tt>. It
-	    contains pathnames of the directories where dynamic
-	    libraries are stored. Add (as root) your directory to this
-	    file and run <tt>ldconfig -v</tt>. Now the libraries
-	    should be in the list.
-
-	    For some versions of Motif, the ``soname'' (which
-	    identifies the version of the library and is stored
-	    somewhere in the library) on your computer doesn't match
-	    the soname of the library on the computer where your copy
-	    of Grace was compiled on. Then you should use a
-	    (semi)statically linked version or compile Grace on your
-	    computer.
+            There is, however, a free replacement for Motif called LessTif (see
+            <url url="http://www.lesstif.org">). LessTif is intended to be a
+            100% compatible replacement for Motif, but is still under
+            development, so don't expect everything to work exactly as it
+            should. For the purposes of Grace, try using the latest version of
+            LessTif (or at least 0.86.9 and above) - if you don't
+            mind that it's a bit slower than commercial versions of Motif and
+            graphical details may be different. Be aware, however, that
+            occasional crashes might occur under certain circumstances. The
+            LessTif people usually receive many bug reports from the Grace
+            developers, so you can expect bugs in LessTif to be fixed rather
+            quickly.
 
 	<sect2>While compiling Grace I get error messages about missing include files.
 	  <p>
@@ -570,14 +534,6 @@
 		to look for the header files). This mostly concerns
 		Linux.
 
-	      <item> If the compiler complains about missing
-		Xbae/Matrix.h, you need either to install the Xbae
-		widget library version 4.5 or above (available from <url
-		url="ftp://ftp.x.org/contrib/widgets/motif/">) or
-		disable the use of the widget in Make.conf file. In
-		the later case, however, you won't get the
-		semi-spreadsheet set editor.
-
 	    </itemize>
 
 <!-- **************************************** -->
@@ -585,34 +541,26 @@
       <sect1>Are there Grace binaries available? For which platforms? <label id="binaries">
 	<p>
 
-	  You will find binaries for several flavours of UNIX (Linux,
-	  DEC OSF 4.0) at <url
-	  url="ftp://plasma-gate.weizmann.ac.il/pub/grace/bin/">. More
-	  will follow as the development of Grace stabilizes.
-
-	  For Xmgr, there are currently binaries of the latest version
-	  (4.1.2) available for alpha-dec-osf4.0, hp800s-hp-hpux10,
-	  ix86-pc-linux, mips-sgi-irix-6.2, rs6000-ibm-aix4.1 and
-	  sun-solaris2.5.1 at <url
-	    url="ftp://plasma-gate.weizmann.ac.il/pub/xmgr4/bin/xmgr-4.1.2/">.
-	  
+	  You will find binaries for several flavours of UNIX and probably
+          a Win32 package at <url
+	  url="ftp://plasma-gate.weizmann.ac.il/pub/grace/bin/">.
 
       <sect1>Is there a Windows&verbar;OS/2&verbar;VMS port of Grace?
 	<p>
 
-	  I am not sure, but I think that Grace runs on VMS. Just
-	  compile it there.
+	  Yes, Grace runs on VMS. Just compile it there.
+
+          As for Win32 (Windows 95/98/NT) and OS/2, there are ports for these
+          platforms, though they are not "native", i.e. in order to run them,
+          one needs an X server for respective platform.
+          
+          Both OS/2 and Win32 ports lack some of the functionality (notably,
+          direct printing). A Win32 package should be available at
+          <url url="ftp://plasma-gate.weizmann.ac.il/pub/grace/bin/win32/">.
 
 	  A port to OS/2 made by <url name="Alexander Mai"
 	    url="mailto:st002279@hrzpub.tu-darmstadt.de"> can be found
-	  at <url url="http://www.os-2.de/~mai">. It lacks some of
-	  the functionality of the UNIX version but its stability is
-	  more or less OK.
-
-	  Grace itself has not been ported to Windoze yet, but you can
-	  find a ``very alpha'' port of Xmgr to Windoze 95/NT made by
-	  Evgeny at <url
-	  url="ftp://plasma-gate.weizmann.ac.il/pub/xmgr4/bin/win32/">.
+	  at <url url="http://www.os-2.de/~mai">.
 
 <!-- **************************************** -->
 
@@ -647,7 +595,13 @@
 
 	    <descrip>
 
-	      <tag>The init file <tt>&tilde;/.gracerc</tt></tag> This
+	      <tag/X Resources/ Grace reads several X Resources on
+		startup. These resources affect only the appearance of
+		the GUI, not the printed graphs. Please refer to the
+		User's Guide (question <ref id="manual" name="User
+		Guide">) for details.
+
+	      <tag>The init file &tilde;/.grace/gracerc</tag> This
 		file is in fact a Grace parameter file (question <ref
 		id="parameter" name="Parameter File">) which is read
 		when Grace starts. It can contain anything a parameter
@@ -658,16 +612,6 @@
 		defaults for more than one graph, you have to define
 		each of them explicitely, even if you want them to
 		look the same.
-
-	      <tag/command line option <tt/-param &lt;filename>// This
-		  will do the same as above except that the commands
-		  are read from <tt/&lt;filename>/.
-
-	      <tag/X Resources/ Grace reads several X Resources on
-		startup. These resources affect only the appearance of
-		the GUI, not the printed graphs. Please refer to the
-		User Guide (question <ref id="manual" name="User
-		Guide">) for details.
 
 	    </descrip>
 
@@ -690,7 +634,7 @@
 	      <tag/GRACE_EDITOR/ Specifies the editor which is used to
 		edit sets. Default is <tt>vi</tt> in an <tt/xterm/.
 
-	      <tag/HOME/ Your home directory.
+	      <tag/GRACE_PRINT_CMD/ The print command.
 
 	      <tag/GRACE_FFTW_RAM_WISDOM and GRACE_FFTW_WISDOM_FILE/ A
 		flag (0 or 1) and a file name which determine whether
@@ -712,7 +656,7 @@
 	<sect2>What command line options does Grace recognize?
 	  <p>
 
-	    Several. You can display them with <tt/xmgrace -help/.
+	    Quite a few. You can display them with <tt/xmgrace -help/.
 
       <sect1>Plotting
 	<p>
@@ -735,7 +679,7 @@
 	    implemented, so you can expect polar plots to work
 	    soon. The polar coordinates can be selected from the
 	    <tt>"Plot/Graph Appearance"</tt> menu.  Please refer to
-	    the User Guide (question <ref id="manual" name="User
+	    the User's Guide (question <ref id="manual" name="User
 	    Guide">) for details.
 
       <sect1>Strings
@@ -748,19 +692,8 @@
 	    text in Grace, e.g. Axis labels, graph title, text from
 	    <tt/Plot->Drawing objects/, etc., you can use all those
 	    features within the same text.  Please refer to the User
-	    Guide (question <ref id="manual" name="User Guide">) for
-	    details. There are some limitations, though, which are
-	    also discussed there.
-
-	<sect2>How do I produce special characters (Umlauts) with Grace?
-	  <p>
-
-	    Grace looks for the default font encoding in the file
-	    <tt>$GRACE_HOME/fonts/enc/Default.enc</tt>. Most people in
-	    Western Europe use Latin1 encoding, so make a link to
-	    <tt/ISOLatin1.enc/ (<tt/ln -s ISOLatin1.enc Default.enc/).
-	    Please refer to the User Guide (question <ref id="manual"
-	    name="User Guide">) for details.
+	    Guide (question <ref id="manual" name="User's Guide">) for
+	    details.
 
 	<sect2>What is T1lib good for? <label id="t1lib">
 	  <p>
@@ -774,16 +707,31 @@
 	    and you can get more info on t1lib at <url
 	    url="http://www.neuroinformatik.ruhr-uni-bochum.de/ini/PEOPLE/rmz/t1lib.html">.
 
-	<sect2>Can I use my own fonts?
+	<sect2>How do I produce special characters (Umlauts) with Grace?
+	  <p>
+            
+            If you asked this question, then you are probably familiar with
+            the issue of keymap modifying in X. Once you configured the key
+            mapping (with the use of <tt/xmodmap/), you can enter the extended
+            characters from the keyboard in any text input field. If,
+            in addition, the appropriate for your language font encoding is
+            anything but ISO Latin1 (used in most Western Europe countries),
+            you'll have to tell Grace so. See the
+            <ref id="fonts" name="next question">.
+
+	<sect2>Can I use my own fonts and/or encodings?  <label id="fonts">
 	  <p>
 
 	    Yes. Starting with version 5.0.1, you can use your own
-	    fonts, in addition to the standard fonts which
-	    include Helvetica, Courier, Times-Roman, Symbols and Zapf
+	    fonts, in addition to the standard 14 fonts which
+	    include Times-Roman, Helvetica, Courier, Symbols and Zapf
 	    Dingbats and come with Grace, and as a replacement for the
-            default fonts (for the purporse of localization).
+            default fonts (for the purporse of localization). As well,
+            an alternative encoding scheme can be specified.
+
+            Please refer to the User's Guide
+            (question <ref id="manual" name="User's Guide">) for details.
             
-	    <!-- TODO: How? -->
 
       <sect1>Files
 	<p>
@@ -791,14 +739,14 @@
 	<sect2>At which precision is numerical data saved? How can I set the precision?
 	  <p>
 
-	    By default, numbers are saved with six valid digits. To
+	    By default, numbers are saved with eight valid digits. To
 	    set your own precision, use the command
 
 	    <tt/DEFAULT SFORMAT formatstring/
 
 	    (e.g. in your <tt/.gracerc/, see question <ref id="custom"
 	      name="Customization">) with formatstring being in the
-	    <tt/printf(3)/ format. It works for XY sets only.
+	    <tt/printf(3)/ format.
 
 	<sect2>Grace cannot find help files.
 	  <p>
@@ -826,7 +774,7 @@
 	    <tt/grconvert/ utility supplied with the Grace
 	    distribution in order to convert the files. This can
 	    easily be achieved defining an input filter like in the
-	    file <tt/gracerc.sample/ which comes with Grace.
+	    <tt/gracerc/ sample file which comes with Grace.
 
 	<sect2>How do I save disk space? Can I use compressed project files?
 	  <p>
@@ -841,7 +789,7 @@
 
 	    <tt/DEFINE OFILTER "gzip - &gt;  %s" PATTERN "*.gz"/
 
-	    into your <tt>&tilde;/.gracerc</tt>. Then, everytime you
+	    into your personal grace init file. Then, everytime you
 	    specify a file name that ends with <tt/.gz/, gzip is used
 	    as input and output filters. You can use this mechanism to
 	    do other things, e.g. reading and storing files into a
@@ -898,33 +846,16 @@
 	<sect2>When I load a project saved with an earlier version of Xmgr (&lt;4.0), symbols of all (some) sets are drawn in black.
 	  <p>
 
-	    Xmgr-4 fixed the relict symbol-color bug. Previously
-	    (since Xmgr-3) all symbols by default were assigned the
-	    black color, but drawn using the line color. The fix thus
-	    would break any project saved with a post-2 version of
-	    Xmgr, unless symbol colors were explicitly defined. To
-	    overcome this, the new `-symcolorbug' flag should be used
-	    to load such a project. Once saved, it can be opened in
-	    the usual way. Projects saved with a 2.* version of
-	    x[m,v]gr (which didn't have the option to change the
-	    symbol color independently) will be converted
-	    automatically.
+	    Make sure you added a valid <tt/@VERSION versionid/ line to the
+            beginning of the file.
 
 	<sect2>How do I set the background color of a plot, outside of the graph frame?
 	  <p>
 
-	    Add
-
-	    <tt/background color NUMBER/
-
-	    to your <tt>&tilde;/.gracerc</tt>, or use <tt/grace -pexec
-	    "background color NUMBER"/.
+	    This can be done using the <tt>"Plot/Plot appearance"</tt> popup.
 
 	    This changes the background of the entire canvas, not only
 	    the background of graphs.
-
-	    This can be done using the <tt>"Options/Page"</tt> popup
-	    as well.
 
 <!-- **************************************** -->
 
@@ -968,8 +899,8 @@
 
 	  Files which are not in simple x y format must have a line
 	  <tt>@TYPE xytype</tt> before the actual data, where xytype
-	  stands for the set type.  Refer to the User Guide (question
-	  <ref id="manual" name="User Guide">) for details.
+	  stands for the set type.  Refer to the User's Guide (question
+	  <ref id="manual" name="User's Guide">) for details.
 	  Alternatively, the file format can be set with a command
 	  line switch.
 
@@ -988,8 +919,8 @@
 	  The option <tt/Read Block Data/ can be used to read in files
 	  where the values are organized in columns (up to 30). You
 	  can interactively select the type of set to be created and
-	  which columns should be used.  Refer to the User Guide
-	  (question <ref id="manual" name="User Guide">) for details.
+	  which columns should be used.  Refer to the User's Guide
+	  (question <ref id="manual" name="User's Guide">) for details.
 
       <sect1>How can I use pipes with Grace?
 	<p>
@@ -1002,8 +933,8 @@
 	  the pipe. So Grace can serve as data displayer for otherwise
 	  non-graphical programs.
 
-	  Refer to the User Guide (question <ref id="manual"
-	    name="User Guide">) or the tutorials (question <ref
+	  Refer to the User's Guide (question <ref id="manual"
+	    name="User's Guide">) or the tutorials (question <ref
 	    id="tutorial" name="Tutorials">) for further information.
 
 	  One example for using pipes is included in the <tt/`make
@@ -1024,36 +955,18 @@
 	  command line parameters or data files will produce a
 	  hardcopy on the default printer.
 
-      <sect1>How can I input yy-mm-dd hh:mm:ss data?
+      <sect1>How can I input data in date/time formats?
 	<p>
 
-	  Before reading the file, toss in a: 
-
-	  <verb>
-	    @format YYMMDD
-	    # then
-	    YY-MM-DD y
-
-	  
-	    @format YYMMDDHMS
-	    # then
-	    YY-MM-DD HH:MM:SS.S y
-
-	    @format MMDDYY
-	    # then
-	    MM-DD-YY y
-
-	    @format MMDDYYHMS
-	    # then
-	    MM-DD-YY HH:MM:SS.S y
-	  </verb>
-
-	  Although the format string says <tt/"yy"/, the year is read
-	  with (up to) four digits.
+	  Currently, you can't.
 
 	  The <url name="ISO8601 date format"
 	  url="http://www.cl.cam.ac.uk/~mgk25/iso-time.html"> is
-	  currently being implemented into Grace.
+	  currently being implemented into Grace and should appear
+          soon.
+          
+          Please use an external program to convert the data into the
+          Julian Date format.
 
       <sect1>What is the Julian Date?
 	<p>
@@ -1136,22 +1049,19 @@
 	    name="Susan Chacko" url="mailto:susanc@helix.nih.gov"> and
 	  can be found at <url url="http://helix.nih.gov/plotz.html">
 
-      <sect1>I use lots of graphs. How can I increase the maximum number of graphs?
+      <sect1>I use lots of text strings/boxes/.... How can I increase
+             the maximum number of the objects?
 	<p>
 
-	  Use the <tt/-maxgraph/ command line option.
-
-      <sect1>I use lots of sets. How can I increase the maximum number of sets?
-	<p>
-
-	  Use the <tt/-maxsets/ command line option.
+	  Use the <tt>-maxboxes/-maxellipses/-maxlines/-maxstr</tt> command
+          line options.
 
       <sect1>What different kinds of sets can Grace plot?
 	<p>
 
 	  The standard set is the regular (x,y) set, but there are
 	  others including error bars or descriptive strings. See the
-	  User Guide (question <ref id="manual" name="User Guide">)
+	  User's Guide (question <ref id="manual" name="User's Guide">)
 	  for details.
 
       <sect1>How do I make a Grace image fit on a given paper size?
@@ -1170,13 +1080,14 @@
     <sect>Runtime Errors
       <p>
 
-      <sect1>I can't anymore print (correctly) to a PostScript printer. Prior to Xmgr-4, this worked fine.
+      <sect1>I can't print (correctly) to my PostScript printer.
 	<p>
              
-	  The changes in the PostScript driver for fills using
-	  patterns, introduced in Xmgr-4.00, require use of a Level 2
-	  compliant PostScript printer. You can disable the PS Level 2
-	  features in the printer setup.
+	  By default, the PS driver uses Level 2 features, while your
+          printer may not be PostScript Level 2 compliant. You can force
+          the use of PS Level 1 only features in the PostScript device setup,
+          though output may be not exactly as expected (there will be no
+          pattern fills, for example). 
 
       <sect1>When I start Grace I get the message ``can't find library libXXX.so'' or similar.
 	<p>
@@ -1187,6 +1098,28 @@
 	  Motif (see question <ref id="motif" name="Motif">), PDF and
 	  GIF (see question <ref id="export" name="Output Devices">)
 	  and probably other libraries.
+
+	<sect2>Can't find library libXm.so (on Linux)
+	  <p>
+
+	    If this message occurs, then you don't have Motif (the Xm
+	    libraries, see question <ref id="motif" name="Motif">)
+	    installed (see the question above), or the linker doesn't
+	    know where it is. In the first case, try downloading
+	    Lesstif. In the second case, you have to tell your linker
+	    where it is. Look at the file <tt>/etc/ld.so.conf</tt>. It
+	    contains pathnames of the directories where dynamic
+	    libraries are stored. Add (as root) your directory to this
+	    file and run <tt>ldconfig -v</tt>. Now the libraries
+	    should be in the list.
+
+	    For some versions of Motif, the ``soname'' (which
+	    identifies the version of the library and is stored
+	    somewhere in the library) on your computer doesn't match
+	    the soname of the library on the computer where your copy
+	    of Grace was compiled on. Then you should use a
+	    (semi)statically linked version or compile Grace on your
+	    computer.
 
       <sect1>I get errors like "X Error of failed request: BadValue (integer parameter out of range for operation)"
 	<p>
@@ -1200,7 +1133,10 @@
 	  report it as a bug (question <ref id="w3todo" name="Bug
 	    Reports">).
 
-      <sect1>I run Grace and get the following error messages: Warning: translation table syntax error: Unknown keysym name: osfPageLeft Warning: ... found while parsing '&lt;Key>osfPageLeft:SWLeftPage()'
+      <sect1>I run Grace and get the following error messages: Warning:
+             translation table syntax error: Unknown keysym name: osfPageLeft
+             Warning: ... found while parsing
+             '&lt;Key>osfPageLeft:SWLeftPage()'
 	<p>
 
 	  Get the XKeySymDB file from the X11R6 distribution. Put it
@@ -1210,13 +1146,16 @@
 	  <ref id="environment" name="Environment Variables"> on how
 	  to set environment variables.
 
-      <sect1>I run Grace on a Solaris 2.5.1 box, and when I try to open a file, I can't read the names of the files (files section of the dialog) because Grace writes ALL the path of each file in the list and there is no horizontal scroll. Can you help me?
+      <sect1>I run Grace on a Solaris 2.5.1 box, and when I try to open a file,
+             I can't read the names of the files (files section of the dialog)
+             because Grace writes ALL the path of each file in the list and
+             there is no horizontal scroll.
 	<p>
 
 	  This is a known bug of Motif implementation on Solaris
-	  2.5.1 (both Sparc and Intel hardware). Ask your vendor for patch.
+	  2.5.1 (both Sparc and Intel hardware). Ask your vendor for a patch.
 
-      <sect1>Grace cannot find font database and initialize t1-library
+      <sect1>Grace cannot find font database and initialize the T1 library
 	<p>
 	  You have probably tried to run Grace without installing it,
 	  just after compilation. You got the following message :
@@ -1250,8 +1189,8 @@ Database File Initialization of t1-library failed!
 	<p>
 
 	  Lots. Almost every mouseclick in the GUI has an equivalent
-	  in the batch language. See the User Guide (question <ref
-	  id="manual" name="User Guide">) for details.
+	  in the batch language. See the User's Guide (question <ref
+	  id="manual" name="User's Guide">) for details.
 
 	  
       <sect1>How can I do feature extraction non-interactively?
@@ -1301,4 +1240,3 @@ Database File Initialization of t1-library failed!
   </article>
 
   <!-- End of FAQ.sgml -->
-
