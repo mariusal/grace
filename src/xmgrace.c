@@ -119,9 +119,9 @@ Widget statlab;			/* status line at the bottom */
 Widget stack_depth_item;	/* stack depth item on the main panel */
 Widget curw_item;		/* current world stack item on the main panel */
 
-Display *disp = (Display *) NULL;
-Window xwin;
 
+Display *disp;
+Window xwin;
 extern Window root;
 extern GC gc;
 extern int screennumber;
@@ -139,12 +139,9 @@ static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data);
 static Widget CreateMainMenuBar(Widget parent);
 static void init_pm(Pixel fg, Pixel bg);
 
-extern int action_flag;
-
 /*
  * for buttons on front panel
  */
-
 static Pixmap zoompm, shrinkpm, expandpm, autopm;
 static Pixmap uppm, leftpm, downpm, rightpm;
 
@@ -288,12 +285,22 @@ String fallbackResources[] = {
 #define MENU_PRINT	207
 
 
-void xlibprocess_args(int *argc, char **argv)
+int initialize_gui(int *argc, char **argv)
 {
     ApplicationData rd;
 
+    /* check for X connection available */
+    disp = XOpenDisplay(NULL);
+    if (disp == NULL) {
+        errmsg("Can't open X display connection!");
+	return GRACE_EXIT_FAILURE;
+    } else {
+        XCloseDisplay(disp);
+    }
+
     app_shell = XtVaAppInitialize(&app_con, "XMgrace", NULL, 0, argc, argv, 
     	fallbackResources, NULL);
+    disp = XtDisplay(app_shell);
     
     XtGetApplicationResources(app_shell, &rd, resources,
   			    XtNumber(resources), NULL, 0);
@@ -309,6 +316,8 @@ void xlibprocess_args(int *argc, char **argv)
     XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
     XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
     XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
+
+    return GRACE_EXIT_SUCCESS;
 }
 
 static void do_drawgraph(Widget w, XtPointer client_data, XtPointer call_data)
@@ -834,9 +843,9 @@ static Widget CreateMainMenuBar(Widget parent)
 
 
 /*
- * initialize the GUI
+ * build the GUI
  */
-void initialize_screen()
+void startup_gui(void)
 {
     Widget bt, rc3, rcleft;
     Pixmap icon, shape;
@@ -862,13 +871,9 @@ void initialize_screen()
 
     savewidget(app_shell);
     
-    disp = XtDisplay(app_shell);
-    if (disp == NULL) {
-	errmsg("xmgrace: can't open display, exiting...");
-	exit(1);
-    }
-    
     xlibinit();
+    XtVaSetValues(app_shell, XmNcolormap, cmap, NULL);
+    
 
 /*
  * We handle important WM events ourselves
@@ -1302,10 +1307,7 @@ void initialize_screen()
  * If logging is on, initialize
  */
     log_results("Startup");
-}
 
-void do_main_winloop(void)
-{
     XtAppMainLoop(app_con);
 }
 

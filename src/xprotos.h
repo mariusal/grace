@@ -61,10 +61,9 @@
 #include <Xm/Separator.h>
 #include <Xm/ScrolledW.h>
 
-void do_main_winloop(void);
+int initialize_gui(int *argc, char **argv);
+void startup_gui(void);
 
-void xlibprocess_args(int *argc, char **argv);
-void initialize_screen(void);
 void autoon_proc(void);
 void autoticks_proc(Widget w, XtPointer client_data, XtPointer call_data);
 void set_left_footer(char *s);

@@ -276,7 +276,7 @@ int inregion(int regno, double x, double y);
 void set_plotstr_string(plotstr * pstr, char *buf);
 void my_ellipse(double xc, double yc, double w, double h, int fill);
 
-void do_main_loop(void);
+void cli_loop(void);
 
 void initialize_nonl(void);
 void reset_nonl(void);

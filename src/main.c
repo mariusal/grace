@@ -49,11 +49,10 @@
 #include "plotone.h"
 
 #include "device.h"
+#include "dummydrv.h"
 #include "psdrv.h"
 #include "mfdrv.h"
-#ifdef NONE_GUI
-#  include "dummydrv.h"
-#else
+#ifndef NONE_GUI
 #  include "x11drv.h"
 #endif
 #ifdef HAVE_LIBPDF         
@@ -80,6 +79,17 @@ static void VersionInfo(void);
 
 int inpipe = FALSE;		/* if xmgrace is to participate in a pipe */
 
+Device_entry dev_dummy = {DEVICE_TERM,
+          "Dummy",
+          dummyinitgraphics,
+          NULL,
+          NULL,
+          "",
+          TRUE,
+          FALSE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+         };
+
 #ifndef NONE_GUI
 Device_entry dev_x11 = {DEVICE_TERM,
           "X11",
@@ -89,17 +99,6 @@ Device_entry dev_x11 = {DEVICE_TERM,
           "",
           FALSE,
           TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
-         };
-#else
-Device_entry dev_dummy = {DEVICE_TERM,
-          "Dummy",
-          dummyinitgraphics,
-          NULL,
-          NULL,
-          "",
-          TRUE,
-          FALSE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
          };
 #endif
@@ -199,6 +198,7 @@ int main(int argc, char *argv[])
     int loadlegend = 0;		/* legend on and load file names */
     int gcols = 0, grows = 0;
     int gracebat;		/* if executed as 'gracebat' then TRUE */
+    int cli = FALSE;            /* command line interface only */
     int remove_flag = FALSE;	/* remove file after read */
     int noprint = FALSE;	/* if gracebat, then don't print if true */
     int sigcatch = TRUE;	/* we handle signals ourselves */
@@ -266,33 +266,8 @@ int main(int argc, char *argv[])
     
     /* initialize the rng */
     srand48(100L);
-
-    /* initialize device, here tdevice is always 0 = Xlib */
-    device = 0;
     
     set_graph_active(cur_graph, TRUE);
-
-#ifndef NONE_GUI
-    tdevice = register_device(dev_x11);
-#else
-    tdevice = register_device(dev_dummy);
-#endif
-    select_device(tdevice);
-
-    hdevice = register_device(dev_ps);
-    register_device(dev_eps);
-
-    register_device(dev_mf);
-
-#ifdef HAVE_LIBPDF
-    register_device(dev_pdf);
-#endif
-
-#ifdef HAVE_LIBGD
-    register_device(dev_gd);
-    register_device(dev_gif);
-    register_device(dev_pnm);
-#endif
 
     /* initialize T1lib */
     if (init_t1() != GRACE_EXIT_SUCCESS) {
@@ -313,9 +288,41 @@ int main(int argc, char *argv[])
     } else {
 	gracebat = FALSE;
 #ifndef NONE_GUI    
-        xlibprocess_args(&argc, argv);
+        if (initialize_gui(&argc, argv) == GRACE_EXIT_SUCCESS) {
+            cli = FALSE;
+        } else {
+	    errmsg("Switching to CLI");
+	    cli = TRUE;
+        }
 #endif
     }
+
+    /* initialize devices */
+#ifndef NONE_GUI
+    if (cli == TRUE) {
+        tdevice = register_device(dev_dummy);
+    } else {
+        tdevice = register_device(dev_x11);
+    }
+#else
+    tdevice = register_device(dev_dummy);
+#endif
+    select_device(tdevice);
+
+    hdevice = register_device(dev_ps);
+    register_device(dev_eps);
+
+    register_device(dev_mf);
+
+#ifdef HAVE_LIBPDF
+    register_device(dev_pdf);
+#endif
+
+#ifdef HAVE_LIBGD
+    register_device(dev_gd);
+    register_device(dev_gif);
+    register_device(dev_pnm);
+#endif
 
     /* check whether locale is correctly set */
     if (set_locale_num(TRUE) == NULL) {
@@ -810,7 +817,6 @@ int main(int argc, char *argv[])
 	}			/* end for */
     }				/* end if */
 
-
     
     /*
      * Process events.
@@ -844,17 +850,7 @@ int main(int argc, char *argv[])
 /*
  * try to switch to the first graph
  */
-    select_graph(0);
-
-/*
- *     if (monomode == TRUE) {
- *         if (get_fontaa() ==  TRUE) {
- * 	    errmsg("Font antialiasing not available in the mono mode");
- * 	    set_fontaa(FALSE);
- * 	}
- *     }
- */
-    
+    select_graph(0);  
 
 /*
  * if -hardcopy on command line or executed as gracebat,
@@ -862,9 +858,7 @@ int main(int argc, char *argv[])
  */
     if (gracebat == TRUE) {
 	if (hdevice == 0) {
-	    fprintf(stderr,
-                "%s: terminal device can't be used for batch plotting\n",
-                argv[0]);
+	    errmsg("Terminal device can't be used for batch plotting");
 	    exit(1);
 	}
 	if (inpipe == TRUE) {
@@ -880,21 +874,53 @@ int main(int argc, char *argv[])
 	if (!noprint) {
 	    do_hardcopy();
 	}
-	if (resfp) {
-	    fclose(resfp);
-	}
         
-	exit(0);
+	bailout();
     } else {
-#ifndef NONE_GUI
-        initialize_screen();
-#endif
 /*
  * go main loop
  */
-        do_main_loop();
-        
-        exit(0);
+#ifndef NONE_GUI
+        if (cli == TRUE) {
+            cli_loop();
+        } else {
+            startup_gui();
+        }
+#else
+        cli_loop();
+#endif        
+    }
+    /* never reaches */
+    exit(0);
+}
+
+/*
+ * command interface loop
+ */
+void cli_loop(void)
+{
+    char pstring[MAX_STRING_LENGTH] = "";
+    int ilen;
+    int i = 1;
+
+    if (inpipe == TRUE) {
+        getdata(get_cg(), "stdin", SOURCE_DISK, curtype);
+        inpipe = FALSE;
+    }
+    if (batchfile[0]) {
+        getparms(batchfile);
+    }
+    /* TODO: RTI */
+    
+    while (TRUE) {
+        printf("grace:%d> ", i);
+        fgets(pstring, MAX_STRING_LENGTH - 1, stdin);
+        ilen = strlen(pstring);
+        if (ilen < 2) {
+            continue;
+        }
+        read_param(pstring);
+        i++;
     }
 }
 
@@ -983,31 +1009,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "\n");
     fprintf(stream, " ** If it scrolls too fast, run `%s -help | more\' **\n", progname);
     exit(0);
-}
-
-/*
- * command loop
- */
-void do_main_loop(void)
-{
-#ifdef NONE_GUI
-    char pstring[MAX_STRING_LENGTH];
-    int ilen;
-    int i = 1;
-    
-    while (TRUE) {
-        printf("grace:%d> ", i);
-        fgets(pstring, MAX_STRING_LENGTH - 1, stdin);
-        ilen = strlen(pstring);
-        if (ilen < 2) {
-            continue;
-        }
-        read_param(pstring);
-        i++;
-    }
-#else
-    do_main_winloop();
-#endif
 }
 
 void VersionInfo(void)
