@@ -244,113 +244,115 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         SetSensitive(ui->aacbuts[0], TRUE);
         SetSensitive(ui->aacbuts[1], TRUE);
         
-        switch (fid) {
-        case QFlavorProject:
-            update_project_ui(ui->project_ui, q);
-            
-            ManageChild(ui->project_ui->top);
-            UnmanageChild(ui->frame_ui->top);
-            UnmanageChild(ui->graph_ui->top);
-            UnmanageChild(ui->set_ui->top);
-            UnmanageChild(ui->axis_ui->top);
-            UnmanageChild(ui->object_ui->top);
-            UnmanageChild(ui->atext_ui->top);
-            UnmanageChild(ui->region_ui->top);
-            break;
-        case QFlavorFrame:
-            update_frame_ui(ui->frame_ui, q);
-            
-            UnmanageChild(ui->project_ui->top);
-            ManageChild(ui->frame_ui->top);
-            UnmanageChild(ui->graph_ui->top);
-            UnmanageChild(ui->set_ui->top);
-            UnmanageChild(ui->axis_ui->top);
-            UnmanageChild(ui->object_ui->top);
-            UnmanageChild(ui->atext_ui->top);
-            UnmanageChild(ui->region_ui->top);
-            break;
-        case QFlavorGraph:
-            update_graph_ui(ui->graph_ui, q);
-            
-            UnmanageChild(ui->project_ui->top);
-            UnmanageChild(ui->frame_ui->top);
-            ManageChild(ui->graph_ui->top);
-            UnmanageChild(ui->set_ui->top);
-            UnmanageChild(ui->axis_ui->top);
-            UnmanageChild(ui->object_ui->top);
-            UnmanageChild(ui->atext_ui->top);
-            UnmanageChild(ui->region_ui->top);
-            break;
-        case QFlavorSet:
-            update_set_ui(ui->set_ui, q);
-            
-            UnmanageChild(ui->project_ui->top);
-            UnmanageChild(ui->frame_ui->top);
-            UnmanageChild(ui->graph_ui->top);
-            ManageChild(ui->set_ui->top);
-            UnmanageChild(ui->axis_ui->top);
-            UnmanageChild(ui->object_ui->top);
-            UnmanageChild(ui->atext_ui->top);
-            UnmanageChild(ui->region_ui->top);
-            break;
-        case QFlavorAxis:
-            update_axis_ui(ui->axis_ui, q);
-            
-            UnmanageChild(ui->project_ui->top);
-            UnmanageChild(ui->frame_ui->top);
-            UnmanageChild(ui->graph_ui->top);
-            UnmanageChild(ui->set_ui->top);
-            ManageChild(ui->axis_ui->top);
-            UnmanageChild(ui->object_ui->top);
-            UnmanageChild(ui->atext_ui->top);
-            UnmanageChild(ui->region_ui->top);
-            break;
-        case QFlavorDObject:
-            update_object_ui(ui->object_ui, q);
-            
-            UnmanageChild(ui->project_ui->top);
-            UnmanageChild(ui->frame_ui->top);
-            UnmanageChild(ui->graph_ui->top);
-            UnmanageChild(ui->set_ui->top);
-            UnmanageChild(ui->axis_ui->top);
-            ManageChild(ui->object_ui->top);
-            UnmanageChild(ui->atext_ui->top);
-            UnmanageChild(ui->region_ui->top);
-            break;
-        case QFlavorAText:
-            update_atext_ui(ui->atext_ui, q);
-            
-            UnmanageChild(ui->project_ui->top);
-            UnmanageChild(ui->frame_ui->top);
-            UnmanageChild(ui->graph_ui->top);
-            UnmanageChild(ui->set_ui->top);
-            UnmanageChild(ui->axis_ui->top);
-            UnmanageChild(ui->object_ui->top);
-            ManageChild(ui->atext_ui->top);
-            UnmanageChild(ui->region_ui->top);
-            break;
-        case QFlavorRegion:
-            update_region_ui(ui->region_ui, q);
-            
-            UnmanageChild(ui->project_ui->top);
-            UnmanageChild(ui->frame_ui->top);
-            UnmanageChild(ui->graph_ui->top);
-            UnmanageChild(ui->set_ui->top);
-            UnmanageChild(ui->axis_ui->top);
-            UnmanageChild(ui->object_ui->top);
-            UnmanageChild(ui->atext_ui->top);
-            ManageChild(ui->region_ui->top);
-            break;
-        default:
-            UnmanageChild(ui->project_ui->top);
-            UnmanageChild(ui->frame_ui->top);
-            UnmanageChild(ui->graph_ui->top);
-            UnmanageChild(ui->set_ui->top);
-            UnmanageChild(ui->axis_ui->top);
-            UnmanageChild(ui->object_ui->top);
-            UnmanageChild(ui->atext_ui->top);
-            UnmanageChild(ui->region_ui->top);
-            break;
+        if (count == 1) {
+            switch (fid) {
+            case QFlavorProject:
+                update_project_ui(ui->project_ui, q);
+
+                ManageChild(ui->project_ui->top);
+                UnmanageChild(ui->frame_ui->top);
+                UnmanageChild(ui->graph_ui->top);
+                UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axis_ui->top);
+                UnmanageChild(ui->object_ui->top);
+                UnmanageChild(ui->atext_ui->top);
+                UnmanageChild(ui->region_ui->top);
+                break;
+            case QFlavorFrame:
+                update_frame_ui(ui->frame_ui, q);
+
+                UnmanageChild(ui->project_ui->top);
+                ManageChild(ui->frame_ui->top);
+                UnmanageChild(ui->graph_ui->top);
+                UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axis_ui->top);
+                UnmanageChild(ui->object_ui->top);
+                UnmanageChild(ui->atext_ui->top);
+                UnmanageChild(ui->region_ui->top);
+                break;
+            case QFlavorGraph:
+                update_graph_ui(ui->graph_ui, q);
+
+                UnmanageChild(ui->project_ui->top);
+                UnmanageChild(ui->frame_ui->top);
+                ManageChild(ui->graph_ui->top);
+                UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axis_ui->top);
+                UnmanageChild(ui->object_ui->top);
+                UnmanageChild(ui->atext_ui->top);
+                UnmanageChild(ui->region_ui->top);
+                break;
+            case QFlavorSet:
+                update_set_ui(ui->set_ui, q);
+
+                UnmanageChild(ui->project_ui->top);
+                UnmanageChild(ui->frame_ui->top);
+                UnmanageChild(ui->graph_ui->top);
+                ManageChild(ui->set_ui->top);
+                UnmanageChild(ui->axis_ui->top);
+                UnmanageChild(ui->object_ui->top);
+                UnmanageChild(ui->atext_ui->top);
+                UnmanageChild(ui->region_ui->top);
+                break;
+            case QFlavorAxis:
+                update_axis_ui(ui->axis_ui, q);
+
+                UnmanageChild(ui->project_ui->top);
+                UnmanageChild(ui->frame_ui->top);
+                UnmanageChild(ui->graph_ui->top);
+                UnmanageChild(ui->set_ui->top);
+                ManageChild(ui->axis_ui->top);
+                UnmanageChild(ui->object_ui->top);
+                UnmanageChild(ui->atext_ui->top);
+                UnmanageChild(ui->region_ui->top);
+                break;
+            case QFlavorDObject:
+                update_object_ui(ui->object_ui, q);
+
+                UnmanageChild(ui->project_ui->top);
+                UnmanageChild(ui->frame_ui->top);
+                UnmanageChild(ui->graph_ui->top);
+                UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axis_ui->top);
+                ManageChild(ui->object_ui->top);
+                UnmanageChild(ui->atext_ui->top);
+                UnmanageChild(ui->region_ui->top);
+                break;
+            case QFlavorAText:
+                update_atext_ui(ui->atext_ui, q);
+
+                UnmanageChild(ui->project_ui->top);
+                UnmanageChild(ui->frame_ui->top);
+                UnmanageChild(ui->graph_ui->top);
+                UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axis_ui->top);
+                UnmanageChild(ui->object_ui->top);
+                ManageChild(ui->atext_ui->top);
+                UnmanageChild(ui->region_ui->top);
+                break;
+            case QFlavorRegion:
+                update_region_ui(ui->region_ui, q);
+
+                UnmanageChild(ui->project_ui->top);
+                UnmanageChild(ui->frame_ui->top);
+                UnmanageChild(ui->graph_ui->top);
+                UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axis_ui->top);
+                UnmanageChild(ui->object_ui->top);
+                UnmanageChild(ui->atext_ui->top);
+                ManageChild(ui->region_ui->top);
+                break;
+            default:
+                UnmanageChild(ui->project_ui->top);
+                UnmanageChild(ui->frame_ui->top);
+                UnmanageChild(ui->graph_ui->top);
+                UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axis_ui->top);
+                UnmanageChild(ui->object_ui->top);
+                UnmanageChild(ui->atext_ui->top);
+                UnmanageChild(ui->region_ui->top);
+                break;
+            }
         }
     }
 
@@ -484,7 +486,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
         TreeItemData *ti_data = (TreeItemData *) item->user_data;
         Quark *q = ti_data->q;
 
-        if (!caller || caller == ui->idstr) {
+        if (count == 1 && (!caller || caller == ui->idstr)) {
             char *s = GetTextString(ui->idstr);
             quark_idstr_set(q, s);
             xfree(s);
