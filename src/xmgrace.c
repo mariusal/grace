@@ -226,6 +226,7 @@ static XtResource resources[] =
 String fallbackResources[] = {
     "XMgrace*fontList:-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
     "XMgrace*tabFontList:-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
+    "XMgrace*monText.fontList:-adobe-courier-medium-r-normal-*-12-*-*-*-*-*-*-*",
     "XMgrace*background: #e5e5e5",
     "XMgrace*foreground: #000000",
     "XMgrace*XbaeMatrix.oddRowBackground: #cccccc",

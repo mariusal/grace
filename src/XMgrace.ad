@@ -3,6 +3,8 @@
 !
 !XMgrace*fontList: -adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*
 !XMgrace*tabFontList: -adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*
+! Fixed font for "Results" window
+!XMgrace*monText.fontList: -adobe-courier-medium-r-normal-*-12-*-*-*-*-*-*-*
 !XMgrace*background: #e5e5e5e5e5e5
 !XMgrace*XmPushButton*background: #b0b0c4c4dede
 !XMgrace*XmArrowButton*background: #b0b0c4c4dede
