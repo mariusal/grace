@@ -21,7 +21,7 @@
  *
  * ClipWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Clip.c,v 1.1 1999-09-11 01:25:36 fnevgeny Exp $
+ * $Id: Clip.c,v 1.2 2005-02-14 00:24:53 fnevgeny Exp $
  */
 
 /*
@@ -104,7 +104,7 @@ XbaeClipClassRec xbaeClipClassRec = {
 	/* set_values_hook	*/ NULL,
 	/* set_values_almost	*/ XtInheritSetValuesAlmost,
 	/* get_values_hook	*/ NULL,
-	/* accept_focus		*/ NULL,
+	/* accept_focus		*/ XtInheritAcceptFocus,
 	/* version		*/ XtVersion,
 	/* callback_private	*/ NULL,
 	/* tm_table		*/ defaultTranslations,
@@ -116,7 +116,7 @@ XbaeClipClassRec xbaeClipClassRec = {
     {
 	/* border_highlight	*/ NULL,
 	/* border_unhighlight	*/ NULL,
-	/* translations		*/ NULL,
+	/* translations		*/ XtInheritTranslations,
 	/* arm_and_activate	*/ NULL,
 	/* syn_resources	*/ NULL,
 	/* num_syn_resources	*/ 0,
