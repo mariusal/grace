@@ -121,6 +121,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> Extra libraries. Some features will be available only if
                  additional libraries are installed. Those are:
             <itemize>
+              <item> All raster backends (PNG, JPEG, ...) are based upon the
+                     (<url name="Xmi library" url="http://www.gnu.org/software/libxmi/libxmi.html">),
+                     version 1.2.
               <item> The JPEG backend needs the IJG's
                      (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">),
                      version 6.x.
@@ -385,7 +388,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             BARDY             |     -    |    +     |   -   |   -   |  -  @
             BARDYDY           |     -    |    +     |   -   |   -   |  -  @
             XYHILO            |     +    |    -     |   -   |   -   |  -  @
-            XYZ               |     +    |    -     |   +   |   -   |  -  @
+            XYZ               |     +    |    -     |   +   |   +   |  -  @
             XYR               |     -    |    -     |   +   |   -   |  -  @
             XYSIZE            |     +    |    +     |   +   |   +   |  -  @
             XYCOLOR           |     +    |    +     |   +   |   +   |  +  @
@@ -3233,12 +3236,8 @@ C
       available devices can be seen (among other stuff) by specifying the
       "-version" command line switch.
       <itemize>
-        <item> X11, PostScript and EPS are full-featured devices
-        <item> Raster drivers (PNM/JPEG/PNG):
-               <itemize>
-                 <item> only even-odd fill rule is supported
-                 <item> patterned lines are not implemented
-               </itemize>
+        <item> X11, PostScript, EPS and all raster drivers (PNM/JPEG/PNG)
+               are full-featured devices
         <item> PDF driver:
                <itemize>
                  <item> bitmapped text strings are not transparent
@@ -3250,11 +3249,7 @@ C
                  <item> bitmapped text strings not implemented
                </itemize>
         <item> SVG driver:
-               the driver is a brand new one and still in beta test, one
-               should also be aware that SVG is still a W3C working draft,
-               not yet a recommendation (see the <url
-               url="http://www.w3.org/TR/1999/12/WD-SVG-19991203/"
-               name="Scalable Vector Graphics (SVG) 1.0 Specification">)
+               the driver is a brand new one and still in beta test 
                <itemize>
                  <item> patterned fills not implemented
                  <item> bitmapped text strings not implemented

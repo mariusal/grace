@@ -68,9 +68,13 @@
  *  [ES] fp precision in PDF
  *  [ES] two-pass drivers
  *  [ES] BBox and resources at the top of PS output
- *  [ES] font embedding/subsetting in PS
+ *  [ES] font embedding/subsetting in PS (rep. #927)
  *  [ES] PS output optimization
  *  [ES] HiResBoundingBox in PS
+ *  [ES] rewritten raster drivers to use the Xmi library instead of GD. This
+         made the raster drivers full featured: previously missing features -
+	 winding fillrule, patterned lines are implemented and many weird
+	 things fixed
 
 <H3>Portability/Compilation</H3>
  *  [AM] OS/2 updates
