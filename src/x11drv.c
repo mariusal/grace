@@ -231,8 +231,8 @@ void xlibinitcmap(void)
     
     for (i = 0; i < number_of_colors(); i++) {
         /* even in mono, b&w must be allocated */
-        prgb = get_rgb(i);
         if (monomode == FALSE || i < 2) { 
+            prgb = get_rgb(i);
             if (prgb != NULL) {
                 xc[i].red = prgb->red << (16 - GRACE_BPP);
                 xc[i].green = prgb->green << (16 - GRACE_BPP);

@@ -280,6 +280,11 @@
  *  [ES] #385, #441
  !  [ES] fonttool
  *  [LM] linear regression on a two-point set was performed wrongly
+ !  [ES] toolbar X resources
+ *  [ES] buffered npipe read
+ !  [ES] color map stuff
+ !  [AM] autoscaling with range restrictions
+ !  [ES] use IsoLatin1 if Default.enc is not found
 
  _Legend:_
 

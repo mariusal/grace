@@ -11,7 +11,7 @@ CC="gcc"
 ###############################
 # C flags
 #
-CFLAGS="-m486 -malign-double -fno-common -Wall -pedantic -Wtraditional \
+CFLAGS="-m486 -malign-double -fno-common -Wall -pedantic \
 -Wpointer-arith -Wcast-align -Wnested-externs"
 #-Wshadow -Wmissing-prototypes -Wwrite-strings -Waggregate-return \
 #-W -Wcast-qual -Wconversion -Wstrict-prototypes 

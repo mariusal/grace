@@ -1078,7 +1078,7 @@ int number_of_linestyles(void)
 }
 
 /* 
- * ------------------ Line style routines ---------------
+ * ------------------ Line width routines ---------------
  */
 
 int number_of_linewidths(void)

@@ -41,7 +41,7 @@ AFMS =  type1/d050000l.afm \
 	type1/n021024l.afm \
 	type1/s050000l.afm
 
-ENCODINGS = enc/IsoLatin1.enc enc/IsoLatin2.enc enc/Default.enc
+ENCODINGS = enc/IsoLatin1.enc enc/IsoLatin2.enc
 
 all : dummy
 
