@@ -675,51 +675,6 @@ AC_DEFUN(ACX_CHECK_XMI,
   fi
 ])dnl
 
-dnl ACX_CHECK_TIFF
-dnl --------------
-AC_DEFUN(ACX_CHECK_TIFF,
-[
-  AC_ARG_WITH(tiff_library,
-  [  --with-tiff-library=OBJ      use OBJ as TIFF library [[-ltiff]]],
-  tiff_library="$withval")
-  if test "x$tiff_library" = "x"
-  then
-    tiff_library=-ltiff
-  fi
-
-  AC_CACHE_CHECK([for libtiff >= $1], acx_cv_tiff,
-    AC_CACHE_VAL(acx_cv_tiff_library, acx_cv_tiff_library=$tiff_library)
-    ACX_SAVE_STATE
-    LIBS="$acx_cv_tiff_library $JPEG_LIB $Z_LIB -lm $LIBS"
-    AC_TRY_RUN([
-#include <tiffio.h>
-      int main(void) {
-        int vinc;
-        (void) TIFFGetVersion();
-        vinc = TIFFLIB_VERSION;
-        if (vinc < [$1]) {
-          exit(1);
-        }
-        exit(0);
-      }
-      ],
-
-      acx_cv_tiff="yes",
-      acx_cv_tiff="no",
-      acx_cv_tiff="no"
-    )
-    ACX_RESTORE_STATE
-  )
-  if test "$acx_cv_tiff" = "yes"
-  then
-    TIFF_LIB="$acx_cv_tiff_library"
-    $2
-  else
-    TIFF_LIB=
-    $3
-  fi
-])dnl
-
 dnl ACX_CHECK_PDFLIB
 dnl --------------
 AC_DEFUN(ACX_CHECK_PDFLIB,
@@ -735,7 +690,7 @@ AC_DEFUN(ACX_CHECK_PDFLIB,
   AC_CACHE_CHECK([for PDFlib >= $1], acx_cv_pdflib,
     AC_CACHE_VAL(acx_cv_pdf_library, acx_cv_pdf_library=$pdf_library)
     ACX_SAVE_STATE
-    LIBS="$acx_cv_pdf_library $TIFF_LIB $JPEG_LIB $PNG_LIB $Z_LIB $LIBS"
+    LIBS="$acx_cv_pdf_library $JPEG_LIB $PNG_LIB $Z_LIB $LIBS"
     AC_TRY_RUN([
 #include <pdflib.h>
       int main(void) {

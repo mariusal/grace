@@ -77,9 +77,6 @@ Z_LIB=@Z_LIB@
 # PNG library
 PNG_LIB=@PNG_LIB@
 
-# TIFF library
-TIFF_LIB=@TIFF_LIB@
-
 # PDFlib library
 PDF_LIB=@PDF_LIB@
 
