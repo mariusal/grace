@@ -122,7 +122,7 @@ static OptionStructure *barlines;
 
 static Widget specticks;        /* special ticks and tick labels */
 static Widget specticklabels;
-static Widget nspec;
+static SpinStructure *nspec;
 static Widget specnum[MAX_TICKS];       /* label denoting which tick/label */
 static Widget specloc[MAX_TICKS];
 static Widget speclabel[MAX_TICKS];
@@ -529,7 +529,8 @@ void create_axes_dialog(int axisno)
         specticks = CreateToggleButton(rc, "Use special tick locations");
         specticklabels = CreateToggleButton(rc, "Use special tick labels");
 
-        nspec = CreateTextItem2(rc, 3, "# of user ticks/labels to use:");
+        nspec = CreateSpinChoice(rc, "Number of user ticks to use:",
+            3, SPIN_TYPE_INT, 0.0, (double) MAX_TICKS, 1.0);
         XtVaCreateManagedWidget("Tick location - Label:", xmLabelWidgetClass,
                                          rc, NULL);
         XtManageChild(rc);
@@ -552,7 +553,7 @@ void create_axes_dialog(int axisno)
         for (i = 0; i < MAX_TICKS; i++) {
             rc3 = XmCreateRowColumn(rc, "rc3", NULL, 0);
             XtVaSetValues(rc3, XmNorientation, XmHORIZONTAL, NULL);
-            sprintf(buf, "%2d", i + 1);
+            sprintf(buf, "%2d", i);
             specnum[i] = XtVaCreateManagedWidget(buf, xmLabelWidgetClass, rc3,
                                                  NULL);
             specloc[i] = XtVaCreateManagedWidget("tickmark", xmTextFieldWidgetClass, rc3,
@@ -619,7 +620,6 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
 {
     int aac_mode;
     int i, j;
-    int iv;
     int applyto;
     int axis_start, axis_stop, graph_start, graph_stop;
     int invert;
@@ -775,20 +775,9 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
     t.tl_type = GetToggleButtonState(specticklabels) ? TYPE_SPEC : TYPE_AUTO;
     /* only read special info if special ticks used */
     if (t.t_type == TYPE_SPEC || t.tl_type == TYPE_SPEC) {
-        if (xv_evalexpri(nspec, &iv) != GRACE_EXIT_SUCCESS) {
-            errmsg("Specify number of ticks to use");
-            free_ticklabels(&t);
-            return;
-        }
-        if (iv > MAX_TICKS) {
-            sprintf(buf, "Number of ticks/tick labels exceeds %d", MAX_TICKS);
-            errmsg(buf);
-            free_ticklabels(&t);
-            return;
-        }
-        t.nticks = iv;
+        t.nticks = (int) GetSpinChoice(nspec);
         /* ensure that enough tick positions have been specified */
-        for (i = 0; i < iv; i++) {
+        for (i = 0; i < t.nticks; i++) {
             if (xv_evalexpr(specloc[i], &t.tloc[i].wtpos) == GRACE_EXIT_SUCCESS) {
                 if (t.tl_type == TYPE_SPEC) {
                     cp = xv_getstr(speclabel[i]);
@@ -958,7 +947,7 @@ void update_ticks(int gno)
     char buf[128];
     int i, iv;
 
-    if (axes_dialog) {
+    if (axes_dialog && XtIsManaged(axes_dialog)) {
         get_graph_tickmarks(gno, &t, curaxis);
 
         SetToggleButtonState(axis_active, is_axis_active(gno, curaxis));
@@ -1154,8 +1143,7 @@ void update_ticks(int gno)
 
         SetToggleButtonState(specticks, (t.t_type == TYPE_SPEC));
         SetToggleButtonState(specticklabels, (t.tl_type == TYPE_SPEC));
-        sprintf(buf, "%d", t.nticks);
-        xv_setstr(nspec, buf);
+        SetSpinChoice(nspec, t.nticks);
         for (i = 0; i < t.nticks; i++) {
             sprintf(buf, "%g", t.tloc[i].wtpos);
             xv_setstr(specloc[i], buf);
