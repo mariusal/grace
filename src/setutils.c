@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -47,8 +47,6 @@
 #include "protos.h"
 
 extern graph *g;
-
-static char buf[256];
 
 /*
  * return the string version of the set type
@@ -182,13 +180,21 @@ char *dataset_colname(int col)
 }
 
 /*
- * allocate arrays for a set of length len.
+ * (re)allocate data arrays for a set of length len.
  */
-static int allocxy(plotarr *p, int len)
+int setlength(int gno, int setno, int len)
 {
-    int i, ncols;
+    plotarr *p;
+    int i, j, ncols, oldlen;
 
-    if (len == p->data.len) {
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return GRACE_EXIT_FAILURE;
+    }
+    
+    p = &g[gno].p[setno];
+
+    oldlen = p->data.len;
+    if (len == oldlen) {
 	return GRACE_EXIT_SUCCESS;
     }
     if (len < 0) {
@@ -202,28 +208,360 @@ static int allocxy(plotarr *p, int len)
 	return GRACE_EXIT_FAILURE;
     }
     
-    /* TODO: memory leak! */
+    for (i = 0; i < ncols; i++) {
+	if ((p->data.ex[i] = xrealloc(p->data.ex[i], len*SIZEOF_DOUBLE)) == NULL
+            && len != 0) {
+	    errmsg("Insufficient memory to allocate for plots");
+	    return GRACE_EXIT_FAILURE;
+	}
+        for (j = oldlen; j < len; j++) {
+            p->data.ex[i][j] = 0.0;
+        }
+    }
+    
     if (p->type == SET_XYSTRING) {
+        for (i = len; i < oldlen; i++) {
+            xfree(p->data.s[i]);
+        }
         p->data.s = xrealloc(p->data.s, len*sizeof(char *));
-    } else {
-        cxfree(p->data.s);
+        for (j = oldlen; j < len; j++) {
+            p->data.s[j] = copy_string(NULL, "");
+        }
     }
     
     p->data.len = len;
 
-    for (i = 0; i < ncols; i++) {
-	if (len != 0 &&
-            (p->data.ex[i] = xrealloc(p->data.ex[i], len*SIZEOF_DOUBLE)) == NULL) {
-	    errmsg("Insufficient memory to allocate for plots");
-	    return GRACE_EXIT_FAILURE;
-	}
-    }
-    
     set_dirtystate();
-    set_lists_dirty(TRUE);
     
     return GRACE_EXIT_SUCCESS;
 }
+
+/*
+ * moveset 
+ */
+int moveset(int gnofrom, int setfrom, int gnoto, int setto)
+{
+    int k;
+
+    if (gnoto == gnofrom && setfrom == setto) {
+	return GRACE_EXIT_FAILURE;
+    }
+
+    if (is_valid_setno(gnofrom, setfrom) != TRUE ||
+        is_valid_setno(gnoto, setto) != TRUE ) {
+        return GRACE_EXIT_FAILURE;
+    }
+
+    killset(gnoto, setto);
+
+    memcpy(&g[gnoto].p[setto], &g[gnofrom].p[setfrom], sizeof(plotarr));
+
+    g[gnofrom].p[setfrom].data.len = 0;
+    for (k = 0; k < MAX_SET_COLS; k++) {
+	g[gnofrom].p[setfrom].data.ex[k] = NULL;
+    }
+    g[gnofrom].p[setfrom].data.s = NULL;
+    
+    g[gnofrom].p[setfrom].hidden = TRUE;
+    
+    set_dirtystate();
+    return GRACE_EXIT_SUCCESS;
+}
+
+/*
+ * copy a set to another set, if the to set doesn't exist allocate it
+ */
+int copyset(int gfrom, int setfrom, int gto, int setto)
+{
+    int k, len;
+    double *savec[MAX_SET_COLS];
+    char buf[256];
+
+    if (!is_graph_active(gto)) {
+	set_graph_active(gto, TRUE);
+    }
+    if (!is_set_active(gfrom, setfrom)) {
+	return GRACE_EXIT_FAILURE;
+    }
+    if (setfrom == setto && gfrom == gto) {
+	return GRACE_EXIT_FAILURE;
+    }
+    if (is_set_active(gto, setto)) {
+	killset(gto, setto);
+    }
+    activateset(gto, setto);
+    set_dataset_type(gto, setto, dataset_type(gfrom, setfrom));
+    len = getsetlength(gfrom, setfrom);
+    setlength(gto, setto, len);
+
+    for (k = 0; k < MAX_SET_COLS; k++) {
+	savec[k] = getcol(gto, setto, k);
+    }
+    memcpy(&g[gto].p[setto], &g[gfrom].p[setfrom], sizeof(plotarr));
+    for (k = 0; k < MAX_SET_COLS; k++) {
+	g[gto].p[setto].data.ex[k] = savec[k];
+	if (getcol(gfrom, setfrom, k) != NULL &&
+            getcol(gto, setto, k) != NULL) {
+	    memcpy(g[gto].p[setto].data.ex[k],
+                g[gfrom].p[setfrom].data.ex[k],
+                len*SIZEOF_DOUBLE);
+	}
+    }
+
+    sprintf(buf, "copy of set G%d.S%d", gfrom, setfrom);
+    setcomment(gto, setto, buf);
+
+    set_dirtystate();
+    
+    return GRACE_EXIT_SUCCESS;
+}
+
+/*
+ * swap a set with another set
+ */
+int swapset(int gno1, int setno1, int gno2, int setno2)
+{
+    plotarr p;
+
+    if (is_valid_setno(gno1, setno1) == FALSE ||
+        is_valid_setno(gno2, setno2) == FALSE) {
+	return GRACE_EXIT_FAILURE;
+    }
+    if (setno1 == setno2 && gno1 == gno2) {
+	return GRACE_EXIT_FAILURE;
+    }
+
+    memcpy(&p, &g[gno2].p[setno2], sizeof(plotarr));
+    memcpy(&g[gno2].p[setno2], &g[gno1].p[setno1], sizeof(plotarr));
+    memcpy(&g[gno1].p[setno1], &p, sizeof(plotarr));
+
+    set_dirtystate();
+    
+    return GRACE_EXIT_SUCCESS;
+}
+
+/*
+ * free set data, but preserve the parameter settings
+ */
+void killsetdata(int gno, int setno)
+{
+    int i;
+
+    if (is_set_active(gno, setno)) {
+	for (i = 0; i < MAX_SET_COLS; i++) {
+	    if (getcol(gno, setno, i) != NULL) {
+		free(g[gno].p[setno].data.ex[i]);
+	    }
+	    g[gno].p[setno].data.ex[i] = NULL;
+	}
+	if (dataset_type(gno, setno) == SET_XYSTRING && get_set_strings(gno, setno) != NULL) {
+	    for (i = 0; i < getsetlength(gno, setno); i++) {
+		cxfree(g[gno].p[setno].data.s[i]);
+	    }
+	    cxfree(g[gno].p[setno].data.s[i]);
+	}
+	g[gno].p[setno].data.len = 0;
+	set_set_hidden(gno, setno, TRUE);
+	set_dirtystate();
+    }
+}
+
+/*
+ * kill a set
+ */
+void killset(int gno, int setno)
+{
+    if (is_valid_setno(gno, setno)) {
+	killsetdata(gno, setno);
+	set_default_plotarr(&g[gno].p[setno]);
+    }
+}
+
+double *getcol(int gno, int setno, int col)
+{
+    if (is_valid_setno(gno, setno)) {
+        return g[gno].p[setno].data.ex[col];
+    } else {
+        return NULL;
+    }
+}
+
+void setcol(int gno, double *x, int setno, int len, int col)
+{
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
+    g[gno].p[setno].data.ex[col] = x;
+    g[gno].p[setno].data.len = len;
+    set_dirtystate();
+}
+
+char **get_set_strings(int gno, int setno)
+{
+    if (is_valid_setno(gno, setno)) {
+        return g[gno].p[setno].data.s;
+    } else {
+        return NULL;
+    }
+}
+
+int set_set_strings(int gno, int setno, int len, char **s)
+{
+    if (is_valid_setno(gno, setno) && len > 0 && s!= NULL) {
+        g[gno].p[setno].data.s = s;
+        g[gno].p[setno].data.len = len;
+        set_dirtystate();
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
+
+int getsetlength(int gno, int setno)
+{
+    if (is_valid_setno(gno, setno)) {
+        return g[gno].p[setno].data.len;
+    } else {
+        return -1;
+    }
+}
+
+int setcomment(int gno, int setno, char *s)
+{ 
+    if (is_valid_setno(gno, setno) && s != NULL) {
+        strncpy(g[gno].p[setno].comments, s, MAX_STRING_LENGTH - 1);
+        set_dirtystate();
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
+
+char *getcomment(int gno, int setno)
+{ 
+    if (is_valid_setno(gno, setno)) {
+        return g[gno].p[setno].comments;
+    } else {
+        return NULL;
+    }
+}
+
+int set_legend_string(int gno, int setno, char *s)
+{ 
+    if (is_valid_setno(gno, setno) && s != NULL) {
+        strncpy(g[gno].p[setno].lstr, s, MAX_STRING_LENGTH - 1);
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
+
+char *get_legend_string(int gno, int setno)
+{ 
+    if (is_valid_setno(gno, setno)) {
+        return g[gno].p[setno].lstr;
+    } else {
+        return NULL;
+    }
+}
+
+int set_dataset_type(int gno, int setno, int type)
+{ 
+    int i, len, ncols_old, ncols_new;
+    
+    if (is_valid_setno(gno, setno)) {
+        len = getsetlength(gno, setno);
+        ncols_old = dataset_cols(gno, setno);
+        ncols_new = settype_cols(type);
+        for (i = ncols_old; i < ncols_new; i++) {
+            g[gno].p[setno].data.ex[i] = calloc(len, SIZEOF_DOUBLE);
+        }
+        for (i = ncols_new; i < ncols_old; i++) {
+            cxfree(g[gno].p[setno].data.ex[i]);
+        }
+        switch (type) {
+        case SET_XYSTRING:
+            g[gno].p[setno].avalue.active = TRUE;
+            g[gno].p[setno].avalue.type = AVALUE_TYPE_STRING;
+            break;
+        case SET_XYZ:
+            g[gno].p[setno].avalue.active = TRUE;
+            g[gno].p[setno].avalue.type = AVALUE_TYPE_Z;
+            break;
+        }
+        g[gno].p[setno].type = type;
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
+
+int dataset_type(int gno, int setno)
+{ 
+    if (is_valid_setno(gno, setno)) {
+        return g[gno].p[setno].type;
+    } else {
+        return -1;
+    }
+}
+
+
+
+void set_hotlink(int gno, int setno, int onoroff, char *fname, int src)
+{
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    }
+    
+    g[gno].p[setno].hotlink = onoroff;
+    if (onoroff && fname != NULL) {
+	strcpy(g[gno].p[setno].hotfile, fname);
+	g[gno].p[setno].hotsrc = src;
+    }
+    set_dirtystate();
+}
+
+int is_hotlinked(int gno, int setno)
+{
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return FALSE;
+    }
+    
+    if (g[gno].p[setno].hotlink && strlen(g[gno].p[setno].hotfile)) {
+        return g[gno].p[setno].hotlink;
+    } else { 
+        return FALSE;
+    }
+}
+
+char *get_hotlink_file(int gno, int setno)
+{
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return NULL;
+    } else {
+        return g[gno].p[setno].hotfile;
+    }
+}
+
+int get_hotlink_src(int gno, int setno)
+{
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return -1;
+    } else {
+        return g[gno].p[setno].hotsrc;
+    }
+}
+
+void do_update_hotlink(int gno, int setno)
+{
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return;
+    } else {
+        read_xyset_fromfile(gno, setno, g[gno].p[setno].hotfile, 
+			g[gno].p[setno].hotsrc, g[gno].p[setno].hotlink);
+    }
+}
+
 
 /*
  * get the min/max fields of a set
@@ -231,6 +569,8 @@ static int allocxy(plotarr *p, int len)
 int getsetminmax(int gno, int setno, 
                     double *xmin, double *xmax, double *ymin, double *ymax)
 {
+    double *x, *y;
+    int len;
     double x1, x2, y1, y2;
     int i, first = TRUE;
     int imin, imax; /* dummy */
@@ -238,8 +578,11 @@ int getsetminmax(int gno, int setno,
     if (setno == ALL_SETS) {
         for (i = 0; i < number_of_sets(gno); i++) {
             if (is_set_drawable(gno, i)) {
-                minmax(g[gno].p[i].data.ex[0], g[gno].p[i].data.len, &x1, &x2, &imin, &imax);
-                minmax(g[gno].p[i].data.ex[1], g[gno].p[i].data.len, &y1, &y2, &imin, &imax);
+                x = getcol(gno, i, 0);
+                y = getcol(gno, i, 1);
+                len = getsetlength(gno, i);
+                minmax(x, len, &x1, &x2, &imin, &imax);
+                minmax(y, len, &y1, &y2, &imin, &imax);
                 if (first) {
                     *xmin = x1;
                     *xmax = x2;
@@ -255,8 +598,11 @@ int getsetminmax(int gno, int setno,
             }
         }
     } else if (is_valid_setno(gno, setno)) {
-        minmax(g[gno].p[setno].data.ex[0], g[gno].p[setno].data.len, xmin, xmax, &imin, &imax);
-        minmax(g[gno].p[setno].data.ex[1], g[gno].p[setno].data.len, ymin, ymax, &imin, &imax);
+        x = getcol(gno, setno, 0);
+        y = getcol(gno, setno, 1);
+        len = getsetlength(gno, setno);
+        minmax(x, len, xmin, xmax, &imin, &imax);
+        minmax(y, len, ymin, ymax, &imin, &imax);
         first = FALSE;
     }
     
@@ -441,8 +787,8 @@ int set_point(int gno, int setno, int seti, WPoint wp)
     if (seti >= getsetlength(gno, setno) || seti < 0) {
         return GRACE_EXIT_FAILURE;
     }
-    g[gno].p[setno].data.ex[0][seti] = wp.x;
-    g[gno].p[setno].data.ex[1][seti] = wp.y;
+    (getcol(gno, setno, DATA_X))[seti] = wp.x;
+    (getcol(gno, setno, DATA_Y))[seti] = wp.y;
     set_dirtystate();
     return GRACE_EXIT_SUCCESS;
 }
@@ -455,19 +801,9 @@ int get_point(int gno, int setno, int seti, WPoint *wp)
     if (seti >= getsetlength(gno, setno) || seti < 0) {
         return GRACE_EXIT_FAILURE;
     }
-    wp->x = g[gno].p[setno].data.ex[0][seti];
-    wp->y = g[gno].p[setno].data.ex[1][seti];
+    wp->x = (getcol(gno, setno, DATA_X))[seti];
+    wp->y = (getcol(gno, setno, DATA_Y))[seti];
     return GRACE_EXIT_SUCCESS;
-}
-
-void setcol(int gno, double *x, int setno, int len, int col)
-{
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return;
-    }
-    g[gno].p[setno].data.ex[col] = x;
-    g[gno].p[setno].data.len = len;
-    set_dirtystate();
 }
 
 int getncols(int gno, int setno)
@@ -479,7 +815,7 @@ int getncols(int gno, int setno)
     }
 
     for (i = 0; i < MAX_SET_COLS; i++) {
-        if (g[gno].p[setno].data.ex[i] == NULL) {
+        if (getcol(gno, setno, i) == NULL) {
             return i;
         }
     }
@@ -487,14 +823,6 @@ int getncols(int gno, int setno)
     /* should never come here */
     errmsg("Internal error in getncols()!");
     return 0;
-}
-
-int setlength(int gno, int setno, int length)
-{
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
-    }
-    return allocxy(&g[gno].p[setno], length);
 }
 
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
@@ -506,7 +834,7 @@ void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
         is_valid_setno(gto, setto) != TRUE) {
         return;
     }
-    n = g[gfrom].p[setfrom].data.len;
+    n = getsetlength(gfrom, setfrom);
     x1 = getcol(gfrom, setfrom, col);
     x2 = getcol(gto, setto, col);
     for (i = 0; i < n; i++) {
@@ -515,112 +843,6 @@ void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
     set_dirtystate();
 }
 
-
-/*
- * moveset 
- */
-int moveset(int gnofrom, int setfrom, int gnoto, int setto)
-{
-    int k;
-
-    if (gnoto == gnofrom && setfrom == setto) {
-	return GRACE_EXIT_FAILURE;
-    }
-
-    if (is_valid_setno(gnofrom, setfrom) != TRUE ||
-        is_valid_setno(gnoto, setto) != TRUE ) {
-        return GRACE_EXIT_FAILURE;
-    }
-
-    killset(gnoto, setto);
-
-/*
- *     setlength(gnoto, setto, g[gnofrom].p[setfrom].data.len);
- */
-    memcpy(&g[gnoto].p[setto], &g[gnofrom].p[setfrom], sizeof(plotarr));
-
-    g[gnofrom].p[setfrom].data.len = 0;
-    for (k = 0; k < MAX_SET_COLS; k++) {
-	g[gnofrom].p[setfrom].data.ex[k] = NULL;
-    }
-    g[gnofrom].p[setfrom].data.s = NULL;
-    
-    g[gnofrom].p[setfrom].hidden = TRUE;
-    
-    set_dirtystate();
-    return GRACE_EXIT_SUCCESS;
-}
-
-/*
- * copy a set to another set, if the to set doesn't exist allocate it
- */
-int copyset(int gfrom, int setfrom, int gto, int setto)
-{
-    int k, len;
-    double *savec[MAX_SET_COLS];
-
-    if (!is_graph_active(gto)) {
-	set_graph_active(gto, TRUE);
-    }
-    if (!is_set_active(gfrom, setfrom)) {
-	return GRACE_EXIT_FAILURE;
-    }
-    if (setfrom == setto && gfrom == gto) {
-	return GRACE_EXIT_FAILURE;
-    }
-    if (is_set_active(gto, setto)) {
-	killset(gto, setto);
-    }
-    activateset(gto, setto);
-    set_dataset_type(gto, setto, dataset_type(gfrom, setfrom));
-    len = getsetlength(gfrom, setfrom);
-    setlength(gto, setto, len);
-
-    for (k = 0; k < MAX_SET_COLS; k++) {
-	savec[k] = g[gto].p[setto].data.ex[k];
-    }
-    memcpy(&g[gto].p[setto], &g[gfrom].p[setfrom], sizeof(plotarr));
-    for (k = 0; k < MAX_SET_COLS; k++) {
-	g[gto].p[setto].data.ex[k] = savec[k];
-	if (g[gfrom].p[setfrom].data.ex[k] != NULL &&
-            g[gto].p[setto].data.ex[k] != NULL) {
-	    memcpy(g[gto].p[setto].data.ex[k],
-                g[gfrom].p[setfrom].data.ex[k],
-                len*SIZEOF_DOUBLE);
-	}
-    }
-
-    sprintf(buf, "copy of set G%d.S%d", gfrom, setfrom);
-    setcomment(gto, setto, buf);
-
-    set_dirtystate();
-    
-    return GRACE_EXIT_SUCCESS;
-}
-
-/*
- * swap a set with another set
- */
-int swapset(int gno1, int setno1, int gno2, int setno2)
-{
-    plotarr p;
-
-    if (is_valid_setno(gno1, setno1) == FALSE ||
-        is_valid_setno(gno2, setno2) == FALSE) {
-	return GRACE_EXIT_FAILURE;
-    }
-    if (setno1 == setno2 && gno1 == gno2) {
-	return GRACE_EXIT_FAILURE;
-    }
-
-    memcpy(&p, &g[gno2].p[setno2], sizeof(plotarr));
-    memcpy(&g[gno2].p[setno2], &g[gno1].p[setno1], sizeof(plotarr));
-    memcpy(&g[gno1].p[setno1], &p, sizeof(plotarr));
-
-    set_dirtystate();
-    
-    return GRACE_EXIT_SUCCESS;
-}
 
 int pushset(int gno, int setno, int push_type)
 {
@@ -755,48 +977,9 @@ int nextset(int gno)
     }
 }
 
-/*
- * free set data, but preserve the parameter settings
- */
-void killsetdata(int gno, int setno)
-{
-    int i;
-
-    if (is_set_active(gno, setno)) {
-	for (i = 0; i < MAX_SET_COLS; i++) {
-	    if (g[gno].p[setno].data.ex[i] != NULL) {
-		free(g[gno].p[setno].data.ex[i]);
-	    }
-	    g[gno].p[setno].data.ex[i] = NULL;
-	}
-	if (dataset_type(gno, setno) == SET_XYSTRING && g[gno].p[setno].data.s != NULL) {
-	    for (i = 0; i < getsetlength(gno, setno); i++) {
-		cxfree(g[gno].p[setno].data.s[i]);
-	    }
-	    cxfree(g[gno].p[setno].data.s[i]);
-	    g[gno].p[setno].data.s = NULL;
-	}
-	g[gno].p[setno].data.len = 0;
-	g[gno].p[setno].hidden = TRUE;
-	set_lists_dirty(TRUE);
-	set_dirtystate();
-    }
-}
-
-/*
- * kill a set
- */
-void killset(int gno, int setno)
-{
-    if (is_valid_setno(gno, setno)) {
-	killsetdata(gno, setno);
-	set_default_plotarr(&g[gno].p[setno]);
-    }
-}
-
 int is_set_active(int gno, int setno)
 {
-    if (is_valid_setno(gno, setno) && g[gno].p[setno].data.len > 0) {
+    if (is_valid_setno(gno, setno) && getsetlength(gno, setno) > 0) {
         return TRUE;
     } else {
         return FALSE;
@@ -813,7 +996,7 @@ int activeset(int gno)
     if (is_valid_gno(gno) != TRUE) {
         return FALSE;
     }
-    for (i = 0; i < g[gno].maxplot; i++) {
+    for (i = 0; i < number_of_sets(gno); i++) {
 	if (is_set_active(gno, i) == TRUE) {
 	    return TRUE;
 	}
@@ -963,7 +1146,7 @@ void sortset(int gno, int setno, int sorton, int stype)
 /*
  * get the vector to sort on
  */
-    vptr = getvptr(gno, setno, sorton);
+    vptr = getcol(gno, setno, sorton);
     if (vptr == NULL) {
 	errmsg("NULL vector in sort, operation cancelled, check set type");
 	return;
@@ -1087,7 +1270,7 @@ void del_point(int gno, int setno, int pt)
     } else {
 	for (i = pt; i < len - 1; i++) {
 	    for (j = 0; j < ncols; j++) {
-		tmp = g[gno].p[setno].data.ex[j];
+		tmp = getcol(gno, setno, j);
 		tmp[i] = tmp[i + 1];
 	    }
 	}
@@ -1186,7 +1369,7 @@ void delete_byindex(int gno, int setno, int *ind)
     for (i = 0; i < getsetlength(gno, setno); i++) {
 	if (ind[i] == 0) {
 	    for (j = 0; j < ncols; j++) {
-		g[gno].p[setno].data.ex[j][cnt] = g[gno].p[setno].data.ex[j][i];
+                (getcol(gno, setno, j))[cnt] = (getcol(gno, setno, j))[i];
 	    }
 	    cnt++;
 	}
@@ -1283,7 +1466,7 @@ void do_splitsets(int gno, int setno, int lpart)
     /* copy the contents to a temporary buffer */
     for (j = 0; j < ncols; j++) {
 	x[j] = getcol(gno, setno, j);
-	xtmp[j] = (double *) calloc(len, SIZEOF_DOUBLE);
+	xtmp[j] = calloc(len, SIZEOF_DOUBLE);
 	if (xtmp[j] == NULL) {
 	    errmsg("Not enough memory for split");
 	    for (k = 0; k < j; k++) {
@@ -1330,7 +1513,7 @@ void do_splitsets(int gno, int setno, int lpart)
 	}
 	sprintf(s, "partition %d of set %d", i + 1, setno);
 	setcomment(gno, tmpset, s);
-	log_results(buf);
+	log_results(s);
     }
     if (nleft == 0) {
 	nleft = lpart;
@@ -1351,7 +1534,7 @@ void do_splitsets(int gno, int setno, int lpart)
 
     sprintf(s, "partition %d of set %d", i + 1, setno);
     setcomment(gno, tmpset, s);
-    log_results(buf);
+    log_results(s);
     for (k = 0; k < ncols; k++) {
 	free(xtmp[k]);
     }
@@ -1364,6 +1547,7 @@ void do_drop_points(int setno, int startno, int endno)
 {
     int dist;
     int setlength;
+    char buf[256];
 
     if (!is_set_active(get_cg(), setno)) {
 	sprintf(buf, "Set %d not active", setno);
@@ -1404,9 +1588,10 @@ void do_drop_points(int setno, int startno, int endno)
 void do_sort(int setno, int sorton, int stype)
 {
     int i, gno = get_cg();
+    char buf[256];
 
     if (setno == -1) {
-	for (i = 0; i < g[gno].maxplot; i++) {
+	for (i = 0; i < number_of_sets(gno); i++) {
 	    if (is_set_active(gno, i)) {
 		sortset(gno, i, sorton, stype);
 	    }
@@ -1422,95 +1607,6 @@ void do_sort(int setno, int sorton, int stype)
     }
 }
 
-void set_hotlink(int gno, int setno, int onoroff, char *fname, int src)
-{
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return;
-    }
-    
-    g[gno].p[setno].hotlink = onoroff;
-    if (onoroff && fname != NULL) {
-	strcpy(g[gno].p[setno].hotfile, fname);
-	g[gno].p[setno].hotsrc = src;
-    }
-    set_dirtystate();
-}
-
-int is_hotlinked(int gno, int setno)
-{
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return FALSE;
-    }
-    
-    if (g[gno].p[setno].hotlink && strlen(g[gno].p[setno].hotfile)) {
-        return g[gno].p[setno].hotlink;
-    } else { 
-        return FALSE;
-    }
-}
-
-char *get_hotlink_file(int gno, int setno)
-{
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return NULL;
-    } else {
-        return g[gno].p[setno].hotfile;
-    }
-}
-
-int get_hotlink_src(int gno, int setno)
-{
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return -1;
-    } else {
-        return g[gno].p[setno].hotsrc;
-    }
-}
-
-void do_update_hotlink(int gno, int setno)
-{
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return;
-    } else {
-        read_xyset_fromfile(gno, setno, g[gno].p[setno].hotfile, 
-			g[gno].p[setno].hotsrc, g[gno].p[setno].hotlink);
-    }
-}
-
-/*
- * return a pointer to the array given by v
- */
-double *getvptr(int gno, int setno, int v)
-{
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return NULL;
-    }
-    
-    switch (v) {
-    case DATA_X:
-	return g[gno].p[setno].data.ex[0];
-	break;
-    case DATA_Y:
-	return g[gno].p[setno].data.ex[1];
-	break;
-    case DATA_Y1:
-	return g[gno].p[setno].data.ex[2];
-	break;
-    case DATA_Y2:
-	return g[gno].p[setno].data.ex[3];
-	break;
-    case DATA_Y3:
-	return g[gno].p[setno].data.ex[4];
-	break;
-    case DATA_Y4:
-	return g[gno].p[setno].data.ex[5];
-	break;
-    default:
-	errmsg ("Internal error in function getvptr()");
-	break;
-    }
-    return NULL;
-}
 
 double setybase(int gno, int setno)
 {
@@ -1545,123 +1641,6 @@ double setybase(int gno, int setno)
     return(ybase);
 }
 
-double *getcol(int gno, int setno, int col)
-{
-    if (is_valid_setno(gno, setno)) {
-        return g[gno].p[setno].data.ex[col];
-    } else {
-        return NULL;
-    }
-}
-
-char **get_set_strings(int gno, int setno)
-{
-    if (is_valid_setno(gno, setno)) {
-        return g[gno].p[setno].data.s;
-    } else {
-        return NULL;
-    }
-}
-
-int set_set_strings(int gno, int setno, int len, char **s)
-{
-    if (is_valid_setno(gno, setno) && len > 0 && s!= NULL) {
-        g[gno].p[setno].data.s = s;
-        g[gno].p[setno].data.len = len;
-        set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
-    } else {
-        return GRACE_EXIT_FAILURE;
-    }
-}
-
-int getsetlength(int gno, int setno)
-{
-    if (is_valid_setno(gno, setno)) {
-        return g[gno].p[setno].data.len;
-    } else {
-        return -1;
-    }
-}
-
-int setcomment(int gno, int setno, char *s)
-{ 
-    if (is_valid_setno(gno, setno) && s != NULL) {
-        strncpy(g[gno].p[setno].comments, s, MAX_STRING_LENGTH - 1);
-        set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
-    } else {
-        return GRACE_EXIT_FAILURE;
-    }
-}
-
-char *getcomment(int gno, int setno)
-{ 
-    if (is_valid_setno(gno, setno)) {
-        return g[gno].p[setno].comments;
-    } else {
-        return NULL;
-    }
-}
-
-int set_legend_string(int gno, int setno, char *s)
-{ 
-    if (is_valid_setno(gno, setno) && s != NULL) {
-        strncpy(g[gno].p[setno].lstr, s, MAX_STRING_LENGTH - 1);
-        return GRACE_EXIT_SUCCESS;
-    } else {
-        return GRACE_EXIT_FAILURE;
-    }
-}
-
-char *get_legend_string(int gno, int setno)
-{ 
-    if (is_valid_setno(gno, setno)) {
-        return g[gno].p[setno].lstr;
-    } else {
-        return NULL;
-    }
-}
-
-int set_dataset_type(int gno, int setno, int type)
-{ 
-    int i, len, ncols_old, ncols_new;
-    
-    if (is_valid_setno(gno, setno)) {
-        len = getsetlength(gno, setno);
-        ncols_old = dataset_cols(gno, setno);
-        ncols_new = settype_cols(type);
-        for (i = ncols_old; i < ncols_new; i++) {
-            g[gno].p[setno].data.ex[i] = calloc(len, SIZEOF_DOUBLE);
-        }
-        for (i = ncols_new; i < ncols_old; i++) {
-            cxfree(g[gno].p[setno].data.ex[i]);
-        }
-        switch (type) {
-        case SET_XYSTRING:
-            g[gno].p[setno].avalue.active = TRUE;
-            g[gno].p[setno].avalue.type = AVALUE_TYPE_STRING;
-            break;
-        case SET_XYZ:
-            g[gno].p[setno].avalue.active = TRUE;
-            g[gno].p[setno].avalue.type = AVALUE_TYPE_Z;
-            break;
-        }
-        g[gno].p[setno].type = type;
-        return GRACE_EXIT_SUCCESS;
-    } else {
-        return GRACE_EXIT_FAILURE;
-    }
-}
-
-int dataset_type(int gno, int setno)
-{ 
-    if (is_valid_setno(gno, setno)) {
-        return g[gno].p[setno].type;
-    } else {
-        return -1;
-    }
-}
 
 int dataset_cols(int gno, int setno)
 {
@@ -1670,25 +1649,9 @@ int dataset_cols(int gno, int setno)
 
 int load_comments_to_legend(int gno, int setno)
 {
-    if (is_valid_setno(gno, setno)) {
-        strcpy(g[gno].p[setno].lstr, g[gno].p[setno].comments);
-        return GRACE_EXIT_SUCCESS;
-    } else {
-        return GRACE_EXIT_FAILURE;
-    }
+    return set_legend_string(gno, setno, getcomment(gno, setno));
 }
 
-static int dp = 0;
-
-void set_lists_dirty(int d)
-{
-    dp = d;
-}
-
-int lists_dirty(void)
-{
-    return dp;
-}
 
 void kill_blockdata(void)
 {
