@@ -490,11 +490,13 @@ void xrst_putpixmap(const Canvas *canvas, void *data,
     long paddedW;
     
     miPoint mp;
-    int x, y;
+    int x, y, xleft, ytop, xright, ybottom;
     
     bg = getbgcolor(canvas);
     
     VPoint2miPoint(ddata, vp, &mp);
+    
+    MI_GET_CANVAS_DRAWABLE_BOUNDS(ddata->mcanvas, xleft, ytop, xright, ybottom)
     
     y = mp.y;
     if (pixmap_bpp == 1) {
@@ -506,6 +508,11 @@ void xrst_putpixmap(const Canvas *canvas, void *data,
             for (j = 0; j < paddedW/bitmap_pad; j++) {
                 for (i = 0; i < bitmap_pad && j*bitmap_pad + i < width; i++) {
                     x++;
+                    /* bound checking */
+                    if (x < xleft || x > xright ||
+                        y < ytop  || y > ybottom) {
+                        continue;
+                    }
                     if (bin_dump(&(databits)[k*paddedW/bitmap_pad+j], i, bitmap_pad)) {
                         MI_SET_CANVAS_DRAWABLE_PIXEL(ddata->mcanvas, x, y, color);
                     } else {
@@ -522,6 +529,11 @@ void xrst_putpixmap(const Canvas *canvas, void *data,
             y++;
             for (j = 0; j < width; j++) {
                 x++;
+                /* bound checking */
+                if (x < xleft || x > xright ||
+                    y < ytop  || y > ybottom) {
+                    continue;
+                }
                 cindex = (databits)[k*width+j];
                 if (cindex != bg || pixmap_type == PIXMAP_OPAQUE) {
                     color = cindex;
