@@ -31,8 +31,9 @@
 #include "grace/baseP.h"
 #include "grace/canvas.h"
 
-#define QUARK_ETYPE_MODIFY  1
-#define QUARK_ETYPE_DELETE  2
+#define QUARK_ETYPE_MODIFY   1
+#define QUARK_ETYPE_DELETE   2
+#define QUARK_ETYPE_REPARENT 3
 
 #define CORNER_LL   0
 #define CORNER_UL   1

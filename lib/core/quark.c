@@ -500,6 +500,9 @@ int quark_reparent(Quark *q, Quark *newparent)
         newparent->refcount++;
         storage_add(newparent->children, q);
         quark_dirtystate_set(newparent, TRUE);
+        if (q->cb) {
+            q->cb(q, QUARK_ETYPE_REPARENT, q->cbdata);
+        }
         
         return RETURN_SUCCESS;
     }
