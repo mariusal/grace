@@ -275,8 +275,8 @@ void create_axes_dialog(int axisno)
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 
 	axis_zero = CreateToggleButton(rc, "Zero axis");
-        offx = CreateTextItem2(rc, 4, "Offsets - Left/bottom:");
-        offy = CreateTextItem2(rc, 4, "Right/top:");
+        offx = CreateTextItem2(rc, 5, "Offsets - Left/bottom:");
+        offy = CreateTextItem2(rc, 5, "Right/top:");
 
         XtManageChild(rc);
         XtManageChild(fr);
