@@ -252,6 +252,7 @@ int load_comments_to_legend(int gno, int setno);
 int settype_cols(int type);
 int dataset_type(int gno, int setno);
 int dataset_cols(int gno, int setno);
+char *dataset_colname(int col);
 
 int is_refpoint_active(int gno);
 

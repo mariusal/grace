@@ -146,6 +146,40 @@ int settype_cols(int type)
 }
 
 /*
+ * return the string version of the dataset column
+ */
+char *dataset_colname(int col)
+{
+    char *s;
+
+    switch (col) {
+    case 0:
+	s = "X";
+	break;
+    case 1:
+	s = "Y";
+	break;
+    case 2:
+	s = "Y1";
+	break;
+    case 3:
+	s = "Y2";
+	break;
+    case 4:
+	s = "Y3";
+	break;
+    case 5:
+	s = "Y4";
+	break;
+    default:
+	s = "?";
+	errmsg("Internal error in dataset_colname()");
+        break;
+    }
+    return s;
+}
+
+/*
  * allocate arrays for a set of length len.
  */
 static int allocxy(plotarr *p, int len)
