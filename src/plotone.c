@@ -2325,7 +2325,7 @@ void draw_legends(Quark *q, plot_rt_t *plot_rt)
     vp2.y = vp.y - bb_height;
 
     l->bb.xv1 = vp.x;
-    l->bb.yv1 = vp.y;
+    l->bb.yv1 = vp2.y;
     l->bb.xv2 = vp2.x;
     l->bb.yv2 = vp.y;
     
