@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -28,7 +28,7 @@
 
 /* 
  *
- * symbols and error bars
+ * Set appearance
  *
  */
 
@@ -59,6 +59,9 @@
 #define SETAPP_ALL_LINEW        4
 #define SETAPP_ALL_LINES        5
 #define SETAPP_ALL_BW           6
+
+#define CSYNC_LINE      0
+#define CSYNC_SYM       1
 
 static int cset = 0;            /* the current set from the symbols panel */
 
@@ -120,10 +123,13 @@ static Widget avalue_offsety;
 static Widget avalue_prestr;
 static Widget avalue_appstr;
 
+static Widget csync_item;
+
 static void UpdateSymbols(int gno, int value);
 static void set_cset_proc(int n, int *values, void *data);
 static void setapp_aac_cb(void *data);
 static void setapp_data_proc(void *data);
+static void csync_cb(int value, void *data);
 
 /*
  * create the symbols popup
@@ -177,7 +183,8 @@ void define_symbols_popup(void *data)
       
         duplegs_item = CreateMenuToggle(menupane,
             "Duplicate legends", 'D', NULL, NULL);
-        CreateMenuToggle(menupane, "Color sync (N/I)", 's', NULL, NULL);
+        csync_item = CreateMenuToggle(menupane, "Color sync", 's', NULL, NULL);
+        SetToggleButtonState(csync_item, TRUE);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
@@ -245,6 +252,7 @@ void define_symbols_popup(void *data)
 
         symsize_item = CreateCharSizeChoice(rc, "Size");
         symcolor_item = CreateColorChoice(rc, "Color:");
+        AddOptionChoiceCB(symcolor_item, csync_cb, (void *) CSYNC_SYM);
         symchar_item = CreateTextItem2(rc, 3, "Symbol char:");
         XtManageChild(rc);
 
@@ -263,6 +271,7 @@ void define_symbols_popup(void *data)
         toggle_lines_item = CreateLineStyleChoice(rc, "Style:");
         toggle_width_item = CreateLineWidthChoice(rc, "Width:");
         toggle_color_item = CreateColorChoice(rc, "Color:");
+        AddOptionChoiceCB(toggle_color_item, csync_cb, (void *) CSYNC_LINE);
         XtManageChild(rc);
         
         XtManageChild(rc2);
@@ -819,5 +828,24 @@ static void setapp_data_proc(void *data)
         UpdateSymbols(cg, cset);
         set_dirtystate();
         drawgraph();
+    }
+}
+
+static void csync_cb(int value, void *data)
+{
+    int mask = (int) data;
+    
+    if (GetToggleButtonState(csync_item) != TRUE) {
+        return;
+    }
+    
+    if (mask == CSYNC_LINE) {
+        SetOptionChoice(symcolor_item, value);
+        mask++;
+    }
+    if (mask == CSYNC_SYM) {
+        SetOptionChoice(symfillcolor_item, value);
+        SetOptionChoice(errbar_color_item, value);
+        mask++;
     }
 }
