@@ -536,7 +536,7 @@ int create_set_fromblock(int gno, int setno,
 {
     int i, ncols, blockncols, blocklen, column;
     double *cdata;
-    char buf[256];
+    char buf[256], *s;
 
     blockncols = get_blockncols();
     if (blockncols <= 0) {
@@ -616,7 +616,9 @@ int create_set_fromblock(int gno, int setno,
         }
     }
 
-    sprintf(buf, "Cols %s", cols_to_field_string(nc, coli, scol));
+    s = cols_to_field_string(nc, coli, scol);
+    sprintf(buf, "Cols %s", s);
+    xfree(s);
     setcomment(gno, setno, buf);
 
     autoscale_graph(gno, autoscale);
