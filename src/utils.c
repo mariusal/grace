@@ -1188,7 +1188,7 @@ void log_results(char *buf)
 void errmsg(char *buf)
 {
 #ifdef NONE_GUI
-    printf("%s\n", buf);
+    fprintf(stderr, "%s\n", buf);
 #else
     if (inwin) {
         errwin(buf);

@@ -76,8 +76,9 @@ int getparms(char *plfile)
     } else {
         errcnt = 0;
         while (fgets(readbuf, MAX_STRING_LENGTH - 1, pp) != NULL) {
+            linecount++;
             if (read_param(readbuf)) {
-                sprintf(readbuf, "Error at line %d: %s\n", linecount, readbuf);
+                sprintf(readbuf, "Error at line %d", linecount);
                 errmsg(readbuf);
                 errcnt++;
                 if (errcnt > MAXERR) {

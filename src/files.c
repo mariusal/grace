@@ -409,7 +409,7 @@ static int process_complete_lines(Input_buffer *ib)
             close_input = NULL;
 
             if (line_corrupted || read_param(begin_of_line)) {
-                sprintf(buf, "Error at line %d: %s\n",
+                sprintf(buf, "Error at line %d: %s",
                         ib->lineno, begin_of_line);
                 errmsg(buf);
                 ++(ib->errors);
