@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -54,6 +54,7 @@ FILE *grace_openw(char *fn);
 FILE *grace_openr(char *fn, int src);
 void grace_close(FILE *fp);
 
+int getparms(char *plfile);
 int getdata(int gno, char *fn, int src, int type);
 int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col);
 
