@@ -801,6 +801,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Graph appearance...", 'G', create_graphapp_frame_cb, (void *) -1);
     CreateMenuButton(menupane, "Set appearance...", 'S', define_symbols_popup, (void *) -1);
     CreateMenuButton(menupane, "Axis properties...", 'x', create_axes_dialog_cb, NULL);
+    CreateMenuButton(menupane, "Drawing objects...", 'o', define_objects_popup, NULL);
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Load parameters...", 'L', create_rparams_popup, NULL);
     CreateMenuButton(menupane, "Save parameters...", 'S', create_wparam_frame, NULL);
@@ -830,7 +831,6 @@ static Widget CreateMainMenuBar(Widget parent)
    
     CreateMenuButton(menupane, "Commands", 'C', open_command, NULL);
     CreateMenuButton(menupane, "Point explorer", 'P', create_points_frame, NULL);
-    CreateMenuButton(menupane, "Drawing objects", 'o', define_objects_popup, NULL);
     CreateMenuButton(menupane, "Font tool", 'F', create_fonttool_cb, NULL);
 /*
  *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
@@ -1246,4 +1246,3 @@ static void load_example(void *data)
 
     unset_wait_cursor();
 }
-
