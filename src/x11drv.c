@@ -682,6 +682,7 @@ void xlibleavegraphics(void)
     if (is_graph_hidden(cg) == FALSE) {
         draw_focus(cg);
     }
+    reset_crosshair();
     xlibredraw(xwin, 0, 0, win_w, win_h);
     
     XFlush(disp);

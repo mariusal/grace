@@ -162,6 +162,34 @@ void set_title(char *ts)
 }
 
 /*
+ *  Auxiliary routines for simultaneous drawing on display and pixmap
+ */
+static void aux_XDrawLine(int x1, int y1, int x2, int y2)
+{
+    XDrawLine(disp, xwin, gcxor, x1, y1, x2, y2);
+    if (bufpixmap != (Pixmap) NULL) {
+        XDrawLine(disp, bufpixmap, gcxor, x1, y1, x2, y2);
+    }
+}
+
+static void aux_XDrawRectangle(int x1, int y1, int x2, int y2)
+{
+    XDrawRectangle(disp, xwin, gcxor, x1, y1, x2, y2);
+    if (bufpixmap != (Pixmap) NULL) {
+        XDrawRectangle(disp, bufpixmap, gcxor, x1, y1, x2, y2);
+    }
+}
+
+static void aux_XFillRectangle(int x, int y, unsigned int width, unsigned int height)
+{
+    XFillRectangle(disp, xwin, gcxor, x, y, width, height);
+    if (bufpixmap != (Pixmap) NULL) {
+        XFillRectangle(disp, bufpixmap, gcxor, x, y, width, height);
+    }
+}
+
+
+/*
  * draw the graph focus indicators
  */
 void draw_focus(int gno)
@@ -171,23 +199,17 @@ void draw_focus(int gno)
     VPoint vp;
     
     if (draw_focus_flag == TRUE) {
-	get_graph_viewport(gno, &v);
+        get_graph_viewport(gno, &v);
         vp.x = v.xv1;
         vp.y = v.yv1;
         xlibVPoint2dev(vp, &ix1, &iy1);
         vp.x = v.xv2;
         vp.y = v.yv2;
         xlibVPoint2dev(vp, &ix2, &iy2);
-	if (bufpixmap != (Pixmap) NULL) {
-            XFillRectangle(disp, bufpixmap, gcxor, ix1 - 5, iy1 - 5, 10, 10);
-	    XFillRectangle(disp, bufpixmap, gcxor, ix1 - 5, iy2 - 5, 10, 10);
-	    XFillRectangle(disp, bufpixmap, gcxor, ix2 - 5, iy2 - 5, 10, 10);
-	    XFillRectangle(disp, bufpixmap, gcxor, ix2 - 5, iy1 - 5, 10, 10);
-        }
-        XFillRectangle(disp, xwin, gcxor, ix1 - 5, iy1 - 5, 10, 10);
-	XFillRectangle(disp, xwin, gcxor, ix1 - 5, iy2 - 5, 10, 10);
-	XFillRectangle(disp, xwin, gcxor, ix2 - 5, iy2 - 5, 10, 10);
-	XFillRectangle(disp, xwin, gcxor, ix2 - 5, iy1 - 5, 10, 10);
+        aux_XFillRectangle(ix1 - 5, iy1 - 5, 10, 10);
+        aux_XFillRectangle(ix1 - 5, iy2 - 5, 10, 10);
+        aux_XFillRectangle(ix2 - 5, iy2 - 5, 10, 10);
+        aux_XFillRectangle(ix2 - 5, iy1 - 5, 10, 10);
     }
 }
 
@@ -199,13 +221,13 @@ void select_line(int x1, int y1, int x2, int y2, int erase)
     static int x1_old, y1_old, x2_old, y2_old;
 
     if (erase) {
-        XDrawLine(disp, xwin, gcxor, x1_old, y1_old, x2_old, y2_old);
+        aux_XDrawLine(x1_old, y1_old, x2_old, y2_old);
     }
     x1_old = x1;
     y1_old = y1;
     x2_old = x2;
     y2_old = y2;
-    XDrawLine(disp, xwin, gcxor, x1, y1, x2, y2);
+    aux_XDrawLine(x1, y1, x2, y2);
 }
 
 
@@ -227,13 +249,13 @@ void select_region(int x1, int y1, int x2, int y2, int erase)
 	dy = -dy;
     }
     if (erase) {
-        XDrawRectangle(disp, xwin, gcxor, x1_old, y1_old, dx_old, dy_old);
+        aux_XDrawRectangle(x1_old, y1_old, dx_old, dy_old);
     }
     x1_old = x1;
     y1_old = y1;
     dx_old = dx;
     dy_old = dy;
-    XDrawRectangle(disp, xwin, gcxor, x1, y1, dx, dy);
+    aux_XDrawRectangle(x1, y1, dx, dy);
 }
 
 /*
@@ -260,21 +282,30 @@ void slide_region(view bb, int shift_x, int shift_y, int erase)
     select_region(x1, y1, x2, y2, erase);
 }
 
+static int crosshair_erase = FALSE;
+
+void reset_crosshair(void)
+{
+    crosshair_erase = FALSE;
+}
 
 /*
  * draw a crosshair cursor
  */
 void crosshair_motion(int x, int y)
 {
-    static int cursor_oldx = -1, cursor_oldy = -1;
+    static int cursor_oldx, cursor_oldy;
     
     /* Erase the previous crosshair */
-    XDrawLine(disp, xwin, gcxor, 0, cursor_oldy, win_w, cursor_oldy);
-    XDrawLine(disp, xwin, gcxor, cursor_oldx, 0, cursor_oldx, win_h);
+    if (crosshair_erase == TRUE) {
+        aux_XDrawLine(0, cursor_oldy, win_w, cursor_oldy);
+        aux_XDrawLine(cursor_oldx, 0, cursor_oldx, win_h);
+    }
 
     /* Draw the new crosshair */
-    XDrawLine(disp, xwin, gcxor, 0, y, win_w, y);
-    XDrawLine(disp, xwin, gcxor, x, 0, x, win_h);
+    aux_XDrawLine(0, y, win_w, y);
+    aux_XDrawLine(x, 0, x, win_h);
+    crosshair_erase = TRUE;
     cursor_oldx = x;
     cursor_oldy = y;
 }
