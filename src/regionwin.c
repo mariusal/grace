@@ -394,7 +394,7 @@ static Widget eval_region_item;
 
 static void do_eval_region(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int regno, setno, gno = GRAPH_SELECT_CURRENT;
+    int regno, setno, gno = get_cg();
 
     regno = (int) GetChoice(eval_region);
     setno = GetSelectedSet(eval_set_item);
@@ -407,7 +407,7 @@ static void do_eval_region(Widget w, XtPointer client_data, XtPointer call_data)
 /* TODO add gno to parm list */
     evaluate_region(regno, gno, setno, buf);
     drawgraph();
-    update_set_lists(get_cg());
+    update_set_lists(gno);
     unset_wait_cursor();
 }
 
