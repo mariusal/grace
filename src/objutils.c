@@ -161,7 +161,7 @@ static int object_set_data(DObject *o, void *odata)
     return RETURN_SUCCESS;
 }
 
-static DObject *object_copy(DObject *osrc)
+DObject *object_copy(DObject *osrc)
 {
     DObject *odest;
     void *odata;

@@ -94,6 +94,7 @@ typedef struct _DOStringData {
 
 DObject *object_get(int id);
 void object_free(DObject *o);
+DObject *object_copy(DObject *o);
 
 void do_clear_objects(void);
 
