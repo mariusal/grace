@@ -75,7 +75,6 @@ void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb);
 
 void draw_region(int r);
 
-void draw_object(int gno, DObject *o);
 void draw_objects(int gno);
 
 void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp);

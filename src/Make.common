@@ -9,21 +9,23 @@ PARS_Y = pars.yacc
 PARS_C = pars.c
 PARS_O = pars$(O)
 
-GRSRCS =  main.c plotone.c files.c ssdata.c drawticks.c \
+GRSRCS =  main.c draw.c drawticks.c drawobj.c plotone.c \
+	files.c ssdata.c \
 	nonlfit.c lmdif.c as274c.c fit.c fourier.c \
 	graphs.c graphutils.c setutils.c regionutils.c \
 	objutils.c computils.c defaults.c params.c \
-	draw.c dlmodule.c missing.c alloca.c \
+	dlmodule.c missing.c alloca.c \
 	iofilters.c dates.c t1fonts.c device.c mfdrv.c \
 	mifdrv.c psdrv.c pdfdrv.c svgdrv.c gd.c rstdrv.c dummydrv.c \
 	storage.c utils.c
 
 
-GROBJS =  main$(O) plotone$(O) files$(O) ssdata$(O) drawticks$(O) \
+GROBJS =  main$(O) draw$(O) drawticks$(O) drawobj$(O) plotone$(O) \
+	files$(O) ssdata$(O) \
 	nonlfit$(O) lmdif$(O) as274c$(O) fit$(O) fourier$(O) \
 	graphs$(O) graphutils$(O) setutils$(O) regionutils$(O) \
 	objutils$(O) computils$(O) defaults$(O) params$(O) \
-	draw$(O) dlmodule$(O) $(PARS_O) missing$(O) $(ALLOCA) \
+	dlmodule$(O) $(PARS_O) missing$(O) $(ALLOCA) \
 	iofilters$(O) dates$(O) t1fonts$(O) device$(O) \
 	dummydrv$(O) mfdrv$(O) mifdrv$(O) psdrv$(O) \
 	pdfdrv$(O) svgdrv$(O) gd$(O) rstdrv$(O) storage$(O) utils$(O)
