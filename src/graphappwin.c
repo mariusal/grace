@@ -65,8 +65,8 @@ static Widget *graph_type_choice_item;
 
 static Widget stacked_item;
 
-static Widget label_title_text_item;
-static Widget label_subtitle_text_item;
+static CSTextStructure *label_title_text_item;
+static CSTextStructure *label_subtitle_text_item;
 static OptionStructure *title_color_item;
 static OptionStructure *title_font_item;
 static Widget title_size_item;
@@ -168,7 +168,7 @@ void create_graphapp_frame(int gno)
         
         graphapp_main = CreateTabPage(graphapp_tab, "Main");
 
-	fr = CreateFrame(graphapp_main, "Presentation:");
+	fr = CreateFrame(graphapp_main, "Presentation");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 	graph_type_choice_item = CreatePanelChoice(rc, 
                                                    "Type:",
@@ -190,8 +190,8 @@ void create_graphapp_frame(int gno)
 
 	fr = CreateFrame(graphapp_main, "Titles");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-	label_title_text_item = CreateTextItem2(rc, 25, "Title:");
-	label_subtitle_text_item = CreateTextItem2(rc, 22, "Subtitle:");
+	label_title_text_item = CreateCSText(rc, "Title: ");
+	label_subtitle_text_item = CreateCSText(rc, "Subtitle: ");
         XtManageChild(rc);
 
         fr = CreateFrame(graphapp_main, "Viewport");
@@ -441,8 +441,8 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
             set_graph_stacked(gno, stacked);
             set_graph_bargap(gno, bargap);
 
-            set_plotstr_string(&labs.title, xv_getstr(label_title_text_item));
-            set_plotstr_string(&labs.stitle, xv_getstr(label_subtitle_text_item));
+            set_plotstr_string(&labs.title, GetCSTextString(label_title_text_item));
+            set_plotstr_string(&labs.stitle, GetCSTextString(label_subtitle_text_item));
 
             labs.title.charsize = GetCharSizeChoice(title_size_item);
             labs.stitle.charsize = GetCharSizeChoice(stitle_size_item);
@@ -552,8 +552,8 @@ void update_graphapp_items(Widget list, XtPointer client_data,
             XtSetSensitive(stacked_item, True);
         }
 
-        xv_setstr(label_title_text_item, labs.title.s);
-        xv_setstr(label_subtitle_text_item, labs.stitle.s);
+        SetCSTextString(label_title_text_item, labs.title.s);
+        SetCSTextString(label_subtitle_text_item, labs.stitle.s);
  
         SetCharSizeChoice(title_size_item, labs.title.charsize);
         SetCharSizeChoice(stitle_size_item, labs.stitle.charsize);

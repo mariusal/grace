@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -978,7 +978,7 @@ void line_edit_popup(int lineno)
 
 typedef struct {
     Widget top;
-    Widget string_item;
+    CSTextStructure *string_item;
     OptionStructure *color_item;
     Widget *loc_item;
     OptionStructure *font_item;
@@ -995,7 +995,7 @@ void update_string_edit(EditStringUI *ui)
 {
     if (ui->top) {
 	plotstr *pstring = &pstr[ui->stringno];
-	xv_setstr(ui->string_item, pstring->s);
+	SetCSTextString(ui->string_item, pstring->s);
 	SetOptionChoice(ui->color_item, pstring->color);
 	SetChoice(ui->just_item, pstring->just);
 	SetOptionChoice(ui->font_item, pstring->font );
@@ -1037,7 +1037,7 @@ void string_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     EditStringUI *ui = (EditStringUI *) client_data;
     int stringno = ui->stringno;
 
-    pstr[stringno].s = copy_string(pstr[stringno].s, xv_getstr(ui->string_item));
+    pstr[stringno].s = copy_string(pstr[stringno].s, GetCSTextString(ui->string_item));
     pstr[stringno].color = GetOptionChoice(ui->color_item);
     pstr[stringno].loctype = GetChoice(ui->loc_item) ? COORD_VIEW : COORD_WORLD;
     pstr[stringno].font = GetOptionChoice(ui->font_item);
@@ -1068,7 +1068,7 @@ void string_edit_popup(int stringno)
 	handle_close(string_ui.top);
 	panel = XmCreateRowColumn(string_ui.top, "strings_rc", NULL, 0);
 
-	string_ui.string_item = CreateTextItem2(panel, 30, "String:");
+	string_ui.string_item = CreateCSText(panel, "String:");
 
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, panel, NULL);
 

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -90,7 +90,7 @@ static ListStructure *toggle_symset_item;
 static Widget baseline_item;
 static Widget *baselinetype_item;
 
-static Widget legend_str_panel;
+static CSTextStructure *legend_str_item;
 
 static Widget errbar_active_item;
 static Widget errbar_size_item;
@@ -269,7 +269,7 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
         fr = CreateFrame(setapp_main, "Legend");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-        legend_str_panel = CreateTextItem2(rc, 33, "String:");
+        legend_str_item = CreateCSText(rc, "String:");
         XtManageChild(rc);
 
         fr = CreateFrame(setapp_main, "Display options");
@@ -584,7 +584,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
             p.fillrule = fillrule;
             p.setfillpen.pattern = fillpat;
             p.setfillpen.color = fillcol;
-            strcpy(p.lstr, xv_getstr(legend_str_panel));
+            strcpy(p.lstr, GetCSTextString(legend_str_item));
             p.sym = sym;
             p.linet = linet;
             p.lines = line;
@@ -700,7 +700,7 @@ static void UpdateSymbols(int gno, int value)
         SetToggleButtonState(baseline_item, p.baseline);
         SetChoice(baselinetype_item, p.baseline_type);
 
-        xv_setstr(legend_str_panel, p.lstr);
+        SetCSTextString(legend_str_item, p.lstr);
         
         switch (p.errbar.type) {
         case PLACE_BOTH:
