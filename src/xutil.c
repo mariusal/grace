@@ -842,8 +842,8 @@ Pixmap char_to_pixmap(Widget w, int font, char c, int csize)
             width, height, hshift, vshift, 1);
         
         XFreePixmap(xstuff->disp, ptmp);
-        canvas_cpixmap_free(pm);
     }
+    canvas_cpixmap_free(pm);
     
     return pixmap;
 }
