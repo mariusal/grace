@@ -905,6 +905,16 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     if (CSglyph == NULL) {
         return;
     }
+    if (CSglyph->bits == NULL) {
+        /* a string containing only spaces or unrasterizable chars */
+        /*
+         *  Ideally, we should call here T1_FreeGlyph(). However,
+         *  the current t1lib does NOT check whether the "bits" field
+         *  is NULL - so we use a hack
+         */
+        free(CSglyph);
+        return;
+    }
     
     pinpoint_x = CSglyph->metrics.leftSideBearing;
     pinpoint_y = CSglyph->metrics.ascent;
