@@ -8,7 +8,7 @@ TOP=..
 
 include $(TOP)/Make.conf
 
-AUXILIARIES = README jul2greg.c greg2jul.c magic.grace
+AUXILIARIES = README convcal.c magic.grace
 
 all : dummy
 

@@ -1,8 +1,7 @@
 
 Contents of auxiliary:
 
-jul2greg.c  - convert Julian date to Gregorian
-greg2jul.c  - convert Gregorian date to Julian
+convcal.c  -  convert between different date/time formats
 magic.grace - section for magic(5) so file(1) would recognize ACE/gr and Grace
               file types; add it to /etc/magic: cat magic.grace >> /etc/magic
 fdf2fit     - script to convert Origin-4 .fdf fit parameter files to Grace
