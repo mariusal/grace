@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.2.0)</title>
 <author>by the Grace Team</author>
-<date>01.12.2000</date>
+<date>21.01.2001</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -53,7 +53,7 @@
 
 <tscreen><verb>
 Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
-Copyright (&copy;) 1996-2000 Grace Development Team
+Copyright (&copy;) 1996-2001 Grace Development Team
 
 Maintained by Evgeny Stambulchik
 
@@ -625,9 +625,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
           <tag> -printfile </tag> <it>file</it>
                 Save print output to file
-
-          <tag> -remove </tag>
-                Remove data file after read
 
           <tag> -results <it>results_file</it> </tag>
                 Write results of some data manipulations to results_file

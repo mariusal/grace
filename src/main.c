@@ -86,7 +86,6 @@ int main(int argc, char *argv[])
     int loadlegend = FALSE;	/* legend on and load file names */
     int gracebat;		/* if executed as 'gracebat' then TRUE */
     int cli = FALSE;            /* command line interface only */
-    int remove_flag = FALSE;	/* remove file after read */
     int noprint = FALSE;	/* if gracebat, then don't print if true */
     int sigcatch = TRUE;	/* we handle signals ourselves */
 
@@ -346,8 +345,6 @@ int main(int argc, char *argv[])
 #endif
 	    } else if (argmatch(argv[i], "-timestamp", 10)) {
 		project->timestamp.active = TRUE;
-	    } else if (argmatch(argv[i], "-remove", 7)) {
-		remove_flag = TRUE;
 	    } else if (argmatch(argv[i], "-fixed", 5)) {
 		i++;
 		if (i == argc) {
@@ -608,9 +605,6 @@ int main(int argc, char *argv[])
 	    }
 	} else {
 	    if (load_project(argv[i]) == RETURN_SUCCESS) {
-		if (remove_flag) {
-		    unlink(argv[i]);
-		}
 		clear_dirtystate();
 	    }
 	} /* end else */
@@ -783,7 +777,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-pexec     [parameter_string]         Interpret string as a parameter setting\n");
     fprintf(stream, "-pipe                                 Read data from stdin on startup\n");
     fprintf(stream, "-printfile [file for hardcopy output] Save print output to file \n");
-    fprintf(stream, "-remove                               Remove data file after read\n");
     fprintf(stream, "-results   [results_file]             Write results of some data manipulations\n");
     fprintf(stream, "                                        to results_file\n");
     fprintf(stream, "-rvideo                               Exchange the color indices for black and\n");
