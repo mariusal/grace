@@ -61,8 +61,11 @@ static int get_ctrans_data(const Quark *q, ctrans_data *cd)
     graph *g = graph_get_data(get_defining_graph(q));
     
     if (g && cd) {
-        g->type == GRAPH_POLAR ?
-            cd->coordinates = COORDINATES_POLAR:COORDINATES_XY;
+        if (g->type == GRAPH_POLAR) {
+            cd->coordinates = COORDINATES_POLAR;
+        } else {
+            cd->coordinates = COORDINATES_XY;
+        }
         cd->xscale  = g->xscale;
         cd->yscale  = g->yscale;
         cd->xv_med  = g->ccache.xv_med;
@@ -212,7 +215,7 @@ double fscale(double wc, int scale)
     case SCALE_REC:
         return (1.0/wc);
     case SCALE_LOGIT:
-        return (log(wc/(1.0-wc)));
+        return (log(wc/(1.0 - wc)));
     default:
         errmsg("internal error in fscale()");
         return (wc);
@@ -232,7 +235,7 @@ double ifscale(double vc, int scale)
     case SCALE_REC:
         return (1.0/vc);
     case SCALE_LOGIT:
-        return (exp(vc)/(1+exp(vc)));
+        return (exp(vc)/(1.0 + exp(vc)));
     default:
         errmsg("internal error in ifscale()");
         return (vc);
@@ -270,7 +273,6 @@ int update_graph_ccache(Quark *gr)
     graph *g = graph_get_data(gr);
     view *v = frame_get_view(get_parent_frame(gr));
     int ctrans_type, xyfixed;
-    double dx, dy;
 
     if (!g || !v) {
         return RETURN_FAILURE;
@@ -291,128 +293,35 @@ int update_graph_ccache(Quark *gr)
         break;
     }
     
-    /* Safety checks */
-    if (!isvalid_viewport(v)) {
-        errmsg("Invalid viewport");
-        return RETURN_FAILURE;
-    }
-    
-    dx = g->w.xg2 - g->w.xg1;
-    if (dx <= 0.0) {
-        errmsg("World DX <= 0.0");
-        return RETURN_FAILURE;
-    }
-    dy = g->w.yg2 - g->w.yg1;
-    if (dy <= 0.0) {
-        errmsg("World DY <= 0.0");
-        return RETURN_FAILURE;
-    }
-
     switch (ctrans_type) {
     case COORDINATES_POLAR:
-        if (g->w.yg2 <= 0.0) {
-            errmsg("World Rho-max <= 0.0");
-            return RETURN_FAILURE;
-        } else
-        if ((g->xscale != SCALE_NORMAL) ||
-            (g->yscale != SCALE_NORMAL)) {
-            errmsg("Only linear scales are supported in Polar plots");
-            return RETURN_FAILURE;
-        } else
-        if (g->yinvert == TRUE) {
-            errmsg("Can't set Y scale inverted in Polar plot");
-            return RETURN_FAILURE;
+        g->ccache.xv_med = (v->xv1 + v->xv2)/2;
+        if (g->xinvert == FALSE) {
+            g->ccache.xv_rc = +1.0;
         } else {
-            g->ccache.xv_med = (v->xv1 + v->xv2)/2;
-            if (g->xinvert == FALSE) {
-                g->ccache.xv_rc = +1.0;
-            } else {
-                g->ccache.xv_rc = -1.0;
-            }
-
-            g->ccache.yv_med = (v->yv1 + v->yv2)/2;
-            g->ccache.yv_rc =
-                (MIN2(v->xv2 - v->xv1, v->yv2 - v->yv1)/2.0)/g->w.yg2;
+            g->ccache.xv_rc = -1.0;
         }
-        break;
-    default:
-        /* FIXME: graph_set_type() should worry that for GRAPH_FIXED,  */
-        /*        the scalings, world window etc are set appropriately */
-        if (xyfixed) {
-            if ((g->xscale != SCALE_NORMAL) ||
-                (g->yscale != SCALE_NORMAL)) {
-                errmsg("Only linear axis scale is allowed in Fixed graphs");
-                return RETURN_FAILURE;
-            } else {
-                g->ccache.xv_med = (v->xv1 + v->xv2)/2;
-                g->ccache.fxg_med = (g->w.xg1 + g->w.xg2)/2;
-                g->ccache.yv_med = (v->yv1 + v->yv2)/2;
-                g->ccache.fyg_med = (g->w.yg1 + g->w.yg2)/2;
 
-                g->ccache.xv_rc = MIN2((v->xv2 - v->xv1)/(g->w.xg2 - g->w.xg1),
-                             (v->yv2 - v->yv1)/(g->w.yg2 - g->w.yg1));
-                g->ccache.yv_rc = g->ccache.xv_rc;
-                if (g->xinvert == TRUE) {
-                    g->ccache.xv_rc = -g->ccache.xv_rc;
-                }
-                if (g->yinvert == TRUE) {
-                    g->ccache.yv_rc = -g->ccache.yv_rc;
-                }
+        g->ccache.yv_med = (v->yv1 + v->yv2)/2;
+        g->ccache.yv_rc = (MIN2(v->xv2 - v->xv1, v->yv2 - v->yv1)/2.0)/g->w.yg2;
+        break;
+    case COORDINATES_XY:
+        if (xyfixed) {
+            g->ccache.xv_med = (v->xv1 + v->xv2)/2;
+            g->ccache.fxg_med = (g->w.xg1 + g->w.xg2)/2;
+            g->ccache.yv_med = (v->yv1 + v->yv2)/2;
+            g->ccache.fyg_med = (g->w.yg1 + g->w.yg2)/2;
+
+            g->ccache.xv_rc = MIN2((v->xv2 - v->xv1)/(g->w.xg2 - g->w.xg1),
+                         (v->yv2 - v->yv1)/(g->w.yg2 - g->w.yg1));
+            g->ccache.yv_rc = g->ccache.xv_rc;
+            if (g->xinvert == TRUE) {
+                g->ccache.xv_rc = -g->ccache.xv_rc;
+            }
+            if (g->yinvert == TRUE) {
+                g->ccache.yv_rc = -g->ccache.yv_rc;
             }
         } else {
-            if (g->xscale == SCALE_LOG) {
-                if (g->w.xg1 <= 0) {
-                    errmsg("World X-min <= 0.0");
-                    return RETURN_FAILURE;
-                }
-                if (g->w.xg2 <= 0) {
-                    errmsg("World X-max <= 0.0");
-                    return RETURN_FAILURE;
-                }
-            } else if (g->xscale == SCALE_REC) {
-                if (sign(g->w.xg1) != sign(g->w.xg2)) {
-                    errmsg("X-axis contains 0");
-                    return RETURN_FAILURE;
-                }
-
-            }
-            if (g->xscale == SCALE_LOGIT) {
-                if (g->w.xg1 <= 0) {
-                    errmsg("World X-min <= 0.0");
-                    return RETURN_FAILURE;
-                }
-                if (g->w.xg2 >= 1) {
-                    errmsg("World X-max >= 1.0");
-                    return RETURN_FAILURE;
-                }
-	    }    
-
-            if (g->yscale == SCALE_LOG) {
-                if (g->w.yg1 <= 0.0) {
-                    errmsg("World Y-min <= 0.0");
-                    return RETURN_FAILURE;
-                }
-                if (g->w.yg2 <= 0.0) {
-                    errmsg("World Y-max <= 0.0");
-                    return RETURN_FAILURE;
-                }
-            } else if (g->yscale == SCALE_REC) {
-                if (sign(g->w.yg1) != sign(g->w.yg2)) {
-                    errmsg("Y-axis contains 0");
-                    return RETURN_FAILURE;
-                }
-            }
-	    if (g->yscale == SCALE_LOGIT) {
-                if (g->w.yg1 <= 0) {
-                    errmsg("World Y-min <= 0.0");
-                    return RETURN_FAILURE;
-                }
-                if (g->w.yg2 >= 1) {
-                    errmsg("World Y-max >= 1.0");
-                    return RETURN_FAILURE;
-                }
-	    }    
-
             g->ccache.xv_med = (v->xv1 + v->xv2)/2;
             g->ccache.fxg_med =
                 (fscale(g->w.xg1, g->xscale) + fscale(g->w.xg2, g->xscale))/2;
@@ -435,7 +344,9 @@ int update_graph_ccache(Quark *gr)
                     (fscale(g->w.yg2, g->yscale) - fscale(g->w.yg1, g->yscale));
             }
         }
- 
+        break;
+    default:
+        errmsg("internal error in update_graph_ccache()");
         break;
     }
     

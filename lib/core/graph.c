@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -183,10 +183,18 @@ int graph_set_type(Quark *gr, int gtype)
         switch (gtype) {
         case GRAPH_XY:
         case GRAPH_CHART:
-        case GRAPH_FIXED:
         case GRAPH_PIE:
             break;
+        case GRAPH_FIXED:
+            /* Only linear axis scales are allowed in Fixed graphs */
+            g->xscale = SCALE_NORMAL;
+            g->yscale = SCALE_NORMAL;
+            break;
         case GRAPH_POLAR:
+            /* Only linear axis scales are allowed in Polar graphs */
+            g->xscale = SCALE_NORMAL;
+            g->yscale = SCALE_NORMAL;
+            g->yinvert = FALSE;
 	    g->w.xg1 = 0.0;
 	    g->w.xg2 = 2*M_PI;
 	    g->w.yg1 = 0.0;
@@ -247,8 +255,42 @@ int graph_set_world(Quark *gr, const world *w)
 {
     graph *g = graph_get_data(gr);
     if (g) {
+        double dx, dy;
+        dx = w->xg2 - w->xg1;
+        if (dx <= 0.0) {
+            errmsg("World DX <= 0.0");
+            return RETURN_FAILURE;
+        }
+        dy = w->yg2 - w->yg1;
+        if (dy <= 0.0) {
+            errmsg("World DY <= 0.0");
+            return RETURN_FAILURE;
+        }
+        if (g->type == GRAPH_POLAR && w->yg2 <= 0.0) {
+            errmsg("World Rho-max <= 0.0");
+            return RETURN_FAILURE;
+        }
+        if (g->xscale == SCALE_LOG && w->xg1 <= 0.0) {
+            g->xscale = SCALE_NORMAL;
+        }
+        if (g->yscale == SCALE_LOG && w->yg1 <= 0.0) {
+            g->yscale = SCALE_NORMAL;
+        }
+        if (g->xscale == SCALE_REC && sign(w->xg1) != sign(w->xg2)) {
+            g->xscale = SCALE_NORMAL;
+        }
+        if (g->yscale == SCALE_REC && sign(w->yg1) != sign(w->yg2)) {
+            g->yscale = SCALE_NORMAL;
+        }
+        if (g->xscale == SCALE_LOGIT && (w->xg1 <= 0.0 || w->xg2 >= 1.0)) {
+            g->xscale = SCALE_NORMAL;
+        }
+        if (g->yscale == SCALE_LOGIT && (w->yg1 <= 0.0 || w->yg2 >= 1.0)) {
+            g->yscale = SCALE_NORMAL;
+        }
 
         g->w = *w;
+        update_graph_ccache(gr);
         quark_dirtystate_set(gr, TRUE);
         return RETURN_SUCCESS;
     } else {
@@ -382,6 +424,33 @@ int graph_set_xscale(Quark *gr, int scale)
     graph *g = graph_get_data(gr);
     if (g) {
         if (g->xscale != scale) {
+            if (g->type == GRAPH_FIXED && scale != SCALE_NORMAL) {
+                errmsg("Only linear axis scales are allowed in Fixed graphs");
+                return RETURN_FAILURE;
+            }
+            if (g->type == GRAPH_POLAR && scale != SCALE_NORMAL) {
+                errmsg("Only linear axis scales are allowed in Polar plots");
+                return RETURN_FAILURE;
+            }
+            if (scale == SCALE_LOG && g->w.xg1 <= 0) {
+                errmsg("Can't set Log scale when World X-min <= 0.0");
+                return RETURN_FAILURE;
+            }
+            if (scale == SCALE_REC && sign(g->w.xg1) != sign(g->w.xg2)) {
+                errmsg("Can't set Rec scale when X-axis contains 0");
+                return RETURN_FAILURE;
+            }
+            if (scale == SCALE_LOGIT) {
+                if (g->w.xg1 <= 0) {
+                    errmsg("World X-min <= 0.0");
+                    return RETURN_FAILURE;
+                }
+                if (g->w.xg2 >= 1) {
+                    errmsg("World X-max >= 1.0");
+                    return RETURN_FAILURE;
+                }
+	    }    
+
             g->xscale = scale;
 #if 0
             for (naxis = 0; naxis < MAXAXES; naxis++) {
@@ -405,6 +474,7 @@ int graph_set_xscale(Quark *gr, int scale)
                 }
             }
 #endif
+            update_graph_ccache(gr);
             quark_dirtystate_set(gr, TRUE);
         }
         return RETURN_SUCCESS;
@@ -418,6 +488,33 @@ int graph_set_yscale(Quark *gr, int scale)
     graph *g = graph_get_data(gr);
     if (g) {
         if (g->yscale != scale) {
+            if (g->type == GRAPH_FIXED && scale != SCALE_NORMAL) {
+                errmsg("Only linear axis scales are allowed in Fixed graphs");
+                return RETURN_FAILURE;
+            }
+            if (g->type == GRAPH_POLAR && scale != SCALE_NORMAL) {
+                errmsg("Only linear axis scales are allowed in Polar plots");
+                return RETURN_FAILURE;
+            }
+            if (scale == SCALE_LOG && g->w.yg1 <= 0) {
+                errmsg("Can't set Log scale when World Y-min <= 0.0");
+                return RETURN_FAILURE;
+            }
+            if (scale == SCALE_REC && sign(g->w.yg1) != sign(g->w.yg2)) {
+                errmsg("Can't set Rec scale when Y-axis contains 0");
+                return RETURN_FAILURE;
+            }
+            if (scale == SCALE_LOGIT) {
+                if (g->w.yg1 <= 0) {
+                    errmsg("World Y-min <= 0.0");
+                    return RETURN_FAILURE;
+                }
+                if (g->w.yg2 >= 1) {
+                    errmsg("World Y-max >= 1.0");
+                    return RETURN_FAILURE;
+                }
+	    }    
+
             g->yscale = scale;
 #if 0
             for (naxis = 0; naxis < MAXAXES; naxis++) {
@@ -441,6 +538,7 @@ int graph_set_yscale(Quark *gr, int scale)
                 }
             }
 #endif
+            update_graph_ccache(gr);
             quark_dirtystate_set(gr, TRUE);
         }
         return RETURN_SUCCESS;
@@ -496,6 +594,7 @@ int graph_set_xinvert(Quark *gr, int flag)
     graph *g = graph_get_data(gr);
     if (g) {
         g->xinvert = flag;
+        update_graph_ccache(gr);
         quark_dirtystate_set(gr, TRUE);
         return RETURN_SUCCESS;
     } else {
@@ -507,7 +606,12 @@ int graph_set_yinvert(Quark *gr, int flag)
 {
     graph *g = graph_get_data(gr);
     if (g) {
+        if (g->type == GRAPH_POLAR && flag != FALSE) {
+            errmsg("Can't set Y scale inverted in Polar plot");
+            return RETURN_FAILURE;
+        }
         g->yinvert = flag;
+        update_graph_ccache(gr);
         quark_dirtystate_set(gr, TRUE);
         return RETURN_SUCCESS;
     } else {

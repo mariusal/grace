@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2003 Grace Development Team
+ * Copyright (c) 2003,2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -218,15 +218,32 @@ int frame_set_fillpen(Quark *q, const Pen *pen)
     }
 }
 
+static int update_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    if (q->fid == QFlavorGraph) {
+        closure->descend = FALSE;
+        update_graph_ccache(q);
+    }
+
+    return TRUE;
+}
+
 int frame_set_view(Quark *q, const view *v)
 {
     frame *f = frame_get_data(q);
 
     if (f) {
-        f->v = *v;
-        quark_dirtystate_set(q, TRUE);
-    
-        return RETURN_SUCCESS;
+        /* Safety checks */
+        if (!isvalid_viewport(v)) {
+            errmsg("Invalid viewport");
+            return RETURN_FAILURE;
+        } else {
+            f->v = *v;
+            quark_traverse(q, update_hook, NULL);
+            quark_dirtystate_set(q, TRUE);
+
+            return RETURN_SUCCESS;
+        }
     } else {
         return RETURN_FAILURE;
     }
