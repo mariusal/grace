@@ -135,20 +135,45 @@ static int mif_fillpattern(int fillpattern)
 }
 
 /*
- * special characters processing
- */
-static char hex_char(int i)
-{
-    return (i < 10) ? (i + '0') : (i - 10 + 'a');
-}
-
-/*
  * escape special characters
  */
 static char *escape_specials(unsigned char *s, int len)
 {
     static char *es = NULL;
     int i, elen = 0;
+    
+    /* Define Array with all charactercodes from 128 to 255 for the
+       conversion of the ISOLatin1 codes to FrameMaker codes.
+       Characters, which are not part of the FrameMaker characterset
+       are coded as \xc0 (exclamdown)
+       The following conversions are defined
+       onesuperior -> 1
+       twosuperior -> 2
+       threesuperior -> 3
+       degree -> ring
+       multiply -> x
+       Yacute -> Y
+       divide -> :
+       yacute -> y
+       Matthias Dillier, 10.1.2001 */
+    static char *code[128] = {
+        "80","81","82","83","84","85","86","87",
+        "88","89","8a","8b","8c","8d","8e","8f",
+        "f5","d4","d5","f6","f7","f8","f9","fa",
+        "ac","99","fb","fc","9c","fd","fe","c0",
+        "a0","c1","a2","a3","db","b4","c0","a4",
+        "ac","a9","bb","c7","c2","2d","a8","f8",
+        "fb","c0","32","33","ab","c0","a6","e1",
+        "fc","31","bc","c8","c0","c0","c0","c0",
+        "cb","e7","e5","cc","80","81","ae","82",
+        "e9","83","e6","e8","ed","ea","eb","ec",
+        "c0","84","f1","ee","ef","cd","85","78",
+        "af","f4","f2","f3","86","59","c0","a7",
+        "88","87","89","8b","8a","8c","be","8d",
+        "8f","8e","90","91","93","92","94","95",
+        "c0","96","98","97","99","9b","9a","3a",
+        "bf","9d","9c","9e","9f","79","c0","d8"
+    };
     
     elen = 0;
     for (i = 0; i < len; i++) {
@@ -164,6 +189,7 @@ static char *escape_specials(unsigned char *s, int len)
     es = xrealloc(es, (elen + 1)*SIZEOF_CHAR);
     
     elen = 0;
+    
     for (i = 0; i < len; i++) {
         if (s[i] == '\t') {
             es[elen++] = '\\';
@@ -183,13 +209,16 @@ static char *escape_specials(unsigned char *s, int len)
         } else if (s[i] > 0x7f) {
             es[elen++] = '\\';
             es[elen++] = 'x';
-            es[elen++] = hex_char(s[i] >> 4);
-            es[elen++] = hex_char(s[i] & 0xf);
+
+            /* Convert special characters to mif-charactercodes */
+            es[elen++] = code[s[i] - 128][0];
+            es[elen++] = code[s[i] - 128][1];
             es[elen++] = ' ';
         } else {
             es[elen++] = (char) s[i];
         }
     }
+          
     es[elen] = '\0';
     
     return (es);
@@ -280,13 +309,51 @@ int mifinitgraphics(void)
     fprintf(prstream, "<Document\n");
     fprintf(prstream, " <DPageSize %8.3f pt %8.3f pt>\n",
             page_width_pp + 2*MIF_MARGIN, page_height_pp + 2*MIF_MARGIN);
+    fprintf(prstream, " <DMargins 0 pt 0 pt 0 pt 0 pt>\n");
+    fprintf(prstream, " <DColumns 1>\n");
     fprintf(prstream, "> # end of Document\n");
 
-    fprintf(prstream, "<Page\n");
+    fprintf(prstream, "<Page # Create a right master page.\n");
+    fprintf(prstream, " <PageType RightMasterPage>\n");
+    fprintf(prstream, " <PageTag `Right'>\n");
+    fprintf(prstream, " <TextRect\n");
+    fprintf(prstream, "   <ID 10>\n");
+    fprintf(prstream, "   <Pen 15>\n");
+    fprintf(prstream, "   <Fill 15>\n");
+    fprintf(prstream, "   <ShapeRect 0 pt 0 pt %8.3f pt %8.3f pt>\n",
+            page_width_pp + 2*MIF_MARGIN, page_height_pp + 2*MIF_MARGIN);
+    fprintf(prstream, "   <TRNumColumns 1>\n");
+    fprintf(prstream, "   <TRColumnGap 0.0 pt>\n");
+    fprintf(prstream, " > # end of TextRect\n");
+    fprintf(prstream, "> # end of Page\n");
+
+    fprintf(prstream, "<Page # Create a body page.\n");
     fprintf(prstream, " <PageType BodyPage>\n");
     fprintf(prstream, " <PageNum `1'>\n");
     fprintf(prstream, " <PageAngle 0>\n");
     fprintf(prstream, " <PageBackground `Default'>\n");
+    fprintf(prstream, " <TextRect\n");
+    fprintf(prstream, "   <ID 20>\n");
+    fprintf(prstream, "   <ShapeRect 0 pt 0 pt %8.3f pt %8.3f pt>\n",
+            page_width_pp + 2*MIF_MARGIN, page_height_pp + 2*MIF_MARGIN);
+    fprintf(prstream, "   <TRNumColumns 1> \n");
+    fprintf(prstream, "   <TRColumnGap 0.0 pt>\n");
+    fprintf(prstream, " > # end TextRect\n");
+    fprintf(prstream, "> # end Page\n");
+
+    fprintf(prstream, "<AFrames\n");
+    fprintf(prstream, " <Frame\n");
+    fprintf(prstream, "  <ID 30>\n");
+    fprintf(prstream, "  <Pen 15>\n");
+    fprintf(prstream, "  <Fill 15>\n");
+    fprintf(prstream, "  <RunaroundGap  0 pt>\n");
+    fprintf(prstream, "  <RunaroundType None>\n");
+    fprintf(prstream, "   <ShapeRect 0 pt 0 pt %8.3f pt %8.3f pt>\n",
+            page_width_pp + 2*MIF_MARGIN, page_height_pp + 2*MIF_MARGIN);
+    fprintf(prstream, "  <FrameType RunIntoParagraph>\n");
+    fprintf(prstream, "  <NSOffset  0.0 mm>\n");
+    fprintf(prstream, "  <BLOffset  0.0 mm>\n");
+    fprintf(prstream, "  <AnchorAlign Left>\n");
 
     return RETURN_SUCCESS;
 }
@@ -657,6 +724,28 @@ void mif_leavegraphics(void)
     fprintf(prstream, " <Group\n");
     fprintf(prstream, "  <ID 1>\n");
     fprintf(prstream, " > # end of Group\n");
-    fprintf(prstream, "> # end of Page\n");
+
+    fprintf(prstream, " > # end of Frame\n");
+    fprintf(prstream, "> # end of AFrames\n");
+    fprintf(prstream, "<TextFlow\n");
+    fprintf(prstream, " <TFTag `A'>\n");
+    fprintf(prstream, " <TFAutoConnect Yes>\n");
+    fprintf(prstream, " <Para\n");
+    fprintf(prstream, "  <ParaLine\n");
+    fprintf(prstream, "   <TextRectID 10>\n");
+    fprintf(prstream, "  > # end of ParaLine\n");
+    fprintf(prstream, " > # end of Para\n");
+    fprintf(prstream, "> # end of TextFlow\n");
+    fprintf(prstream, "<TextFlow\n");
+    fprintf(prstream, " <TFTag `A'>\n");
+    fprintf(prstream, " <TFAutoConnect Yes>\n");
+    fprintf(prstream, " <Para\n");
+    fprintf(prstream, " <TextRectID 20>\n");
+    fprintf(prstream, "   <ParaLine\n");
+    fprintf(prstream, "     <AFrame 30>\n");
+    fprintf(prstream, "  > # end of ParaLine\n");
+    fprintf(prstream, " > # end of Para\n");
+    fprintf(prstream, "> # end of TextFlow\n");
+          
     fprintf(prstream, "# End of MIFFile\n");
 }
