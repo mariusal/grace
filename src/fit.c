@@ -358,11 +358,11 @@ int crosscorr(double *x, double *y, int n, int maxlag, int covar, double *xres)
 	    xres[i] += (y[j] - ybar)*(x[j + i] - xbar);
 	}
 	if (i == 0) {
-            cnorm = xres[i];
-            xres[i] = 1.0;
-        } else {
-            xres[i] /= cnorm;
+            if (xres[0] != 0.0) {
+                cnorm = fabs(xres[0]);
+            }
         }
+        xres[i] /= cnorm;
     }
     
     return RETURN_SUCCESS;
