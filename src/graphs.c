@@ -214,6 +214,9 @@ graph *graph_next(void)
     g = graph_new();
     if (g) {
         if (storage_add(graphs, g) == RETURN_SUCCESS) {
+            if (storage_count(graphs) == 1) {
+                cg = 0;
+            }
             set_dirtystate();
             return g;
         } else {
