@@ -781,11 +781,8 @@ static CompositeString *String2Composite(char *string)
                 setmark = MARK_NONE;
 	        csbuf[nss].gotomark = gotomark;
 
-	        csbuf[nss].s = xmalloc((isub + 1)*SIZEOF_CHAR);
+	        csbuf[nss].s = xmalloc(isub*SIZEOF_CHAR);
 	        memcpy(csbuf[nss].s, ss, isub);
-	        /* TODO: this is a temporarily hack for devices that can't
-                   handle zero's inside a string anyway (yet) */
-                csbuf[nss].s[isub] = '\0';
 	        csbuf[nss].len = isub;
 	        isub = 0;
 	
