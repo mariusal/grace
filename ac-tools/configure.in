@@ -347,10 +347,6 @@ AC_EXEEXT
 AC_OBJEXT
 
 OBJEXT=".$OBJEXT"
-if test "x$EXEEXT" != "x"
-then
-  EXEEXT=".$EXEEXT"
-fi
 
 AC_PROG_MAKE_SET
 
