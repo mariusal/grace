@@ -198,7 +198,7 @@ void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	nonl_title_item = XmCreateLabel(title_fr, nonl_opts.title, NULL, 0);
     	XtManageChild(nonl_title_item);
     	
-	nonl_formula_item = CreateScrollTextItem2(rc, 40, 2, "Formula:");
+	nonl_formula_item = CreateScrollTextItem2(rc, 2, "Formula:");
 	rc1 = XmCreateRowColumn(rc, "nonl_rc", NULL, 0);
 	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
 	
@@ -527,7 +527,7 @@ static void do_nonl_proc(Widget w, XtPointer client_data, XtPointer call_data)
 
     	info = do_nonlfit(cg, nlsetno, nsteps);
     	if (info == -1) {
-	    errmsg("Memory allocation error in do_nonlfit()");  
+	    errmsg("Fatal error in do_nonlfit()");  
 	    unset_wait_cursor();
 	    return;  	
     	}
@@ -639,7 +639,7 @@ static void do_nonl_proc(Widget w, XtPointer client_data, XtPointer call_data)
     	
     	setcomment(cg, nlloadset, nonl_opts.formula);
     	
-    	do_compute(nlloadset, 0, cg, nonl_opts.formula);
+    	do_compute(cg, nlloadset, cg, nlloadset, NULL, nonl_opts.formula);
     	
     	if (nonl_prefs.load == LOAD_RESIDUALS) { /* load residuals */
     	    y = gety(cg, nlsetno);
