@@ -543,8 +543,9 @@ static int setapp_aac_cb(void *data)
                 p->setfillpen.color = GetOptionChoice(toggle_fillcol_item);
             }
             if (data == legend_str_item || data == NULL) {
-                if (cd==1 || duplegs) {
-                    strcpy(p->legstr, GetTextString(legend_str_item));
+                if (cd == 1 || duplegs) {
+                    xfree(p->legstr);
+                    p->legstr = GetTextString(legend_str_item);
                 }
             }
             if (data == toggle_symbols_item || data == NULL) {
