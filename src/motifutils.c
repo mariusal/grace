@@ -3142,19 +3142,11 @@ void update_all(void)
     update_set_selectors(ALL_GRAPHS);
 
     update_ticks(gno);
-/*
- *     update_view(gno);
- */
-/*
- *     update_graphapp_items(gno);
- */
-/*
- *     update_frame_items(gno);
- */
     update_props_items();
     update_hotlinks();
     update_prune_frame();
-    update_describe_popup ();
+    update_describe_popup();
     update_locator_items(gno);
     set_stack_message();
+    set_left_footer(NULL);
 }
