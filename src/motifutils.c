@@ -879,6 +879,10 @@ void TextInsert(TextStructure *cst, int pos, char *s)
     XmTextInsert(cst->text, pos, s);
 }
 
+void SetTextEditable(TextStructure *cst, int onoff)
+{
+    XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
+}
 
 typedef struct {
     void (*cbproc)();
