@@ -77,8 +77,6 @@ void create_eblock_frame(int gno);
 
 void create_printer_setup(void *data);
 
-void open_command(void *data);
-
 void create_eval_frame(void *data);
 void create_load_frame(void *data);
 void create_histo_frame(void *data);

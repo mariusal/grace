@@ -117,9 +117,6 @@ motifutils$(O) : motifutils.c Tab.h motifinc.h defines.h storage.h globals.h \
 compwin$(O) : compwin.c graphs.h grace.h defines.h storage.h draw.h dict3.h \
   ctrans.h utils.h ssdata.h motifinc.h protos.h missing.h noxprotos.h \
   xprotos.h
-comwin$(O) : comwin.c graphs.h grace.h defines.h storage.h draw.h dict3.h \
-  ctrans.h utils.h files.h motifinc.h parser.h protos.h missing.h \
-  noxprotos.h xprotos.h
 eblockwin$(O) : eblockwin.c graphs.h grace.h defines.h storage.h draw.h \
   dict3.h ctrans.h utils.h ssdata.h protos.h missing.h noxprotos.h \
   xprotos.h motifinc.h
@@ -147,8 +144,8 @@ miscwin$(O) : miscwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \
   utils.h graphs.h ctrans.h motifinc.h protos.h missing.h noxprotos.h \
   xprotos.h
 monwin$(O) : monwin.c utils.h grace.h defines.h storage.h draw.h dict3.h \
-  files.h motifinc.h protos.h missing.h noxprotos.h graphs.h ctrans.h \
-  xprotos.h
+  files.h parser.h motifinc.h protos.h missing.h noxprotos.h graphs.h \
+  ctrans.h xprotos.h
 nonlwin$(O) : nonlwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \
   graphs.h ctrans.h utils.h files.h parser.h motifinc.h protos.h \
   missing.h noxprotos.h xprotos.h

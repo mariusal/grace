@@ -240,7 +240,7 @@ String fallbackResourcesCommon[] = {
     "XMgrace*fileMenu.printButton.accelerator: Ctrl<Key>p",
     "XMgrace*helpMenu.onContextButton.acceleratorText: Shift+F1",
     "XMgrace*helpMenu.onContextButton.accelerator: Shift<Key>F1",
-    "XMgrace*readHistoryFSB*pattern: *.com",
+    "XMgrace*saveLogsFSB*pattern: *.log",
     "XMgrace*openProjectFSB*pattern: *.*gr",
     "XMgrace*saveProjectFSB*pattern: *.xgr",
     "XMgrace*readSetsFSB*pattern: *.dat",
@@ -829,13 +829,12 @@ static Widget CreateMainMenuBar(Widget parent)
 /* Window menu */
     menupane = CreateMenu(menubar, "Window", 'W', FALSE);
    
-    CreateMenuButton(menupane, "Commands", 'C', open_command, NULL);
     CreateMenuButton(menupane, "Point explorer", 'P', create_points_frame, NULL);
     CreateMenuButton(menupane, "Font tool", 'F', create_fonttool_cb, NULL);
 /*
  *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
  */
-    CreateMenuButton(menupane, "Console", 'l', create_monitor_frame_cb, NULL);
+    CreateMenuButton(menupane, "Console", 'C', create_monitor_frame_cb, NULL);
     CreateMenuButton(menupane, "Explorer", 'E', define_explorer_popup, NULL);
     
 

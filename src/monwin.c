@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -41,23 +41,63 @@
 
 #include "utils.h"
 #include "files.h"
+#include "parser.h"
 #include "motifinc.h"
 #include "protos.h"
 
+extern XtAppContext app_con;
 
 static void clear_results(void *data);
 static void popup_on(int onoff, void *data);
 static void create_wmon_frame(void *data);
-static int wmon_apply_notify_proc(void *data);
+static int save_logs_proc(char *filename, void *data);
+static void cmd_cb(char *s, void *data);
 
 typedef struct _console_ui
 {
     Widget mon_frame;
     Widget monText;
-    Widget wmon_frame;
-    Widget wmon_text_item;
+    FSBStructure *save_logs_fsb;
+    TextStructure *cmd;
+    Storage *history;
     int popup_only_on_errors;
 } console_ui;
+
+static void command_hist_prev(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+    char *s;
+    console_ui *ui = (console_ui *) GetUserData(w);
+    if (storage_get_data(ui->history, (void **) &s) == RETURN_SUCCESS) {
+        SetTextString(ui->cmd, s);
+    }
+    storage_scroll(ui->history, -1, FALSE);
+}
+
+static void command_hist_next(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+    char *s;
+    console_ui *ui = GetUserData(w);
+    storage_get_data(ui->history, (void **) &s);
+    if (storage_scroll(ui->history, +1, FALSE) == RETURN_SUCCESS) {
+        SetTextString(ui->cmd, s);
+    } else {
+        SetTextString(ui->cmd, "");
+    }
+}
+
+static char command_hist_table[] = "\
+    <Key>osfUp: command_hist_prev()\n\
+    <Key>osfDown: command_hist_next()";
+
+static XtActionsRec command_hist_actions[] = {
+    {"command_hist_prev",   command_hist_prev},
+    {"command_hist_next", command_hist_next}
+};
+
+static void *wrap_str_copy(void *data)
+{
+    return copy_string(NULL, (char *) data);
+}
 
 /*
  * Create the mon Panel
@@ -73,7 +113,8 @@ static void create_monitor_frame(int force, char *msg)
 
 	ui = xmalloc(sizeof(console_ui));
         ui->mon_frame = CreateDialogForm(app_shell, "Console");
-        ui->wmon_frame = NULL;
+        ui->save_logs_fsb = NULL;
+        ui->history = storage_new(xfree, wrap_str_copy, NULL);
         ui->popup_only_on_errors = FALSE;
 
         menubar = CreateMenuBar(ui->mon_frame);
@@ -96,12 +137,22 @@ static void create_monitor_frame(int force, char *msg)
             ui->mon_frame, "doc/UsersGuide.html#console");
 	
         fr = CreateFrame(ui->mon_frame, NULL);
-        
 	ui->monText = CreateScrollTextItem2(fr, 0, "Messages:");
         XmTextSetString(ui->monText, "");
         XtVaSetValues(ui->monText, XmNeditable, False, NULL);
-
         AddDialogFormChild(ui->mon_frame, fr);
+
+        fr = CreateFrame(ui->mon_frame, NULL);
+        ui->cmd = CreateTextInput(fr, "Command:");
+        SetUserData(ui->cmd->text, ui);
+        AddTextInputCB(ui->cmd, cmd_cb, ui);
+	XtOverrideTranslations(ui->cmd->text,
+            XtParseTranslationTable(command_hist_table));
+        XtAppAddActions(app_con,
+            command_hist_actions, XtNumber(command_hist_actions));
+        AddDialogFormChild(ui->mon_frame, fr);
+        FixateDialogFormChild(fr);
+
         ManageChild(ui->mon_frame);
     }
     
@@ -140,50 +191,53 @@ static void create_wmon_frame(void *data)
     if (!ui) {
         return;
     }
-    
+
     set_wait_cursor();
-    
-    if (ui->wmon_frame == NULL) {
-        Widget wmon_panel;
-	
-        ui->wmon_frame = CreateDialogForm(app_shell, "Save logs");
-	wmon_panel = CreateVContainer(ui->wmon_frame);
 
-	ui->wmon_text_item = CreateTextItem2(wmon_panel, 30, "Save to file: ");
-
-	CreateAACDialog(ui->wmon_frame,
-            wmon_panel, wmon_apply_notify_proc, ui);
+    if (ui->save_logs_fsb == NULL) {
+        ui->save_logs_fsb = CreateFileSelectionBox(app_shell, "Save logs");
+	AddFileSelectionBoxCB(ui->save_logs_fsb, save_logs_proc, ui);
+        ManageChild(ui->save_logs_fsb->FSB);
     }
     
-    RaiseWindow(GetParent(ui->wmon_frame));
+    RaiseWindow(ui->save_logs_fsb->dialog);
+
     unset_wait_cursor();
 }
 
-static int wmon_apply_notify_proc(void *data)
+static int save_logs_proc(char *filename, void *data)
 {
     console_ui *ui = (console_ui *) data;
-    int len;
-    char *s, *text;
     FILE *pp;
 
-    s = xv_getstr(ui->wmon_text_item);
-    pp = grace_openw(s);
+    pp = grace_openw(filename);
 
     if (pp == NULL) {
         return RETURN_FAILURE;
     } else {
-        text = XmTextGetString(ui->monText);
-        len = XmTextGetLastPosition(ui->monText);
+        char *text = XmTextGetString(ui->monText);
         
-        fwrite(text, SIZEOF_CHAR, len, pp);
+        if (text) {
+            fwrite(text, SIZEOF_CHAR, strlen(text), pp);
+            XtFree(text);
+        }
         
         grace_close(pp);
-        XtFree(text);
         
         return RETURN_SUCCESS;
     }
 }
 
+static void cmd_cb(char *s, void *data)
+{
+    console_ui *ui = (console_ui *) data;
+    
+    scanner((char *) s);
+    storage_eod(ui->history);
+    storage_add(ui->history, copy_string(NULL, s));
+    storage_eod(ui->history);
+    SetTextString(ui->cmd, "");
+}
 
 void stufftextwin(char *msg)
 {
