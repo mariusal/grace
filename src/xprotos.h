@@ -67,8 +67,6 @@ int yesnowin(char *msg1, char *msg2, char *s1, char *help_anchor);
 
 void create_file_popup(Widget but, void *data);
 void create_netcdfs_popup(Widget but, void *data);
-void create_rparams_popup(Widget but, void *data);
-void create_wparam_frame(Widget but, void *data);
 void create_saveproject_popup(void);
 void create_openproject_popup(void);
 void do_hotupdate_proc(void *data);

@@ -798,9 +798,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Set appearance...", 'S', define_symbols_popup, (void *) -1);
     CreateMenuButton(menupane, "Axis properties...", 'x', create_axes_dialog_cb, NULL);
     CreateMenuButton(menupane, "Drawing objects...", 'o', define_objects_popup, NULL);
-    CreateMenuSeparator(menupane);
-    CreateMenuButton(menupane, "Load parameters...", 'L', create_rparams_popup, NULL);
-    CreateMenuButton(menupane, "Save parameters...", 'S', create_wparam_frame, NULL);
 
 
 /* View menu */
@@ -825,6 +822,8 @@ static Widget CreateMainMenuBar(Widget parent)
 /* Window menu */
     menupane = CreateMenu(menubar, "Tools", 'T', FALSE);
    
+    CreateMenuButton(menupane, "Explorer", 'E', define_explorer_popup, NULL);
+    CreateMenuButton(menupane, "Console", 'C', create_monitor_frame_cb, NULL);
 #if 0
     CreateMenuButton(menupane, "Point explorer", 'P', create_points_frame, NULL);
 #endif
@@ -832,8 +831,6 @@ static Widget CreateMainMenuBar(Widget parent)
 /*
  *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
  */
-    CreateMenuButton(menupane, "Console", 'C', create_monitor_frame_cb, NULL);
-    CreateMenuButton(menupane, "Explorer", 'E', define_explorer_popup, NULL);
     
 
 /* help menu */

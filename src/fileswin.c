@@ -67,9 +67,6 @@ static void set_load_proc(OptionStructure *opt, int value, void *data);
 static void set_src_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static int write_sets_proc(FSBStructure *fsb, char *filename, void *data);
 
-static int read_params_proc(FSBStructure *fsb, char *filename, void *data);
-static int write_params_proc(FSBStructure *fsb, char *filename, void *data);
-
 typedef struct {
     Widget format_item;    /* format */
     Widget descr_item;     /* description */
@@ -342,80 +339,6 @@ static int write_sets_proc(FSBStructure *fsb, char *filename, void *data)
         xfree(selset);
     }
     grace_close(cp);
-
-    /* never close the popup */
-    return FALSE;
-}
-
-
-void create_rparams_popup(Widget but, void *data)
-{
-    static FSBStructure *rparams_dialog = NULL;
-
-    set_wait_cursor();
-
-    if (rparams_dialog == NULL) {
-	rparams_dialog = CreateFileSelectionBox(app_shell, "Read parameters");
-	AddFileSelectionBoxCB(rparams_dialog, read_params_proc, NULL);
-        ManageChild(rparams_dialog->FSB);
-    }
-    
-    RaiseWindow(rparams_dialog->dialog);
-
-    unset_wait_cursor();
-}
-
-static int read_params_proc(FSBStructure *fsb, char *filename, void *data)
-{
-    getparms(filename);
-    update_all();
-    xdrawgraph();
-
-    /* never close the popup */
-    return FALSE;
-}
-
-/*
- * Create the wparam Frame and the wparam Panel
- */
-void create_wparam_frame(Widget but, void *data)
-{
-    static FSBStructure *fsb = NULL;
-
-    set_wait_cursor();
-
-    if (fsb == NULL) {
-        Widget fr;
-        OptionStructure *graph_item;
-	
-        fsb = CreateFileSelectionBox(app_shell, "Write parameters");
-	fr = CreateFrame(fsb->rc, NULL);
-	graph_item = CreatePanelChoice(fr,
-            "Write parameters from graph:",
-            3,
-            "Current",
-            "All",
-            NULL,
-            NULL);
-	AddFileSelectionBoxCB(fsb, write_params_proc, graph_item);
-        ManageChild(fsb->FSB);
-    }
-    
-    RaiseWindow(fsb->dialog);
-
-    unset_wait_cursor();
-}
-
-static int write_params_proc(FSBStructure *fsb, char *filename, void *data)
-{
-    FILE *pp;
-
-    pp = grace_openw(filename);
-    if (pp != NULL) {
-        errwin("Not implemented yet");
-        /* FIXME */;
-        grace_close(pp);
-    }
 
     /* never close the popup */
     return FALSE;
