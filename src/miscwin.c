@@ -184,7 +184,7 @@ void create_props_frame(void *data)
 	date_item = CreateTextItem2(panel, 20, "Reference date:");
         xv_setstr(date_item, "");
 	two_digits_years_item =
-                    XtVaCreateManagedWidget("Allow two digits years",
+                    XtVaCreateManagedWidget("Allow two-digit year format",
 					    xmToggleButtonWidgetClass, panel,
                                             NULL);
 
