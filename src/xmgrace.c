@@ -40,7 +40,6 @@
 #include <Xm/MainW.h>
 #include <Xm/Form.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Label.h>
 #include <Xm/ScrolledW.h>
 #include <Xm/DrawingA.h>
 #include <Xm/RepType.h>
@@ -210,6 +209,8 @@ static XtResource resources[] =
 };
 
 String fallbackResources[] = {
+    "XMgrace*mainWin.width: 680",
+    "XMgrace*mainWin.height: 700",
     "XMgrace*fontList:-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
     "XMgrace*tabFontList:-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
     "XMgrace.consoleDialog*text.fontList:-adobe-courier-medium-r-normal-*-12-*-*-*-*-*-*-*",
@@ -232,21 +233,23 @@ String fallbackResources[] = {
     "XMgrace*XmHTML.width: 600",
     "XMgrace*XmHTML.height: 500",
 #endif
-    "*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
-    "*dragInitiatorProtocolStyle: XmDRAG_NONE",
-    "*dragReceiverProtocolStyle:  XmDRAG_NONE",
-    "*fileMenu.newButton.acceleratorText: Ctrl+N",
-    "*fileMenu.newButton.accelerator: Ctrl<Key>n",
-    "*fileMenu.openButton.acceleratorText: Ctrl+O",
-    "*fileMenu.openButton.accelerator: Ctrl<Key>o",
-    "*fileMenu.saveButton.acceleratorText: Ctrl+S",
-    "*fileMenu.saveButton.accelerator: Ctrl<Key>s",
-    "*fileMenu.exitButton.acceleratorText: Ctrl+Q",
-    "*fileMenu.exitButton.accelerator: Ctrl<Key>q",
-    "*fileMenu.printButton.acceleratorText: Ctrl+P",
-    "*fileMenu.printButton.accelerator: Ctrl<Key>p",
-    "*helpMenu.onContextButton.acceleratorText: Shift+F1",
-    "*helpMenu.onContextButton.accelerator: Shift<Key>F1",
+    "XMgrace*mainWin.shadowThickness: 0",
+    "XMgrace*mainWin.menuBar.shadowThickness: 1",
+    "XMgrace*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
+    "XMgrace*dragInitiatorProtocolStyle: XmDRAG_NONE",
+    "XMgrace*dragReceiverProtocolStyle:  XmDRAG_NONE",
+    "XMgrace*fileMenu.newButton.acceleratorText: Ctrl+N",
+    "XMgrace*fileMenu.newButton.accelerator: Ctrl<Key>n",
+    "XMgrace*fileMenu.openButton.acceleratorText: Ctrl+O",
+    "XMgrace*fileMenu.openButton.accelerator: Ctrl<Key>o",
+    "XMgrace*fileMenu.saveButton.acceleratorText: Ctrl+S",
+    "XMgrace*fileMenu.saveButton.accelerator: Ctrl<Key>s",
+    "XMgrace*fileMenu.exitButton.acceleratorText: Ctrl+Q",
+    "XMgrace*fileMenu.exitButton.accelerator: Ctrl<Key>q",
+    "XMgrace*fileMenu.printButton.acceleratorText: Ctrl+P",
+    "XMgrace*fileMenu.printButton.accelerator: Ctrl<Key>p",
+    "XMgrace*helpMenu.onContextButton.acceleratorText: Shift+F1",
+    "XMgrace*helpMenu.onContextButton.accelerator: Shift<Key>F1",
     NULL
 };
 
@@ -886,11 +889,8 @@ void startup_gui(void)
 /*
  * build the UI here
  */
-    main_frame = XtVaCreateManagedWidget("main", xmMainWindowWidgetClass, app_shell,
-					 XmNshadowThickness, 0,
-					 XmNwidth, 680,
-					 XmNheight, 700,
-					 NULL);
+    main_frame = XtVaCreateManagedWidget("mainWin",
+        xmMainWindowWidgetClass, app_shell, NULL);
 
     menu_bar = CreateMainMenuBar(main_frame);
     ManageChild(menu_bar);
@@ -908,17 +908,10 @@ void startup_gui(void)
 				     NULL);
 
     frtop = CreateFrame(form, NULL);
+    loclab = CreateLabel(frtop, "");
+    
     frbot = CreateFrame(form, NULL);
-
-    statlab = XtVaCreateManagedWidget("statlab", xmLabelWidgetClass, frbot,
-				      XmNalignment, XmALIGNMENT_BEGINNING,
-				      XmNrecomputeSize, True,
-				      NULL);
-
-    loclab = XtVaCreateManagedWidget("label Locate", xmLabelWidgetClass, frtop,
-				     XmNalignment, XmALIGNMENT_BEGINNING,
-				     XmNrecomputeSize, True,
-				     NULL);
+    statlab = CreateLabel(frbot, "");
 
     if (get_pagelayout() == PAGE_FIXED) {
 
@@ -930,8 +923,6 @@ void startup_gui(void)
 				     NULL);
         canvas = XtVaCreateManagedWidget("canvas",
                                      xmDrawingAreaWidgetClass, drawing_window,
-				     XmNwidth, (Dimension) DEFAULT_PAGE_WIDTH,
-				     XmNheight, (Dimension) DEFAULT_PAGE_HEIGHT,
 				     XmNresizePolicy, XmRESIZE_ANY,
                                      XmNbackground,
 				     xvlibcolors[0],
@@ -939,8 +930,6 @@ void startup_gui(void)
     } else {
         canvas = XtVaCreateManagedWidget("canvas",
                                      xmDrawingAreaWidgetClass, form,
-				     XmNwidth, (Dimension) DEFAULT_PAGE_WIDTH,
-				     XmNheight, (Dimension) DEFAULT_PAGE_HEIGHT,
 				     XmNresizePolicy, XmRESIZE_ANY,
 				     XmNnavigationType, XmEXCLUSIVE_TAB_GROUP,
                                      XmNbackground,
@@ -966,6 +955,16 @@ void startup_gui(void)
     XtOverrideTranslations(canvas, XtParseTranslationTable(canvas_table));
 		      
 
+    XtVaSetValues(frtop,
+		  XmNtopAttachment, XmATTACH_FORM,
+		  XmNleftAttachment, XmATTACH_FORM,
+		  XmNrightAttachment, XmATTACH_FORM,
+		  NULL);
+    XtVaSetValues(frbot,
+		  XmNbottomAttachment, XmATTACH_FORM,
+		  XmNrightAttachment, XmATTACH_FORM,
+		  XmNleftAttachment, XmATTACH_FORM,
+		  NULL);
     XtVaSetValues(frleft,
 		  XmNtopAttachment, XmATTACH_WIDGET,
 		  XmNtopWidget, frtop,
@@ -973,27 +972,22 @@ void startup_gui(void)
 		  XmNbottomWidget, frbot,
 		  XmNleftAttachment, XmATTACH_FORM,
 		  NULL);
-    XtVaSetValues(frtop,
-		  XmNtopAttachment, XmATTACH_FORM,
-		  XmNleftAttachment, XmATTACH_FORM,
-		  XmNrightAttachment, XmATTACH_FORM,
-		  NULL);
     XtVaSetValues(drawing_window,
 		  XmNtopAttachment, XmATTACH_WIDGET,
 		  XmNtopWidget, frtop,
 		  XmNbottomAttachment, XmATTACH_WIDGET,
 		  XmNbottomWidget, frbot,
-		  XmNrightAttachment, XmATTACH_FORM,
 		  XmNleftAttachment, XmATTACH_WIDGET,
 		  XmNleftWidget, frleft,
-		  NULL);
-    XtVaSetValues(frbot,
-		  XmNbottomAttachment, XmATTACH_FORM,
 		  XmNrightAttachment, XmATTACH_FORM,
-		  XmNleftAttachment, XmATTACH_FORM,
 		  NULL);
 
     ManageChild(form);
+
+    if (get_pagelayout() == PAGE_FIXED) {
+        unsigned int w, h;
+        sync_canvas_size(&w, &h, FALSE);
+    }
 
     XmMainWindowSetAreas(main_frame, menu_bar, NULL, NULL, NULL, form);
 
@@ -1067,12 +1061,8 @@ void startup_gui(void)
     bt = CreateButton(rc3, "Cy");
     AddButtonCB(bt, world_stack_proc, (void *) WSTACK_CYCLE);
 
-    stack_depth_item = XtVaCreateManagedWidget("stackdepth",
-                                               xmLabelWidgetClass, rcleft,
-					       NULL);
-
-    curw_item = XtVaCreateManagedWidget("curworld", xmLabelWidgetClass, rcleft,
-					NULL);
+    stack_depth_item = CreateLabel(rcleft, "");
+    curw_item = CreateLabel(rcleft, "");
 
     bt = CreateButton(rcleft, "Exit");
     AddButtonCB(bt, MenuCB, (void *) MENU_EXIT);
@@ -1101,14 +1091,12 @@ void startup_gui(void)
  */
 #if defined(HAVE_XPM)
     XpmCreatePixmapFromData(disp, root,
-			    grace_icon_xpm, &icon, &shape, NULL);
+        grace_icon_xpm, &icon, &shape, NULL);
 #else
-    icon = XCreateBitmapFromData(disp,
-        RootWindowOfScreen(XtScreen(app_shell)), (char *)grace_icon_bits,
-        grace_icon_width, grace_icon_height);
-    shape = XCreateBitmapFromData(disp,
-        RootWindowOfScreen(XtScreen(app_shell)), (char *)grace_mask_bits,
-        grace_icon_width, grace_icon_height);
+    icon = XCreateBitmapFromData(disp, root,
+        (char *) grace_icon_bits, grace_icon_width, grace_icon_height);
+    shape = XCreateBitmapFromData(disp, root,
+        (char *) grace_mask_bits, grace_icon_width, grace_icon_height);
 #endif
     XtVaSetValues(app_shell, XtNiconPixmap, icon, XtNiconMask, shape, NULL);
 
@@ -1124,20 +1112,17 @@ void startup_gui(void)
     XtAppMainLoop(app_con);
 }
 
-void get_canvas_size(Dimension *w, Dimension *h)
+void sync_canvas_size(unsigned int *w, unsigned int *h, int inv)
 {
-    XtVaGetValues(canvas,
-                  XmNwidth, w,
-                  XmNheight, h,
-                  NULL);
-}
-
-void set_canvas_size(Dimension w, Dimension h)
-{
-    XtVaSetValues(canvas,
-                  XmNwidth, w,
-                  XmNheight, h,
-                  NULL);
+    if (inv) {
+        GetDimensions(canvas, w, h);
+        set_page_dimensions(*w, *h, TRUE);
+    } else {
+        Page_geometry pg = get_page_geometry();
+        *w = pg.width;
+        *h = pg.height;
+        SetDimensions(canvas, *w, *h);
+    }
 }
 
 static int page_layout = PAGE_FIXED;
@@ -1159,20 +1144,6 @@ void set_pagelayout(int layout)
     } else {
         page_layout = layout;
     }
-    
-/*
- *     if (layout == PAGE_FREE) {
- *         XtVaSetValues(scrollw,
- *         	      XmNscrollingPolicy, XmAPPLICATION_DEFINED,
- * 		      XmNvisualPolicy, XmVARIABLE,
- *                       NULL);
- *     } else {
- *         XtVaSetValues(scrollw,
- *         	      XmNscrollingPolicy, XmAUTOMATIC,
- * 		      XmNvisualPolicy, XmCONSTANT,
- *                       NULL);
- *     }
- */
 }
 
 static void graph_scroll_proc(void *data)
