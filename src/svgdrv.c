@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -123,6 +123,7 @@ static void define_pattern(const Canvas *canvas, Svg_data *svgdata, int i, int c
     Pattern *pat = canvas_get_pattern(canvas, i);
     fRGB frgb;
     double bg_red, bg_green, bg_blue;
+    FILE *prstream = canvas_get_prstream(canvas);
 
     if (svgdata->pattern_defined[i] == TRUE && c < number_of_colors(canvas) && svgdata->colorfilter_defined[c] == TRUE) {
         return;
@@ -143,30 +144,30 @@ static void define_pattern(const Canvas *canvas, Svg_data *svgdata, int i, int c
     }
 
     if (svgdata->pattern_empty[i] != TRUE && svgdata->pattern_full[i] != TRUE) {
-        fprintf(canvas->prstream, "  <defs>\n");
+        fprintf(prstream, "  <defs>\n");
         /* test if the pattern is already defined. */
         if (svgdata->pattern_defined[i] != TRUE) {
             /* this is an horrible hack ! */
             /* we define pixels as squares in vector graphics */
             /* first fill the whole pattern */
-            fprintf(canvas->prstream,
+            fprintf(prstream,
                     "   <pattern id=\"pattern%d\" viewBox=\"0 0 16 16\""
                     " width=\"%d\" height=\"%d\" patternUnits=\"userSpaceOnUse\">\n",
                     i, 16, 16);
-            fprintf(canvas->prstream,"     <rect fill=\"#FFFFFF\" x=\"0\" y=\"0\""
+            fprintf(prstream,"     <rect fill=\"#FFFFFF\" x=\"0\" y=\"0\""
                             " width=\"16\" height=\"16\"/>\n");
             for (j = 0; j < 256; j++) {
                 k = j/16;
                 l = j%16;
                 if ((pat->bits[j/8] >> (j%8)) & 0x01) {
                     /* the bit is set */
-                    fprintf(canvas->prstream,
+                    fprintf(prstream,
                             "     <rect x=\"%d\" y=\"%d\""
                             " width=\"1\" height=\"1\"/>\n",
                             l, 15-k);
                 }
             }
-            fprintf(canvas->prstream, "   </pattern>\n");
+            fprintf(prstream, "   </pattern>\n");
             svgdata->pattern_defined[i] = TRUE;
         }
         /* test if the needed colorfilter is already defined. */
@@ -179,20 +180,20 @@ static void define_pattern(const Canvas *canvas, Svg_data *svgdata, int i, int c
             bg_green=frgb.green;
             bg_blue=frgb.blue;
             get_frgb(canvas, c, &frgb);
-            fprintf(canvas->prstream, "   <filter id=\"tocolor%d\" filterUnits=\"objectBoundingBox\"\n", c);
-            fprintf(canvas->prstream, "    color-interpolation-filters=\"sRGB\" x=\"0%%\" y=\"0%%\" width=\"100%%\" height=\"100%%\">\n");
-            fprintf(canvas->prstream, "    <feComponentTransfer>\n");
-            fprintf(canvas->prstream, "      <feFuncR type=\"discrete\" tableValues=\"%.6f %.6f\"/>\n",
+            fprintf(prstream, "   <filter id=\"tocolor%d\" filterUnits=\"objectBoundingBox\"\n", c);
+            fprintf(prstream, "    color-interpolation-filters=\"sRGB\" x=\"0%%\" y=\"0%%\" width=\"100%%\" height=\"100%%\">\n");
+            fprintf(prstream, "    <feComponentTransfer>\n");
+            fprintf(prstream, "      <feFuncR type=\"discrete\" tableValues=\"%.6f %.6f\"/>\n",
                     frgb.red, bg_red);
-            fprintf(canvas->prstream, "      <feFuncG type=\"discrete\" tableValues=\"%.6f %.6f\"/>\n",
+            fprintf(prstream, "      <feFuncG type=\"discrete\" tableValues=\"%.6f %.6f\"/>\n",
                     frgb.green, bg_green);
-            fprintf(canvas->prstream, "      <feFuncB type=\"discrete\" tableValues=\"%.6f %.6f\"/>\n",
+            fprintf(prstream, "      <feFuncB type=\"discrete\" tableValues=\"%.6f %.6f\"/>\n",
                     frgb.blue, bg_blue);
-            fprintf(canvas->prstream, "    </feComponentTransfer>\n");
-            fprintf(canvas->prstream, "   </filter>\n");
+            fprintf(prstream, "    </feComponentTransfer>\n");
+            fprintf(prstream, "   </filter>\n");
             svgdata->colorfilter_defined[c] = TRUE;
         }
-        fprintf(canvas->prstream, "  </defs>\n");
+        fprintf(prstream, "  </defs>\n");
     }
 }
 
@@ -249,6 +250,7 @@ int svg_initgraphics(const Canvas *canvas, void *data,
     Svg_data *svgdata = (Svg_data *) data;
     int i;
     char *s;
+    FILE *prstream = canvas_get_prstream(canvas);
 
     svgdata->pattern_defined = NULL;
     svgdata->pattern_empty = NULL;
@@ -285,23 +287,23 @@ int svg_initgraphics(const Canvas *canvas, void *data,
     svgdata->draw          = FALSE;
     svgdata->fill          = FALSE;
 
-    fprintf(canvas->prstream, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
-    fprintf(canvas->prstream, "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"");
-    fprintf(canvas->prstream, " \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");
-    fprintf(canvas->prstream,
+    fprintf(prstream, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
+    fprintf(prstream, "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"");
+    fprintf(prstream, " \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");
+    fprintf(prstream,
         "<!-- generated by %s -->\n", bi_version_string());
-    fprintf(canvas->prstream, "<svg xml:space=\"preserve\" ");
-    fprintf(canvas->prstream,
+    fprintf(prstream, "<svg xml:space=\"preserve\" ");
+    fprintf(prstream,
         "width=\"%.4fin\" height=\"%.4fin\" viewBox=\"%.4f %.4f %.4f %.4f\">\n",
         page_width_in(canvas), page_height_in(canvas),
         0.0, 0.0, page_width_pp(canvas), page_height_pp(canvas));
-    fprintf(canvas->prstream, " <g transform=\"translate(0,%.4f) scale(1,-1)\">\n",
+    fprintf(prstream, " <g transform=\"translate(0,%.4f) scale(1,-1)\">\n",
             page_height_pp(canvas));
 
     /* project description */
     s = canvas_get_description(canvas);
     if (!is_empty_string(s)) {
-        fprintf(canvas->prstream,
+        fprintf(prstream,
             " <desc>%s</desc>\n", s);
     }
     
@@ -317,6 +319,7 @@ static void svg_group_props(const Canvas *canvas, Svg_data *svgdata,
     int fillrule, linecap, linejoin, linestyle;
     RGB rgb;
     int red, green, blue;
+    FILE *prstream = canvas_get_prstream(canvas);
 
     /* do we need to redefine a group with new properties ? */
     needs_group = (svgdata->group_is_open == TRUE) ? FALSE : TRUE;
@@ -354,7 +357,7 @@ static void svg_group_props(const Canvas *canvas, Svg_data *svgdata,
 
         if (svgdata->group_is_open == TRUE) {
             /* first, we should close the preceding group */
-            fprintf(canvas->prstream, "  </g>\n");
+            fprintf(prstream, "  </g>\n");
             svgdata->group_is_open = FALSE;
         }
 
@@ -371,73 +374,73 @@ static void svg_group_props(const Canvas *canvas, Svg_data *svgdata,
 
         if (fill && svgdata->pattern_empty[pen.pattern] != TRUE) {
             if (svgdata->pattern_full[pen.pattern] == TRUE) {
-                fprintf(canvas->prstream,
+                fprintf(prstream,
                     "  <g style=\"fill:#%2.2X%2.2X%2.2X", red, green, blue);
             } else {
-                fprintf(canvas->prstream,
+                fprintf(prstream,
                     "  <g style=\"filter:url(#tocolor%d);", pen.color);
-                fprintf(canvas->prstream,
+                fprintf(prstream,
                     " fill:url(#pattern%d)", pen.pattern);
             }
             if (getfillrule(canvas) == FILLRULE_WINDING) {
-                fprintf(canvas->prstream, "; fill-rule:nonzero");
+                fprintf(prstream, "; fill-rule:nonzero");
             } else {
-                fprintf(canvas->prstream, "; fill-rule:evenodd");
+                fprintf(prstream, "; fill-rule:evenodd");
             }
         } else {
-            fprintf(canvas->prstream, "  <g style=\"fill:none");
+            fprintf(prstream, "  <g style=\"fill:none");
         }
 
         if (draw) {
 
-            fprintf(canvas->prstream,
+            fprintf(prstream,
                 "; stroke:#%2.2X%2.2X%2.2X", red, green, blue);
 
-            fprintf(canvas->prstream, "; stroke-width:%8.4f", lw);
+            fprintf(prstream, "; stroke-width:%8.4f", lw);
 
             switch (linecap) {
             case LINECAP_BUTT :
-                fprintf(canvas->prstream, "; stroke-linecap:butt");
+                fprintf(prstream, "; stroke-linecap:butt");
                 break;
             case LINECAP_ROUND :
-                fprintf(canvas->prstream, "; stroke-linecap:round");
+                fprintf(prstream, "; stroke-linecap:round");
                 break;
             case LINECAP_PROJ :
-                fprintf(canvas->prstream, "; stroke-linecap:square");
+                fprintf(prstream, "; stroke-linecap:square");
                 break;
             default :
-                fprintf(canvas->prstream, "; stroke-linecap:inherit");
+                fprintf(prstream, "; stroke-linecap:inherit");
                 break;
             }
 
             switch (linejoin) {
             case LINEJOIN_MITER :
-                fprintf(canvas->prstream, "; stroke-linejoin:miter");
+                fprintf(prstream, "; stroke-linejoin:miter");
                 break;
             case LINEJOIN_ROUND :
-                fprintf(canvas->prstream, "; stroke-linejoin:round");
+                fprintf(prstream, "; stroke-linejoin:round");
                 break;
             case LINEJOIN_BEVEL :
-                fprintf(canvas->prstream, "; stroke-linejoin:bevel");
+                fprintf(prstream, "; stroke-linejoin:bevel");
                 break;
             default :
-                fprintf(canvas->prstream, "; stroke-linejoin:inherit");
+                fprintf(prstream, "; stroke-linejoin:inherit");
                 break;
             }
 
             if (linestyle <= 1) {
-                fprintf(canvas->prstream, "; stroke-dasharray:none");
+                fprintf(prstream, "; stroke-dasharray:none");
             } else {
                 LineStyle *ls = canvas_get_linestyle(canvas, linestyle);
-                fprintf(canvas->prstream, "; stroke-dasharray:");
+                fprintf(prstream, "; stroke-dasharray:");
                 for (i = 0; i < ls->length; i++) {
-                    fprintf(canvas->prstream,
+                    fprintf(prstream,
                         " %d", (int) rint(lw*ls->array[i]));
                 }
             }
         }
 
-        fprintf(canvas->prstream, "\">\n");
+        fprintf(prstream, "\">\n");
 
 
         svgdata->group_is_open = TRUE;
@@ -455,8 +458,10 @@ static void svg_group_props(const Canvas *canvas, Svg_data *svgdata,
 void svg_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
 {
     Svg_data *svgdata = (Svg_data *) data;
+    FILE *prstream = canvas_get_prstream(canvas);
+
     svg_group_props(canvas, svgdata, FALSE, TRUE);
-    fprintf(canvas->prstream,
+    fprintf(prstream,
             "   <rect x=\"%.4f\" y=\"%.4f\" width=\"%.4f\" height=\"%.4f\"/>\n",
             scaleval(data, vp->x), scaleval(data, vp->y),
             scaleval(data, 1.0), scaleval(data, 1.0));
@@ -467,27 +472,27 @@ void svg_drawpolyline(const Canvas *canvas, void *data,
 {
     Svg_data *svgdata = (Svg_data *) data;
     int i;
+    FILE *prstream = canvas_get_prstream(canvas);
 
     if (n <= 0) {
         return;
     }
 
     svg_group_props(canvas, svgdata, TRUE, FALSE);
-    fprintf(canvas->prstream, "   <path d=\"M%.4f,%.4f",
+    fprintf(prstream, "   <path d=\"M%.4f,%.4f",
             scaleval(data, vps[0].x), scaleval(data, vps[0].y));
     for (i = 1; i < n; i++) {
         if (i%10 == 0) {
-            fprintf(canvas->prstream, "\n            ");
+            fprintf(prstream, "\n            ");
         }
-        fprintf(canvas->prstream,
+        fprintf(prstream,
             "L%.4f,%.4f", scaleval(data, vps[i].x), scaleval(data, vps[i].y));
     }
     if (mode == POLYLINE_CLOSED) {
-        fprintf(canvas->prstream, "z\"/>\n");
+        fprintf(prstream, "z\"/>\n");
     } else {
-        fprintf(canvas->prstream, "\"/>\n");
+        fprintf(prstream, "\"/>\n");
     }
-
 }
 
 void svg_fillpolygon(const Canvas *canvas, void *data,
@@ -495,22 +500,23 @@ void svg_fillpolygon(const Canvas *canvas, void *data,
 {
     Svg_data *svgdata = (Svg_data *) data;
     int i;
+    FILE *prstream = canvas_get_prstream(canvas);
 
     if (nc <= 0) {
         return;
     }
 
     svg_group_props(canvas, svgdata, FALSE, TRUE);
-    fprintf(canvas->prstream, "   <path  d=\"M%.4f,%.4f",
+    fprintf(prstream, "   <path  d=\"M%.4f,%.4f",
             scaleval(data, vps[0].x), scaleval(data, vps[0].y));
     for (i = 1; i < nc; i++) {
         if (i%10 == 0) {
-            fprintf(canvas->prstream, "\n             ");
+            fprintf(prstream, "\n             ");
         }
-        fprintf(canvas->prstream,
+        fprintf(prstream,
             "L%.4f,%.4f", scaleval(data, vps[i].x), scaleval(data, vps[i].y));
     }
-    fprintf(canvas->prstream, "z\"/>\n");
+    fprintf(prstream, "z\"/>\n");
 }
 
 void svg_drawarc(const Canvas *canvas, void *data,
@@ -519,6 +525,7 @@ void svg_drawarc(const Canvas *canvas, void *data,
     Svg_data *svgdata = (Svg_data *) data;
     VPoint center;
     double rx, ry;
+    FILE *prstream = canvas_get_prstream(canvas);
 
     if (a2 == 0.0) {
         return;
@@ -532,7 +539,7 @@ void svg_drawarc(const Canvas *canvas, void *data,
     svg_group_props(canvas, svgdata, TRUE, FALSE);
 
     if (a2 == 360.0) {
-        fprintf(canvas->prstream,
+        fprintf(prstream,
             "   <ellipse rx=\"%.4f\" ry=\"%.4f\" cx=\"%.4f\" cy=\"%.4f\"/>\n",
             scaleval(data, rx), scaleval(data, ry),
             scaleval(data, center.x), scaleval(data, center.y));
@@ -546,7 +553,7 @@ void svg_drawarc(const Canvas *canvas, void *data,
         end.x   = center.x + rx*cos((M_PI/180.0)*a2);
         end.y   = center.y + ry*sin((M_PI/180.0)*a2);
 
-        fprintf(canvas->prstream,
+        fprintf(prstream,
             "   <path d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4f\"/>\n",
             scaleval(data, start.x), scaleval(data, start.y),
             scaleval(data, rx), scaleval(data, ry),
@@ -563,6 +570,7 @@ void svg_fillarc(const Canvas *canvas, void *data,
     Svg_data *svgdata = (Svg_data *) data;
     VPoint center;
     double rx, ry;
+    FILE *prstream = canvas_get_prstream(canvas);
 
     if (a2 == 0.0) {
         return;
@@ -576,7 +584,7 @@ void svg_fillarc(const Canvas *canvas, void *data,
     svg_group_props(canvas, svgdata, FALSE, TRUE);
 
     if (a2 == 360.0) {
-        fprintf(canvas->prstream,
+        fprintf(prstream,
             "   <ellipse rx=\"%.4f\" ry=\"%.4f\" cx=\"%.4f\" cy=\"%.4f\"/>\n",
             scaleval(data, rx), scaleval(data, ry),
             scaleval(data, center.x), scaleval(data, center.y));
@@ -591,7 +599,7 @@ void svg_fillarc(const Canvas *canvas, void *data,
         end.y   = center.y + ry*sin((M_PI/180.0)*a2);
 
         if (mode == ARCFILL_CHORD) {
-            fprintf(canvas->prstream,
+            fprintf(prstream,
                 "   <path d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4fz\"/>\n",
                 scaleval(data, start.x), scaleval(data, start.y),
                 scaleval(data, rx), scaleval(data, ry),
@@ -600,7 +608,7 @@ void svg_fillarc(const Canvas *canvas, void *data,
                 (a2 > a1) ? 1 : 0,
                 scaleval(data, end.x), scaleval(data, end.y));
         } else {
-            fprintf(canvas->prstream,
+            fprintf(prstream,
                 "   <path d=\"M%.4f,%.4fL%.4f,%.4fA%.4f,%.4f %d %d %d %.4f,%.4fz\"/>\n",
                 scaleval(data, center.x), scaleval(data, center.y),
                 scaleval(data, start.x), scaleval(data, start.y),
@@ -628,10 +636,11 @@ void svg_puttext(const Canvas *canvas, void *data,
     char *dash, *family, *familyff;
     Svg_data *svgdata = (Svg_data *) data;
     double fsize = svgdata->side;
+    FILE *prstream = canvas_get_prstream(canvas);
 
     svg_group_props(canvas, svgdata, FALSE, TRUE);
     
-    fprintf(canvas->prstream, "   <text  ");
+    fprintf(prstream, "   <text  ");
 
     family  = NULL;
     fontalias = get_fontalias(canvas, font);
@@ -643,11 +652,11 @@ void svg_puttext(const Canvas *canvas, void *data,
         strncpy(family, fontalias, dash - fontalias);
         family[dash - fontalias] = '\0';
     }
-    fprintf(canvas->prstream, " style=\"font-family:%s", family);
+    fprintf(prstream, " style=\"font-family:%s", family);
     
     familyff=get_fontfamilyname(canvas, font);
     if (strcmp(family,familyff) != 0){
-        fprintf(canvas->prstream, ",'%s'",familyff);
+        fprintf(prstream, ",'%s'",familyff);
     }
     
     copy_string(family, NULL);
@@ -660,100 +669,102 @@ void svg_puttext(const Canvas *canvas, void *data,
             (strstr(fontfullname, "Cursive") != NULL) ||
             (strstr(fontfullname, "Slanted") != NULL) ||
             (strstr(fontfullname, "Inclined") != NULL)) {
-            fprintf(canvas->prstream, "; font-style:oblique");
+            fprintf(prstream, "; font-style:oblique");
         } else {
-            fprintf(canvas->prstream, "; font-style:italic");
+            fprintf(prstream, "; font-style:italic");
         }
     } else {
-        fprintf(canvas->prstream, "; font-style:normal");
+        fprintf(prstream, "; font-style:normal");
     }
 
     fontweight=get_fontweight(canvas, font);
     if ((strstr(fontweight, "UltraLight") != NULL) ||
         (strstr(fontweight, "ExtraLight") != NULL)) {
-        fprintf(canvas->prstream, "; font-weight:100");
+        fprintf(prstream, "; font-weight:100");
     } else if ((strstr(fontweight, "SemiLight") != NULL) ||
                (strstr(fontweight, "Thin") != NULL)) {
-        fprintf(canvas->prstream, "; font-weight:200");
+        fprintf(prstream, "; font-weight:200");
     } else if (strstr(fontweight, "Light") != NULL) {
-        fprintf(canvas->prstream, "; font-weight:300");
+        fprintf(prstream, "; font-weight:300");
     } else if (strstr(fontweight, "Book") != NULL) {
-        fprintf(canvas->prstream, "; font-weight:500");
+        fprintf(prstream, "; font-weight:500");
     } else if (strstr(fontweight, "miBold") != NULL) {
-        fprintf(canvas->prstream, "; font-weight:600");
+        fprintf(prstream, "; font-weight:600");
     } else if ((strstr(fontweight, "ExtraBold") != NULL) ||
                (strstr(fontweight, "Heavy") != NULL) ||
                (strstr(fontweight, "UltraBold") != NULL)) {
-        fprintf(canvas->prstream, "; font-weight:800");
+        fprintf(prstream, "; font-weight:800");
     } else if (strstr(fontweight, "Bold") != NULL) {
-        fprintf(canvas->prstream, "; font-weight:bold");
+        fprintf(prstream, "; font-weight:bold");
     } else if ((strstr(fontweight, "ExtraBlack") != NULL) ||
                (strstr(fontweight, "Ultra") != NULL)) {
-        fprintf(canvas->prstream, "; font-weight:900");
+        fprintf(prstream, "; font-weight:900");
     } else if (strstr(fontweight, "Black") != NULL) {
-        fprintf(canvas->prstream, "; font-weight:800");
+        fprintf(prstream, "; font-weight:800");
     } else {
-        fprintf(canvas->prstream, "; font-weight:normal");
+        fprintf(prstream, "; font-weight:normal");
     }
 
     if ((strstr(fontfullname, "UltraCompressed") != NULL) ||
         (strstr(fontfullname, "UltraCondensed") != NULL)) {
-        fprintf(canvas->prstream, "; font-stretch:ultra-condensed");
+        fprintf(prstream, "; font-stretch:ultra-condensed");
     } else if ((strstr(fontfullname, "ExtraCompressed") != NULL) ||
                (strstr(fontfullname, "ExtraCondensed") != NULL)) {
-        fprintf(canvas->prstream, "; font-stretch:extra-condensed");
+        fprintf(prstream, "; font-stretch:extra-condensed");
     } else if ((strstr(fontfullname, "SemiCondensed") != NULL) ||
                (strstr(fontfullname, "Narrow") != NULL)) {
-        fprintf(canvas->prstream, "; font-stretch:semi-condensed");
+        fprintf(prstream, "; font-stretch:semi-condensed");
     } else if (strstr(fontfullname, "Condensed") != NULL) {
-        fprintf(canvas->prstream, "; font-stretch:condensed");
+        fprintf(prstream, "; font-stretch:condensed");
     } else if ((strstr(fontfullname, "Wide") != NULL) ||
                (strstr(fontfullname, "Poster") != NULL) ||
                (strstr(fontfullname, "SemiExpanded") != NULL)) {
-        fprintf(canvas->prstream, "; font-stretch:semi-expanded");
+        fprintf(prstream, "; font-stretch:semi-expanded");
     } else if ((strstr(fontfullname, "ExtraExpanded") != NULL) ||
                (strstr(fontfullname, "ExtraExtended") != NULL)) {
-        fprintf(canvas->prstream, "; font-stretch:extra-expanded");
+        fprintf(prstream, "; font-stretch:extra-expanded");
     } else if ((strstr(fontfullname, "UltraExpanded") != NULL) ||
                (strstr(fontfullname, "UltraExtended") != NULL)) {
-        fprintf(canvas->prstream, "; font-stretch:ultra-expanded");
+        fprintf(prstream, "; font-stretch:ultra-expanded");
     } else if ((strstr(fontfullname, "Expanded") != NULL) ||
                (strstr(fontfullname, "Extended") != NULL)) {
-        fprintf(canvas->prstream, "; font-stretch:expanded");
+        fprintf(prstream, "; font-stretch:expanded");
     }
 
-    fprintf(canvas->prstream, "; font-size:%.4f", fsize);
+    fprintf(prstream, "; font-size:%.4f", fsize);
 
     if (underline == TRUE) {
         if (overline == TRUE) {
-            fprintf(canvas->prstream, "; text-decoration:underline|overline");
+            fprintf(prstream, "; text-decoration:underline|overline");
         } else {
-            fprintf(canvas->prstream, "; text-decoration:underline");
+            fprintf(prstream, "; text-decoration:underline");
         }
     } else {
         if (overline == TRUE) {
-            fprintf(canvas->prstream, "; text-decoration:overline");
+            fprintf(prstream, "; text-decoration:overline");
         }
     }
 
-    fprintf(canvas->prstream, "\" transform=\"matrix(%.4f,%.4f,%.4f,%.4f,%.4f,%.4f)\">",
+    fprintf(prstream, "\" transform=\"matrix(%.4f,%.4f,%.4f,%.4f,%.4f,%.4f)\">",
             tm->cxx, tm->cyx,
             -tm->cxy,-tm->cyy,
             scaleval(data, vp->x), scaleval(data, vp->y));
 
-    fprintf(canvas->prstream, "%s", escape_specials((unsigned char *) s, len));
+    fprintf(prstream, "%s", escape_specials((unsigned char *) s, len));
 
-    fprintf(canvas->prstream, "</text>\n");
+    fprintf(prstream, "</text>\n");
 }
 
 void svg_leavegraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
     Svg_data *svgdata = (Svg_data *) data;
+    FILE *prstream = canvas_get_prstream(canvas);
+
     if (svgdata->group_is_open == TRUE) {
-        fprintf(canvas->prstream, "  </g>\n");
+        fprintf(prstream, "  </g>\n");
         svgdata->group_is_open = FALSE;
     }
-    fprintf(canvas->prstream, " </g>\n");
-    fprintf(canvas->prstream, "</svg>\n");
+    fprintf(prstream, " </g>\n");
+    fprintf(prstream, "</svg>\n");
 }

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -72,54 +72,54 @@ int mf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     int i, j;
     Page_geometry *pg;
-    
+    FILE *prstream = canvas_get_prstream(canvas);
 
-    fprintf(canvas->prstream, "#GMF-%s\n", GMF_VERSION);
+    fprintf(prstream, "#GMF-%s\n", GMF_VERSION);
 
-    fprintf(canvas->prstream, "FontResources {\n");
+    fprintf(prstream, "FontResources {\n");
     for (i = 0; i < cstats->nfonts; i++) {
         int font = cstats->fonts[i].font;
-        fprintf(canvas->prstream, "\t( %d , \"%s\" , \"%s\" )\n", 
+        fprintf(prstream, "\t( %d , \"%s\" , \"%s\" )\n", 
             font, get_fontalias(canvas, font), get_fontname(canvas, font));
     }
-    fprintf(canvas->prstream, "}\n");
+    fprintf(prstream, "}\n");
 
-    fprintf(canvas->prstream, "ColorResources {\n");
+    fprintf(prstream, "ColorResources {\n");
     for (i = 0; i < cstats->ncolors; i++) {
         int cindex = cstats->colors[i];
         RGB rgb;
         get_rgb(canvas, cindex, &rgb);
-        fprintf(canvas->prstream, "\t( %d , \"%s\" , %d , %d , %d )\n", 
+        fprintf(prstream, "\t( %d , \"%s\" , %d , %d , %d )\n", 
             cindex, get_colorname(canvas, cindex), rgb.red, rgb.green, rgb.blue);
     }
-    fprintf(canvas->prstream, "}\n");
+    fprintf(prstream, "}\n");
 
-    fprintf(canvas->prstream, "PatternResources {\n");
+    fprintf(prstream, "PatternResources {\n");
     for (i = 0; i < cstats->npatterns; i++) {
         int patno = cstats->patterns[i];
         Pattern *pat = canvas_get_pattern(canvas, patno);
-        fprintf(canvas->prstream, "\t( %d , ", patno);
+        fprintf(prstream, "\t( %d , ", patno);
         for (j = 0; j < pat->width*pat->height/8; j++) {
-            fprintf(canvas->prstream, "%02x", pat->bits[j]);
+            fprintf(prstream, "%02x", pat->bits[j]);
         }
-        fprintf(canvas->prstream, " )\n");
+        fprintf(prstream, " )\n");
     }
-    fprintf(canvas->prstream, "}\n");
+    fprintf(prstream, "}\n");
 
-    fprintf(canvas->prstream, "DashResources {\n");
+    fprintf(prstream, "DashResources {\n");
     for (i = 0; i < cstats->nlinestyles; i++) {
         int lines = cstats->linestyles[i];
         LineStyle *ls = canvas_get_linestyle(canvas, lines);
-        fprintf(canvas->prstream, "\t( %d , [ ", lines);
+        fprintf(prstream, "\t( %d , [ ", lines);
         for (j = 0; j < ls->length; j++) {
-            fprintf(canvas->prstream, "%d ", ls->array[j]);
+            fprintf(prstream, "%d ", ls->array[j]);
         }
-        fprintf(canvas->prstream, "] )\n");
+        fprintf(prstream, "] )\n");
     }
-    fprintf(canvas->prstream, "}\n");
+    fprintf(prstream, "}\n");
     
     pg = get_page_geometry(canvas);
-    fprintf(canvas->prstream, "InitGraphics { %.4f %ld %ld }\n",
+    fprintf(prstream, "InitGraphics { %.4f %ld %ld }\n",
         pg->dpi, pg->width, pg->height);
     
     return RETURN_SUCCESS;
@@ -128,65 +128,71 @@ int mf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 void mf_setpen(const Canvas *canvas)
 {
     Pen pen;
+    FILE *prstream = canvas_get_prstream(canvas);
     
     getpen(canvas, &pen);
-    fprintf(canvas->prstream, "SetPen { %d %d }\n", pen.color, pen.pattern);
+    fprintf(prstream, "SetPen { %d %d }\n", pen.color, pen.pattern);
 }
 
 void mf_setdrawbrush(const Canvas *canvas)
 {
-    fprintf(canvas->prstream, "SetLineWidth { %.4f }\n", getlinewidth(canvas));
-    fprintf(canvas->prstream, "SetLineStyle { %d }\n", getlinestyle(canvas));
+    FILE *prstream = canvas_get_prstream(canvas);
+    fprintf(prstream, "SetLineWidth { %.4f }\n", getlinewidth(canvas));
+    fprintf(prstream, "SetLineStyle { %d }\n", getlinestyle(canvas));
 }
 
 void mf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
 {
+    FILE *prstream = canvas_get_prstream(canvas);
     mf_setpen(canvas);
 
-    fprintf(canvas->prstream, "DrawPixel { ( %.4f , %.4f ) }\n", vp->x, vp->y);
+    fprintf(prstream, "DrawPixel { ( %.4f , %.4f ) }\n", vp->x, vp->y);
 }
 
 void mf_drawpolyline(const Canvas *canvas, void *data,
     const VPoint *vps, int n, int mode)
 {
     int i;
+    FILE *prstream = canvas_get_prstream(canvas);
     
     mf_setpen(canvas);
     mf_setdrawbrush(canvas);
     
-    fprintf(canvas->prstream, "DrawPolyline {\n");
+    fprintf(prstream, "DrawPolyline {\n");
     if (mode == POLYLINE_CLOSED) {
-        fprintf(canvas->prstream, "\tClosed\n");
+        fprintf(prstream, "\tClosed\n");
     } else {
-        fprintf(canvas->prstream, "\tOpen\n");
+        fprintf(prstream, "\tOpen\n");
     }
     for (i = 0; i < n; i++) {
-        fprintf(canvas->prstream, "\t( %.4f , %.4f )\n", vps[i].x, vps[i].y);
+        fprintf(prstream, "\t( %.4f , %.4f )\n", vps[i].x, vps[i].y);
     }
-    fprintf(canvas->prstream, "}\n");
+    fprintf(prstream, "}\n");
 }
 
 void mf_fillpolygon(const Canvas *canvas, void *data,
     const VPoint *vps, int nc)
 {
     int i;
+    FILE *prstream = canvas_get_prstream(canvas);
     
     mf_setpen(canvas);
     
-    fprintf(canvas->prstream, "FillPolygon {\n");
+    fprintf(prstream, "FillPolygon {\n");
     for (i = 0; i < nc; i++) {
-        fprintf(canvas->prstream, "\t( %.4f , %.4f )\n", vps[i].x, vps[i].y);
+        fprintf(prstream, "\t( %.4f , %.4f )\n", vps[i].x, vps[i].y);
     }
-    fprintf(canvas->prstream, "}\n"); 
+    fprintf(prstream, "}\n"); 
 }
 
 void mf_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
+    FILE *prstream = canvas_get_prstream(canvas);
     mf_setpen(canvas);
     mf_setdrawbrush(canvas);
     
-    fprintf(canvas->prstream,
+    fprintf(prstream,
         "DrawArc { ( %.4f , %.4f ) ( %.4f , %.4f ) %.4f %.4f }\n", 
         vp1->x, vp1->y, vp2->x, vp2->y, a1, a2);
 }
@@ -195,6 +201,7 @@ void mf_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     char *name;
+    FILE *prstream = canvas_get_prstream(canvas);
     
     mf_setpen(canvas);
     
@@ -204,7 +211,7 @@ void mf_fillarc(const Canvas *canvas, void *data,
     } else {
         name = "FillPieSlice";
     }
-    fprintf(canvas->prstream, "%s { ( %.4f , %.4f ) ( %.4f , %.4f ) %.4f %.4f }\n", 
+    fprintf(prstream, "%s { ( %.4f , %.4f ) ( %.4f , %.4f ) %.4f %.4f }\n", 
         name, vp1->x, vp1->y, vp2->x, vp2->y, a1, a2);
 }
 
@@ -216,13 +223,14 @@ void mf_putpixmap(const Canvas *canvas, void *data,
     long paddedW;
     int bit;
     char buf[16];
+    FILE *prstream = canvas_get_prstream(canvas);
     
     if (pixmap_bpp == 1) {
         strcpy(buf, "Bitmap");
     } else {
         strcpy(buf, "Pixmap");
     }
-    fprintf(canvas->prstream, "Put%s {\n", buf);
+    fprintf(prstream, "Put%s {\n", buf);
    
     if (pixmap_type == PIXMAP_TRANSPARENT) {
         strcpy(buf, "Transparent");
@@ -230,35 +238,35 @@ void mf_putpixmap(const Canvas *canvas, void *data,
         strcpy(buf, "Opaque");
     }
     
-    fprintf(canvas->prstream, "\t( %.4f , %.4f ) %dx%d %s\n", 
+    fprintf(prstream, "\t( %.4f , %.4f ) %dx%d %s\n", 
                            vp->x, vp->y, width, height, buf);
     if (pixmap_bpp != 1) {
         for (k = 0; k < height; k++) {
-            fprintf(canvas->prstream, "\t");
+            fprintf(prstream, "\t");
             for (j = 0; j < width; j++) {
-                fprintf(canvas->prstream, "%02x", (databits)[k*width+j]);
+                fprintf(prstream, "%02x", (databits)[k*width+j]);
             }
-            fprintf(canvas->prstream, "\n");
+            fprintf(prstream, "\n");
         }
     } else {
         paddedW = PAD(width, bitmap_pad);
         for (k = 0; k < height; k++) {
-            fprintf(canvas->prstream, "\t");
+            fprintf(prstream, "\t");
             for (j = 0; j < paddedW/bitmap_pad; j++) {
                 for (i = 0; i < bitmap_pad; i++) {
                     bit = bin_dump(&databits[k*paddedW/bitmap_pad + j], i, bitmap_pad);
                     if (bit) {
-                        fprintf(canvas->prstream, "X");
+                        fprintf(prstream, "X");
                     } else {
-                        fprintf(canvas->prstream, ".");
+                        fprintf(prstream, ".");
                     }
                 }
             } 
-            fprintf(canvas->prstream, "\n");
+            fprintf(prstream, "\n");
         }
     }
 
-    fprintf(canvas->prstream, "}\n"); 
+    fprintf(prstream, "}\n"); 
 }
 
 void mf_puttext(const Canvas *canvas, void *data,
@@ -266,30 +274,32 @@ void mf_puttext(const Canvas *canvas, void *data,
     int underline, int overline, int kerning)
 {
     int i;
+    FILE *prstream = canvas_get_prstream(canvas);
     
     mf_setpen(canvas);
     
-    fprintf(canvas->prstream, "PutText {\n");
-    fprintf(canvas->prstream, "\t( %.4f , %.4f )\n", vp->x, vp->y); 
+    fprintf(prstream, "PutText {\n");
+    fprintf(prstream, "\t( %.4f , %.4f )\n", vp->x, vp->y); 
 
-    fprintf(canvas->prstream, "\t %d %.4f %.4f %.4f %.4f %d %d %d %d \"", 
+    fprintf(prstream, "\t %d %.4f %.4f %.4f %.4f %d %d %d %d \"", 
                         font,
                         tm->cxx, tm->cxy, tm->cyx, tm->cyy, 
                         underline, overline, kerning, len);
     for (i = 0; i < len; i++) {
-        fputc(s[i], canvas->prstream);
+        fputc(s[i], prstream);
     }
-    fprintf(canvas->prstream, "\"\n");
+    fprintf(prstream, "\"\n");
 
-    fprintf(canvas->prstream, "}\n"); 
+    fprintf(prstream, "}\n"); 
 }
 
 void mf_leavegraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
+    FILE *prstream = canvas_get_prstream(canvas);
     view v = cstats->bbox;
     
-    fprintf(canvas->prstream, "LeaveGraphics { %.4f %.4f %.4f %.4f }\n",
+    fprintf(prstream, "LeaveGraphics { %.4f %.4f %.4f %.4f }\n",
         v.xv1, v.yv1, v.xv2, v.yv2);
 }
 

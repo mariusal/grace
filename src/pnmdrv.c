@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -108,7 +108,7 @@ static int pnm_output(const Canvas *canvas, void *data,
     unsigned char r, g, b;
     unsigned char y, pbm_buf;
     
-    fp = canvas->prstream;
+    fp = canvas_get_prstream(canvas);
     w = pm->width;
     h = pm->height;
     

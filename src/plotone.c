@@ -102,6 +102,7 @@ void do_hardcopy(Grace *grace)
     view v;
     double vx, vy;
     int truncated_out;
+    FILE *prstream;
     
     if (get_ptofile(grace)) {
         if (is_empty_string(print_file)) {
@@ -121,17 +122,18 @@ void do_hardcopy(Grace *grace)
         strcat(fname, ".prn");
     }
     
-    canvas->prstream = grace_openw(fname);
-    
-    if (canvas->prstream == NULL) {
+    prstream = grace_openw(fname);
+    if (prstream == NULL) {
         return;
     }
+    
+    canvas_set_prstream(canvas, prstream); 
     
     select_device(canvas, grace->rt->hdevice);
     
     drawgraph(grace);
     
-    grace_close(canvas->prstream);
+    grace_close(prstream);
     
     get_bbox(canvas, BBOX_TYPE_GLOB, &v);
     get_page_viewport(canvas, &vx, &vy);

@@ -146,7 +146,7 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
     }
     PDF_set_parameter(phandle, "compatibility", s);
 
-    if (PDF_open_fp(phandle, canvas->prstream) == -1) {
+    if (PDF_open_fp(phandle, canvas_get_prstream(canvas)) == -1) {
         return RETURN_FAILURE;
     }
     

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -162,13 +162,13 @@ static int jpg_output(const Canvas *canvas, void *data,
     int r, g, b;
     unsigned char y;
     
-    fp = canvas->prstream;
+    fp = canvas_get_prstream(canvas);
     w = pm->width;
     h = pm->height;
     
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
-    jpeg_stdio_dest(&cinfo, canvas->prstream);
+    jpeg_stdio_dest(&cinfo, fp);
     
     cinfo.image_width  = w;
     cinfo.image_height = h;
