@@ -41,7 +41,8 @@ AFMS =  type1/d050000l.afm \
 	type1/s050000l.afm
 
 ENCODINGS = enc/IsoLatin1.enc enc/IsoLatin2.enc enc/PSLatin1.enc \
-	enc/IsoLatin9.enc enc/PDFDoc.enc enc/WinAnsi.enc enc/MacRoman.enc
+	enc/IsoLatin9.enc enc/PDFDoc.enc enc/WinAnsi.enc enc/MacRoman.enc \
+	enc/CP1251.enc enc/KOI8-R.enc enc/KOI8-U.enc
 
 all : dummy
 
