@@ -273,7 +273,7 @@ void jpg_gui_setup(const Canvas *canvas, void *data)
 
 	fr = CreateFrame(rc, "JPEG options");
         rc1 = CreateVContainer(fr);
-	jpgdata->quality_item = CreateSpinChoice(rc,
+	jpgdata->quality_item = CreateSpinChoice(rc1,
             "Quality:", 3, SPIN_TYPE_INT, 0.0, 100.0, 5.0);
 	jpgdata->optimize_item = CreateToggleButton(rc1, "Optimize");
 	jpgdata->progressive_item = CreateToggleButton(rc1, "Progressive");
