@@ -35,6 +35,7 @@
 #include "explorer.h"
 #include <Xm/ScrolledW.h>
 #include <Xm/Form.h>
+#include <Xm/RowColumn.h>
 
 #include "protos.h"
 
@@ -220,6 +221,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
     ExplorerUI *ui = (ExplorerUI *) client;
     ListTreeMultiReturnStruct *ret;
     int homogeneous_selection = TRUE;
+    int all_siblings = TRUE;
     int count;
     Quark *q = NULL;
     int fid = -1;
@@ -231,8 +233,11 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         int i;
         ListTreeItem *item = ret->items[0];
         TreeItemData *ti_data = (TreeItemData *) item->user_data;
+        Quark *parent;
+        
         q = ti_data->q;
         fid = q->fid;
+        parent = quark_parent_get(q);
         
         for (i = 0; i < count; i++) {
             item = ret->items[i];
@@ -240,6 +245,9 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             
             if (ti_data->q->fid != fid) {
                 homogeneous_selection = FALSE;
+            }
+            if (quark_parent_get(ti_data->q) != parent) {
+                all_siblings = FALSE;
             }
         }
     }
@@ -329,6 +337,32 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             break;
         }
     }
+        
+    if (!count || !all_siblings || fid == QFlavorProject) {
+        SetSensitive(ui->popup_delete_bt,         FALSE);
+        SetSensitive(ui->popup_duplicate_bt,      FALSE);
+        SetSensitive(ui->popup_bring_to_front_bt, FALSE);
+        SetSensitive(ui->popup_send_to_back_bt,   FALSE);
+        SetSensitive(ui->popup_move_up_bt,        FALSE);
+        SetSensitive(ui->popup_move_down_bt,      FALSE);
+    } else {
+        SetSensitive(ui->popup_delete_bt,         TRUE);
+        SetSensitive(ui->popup_duplicate_bt,      TRUE);
+        SetSensitive(ui->popup_bring_to_front_bt, TRUE);
+        SetSensitive(ui->popup_send_to_back_bt,   TRUE);
+        SetSensitive(ui->popup_move_up_bt,        TRUE);
+        SetSensitive(ui->popup_move_down_bt,      TRUE);
+    }
+}
+
+static void menu_cb(Widget w, XtPointer client, XtPointer call)
+{
+    ListTreeItemReturnStruct *ret = (ListTreeItemReturnStruct *) call;
+    XButtonEvent *xbe = (XButtonEvent *) ret->event;
+    ExplorerUI *ui = (ExplorerUI *) client;
+
+    XmMenuPosition(ui->popup, xbe);
+    XtManageChild(ui->popup);
 }
 
 static void destroy_cb(Widget w, XtPointer client, XtPointer call)
@@ -397,6 +431,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     xdrawgraph();
     
     update_explorer(ui, FALSE);
+    update_app_title(grace->project);
     
     return res;
 }
@@ -473,6 +508,98 @@ static void update_explorer_cb(Widget but, void *data)
     update_explorer(ui, TRUE);
 }
 
+
+#define DELETE_CB         0
+#define DUPLICATE_CB      1
+#define BRING_TO_FRONT_CB 2
+#define SEND_TO_BACK_CB   3
+#define MOVE_UP_CB        4
+#define MOVE_DOWN_CB      5
+
+static void popup_any_cb(ExplorerUI *eui, int type)
+{
+    ListTreeMultiReturnStruct ret;
+    int count, i;
+    
+    ListTreeGetHighlighted(eui->tree, &ret);
+    count = ret.count;
+    
+    for (i = 0; i < count; i ++) {
+        ListTreeItem *item;
+        TreeItemData *ti_data;
+        Quark *q;
+        
+        switch (type) {
+        case SEND_TO_BACK_CB:
+        case MOVE_UP_CB:
+            item = ret.items[count - i - 1];
+            break;
+        default:
+            item = ret.items[i];
+            break;
+        }
+
+        ti_data = (TreeItemData *) item->user_data;
+        q = ti_data->q;
+        
+        switch (type) {
+        case DELETE_CB:
+            quark_free(q);
+            break;
+        case BRING_TO_FRONT_CB:
+            quark_push(q, TRUE);
+            break;
+        case SEND_TO_BACK_CB:
+            quark_push(q, FALSE);
+            break;
+        case MOVE_UP_CB:
+            quark_move(q, TRUE);
+            break;
+        case MOVE_DOWN_CB:
+            quark_move(q, FALSE);
+            break;
+        case DUPLICATE_CB:
+            quark_copy(q);
+            break;
+        }
+    }
+    
+    xdrawgraph();
+    update_explorer(eui, FALSE);
+    update_app_title(grace->project);
+}
+
+static void delete_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, DELETE_CB);
+}
+
+static void duplicate_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, DUPLICATE_CB);
+}
+
+static void bring_to_front_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, BRING_TO_FRONT_CB);
+}
+
+static void send_to_back_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, SEND_TO_BACK_CB);
+}
+
+static void move_up_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, MOVE_UP_CB);
+}
+
+static void move_down_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, MOVE_DOWN_CB);
+}
+
+
 void define_explorer_popup(Widget but, void *data)
 {
     GUI *gui = (GUI *) data;
@@ -510,6 +637,7 @@ void define_explorer_popup(Widget but, void *data)
         panel = CreateGrid(eui->top, 2, 1);
         eui->tree = XmCreateScrolledListTree(panel, "tree", NULL, 0);
         XtAddCallback(eui->tree, XtNhighlightCallback, highlight_cb, eui);
+        XtAddCallback(eui->tree, XtNmenuCallback, menu_cb, eui);
         XtAddCallback(eui->tree, XtNdestroyItemCallback, destroy_cb, eui);
         PlaceGridChild(panel, GetParent(eui->tree), 0, 0);
 
@@ -546,6 +674,24 @@ void define_explorer_popup(Widget but, void *data)
         ManageChild(eui->tree);
         ListTreeRefreshOn(eui->tree);
         ListTreeRefresh(eui->tree);
+
+        /* Menu popup */
+        eui->popup = XmCreatePopupMenu(eui->tree, "explorerPopupMenu", NULL, 0);
+        eui->popup_delete_bt = CreateMenuButton(eui->popup,
+            "Delete", '\0', delete_cb, eui);
+        eui->popup_duplicate_bt = CreateMenuButton(eui->popup,
+            "Duplicate", '\0', duplicate_cb, eui);
+
+        CreateMenuSeparator(eui->popup);
+
+        eui->popup_bring_to_front_bt = CreateMenuButton(eui->popup,
+            "Bring to front", '\0', bring_to_front_cb, eui);
+        eui->popup_move_up_bt = CreateMenuButton(eui->popup,
+            "Move up", '\0', move_up_cb, eui);
+        eui->popup_move_down_bt = CreateMenuButton(eui->popup,
+            "Move down", '\0', move_down_cb, eui);
+        eui->popup_send_to_back_bt = CreateMenuButton(eui->popup,
+            "Send to back", '\0', send_to_back_cb, eui);
         
         gui->eui = eui;
     }

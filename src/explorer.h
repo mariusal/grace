@@ -363,6 +363,16 @@ struct _ExplorerUI {
     SetUI        *set_ui;
     AxisUI       *axis_ui;
     ObjectUI     *object_ui;
+
+    Widget       popup;
+
+    Widget       popup_delete_bt;
+    Widget       popup_duplicate_bt;
+
+    Widget       popup_bring_to_front_bt;
+    Widget       popup_send_to_back_bt;
+    Widget       popup_move_up_bt;
+    Widget       popup_move_down_bt;
 };
 
 void oc_explorer_cb(OptionStructure *opt, int a, void *data);
