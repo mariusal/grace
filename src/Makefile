@@ -24,7 +24,7 @@ LIBS=$(GUI_LIBS) $(CEPHES_LIB) $(NETCDF_LIBS) $(FFTW_LIB) \
 	$(EXPAT_LIB) \
 	$(GRACE_CORE_LIB) $(GRACE_CANVAS_LIB) $(T1_LIB) $(XMI_LIB) \
 	$(PDF_LIB) $(JPEG_LIB) $(PNG_LIB) $(Z_LIB) \
-	$(GRACE_BASE_LIB) $(CUPS_LIBS) $(NOGUI_LIBS) $(DL_LIB)
+	$(GRACE_BASE_LIB) $(UNDO_LIB) $(CUPS_LIBS) $(NOGUI_LIBS) $(DL_LIB)
 
 PREFS=-DMAJOR_REV=$(MAJOR_REV) -DMINOR_REV=$(MINOR_REV) \
 	-DPATCHLEVEL=$(PATCHLEVEL) -DBETA_VER=\"$(BETA_VER)\" \
@@ -41,9 +41,9 @@ $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) : $(TOP)/include/config.h
 
 include Make.dep
 
-Make.dep : $(GRSRCS) $(GUISRCS) $(PARS_C) buildinfo.c
+Make.dep : $(GRSRCS) $(GUISRCS) $(PARS_C) 
 	echo "# Generated automatically by \`make depend'" > $@
-	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) buildinfo.c \
+	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) \
 		| sed 's/\.o:/\$$(O)\ :/g' >> $@
 
 xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(CEPHES_LIB) $(GRACE_CORE_LIB) \

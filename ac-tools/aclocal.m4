@@ -725,6 +725,49 @@ AC_DEFUN(ACX_CHECK_PDFLIB,
   fi
 ])dnl
 
+dnl ACX_CHECK_LIBUNDO
+dnl --------------
+AC_DEFUN(ACX_CHECK_LIBUNDO,
+[
+  AC_ARG_WITH(undo_library,
+  [  --with-undo-library=OBJ      use OBJ as libUndo library [[-lundo]]],
+  undo_library="$withval")
+  if test "x$undo_library" = "x"
+  then
+    undo_library=-lundo
+  fi
+
+  AC_CACHE_CHECK([for libUndo API version >= $1], acx_cv_undo,
+    AC_CACHE_VAL(acx_cv_undo_library, acx_cv_undo_library=$undo_library)
+    ACX_SAVE_STATE
+    LIBS="$acx_cv_undo_library $LIBS"
+
+
+    AC_TRY_RUN([
+#include <stdlib.h>
+#include <undo.h>
+      int main(void) {
+        undo_new("test");
+        exit(0);
+      }
+      ],
+
+      acx_cv_undo="yes",
+      acx_cv_undo="no",
+      acx_cv_undo="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_undo" = "yes"
+  then
+    UNDO_LIB="$acx_cv_undo_library"
+    $2
+  else
+    UNDO_LIB=
+    $3
+  fi
+])dnl
+
 dnl ACX_CHECK_NETCDF
 dnl --------------
 AC_DEFUN(ACX_CHECK_NETCDF,

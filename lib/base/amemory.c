@@ -34,7 +34,6 @@
 
 #include "grace/baseP.h"
 
-#define HAVE_LIBUNDO
 #ifdef HAVE_LIBUNDO
 # include <undo.h>
 #endif

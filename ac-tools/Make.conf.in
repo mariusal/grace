@@ -59,6 +59,9 @@ XDR_LIB=@XDR_LIB@
 # Library containing dll-related functions
 DL_LIB=@DL_LIB@
 
+# Undo library
+UNDO_LIB=@UNDO_LIB@
+
 # FFTW library
 FFTW_LIB=@FFTW_LIB@
 
