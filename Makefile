@@ -9,9 +9,9 @@ include Make.conf
 subdirs : configure Make.conf
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE)) || exit 1; done
 
-all : $(subdirs)
+all : subdirs
 
-install : $(subdirs)
+install : subdirs
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) install) || exit 1; done
 	$(MKINSTALLDIRS) $(GRACE_HOME)
 	@if test -f $(GRACE_HOME)/gracerc; then \
@@ -23,22 +23,22 @@ install : $(subdirs)
 	fi
 	$(INSTALL_DATA) gracerc.user $(GRACE_HOME)
 
-tests : $(subdirs)
+tests : subdirs
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) tests) || exit 1; done
 
 check : tests
 
-links : $(subdirs)
+links : subdirs
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) links) || exit 1; done
 
-clean : $(subdirs)
+clean : subdirs
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) clean) || exit 1; done
 
-distclean : $(subdirs)
+distclean : subdirs
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) distclean) || exit 1; done
 	$(RM) config.log config.status config.cache config.h Make.conf
 
-devclean : $(subdirs)
+devclean : subdirs
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) devclean) || exit 1; done
 	$(RM) config.log config.status config.cache config.h Make.conf configure
 
@@ -54,6 +54,7 @@ Make.conf : ac-tools/Make.conf.in configure
 	@echo
 	@echo 'Please re-run ./configure'
 	@echo
+	@exit 1
 
 configure : ac-tools/configure.in ac-tools/aclocal.m4
 	autoconf ac-tools/configure.in > configure
@@ -61,6 +62,7 @@ configure : ac-tools/configure.in ac-tools/aclocal.m4
 	@echo
 	@echo 'Please re-run ./configure'
 	@echo
+	@exit 1
 
 dummy :
 
