@@ -10,9 +10,10 @@ include $(TOP)/Make.conf
 
 .SUFFIXES : .c $(O)
 
-GRBATCH=gracebat$(EXE)
-
-GRACECLI=grace$(EXE)
+# Links to the main exec
+GRACEGUI=xmgrace$(PROG_SUFFIX)$(EXE)
+GRACECLI=grace$(PROG_SUFFIX)$(EXE)
+GRACEBAT=gracebat$(PROG_SUFFIX)$(EXE)
 
 CEPHES_LIB=$(TOP)/cephes/libcephes.a
 
@@ -74,8 +75,9 @@ xml_in.c : grace.xcc
 
 install : $(GRACE)
 	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/bin
-	$(INSTALL_PROGRAM) -s $(GRACE) $(DESTDIR)$(GRACE_HOME)/bin/$(GRACE)
-	cd $(DESTDIR)$(GRACE_HOME)/bin; $(RM) $(GRBATCH); $(LN_S) $(GRACE) $(GRBATCH)
+	$(INSTALL_PROGRAM) -s $(GRACE) $(DESTDIR)$(GRACE_HOME)/bin/$(GRACEGUI)
+	cd $(DESTDIR)$(GRACE_HOME)/bin; $(RM) $(GRACEBAT); $(LN_S) $(GRACEGUI) $(GRACEBAT)
+	cd $(DESTDIR)$(GRACE_HOME)/bin; $(RM) $(GRACECLI); $(LN_S) $(GRACEGUI) $(GRACECLI)
 
 tests : dummy
 
@@ -84,9 +86,9 @@ $(DESTDIR)$(GRACE_HOME)/bin/$(GRACE) : $(GRACE)
 
 links : $(DESTDIR)$(GRACE_HOME)/bin/$(GRACE)
 	$(MKINSTALLDIRS) $(DESTDIR)$(PREFIX)/bin
-	cd $(DESTDIR)$(PREFIX)/bin; $(RM) $(GRACE); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRACE)
-	cd $(DESTDIR)$(PREFIX)/bin; $(RM) $(GRBATCH); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRBATCH)
-	cd $(DESTDIR)$(PREFIX)/bin; $(RM) $(GRACECLI); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRACECLI)
+	cd $(DESTDIR)$(PREFIX)/bin; $(RM) $(GRACEGUI); $(LN_S) $(GRACE_HOME)/bin/$(GRACEGUI) $(GRACEGUI)
+	cd $(DESTDIR)$(PREFIX)/bin; $(RM) $(GRACEBAT); $(LN_S) $(GRACE_HOME)/bin/$(GRACEGUI) $(GRACEBAT)
+	cd $(DESTDIR)$(PREFIX)/bin; $(RM) $(GRACECLI); $(LN_S) $(GRACE_HOME)/bin/$(GRACEGUI) $(GRACECLI)
 
 clean : 
 	$(RM) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo.h buildinfo$(O) buildinfo$(EXE)

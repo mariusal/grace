@@ -53,6 +53,7 @@ AC_SUBST(MAJOR_REV)
 AC_SUBST(MINOR_REV)
 AC_SUBST(PATCHLEVEL)
 AC_SUBST(BETA_VER)
+AC_SUBST(PROG_SUFFIX)
 
 dnl **** Grace version numbers
 MAJOR_REV=5
@@ -61,6 +62,12 @@ PATCHLEVEL=0
 BETA_VER="rc0"
 
 VERSTRING=${MAJOR_REV}.${MINOR_REV}.${PATCHLEVEL}
+if test "x${program_suffix}" = "xNONE"
+then
+    PROG_SUFFIX="-$VERSTRING"
+else
+    PROG_SUFFIX=${program_suffix}
+fi
 
 dnl **** define home dir of Grace
 if test "x${prefix}" = "xNONE"
