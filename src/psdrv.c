@@ -324,12 +324,13 @@ static int ps_initgraphics(int format)
 
     /* Text under/overlining etc */
     fprintf(prstream, "/TL {\n");
+    fprintf(prstream, "  /kcomp exch def\n");
     fprintf(prstream, "  /linewidth exch def\n");
     fprintf(prstream, "  /offset exch def\n");
     fprintf(prstream, "  GS\n");
     fprintf(prstream, "  0 offset rmoveto\n");
     fprintf(prstream, "  linewidth SLW\n");
-    fprintf(prstream, "  dup stringwidth RL s\n");
+    fprintf(prstream, "  dup stringwidth exch kcomp add exch RL s\n");
     fprintf(prstream, "  GR\n");
     fprintf(prstream, "} def\n");
 
@@ -744,6 +745,7 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     char *encscheme;
     double *kvector;
     int i;
+    double kcomp;
     
     if (psfont_status[font] == FALSE) {
         fontname = get_fontalias(font);
@@ -773,10 +775,13 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     } else {
         kvector = NULL;
     }
+    
+    kcomp = 0.0;
     if (kvector) {
         fprintf(prstream, "[");
         for (i = 0; i < len - 1; i++) {
             fprintf(prstream, "%.4f ", kvector[i]);
+            kcomp += kvector[i];
         }
         fprintf(prstream, "] KINIT\n");
         fprintf(prstream, "{KPROC} ");
@@ -788,11 +793,11 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
         double w = get_textline_width(font);
         if (underline) {
             double pos = get_underline_pos(font);
-            fprintf(prstream, " %.4f %.4f TL", pos, w);
+            fprintf(prstream, " %.4f %.4f %.4f TL", pos, w, kcomp);
         }
         if (overline) {
             double pos = get_overline_pos(font);
-            fprintf(prstream, " %.4f %.4f TL", pos, w);
+            fprintf(prstream, " %.4f %.4f %.4f TL", pos, w, kcomp);
         }
     }
     
