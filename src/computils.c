@@ -1752,3 +1752,46 @@ int find_span_index(double *array, int len, int m, double x)
     errmsg("internal error in find_span_index()");
     return -2;
 }
+
+/* feature extraction */
+int featext(int gfrom, int *sfrom, int nsets, int gto, int setto, char *formula)
+{
+    int i;
+    char *tbuf;
+    double *x, *y;
+
+    if (!is_valid_gno(gfrom) || !is_valid_gno(gto)) {
+	return RETURN_FAILURE;
+    }
+    
+    if (activateset(gto, setto) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
+    if (dataset_cols(gto, setto) != 2) {
+        set_dataset_type(gto, setto, SET_XY);
+    }
+    
+    if (setlength(gto, setto, nsets) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
+    x = getcol(gto, setto, DATA_X);
+    y = getcol(gto, setto, DATA_Y);
+    for (i = 0; i < nsets; i++) {
+        int setno = sfrom[i];
+	set_parser_setno(gfrom, setno);
+        x[i] = (double) i;
+        if (s_scanner(formula, &y[i]) != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
+        }
+    }
+
+    /* set comment */
+    tbuf = copy_string(NULL, "Feature extraction by formula ");
+    tbuf = concat_strings(tbuf, formula);
+    setcomment(gto, setto, tbuf);
+    xfree(tbuf);
+    
+    return RETURN_SUCCESS;
+}

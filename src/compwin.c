@@ -2100,3 +2100,98 @@ static void reset_geom_proc(Widget w, XtPointer client_data, XtPointer call_data
 	xv_setstr(tui->transx_item, "0.0");
 	xv_setstr(tui->transy_item, "0.0");
 }
+
+typedef struct _Featext_ui {
+    Widget top;
+    GraphSetStructure *src;
+    GraphSetStructure *dest;
+    TextStructure *formula;
+} Featext_ui;
+
+static int do_fext_proc(void *data)
+{
+    char *formula;
+    int nsrc, ndest, *ssids, *dsids, sdest, gsrc, gdest;
+
+    Featext_ui *ui = (Featext_ui *) data;
+
+    formula = GetTextString(ui->formula);
+    
+    if (GetSingleListChoice(ui->src->graph_sel, &gsrc) != RETURN_SUCCESS) {
+        errmsg("Please select a single source graph");
+        return RETURN_FAILURE;
+    }
+    if (GetSingleListChoice(ui->dest->graph_sel, &gdest) != RETURN_SUCCESS) {
+        errmsg("Please select a single source graph");
+        return RETURN_FAILURE;
+    }
+    
+    nsrc = GetListChoices(ui->src->set_sel, &ssids);
+    if (nsrc < 1) {
+        errmsg("No source sets selected");
+        return RETURN_FAILURE;
+    }
+
+    ndest = GetListChoices(ui->dest->set_sel, &dsids);
+    if (ndest == 0) {
+        sdest = nextset(gdest);
+    } else if (ndest == 1) {
+        sdest = dsids[0];
+        xfree(dsids);
+    } else {
+        errmsg("Please select a single or none destination set");
+        if (ndest > 0) {
+            xfree(dsids);
+        }
+        if (nsrc > 0) {
+            xfree(ssids);
+        }
+        return RETURN_FAILURE;
+    }
+
+    featext(gsrc, ssids, nsrc, gdest, sdest, formula); 
+
+    if (nsrc > 0) {
+        xfree(ssids);
+    }
+    
+    update_set_lists(gdest);
+    xdrawgraph();
+    
+    return RETURN_SUCCESS;
+}
+
+void create_featext_frame(void *data)
+{
+    static Featext_ui *feui = NULL;
+ 
+    set_wait_cursor();
+    
+    if (!feui) {
+        Widget grid;
+
+        feui = xmalloc(sizeof(Featext_ui));
+        if (!feui) {
+            unset_wait_cursor();
+            return;
+        }
+        
+        feui->top = CreateDialogForm(app_shell, "Feature extraction");
+        grid = CreateGrid(feui->top, 2, 1);
+        AddDialogFormChild(feui->top, grid);
+	feui->src = CreateGraphSetSelector(grid,
+            "Extract from:", LIST_TYPE_MULTIPLE);
+	feui->dest = CreateGraphSetSelector(grid,
+            "Extract to:", LIST_TYPE_SINGLE);
+        PlaceGridChild(grid, feui->src->frame, 0, 0);
+        PlaceGridChild(grid, feui->dest->frame, 1, 0);
+
+	feui->formula = CreateTextInput(feui->top, "Formula:");
+
+	CreateAACDialog(feui->top, feui->formula->form, do_fext_proc, (void *) feui);
+    }
+    
+    RaiseWindow(GetParent(feui->top));
+    
+    unset_wait_cursor();
+}

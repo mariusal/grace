@@ -37,7 +37,7 @@ GROBJS =  main$(O) grace$(O) draw$(O) drawticks$(O) drawobj$(O) plotone$(O) \
 
 GUISRCS =  Tab.c motifutils.c \
 	compwin.c comwin.c eblockwin.c \
-	editpwin.c events.c featext.c fileswin.c plotwin.c \
+	editpwin.c events.c fileswin.c plotwin.c \
 	graphappwin.c helpwin.c hotwin.c \
 	locatewin.c miscwin.c monwin.c \
 	nonlwin.c printwin.c ptswin.c regionwin.c \
@@ -46,7 +46,7 @@ GUISRCS =  Tab.c motifutils.c \
 
 GUIOBJS =  Tab$(O) motifutils$(O) \
 	compwin$(O) comwin$(O) eblockwin$(O) \
-	editpwin$(O) events$(O) featext$(O) fileswin$(O) plotwin$(O) \
+	editpwin$(O) events$(O) fileswin$(O) plotwin$(O) \
 	graphappwin$(O) helpwin$(O) hotwin$(O) \
 	locatewin$(O) miscwin$(O) monwin$(O) \
 	nonlwin$(O) printwin$(O) ptswin$(O) regionwin$(O) \
