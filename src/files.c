@@ -631,7 +631,6 @@ FILE *grace_openw(char *fn)
 char *grace_path(char *fn)
 {
     static char buf[GR_MAXPATHLEN];
-    char *home;
     struct stat statb;
 
     if (fn == NULL) {
@@ -674,15 +673,12 @@ char *grace_path(char *fn)
         }
         
 	/* third try: in .grace/ in the $HOME dir */
-	home = getenv("HOME");
-	if (home != NULL) {
-	    strcpy(buf, home);
-	    strcat(buf, "/.grace/");
-	    strcat(buf, fn);
-            if (stat(buf, &statb) == 0) {
-                return buf;
-            }
-	}
+	strcpy(buf, get_userhome());
+	strcat(buf, ".grace/");
+	strcat(buf, fn);
+        if (stat(buf, &statb) == 0) {
+            return buf;
+        }
 
 	/* the last attempt: in $GRACE_HOME */
         strcpy(buf, get_grace_home());

@@ -108,6 +108,9 @@ int main(int argc, char *argv[])
     
     /* define the user's name */
     init_username();
+
+    /* define the user's home dir */
+    init_userhome();
         
     /* set the starting directory */
     set_workingdir(NULL);
