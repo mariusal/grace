@@ -4,7 +4,7 @@ $ !
 $ OPEN/READ IN MAKE.CONF
 $LOOP_CONF:
 $ READ/END=DONE_CONF IN REC
-$ IF (F$ELEMENT(1,"=",REC) .NES. "=")
+$ IF (F$EXTRACT(0,1,REC) .NES. "#" .AND. F$ELEMENT(1,"=",REC) .NES. "=")
 $ THEN
 $   SYM = F$ELEMENT (0, "=", REC)
 $   VAL = REC - SYM - "="
@@ -13,6 +13,17 @@ $ ENDIF
 $ GOTO LOOP_CONF
 $DONE_CONF:
 $ CLOSE IN
+$ !
+$ IF (P1 .EQS. "BUILDINFO")
+$ THEN
+$   SET DEFAULT [.SRC]
+$   CREATE BUILDINFO.OBJ
+$   CREATE BUILDINFO.EXE
+$   GOSUB BUILDINFO
+$   SET DEFAULT [-]
+$   V = F$VERIFY(V)
+$   EXIT
+$ ENDIF
 $ !
 $ SAY "Building CEPHES"
 $ SET DEFAULT [.CEPHES]
@@ -24,7 +35,7 @@ $ SRCS = "airy beta chbevl chdtr const dawsn ellie ellik " -
        + "jn jv k0 k1 kn log2 mtherr ndtri pdtr polevl " -
        + "polyn psi revers rgamma round shichi sici " -
        + "spence stdtr struve unity yn zeta zetac " -
-       + "acosh asinh atanh ndtr isfinite cbrt"
+       + "acosh asinh atanh ndtr cbrt isnan"
 $ GOSUB COMPILE
 $ SET DEFAULT [-]
 $ !
@@ -39,7 +50,7 @@ $ SRCS = "arith curves fontfcn hints lines objects paths regions scanfont " -
 $ GOSUB COMPILE
 $ SET DEFAULT [-.T1LIB]
 $ SRCS = "t1finfo t1base t1delete t1enc t1env t1load t1set t1trans t1aaset " -
-       + "t1afmtool parseAFM"
+       + "t1afmtool t1outline parseAFM"
 $ GOSUB COMPILE
 $ SET DEFAULT [--]
 $ !
@@ -50,7 +61,7 @@ $ DEFINE/NOLOG XBAE 'XBAE'
 $ CFLAGS = CFLAGS0 + "/INCLUDE=[-]" + GUI_FLAGS -
          + "/DEFINE=(DRAW_RESIZE_SHADOW)/WARNINGS=(DISABLE=LONGEXTERN)"
 $ LIB = "libXbae.OLB"
-$ SRCS = "Actions Cell Clip Converters Create Draw " -
+$ SRCS = "Actions Clip Converters Create Draw " -
        + "Matrix Methods Public ScrollMgr Shadow Utils"
 $ GOSUB COMPILE
 $ DEASSIGN XBAE
@@ -58,28 +69,48 @@ $ SET DEFAULT [-]
 $ !
 $ SAY "Building SRC"
 $ SET DEFAULT [.SRC]
+$ IF (F$TYPE(USE_DECC$CRTL) .EQS. "") THEN USE_DECC$CRTL = 0
+$ IF (USE_DECC$CRTL) THEN DEFINE/NOLOG DECC$CRTLMAP SYS$LIBRARY:DECC$CRTL.EXE
+$ VMS_MAJOR = F$ELEMENT (0, ".", F$GETSYI ("NODE_SWVERS")) - "V"
+$ IF (USE_DECC$CRTL .OR. VMS_MAJOR .GE. 7)
+$ THEN
+$   CFLAGS = CFLAGS0 + "/INCLUDE=([-],[-.T1LIB.T1LIB]''NETCDF_INC')" -
+           + "/DEFINE=(CCOMPILER=""""""''CCOMPILER'""""""," -
+           + "GRACE_HOME=""""""''GRACE_HOME'""""""," -
+           + "GRACE_EDITOR=""""""''GRACE_EDITOR'""""""," -
+           + "GRACE_HELPVIEWER=""""""''HELPVIEWER'""""""," -
+           + "GRACE_PRINT_CMD=""""""''PRINT_CMD'"""""")"
+$   LIB = ""
+$   SRCS = "buildinfo"
+$   GOSUB COMPILE
+$   V = F$VERIFY(1)
+$   LINK/EXECUTABLE=BUILDINFO.EXE BUILDINFO.OBJ,[-.T1LIB]libt1lib.olb/LIBRARY -
+         'NOGUI_LIBS'
+$   DEFINE/USER SYS$OUTPUT BUILDINFO.H
+$   RUN BUILDINFO.EXE
+$   V = 'F$VERIFY(0)'
+$ ELSE
+$   GOSUB BUILDINFO
+$ ENDIF
 $ CEPHES = F$PARSE("[-]",,,"DEVICE") + F$PARSE("[-]",,,"DIRECTORY") -
        - "]" + ".CEPHES]"
 $ DEFINE/NOLOG CEPHES 'CEPHES'
 $ XBAE = F$PARSE("[-]","","","DEVICE") + F$PARSE("[-]","","","DIRECTORY") -
        - "]" + ".XBAE]"
 $ DEFINE/NOLOG XBAE 'XBAE'
-$ CFLAGS = CFLAGS0 + "/INCLUDE=([-],[-.T1LIB.T1LIB]''NETCDF_INC')" -
-         + "/DEFINE=(GRACE_HOME=""""""''GRACE_HOME'""""""," -
-         + "GRACE_HELPVIEWER=""""""''HELPVIEWER'""""""," -
-         + "PRINT_CMD=""""""''PRINT_CMD'""""""," -
-         + """lines=lines_"",""xfree=xfree_"")"
+$ CFLAGS = CFLAGS0 + "/INCLUDE=([-],[-.T1LIB.T1LIB]''LIB_INC')" -
+         + "/DEFINE=(""xfree=xfree_"")"
 $ LIB = ""
-$ SRCS = "main plotone files utils drawticks " -
+$ SRCS = "main plotone files ssdata utils drawticks " -
        + "nonlfit lmdif as274c fit fourier " -
        + "graphs graphutils setutils regionutils " -
        + "objutils computils defaults params " -
-       + "compute draw dlmodule missing " -
-       + "iofilters t1fonts device mfdrv psdrv " -
-       + "dummydrv pars"
+       + "compute draw dlmodule pars missing " -
+       + "iofilters dates t1fonts device " -
+       + "dummydrv mfdrv psdrv"
 $ IF (ALLOCA .NES. "") THEN SRCS = SRCS + " alloca"
-$ IF (PDFDRV_O .NES. "") THEN SRCS = SRCS + " pdfdrv"
 $ IF (RSTDRV_O .NES. "") THEN SRCS = SRCS + " rstdrv"
+$ IF (PDFDRV_O .NES. "") THEN SRCS = SRCS + " pdfdrv"
 $ GOSUB COMPILE
 $ SRC1 = SRCL
 $ SRCS = "Tab motifutils " -
@@ -92,17 +123,18 @@ $ SRCS = "Tab motifutils " -
        + "tickwin worldwin fontwin xutil x11drv xmgrace"
 $ GOSUB COMPILE
 $ SRC2 = SRCL
-$ GUI_LIBS = F$ELEMENT (1, ")", GUI_LIBS)
+$ CEPHES_LIB = ",[-.CEPHES]LIBCEPHES.OLB/LIB"
 $ V = F$VERIFY(1)
-$ LINK /EXECUTABLE=xmgrace.exe 'LDFLAGS' 'SRC1','SRC2', -
-    [-.ARCH.VMS]'GUI_LIBS',[-.CEPHES]LIBCEPHES.OLB/LIBRARY'NETCDF_LIBS', -
-    [-.T1LIB]LIBT1LIB.OLB/LIBRARY,[-.XBAE]LIBXBAE.OLB/LIBRARY
+$ LINK /EXECUTABLE=xmgrace.exe 'LDFLAGS' 'SRC1','SRC2' -
+    'GUI_LIBS''CEPHES_LIB''T1_LIB''NETCDF_LIBS''FFT1_LIB' -
+    'PDF_LIB''GD_LIB''JPEG_LIB''NOGUI_LIBS''DL_LIB'
 $ V = 'F$VERIFY(0)'
 $ DEASSIGN CEPHES
 $ DEASSIGN XBAE
 $ SET DEFAULT [-]
 $ !
 $ SAY "Done"
+$ V = F$VERIFY(V)
 $ EXIT
 $ !
 $COMPILE:
@@ -125,3 +157,48 @@ $ ELSE
 $   LIBRARY/LOG 'LIB' 'FILE'.OBJ
 $ ENDIF
 $ GOTO LOOP_COMPILE
+$ !
+$BUILDINFO:
+$ OPEN/READ IN BUILDINFO.C
+$BUILDINFO_C_LOOP:
+$ READ/END=BUILDINFO_C_DONE IN REC
+$ IF (F$ELEMENT(0," ",REC) .NES. "#define") THEN GOTO BUILDINFO_C_LOOP
+$ VAL = F$ELEMENT(2," ",REC)
+$ IF (VAL .NES. " ") THEN 'F$ELEMENT(1," ",REC)' = 'VAL'
+$ GOTO BUILDINFO_C_LOOP
+$BUILDINFO_C_DONE:
+$ CLOSE IN
+$ @SYS$UPDATE:DECW$GET_IMAGE_VERSION SYS$SHARE:DECW$XLIBSHR.EXE DECWVERSION
+$ OPEN/READ IN [-.T1LIB.T1LIB]SYSCONF.H
+$SYSCONF_H_LOOP:
+$ READ/END=SYSCONF_H_DONE IN REC
+$ IF (F$ELEMENT(0," ",REC) .NES. "#define") THEN GOTO SYSCONF_H_LOOP
+$ VAL = F$ELEMENT(2," ",REC)
+$ IF (VAL .NES. " ") THEN 'F$ELEMENT(1," ",REC)' = 'VAL'
+$ GOTO SYSCONF_H_LOOP
+$SYSCONF_H_DONE:
+$ CLOSE IN
+$ OPEN/WRITE OUT BUILDINFO.H
+$ VERSION = MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL
+$ WRITE OUT "#define BI_VERSION_ID ", VERSION
+$ VERSION = "Grace-''MAJOR_REV'.''MINOR_REV'.''PATCHLEVEL' ''BETA_VER'"
+$ WRITE OUT "#define BI_VERSION """, VERSION, """"
+$ WRITE OUT "#define BI_GUI ""@(#)OSF/Motif Version ", DECWVERSION, """"
+$ WRITE OUT "#define BI_T1LIB """, T1LIB_IDENT, """"
+$ WRITE OUT "#define BI_CCOMPILER """, CCOMPILER, """"
+$ WRITE OUT "#define BI_SYSTEM ""OpenVMS 0 ", F$GETSYI("HW_NAME"), """"
+$ WRITE OUT "#define BI_DATE """, F$TIME(), """"
+$ WRITE OUT ""
+$ WRITE OUT "#define GRACE_HOME """, GRACE_HOME, """"
+$ WRITE OUT "#define GRACE_EDITOR """, GRACE_EDITOR, """"
+$QUOTELOOP:
+$ N = F$LOCATE ("\\", PRINT_CMD)
+$ IF (N .NE. F$LENGTH(PRINT_CMD))
+$ THEN
+$   PRINT_CMD = F$EXTRACT (0, N, PRINT_CMD) + F$EXTRACT (N+1, 255, PRINT_CMD)
+$   GOTO QUOTELOOP
+$ ENDIF
+$ WRITE OUT "#define GRACE_PRINT_CMD """, PRINT_CMD, """"
+$ WRITE OUT "#define GRACE_HELPVIEWER """, HELPVIEWER, """"
+$ CLOSE OUT
+$ RETURN

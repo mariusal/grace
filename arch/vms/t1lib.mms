@@ -37,6 +37,7 @@ T1LIB_OBJS = \
 	[.t1lib]t1trans$(O) \
 	[.t1lib]t1aaset$(O) \
 	[.t1lib]t1afmtool$(O) \
+	[.t1lib]t1outline$(O) \
 	[.t1lib]parseAFM$(O) 
 
 TYPE1_SRCS = \
@@ -68,6 +69,7 @@ T1LIB_SRCS = \
 	[.t1lib]t1trans.c \
 	[.t1lib]t1aaset.c \
 	[.t1lib]t1afmtool.c \
+	[.t1lib]t1outline.c \
 	[.t1lib]parseAFM.c 
 
 TYPE1_HEADERS = \

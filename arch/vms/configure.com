@@ -19,26 +19,35 @@ $ DECC_MAJOR = F$ELEMENT (0, ".", DECCVERSION) - "V"
 $!
 $! set defaults for command line parameters
 $!
+$ IF (F$SEARCH("SYS$LIBRARY:DECC$CRTL.EXE") .NES. "")
+$ THEN DECC$CRTLSHR = "Yes"
+$ ELSE DECC$CRTLSHR = "No"
+$ ENDIF
+$ IF (VMS_MAJOR .LT. 7)
+$ THEN DECC$CRTL = DECC$CRTLSHR
+$ ELSE DECC$CRTL = "No"
+$ ENDIF
 $ IF (F$SEARCH("SYS$LIBRARY:DPML$SHR.EXE") .NES. "")
-$ THEN
-$   DPMLSHR = "Yes"
-$ ELSE
-$   DPMLSHR = "No"
+$ THEN DPMLSHR = "Yes"
+$ ELSE DPMLSHR = "No"
 $ ENDIF
 $ DPML = DPMLSHR
 $ OPTIMIZE = "Yes"
 $ IF (HW .EQS. "Alpha")
-$ THEN
-$   FLOAT = "IEEE"
-$ ELSE
-$   FLOAT = "G_FLOAT"
+$ THEN FLOAT = "IEEE"
+$ ELSE FLOAT = "G_FLOAT"
 $ ENDIF
 $ HOME = ""
 $ PRINT = ""
 $ QUEUE = "decw$printer_format_ps"
+$ EDIT = "edit/tpu/display=motif"
 $ HELP = "mosaic"
 $ NETCDFINC = ""
 $ NETCDFLIB = ""
+$ GDINC = ""
+$ GDLIB = ""
+$ JPEGINC = ""
+$ JPEGLIB = ""
 $ FORCECOPY = 0
 $ SAVE = 0
 $!
@@ -87,6 +96,16 @@ $ ENDIF
 $ IF (P .EQS. "NODPML")
 $ THEN
 $   DPML = "No"
+$   GOTO LOOP_PARAM
+$ ENDIF
+$ IF (P .EQS. "DECC$CRTL")
+$ THEN
+$   DECC$CRTL = DECC$CRTLSHR
+$   GOTO LOOP_PARAM
+$ ENDIF
+$ IF (P .EQS. "NODECC$CRTL")
+$ THEN
+$   DECC$CRTL = "No"
 $   GOTO LOOP_PARAM
 $ ENDIF
 $ IF (P .EQS. "OPTIMIZE")
@@ -147,6 +166,15 @@ $   IF (F$EXTRACT(F$LENGTH(QUEUE)-1,1,QUEUE) .EQS. """") THEN -
         QUEUE = F$EXTRACT(0,F$LENGTH(QUEUE)-1,QUEUE)
 $   GOTO LOOP_PARAM
 $ ENDIF
+$ IF (P .EQS. "EDIT")
+$ THEN
+$   EDIT = PAR'N' - "EDIT="
+$   IF (F$EXTRACT(0,1,EDIT) .EQS. """") THEN -
+        EDIT = F$EXTRACT(1,F$LENGTH(EDIT)-1,EDIT)
+$   IF (F$EXTRACT(F$LENGTH(EDIT)-1,1,EDIT) .EQS. """") THEN -
+        EDIT = F$EXTRACT(0,F$LENGTH(EDIT)-1,EDIT)
+$   GOTO LOOP_PARAM
+$ ENDIF
 $ IF (P .EQS. "HELP")
 $ THEN
 $   HELP = PAR'N' - "HELP="
@@ -159,7 +187,19 @@ $ ENDIF
 $ IF (P .EQS. "NETCDF")
 $ THEN
 $   NETCDFINC = F$ELEMENT (1, "=", PAR'N')
-$   NETCDFLIB = F$ELEMENT (2, "=", PAR'N')
+$   NETCDFLIB = F$ELEMENT (2, "=", PAR'N') - "="
+$   GOTO LOOP_PARAM
+$ ENDIF
+$ IF (P .EQS. "GD")
+$ THEN
+$   GDINC = F$ELEMENT (1, "=", PAR'N')
+$   GDLIB = F$ELEMENT (2, "=", PAR'N') - "="
+$   GOTO LOOP_PARAM
+$ ENDIF
+$ IF (P .EQS. "JPEG")
+$ THEN
+$   JPEGINC = F$ELEMENT (1, "=", PAR'N')
+$   JPEGLIB = F$ELEMENT (2, "=", PAR'N') - "="
 $   GOTO LOOP_PARAM
 $ ENDIF
 $ IF (P .EQS. "COPY")
@@ -180,6 +220,19 @@ $ THEN
 $   echo "You must specify both the include directory and the libraries"
 $   echo "with the NETCDF option."
 $   EXIT
+$ ENDIF
+$ IF (GDINC .NES. "")
+$ THEN
+$   GDLIB = F$PARSE (GDLIB, "''GDINC'LIBGD.OLB",,, "SYNTAX_ONLY") - ";"
+$ ENDIF
+$ IF (GDLIB .EQS. "" .AND. JPEGLIB .NES. "")
+$ THEN
+$   echo "You must have the GD library to use the JPEG library."
+$   EXIT
+$ ENDIF
+$ IF (JPEGINC .NES. "")
+$ THEN
+$   JPEGLIB = F$PARSE (JPEGLIB, "''JPEGINC'LIBJPEG.OLB",,, "SYNTAX_ONLY") - ";"
 $ ENDIF
 $ IF (SAVE)
 $ THEN
@@ -203,26 +256,74 @@ $ IF (PRINT .EQS. "") THEN -
     PRINT = "print/name=""from Grace""/delete/queue=" + QUEUE
 $ IF (F$LOCATE("%s",HELP) .EQ. F$LENGTH(HELP)) THEN HELP = HELP + " %s"
 $!
-$ echo ""
-$ echo "Configuration of GRACE for VMS"
-$ echo ""
-$ echo "VMS version:  ", VMSVERSION
-$ echo "Hardware:     ", HW
-$ echo "GUI:          Motif ", DECWVERSION
-$ echo "DPML:         ", DPML
-$ echo "DECC version: ", DECCVERSION
-$ echo "Optimize:     ", OPTIMIZE
-$ echo "Float:        ", FLOAT
-$ echo "Home dir:     ", HOME
-$ echo "Print cmd:    ", PRINT
-$ echo "Help viewer:  ", HELP
+$! Define the __CRTL_VER symbol.
+$!
+$ IF (DECC$CRTL) THEN DEFINE/USER DECC$CRTLMAP SYS$LIBRARY:DECC$CRTL.EXE
+$ CC/OBJECT=DEFINE_CRTL_VER.OBJ SYS$INPUT
+#include <stdlib.h>
+#include <stdio.h>
+#include <descrip.h>
+#include <lib$routines.h>
+#ifndef __CRTL_VER
+#   define __CRTL_VER __VMS_VER
+#endif
+main () {
+static $DESCRIPTOR(crtl,"__CRTL_VER");
+struct dsc$descriptor_s val = {0, DSC$K_DTYPE_T, DSC$K_CLASS_S, 0};
+static int tab = {1};
+char str[10];
+val.dsc$w_length = sprintf (str, "%d", __CRTL_VER);
+val.dsc$a_pointer = str;
+exit (lib$set_symbol (&crtl, &val, &tab));
+}
+$ LINK/EXECUTABLE=DEFINE_CRTL_VER.EXE DEFINE_CRTL_VER.OBJ
+$ RUN DEFINE_CRTL_VER.EXE
+$ DELETE DEFINE_CRTL_VER.OBJ;*,DEFINE_CRTL_VER.EXE;*
+$ __CRTL_VER = F$INTEGER(__CRTL_VER)
+$!
+$! Write the configureation.
+$!
+$ OPEN/WRITE OUT CONFIGURE.LOG
+$ WRITE OUT "Configuration of GRACE for VMS on ", F$GETSYI("NODENAME"), -
+            " at ", F$TIME()
+$ WRITE OUT ""
+$ WRITE OUT "VMS version:       ", VMSVERSION
+$ WRITE OUT "Architecture:      ", HW
+$ WRITE OUT "GUI:               Motif ", DECWVERSION
+$ WRITE OUT "DECC version:      ", DECCVERSION
+$ WRITE OUT "Use DECC$CRTL.OLB: ", DECC$CRTL
+$ WRITE OUT "CRTL version:      ", __CRTL_VER
+$ WRITE OUT "Use DPML:          ", DPML
+$ WRITE OUT "Optimize:          ", OPTIMIZE
+$ WRITE OUT "Floating point:    ", FLOAT
+$ WRITE OUT "Home directory:    ", HOME
+$ WRITE OUT "Print command:     ", PRINT
+$ WRITE OUT "Edit command:      ", EDIT
+$ WRITE OUT "Help viewer:       ", HELP
 $ IF (NETCDFLIB .EQS. "")
 $ THEN
-$   echo "NetCDF:       Not used"
+$   WRITE OUT "NetCDF:            Not used"
 $ ELSE
-$   echo "NetCDF:       Include dir: ", NETCDFINC
-$   echo "              Libraries:   ", NETCDFLIB
+$   WRITE OUT "NetCDF:            Include dir: ", NETCDFINC
+$   WRITE OUT "                   Libraries:   ", NETCDFLIB
 $ ENDIF
+$ IF (GDLIB .EQS. "")
+$ THEN
+$   WRITE OUT "GD:                Not used"
+$ ELSE
+$   WRITE OUT "GD:                Include dir: ", GDINC
+$   WRITE OUT "                   Libraries:   ", GDLIB
+$ ENDIF
+$ IF (JPEGLIB .EQS. "")
+$ THEN
+$   WRITE OUT "JPEG:              Not used"
+$ ELSE
+$   WRITE OUT "JPEG:              Include dir: ", JPEGINC
+$   WRITE OUT "                   Libraries:   ", JPEGLIB
+$ ENDIF
+$ CLOSE OUT
+$ echo ""
+$ TYPE/NOPAGE CONFIGURE.LOG
 $ echo ""
 $!
 $! define symbols for the other directories
@@ -262,19 +363,16 @@ $ IF (FORCECOPY .OR. F$SEARCH("''SRC_DIR'DESCRIP.MMS") .EQS. "") THEN -
       COPY SRC.MMS 'SRC_DIR'DESCRIP.MMS
 $ IF (FORCECOPY .OR. F$SEARCH("''GRCONVERT_DIR'DESCRIP.MMS") .EQS. "") THEN -
       COPY GRCONVERT.MMS 'GRCONVERT_DIR'DESCRIP.MMS
-$ IF (FORCECOPY .OR. F$SEARCH("''GRCONVERT_DIR'XDR.OPT") .EQS. "") THEN -
-      COPY XDR.OPT 'GRCONVERT_DIR'XDR.OPT
 $ IF (FORCECOPY .OR. F$SEARCH("''EXAMPLES_DIR'DOTEST.COM") .EQS. "") THEN -
       COPY DOTEST.COM 'EXAMPLES_DIR'DOTEST.COM
 $!
-$! copy the default font encoding file
+$! Copy the default font encoding file.
 $!
 $ IF (F$SEARCH("[--.FONTS.ENC]DEFAULT.ENC") .EQS. "") THEN -
       COPY [--.FONTS.ENC]ISOLATIN1.ENC [--.FONTS.ENC]DEFAULT.ENC
 $!
-$! define symbols for make.conf
-$! These symbols are in make.conf_in; they are set to the value they
-$! should be in make.conf.
+$! Define symbols for make.conf.  These symbols are in make.conf_in; they
+$! are set to the value they should be in make.conf.
 $!
 $ O = ".obj"
 $ EXE = ".exe"
@@ -284,14 +382,11 @@ $ PREFIX = ""
 $ SUBDIRS = "cephes t1lib xbae src"
 $ GRACE = "xmgrace$(EXE)"
 $ GRACE_HOME = HOME
-$ MISSING_O = "missing$(O)"
 $ IF (HW .EQS. "Alpha" .OR. DECC_MAJOR .GE. 6)
-$ THEN
-$   ALLOCA = ""
-$ ELSE
-$   ALLOCA = "alloca.obj"
+$ THEN ALLOCA = ""
+$ ELSE ALLOCA = "alloca$(O)"
 $ ENDIF
-$ T1_LIB = ",$(T1LIBDIR)libt1lib.olb/LIBRARY"
+$ T1_LIB = ",[-.T1LIB]libt1lib.olb/LIB"
 $ T1_INC = ",[-.T1LIB.T1LIB]"
 $ T1_AA_TYPE16 = "short"
 $ T1_AA_TYPE32 = "int"
@@ -299,10 +394,30 @@ $ T1_AA_TYPE64 = ""
 $ XDR_LIB = ""
 $ DL_LIB = ""
 $ FFTW_LIB = ""
+$ NETCDF_LIBS = ""
+$ IF (NETCDFLIB .EQS. "") THEN GOTO DONE_NETCDF_LIBS
+$ N = 0
+$LOOP_NETCDF_LIBS:
+$ LIB = F$ELEMENT (N, ",", NETCDFLIB)
+$ IF (LIB .EQS. ",") THEN GOTO DONE_NETCDF_LIBS
+$ NETCDF_LIBS = NETCDF_LIBS + "," + LIB + "/LIB"
+$ N = N + 1
+$ GOTO LOOP_NETCDF_LIBS
+$DONE_NETCDF_LIBS:
 $ PDF_LIB = ""
 $ PDFDRV_O = ""
-$ GD_LIB = ""
-$ RSTDRV_O = ""
+$ IF (GDLIB .NES. "")
+$ THEN GD_LIB = "," + GDLIB + "/LIB"
+$ ELSE GD_LIB = ""
+$ ENDIF
+$ IF (JPEGLIB .NES. "")
+$ THEN JPEG_LIB = "," + JPEGLIB + "/LIB"
+$ ELSE JPEG_LIB = ""
+$ ENDIF
+$ IF (GDLIB .NES. "")
+$ THEN RSTDRV_O = "rstdrv$(O)"
+$ ELSE RSTDRV_O = ""
+$ ENDIF
 $ YACC = ""
 $ CC = "cc"
 $ FC = "fortran"
@@ -325,34 +440,31 @@ $ CFLAGS0 = CFLAGS0 + "/FLOAT=" + FLOAT
 $ IF (.NOT. OPTIMIZE) THEN CFLAGS0 = CFLAGS0 + "/NOOPTIMIZE"
 $ GUI_FLAGS = ""
 $ LDFLAGS = ""
-$ NOGUI_LIBS = ""
-$ IF (DECW_MAJOR .EQS. "V1.1")
+$ IF (DECC$CRTL)
 $ THEN
-$   GUI_LIBS = ",$(VMSDIR)motif1_1.opt/option"
+$   NOGUI_LIBS = ",sys$library:decc$crtl.olb/LIB"
+$   IF (HW .EQS. "VAX") THEN -
+        NOGUI_LIBS = NOGUI_LIBS + ",sys$library:vaxc$lcl.opt/OPT"
 $ ELSE
-$   GUI_LIBS = ",$(VMSDIR)motif1_2.opt/option"
+$   NOGUI_LIBS = ""
 $ ENDIF
+$ IF (DECW_MAJOR .EQS. "V1.1")
+$ THEN OPT = "motif1_1.opt"
+$ ELSE OPT = "motif1_2.opt"
+$ ENDIF
+$ GUI_LIBS = ",[-.XBAE]libxbae.olb/LIB,[-.ARCH.VMS]''OPT'/OPT"
 $ PRINT_CMD = F$ELEMENT (0, """", PRINT)
 $ N = 1
 $LOOP_PRINT_CMD:
 $ P = F$ELEMENT (N, """", PRINT)
 $ IF (P .NES. """")
 $ THEN
-$   PRINT_CMD = PRINT_CMD + "\042" + P
+$   PRINT_CMD = PRINT_CMD + "\\042" + P
 $   N = N + 1
 $   GOTO LOOP_PRINT_CMD
 $ ENDIF
+$ GRACE_EDITOR = EDIT
 $ HELPVIEWER = HELP
-$ NETCDF_LIBS = ""
-$ IF (NETCDFLIB .EQS. "") THEN GOTO DONE_NETCDF_LIBS
-$ N = 0
-$LOOP_NETCDF_LIBS:
-$ LIB = F$ELEMENT (N, ",", NETCDFLIB)
-$ IF (LIB .EQS. ",") THEN GOTO DONE_NETCDF_LIBS
-$ NETCDF_LIBS = NETCDF_LIBS + "," + LIB + "/LIBRARY"
-$ N = N + 1
-$ GOTO LOOP_NETCDF_LIBS
-$DONE_NETCDF_LIBS:
 $!
 $! create make.conf
 $!
@@ -377,14 +489,31 @@ $ WRITE OUT REC
 $ GOTO LOOP_MAKE_CONF
 $DONE_MAKE_CONF:
 $ CLOSE IN
+$ LIB_INC = ""
+$ IF (NETCDFINC .NES. "") THEN LIB_INC = LIB_INC + "," + NETCDFINC
+$ IF (GDINC     .NES. "") THEN LIB_INC = LIB_INC + "," + GDINC
+$ IF (JPEGINC   .NES. "") THEN LIB_INC = LIB_INC + "," + JPEGINC
 $ WRITE OUT ""
-$ WRITE OUT "# NetCDF header directory"
-$ IF (NETCDFINC .EQS. "")
-$ THEN
-$   WRITE OUT "NETCDF_INC="
-$ ELSE
-$   WRITE OUT "NETCDF_INC=,", NETCDFINC
+$ WRITE OUT "# Library include directories"
+$ WRITE OUT "LIB_INC=", LIB_INC
+$ WRITE OUT ""
+$ WRITE OUT "# Use DECC$CRTL.OLB object library"
+$ IF (DECC$CRTL)
+$ THEN WRITE OUT "USE_DECC$CRTL=1"
+$ ELSE WRITE OUT "#USE_DECC$CRTL=1"
 $ ENDIF
+$ WRITE OUT ""
+$ WRITE OUT "# C compiler"
+$ CCOMPILER = "DECC " + DECCVERSION
+$ IF (DECC$CRTL) THEN CCOMPILER = CCOMPILER + "/DECC$CRTL.OLB"
+$ IF (DPML)
+$ THEN CCOMPILER = CCOMPILER + "/DPML"
+$ ELSE CCOMPILER = CCOMPILER + "/No DPML"
+$ ENDIF
+$ IF (.NOT. OPTIMIZE) THEN CCOMPILER = CCOMPILER + "/No Optimize"
+$ CCOMPILER = CCOMPILER + "/" + FLOAT
+$ IF (NETCDFINC .NES. "") THEN CCOMPILER = CCOMPILER + "/NETCDF"
+$ WRITE OUT "CCOMPILER=", CCOMPILER
 $ CLOSE OUT
 $!
 $! define symbols for config.h
@@ -403,18 +532,14 @@ $ SIZEOF_SHORT = "sizeof(short)"
 $ SIZEOF_INT = "sizeof(int)"
 $ SIZEOF_LONG = "sizeof(long)"
 $ IF (HW .EQS. "Alpha")
-$ THEN
-$   SIZEOF_LONG_LONG = "sizeof(long long)"
-$ ELSE
-$   SIZEOF_LONG_LONG = "0"
+$ THEN SIZEOF_LONG_LONG = "sizeof(long long)"
+$ ELSE SIZEOF_LONG_LONG = "0"
 $ ENDIF
 $ SIZEOF_FLOAT = "sizeof(float)"
 $ SIZEOF_DOUBLE = "sizeof(double)"
 $ IF (HW .EQS. "Alpha")
-$ THEN
-$   SIZEOF_LONG_DOUBLE = "sizeof(long double)"
-$ ELSE
-$   SIZEOF_LONG_DOUBLE = "0"
+$ THEN SIZEOF_LONG_DOUBLE = "sizeof(long double)"
+$ ELSE SIZEOF_LONG_DOUBLE = "0"
 $ ENDIF
 $ SIZEOF_VOID_P = "sizeof(void *)"
 $ const = 0
@@ -433,21 +558,21 @@ $ HAVE_SYS_TIME_H = 1
 $ HAVE_SYS_SELECT_H = 0
 $ TM_IN_SYS_TIME = 1
 $ TIME_WITH_SYS_TIME = 1
+$ HAVE_GETTIMEOFDAY = __CRTL_VER .GE. 70000000
 $ HAVE_VFORK_H = 0
 $ vfork = 0
 $ HAVE_GETCWD = 1
-$ HAVE_GETHOSTNAME = 1
+$ HAVE_GETHOSTNAME = __CRTL_VER .GE. 50500000
 $ HAVE_MEMCPY = 1
 $ HAVE_MEMMOVE = 1
 $ HAVE_UNLINK = 0
-$ HAVE_FCNTL = (VMS_MAJOR .GE. 8) .OR. -
-                   (VMS_MAJOR .EQ. 7 .AND. VMS_MINOR .GE. 2)
-$ HAVE_POPEN = VMS_MAJOR .GE. 7
+$ HAVE_FCNTL = __CRTL_VER .GE. 70200000
+$ HAVE_POPEN = __CRTL_VER .GE. 70000000
 $ HAVE_FNMATCH = 0
 $ HAVE_ON_EXIT = 0
 $ HAVE_STRSTR = 1
 $ HAVE_STRERROR = 1
-$ HAVE_SYS_ERRLIST_IN_STDIO_H = 0
+$ HAVE_SYS_ERRLIST_DECL = 0
 $ HAVE_VSNPRINTF = 0
 $ HAVE_DLOPEN = 0
 $ HAVE_RTLD_NOW = 0
@@ -457,39 +582,58 @@ $ HAVE_DEC_FPU = FLOAT .NES. "IEEE"
 $ HAVE_LIEEE_FPU = (.NOT. HAVE_DEC_FPU) .AND. 1
 $ HAVE_BIEEE_FPU = 0
 $ REALLOC_IS_BUGGY = 0
-$ HAVE_DRAND48 = VMS_MAJOR .GE. 7
-$ HAVE_SETLOCALE = (VMS_MAJOR .GE. 7) .OR. -
-                   (VMS_MAJOR .EQ. 6 .AND. VMS_MINOR .GE. 2)
-$ HAVE_DRAND48_IN_STDLIB_H = HAVE_DRAND48
+$ HAVE_DRAND48 = __CRTL_VER .GE. 70000000
+$ HAVE_SETLOCALE = __CRTL_VER .GE. 60200000
+$ HAVE_DRAND48_DECL = HAVE_DRAND48
 $ HAVE_LIBM = 1
 $ HAVE_MATH_H = 1
 $ HAVE_FLOAT_H = 1
 $ HAVE_IEEEFP_H = 0
 $ HAVE_HYPOT = 1
+$ HAVE_HYPOT_DECL = HAVE_HYPOT
 $ HAVE_CBRT = F$INTEGER(DPML)
+$ HAVE_CBRT_DECL = HAVE_CBRT
 $ HAVE_LOG2 = F$INTEGER(DPML)
+$ HAVE_LOG2_DECL = HAVE_LOG2
 $ HAVE_RINT = F$INTEGER(DPML)
+$ HAVE_RINT_DECL = HAVE_RINT
 $ HAVE_LGAMMA = 0
-$ HAVE_LGAMMA_IN_MATH_H = 0
-$ HAVE_SIGNGAM_IN_MATH_H = (HW .EQS. "Alpha")
+$ HAVE_LGAMMA_DECL = HAVE_LGAMMA
+$ HAVE_SIGNGAM_DECL = (HW .EQS. "Alpha")
 $ HAVE_ASINH = F$INTEGER(DPML)
+$ HAVE_ASINH_DECL = HAVE_ASINH
 $ HAVE_ACOSH = F$INTEGER(DPML)
+$ HAVE_ACOSH_DECL = HAVE_ACOSH
 $ HAVE_ATANH = F$INTEGER(DPML)
+$ HAVE_ATANH_DECL = HAVE_ATANH
 $ HAVE_ERF = F$INTEGER(DPML)
+$ HAVE_ERF_DECL = HAVE_ERF
 $ HAVE_ERFC = F$INTEGER(DPML)
+$ HAVE_ERFC_DECL = HAVE_ERFC
 $ HAVE_FINITE = (HW .EQS. "Alpha")
+$ HAVE_FINITE_DECL = HAVE_FINITE
 $ HAVE_ISFINITE = 0
+$ HAVE_ISFINITE_DECL = HAVE_ISFINITE
+$ HAVE_ISNAN = (HW .EQS. "Alpha")
+$ HAVE_ISNAN_DECL = HAVE_ISNAN
 $ HAVE_J0 = F$INTEGER(DPML)
+$ HAVE_J0_DECL = HAVE_J0
 $ HAVE_J1 = F$INTEGER(DPML)
+$ HAVE_J1_DECL = HAVE_J1
 $ HAVE_JN = F$INTEGER(DPML)
+$ HAVE_JN_DECL = HAVE_JN
 $ HAVE_Y0 = F$INTEGER(DPML)
+$ HAVE_Y0_DECL = HAVE_Y0
 $ HAVE_Y1 = F$INTEGER(DPML)
+$ HAVE_Y1_DECL = HAVE_Y1
 $ HAVE_YN = F$INTEGER(DPML)
+$ HAVE_YN_DECL = HAVE_YN
 $ HAVE_NETCDF = NETCDFLIB .NES. ""
 $ HAVE_MFHDF = 0
 $ HAVE_FFTW = 0
 $ HAVE_LIBPDF = 0
-$ HAVE_LIBGD = 0
+$ HAVE_LIBGD = GDLIB .NES. ""
+$ HAVE_LIBJPEG = JPEGLIB .NES. ""
 $ HAVE_F77 = 1
 $ NEED_F77_UNDERSCORE = 0
 $ X_DISPLAY_MISSING = 0

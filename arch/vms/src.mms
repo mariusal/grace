@@ -7,32 +7,23 @@
 TOP = [-]
 ECHO = WRITE SYS$OUTPUT
 
-VMSDIR = [-.ARCH.VMS]
-CEPHESDIR = [-.CEPHES]
-T1LIBDIR = [-.T1LIB]
-XBAEDIR = [-.XBAE]
-
 INCLUDE $(TOP)Make.conf
 
-CEPHES_LIB = ,$(CEPHESDIR)libcephes.olb/LIBRARY
-XBAE_LIB = ,$(XBAEDIR)libxbae.olb/LIBRARY
+CEPHES_LIB = ,[-.CEPHES]libcephes.olb/LIB
 
-MYSTIC = ,"lines=lines_","xfree=xfree_"
+CFLAGS = $(CFLAGS0)/INCLUDE=($(TOP)$(T1_INC)$(LIB_INC)) \
+  /DEFINE=("xfree=xfree_")
 
-CFLAGS = $(CFLAGS0)/INCLUDE=($(TOP)$(T1_INC)$(NETCDF_INC)) \
-  /DEFINE=(GRACE_HOME="""$(GRACE_HOME)""",GRACE_HELPVIEWER="""$(HELPVIEWER)""" \
-  ,GRACE_PRINT_CMD="""$(PRINT_CMD)"""$(MYSTIC))
+LIBS = $(GUI_LIBS)$(CEPHES_LIB)$(T1_LIB)$(NETCDF_LIBS)$(FFTW_LIB) \
+       $(PDF_LIB)$(GD_LIB)$(JPEG_LIB)$(NOGUI_LIBS)$(DL_LIB)
 
-LIBS = $(GUI_LIBS)$(CEPHES_LIB)$(NETCDF_LIBS)$(FFTW_LIB) \
-       $(T1_LIB)$(PDF_LIB)$(GD_LIB)$(NOGUI_LIBS)$(DL_LIB)$(XBAE_LIB)
+PREFS = /DEFINE=(CCOMPILER="""$(CCOMPILER)""",\
+	  GRACE_HOME="""$(GRACE_HOME)""",\
+	  GRACE_EDITOR="""$(GRACE_EDITOR)""",\
+	  GRACE_HELPVIEWER="""$(HELPVIEWER)""",\
+	  GRACE_PRINT_CMD="""$(PRINT_CMD)""")
 
-.FIRST
-        @ define/nolog cephes 'f$string(f$parse("[-]","","","device")+ \
-          f$parse("[-]","","","directory") - "]" + ".cephes]")
-        @ define/nolog xbae 'f$string(f$parse("[-]","","","device")+ \
-          f$parse("[-]","","","directory") - "]" + ".xbae]")
-
-ALL : msg $(GRACE)
+ALL : msg logicals buildinfo.h $(GRACE)
 	@ !
 
 INCLUDE Make.common
@@ -42,11 +33,29 @@ msg :
         @ $(ECHO) "Making $(GRACE) ..."
         @ $(ECHO) ""
 
+logicals :
+        @ define/nolog cephes 'f$string(f$parse("[-]","","","device")+ \
+          f$parse("[-]","","","directory") - "]" + ".cephes]")
+        @ define/nolog xbae 'f$string(f$parse("[-]","","","device")+ \
+          f$parse("[-]","","","directory") - "]" + ".xbae]")
+.IFDEF USE_DECC$CRTL
+        @ define/nolog decc$crtlmap sys$library:decc$crtl.exe
+.ENDIF
+
 #INCLUDE Make.dep
 
 $(GRACE) : $(GROBJS) $(GUIOBJS)
 	LINK /EXECUTABLE=$@ $(LDFLAGS) $+ $(LIBS)
-        PURGE *$(O)
+
+buildinfo$(EXE) : buildinfo$(O)
+	LINK /EXECUTABLE=$@ $? $(LDFLAGS) $(GUI_LIBS) $(T1_LIB) $(NOGUI_LIBS)
+
+buildinfo$(O) : $(TOP)Make.conf
+	$(CC) $(CFLAGS) $(PREFS)/OBJECT=$@ buildinfo.c
+
+buildinfo.h : buildinfo$(EXE) 
+	DEFINE/USER SYS$OUTPUT $@
+	RUN $?
 
 clean :
         IF F$SEARCH("*$(O)").NES."" THEN $(RM) *$(O);*
