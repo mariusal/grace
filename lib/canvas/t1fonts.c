@@ -376,6 +376,7 @@ static GLYPH *GetGlyphString(Canvas *canvas,
     
     int mono, t1aa;
     unsigned long fg, bg;
+    RGB fg_rgb, bg_rgb;
 
     int modflag;
     T1_TMATRIX matrix, *matrixP;
@@ -433,15 +434,18 @@ static GLYPH *GetGlyphString(Canvas *canvas,
         break;
     }
 
-    /* set monomode for B/W color transformation */
-    if (canvas->curdevice->color_trans == COLOR_TRANS_BW) {
+    fg = cs->color;
+    bg = getbgcolor(canvas);
+    get_rgb(canvas, fg, &fg_rgb);
+    get_rgb(canvas, bg, &bg_rgb);
+
+    /* set monomode for B/W color transformation or when fg = bg */
+    if (canvas->curdevice->color_trans == COLOR_TRANS_BW ||
+        compare_rgb(&fg_rgb, &bg_rgb)) {
         mono = TRUE;
     }
     
     if (mono != TRUE) {
-        fg = cs->color;
-    	bg = getbgcolor(canvas);
-
         set_aa_gray_values(canvas, fg, bg, t1aa);
         
     	glyph = T1_AASetString(FontID, cs->s, len,
