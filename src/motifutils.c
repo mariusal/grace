@@ -2249,18 +2249,16 @@ static void gss_any_cb(void *udata, int cbtype)
     for (i = 0; i < n; i ++) {
         Quark *gr = values[i];
         
-        if (storage_data_exists(ss->q->children, gr) == TRUE) {
-            switch (cbtype) {
-            case GSS_HIDE_CB:
-                set_graph_hidden(gr, TRUE);
-                break;
-            case GSS_SHOW_CB:
-                set_graph_hidden(gr, FALSE);
-                break;
-            case GSS_FOCUS_CB:
-                switch_current_graph(gr);
-                break;
-            }
+        switch (cbtype) {
+        case GSS_HIDE_CB:
+            set_graph_hidden(gr, TRUE);
+            break;
+        case GSS_SHOW_CB:
+            set_graph_hidden(gr, FALSE);
+            break;
+        case GSS_FOCUS_CB:
+            switch_current_graph(gr);
+            break;
         }
     }
     
@@ -2439,21 +2437,19 @@ static void sss_any_cb(void *udata, int cbtype)
     for (i = 0; i < n; i ++) {
         Quark *pset = values[i];
         
-        if (storage_data_exists(ss->q->children, pset) == TRUE) {
-            switch (cbtype) {
-            case SSS_HIDE_CB:
-                set_set_hidden(pset, TRUE);
-                break;
-            case SSS_SHOW_CB:
-                set_set_hidden(pset, FALSE);
-                break;
-            case SSS_EDITS_CB:
-                create_ss_frame(pset);
-                break;
-            case SSS_EDITE_CB:
-                do_ext_editor(pset);
-                break;
-            }
+        switch (cbtype) {
+        case SSS_HIDE_CB:
+            set_set_hidden(pset, TRUE);
+            break;
+        case SSS_SHOW_CB:
+            set_set_hidden(pset, FALSE);
+            break;
+        case SSS_EDITS_CB:
+            create_ss_frame(pset);
+            break;
+        case SSS_EDITE_CB:
+            do_ext_editor(pset);
+            break;
         }
     }
     
