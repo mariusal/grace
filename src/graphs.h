@@ -314,6 +314,10 @@ int get_recent_gno(void);
 int get_project_version(void);
 int set_project_version(int version);
 void reset_project_version(void);
+
+void set_project_description(char *descr);
+char *get_project_description(void);
+
 void postprocess_project(int version);
 
 #endif /* __GRAPHS_H_ */

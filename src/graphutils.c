@@ -174,7 +174,7 @@ int wipeout(void)
     map_fonts(FONT_MAP_DEFAULT);
     select_graph(0);
     strcpy(docname, NONAME);
-    description[0] = '\0';
+    set_project_description(NULL);
     print_file[0] = '\0';
     clear_dirtystate();
     return 0;

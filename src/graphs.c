@@ -1164,6 +1164,19 @@ void reset_project_version(void)
     project_version = bi_version_id();
 }
 
+static char *project_description = NULL;
+
+void set_project_description(char *descr)
+{
+    project_description = copy_string(project_description, descr);
+    set_dirtystate();
+}
+
+char *get_project_description(void)
+{
+    return project_description;
+}
+
 void postprocess_project(int version)
 {
     int gno, setno, naxis;

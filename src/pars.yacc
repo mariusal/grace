@@ -2161,15 +2161,16 @@ parmset:
 	}
 
 	| DESCRIPTION CHRSTR {
-            strcat (description, (char *) $2);
+            char *s;
+            s = copy_string(NULL, get_project_description());
+            s = concat_strings(s, (char *) $2);
 	    free((char *) $2);
-            strcat (description, "\n");
+            s = concat_strings(s, "\n");
+            set_project_description(s);
+            free(s);
 	}
         | CLEAR DESCRIPTION {
-            *description = 0;
-#ifndef NONE_GUI
-            update_describe_popup ();
-#endif
+            set_project_description(NULL);
         }
 
 	| LEGEND onoff {

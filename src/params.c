@@ -130,13 +130,8 @@ void putparms(int gno, FILE *pp, int embed)
     pg = get_page_geometry();
     fprintf(pp, "%spage size %ld %ld\n", embedstr, pg.width, pg.height);
     
-    if (*description) {
-        tmpbuf = malloc (strlen(description) + 1);
-        if (tmpbuf == NULL) {
-            errmsg("Unable to malloc in putparms()");
-            return;
-        }
-        strcpy(tmpbuf, description);
+    tmpbuf = copy_string(NULL, get_project_description());
+    if (tmpbuf != NULL) {
         p1 = tmpbuf;
         while ((p2 = strchr (p1, '\n')) != NULL) {
             *p2 = 0;
@@ -150,7 +145,6 @@ void putparms(int gno, FILE *pp, int embed)
         }
         free(tmpbuf);
     }
-    /* End of added globals */
 
     fprintf(pp, "%spage scroll %d%%\n", embedstr, (int) rint(scrollper * 100));
     fprintf(pp, "%spage inout %d%%\n", embedstr, (int) rint(shexper * 100));

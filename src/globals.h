@@ -46,7 +46,6 @@
 #ifdef MAIN
 
 char docname[GR_MAXPATHLEN] = NONAME;
-char description[2048];
 
 int debuglevel = 0;
 
@@ -191,7 +190,6 @@ double string_size = 1.0;
 #ifndef MAIN
 
 extern char docname[];
-extern char description[];
 
 extern int debuglevel;
 

@@ -1000,16 +1000,16 @@ extern Display *disp;
 
 void update_descript(Widget w, XtPointer client_data, XtPointer call_data)
 {
-	char *s;
-	s = (char *)XmTextGetString( text_w );
-	strcpy( description, s );
-	XtFree( s );
+    char *s;
+    s = (char *)XmTextGetString(text_w);
+    set_project_description(s);
+    XtFree(s);
 }
 
-void update_describe_popup (void)
+void update_describe_popup(void)
 {
     if (describe_frame != NULL && text_w != NULL) {
-        XmTextSetString( text_w, description );
+        XmTextSetString(text_w, get_project_description());
     }
 }
 
@@ -1046,7 +1046,7 @@ void create_describe_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 		XtManageChild(describe_panel);
     }
-    XmTextSetString( text_w, description );
+    update_describe_popup();
     XtRaise(describe_frame);
     unset_wait_cursor();
 }
