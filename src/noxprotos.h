@@ -149,7 +149,7 @@ int number_of_active_sets(Quark *gr);
 int swapset(int gfrom, int j1, int gto, int j2);
 int pushset(Quark *pset, int push_type);
 void droppoints(Quark *pset, int startno, int endno);
-int join_sets(int gno, int *sets, int nsets);
+int join_sets(Quark **sets, int nsets);
 void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype);
 void reverse_set(Quark *pset);
 
@@ -162,7 +162,7 @@ void delete_byindex(Quark *pset, int *ind);
 int do_copyset(int gfrom, int j1, int gto, int j2);
 int do_moveset(int gfrom, int j1, int gto, int j2);
 int do_swapset(int gno1, int setno1, int gno2, int setno2);
-void do_splitsets(Quark *pset, int lpart);
+int do_splitsets(Quark *pset, int lpart);
 void do_activate(int setno, int type, int len);
 void do_hideset(Quark *pset);
 void do_showset(Quark *pset);

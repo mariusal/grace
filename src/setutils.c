@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -460,14 +460,18 @@ set *set_data_copy(set *p)
     return p_new;
 }
 
-int copy_set_params(set *p1, set *p2)
+int copy_set_params(Quark *src, Quark *dest)
 {
-    if (!p1 || !p2) {
+    if (!src || !dest) {
         return RETURN_FAILURE;
     } else {
         Dataset *data;
         int type;
         char *legstr;
+        set *p1, *p2;
+        
+        p1 = set_get_data(src);
+        p2 = set_get_data(dest);
         
         /* preserve allocatables and related stuff */
         type    = p2->type;
@@ -1129,13 +1133,13 @@ void droppoints(Quark *pset, int startno, int endno)
     setlength(pset, len - dist);
 }
 
-#if 0
 /*
  * join several sets together; all but the first set in the list will be killed 
  */
-int join_sets(int gno, int *sets, int nsets)
+int join_sets(Quark **sets, int nsets)
 {
-    int i, j, n, setno, setno_final, ncols, old_length, new_length;
+    int i, j, n, ncols, old_length, new_length;
+    Quark *pset, *pset_final;
     double *x1, *x2;
     char **s1, **s2;
 
@@ -1144,12 +1148,12 @@ int join_sets(int gno, int *sets, int nsets)
         return RETURN_FAILURE;
     }
     
-    setno_final = sets[0];
+    pset_final = sets[0];
     ncols = dataset_cols(pset_final);
     for (i = 0; i < nsets; i++) {
-        setno = sets[i];
+        pset = sets[i];
         if (!pset) {
-            errmsg("Invalid setno in the list");
+            errmsg("Invalid pset in the list");
             return RETURN_FAILURE;
         }
         if (dataset_cols(pset) != ncols) {
@@ -1160,7 +1164,7 @@ int join_sets(int gno, int *sets, int nsets)
     
     new_length = getsetlength(pset_final);
     for (i = 1; i < nsets; i++) {
-        setno = sets[i];
+        pset = sets[i];
         old_length = new_length;
         new_length += getsetlength(pset);
         if (setlength(pset_final, new_length) != RETURN_SUCCESS) {
@@ -1185,7 +1189,6 @@ int join_sets(int gno, int *sets, int nsets)
     
     return RETURN_SUCCESS;
 }
-#endif
 
 void reverse_set(Quark *pset)
 {
@@ -1558,29 +1561,28 @@ void delete_byindex(Quark *pset, int *ind)
     setlength(pset, cnt);
 }
 
-#if 0
 /*
  * split a set into lpart length sets
  */
-void do_splitsets(Quark *pset, int lpart)
+int do_splitsets(Quark *pset, int lpart)
 {
-    int i, j, k, ncols, len, plen, tmpset, npsets;
+    int i, j, k, ncols, len, plen, npsets;
     double *x;
     char s[256];
-    set *p, *ptmp;
-    Dataset *dsp;
+    Quark *gr, *ptmp;
+    Dataset *dsp, *dsptmp;
 
     if ((len = getsetlength(pset)) < 2) {
 	errmsg("Set length < 2");
-	return;
+	return RETURN_FAILURE;
     }
     if (lpart >= len) {
 	errmsg("Split length >= set length");
-	return;
+	return RETURN_FAILURE;
     }
     if (lpart <= 0) {
 	errmsg("Split length <= 0");
-	return;
+	return RETURN_FAILURE;
     }
 
     npsets = (len - 1)/lpart + 1;
@@ -1588,54 +1590,53 @@ void do_splitsets(Quark *pset, int lpart)
     /* get number of columns in this set */
     ncols = dataset_cols(pset);
 
-    p = set_get(pset);
-
-    /* save the contents to a temporary buffer */
-    dsp = p->data;
-
-    /* zero data contents of the original set */
-    p->data = dataset_new();
+    gr = pset->parent;
+    dsp = set_get_dataset(pset);
 
     /* now load each set */
     for (i = 0; i < npsets; i++) {
 	plen = MIN2(lpart, len - i*lpart); 
-        tmpset = nextset(gno);
-        ptmp = set_get(gno, tmpset);
+        ptmp = set_new(gr);
         if (!ptmp) {
             errmsg("Can't create new set");
-            return;
+            return RETURN_FAILURE;
         }
+
+        dsptmp = set_get_dataset(ptmp);
         
         /* set the plot parameters */
-        copy_set_params(p, ptmp);
+        copy_set_params(pset, ptmp);
 
-	if (setlength(gno, tmpset, plen) != RETURN_SUCCESS) {
-            /* should not happen */
-            return;
+	if (setlength(ptmp, plen) != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
         }
         if (dsp->s) {
-            ptmp->data->s = xmalloc(plen*sizeof(char *));
+            dsptmp->s = xmalloc(plen*sizeof(char *));
         }
         
         /* load the data into each column */
 	for (k = 0; k < ncols; k++) {
-	    x = getcol(gno, tmpset, k);
+	    x = getcol(ptmp, k);
 	    for (j = 0; j < plen; j++) {
 		x[j] = dsp->ex[k][i*lpart + j];
 	    }
 	}
         if (dsp->s) {
 	    for (j = 0; j < plen; j++) {
-		ptmp->data->s[j] =
+		dsptmp->s[j] =
                     copy_string(NULL, dsp->s[i*lpart + j]);
 	    }
         }
 	
-        sprintf(s, "partition %d of set G%d.S%d", i + 1, pset);
-	setcomment(gno, tmpset, s);
+        sprintf(s, "partition %d of set %s", i + 1, quark_idstr_get(pset));
+	setcomment(ptmp, s);
     }
+    
+    /* kill the original set */
+    killset(pset);
+    
+    return RETURN_SUCCESS;
 }
-#endif
 
 /*
  * drop points from an active set
