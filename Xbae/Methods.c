@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Methods.c,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Methods.c,v 1.2 1999-01-25 20:16:58 fnevgeny Exp $
  */
 
 /*
@@ -47,7 +47,7 @@
  * platforms. Renamed bcopy to BCOPY and typecast to fix compiler warnings
  * on some platforms.
  */
-#if !defined(XBAE_NEED_BCOPY) && (defined(SVR4) || defined(VMS))
+#if !defined(XBAE_NEED_BCOPY) && (defined(SVR4) || defined(VMS) || defined(__EMX__))
 #define BCOPY(src, dest, n)	memmove((void *)(dest), (void *)(src), (n))
 #else
 #define BCOPY(src, dest, n)     bcopy((void *)(src), (void *)(dest), (n))

@@ -21,7 +21,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Actions.c,v 1.1 1999-01-11 23:37:42 fnevgeny Exp $
+ * $Id: Actions.c,v 1.2 1999-01-25 20:16:57 fnevgeny Exp $
  */
 
 /*
@@ -1496,7 +1496,7 @@ XbaeMatrixWidget mw;
     call_data.cells = mw->matrix.cells;
     call_data.num_params = 1;
     call_data.params =  (char **)XtMalloc (sizeof (char *));
-    call_data.params[0] = strdup ("extend");
+    call_data.params[0] = "extend";
     call_data.event =  (XEvent *)NULL;
     
     XtCallCallbackList(
