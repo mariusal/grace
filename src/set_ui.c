@@ -427,8 +427,8 @@ void update_set_ui(SetUI *ui, Quark *q)
 
         SetOptionChoice(ui->type, p->type);
 
-        blockncols   = ssd_get_ncols(ss);
-        blocklen     = ssd_get_nrows(ss);
+        blockncols  = ssd_get_ncols(ss);
+        blocklen    = ssd_get_nrows(ss);
 
         blockitems  = xmalloc((blockncols + 1)*sizeof(OptionItem));
         sblockitems = xmalloc((blockncols + 1)*sizeof(OptionItem));
@@ -439,17 +439,23 @@ void update_set_ui(SetUI *ui, Quark *q)
         nncols = 0;
         nscols = 0;
         for (i = 0; i < blockncols; i++) {
-            char buf[32];
-            int fformat = ssd_get_format(ss, i);
-            sprintf(buf, "%d", i + 1);
+            char buf[32], *s;
+            int fformat = ssd_get_col_format(ss, i);
+            char *label = ssd_get_col_label(ss, i);
+            if (string_is_empty(label)) {
+                sprintf(buf, "#%d", i + 1);
+                s = copy_string(NULL, buf);
+            } else {
+                s = copy_string(NULL, label);
+            }
             if (fformat != FFORMAT_STRING) {
                 nncols++;
                 blockitems[nncols].value = i;
-                blockitems[nncols].label = copy_string(NULL, buf);
+                blockitems[nncols].label = s;
             } else {
                 nscols++;
                 sblockitems[nscols].value = i;
-                sblockitems[nscols].label = copy_string(NULL, buf);
+                sblockitems[nscols].label = s;
             }
         }
         for (i = 0; i < MAX_SET_COLS; i++) {
