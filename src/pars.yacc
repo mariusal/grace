@@ -602,7 +602,7 @@ expr:	NUMBER {
             }
 	}
 	| vector '[' expr ']' {
-	    double *ptr = getvptr(get_cg(), curset, $1);
+	    double *ptr = getcol(get_cg(), curset, $1);
 	    if (ptr != NULL) {
 		$$ = ptr[(int) $3 - index_shift];
 	    }
@@ -612,7 +612,7 @@ expr:	NUMBER {
 	    }
 	}
 	| SETNUM '.' vector '[' expr ']' {
-	    double *ptr = getvptr(get_cg(), $1, $3);
+	    double *ptr = getcol(get_cg(), $1, $3);
 	    if (ptr != NULL) {
 		$$ = ptr[(int) $5 - index_shift];
 	    }
@@ -622,7 +622,7 @@ expr:	NUMBER {
 	    }
 	}
 	| GRAPHNO '.' SETNUM '.' vector '[' expr ']' {
-	    double *ptr = getvptr($1, $3, $5);
+	    double *ptr = getcol($1, $3, $5);
 	    if (ptr != NULL) {
 		$$ = ptr[(int) $7 - index_shift];
 	    }
@@ -633,7 +633,7 @@ expr:	NUMBER {
 	}
 	| SETNUM '.' vector '.' extremetype {
 	    double bar, sd;
-	    double *ptr = getvptr(get_cg(), $1, $3);
+	    double *ptr = getcol(get_cg(), $1, $3);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -657,7 +657,7 @@ expr:	NUMBER {
 	}
 	| GRAPHNO '.' SETNUM '.' vector '.' extremetype {
 	    double bar, sd;
-	    double *ptr = getvptr($1, $3, $5);
+	    double *ptr = getcol($1, $3, $5);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -681,7 +681,7 @@ expr:	NUMBER {
 	}
 	| vector '.' extremetype {
 	    double bar, sd;
-	    double *ptr = getvptr(get_cg(), curset, $1);
+	    double *ptr = getcol(get_cg(), curset, $1);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -911,7 +911,7 @@ vexpr:
 	| vector
 	{
 	    int i;
-	    double *ptr = getvptr(get_cg(), curset, $1);
+	    double *ptr = getcol(get_cg(), curset, $1);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -925,7 +925,7 @@ vexpr:
 	| SETNUM '.' vector
 	{
 	    int i;
-	    double *ptr = getvptr(get_cg(), $1, $3);
+	    double *ptr = getcol(get_cg(), $1, $3);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -939,7 +939,7 @@ vexpr:
 	| GRAPHNO '.' SETNUM '.' vector
 	{
 	    int i;
-	    double *ptr = getvptr($1, $3, $5);
+	    double *ptr = getcol($1, $3, $5);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -1525,7 +1525,7 @@ asgn:
 	| vector '[' expr ']' '=' expr
 	{
 	    int itmp = (int) $3 - index_shift;
-	    double *ptr = getvptr(get_cg(), curset, $1);
+	    double *ptr = getcol(get_cg(), curset, $1);
 	    if (ptr != NULL) {
 	        ptr[itmp] = $6;
 	    }
@@ -1538,7 +1538,7 @@ asgn:
 	| SETNUM '.' vector '[' expr ']' '=' expr
 	{
 	    int itmp = (int) $5 - index_shift;
-	    double *ptr = getvptr(get_cg(), $1, $3);
+	    double *ptr = getcol(get_cg(), $1, $3);
 	    if (ptr != NULL) {
 	        ptr[itmp] = $8;
 	    }
@@ -1551,7 +1551,7 @@ asgn:
 	| GRAPHNO '.' SETNUM '.' vector '[' expr ']' '=' expr
 	{
 	    int itmp = (int) $7 - index_shift;
-	    double *ptr = getvptr($1, $3, $5);
+	    double *ptr = getcol($1, $3, $5);
 	    if (ptr != NULL) {
 	        ptr[itmp] = $10;
 	    }
@@ -1599,7 +1599,7 @@ vasgn:
 		setlength(get_cg(), curset, lxy);
 		setcomment(get_cg(), curset, "Created");
 	    }
-	    ptr = getvptr(get_cg(), curset, $1);
+	    ptr = getcol(get_cg(), curset, $1);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $3[i];
@@ -1619,7 +1619,7 @@ vasgn:
 		setlength(get_cg(), curset, lxy);
 		setcomment(get_cg(), curset, "Created");
 	    }
-	    ptr = getvptr(get_cg(), curset, $1);
+	    ptr = getcol(get_cg(), curset, $1);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $3;
@@ -1638,7 +1638,7 @@ vasgn:
 		setlength(get_cg(), $1, lxy);
 		setcomment(get_cg(), $1, "Created");
 	    }
-	    ptr = getvptr(get_cg(), $1, $3);
+	    ptr = getcol(get_cg(), $1, $3);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $5[i];
@@ -1658,7 +1658,7 @@ vasgn:
 		setlength(get_cg(), $1, lxy);
 		setcomment(get_cg(), $1, "Created");
 	    }
-	    ptr = getvptr(get_cg(), $1, $3);
+	    ptr = getcol(get_cg(), $1, $3);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $5;
@@ -1680,7 +1680,7 @@ vasgn:
 		setlength($1, $3, lxy);
 		setcomment($1, $3, "Created");
 	    }
-	    ptr = getvptr($1, $3, $5);
+	    ptr = getcol($1, $3, $5);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $7[i];
@@ -1701,7 +1701,7 @@ vasgn:
 		setlength($1, $3, lxy);
 		setcomment($1, $3, "Created");
 	    }
-	    ptr = getvptr($1, $3, $5);
+	    ptr = getcol($1, $3, $5);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $7;
