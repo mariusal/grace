@@ -592,6 +592,7 @@ symtab_entry *key;
 %type <ival> indx
 %type <ival> iexpr
 %type <ival> nexpr
+%type <sval> sexpr
 %type <dval> jdate
 %type <dval> jrawdate
 %type <dval> expr
@@ -611,6 +612,7 @@ symtab_entry *key;
 %left '*' '/' '%'
 %nonassoc UMINUS NOT	/* negation--unary minus */
 %right '^'		/* exponentiation        */
+%left '.'
 
 
 %%
@@ -957,39 +959,17 @@ expr:	NUMBER {
 	}
 	;
 
-jdate:  expr {
+sexpr:	CHRSTR {
             $$ = $1;
+	}
+        | sexpr '.' sexpr {
+            $$ = concat_strings($1, $3);
+            xfree($3);
         }
-        | CHRSTR {
-            double jul;
-            Dates_format dummy;
-            if (parse_date($1, get_date_hint(), FALSE, &jul, &dummy)
-                == RETURN_SUCCESS) {
-                xfree($1);
-                $$ = jul;
-            } else {
-                xfree($1);
-		yyerror("Invalid date");
-		return 1;
-            }
-        }
-        ;
-
-jrawdate:  expr {
-            $$ = $1;
-        }
-        | CHRSTR {
-            double jul;
-            Dates_format dummy;
-            if (parse_date($1, get_date_hint(), TRUE, &jul, &dummy)
-                == RETURN_SUCCESS) {
-                xfree($1);
-                $$ = jul;
-            } else {
-                xfree($1);
-		yyerror("Invalid date");
-		return 1;
-            }
+        | sexpr '.' expr {
+            char buf[32];
+            sprintf(buf, "%g", $3);
+            $$ = concat_strings($1, buf);
         }
         ;
 
@@ -1020,6 +1000,42 @@ indx:	'[' iexpr ']' {
             }
             $$ = itmp;
 	}
+        ;
+
+jdate:  expr {
+            $$ = $1;
+        }
+        | sexpr {
+            double jul;
+            Dates_format dummy;
+            if (parse_date($1, get_date_hint(), FALSE, &jul, &dummy)
+                == RETURN_SUCCESS) {
+                xfree($1);
+                $$ = jul;
+            } else {
+                xfree($1);
+		yyerror("Invalid date");
+		return 1;
+            }
+        }
+        ;
+
+jrawdate:  expr {
+            $$ = $1;
+        }
+        | sexpr {
+            double jul;
+            Dates_format dummy;
+            if (parse_date($1, get_date_hint(), TRUE, &jul, &dummy)
+                == RETURN_SUCCESS) {
+                xfree($1);
+                $$ = jul;
+            } else {
+                xfree($1);
+		yyerror("Invalid date");
+		return 1;
+            }
+        }
         ;
 
 array:
@@ -2077,7 +2093,7 @@ defines:
             undefine_parser_var((void *) $2);
             xfree($2);
         }
-	| ALIAS CHRSTR CHRSTR {
+	| ALIAS sexpr sexpr {
 	    int position;
 
 	    lowtoupper($3);
@@ -2098,14 +2114,14 @@ defines:
 	| ALIAS FORCE onoff {
 	    alias_force = $3;
 	}
-	| USE CHRSTR TYPE proctype FROM CHRSTR {
+	| USE sexpr TYPE proctype FROM sexpr {
 	    if (load_module($6, $2, $2, $4) != 0) {
 	        yyerror("DL module load failed");
 	    }
 	    xfree($2);
 	    xfree($6);
 	}
-	| USE CHRSTR TYPE proctype FROM CHRSTR ALIAS CHRSTR {
+	| USE sexpr TYPE proctype FROM sexpr ALIAS sexpr {
 	    if (load_module($6, $2, $8, $4) != 0) {
 	        yyerror("DL module load failed");
 	    }
@@ -2169,7 +2185,7 @@ parmset:
         | PAGE SIZE nexpr ',' nexpr {
             set_page_dimensions($3, $5, FALSE);
         }
-	| DEVICE CHRSTR PAGE SIZE nexpr ',' nexpr {
+	| DEVICE sexpr PAGE SIZE nexpr ',' nexpr {
             int device_id;
             Device_entry dev;
             
@@ -2184,7 +2200,7 @@ parmset:
                 set_device_props(device_id, dev);
             }
         }
-        | DEVICE CHRSTR DPI expr {
+        | DEVICE sexpr DPI expr {
             int device_id;
             Device_entry dev;
             
@@ -2198,7 +2214,7 @@ parmset:
             }
             xfree($2);
         }
-        | DEVICE CHRSTR FONTP ANTIALIASING onoff {
+        | DEVICE sexpr FONTP ANTIALIASING onoff {
             int device_id;
             Device_entry dev;
             
@@ -2212,7 +2228,7 @@ parmset:
             }
             xfree($2);
         }
-        | DEVICE CHRSTR FONTP onoff {
+        | DEVICE sexpr FONTP onoff {
             int device_id;
             Device_entry dev;
             
@@ -2226,7 +2242,7 @@ parmset:
             }
             xfree($2);
         }
-        | DEVICE CHRSTR OP CHRSTR {
+        | DEVICE sexpr OP sexpr {
             int device_id;
             
             device_id = get_device_by_name($2);
@@ -2241,7 +2257,7 @@ parmset:
             xfree($2);
             xfree($4);
         }
-        | HARDCOPY DEVICE CHRSTR {
+        | HARDCOPY DEVICE sexpr {
             set_printer_by_name($3);
             xfree($3);
         }
@@ -2291,7 +2307,7 @@ parmset:
 	}
 
 /* Hot links */
-	| selectset LINK sourcetype CHRSTR {
+	| selectset LINK sourcetype sexpr {
 	    set_hotlink($1->gno, $1->setno, 1, $4, $3);
 	    xfree($4);
 	}
@@ -2592,7 +2608,7 @@ parmset:
 	| STRING CHAR SIZE expr {
             string_size = $4;
         }
-	| STRING DEF CHRSTR {
+	| STRING DEF sexpr {
 	    if (!is_valid_string(curstring)) {
                 yyerror("String not active");
 	    } else {
@@ -2627,7 +2643,7 @@ parmset:
 	    timestamp.x = $2;
 	    timestamp.y = $4;
 	}
-	| TIMESTAMP DEF CHRSTR {
+	| TIMESTAMP DEF sexpr {
 	  set_plotstr_string(&timestamp, $3);
 	  xfree($3);
 	}
@@ -2659,11 +2675,11 @@ parmset:
 	| DEFAULT SYMBOL SIZE expr {
 	    grdefaults.symsize = $4;
 	}
-	| DEFAULT SFORMAT CHRSTR {
+	| DEFAULT SFORMAT sexpr {
 	    strcpy(sformat, $3);
 	    xfree($3);
 	}
-	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {
+	| MAP FONTP nexpr TO sexpr ',' sexpr {
 	    if ((map_font_by_name($5, $3) != RETURN_SUCCESS) && 
                 (map_font_by_name($7, $3) != RETURN_SUCCESS)) {
                 errmsg("Failed mapping a font");
@@ -2671,7 +2687,7 @@ parmset:
             xfree($5);
 	    xfree($7);
 	}
-	| MAP COLOR nexpr TO '(' nexpr ',' nexpr ',' nexpr ')' ',' CHRSTR {
+	| MAP COLOR nexpr TO '(' nexpr ',' nexpr ',' nexpr ')' ',' sexpr {
 	    CMap_entry cmap;
             cmap.rgb.red   = $6;
             cmap.rgb.green = $8;
@@ -2707,7 +2723,7 @@ parmset:
 	    g[whichgraph].v.xv2 = $6;
 	    g[whichgraph].v.yv2 = $8;
 	}
-	| TITLE CHRSTR {
+	| TITLE sexpr {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
@@ -2736,7 +2752,7 @@ parmset:
             }
 	    g[whichgraph].labs.title.color = $2;
 	}
-	| SUBTITLE CHRSTR {
+	| SUBTITLE sexpr {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
@@ -2807,7 +2823,7 @@ parmset:
             autoscale_onread = AUTOSCALE_XY;
         }
 
-	| DESCRIPTION CHRSTR {
+	| DESCRIPTION sexpr {
             char *s;
             s = copy_string(NULL, get_project_description());
             s = concat_strings(s, $2);
@@ -3034,7 +3050,7 @@ parmset:
 	}
 
 /* I/O filters */
-	| DEFINE filtertype CHRSTR filtermethod CHRSTR {
+	| DEFINE filtertype sexpr filtermethod sexpr {
 	    if (add_io_filter($2, $4, $5, $3) != 0) {
 	        yyerror("Failed adding i/o filter");
 	    }
@@ -3068,11 +3084,11 @@ actions:
             }
 #endif
         }
-	| CD CHRSTR {
+	| CD sexpr {
 	    set_workingdir($2);
 	    xfree($2);
 	}
-	| ECHO CHRSTR {
+	| ECHO sexpr {
 	    echomsg($2);
 	    xfree($2);
 	}
@@ -3084,7 +3100,7 @@ actions:
 	| CLOSE {
 	    close_input = copy_string(close_input, "");
 	}
-	| CLOSE CHRSTR {
+	| CLOSE sexpr {
 	    close_input = copy_string(close_input, $2);
 	}
 	| EXIT {
@@ -3103,7 +3119,7 @@ actions:
 	| PRINT TO DEVICE {
             set_ptofile(FALSE);
 	}
-	| PRINT TO CHRSTR {
+	| PRINT TO sexpr {
             set_ptofile(TRUE);
 	    strcpy(print_file, $3);
             xfree($3);
@@ -3135,7 +3151,7 @@ actions:
 	        msleep_wrap((unsigned int) (1000 * $2));
 	    }
 	}
-	| HELP CHRSTR {
+	| HELP sexpr {
 #ifndef NONE_GUI
             if (inwin) {
                 HelpCB($2);
@@ -3150,12 +3166,12 @@ actions:
             }
 #endif
 	}
-	| GETP CHRSTR {
+	| GETP sexpr {
 	    gotparams = TRUE;
 	    strcpy(paramfile, $2);
 	    xfree($2);
 	}
-	| PUTP CHRSTR {
+	| PUTP sexpr {
 	    if (!safe_mode) {
                 FILE *pp = grace_openw($2);
 	        if (pp != NULL) {
@@ -3371,24 +3387,24 @@ actions:
 		errmsg("Graph is not active");
             }
 	}
-	| READ CHRSTR {
+	| READ sexpr {
 	    gotread = TRUE;
 	    strcpy(readfile, $2);
 	    xfree($2);
 	}
-	| READ BATCH CHRSTR {
+	| READ BATCH sexpr {
 	    strcpy(batchfile, $3);
 	    xfree($3);
 	}
-	| READ BLOCK CHRSTR {
+	| READ BLOCK sexpr {
 	    getdata(whichgraph, $3, SOURCE_DISK, LOAD_BLOCK);
 	    xfree($3);
 	}
-	| READ BLOCK sourcetype CHRSTR {
+	| READ BLOCK sourcetype sexpr {
 	    getdata(whichgraph, $4, $3, LOAD_BLOCK);
 	    xfree($4);
 	}
-	| BLOCK xytype CHRSTR {
+	| BLOCK xytype sexpr {
             int nc, *cols, scol;
             if (field_string_to_cols($3, &nc, &cols, &scol) != RETURN_SUCCESS) {
                 errmsg("Erroneous field specifications");
@@ -3401,24 +3417,24 @@ actions:
                 xfree(cols);
             }
 	}
-	| READ xytype CHRSTR {
+	| READ xytype sexpr {
 	    gotread = TRUE;
 	    curtype = $2;
 	    strcpy(readfile, $3);
 	    xfree($3);
 	}
-	| READ xytype sourcetype CHRSTR {
+	| READ xytype sourcetype sexpr {
 	    gotread = TRUE;
 	    strcpy(readfile, $4);
 	    curtype = $2;
 	    cursource = $3;
 	    xfree($4);
 	}
-	| READ NXY CHRSTR {
+	| READ NXY sexpr {
 	    getdata(whichgraph, $3, SOURCE_DISK, LOAD_NXY);
 	    xfree($3);
 	}
-	| READ NXY sourcetype CHRSTR {
+	| READ NXY sourcetype sexpr {
 	    getdata(whichgraph, $4, $3, LOAD_NXY);
 	    xfree($4);
 	}
@@ -3429,7 +3445,7 @@ actions:
                 yyerror("File modifications are disabled in safe mode");
             }
 	}
-	| WRITE selectset FORMAT CHRSTR {
+	| WRITE selectset FORMAT sexpr {
 	    if (!safe_mode) {
 	        outputset($2->gno, $2->setno, "stdout", $4);
             } else {
@@ -3437,7 +3453,7 @@ actions:
             }
 	    xfree($4);
 	}
-	| WRITE selectset FILEP CHRSTR {
+	| WRITE selectset FILEP sexpr {
 	    if (!safe_mode) {
 	        outputset($2->gno, $2->setno, $4, NULL);
             } else {
@@ -3445,7 +3461,7 @@ actions:
             }
 	    xfree($4);
 	}
-	| WRITE selectset FILEP CHRSTR FORMAT CHRSTR {
+	| WRITE selectset FILEP sexpr FORMAT sexpr {
 	    if (!safe_mode) {
 	        outputset($2->gno, $2->setno, $4, $6);
             } else {
@@ -3454,7 +3470,7 @@ actions:
 	    xfree($4);
 	    xfree($6);
 	}
-        | SAVEALL CHRSTR {
+        | SAVEALL sexpr {
             if (!safe_mode) {
                 save_project($2);
             } else {
@@ -3462,14 +3478,14 @@ actions:
             }
             xfree($2);
         }
-        | LOAD CHRSTR {
+        | LOAD sexpr {
             load_project($2);
             xfree($2);
         }
         | NEW {
             new_project(NULL);
         }
-        | NEW FROM CHRSTR {
+        | NEW FROM sexpr {
             new_project($3);
             xfree($3);
         }
@@ -3692,12 +3708,12 @@ setprop:
 	    g[$1->gno].p[$1->setno].avalue.offset.x = $4;
 	    g[$1->gno].p[$1->setno].avalue.offset.y = $6;
 	}
-	| selectset AVALUE PREPEND CHRSTR
+	| selectset AVALUE PREPEND sexpr
         {
 	    strcpy(g[$1->gno].p[$1->setno].avalue.prestr, $4);
 	    xfree($4);
 	}
-	| selectset AVALUE APPEND CHRSTR
+	| selectset AVALUE APPEND sexpr
         {
 	    strcpy(g[$1->gno].p[$1->setno].avalue.appstr, $4);
 	    xfree($4);
@@ -3737,12 +3753,12 @@ setprop:
             g[$1->gno].p[$1->setno].errbar.cliplen = $6;
 	}
 
-	| selectset COMMENT CHRSTR {
+	| selectset COMMENT sexpr {
 	    strncpy(g[$1->gno].p[$1->setno].comments, $3, MAX_STRING_LENGTH - 1);
 	    xfree($3);
 	}
         
-	| selectset LEGEND CHRSTR {
+	| selectset LEGEND sexpr {
 	    strncpy(g[$1->gno].p[$1->setno].lstr, $3, MAX_STRING_LENGTH - 1);
 	    xfree($3);
 	}
@@ -3991,7 +4007,7 @@ ticklabelattr:
             }
 	    g[whichgraph].t[naxis]->tl_format = $2;
 	}
-	| APPEND CHRSTR {
+	| APPEND sexpr {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
@@ -3999,7 +4015,7 @@ ticklabelattr:
 	    strcpy(g[whichgraph].t[naxis]->tl_appstr, $2);
 	    xfree($2);
 	}
-	| PREPEND CHRSTR {
+	| PREPEND sexpr {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
@@ -4035,7 +4051,7 @@ ticklabelattr:
             }
 	    g[whichgraph].t[naxis]->tl_op = $1;
 	}
-	| FORMULA CHRSTR {
+	| FORMULA sexpr {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
@@ -4107,7 +4123,7 @@ ticklabelattr:
             }
 	    g[whichgraph].t[naxis]->tl_color = $1;
 	}
-	| nexpr ',' CHRSTR {
+	| nexpr ',' sexpr {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 xfree($3);
@@ -4147,7 +4163,7 @@ ticklabelattr:
 	;
 
 axislabeldesc:
-	CHRSTR {
+	sexpr {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
@@ -4260,11 +4276,11 @@ axisbardesc:
 	;
 
 nonlfitopts:
-        TITLE CHRSTR { 
+        TITLE sexpr { 
           nonl_opts.title = copy_string(nonl_opts.title, $2);
 	  xfree($2);
         }
-        | FORMULA CHRSTR { 
+        | FORMULA sexpr { 
           nonl_opts.formula = copy_string(nonl_opts.formula, $2);
 	  xfree($2);
         }
@@ -4599,7 +4615,7 @@ font_select:
         {
             $$ = get_mapped_font($2);
         }
-        | FONTP CHRSTR
+        | FONTP sexpr
         {
             $$ = get_font_by_name($2);
             xfree($2);
@@ -4643,7 +4659,7 @@ color_select:
                 $$ = 1;
             }
         }
-        | COLOR CHRSTR
+        | COLOR sexpr
         {
             int c = get_color_by_name($2);
             if (c == BAD_COLOR) {
@@ -4764,7 +4780,7 @@ parmset_obs:
             }
 	    g[whichgraph].l.legy = $3;
 	}
-	| LEGEND STRING nexpr CHRSTR {
+	| LEGEND STRING nexpr sexpr {
 	    if (is_valid_setno(whichgraph, $3)) {
                 strncpy(g[whichgraph].p[$3].lstr, $4, MAX_STRING_LENGTH - 1);
 	    } else {
@@ -5217,7 +5233,6 @@ symtab_entry ikey[] = {
 	{"CHDTRC", FUNC_DD, (void *) chdtrc},
 	{"CHDTRI", FUNC_DD, (void *) chdtri},
 	{"CHI", FUNC_D, (void *) chi_wrap},
-	{"CHRSTR", CHRSTR, NULL},
 	{"CI", FUNC_D, (void *) ci_wrap},
 	{"CLEAR", CLEAR, NULL},
 	{"CLICK", CLICK, NULL},
