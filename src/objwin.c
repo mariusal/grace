@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001 Grace Development Team
+ * Copyright (c) 2001,2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -41,6 +41,7 @@
 #include "storage.h"
 #include "graphs.h"
 #include "objutils.h"
+#include "events.h"
 
 #include "motifinc.h"
 
@@ -522,6 +523,119 @@ static void loctype_cb(int value, void *data)
 
 static ObjectUI *oui = NULL;
 
+typedef struct {
+    Widget hide_bt;
+    Widget show_bt;
+} DOSSData;
+
+#define DOSS_HIDE_CB          0
+#define DOSS_SHOW_CB          1
+
+static void doss_any_cb(void *udata, int cbtype)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+    int i, n;
+    void **values;
+    
+    n = GetStorageChoices(ss, &values);
+    
+    for (i = 0; i < n; i ++) {
+        void *data = values[i];
+        
+        if (storage_data_exists(ss->sto, data) == TRUE) {
+            DObject *o = (DObject *) data;
+            switch (cbtype) {
+            case DOSS_HIDE_CB:
+                o->active = FALSE;
+                break;
+            case DOSS_SHOW_CB:
+                o->active = TRUE;
+                break;
+            }
+        }
+    }
+    
+    if (n > 0) {
+        xfree(values);
+        UpdateStorageChoice(ss);
+        set_dirtystate();
+        xdrawgraph();
+    }
+}
+
+static void hide_cb(void *udata)
+{
+    doss_any_cb(udata, DOSS_HIDE_CB);
+}
+
+static void show_cb(void *udata)
+{
+    doss_any_cb(udata, DOSS_SHOW_CB);
+}
+
+static void popup_cb(StorageStructure *ss, int nselected)
+{
+    DOSSData *dossdata = (DOSSData *) ss->data;
+    int selected;
+    
+    if (nselected != 0) {
+        selected = TRUE;
+    } else {
+        selected = FALSE;
+    }
+    
+    SetSensitive(dossdata->hide_bt, selected);
+    SetSensitive(dossdata->show_bt, selected);
+}
+
+static void new_line_cb(void *udata)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+    set_action(DO_NOTHING);
+    set_action(MAKE_LINE_1ST);
+}
+
+static void new_box_cb(void *udata)
+{
+}
+
+static void new_arc_cb(void *udata)
+{
+}
+
+static void new_string_cb(void *udata)
+{
+}
+
+StorageStructure *CreateDObjectChoice(Widget parent, char *labelstr, int type)
+{
+    StorageStructure *ss;
+    DOSSData *dossdata;
+    Widget popup, submenupane;
+    
+    ss = CreateStorageChoice(parent, labelstr, type, 6);
+    
+    dossdata = xmalloc(sizeof(DOSSData));
+    ss->data = dossdata;
+    ss->popup_cb = popup_cb;
+    
+    popup = ss->popup;
+    
+    CreateMenuSeparator(popup);
+    dossdata->hide_bt = CreateMenuButton(popup, "Hide", '\0', hide_cb, ss);
+    dossdata->show_bt = CreateMenuButton(popup, "Show", '\0', show_cb, ss);
+    
+    CreateMenuSeparator(popup);
+
+    submenupane = CreateMenu(popup, "Create new", 'c', FALSE);
+    CreateMenuButton(submenupane, "Line", '\0', new_line_cb, ss);
+    CreateMenuButton(submenupane, "Box", '\0', new_box_cb, ss);
+    CreateMenuButton(submenupane, "Arc", '\0', new_arc_cb, ss);
+    CreateMenuButton(submenupane, "String", '\0', new_string_cb, ss);
+    
+    return ss;
+}
+
 void define_objects_popup(void *data)
 {
     graph *g;
@@ -553,7 +667,7 @@ void define_objects_popup(void *data)
         panel = CreateVContainer(oui->top);
         AddDialogFormChild(oui->top, panel);
         oui->gsel = CreateGraphChoice(panel, "Graphs:", LIST_TYPE_SINGLE);
-        oui->ss = CreateStorageChoice(panel, "Objects:", LIST_TYPE_MULTIPLE, 6);
+        oui->ss = CreateDObjectChoice(panel, "Objects:", LIST_TYPE_MULTIPLE);
         SetStorageChoiceLabeling(oui->ss, dobject_labeling);
 
         AddStorageChoiceCB(oui->ss, selectobjectCB, (void *) oui);
