@@ -567,11 +567,6 @@ int register_x11_drv(Canvas *canvas)
     
     device_set_dpi(d, (float) data->xstuff->dpi, FALSE);
     
-    /* disable font AA in mono mode */
-    if (data->monomode == TRUE) {
-        device_set_fontrast(d, FONT_RASTER_MONO);
-    }
-    
     device_set_procs(d,
         x11_initgraphics,
         x11_leavegraphics,
@@ -586,5 +581,15 @@ int register_x11_drv(Canvas *canvas)
         x11_putpixmap,
         NULL);
 
+    /* disable font AA in mono mode */
+    if (data->monomode == TRUE) {
+        device_set_fontrast(d, FONT_RASTER_MONO);
+    } else
+    if (data->pixel_size == 1) {
+        device_set_fontrast(d, FONT_RASTER_AA_LOW);
+    } else {
+        device_set_fontrast(d, FONT_RASTER_AA_SMART);
+    }
+    
     return register_device(canvas, d);
 }
