@@ -5,7 +5,7 @@
  * 
  * Copyright (c) 2001-2003 Grace Development Team
  * 
- * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
+ * Maintained by Evgeny Stambulchik
  * 
  * 
  *                           All Rights Reserved
