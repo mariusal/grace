@@ -148,8 +148,8 @@ void create_nonl_frame(void *data)
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
-        CreateMenuButton(menupane, "On fit", 'f',
-            HelpCB, "doc/UsersGuide.html#non-linear-fit");
+        CreateMenuHelpButton(menupane, "On fit", 'f',
+            nonl_frame, "doc/UsersGuide.html#non-linear-fit");
 
         ManageChild(menubar);
         AddDialogFormChild(nonl_frame, menubar);

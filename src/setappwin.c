@@ -178,8 +178,8 @@ void define_symbols_popup(void *data)
         SetToggleButtonState(csync_item, TRUE);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
-        CreateMenuButton(menupane, "On set appearance", 's',
-            HelpCB, "doc/UsersGuide.html#set-appearance");
+        CreateMenuHelpButton(menupane, "On set appearance", 's',
+            setapp_dialog, "doc/UsersGuide.html#set-appearance");
         
         toggle_symset_item = CreateSetChoice(setapp_dialog, "Select set:",
                                                 LIST_TYPE_MULTIPLE, TRUE);

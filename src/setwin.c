@@ -131,8 +131,8 @@ void create_datasetprop_popup(void *data)
             create_setop_popup, NULL);
  
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
-        CreateMenuButton(menupane, "On data sets", 's',
-            HelpCB, "doc/UsersGuide.html#data-sets");
+        CreateMenuHelpButton(menupane, "On data sets", 's',
+            tui.top, "doc/UsersGuide.html#data-sets");
 
 	rc = CreateHContainer(dialog);
 	tui.datatype_item = CreateSetTypeChoice(rc, "Type:");
@@ -371,8 +371,8 @@ void create_datasetop_popup(void *data)
             "Close", 'C', destroy_dialog_cb, GetParent(datasetopui.top));
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
-        CreateMenuButton(menupane, "On dataset operations", 's',
-            HelpCB, "doc/UsersGuide.html#data-set-operations");
+        CreateMenuHelpButton(menupane, "On dataset operations", 's',
+            datasetopui.top, "doc/UsersGuide.html#data-set-operations");
 
 	datasetopui.optype_item = CreateOptionChoice(dialog,
 						"Operation type:",

@@ -171,8 +171,8 @@ void create_graphapp_frame(int gno)
             "Create new", 'C', create_new_graph_proc, graph_selector);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
-        CreateMenuButton(menupane, "On graph appearance", 'g',
-            HelpCB, "doc/UsersGuide.html#graph-appearance");
+        CreateMenuHelpButton(menupane, "On graph appearance", 'g',
+            graphapp_dialog, "doc/UsersGuide.html#graph-appearance");
 
 
         /* ------------ Tabs -------------- */
