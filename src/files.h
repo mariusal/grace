@@ -48,6 +48,7 @@ FILE *filter_read( char *fn );
 FILE *filter_write(  char *fn );
 
 char *grace_path(char *fn);
+char *grace_path2(const char *prefix, char *fn);
 char *grace_exe_path(char *fn);
 
 FILE *grace_openw(char *fn);

@@ -696,6 +696,28 @@ char *grace_path(char *fn)
     }
 }
 
+char *grace_path2(const char *prefix, char *fn)
+{
+    char *s, *bufp;
+    
+    s = copy_string(NULL, prefix);
+    if (!s) {
+        return NULL;
+    }
+    
+    if (s[strlen(s) - 1] != '/') {
+        s = concat_strings(s, "/");
+    }
+    
+    s = concat_strings(s, fn);
+    
+    bufp = grace_path(s);
+    
+    xfree(s);
+    
+    return bufp;
+}
+
 char *grace_exe_path(char *fn)
 {
     static char buf[GR_MAXPATHLEN];
