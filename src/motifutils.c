@@ -3510,7 +3510,9 @@ int GetAngleChoice(Widget w)
 
 void SetAngleChoice(Widget w, int angle)
 {
-    angle %= 360;
+    if (angle < 0 || angle > 360) {
+        angle %= 360;
+    }
     if (angle < 0) {
         angle += 360;
     }
