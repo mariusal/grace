@@ -2,11 +2,11 @@
   ----- File:        parseAFM.c
   ----- Author:      Adobe Systems Inc., modifications by
                      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-11-01
+  ----- Date:        2002-10-26
   ----- Description: This file is part of the t1-library. It is the original
                      parseAFM.h modified at a few points, especially for
-		     reading MSDOS-style AFM files..
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
+		     reading MSDOS-style AFM files.
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2002.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -88,7 +88,10 @@
 #include <math.h>
 #include <string.h>
 #include "parseAFM.h"
- 
+#include "t1base.h"
+#include "t1misc.h"
+
+
 #define lineterm EOL	/* line terminating character */
 #define normalEOF 1	/* return code from parsing routines used only */
 			/* in this module */
@@ -136,14 +139,14 @@ static char *ident = NULL; /* storage buffer for keywords */
  */
 
 typedef enum {
-  ASCENDER, CHARBBOX, CODE, COMPCHAR, CAPHEIGHT, COMMENT, 
+  ASCENDER, CHARBBOX, CODE, COMPCHAR, CAPHEIGHT, CHARACTERSET, COMMENT,
   DESCENDER, ENCODINGSCHEME, ENDCHARMETRICS, ENDCOMPOSITES, 
   ENDFONTMETRICS, ENDKERNDATA, ENDKERNPAIRS, ENDTRACKKERN, 
   FAMILYNAME, FONTBBOX, FONTNAME, FULLNAME, ISFIXEDPITCH, 
   ITALICANGLE, KERNPAIR, KERNPAIRXAMT, LIGATURE, CHARNAME, 
   NOTICE, COMPCHARPIECE, STARTCHARMETRICS, STARTCOMPOSITES, 
   STARTFONTMETRICS, STARTKERNDATA, STARTKERNPAIRS, 
-  STARTTRACKKERN, TRACKKERN, UNDERLINEPOSITION, 
+  STARTTRACKKERN, STDHW, STDVW, TRACKKERN, UNDERLINEPOSITION,
   UNDERLINETHICKNESS, VERSION, XYWIDTH, XWIDTH, WEIGHT, XHEIGHT,
   NOPE} PARSEKEY;
 
@@ -162,17 +165,18 @@ typedef enum {
  */
 
 static char *keyStrings[] = {
-  "Ascender", "B", "C", "CC", "CapHeight", "Comment",
+  "Ascender", "B", "C", "CC", "CapHeight", "CharacterSet", "Comment",
   "Descender", "EncodingScheme", "EndCharMetrics", "EndComposites", 
   "EndFontMetrics", "EndKernData", "EndKernPairs", "EndTrackKern", 
   "FamilyName", "FontBBox", "FontName", "FullName", "IsFixedPitch", 
   "ItalicAngle", "KP", "KPX", "L", "N", 
   "Notice", "PCC", "StartCharMetrics", "StartComposites", 
   "StartFontMetrics", "StartKernData", "StartKernPairs", 
-  "StartTrackKern", "TrackKern", "UnderlinePosition", 
+  "StartTrackKern", "StdHW", "StdVW", "TrackKern", "UnderlinePosition",
   "UnderlineThickness", "Version", "W", "WX", "Weight", "XHeight",
   NULL };
   
+
 /*************************** PARSING ROUTINES **************/ 
   
 /*************************** token *************************/
@@ -343,6 +347,11 @@ static BOOL parseGlobals(fp, gfi)
                     strcpy(gfi->afmVersion, keyword);
                     break;
                 case COMMENT:
+		  /* We ignore the following keywords. They are only listed
+		     here in order to prevent from "Unknown Keyword" errors. */
+                case CHARACTERSET:
+                case STDHW:
+                case STDVW:
                     keyword = linetoken(fp);
                     break;
                 case FONTNAME:
@@ -437,6 +446,7 @@ static BOOL parseGlobals(fp, gfi)
                 case NOPE:
                 default:
                     error = parseError;
+		    T1_PrintLog( "parseGlobals()", "Unknown Keyword: %s", T1LOG_WARNING, keyword);
                     break;
             } /* switch */
     } /* while */
