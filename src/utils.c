@@ -1025,8 +1025,8 @@ char *q_labeling(Quark *q)
     
     switch (quark_fid_get(q)) {
     case QFlavorProject:
-        sprintf(buf, "Project \"%s%s\" (%d graphs)", QIDSTR(q),
-            quark_dirtystate_get(q) ? "*":"" , number_of_graphs(q));
+        sprintf(buf, "Project \"%s%s\"", QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"");
 
         break;
     case QFlavorFrame:
@@ -1035,10 +1035,10 @@ char *q_labeling(Quark *q)
 
         break;
     case QFlavorGraph:
-        sprintf(buf, "Graph \"%s%s\" (type: %s, sets: %d)",
+        sprintf(buf, "Graph \"%s%s\" (type: %s)",
             QIDSTR(q),
             quark_dirtystate_get(q) ? "*":"",
-            graph_types(rt, graph_get_type(q)), number_of_sets(q));
+            graph_types(rt, graph_get_type(q)));
 
         break;
     case QFlavorSet:
