@@ -46,7 +46,6 @@
 #include "motifinc.h"
 #include "protos.h"
 
-extern Widget app_shell;
 extern XtAppContext app_con;
 
 extern Input_buffer *ib_tbl;
