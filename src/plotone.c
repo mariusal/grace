@@ -1184,7 +1184,7 @@ void drawsetsyms(Canvas *canvas, int gno, int setno, set *p,
     VPoint vp;
     WPoint wp;
     double *x, *y, *z, *c;
-    int skip = p->symskip;
+    int skip = p->symskip + 1;
     int stacked_chart;
     double znorm = get_graph_znorm(gno);
     
@@ -1217,8 +1217,6 @@ void drawsetsyms(Canvas *canvas, int gno, int setno, set *p,
     } else {
         c = NULL;
     }
-    
-    skip++;
     
     setclipping(canvas, FALSE);
     
@@ -1277,7 +1275,7 @@ void drawsetavalues(Canvas *canvas, int gno, int setno, set *p,
     double *x, *y, *z;
     WPoint wp;
     VPoint vp;
-    int skip = p->symskip;
+    int skip = p->symskip + 1;
     AValue avalue;
     char str[MAX_STRING_LENGTH];
     int stacked_chart;
@@ -1287,8 +1285,6 @@ void drawsetavalues(Canvas *canvas, int gno, int setno, set *p,
         return;
     }
 
-    skip++;
-    
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
         setlen = MIN2(p->data->len, refn);
@@ -1384,6 +1380,7 @@ void drawseterrbars(Canvas *canvas, int gno, int setno, set *p,
     WPoint wp1, wp2;
     VPoint vp1, vp2;
     int stacked_chart;
+    int skip = p->symskip + 1;
     
     if (p->errbar.active != TRUE) {
         return;
@@ -1460,7 +1457,7 @@ void drawseterrbars(Canvas *canvas, int gno, int setno, set *p,
     
     setclipping(canvas, TRUE);
     
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; i += skip) {
         wp1.x = x[i];
         wp1.y = y[i];
         if (stacked_chart == TRUE) {
@@ -1513,6 +1510,7 @@ void drawsethilo(Canvas *canvas, set *p)
     double *x = p->data->ex[0], *y1 = p->data->ex[1];
     double *y2 = p->data->ex[2], *y3 = p->data->ex[3], *y4 = p->data->ex[4];
     double ilen = 0.02*p->symsize;
+    int skip = p->symskip + 1;
     WPoint wp;
     VPoint vp1, vp2;
 
@@ -1520,7 +1518,7 @@ void drawsethilo(Canvas *canvas, set *p)
         setpen(canvas, &p->sympen);
         setlinewidth(canvas, p->symlinew);
         setlinestyle(canvas, p->symlines);
-        for (i = 0; i < p->data->len; i++) {
+        for (i = 0; i < p->data->len; i += skip) {
             wp.x = x[i];
             wp.y = y1[i];
             vp1 = Wpoint2Vpoint(wp);
@@ -1550,6 +1548,7 @@ void drawsetbars(Canvas *canvas, int gno, int setno, set *p,
     int i, n;
     double *x, *y;
     double lw, bw = 0.01*p->symsize;
+    int skip = p->symskip + 1;
     double ybase;
     WPoint wp;
     VPoint vp1, vp2;
@@ -1589,7 +1588,7 @@ void drawsetbars(Canvas *canvas, int gno, int setno, set *p,
 
     if (p->symfillpen.pattern != 0) {
 	setpen(canvas, &p->symfillpen);
-        for (i = 0; i < n; i++) {
+        for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y = refy[i];
@@ -1618,7 +1617,7 @@ void drawsetbars(Canvas *canvas, int gno, int setno, set *p,
     }
     if (p->symlines != 0 && p->sympen.pattern != 0) {
         setpen(canvas, &p->sympen);
-        for (i = 0; i < n; i++) {
+        for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y = refy[i];
@@ -1651,6 +1650,7 @@ void drawcirclexy(Canvas *canvas, set *p)
 {
     int i, setlen;
     double *x, *y, *r;
+    int skip = p->symskip + 1;
     WPoint wp;
     VPoint vp1, vp2;
 
@@ -1665,7 +1665,7 @@ void drawcirclexy(Canvas *canvas, set *p)
     setlinewidth(canvas, p->linew);
     setlinestyle(canvas, p->lines);
 
-    for (i = 0; i < setlen; i++) {
+    for (i = 0; i < setlen; i += skip) {
         wp.x = x[i];
         wp.y = y[i];
         /* TODO: remove once ellipse clipping works */
@@ -1692,6 +1692,7 @@ void drawsetvmap(Canvas *canvas, int gno, set *p)
 {
     int i, setlen;
     double znorm = get_graph_znorm(gno);
+    int skip = p->symskip + 1;
     double *x, *y, *vx, *vy;
     WPoint wp;
     VPoint vp1, vp2;
@@ -1715,7 +1716,7 @@ void drawsetvmap(Canvas *canvas, int gno, set *p)
 
     setpen(canvas, &p->errbar.pen);
 
-    for (i = 0; i < setlen; i++) {
+    for (i = 0; i < setlen; i += skip) {
         wp.x = x[i];
         wp.y = y[i];
         if (!is_validWPoint(wp)){
@@ -1740,6 +1741,7 @@ void drawsetboxplot(Canvas *canvas, set *p)
     int i;
     double *x, *md, *lb, *ub, *lw, *uw;
     double size = 0.01*p->symsize;
+    int skip = p->symskip + 1;
     WPoint wp;
     VPoint vp1, vp2;
 
@@ -1752,7 +1754,7 @@ void drawsetboxplot(Canvas *canvas, set *p)
 
     setclipping(canvas, TRUE);
 
-    for (i = 0; i < p->data->len; i++) {
+    for (i = 0; i < p->data->len; i += skip) {
         wp.x =  x[i];
 
         wp.y = lb[i];

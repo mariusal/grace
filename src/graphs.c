@@ -1311,6 +1311,21 @@ void project_postprocess(Project *pr)
                 s->errbar.barsize *= 2;
             }
 
+            if (pr->version_id < 50107) {
+                /* Starting with 5.1.7, symskip is honored for all set types */
+                switch (s->type) {
+                case SET_BAR:
+                case SET_BARDY:
+                case SET_BARDYDY:
+                case SET_XYHILO:
+                case SET_XYR:
+                case SET_XYVMAP:
+                case SET_BOXPLOT:
+                    s->symskip = 0;
+                    break;
+                }
+            }
+
             storage_next(sets);
         }
         for (naxis = 0; naxis < MAXAXES; naxis++) {
