@@ -76,13 +76,13 @@ void create_monitor_frame(void *data)
 	mon_panel = XmCreateForm(mon_frame, "mon_form", NULL, 0);
 	fr = CreateFrame(mon_panel, NULL);
 	text_w = XmCreateScrolledText(fr, "text_w", NULL, 0);
+	SetFixedFont(text_w);
 	XtVaSetValues(text_w,
 		      XmNrows, 10,
 		      XmNcolumns, 80,
 		      XmNeditMode, XmMULTI_LINE_EDIT,
 		      XmNwordWrap, True,
 		      NULL);
-	SetFixedFont(text_w);
         XtManageChild(text_w);
 
 	rc = XmCreateRowColumn(mon_panel, "rc", NULL, 0);
