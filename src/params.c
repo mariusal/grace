@@ -402,8 +402,7 @@ void putparms(int gno, FILE *pp, int embed)
             get_graph_legend(gno, &leg);
             fprintf(pp, "%s    legend %s\n", embedstr, on_or_off(leg.active));
             fprintf(pp, "%s    legend loctype %s\n", embedstr, w_or_v(leg.loctype));
-            fprintf(pp, "%s    legend x1 %.12g\n", embedstr, leg.legx);
-            fprintf(pp, "%s    legend y1 %.12g\n", embedstr, leg.legy);
+            fprintf(pp, "%s    legend %.12g, %.12g\n", embedstr, leg.legx, leg.legy);
             fprintf(pp, "%s    legend box color %d\n", embedstr, leg.boxpen.color);
             fprintf(pp, "%s    legend box pattern %d\n", embedstr, leg.boxpen.pattern);
             fprintf(pp, "%s    legend box linewidth %.1f\n", embedstr, leg.boxlinew);

@@ -219,8 +219,7 @@
 @    altyaxis  off
 @    legend on
 @    legend loctype view
-@    legend x1 0.85
-@    legend y1 0.8
+@    legend 0.85, 0.8
 @    legend box color 1
 @    legend box pattern 1
 @    legend box linewidth 1.0
