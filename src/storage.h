@@ -117,4 +117,8 @@ int storage2_data_copy_by_id(Storage *sto1, int id1, Storage *sto2, int id2);
 int storage2_data_move_by_id(Storage *sto1, int id1, Storage *sto2, int id2);
 int storage2_data_swap(Storage *sto1, int id1, Storage *sto2, int id2);
 
+int storage2_data_copy(Storage *sto1, Storage *sto2);
+int storage2_data_move(Storage *sto1, Storage *sto2);
+int storage2_data_flush(Storage *sto1, Storage *sto2);
+
 #endif /* __STORAGE_H_ */
