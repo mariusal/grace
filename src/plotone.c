@@ -906,27 +906,6 @@ void drawsetfill(int gno, int setno, set *p,
         }
         break;
     case LINE_TYPE_LEFTSTAIR:
-        len = 2*setlen - 1;
-        vps = (VPoint *) xmalloc((len + 2) * sizeof(VPoint));
-        if (vps == NULL) {
-            errmsg("Can't xmalloc in drawsetfill");
-            return;
-        }
- 
-        for (i = 0; i < setlen; i++) {
-            wptmp.x = x[i];
-            wptmp.y = y[i];
-            if (stacked_chart == TRUE) {
-                wptmp.y += refy[i];
-            }
-            vps[2*i] = Wpoint2Vpoint(wptmp);
-    	    vps[2*i].x += offset;
-        }
-        for (i = 1; i < len; i += 2) {
-            vps[i].x = vps[i - 1].x;
-            vps[i].y = vps[i + 1].y;
-        }
-        break;
     case LINE_TYPE_RIGHTSTAIR:
         len = 2*setlen - 1;
         vps = (VPoint *) xmalloc((len + 2) * sizeof(VPoint));
@@ -945,14 +924,18 @@ void drawsetfill(int gno, int setno, set *p,
     	    vps[2*i].x += offset;
         }
         for (i = 1; i < len; i += 2) {
-            vps[i].x = vps[i + 1].x;
-            vps[i].y = vps[i - 1].y;
+            if (line_type == LINE_TYPE_LEFTSTAIR) {
+                vps[i].x = vps[i - 1].x;
+                vps[i].y = vps[i + 1].y;
+            } else {
+                vps[i].x = vps[i + 1].x;
+                vps[i].y = vps[i - 1].y;
+            }
         }
         break;
     default:
         return;
     }
-    
     
     switch (p->filltype) {
     case SETFILL_POLYGON:
@@ -993,7 +976,7 @@ void drawsetfill(int gno, int setno, set *p,
 void drawsetline(int gno, int setno, set *p,
                  int refn, double *refx, double *refy, double offset)
 {
-    int setlen;
+    int setlen, len;
     int i, ly = p->lines;
     int line_type = p->linet;
     VPoint vps[4], *vpstmp;
@@ -1140,56 +1123,33 @@ void drawsetline(int gno, int setno, set *p,
             }
             break;
         case LINE_TYPE_LEFTSTAIR:
-            for (i = 0; i < setlen - 1; i ++) {
-                wp.x = x[i];
-                wp.y = y[i];
-                if (stacked_chart == TRUE) {
-                    wp.y += refy[i];
-                }
-                vps[0] = Wpoint2Vpoint(wp);
-    	        vps[0].x += offset;
-                wp.x = x[i + 1];
-                wp.y = y[i + 1];
-                if (stacked_chart == TRUE) {
-                    wp.y += refy[i + 1];
-                }
-                vps[2] = Wpoint2Vpoint(wp);
-    	        vps[2].x += offset;
-                vps[1].x = vps[0].x;
-                vps[1].y = vps[2].y;
-                
-                vps[0].y -= lw/2.0;
-                vps[1].y -= lw/2.0;
-                vps[2].y -= lw/2.0;
-               
-                DrawPolyline(vps, 3, POLYLINE_OPEN);
-            }
-            break;
         case LINE_TYPE_RIGHTSTAIR:
-            for (i = 0; i < setlen - 1; i ++) {
+            len = 2*setlen - 1;
+            vpstmp = (VPoint *) xmalloc(len*sizeof(VPoint));
+            if (vpstmp == NULL) {
+                errmsg("xmalloc failed in drawsetline()");
+                break;
+            }
+            for (i = 0; i < setlen; i++) {
                 wp.x = x[i];
                 wp.y = y[i];
                 if (stacked_chart == TRUE) {
                     wp.y += refy[i];
                 }
-                vps[0] = Wpoint2Vpoint(wp);
-    	        vps[0].x += offset;
-                wp.x = x[i + 1];
-                wp.y = y[i + 1];
-                if (stacked_chart == TRUE) {
-                    wp.y += refy[i + 1];
-                }
-                vps[2] = Wpoint2Vpoint(wp);
-    	        vps[2].x += offset;
-                vps[1].x = vps[2].x;
-                vps[1].y = vps[0].y;
-                
-                vps[0].y -= lw/2.0;
-                vps[1].y -= lw/2.0;
-                vps[2].y -= lw/2.0;
-               
-                DrawPolyline(vps, 3, POLYLINE_OPEN);
+                vpstmp[2*i] = Wpoint2Vpoint(wp);
+    	        vpstmp[2*i].x += offset;
             }
+            for (i = 1; i < len; i += 2) {
+                if (line_type == LINE_TYPE_LEFTSTAIR) {
+                    vpstmp[i].x = vpstmp[i - 1].x;
+                    vpstmp[i].y = vpstmp[i + 1].y;
+                } else {
+                    vpstmp[i].x = vpstmp[i + 1].x;
+                    vpstmp[i].y = vpstmp[i - 1].y;
+                }
+            }
+            DrawPolyline(vpstmp, len, POLYLINE_OPEN);
+            xfree(vpstmp);
             break;
         default:
             errmsg("Invalid line type");
