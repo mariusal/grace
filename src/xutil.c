@@ -481,6 +481,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
     } else {
         if (gui_is_page_free(grace->gui)) {
             sync_canvas_size(grace);
+            update_all();
             xdrawgraph(grace->project, TRUE);
         }
     }
