@@ -5,9 +5,9 @@
 
 <article>
 
-<title>Grace User's Guide (v0.5)
+<title>Grace User's Guide (v0.6 - for Grace-5.0.6)
 <author>by the Grace Team
-<date>08.10.1999
+<date>03.11.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -330,6 +330,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> EPS
           <item> Metafile (which is Grace format, used at the moment mostly
                  for debugging purposes)
+          <item> MIF (Maker Interchange Format used by FrameMaker)
           <item> PDF (depends on extra libraries,
                       see <ref name="configuration" id="configuration">)
           <item> PNM
@@ -2261,6 +2262,8 @@ C
                  <item> bitmapped text strings are not transparent
                  <item> arcs of angles != 90*n are approximated very roughly
                </itemize>
+        <item> MIF driver:
+               the driver is a brand new one and still in alpha test
       </itemize>
       
       <p>
