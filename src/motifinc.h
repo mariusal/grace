@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -102,7 +102,14 @@ typedef char * (*Storage_LabelingProc)(
     void *data           /* data of the item */
 );
 
-typedef struct {
+typedef struct _StorageStructure StorageStructure;
+
+typedef void (*SS_PopupCBProc)(
+    StorageStructure *ss,
+    int nselected         /* # of selected list items */
+);
+
+struct _StorageStructure {
     int nchoices;
     void **values;
     void *anydata;
@@ -114,6 +121,7 @@ typedef struct {
     Widget rc;
     Widget list;
     Widget popup;
+    Widget selpopup;
     
     Widget popup_cut_bt;
     Widget popup_copy_bt;
@@ -130,8 +138,10 @@ typedef struct {
     Widget popup_select_all_bt;
     Widget popup_unselect_all_bt;
     Widget popup_invert_selection_bt;
-
-} StorageStructure;
+    
+    SS_PopupCBProc popup_cb;
+    void *data;
+};
 
 typedef struct {
     int type;

@@ -804,6 +804,10 @@ static void storage_popup(Widget parent,
     
     SetSensitive(ss->popup_paste_bt, (storage_count(ss->clipboard) != 0));
     
+    if (ss->popup_cb) {
+        ss->popup_cb(ss, n);
+    }
+    
     XmMenuPosition(popup, e);
     XtManageChild(popup);
 }
@@ -942,7 +946,7 @@ static void ss_update_cb(void *udata)
 
 static void CreateStorageChoicePopup(StorageStructure *ss)
 {
-    Widget popup;
+    Widget popup, submenupane;
     
     popup = XmCreatePopupMenu(ss->list, "popupMenu", NULL, 0);
     ss->popup = popup;
@@ -973,17 +977,20 @@ static void CreateStorageChoicePopup(StorageStructure *ss)
         CreateMenuButton(popup, "Send to back", '\0', ss_send_to_back_cb, ss);
 
     CreateMenuSeparator(popup);
+
+    submenupane = CreateMenu(popup, "Selector operations", 'o', FALSE);
+    ss->selpopup = submenupane;
     
     ss->popup_select_all_bt =
-        CreateMenuButton(popup, "Select all", '\0', ss_select_all_cb, ss);
+        CreateMenuButton(submenupane, "Select all", '\0', ss_select_all_cb, ss);
     ss->popup_unselect_all_bt =
-        CreateMenuButton(popup, "Unselect all", '\0', ss_unselect_all_cb, ss);
-    ss->popup_invert_selection_bt = CreateMenuButton(popup,
+        CreateMenuButton(submenupane, "Unselect all", '\0', ss_unselect_all_cb, ss);
+    ss->popup_invert_selection_bt = CreateMenuButton(submenupane,
         "Invert selection", '\0', ss_invert_selection_cb, ss);
     
-    CreateMenuSeparator(popup);
+    CreateMenuSeparator(submenupane);
 
-    CreateMenuButton(popup, "Update selector", '\0', ss_update_cb, ss);
+    CreateMenuButton(submenupane, "Update list", '\0', ss_update_cb, ss);
 }
 
 StorageStructure *CreateStorageChoice(Widget parent,
@@ -994,9 +1001,7 @@ StorageStructure *CreateStorageChoice(Widget parent,
     StorageStructure *retval;
 
     retval = xmalloc(sizeof(StorageStructure));
-    retval->sto = NULL;
-    retval->nchoices = 0;
-    retval->values = NULL;
+    memset(retval, 0, sizeof(StorageStructure));
     
     retval->clipboard = storage_new(NULL, NULL, NULL);
     
