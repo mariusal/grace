@@ -438,6 +438,7 @@ $ ENDIF
 $ TIFF_LIB = ""
 $ PDF_LIB = ""
 $ PDFDRV_O = ""
+$ XBAE_INC = "[-.XBAE]"
 $ YACC = ""
 $ CC = "cc"
 $ FC = "fortran"
@@ -449,6 +450,7 @@ $ INSTALL = ""
 $ INSTALL_PROGRAM = ""
 $ INSTALL_DATA = ""
 $ MKINSTALLDIRS = ""
+$ CPPFLAGS = ""
 $ IF (DPMLSHR .AND. .NOT. DPML)
 $ THEN
 $   CFLAGS0 = "/PREFIX=(ALL,EXCEPT=(CBRT,LOG2,RINT,ASINH,ACOSH,ATANH," -
