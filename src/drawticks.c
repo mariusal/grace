@@ -55,6 +55,16 @@ int is_yaxis(int axis)
     return ((axis % 2 == 1));
 }
 
+int is_log_axis(int gno, int axis)
+{
+    if ((is_xaxis(axis) && islogx(gno)) ||
+        (is_yaxis(axis) && islogy(gno))) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 void drawgrid(int gno)
 {
     int caxis;
@@ -697,6 +707,13 @@ reenter:
         } else {
             stmajor = t.tmajor;
         }
+
+        if (stmajor <= 0.0) {
+	    errmsg("Invalid major tick spacing, autoticking");
+	    autotick_axis(gno, caxis);
+            free_ticklabels(&t);
+            goto reenter;
+	}
         
         if (t.t_round == TRUE) {
             swc_start = floor(swc_start/stmajor)*stmajor;
