@@ -1138,7 +1138,7 @@ int new_project(char *template)
     int retval;
     char *s;
     
-    if (template == NULL || template[0] == '\0') {
+    if (is_empty_string(template)) {
         retval = load_project_file("templates/Default.agr", TRUE);
     } else if (template[0] == '/') {
         retval = load_project_file(template, TRUE);

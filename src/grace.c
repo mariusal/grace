@@ -197,7 +197,7 @@ RunTime *runtime_new(void)
     }
     rt->print_cmd = copy_string(NULL, s);
     /* if no print command defined, print to file by default */
-    if (rt->print_cmd == NULL || rt->print_cmd[0] == '\0') {
+    if (is_empty_string(rt->print_cmd)) {
         set_ptofile(TRUE);
     } else {
         set_ptofile(FALSE);
@@ -224,9 +224,9 @@ RunTime *runtime_new(void)
 
     /* username */
     s = getenv("LOGNAME");
-    if (s == NULL || s[0] == '\0') {
+    if (is_empty_string(s)) {
         s = getlogin();
-        if (s == NULL || s[0] == '\0') {
+        if (is_empty_string(s)) {
             s = "a user";
         }
     }

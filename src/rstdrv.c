@@ -797,7 +797,7 @@ int jpg_op_parser(char *opstring)
     } else if (!strncmp(opstring, "quality:", 8)) {
         bufp = strchr(opstring, ':');
         bufp++;
-        if (bufp != NULL && *bufp != '\0') {
+        if (!is_empty_string(bufp)) {
             jpg_setup_quality = atoi(bufp);
             return RETURN_SUCCESS;
         } else {
@@ -806,7 +806,7 @@ int jpg_op_parser(char *opstring)
     } else if (!strncmp(opstring, "smoothing:", 10)) {
         bufp = strchr(opstring, ':');
         bufp++;
-        if (bufp != NULL && *bufp != '\0') {
+        if (!is_empty_string(bufp)) {
             jpg_setup_smoothing = atoi(bufp);
             return RETURN_SUCCESS;
         } else {
@@ -978,7 +978,7 @@ int png_op_parser(char *opstring)
     } else if (!strncmp(opstring, "compression:", 12)) {
         bufp = strchr(opstring, ':');
         bufp++;
-        if (bufp != NULL && *bufp != '\0') {
+        if (!is_empty_string(bufp)) {
             png_setup_compression = atoi(bufp);
             return RETURN_SUCCESS;
         } else {

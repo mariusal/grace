@@ -4759,7 +4759,7 @@ static int parser(char *s, int type)
     char *seekpos;
     int i;
     
-    if (s == NULL || s[0] == '\0') {
+    if (is_empty_string(s)) {
         if (type == PARSER_TYPE_VOID) {
             /* don't consider an empty string as error for generic parser */
             return RETURN_SUCCESS;

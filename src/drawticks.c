@@ -777,7 +777,7 @@ reenter:
                     nmajor++;
                 }
             }
-	    if (t->tl_formula && t->tl_formula[0] != '\0') {
+	    if (!is_empty_string(t->tl_formula)) {
 
                 tvar = get_parser_arr_by_name("$t");
                 if (tvar == NULL) {

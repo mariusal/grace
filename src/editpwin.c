@@ -323,7 +323,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
     }
 
     if (cs->row >= nrows) {
-        if (cs->value && cs->value[0] != '\0') {
+        if (!is_empty_string(cs->value)) {
             setlength(ep->gno, ep->setno, cs->row + 1);
             update_set_lists(ep->gno);
         } else {

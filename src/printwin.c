@@ -249,7 +249,7 @@ static void update_device_setup(int device_id)
             SetSensitive(device_opts_item, True);
         }
 
-        if (print_file == NULL || print_file[0] == '\0') {
+        if (is_empty_string(print_file)) {
             strcpy(print_file, mybasename(get_docname())); 
         }
         

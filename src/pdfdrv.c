@@ -574,7 +574,7 @@ int pdf_op_parser(char *opstring)
         char *bufp;
         bufp = strchr(opstring, ':');
         bufp++;
-        if (bufp != NULL && *bufp != '\0') {
+        if (!is_empty_string(bufp)) {
             pdf_setup_compression = atoi(bufp);
             return RETURN_SUCCESS;
         } else {

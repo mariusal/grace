@@ -116,14 +116,14 @@ void do_hardcopy(void)
     int truncated_out;
     
     if (get_ptofile()) {
-        if (print_file[0] == '\0') {
+        if (is_empty_string(print_file)) {
             Device_entry dev = get_device_props(grace->rt->hdevice);
             sprintf(print_file, "%s.%s", get_docbname(), dev.fext);
         }
         strcpy(fname, print_file);
     } else {
         s = get_print_cmd();
-        if (s == NULL || s[0] == '\0') {
+        if (is_empty_string(s)) {
             errmsg("No print command defined, output aborted");
             return;
         }
@@ -2261,7 +2261,7 @@ void dolegend(int gno)
         int setno = sids[i];
         if (is_set_drawable(gno, setno)) {
             p = set_get(gno, setno);
-            if (p->legstr && p->legstr[0] != '\0') {
+            if (!is_empty_string(p->legstr)) {
                 draw_flag = TRUE;
             }
             if (p->symsize > maxsymsize) {
@@ -2361,7 +2361,7 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
         if (is_set_drawable(gno, setno)) {
             p = set_get(gno, setno);
             
-            if (p->legstr == NULL || p->legstr[0] == '\0') {
+            if (is_empty_string(p->legstr)) {
                 continue;
             }
             

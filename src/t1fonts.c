@@ -985,7 +985,7 @@ void WriteString(VPoint vp, double angle, int just, char *theString)
     
     Device_entry dev;
  
-    if (theString == NULL || strlen(theString) == 0) {
+    if (is_empty_string(theString)) {
 	return;
     }
     

@@ -1239,7 +1239,7 @@ int do_runavg(int gsrc, int setfrom, int gdest, int setto,
 	return RETURN_FAILURE;
     }
     
-    if (!formula || formula[0] == '\0') {
+    if (is_empty_string(formula)) {
 	errmsg("Empty formula");
 	return RETURN_FAILURE;
     }
@@ -1621,7 +1621,7 @@ int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula)
 	return RETURN_FAILURE;
     }
     
-    if (!formula || formula[0] == '\0') {
+    if (is_empty_string(formula)) {
 	errmsg("Empty formula");
 	return RETURN_FAILURE;
     }

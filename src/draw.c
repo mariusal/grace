@@ -1020,7 +1020,7 @@ int store_color(int n, CMap_entry cmap)
     } else if (n >= maxcolors && realloc_colors(n + 1) == RETURN_FAILURE) {
         return RETURN_FAILURE;
     } else {
-        if (cmap.cname == NULL || strlen(cmap.cname) == 0) {
+        if (is_empty_string(cmap.cname)) {
             cmap_table[n].cname =
                 copy_string(cmap_table[n].cname, "unnamed");
         } else {
