@@ -588,7 +588,7 @@ void xlibputpixmap(const Canvas *canvas, void *data,
     
     XPoint xp;
 
-    static XImage *ximage;
+    XImage *ximage;
  
     Pixmap clipmask = 0;
     char *pixmap_ptr;
@@ -682,12 +682,17 @@ void xlibputpixmap(const Canvas *canvas, void *data,
         XSetClipOrigin(disp, gc, xp.x, xp.y);
     }
         
-        
     /* Force bit and byte order */
-    ximage->bitmap_bit_order=LSBFirst;
-    ximage->byte_order=LSBFirst;
+    ximage->bitmap_bit_order = LSBFirst;
+    ximage->byte_order       = LSBFirst;
     
     XPutImage(disp, displaybuff, gc, ximage, 0, 0, xp.x, xp.y, width, height);
+    
+    /* XDestroyImage free's the image data - which is VERY wrong since we
+       allocated (and hence, want to free) it ourselves. So, the trick is
+       to set the image data to NULL to avoid the double free() */
+    xfree(pixmap_ptr);
+    ximage->data = NULL;
     XDestroyImage(ximage);
      
     if (pixmap_type == PIXMAP_TRANSPARENT) {
