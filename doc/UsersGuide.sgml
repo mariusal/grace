@@ -6,10 +6,10 @@
 
 <title>Grace User's Guide (for Grace-5.2.0)</title>
 <author>by the Grace Team</author>
-<date>01.02.2001</date>
+<date>08.04.2001</date>
 <abstract>
   This document explains the usage of
-  <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
+  <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
 </abstract>
 
 <toc>
@@ -86,13 +86,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    <table loc="htbp">
      <tabular ca="ll">
        <hline>
-       Package    |  License  @
+       Package        |  License  @
        <hline>
-       cephes     |  Free     @
-       T1lib      |  LGPL     @
-       Xbae       |  BSD-like @
-       Tab        |  BSD-like @
-       T1lib      |  LGPL     @
+       cephes library |  Free     @
+       T1lib          |  LGPL     @
+       Xbae           |  BSD-like @
+       Tab Widget     |  BSD-like @
        <hline>
      </tabular>
      <caption>
@@ -125,32 +124,20 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
               <item> The JPEG backend needs the IJG's
                      (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">),
                      version 6.x.
-              <item> The PNG backend needs
-                     the (<url name="libpng" url="http://www.libpng.org/pub/png/libpng.html">)
+              <item> The PNG backend needs the <url name="libpng"
+                     url="http://www.libpng.org/pub/png/libpng.html">
                      library (version 0.96 or above).
               <item> The PDF driver requires the PDFlib library of Thomas
                      Merz to be installed, which is available
                      <url name="here" url="http://www.pdflib.com/">, version
-                     3.02 or above.
-              <item> If your computer has the FFTW library installed when
-                     Grace is compiled, Grace will link itself to this, and
-                     drop all conventional FFT's and DFT's. All transforms
-                     will be routed through this package. Note that there is
-                     then no difference between pushing the "FFT" button and
-                     the "DFT" button, except that FFT will complain if the
-                     length isn't a power of 2, and DFT will not.
-
-                     For more information on this package, see the 
-                     <url name="FFTW Home page" url="http://www.fftw.org">.
-                     In short, this package allows one to do non-power-of-2
-                     length FFT's along with the normal ones.  It seems to work
-                     very efficiently for any set length which factors into 2^a
-                     3^b 5^c 7^d for integer a, b, c, d. The great feature here
-                     is that set lengths which are powers of 10 (e.g. 1000,
-                     10000) and integer multiples of these (500, 2000, 2500,
-                     5000, etc.) can be computed with no significant penalty
-                     (maybe 20%) over power-of-2 transforms. Very often, real
-                     datasets come in these sizes, and not in powers of 2.
+                     4.0.0 or above.
+              <item> If your computer has the FFTW library (see the
+                     <url name="FFTW Home page" url="http://www.fftw.org">)
+                     installed when Grace is compiled, Grace will link itself
+                     to this, and drop all conventional FFT's and DFT's. All
+                     Fourier transforms will be routed through this package,
+                     resulting in higher accuracy and better (much better
+                     in many cases) performance.
               <item> In order to read/write sets in the NetCDF data format, you
                      will also need the <url name="NetCDF libraries"
                      url="http://unidata.ucar.edu/packages/netcdf/index.html">.
@@ -783,6 +770,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         to your <tt>.Xresources</tt> file (the file which is read when an X
         session starts; it could be <tt>.Xdefaults</tt>, <tt>.Xsession</tt> or
         some other file - ask your system administrator when in doubt). 
+
+        <p>
+          Similarly, it may be desirable to alter default filename patterns of
+          file selection dialogs. The recipe for the dialog's name is like for
+          menu buttons outlined above, with "Button" being replaced with "FSB".
+          E.g., to list all files in the "Open project" dialog ("File/Open..."),
+          set the following resource:
+          
+          <tt>
+            XMgrace*openProjectFSB.pattern: *
+          </tt>
+          
+        </p>
 
 
 <!-- **************************************** -->
@@ -1742,7 +1742,8 @@ integral     | cumulative sum @
    <p>
       <sect2> On context <label id="on-context">
       <p>
-        This function is not implemented yet.
+        Click on any element of the interface to get context-sensitive help
+        on it. Only partially implemented at the moment.
       </p>
       <sect2> User's guide <label id="users-guide">
       <p>
@@ -3248,7 +3249,6 @@ C
                </itemize>
         <item> PDF driver:
                <itemize>
-                 <item> patterned fills are not implemented
                  <item> bitmapped text strings are not transparent
                </itemize>
         <item> MIF driver:
@@ -3284,28 +3284,28 @@ C
       
       <table loc="htbp">
       <tabular ca="ll">
-              <hline>
-              Command           | Description                               @
-              <hline>
-              level1            | use only PS Level 1 subset of commands    @
-              level2            | use also PS Level 2 commands if needed    @
-              colorspace:grayscale | set grayscale colorspace               @
-              colorspace:rgb       | set RGB colorspace                     @
-              colorspace:cmyk      | set CMYK colorspace (PS Level2 only)   @
-              docdata:7bit      | the document data is 7bit clean           @
-              docdata:8bit      | the document data is 8bit clean           @
-              docdata:binary    | the document data may be binary           @
-              xoffset:<it>x</it> | set page offset in X direction <it>x</it> pp  @
-              yoffset:<it>y</it> | set page offset in Y direction <it>y</it> pp  @
-              mediafeed:auto    | default input tray                        @
-              mediafeed:match   | select input with media matching page dimensions @
-              mediafeed:manual  | manual media feed                         @
-              hwresolution:on   | set hardware resolution                   @
-              hwresolution:off  | do not set hardware resolution            @
-              <hline>
+          <hline>
+          Command              | Description                            @
+          <hline>
+          level1               | use only PS Level 1 subset of commands @
+          level2               | use also PS Level 2 commands if needed @
+          colorspace:grayscale | set grayscale colorspace               @
+          colorspace:rgb       | set RGB colorspace                     @
+          colorspace:cmyk      | set CMYK colorspace (PS Level2 only)   @
+          docdata:7bit         | the document data is 7bit clean        @
+          docdata:8bit         | the document data is 8bit clean        @
+          docdata:binary       | the document data may be binary        @
+          xoffset:<it>x</it>   | set page offset in X direction <it>x</it> pp  @
+          yoffset:<it>y</it>   | set page offset in Y direction <it>y</it> pp  @
+          mediafeed:auto       | default input tray                     @
+          mediafeed:match      | select input with media matching page dimensions @
+          mediafeed:manual     | manual media feed                      @
+          hwresolution:on      | set hardware resolution                @
+          hwresolution:off     | do not set hardware resolution         @
+          <hline>
       </tabular>
       <caption>
-              PostScript driver options
+          PostScript driver options
       </caption>
       </table>
 
@@ -3313,20 +3313,23 @@ C
       
       <table loc="htbp">
       <tabular ca="ll">
-              <hline>
-              Command       | Description                                   @
-              <hline>
-              level1        | use only PS Level 1 subset of commands        @
-              level2        | use also PS Level 2 commands if needed        @
-              colorspace:grayscale | set grayscale colorspace               @
-              colorspace:rgb       | set RGB colorspace                     @
-              colorspace:cmyk      | set CMYK colorspace (PS Level2 only)   @
-              bbox:tight    | enable "tight" bounding box                   @
-              bbox:page     | bounding box coincides with page dimensions   @
-              <hline>
+          <hline>
+          Command              | Description                            @
+          <hline>
+          level1               | use only PS Level 1 subset of commands @
+          level2               | use also PS Level 2 commands if needed @
+          colorspace:grayscale | set grayscale colorspace               @
+          colorspace:rgb       | set RGB colorspace                     @
+          colorspace:cmyk      | set CMYK colorspace (PS Level2 only)   @
+          docdata:7bit         | the document data is 7bit clean        @
+          docdata:8bit         | the document data is 8bit clean        @
+          docdata:binary       | the document data may be binary        @
+          bbox:tight           | enable "tight" bounding box            @
+          bbox:page            | bounding box coincides with page dimensions @
+          <hline>
       </tabular>
       <caption>
-              EPS driver options
+          EPS driver options
       </caption>
       </table>
 
@@ -3334,16 +3337,20 @@ C
 
       <table loc="htbp">
       <tabular ca="ll">
-              <hline>
-              Command           | Description                        @
-              <hline>
-              PDF1.2            | set compatibility mode to PDF-1.2  @
-              PDF1.3            | set compatibility mode to PDF-1.3  @
-              compression:value | set compression level (0 - 9)      @
-              <hline>
+          <hline>
+          Command               | Description                                 @
+          <hline>
+          compatibility:PDF-1.2 | set compatibility mode to PDF-1.2           @
+          compatibility:PDF-1.3 | set compatibility mode to PDF-1.3           @
+          compatibility:PDF-1.4 | set compatibility mode to PDF-1.4           @
+          bbox:tight            | enable "tight" bounding box                 @
+          bbox:page             | bounding box coincides with page dimensions @
+          compression:value     | set compression level (0 - 9)               @
+          fpprecision:value     | set floating point precision (4 - 6)        @
+          <hline>
       </tabular>
       <caption>
-              PDF driver options
+          PDF driver options
       </caption>
       </table>
 
@@ -3351,18 +3358,18 @@ C
 
       <table loc="htbp">
       <tabular ca="ll">
-              <hline>
-              Command           | Description               @
-              <hline>
-              format:pbm        | output in PBM format      @
-              format:pgm        | output in PGM format      @
-              format:ppm        | output in PPM format      @          
-              rawbits:on        | "rawbits" (binary) output @          
-              rawbits:off       | ASCII output              @          
-              <hline>
+          <hline>
+          Command           | Description               @
+          <hline>
+          format:pbm        | output in PBM format      @
+          format:pgm        | output in PGM format      @
+          format:ppm        | output in PPM format      @          
+          rawbits:on        | "rawbits" (binary) output @          
+          rawbits:off       | ASCII output              @          
+          <hline>
       </tabular>
       <caption>
-              PNM driver options
+          PNM driver options
       </caption>
       </table>
 
@@ -3370,23 +3377,23 @@ C
 
       <table loc="htbp">
       <tabular ca="ll">
-              <hline>
-              Command               | Description                           @
-              <hline>
-              grayscale             | set grayscale output                  @
-              color                 | set color output                      @
-              optimize:on/off       | enable/disable optimization           @
-              quality:value         | set compression quality (0 - 100)     @
-              smoothing:value       | set smoothing (0 - 100)               @
-              baseline:on/off       | do/don't force baseline output        @
-              progressive:on/off    | do/don't output in progressive format @
-              dct:ifast             | use fast integer DCT method           @
-              dct:islow             | use slow integer DCT method           @
-              dct:float             | use floating-point DCT method         @
-              <hline>
+          <hline>
+          Command               | Description                           @
+          <hline>
+          grayscale             | set grayscale output                  @
+          color                 | set color output                      @
+          optimize:on/off       | enable/disable optimization           @
+          quality:value         | set compression quality (0 - 100)     @
+          smoothing:value       | set smoothing (0 - 100)               @
+          baseline:on/off       | do/don't force baseline output        @
+          progressive:on/off    | do/don't output in progressive format @
+          dct:ifast             | use fast integer DCT method           @
+          dct:islow             | use slow integer DCT method           @
+          dct:float             | use floating-point DCT method         @
+          <hline>
       </tabular>
       <caption>
-              JPEG driver options
+          JPEG driver options
       </caption>
       </table>
 
@@ -3394,18 +3401,18 @@ C
 
       <table loc="htbp">
       <tabular ca="ll">
-              <hline>
-              Command           | Description                       @
-              <hline>
-              interlaced:on     | make interlaced image             @
-              interlaced:off    | don't make interlaced image       @
-              transparent:on    | produce transparent image         @
-              transparent:off   | don't produce transparent image   @
-              compression:value | set compression level (0 - 9)     @
-              <hline>
+          <hline>
+          Command           | Description                       @
+          <hline>
+          interlaced:on     | make interlaced image             @
+          interlaced:off    | don't make interlaced image       @
+          transparent:on    | produce transparent image         @
+          transparent:off   | don't produce transparent image   @
+          compression:value | set compression level (0 - 9)     @
+          <hline>
       </tabular>
       <caption>
-              PNG driver options
+          PNG driver options
       </caption>
       </table>
 

@@ -30,12 +30,17 @@
  !  [ES] sampling
  !  [ES] prune data
  !  [AM/ES] X error handler
- !  [EV/ES] instant update
  *  [ES] dropped the "-remove" command line flag
 
 <H3>Interface</H3>
  *  [ES] don't hardcode file extensions in file selection dialogs, but define
          them via X resources instead (rep. #671)
+ *  [AM/ES] set icon's title = project name (rep. #957)
+ *  [ES] when switching to log scale, set major/minor tick settings to 10/9 
+         respectively (rep. #826)
+ !  [EV/ES] instant update
+ !  [ES] about any transformation dialog
+ !  [ES] drawing object dialog...
 
 <H3>Documentation</H3>
  *  [ES] HTML docs now include table of contents
@@ -46,9 +51,19 @@
          driver
  *  [MD] produce MIF files with a textflow in which the graph is included, so
          it can be included in another FrameMaker document
+ *  [ES] implemented (optional) CMYK colorspace in the (E)PS output (rep. #928)
+ *  [ES] list used fonts in %%DocumentNeededResources in the (E)PS output
+         (rep. #956)
+ *  [ES] implemented Grayscale/RGB/CMYK option in the PDF driver
+ *  [ES] PDF-1.2/1.3/1.4 selection
+ *  [ES] tight bbox in PDF
+ *  [ES] patterns in PDF
+ *  [ES] fp precision in PDF
 
 <H3>Portability/Compilation</H3>
  *  [AM] OS/2 updates
+ *  [AM] allow to specify print command at `configure' time
+ *  [AM] fixed problem compiling bundled Xbae (rep. #959)
 
 <H3>Bug fixes</H3>
  *  [ES] "-saveall" filename argument was ignored (rep. #841)
@@ -77,6 +92,20 @@
  *  [MD] fixed conversion table for non-ASCII codes in the MIF driver
          (rep. #946)
  *  [EV] legend entries for BARDY and BARDYDY sets weren't drawn
+ *  [LM] reading in data files with floats when they were explicitly signed
+         and positive resulted in parse error
+ *  [ES] using non-standard fonts might crash the PDF driver
+ *  [ES] failure to save project to a file due to wrong permissions didn't
+         produce an error message
+ *  [ES] specifing a file-only output device with "-hdevice" didn't actually
+         set the output to file (rep. #899)
+ *  [ES] the "Rescale plot on page size change" option in the
+         "File/Print setup" dialog had no effect if the selected device was
+         X11
+ *  [ES] fixed (actually, just now implemented) automatic axis label placement
+         (rep. #744)
+ *  [ES] line width of drawing elements wasn't accounted for in the bbox
+         calculations, which in rare cases resulted in a wrong EPS bbox
 
 
 <H2>5.1.1</H2>
