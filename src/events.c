@@ -232,6 +232,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 		v.xv2 = MAX2(vp.x, anchor_vp.x);
 		v.yv2 = MAX2(vp.y, anchor_vp.y);
                 set_graph_viewport(cg, v);
+                update_view(cg);
 		xdrawgraph();
                 break;
             case ZOOM_1ST:
@@ -464,6 +465,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 shift.x = vp.x - anchor_vp.x;
                 shift.y = vp.y - anchor_vp.y;
                 move_legend(cg, shift);
+                updatelegends(cg);
                 xdrawgraph();
                 set_action(PLACE_LEGEND_1ST);
                 break;

@@ -105,8 +105,8 @@ static Widget instantupdate_item;
  * Event and Notify proc declarations
  */
 static int graphapp_aac_cb(void *data);
-static void updatelegends(int gno);
-static void update_view(int gno);
+void updatelegends(int gno);
+void update_view(int gno);
 static void update_frame_items(int gno);
 void update_graphapp_items(int n, int *values, void *data);
 
@@ -683,7 +683,7 @@ void update_graphapp_items(int n, int *values, void *data)
 /*
  * Viewport update
  */
-static void update_view(int gno)
+void update_view(int gno)
 {
     view v;
     char buf[32];
@@ -705,7 +705,7 @@ static void update_view(int gno)
 /*
  * legend popup
  */
-static void updatelegends(int gno)
+void updatelegends(int gno)
 {
     legend l;
     char buf[32];

@@ -115,7 +115,9 @@ void create_about_grtool(void *data);
 void update_set_lists(int gno);
 
 void updatesymbols(int gno, int value);
-void updatelegendstr(int gno);
+void updatelegends(int gno);
+void update_view(int gno);
+
 void define_symbols_popup(void *data);
 
 void update_ticks(int gno);
