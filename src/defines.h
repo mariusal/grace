@@ -48,7 +48,6 @@
 #define MAX_STRING_LENGTH 512
 
 
-#define MAX_SET_COLS 6          /* max number of data columns for a set */
 #define MAXBLOCK 30             /* max number of cols in a block data */
 #define MAXAXES 4               /* max number of axes per graph */
 #define MAX_TICKS 100           /* max number of ticks/labels per axis */
@@ -720,23 +719,6 @@ typedef struct {
     double stop;        /* stop ... */
 } nonlprefs;
 
-
-/* target graph & set*/
-typedef struct {
-    int gno;    /* graph # */
-    int setno;  /* set # */
-} target;
-
-typedef struct {
-    int len;                    /* dataset length */
-    double *ex[MAX_SET_COLS];   /* arrays of x, y, z, ... depending on type */
-    char **s;                   /* pointer to strings */
-} Dataset;
-
-typedef struct {
-    double ex[MAX_SET_COLS];   /* x, y, dx, z, ... depending on dataset type */
-    char *s;                   /* string */
-} Datapoint;
 
 /* real time inputs */
 typedef struct _Input_buffer {

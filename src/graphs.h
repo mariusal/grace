@@ -32,53 +32,66 @@
 #include "defines.h"
 
 /* Graph type */
-#define GRAPH_XY        0
-#define GRAPH_CHART     1
-#define GRAPH_POLAR     2
-#define GRAPH_SMITH     3
-#define GRAPH_FIXED     4
+typedef enum {
+    GRAPH_XY   ,
+    GRAPH_CHART,
+    GRAPH_POLAR,
+    GRAPH_SMITH,
+    GRAPH_FIXED
+} GraphType;
 
 /* Set types */
-#define SET_BAD        -1
-
-#define SET_XY          0
-#define SET_XYDX        1
-#define SET_XYDY        2
-#define SET_XYDXDX      3
-#define SET_XYDYDY      4
-#define SET_XYDXDY      5
-#define SET_BAR         6
-#define SET_BARDY       7
-#define SET_BARDYDY     8
-#define SET_XYSTRING    9
-#define SET_XYHILO     10
-#define SET_XYZ        11
-#define SET_XYR        12
-
-#define NUMBER_OF_SETTYPES  13
+typedef enum {
+    SET_XY      ,
+    SET_XYDX    ,
+    SET_XYDY    ,
+    SET_XYDXDX  ,
+    SET_XYDYDY  ,
+    SET_XYDXDY  ,
+    SET_BAR     ,
+    SET_BARDY   ,
+    SET_BARDYDY ,
+    SET_XYSTRING,
+    SET_XYHILO  ,
+    SET_XYZ     ,
+    SET_XYR     ,
+    SET_BAD
+} SetType;
+#define NUMBER_OF_SETTYPES  SET_BAD
 
 /* TODO: those are NOT really set types */
-#define SET_NXY        13
-#define SET_BLOCK      14
+#define SET_NXY     (SET_BAD + 1)
+#define SET_BLOCK   (SET_BAD + 2)
 
 /* Data column names; */
-#define DATA_INDEX      0 /* reserved */
-#define DATA_X          1
-#define DATA_Y          2
-#define DATA_Y1         3
-#define DATA_Y2         4
-#define DATA_Y3         5
-#define DATA_Y4         6
+typedef enum {
+    DATA_X ,
+    DATA_Y ,
+    DATA_Y1,
+    DATA_Y2,
+    DATA_Y3,
+    DATA_Y4,
+    DATA_BAD
+} DataColumn;
+#define MAX_SET_COLS    DATA_BAD
 
+
+/* target graph & set*/
+typedef struct {
+    int gno;    /* graph # */
+    int setno;  /* set # */
+} target;
 
 typedef struct {
-    int pointset;               /* if (dsx, dsy) have been set */
-    int pt_type;                /* type of locator display */
-    double dsx, dsy;            /* locator fixed point */
-    int fx, fy;                 /* locator format type */
-    int px, py;                 /* locator precision */
-} GLocator;
+    int len;                    /* dataset length */
+    double *ex[MAX_SET_COLS];   /* arrays of x, y, z, ... depending on type */
+    char **s;                   /* pointer to strings */
+} Dataset;
 
+typedef struct {
+    double ex[MAX_SET_COLS];   /* x, y, dx, z, ... depending on dataset type */
+    char *s;                   /* string */
+} Datapoint;
 
 typedef struct {
     Dataset data;               /* dataset */
@@ -122,6 +135,15 @@ typedef struct {
     AValue avalue;              /* Parameters for annotative string */
     Errbar errbar;              /* error bar properties */
 } plotarr;
+
+/* Locator props */
+typedef struct {
+    int pointset;               /* if (dsx, dsy) have been set */
+    int pt_type;                /* type of locator display */
+    double dsx, dsy;            /* locator fixed point */
+    int fx, fy;                 /* locator format type */
+    int px, py;                 /* locator precision */
+} GLocator;
 
 /*
  * a graph
