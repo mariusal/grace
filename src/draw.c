@@ -542,6 +542,10 @@ void DrawArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
         return;
     }
     
+    if (angle1 > angle2) {
+        iswap(&angle1, &angle2);
+    }
+    
     /* TODO: clipping!!!*/
     if (get_draw_mode() == TRUE) {
         (*devdrawarc)(vp1, vp2, angle1, angle2);
@@ -566,7 +570,11 @@ void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode)
         DrawPixel(vp1);
         return;
     }
-        
+
+    if (angle1 > angle2) {
+        iswap(&angle1, &angle2);
+    }
+            
     /* TODO: clipping!!!*/
     if (get_draw_mode() == TRUE) {
         (*devfillarc)(vp1, vp2, angle1, angle2, mode);
