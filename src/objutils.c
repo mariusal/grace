@@ -377,16 +377,6 @@ int duplicate_object(int type, int id)
     return newid;
 }
 
-plotstr copy_plotstr(plotstr p)
-{
-    static plotstr pto;
-
-    pto = p;
-    pto.s = copy_string(NULL, p.s);
-
-    return pto;
-}
-
 void kill_box(int boxno)
 {
     boxes[boxno].active = FALSE;

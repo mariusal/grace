@@ -70,7 +70,6 @@ void set_default_framep(framep * f);
 void set_default_world(world * w);
 void set_default_view(view * v);
 void set_default_string(plotstr * s);
-plotstr copy_plotstr(plotstr p);
 void set_default_arrow(Arrow *arrowp);
 void set_default_line(linetype * l);
 void set_default_box(boxtype * b);
@@ -284,7 +283,7 @@ double cal_and_time_to_jul(int y, int m, int d,
 void jul_to_cal_and_time(double jday, int rounding,
                          int *y, int *m, int *d,
                          int *hour, int *min, int *sec);
-int parse_float(const char* s, double *value, const char **after);
+int parse_float(const char *s, double *value, const char **after);
 int parse_date(const char* s, Dates_format preferred, int absolute,
                double *jul, Dates_format *recognized);
 int parse_date_or_number(const char* s, int absolute, double *value);
