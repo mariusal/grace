@@ -2849,6 +2849,9 @@ void AddDialogFormChild(Widget form, Widget child)
             XmNtopAttachment, XmATTACH_WIDGET,
             XmNtopWidget, last_widget,
             NULL);
+        XtVaSetValues(last_widget,
+            XmNbottomAttachment, XmATTACH_NONE,
+            NULL);
     } else {
         XtVaSetValues(child,
             XmNtopAttachment, XmATTACH_FORM,
@@ -2857,7 +2860,7 @@ void AddDialogFormChild(Widget form, Widget child)
     XtVaSetValues(child,
         XmNleftAttachment, XmATTACH_FORM,
         XmNrightAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_NONE,
+        XmNbottomAttachment, XmATTACH_FORM,
         NULL);
     XtVaSetValues(form,
         XmNuserData, child,
