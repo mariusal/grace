@@ -156,18 +156,20 @@ void do_hardcopy(Grace *grace)
 void plotone(Canvas *canvas, int gno)
 {
     GraphType gtype;
+    graph *g = graph_get(gno);
     
-    if (is_graph_active(gno) != TRUE || is_graph_hidden(gno) == TRUE) {
+    if (!g || g->hidden) {
         return;
     }
 
-    setclipping(canvas, TRUE);
-    
-    set_draw_mode(canvas, TRUE);
-    
     if (select_graph(gno) != RETURN_SUCCESS) {
         return;
     }
+    
+    canvas_set_clipview(canvas, &g->v);
+    setclipping(canvas, TRUE);
+    
+    set_draw_mode(canvas, TRUE);
     
     /* fill frame */
     fillframe(canvas, gno);

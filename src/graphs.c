@@ -415,7 +415,6 @@ int select_graph(int gno)
             g->xscale,  g->yscale,
             g->xinvert, g->yinvert) == RETURN_SUCCESS) {
 
-        grace->rt->canvas->clipview = g->v;
         cg = gno;
 
         return RETURN_SUCCESS;
