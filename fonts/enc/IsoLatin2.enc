@@ -3,6 +3,8 @@ I hope this is correct representation of ISO-8859-2
 encoding, which is used in most Center European languages.
 
 Drop me a mail at <jirap@bajt.cz>, if you find a bug here.
+
+Modified by ES: cleared 0x9? slots and replaced 0xB7 circumflex->caron
 ----------------------------------------------------------
 
 Encoding=ISOLatin2Encoding        /* The name of the encoding scheme */
@@ -150,23 +152,23 @@ asciitilde                        /* '176  126  "7E */
 .notdef                           /* '215  141  "8D */
 .notdef                           /* '216  142  "8E */
 .notdef                           /* '217  143  "8F */
-dotlessi                          /* '220  144  "90 */
-grave                             /* '221  145  "91 */
-acute                             /* '222  146  "92 */
-circumflex                        /* '223  147  "93 */
-tilde                             /* '224  148  "94 */
+.notdef                           /* '220  144  "90 */
+.notdef                           /* '221  145  "91 */
+.notdef                           /* '222  146  "92 */
+.notdef                           /* '223  147  "93 */
+.notdef                           /* '224  148  "94 */
 .notdef                           /* '225  149  "95 */
-breve                             /* '226  150  "96 */
+.notdef                           /* '226  150  "96 */
 .notdef                           /* '227  151  "97 */
 .notdef                           /* '230  152  "98 */
 .notdef                           /* '231  153  "99 */
-ring                              /* '232  154  "9A */
+.notdef                           /* '232  154  "9A */
 .notdef                           /* '233  155  "9B */
 .notdef                           /* '234  156  "9C */
-hungarumlaut                      /* '235  157  "9D */
-ogonek                            /* '236  158  "9E */
-caron                             /* '237  159  "9F */
-.notdef                           /* '240  160  "A0 */
+.notdef                           /* '235  157  "9D */
+.notdef                           /* '236  158  "9E */
+.notdef                           /* '237  159  "9F */
+space                             /* '240  160  "A0 */
 Aogonek                           /* '241  161  "A1 */
 breve                             /* '242  162  "A2 */
 Lslash                            /* '243  163  "A3 */
@@ -189,7 +191,7 @@ lslash                            /* '263  179  "B3 */
 acute                             /* '264  180  "B4 */
 lcaron                            /* '265  181  "B5 */
 sacute                            /* '266  182  "B6 */
-circumflex                        /* '267  183  "B7 */
+caron                             /* '267  183  "B7 */
 cedilla                           /* '270  184  "B8 */
 scaron                            /* '271  185  "B9 */
 scedilla                          /* '272  186  "BA */
