@@ -111,7 +111,7 @@ void lock_dirtystate(void);
 int is_dirtystate(void);
 
 int system_wrap(const char *string);
-unsigned int sleep_wrap(unsigned int nsec);
+void sleep_wrap(unsigned int nsec);
 
 char *set_locale_num(int flag);
 

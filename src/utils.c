@@ -1387,17 +1387,19 @@ int system_wrap(const char *string)
     return retval;
 }
 
-unsigned int sleep_wrap(unsigned int nsec)
+void sleep_wrap(unsigned int nsec)
 {
-    unsigned int retval;
     void (*save_handler)(int);
+    struct timeval timeout;
     
     save_handler = signal(SIGALRM, SIG_IGN);
-    retval = sleep(nsec);
+    
+    timeout.tv_sec = nsec;
+    timeout.tv_usec = 0;
+    select(0, NULL, NULL, NULL, &timeout);
+    
     signal(SIGALRM, save_handler);
     alarm((int) ceil((double) timer_delay/1000));
-    
-    return retval;
 }
 
 char *set_locale_num(int flag)
