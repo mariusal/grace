@@ -625,7 +625,8 @@ multi_list:
         ;
 
 list:
-	parmset {}
+	/* empty */
+	| parmset {}
 	| parmset_obs {}
 	| regionset {}
 	| setaxis {}
