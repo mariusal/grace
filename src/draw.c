@@ -96,7 +96,7 @@ void canvas_dev_fillpolygon(Canvas *canvas, const VPoint *vps, int nc)
 }
 
 void canvas_dev_drawarc(Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     canvas_stats_update(canvas, CANVAS_STATS_LINE);
     if (!canvas->drypass) {
@@ -105,7 +105,7 @@ void canvas_dev_drawarc(Canvas *canvas,
 }
 
 void canvas_dev_fillarc(Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     canvas_stats_update(canvas, CANVAS_STATS_PEN);
     if (!canvas->drypass) {
@@ -601,7 +601,7 @@ void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
  * DrawArc - draw an arc line 
  */
 void DrawArc(Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int angle1, int angle2)
+    const VPoint *vp1, const VPoint *vp2, double angle1, double angle2)
 {
     view v;
     
@@ -624,7 +624,7 @@ void DrawArc(Canvas *canvas,
  * DrawFilledArc - draw a filled arc 
  */
 void DrawFilledArc(Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int angle1, int angle2, int mode)
+    const VPoint *vp1, const VPoint *vp2, double angle1, double angle2, int mode)
 {
     if (getpattern(canvas) == 0) {
         return;
@@ -703,7 +703,7 @@ void DrawLine(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
  */
 void DrawEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
-    DrawArc(canvas, vp1, vp2, 0, 0);
+    DrawArc(canvas, vp1, vp2, 0.0, 0.0);
 }
 
 /*
@@ -711,7 +711,7 @@ void DrawEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
  */
 void DrawFilledEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
-    DrawFilledArc(canvas, vp1, vp2, 0, 0, ARCFILL_CHORD);
+    DrawFilledArc(canvas, vp1, vp2, 0.0, 0.0, ARCFILL_CHORD);
 }
 
 /*
@@ -726,7 +726,7 @@ void DrawCircle(Canvas *canvas, const VPoint *vp, double radius)
     vp2.x = vp->x + radius;
     vp2.y = vp->y + radius;
     
-    DrawArc(canvas, &vp1, &vp2, 0, 0);
+    DrawArc(canvas, &vp1, &vp2, 0.0, 0.0);
 }
 
 /*
@@ -741,7 +741,7 @@ void DrawFilledCircle(Canvas *canvas, const VPoint *vp, double radius)
     vp2.x = vp->x + radius;
     vp2.y = vp->y + radius;
     
-    DrawFilledArc(canvas, &vp1, &vp2, 0, 0, ARCFILL_CHORD);
+    DrawFilledArc(canvas, &vp1, &vp2, 0.0, 0.0, ARCFILL_CHORD);
 }
 
 

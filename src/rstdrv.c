@@ -448,7 +448,7 @@ void rst_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 }
 
 void rst_drawarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     gdPoint gdp1, gdp2, gdc;
     int w, h;
@@ -462,11 +462,11 @@ void rst_drawarc(const Canvas *canvas,
     
     rst_setdrawbrush(canvas);
     
-    gdImageArc(ihandle, gdc.x, gdc.y, w, h, a1, a2, rst_drawbrush);
+    gdImageArc(ihandle, gdc.x, gdc.y, w, h, (int) rint(a1), (int) rint(a2), rst_drawbrush);
 }
 
 void rst_fillarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     gdPoint gdp1, gdp2, gdc;
     int w, h;
@@ -479,7 +479,7 @@ void rst_fillarc(const Canvas *canvas,
     h = (gdp2.y - gdp1.y);
     
     rst_setfillbrush(canvas);
-    gdImageFilledArc(ihandle, gdc.x, gdc.y, w, h, a1, a2,
+    gdImageFilledArc(ihandle, gdc.x, gdc.y, w, h, (int) rint(a1), (int) rint(a2),
         mode == ARCFILL_CHORD ? gdArcFillChord:gdArcFillPieSlice, rst_fillbrush);
 }
 

@@ -284,10 +284,10 @@ typedef void (*DevFillPolygonProc)(const Canvas *canvas,
     const VPoint *vps, int nc);
 /* device arc routine */
 typedef void (*DevDrawArcProc)(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2);
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2);
 /* device fill arc routine */
 typedef void (*DevFillArcProc)(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode);
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
 /* device pixmap drawing */
 typedef void (*DevPutPixmapProc)(const Canvas *canvas,
     const VPoint *vp, int width, int height, char *databits,
@@ -487,9 +487,9 @@ void DrawPixel(Canvas *canvas, const VPoint *vp);
 void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode);
 void DrawPolygon(Canvas *canvas, const VPoint *vps, int n);
 void DrawArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
-    int angle1, int angle2);
+    double angle1, double angle2);
 void DrawFilledArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
-    int angle1, int angle2, int mode);
+    double angle1, double angle2, int mode);
 void WriteString(Canvas *canvas,
     const VPoint *vp, double angle, int just, const char *s);
 
@@ -647,9 +647,9 @@ void canvas_dev_drawpolyline(Canvas *canvas,
     const VPoint *vps, int n, int mode);
 void canvas_dev_fillpolygon(Canvas *canvas, const VPoint *vps, int nc);
 void canvas_dev_drawarc(Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2);
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2);
 void canvas_dev_fillarc(Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode);
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
 void canvas_dev_putpixmap(Canvas *canvas,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type);

@@ -431,7 +431,7 @@ void pdf_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 }
 
 void pdf_arc_path(const VPoint *vp1, const VPoint *vp2,
-    int a1, int a2, int mode)
+    double a1, double a2, int mode)
 {
     VPoint vpc;
     double rx, ry;
@@ -462,7 +462,7 @@ void pdf_arc_path(const VPoint *vp1, const VPoint *vp2,
 }
 
 void pdf_drawarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     if (getlinestyle(canvas) == 0) {
         return;
@@ -476,7 +476,7 @@ void pdf_drawarc(const Canvas *canvas,
 }
 
 void pdf_fillarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     Pen pen;
 

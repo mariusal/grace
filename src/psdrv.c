@@ -848,7 +848,7 @@ void ps_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 }
 
 void ps_drawarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     VPoint vpc;
     double rx, ry;
@@ -860,12 +860,12 @@ void ps_drawarc(const Canvas *canvas,
     rx = fabs(vp2->x - vp1->x)/2;
     ry = fabs(vp2->y - vp1->y)/2;
     
-    fprintf(canvas->prstream, "n %.4f %.4f %.4f %.4f %d %d EARC s\n",
+    fprintf(canvas->prstream, "n %.4f %.4f %.4f %.4f %.4f %.4f EARC s\n",
                        vpc.x, vpc.y, rx, ry, a1, a2);
 }
 
 void ps_fillarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     VPoint vpc;
     double rx, ry;
@@ -886,7 +886,7 @@ void ps_fillarc(const Canvas *canvas,
     if (mode == ARCFILL_PIESLICE) {
         fprintf(canvas->prstream, "%.4f %.4f m\n", vpc.x, vpc.y);
     }
-    fprintf(canvas->prstream, "%.4f %.4f %.4f %.4f %d %d EARC c\n",
+    fprintf(canvas->prstream, "%.4f %.4f %.4f %.4f %.4f %.4f EARC c\n",
                        vpc.x, vpc.y, rx, ry, a1, a2);
 
     /* fill bg first if the pattern != solid */

@@ -502,15 +502,13 @@ void svg_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 }
 
 void svg_drawarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
     VPoint center;
     double rx, ry;
 
-    a2 += a1;
-    
-    if (a1 == a2) {
+    if (a2 == 0.0) {
         return;
     }
     
@@ -521,7 +519,7 @@ void svg_drawarc(const Canvas *canvas,
 
     svg_group_props(canvas, TRUE, FALSE);
 
-    if ((a1 - a2)%360 == 0) {
+    if (a2 == 360.0) {
         fprintf(canvas->prstream,
             "   <ellipse  rx=\"%.4f\" ry=\"%.4f\" cx=\"%.4f\" cy=\"%.4f\"/>\n",
             convertW(data, rx), convertH(data, ry),
@@ -529,6 +527,8 @@ void svg_drawarc(const Canvas *canvas,
     } else {
         VPoint start, end;
         
+        a2 += a1;
+
         start.x = center.x + rx*cos((M_PI/180.0)*a1);
         start.y = center.y + ry*sin((M_PI/180.0)*a1);
         end.x   = center.x + rx*cos((M_PI/180.0)*a2);
@@ -539,22 +539,20 @@ void svg_drawarc(const Canvas *canvas,
             convertX(data, start.x), convertY(data, start.y),
             convertW(data, rx), convertH(data, ry),
             0,
-            (abs(a2 - a1) > 180) ? 1 : 0,
+            (fabs(a2 - a1) > 180) ? 1 : 0,
             (a2 > a1) ? 0 : 1,
             convertX(data, end.x), convertY(data, end.y));
     }
 }
 
 void svg_fillarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
     VPoint center;
     double rx, ry;
 
-    a2 += a1;
-
-    if (a1 == a2) {
+    if (a2 == 0.0) {
         return;
     }
 
@@ -565,7 +563,7 @@ void svg_fillarc(const Canvas *canvas,
 
     svg_group_props(canvas, FALSE, TRUE);
 
-    if ((a1 - a2)%360 == 0) {
+    if (a2 == 360.0) {
         fprintf(canvas->prstream,
             "   <ellipse  rx=\"%.4f\" ry=\"%.4f\" cx=\"%.4f\" cy=\"%.4f\"/>\n",
             convertW(data, rx), convertH(data, ry),
@@ -573,6 +571,8 @@ void svg_fillarc(const Canvas *canvas,
     } else {
         VPoint start, end;
         
+        a2 += a1;
+
         start.x = center.x + rx*cos((M_PI/180.0)*a1);
         start.y = center.y + ry*sin((M_PI/180.0)*a1);
         end.x   = center.x + rx*cos((M_PI/180.0)*a2);
@@ -584,7 +584,7 @@ void svg_fillarc(const Canvas *canvas,
                 convertX(data, start.x), convertY(data, start.y),
                 convertW(data, rx), convertH(data, ry),
                 0,
-                (abs(a2 - a1) > 180) ? 1 : 0,
+                (fabs(a2 - a1) > 180) ? 1 : 0,
                 (a2 > a1) ? 0 : 1,
                 convertX(data, end.x), convertY(data, end.y));
         } else {
@@ -594,7 +594,7 @@ void svg_fillarc(const Canvas *canvas,
                 convertX(data, start.x), convertY(data, start.y),
                 convertW(data, rx), convertH(data, ry),
                 0,
-                (abs(a2 - a1) > 180) ? 1 : 0,
+                (fabs(a2 - a1) > 180) ? 1 : 0,
                 (a2 > a1) ? 0 : 1,
                 convertX(data, end.x), convertY(data, end.y));
         }

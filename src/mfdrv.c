@@ -183,18 +183,18 @@ void mf_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 }
 
 void mf_drawarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     mf_setpen(canvas);
     mf_setdrawbrush(canvas);
     
     fprintf(canvas->prstream,
-        "DrawArc { ( %.4f , %.4f ) ( %.4f , %.4f ) %d %d }\n", 
+        "DrawArc { ( %.4f , %.4f ) ( %.4f , %.4f ) %.4f %.4f }\n", 
         vp1->x, vp1->y, vp2->x, vp2->y, a1, a2);
 }
 
 void mf_fillarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     char *name;
     
@@ -206,7 +206,7 @@ void mf_fillarc(const Canvas *canvas,
     } else {
         name = "FillPieSlice";
     }
-    fprintf(canvas->prstream, "%s { ( %.4f , %.4f ) ( %.4f , %.4f ) %d %d }\n", 
+    fprintf(canvas->prstream, "%s { ( %.4f , %.4f ) ( %.4f , %.4f ) %.4f %.4f }\n", 
         name, vp1->x, vp1->y, vp2->x, vp2->y, a1, a2);
 }
 

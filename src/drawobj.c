@@ -118,12 +118,12 @@ static void draw_object(Canvas *canvas, DObject *o)
             setpen(canvas, &o->fillpen);
             /* FIXME: implement true ellipse rotation! */
             DrawFilledArc(canvas, &vp1, &vp2,
-                (int) (e->angle1 + o->angle), (int) (e->angle2 + o->angle),
+                e->angle1 + o->angle, e->angle2 + o->angle,
                 e->fillmode);
 
             setline(canvas, &o->line);
             DrawArc(canvas, &vp1, &vp2,
-                (int) (e->angle1 + o->angle), (int) (e->angle2 + o->angle));
+                e->angle1 + o->angle, e->angle2 + o->angle);
         }
         break;
     case DO_STRING:

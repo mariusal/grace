@@ -478,7 +478,7 @@ void mif_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 }
 
 static void mif_arc(const Canvas *canvas,
-    int draw, int fill, const VPoint *vp1, const VPoint *vp2, int a1, int a2)
+    int draw, int fill, const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
 
     double side;
@@ -491,9 +491,9 @@ static void mif_arc(const Canvas *canvas,
             MIN2(vp1->x, vp2->x)*side + MIF_MARGIN,
             (1.0 - MAX2(vp1->y, vp2->y))*side + MIF_MARGIN,
             fabs(vp2->x - vp1->x)*side, fabs(vp2->y - vp1->y)*side);
-    fprintf(canvas->prstream, "   <ArcTheta %d>\n",
+    fprintf(canvas->prstream, "   <ArcTheta %8.3f>\n",
             (a2 > 90) ? (450 - a2) : (90 - a2));
-    fprintf(canvas->prstream, "   <ArcDTheta %d>\n", a2 - a1);
+    fprintf(canvas->prstream, "   <ArcDTheta %8.3f>\n", a2 - a1);
     switch (getlinecap(canvas)) {
     case LINECAP_BUTT :
         fprintf(canvas->prstream, "   <HeadCap Butt>\n");
@@ -516,14 +516,14 @@ static void mif_arc(const Canvas *canvas,
 }
 
 void mif_drawarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     a2 += a1;
     mif_arc(canvas, TRUE, FALSE, vp1, vp2, a1, a2);
 }
 
 void mif_fillarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     double rx, ry;
     VPoint vp[3];

@@ -56,9 +56,9 @@ void rst_drawpixel(const Canvas *canvas, const VPoint *vp);
 void rst_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
 void rst_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc);
 void rst_drawarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a);
+    const VPoint *vp1, const VPoint *vp2, double a1, double a);
 void rst_fillarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode);
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
 void rst_putpixmap(const Canvas *canvas,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type);

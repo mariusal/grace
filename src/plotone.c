@@ -325,8 +325,8 @@ void draw_pie_chart(Canvas *canvas, int gno)
                     }
                     setpen(canvas, &pen);
                     DrawFilledArc(canvas, &vp1, &vp2,
-                        (int) rint(180.0/M_PI*start_angle),
-                        (int) rint(180.0/M_PI*(stop_angle - start_angle)),
+                        180.0/M_PI*start_angle,
+                        180.0/M_PI*(stop_angle - start_angle),
                         ARCFILL_PIESLICE);
                     
                     setpen(canvas, &p->sympen);
@@ -334,8 +334,8 @@ void draw_pie_chart(Canvas *canvas, int gno)
                     setlinestyle(canvas, p->symlines);
                     DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
                     DrawArc(canvas, &vp1, &vp2,
-                        (int) rint(180.0/M_PI*start_angle),
-                        (int) rint(180.0/M_PI*(stop_angle - start_angle)));
+                        180.0/M_PI*start_angle,
+                        180.0/M_PI*(stop_angle - start_angle));
 
                     avalue = p->avalue;
 

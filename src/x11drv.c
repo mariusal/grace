@@ -513,7 +513,7 @@ void xlibfillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
  *  xlibdrawarc
  */
 void xlibdrawarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     int x1, y1, x2, y2;
     
@@ -524,7 +524,7 @@ void xlibdrawarc(const Canvas *canvas,
     
     if (x1 != x2 || y1 != y2) {
         XDrawArc(disp, displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
-              abs(x2 - x1), abs(y2 - y1), 64 * a1, 64 * a2);
+              abs(x2 - x1), abs(y2 - y1), (int) rint(64*a1), (int) rint(64*a2));
     } else { /* zero radius */
         XDrawPoint(disp, displaybuff, gc, x1, y1);
     }
@@ -534,7 +534,7 @@ void xlibdrawarc(const Canvas *canvas,
  *  xlibfillarc
  */
 void xlibfillarc(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     int x1, y1, x2, y2;
     
@@ -552,7 +552,7 @@ void xlibfillarc(const Canvas *canvas,
             }
         }
         XFillArc(disp, displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
-           abs(x2 - x1), abs(y2 - y1), 64 * a1, 64 * a2);
+           abs(x2 - x1), abs(y2 - y1), (int) rint(64*a1), (int) rint(64*a2));
     } else { /* zero radius */
         XDrawPoint(disp, displaybuff, gc, x1, y1);
     }
