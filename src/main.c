@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     
     grace = grace_new();
     if (!grace) {
-        errmsg("FIXME");
+        errmsg("Failed to allocate run-time structures");
         exit(1);
     }
     
@@ -201,432 +201,427 @@ int main(int argc, char *argv[])
 
     cur_graph = get_cg();
     
-    if (argc >= 2) {
-	for (i = 1; i < argc; i++) {
-	    if (argv[i][0] == '-' && argv[i][1] != '\0') {
-		if (argmatch(argv[i], "-version", 2)) {
-                    VersionInfo();
-		    exit(0);
-		}
+    for (i = 1; i < argc; i++) {
+	if (argv[i][0] == '-' && argv[i][1] != '\0') {
+	    if (argmatch(argv[i], "-version", 2)) {
+                VersionInfo();
+		exit(0);
+	    }
 #if defined(DEBUG)
-		if (argmatch(argv[i], "-debug", 6)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for debug flag\n");
-			usage(stderr, argv[0]);
-		    } else {
-		    	set_debuglevel(atoi(argv[i]));
-		    	if (get_debuglevel() == 4) { 
-			    /* turn on debugging in pars.y */
-			    yydebug = TRUE;
-		    	}
-		    }
-		} else
-#endif
-		       if (argmatch(argv[i], "-nosigcatch", 6)) {
-		    sigcatch = FALSE;
-		} else if (argmatch(argv[i], "-autoscale", 2)) {
-		    i++;
-		    if (i == argc) {
-			errmsg("Missing argument for autoscale flag");
-			usage(stderr, argv[0]);
-		    } else {
-			if (!strcmp("x", argv[i])) {
-			    rt->autoscale_onread = AUTOSCALE_X;
-			} else if (!strcmp("y", argv[i])) {
-			    rt->autoscale_onread = AUTOSCALE_Y;
-			} else if (!strcmp("xy", argv[i])) {
-			    rt->autoscale_onread = AUTOSCALE_XY;
-			} else if (!strcmp("none", argv[i])) {
-			    rt->autoscale_onread = AUTOSCALE_NONE;
-			} else {
-			    errmsg("Improper argument for autoscale flag");
-			    usage(stderr, argv[0]);
-			}
-		    }
-		} else if (argmatch(argv[i], "-batch", 2)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for batch file\n");
-			usage(stderr, argv[0]);
-		    } else {
-			strcpy(batchfile, argv[i]);
-		    }
-		} else if (argmatch(argv[i], "-datehint", 5)) {
-		    i++;
-		    if (i == argc) {
-			errmsg("Missing argument for datehint flag");
-			usage(stderr, argv[0]);
-		    } else {
-			if (!strcmp("iso", argv[i])) {
-			    set_date_hint(FMT_iso);
-			} else if (!strcmp("european", argv[i])) {
-			    set_date_hint(FMT_european);
-			} else if (!strcmp("us", argv[i])) {
-			    set_date_hint(FMT_us);
-			} else if (!strcmp("nohint", argv[i])) {
-			    set_date_hint(FMT_nohint);
-			} else {
-			    errmsg("Improper argument for datehint flag");
-			    usage(stderr, argv[0]);
-			}
-		    }
-		} else if (argmatch(argv[i], "-pipe", 5)) {
-		    inpipe = TRUE;
-		} else if (argmatch(argv[i], "-noprint", 8)) {
-		    noprint = TRUE;
-		} else if (argmatch(argv[i], "-dpipe", 6)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for descriptor pipe\n");
-			usage(stderr, argv[0]);
-		    } else {
-                        fd = atoi(argv[i]);
-                        sprintf(fd_name, "pipe<%d>", fd);
-                        if (register_real_time_input(fd, fd_name, FALSE) !=
-                            RETURN_SUCCESS) {
-                            exit(1);
-                        }
-		    }
-		} else if (argmatch(argv[i], "-npipe", 6)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for named pipe\n");
-			usage(stderr, argv[0]);
-		    } else {
-                        fd = open(argv[i], O_RDONLY | O_NONBLOCK);
-                        if (fd < 0) {
-                            fprintf(stderr, "Can't open fifo\n");
-                        } else {
-                            if (register_real_time_input(fd, argv[i], TRUE) !=
-                                RETURN_SUCCESS) {
-                                exit(1);
-                            }
-                        }
-		    }
-#ifdef HAVE_NETCDF
-		} else if (argmatch(argv[i], "-netcdf", 7) || argmatch(argv[i], "-hdf", 4)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for netcdf file\n");
-			usage(stderr, argv[0]);
-		    } else {
-			strcpy(netcdf_name, argv[i]);
-		    }
-		} else if (argmatch(argv[i], "-netcdfxy", 9) || argmatch(argv[i], "-hdfxy", 6)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for netcdf X variable name\n");
-			usage(stderr, argv[0]);
-		    } else {
-			strcpy(xvar_name, argv[i]);
-		    }
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for netcdf Y variable name\n");
-			usage(stderr, argv[0]);
-		    } else {
-			strcpy(yvar_name, argv[i]);
-		    }
-		    if (strcmp(xvar_name, "null")) {
-			readnetcdf(cur_graph, -1, netcdf_name, xvar_name, yvar_name, -1, -1, 1);
-		    } else {
-			readnetcdf(cur_graph, -1, netcdf_name, NULL, yvar_name, -1, -1, 1);
-		    }
-#endif				/* HAVE_NETCDF */
-		} else if (argmatch(argv[i], "-timer", 6)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for time delay\n");
-			usage(stderr, argv[0]);
-		    } else {
-			rt->timer_delay = atoi(argv[i]);
-		    }
-#ifndef NONE_GUI
-		} else if (argmatch(argv[i], "-install", 7)) {
-		    install_cmap = CMAP_INSTALL_ALWAYS;
-		} else if (argmatch(argv[i], "-noinstall", 9)) {
-		    install_cmap = CMAP_INSTALL_NEVER;
-		} else if (argmatch(argv[i], "-barebones", 9)) {
-		    set_barebones( TRUE );
-#endif
-		} else if (argmatch(argv[i], "-timestamp", 10)) {
-		    project->timestamp.active = TRUE;
-		} else if (argmatch(argv[i], "-remove", 7)) {
-		    remove_flag = TRUE;
-		} else if (argmatch(argv[i], "-fixed", 5)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for fixed canvas width\n");
-			usage(stderr, argv[0]);
-		    } else {
-		        if (i == argc - 1) {
-			    fprintf(stderr, "Missing argument for fixed canvas height\n");
-			    usage(stderr, argv[0]);
-		        } else {
-                            wpp = atoi(argv[i]);
-		    	    i++;
-		    	    hpp = atoi(argv[i]);
-                            set_page_dimensions(wpp, hpp, FALSE);
-#ifndef NONE_GUI
-		    	    set_pagelayout(PAGE_FIXED);
-#endif
-			}
-		    }
-#ifndef NONE_GUI
-		} else if (argmatch(argv[i], "-free", 5)) {
-		    set_pagelayout(PAGE_FREE);
-#endif
-		} else if (argmatch(argv[i], "-noask", 5)) {
-		    gui->noask = TRUE;
-#ifndef NONE_GUI
-		} else if (argmatch(argv[i], "-mono", 5)) {
-		    gui->monomode = TRUE;
-#endif
-		} else if (argmatch(argv[i], "-hdevice", 5)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for hardcopy device select flag\n");
-			usage(stderr, argv[0]);
-		    } else {
-		        if (set_printer_by_name(argv[i]) != RETURN_SUCCESS) {
-                            errmsg("Unknown or unsupported device");
-                            exit(1);
-                        }
-                    }
-		} else if (argmatch(argv[i], "-log", 2)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for log plots flag\n");
-			usage(stderr, argv[0]);
-		    }
-		    if (!strcmp("x", argv[i])) {
-			set_graph_xscale(cur_graph, SCALE_LOG);
-		    } else if (!strcmp("y", argv[i])) {
-			set_graph_yscale(cur_graph, SCALE_LOG);
-		    } else if (!strcmp("xy", argv[i])) {
-			set_graph_xscale(cur_graph, SCALE_LOG);
-			set_graph_yscale(cur_graph, SCALE_LOG);
-		    } else {
-			fprintf(stderr, "%s: Improper argument for -l flag; should be one of 'x', 'y', 'xy'\n", argv[0]);
-		    }
-		} else if (argmatch(argv[i], "-printfile", 6)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing file name for printing\n");
-			usage(stderr, argv[0]);
-		    } else {
-			set_ptofile(TRUE);
-                        strcpy(print_file, argv[i]);
-		    }
-		} else if (argmatch(argv[i], "-hardcopy", 6)) {
-		    gracebat = TRUE;
-		} else if (argmatch(argv[i], "-pexec", 6)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for exec\n");
-			usage(stderr, argv[0]);
-		    } else {
-			scanner(argv[i]);
-		    }
-		} else if (argmatch(argv[i], "-graph", 6)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing parameter for graph select\n");
-			usage(stderr, argv[0]);
-		    } else {
-			sscanf(argv[i], "%d", &gno);
-			if (set_graph_active(gno, TRUE) == RETURN_SUCCESS) {
-			    cur_graph = gno;
-                            select_graph(gno);
-			} else {
-			    fprintf(stderr, "Error activating graph %d\n", gno);
-			}
-		    }
-		} else if (argmatch(argv[i], "-block", 6)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing filename for block data\n");
-			usage(stderr, argv[0]);
-		    } else {
-			getdata(cur_graph, argv[i], rt->cursource, LOAD_BLOCK);
-		    }
-		} else if (argmatch(argv[i], "-bxy", 4)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing parameter for block data set creation\n");
-			usage(stderr, argv[0]);
-		    } else {
-                        int nc, *cols;
-                        field_string_to_cols(argv[i], &nc, &cols);
-                        if (field_string_to_cols(argv[i], &nc, &cols) !=
-                            RETURN_SUCCESS) {
-                            errmsg("Erroneous field specifications");
-                            return 1;
-                        }
-		        create_set_fromblock(cur_graph, NEW_SET,
-                            rt->curtype, nc, cols, -1, rt->autoscale_onread);
-                        xfree(cols);
-                    }
-		} else if (argmatch(argv[i], "-nxy", 4)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing filename for nxy data\n");
-			usage(stderr, argv[0]);
-		    } else {
-			getdata(cur_graph, argv[i], rt->cursource, LOAD_NXY);
-		    }
-		} else if (argmatch(argv[i], "-type", 2) ||
-                           argmatch(argv[i], "-settype", 8)) {
-		    /* set types */
-		    i++;
-                    rt->curtype = get_settype_by_name(argv[i]);
-                    if (rt->curtype == -1) {
-			fprintf(stderr, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
-			usage(stderr, argv[0]);
-		    }
-		} else if (argmatch(argv[i], "-graphtype", 7)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for graph type\n");
-		    } else {
-			if (!strcmp("xy", argv[i])) {
-			    set_graph_type(cur_graph, GRAPH_XY);
-			} else if (!strcmp("polar", argv[i])) {
-			    set_graph_type(cur_graph, GRAPH_POLAR);
-			} else if (!strcmp("bar", argv[i])) {
-			    set_graph_type(cur_graph, GRAPH_CHART);
-			} else if (!strcmp("smith", argv[i])) {
-			    set_graph_type(cur_graph, GRAPH_SMITH);
-			} else if (!strcmp("fixed", argv[i])) {
-			    set_graph_type(cur_graph, GRAPH_FIXED);
-			} else {
-			    fprintf(stderr, "%s: Improper argument for -graphtype\n", argv[0]);
-			    usage(stderr, argv[0]);
-			}
-		    }
-		} else if (argmatch(argv[i], "-legend", 4)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for -legend\n");
-			usage(stderr, argv[0]);
-		    } else {
-			if (!strcmp("load", argv[i])) {
-			    loadlegend = TRUE;
-			    set_graph_legend_active(cur_graph, TRUE);
-			} else {
-			    fprintf(stderr, "Improper argument for -legend\n");
-			    usage(stderr, argv[0]);
-			}
-		    }
-		} else if (argmatch(argv[i], "-rvideo", 7)) {
-		    reverse_video();
-		} else if (argmatch(argv[i], "-param", 2)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing parameter file name\n");
-			usage(stderr, argv[0]);
-		    } else {
-			if (!getparms(argv[i])) {
-			    fprintf(stderr, "Unable to read parameter file %s\n", argv[i]);
-			}
-		    }
-		} else if (argmatch(argv[i], "-results", 2)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing results file name\n");
-			usage(stderr, argv[0]);
-		    } else {
-                        /*  open resfile if -results option given */
-		        if ((rt->resfp = grace_openw(argv[i])) == NULL) {
-		            exit(1);
-		        }
-		    }
-		} else if (argmatch(argv[i], "-saveall", 8)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing save file name\n");
-			usage(stderr, argv[0]);
-		    } else {
-			save_project(argv[i]);
-		    }
-		} else if (argmatch(argv[i], "-wd", 3)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing parameters for working directory\n");
-			usage(stderr, argv[0]);
-		    } else {
-			if (set_workingdir(argv[i]) != RETURN_SUCCESS) {
-			    fprintf(stderr, "Can't change to directory %s, fatal error", argv[i]);
-			    exit(1);
-			}
-		    }
-		} else if (argmatch(argv[i], "-source", 2)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for data source parameter\n");
-			usage(stderr, argv[0]);
-		    }
-		    if (argmatch(argv[i], "pipe", 4)) {
-			rt->cursource = SOURCE_PIPE;
-		    } else if (argmatch(argv[i], "disk", 4)) {
-			rt->cursource = SOURCE_DISK;
-		    }
-		} else if (argmatch(argv[i], "-viewport", 2)) {
-		    i++;
-		    if (i > argc - 4) {
-			fprintf(stderr, "Missing parameter(s) for viewport setting\n");
-			usage(stderr, argv[0]);
-		    } else {
-			v.xv1 = atof(argv[i++]);
-			v.yv1 = atof(argv[i++]);
-			v.xv2 = atof(argv[i++]);
-			v.yv2 = atof(argv[i]);
-			set_graph_viewport(cur_graph, v);
-		    }
-		} else if (argmatch(argv[i], "-world", 2)) {
-		    i++;
-		    if (i > argc - 4) {
-			fprintf(stderr, "Missing parameter(s) for world setting\n");
-			usage(stderr, argv[0]);
-		    } else {
-			w.xg1 = atof(argv[i++]);
-			w.yg1 = atof(argv[i++]);
-			w.xg2 = atof(argv[i++]);
-			w.yg2 = atof(argv[i]);
-                        set_graph_world(cur_graph, w);
-		    }
-		} else if (argmatch(argv[i], "-seed", 5)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing seed for srand48()\n");
-			usage(stderr, argv[0]);
-		    } else {
-			srand48(atol(argv[i]));	/* note atol() */
-		    }
-		} else if (argmatch(argv[i], "-help", 2)) {
-		    usage(stdout, argv[0]);
-		} else if (argmatch(argv[i], "-usage", 5)) {
-		    usage(stdout, argv[0]);
+	    if (argmatch(argv[i], "-debug", 6)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for debug flag\n");
+		    usage(stderr, argv[0]);
 		} else {
-		    fprintf(stderr, "No option %s\n", argv[i]);
+		    set_debuglevel(atoi(argv[i]));
+		    if (get_debuglevel() == 4) { 
+			/* turn on debugging in pars.y */
+			yydebug = TRUE;
+		    }
+		}
+	    } else
+#endif
+	    if (argmatch(argv[i], "-nosigcatch", 6)) {
+		sigcatch = FALSE;
+	    } else if (argmatch(argv[i], "-autoscale", 2)) {
+		i++;
+		if (i == argc) {
+		    errmsg("Missing argument for autoscale flag");
+		    usage(stderr, argv[0]);
+		} else {
+		    if (!strcmp("x", argv[i])) {
+			rt->autoscale_onread = AUTOSCALE_X;
+		    } else if (!strcmp("y", argv[i])) {
+			rt->autoscale_onread = AUTOSCALE_Y;
+		    } else if (!strcmp("xy", argv[i])) {
+			rt->autoscale_onread = AUTOSCALE_XY;
+		    } else if (!strcmp("none", argv[i])) {
+			rt->autoscale_onread = AUTOSCALE_NONE;
+		    } else {
+			errmsg("Improper argument for autoscale flag");
+			usage(stderr, argv[0]);
+		    }
+		}
+	    } else if (argmatch(argv[i], "-batch", 2)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for batch file\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    strcpy(batchfile, argv[i]);
+		}
+	    } else if (argmatch(argv[i], "-datehint", 5)) {
+		i++;
+		if (i == argc) {
+		    errmsg("Missing argument for datehint flag");
+		    usage(stderr, argv[0]);
+		} else {
+		    if (!strcmp("iso", argv[i])) {
+			set_date_hint(FMT_iso);
+		    } else if (!strcmp("european", argv[i])) {
+			set_date_hint(FMT_european);
+		    } else if (!strcmp("us", argv[i])) {
+			set_date_hint(FMT_us);
+		    } else if (!strcmp("nohint", argv[i])) {
+			set_date_hint(FMT_nohint);
+		    } else {
+			errmsg("Improper argument for datehint flag");
+			usage(stderr, argv[0]);
+		    }
+		}
+	    } else if (argmatch(argv[i], "-pipe", 5)) {
+		inpipe = TRUE;
+	    } else if (argmatch(argv[i], "-noprint", 8)) {
+		noprint = TRUE;
+	    } else if (argmatch(argv[i], "-dpipe", 6)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for descriptor pipe\n");
+		    usage(stderr, argv[0]);
+		} else {
+                    fd = atoi(argv[i]);
+                    sprintf(fd_name, "pipe<%d>", fd);
+                    if (register_real_time_input(fd, fd_name, FALSE) !=
+                        RETURN_SUCCESS) {
+                        exit(1);
+                    }
+		}
+	    } else if (argmatch(argv[i], "-npipe", 6)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for named pipe\n");
+		    usage(stderr, argv[0]);
+		} else {
+                    fd = open(argv[i], O_RDONLY | O_NONBLOCK);
+                    if (fd < 0) {
+                        fprintf(stderr, "Can't open fifo\n");
+                    } else {
+                        if (register_real_time_input(fd, argv[i], TRUE) !=
+                            RETURN_SUCCESS) {
+                            exit(1);
+                        }
+                    }
+		}
+#ifdef HAVE_NETCDF
+	    } else if (argmatch(argv[i], "-netcdf", 7) || argmatch(argv[i], "-hdf", 4)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for netcdf file\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    strcpy(netcdf_name, argv[i]);
+		}
+	    } else if (argmatch(argv[i], "-netcdfxy", 9) || argmatch(argv[i], "-hdfxy", 6)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for netcdf X variable name\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    strcpy(xvar_name, argv[i]);
+		}
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for netcdf Y variable name\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    strcpy(yvar_name, argv[i]);
+		}
+		if (strcmp(xvar_name, "null")) {
+		    readnetcdf(cur_graph, -1, netcdf_name, xvar_name, yvar_name, -1, -1, 1);
+		} else {
+		    readnetcdf(cur_graph, -1, netcdf_name, NULL, yvar_name, -1, -1, 1);
+		}
+#endif				/* HAVE_NETCDF */
+	    } else if (argmatch(argv[i], "-timer", 6)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for time delay\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    rt->timer_delay = atoi(argv[i]);
+		}
+#ifndef NONE_GUI
+	    } else if (argmatch(argv[i], "-install", 7)) {
+		install_cmap = CMAP_INSTALL_ALWAYS;
+	    } else if (argmatch(argv[i], "-noinstall", 9)) {
+		install_cmap = CMAP_INSTALL_NEVER;
+	    } else if (argmatch(argv[i], "-barebones", 9)) {
+		set_barebones( TRUE );
+#endif
+	    } else if (argmatch(argv[i], "-timestamp", 10)) {
+		project->timestamp.active = TRUE;
+	    } else if (argmatch(argv[i], "-remove", 7)) {
+		remove_flag = TRUE;
+	    } else if (argmatch(argv[i], "-fixed", 5)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for fixed canvas width\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    if (i == argc - 1) {
+			fprintf(stderr, "Missing argument for fixed canvas height\n");
+			usage(stderr, argv[0]);
+		    } else {
+                        wpp = atoi(argv[i]);
+		    	i++;
+		    	hpp = atoi(argv[i]);
+                        set_page_dimensions(wpp, hpp, FALSE);
+#ifndef NONE_GUI
+		    	set_pagelayout(PAGE_FIXED);
+#endif
+		    }
+		}
+#ifndef NONE_GUI
+	    } else if (argmatch(argv[i], "-free", 5)) {
+		set_pagelayout(PAGE_FREE);
+#endif
+	    } else if (argmatch(argv[i], "-noask", 5)) {
+		gui->noask = TRUE;
+#ifndef NONE_GUI
+	    } else if (argmatch(argv[i], "-mono", 5)) {
+		gui->monomode = TRUE;
+#endif
+	    } else if (argmatch(argv[i], "-hdevice", 5)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for hardcopy device select flag\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    if (set_printer_by_name(argv[i]) != RETURN_SUCCESS) {
+                        errmsg("Unknown or unsupported device");
+                        exit(1);
+                    }
+                }
+	    } else if (argmatch(argv[i], "-log", 2)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for log plots flag\n");
 		    usage(stderr, argv[0]);
 		}
-	    } else {
-		if (i != argc) {
-		    if (getdata(cur_graph, argv[i], rt->cursource, LOAD_SINGLE) ==
-                                                        RETURN_SUCCESS) {
-			set_docname(argv[i]);
-			if (remove_flag) {
-			    unlink(argv[i]);
-			}
-			clear_dirtystate();
+		if (!strcmp("x", argv[i])) {
+		    set_graph_xscale(cur_graph, SCALE_LOG);
+		} else if (!strcmp("y", argv[i])) {
+		    set_graph_yscale(cur_graph, SCALE_LOG);
+		} else if (!strcmp("xy", argv[i])) {
+		    set_graph_xscale(cur_graph, SCALE_LOG);
+		    set_graph_yscale(cur_graph, SCALE_LOG);
+		} else {
+		    fprintf(stderr, "%s: Improper argument for -l flag; should be one of 'x', 'y', 'xy'\n", argv[0]);
+		}
+	    } else if (argmatch(argv[i], "-printfile", 6)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing file name for printing\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    set_ptofile(TRUE);
+                    strcpy(print_file, argv[i]);
+		}
+	    } else if (argmatch(argv[i], "-hardcopy", 6)) {
+		gracebat = TRUE;
+	    } else if (argmatch(argv[i], "-pexec", 6)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for exec\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    scanner(argv[i]);
+		}
+	    } else if (argmatch(argv[i], "-graph", 6)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing parameter for graph select\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    sscanf(argv[i], "%d", &gno);
+		    if (set_graph_active(gno, TRUE) == RETURN_SUCCESS) {
+			cur_graph = gno;
+                        select_graph(gno);
+		    } else {
+			fprintf(stderr, "Error activating graph %d\n", gno);
 		    }
-		}		/* end if */
-	    }			/* end else */
-	}			/* end for */
-    }				/* end if */
-
+		}
+	    } else if (argmatch(argv[i], "-block", 6)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing filename for block data\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    getdata(cur_graph, argv[i], rt->cursource, LOAD_BLOCK);
+		}
+	    } else if (argmatch(argv[i], "-bxy", 4)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing parameter for block data set creation\n");
+		    usage(stderr, argv[0]);
+		} else {
+                    int nc, *cols;
+                    field_string_to_cols(argv[i], &nc, &cols);
+                    if (field_string_to_cols(argv[i], &nc, &cols) !=
+                        RETURN_SUCCESS) {
+                        errmsg("Erroneous field specifications");
+                        return 1;
+                    }
+		    create_set_fromblock(cur_graph, NEW_SET,
+                        rt->curtype, nc, cols, -1, rt->autoscale_onread);
+                    xfree(cols);
+                }
+	    } else if (argmatch(argv[i], "-nxy", 4)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing filename for nxy data\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    getdata(cur_graph, argv[i], rt->cursource, LOAD_NXY);
+		}
+	    } else if (argmatch(argv[i], "-type", 2) ||
+                       argmatch(argv[i], "-settype", 8)) {
+		/* set types */
+		i++;
+                rt->curtype = get_settype_by_name(argv[i]);
+                if (rt->curtype == -1) {
+		    fprintf(stderr, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
+		    usage(stderr, argv[0]);
+		}
+	    } else if (argmatch(argv[i], "-graphtype", 7)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for graph type\n");
+		} else {
+		    if (!strcmp("xy", argv[i])) {
+			set_graph_type(cur_graph, GRAPH_XY);
+		    } else if (!strcmp("polar", argv[i])) {
+			set_graph_type(cur_graph, GRAPH_POLAR);
+		    } else if (!strcmp("bar", argv[i])) {
+			set_graph_type(cur_graph, GRAPH_CHART);
+		    } else if (!strcmp("smith", argv[i])) {
+			set_graph_type(cur_graph, GRAPH_SMITH);
+		    } else if (!strcmp("fixed", argv[i])) {
+			set_graph_type(cur_graph, GRAPH_FIXED);
+		    } else {
+			fprintf(stderr, "%s: Improper argument for -graphtype\n", argv[0]);
+			usage(stderr, argv[0]);
+		    }
+		}
+	    } else if (argmatch(argv[i], "-legend", 4)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for -legend\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    if (!strcmp("load", argv[i])) {
+			loadlegend = TRUE;
+			set_graph_legend_active(cur_graph, TRUE);
+		    } else {
+			fprintf(stderr, "Improper argument for -legend\n");
+			usage(stderr, argv[0]);
+		    }
+		}
+	    } else if (argmatch(argv[i], "-rvideo", 7)) {
+		reverse_video();
+	    } else if (argmatch(argv[i], "-param", 2)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing parameter file name\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    if (!getparms(argv[i])) {
+			fprintf(stderr, "Unable to read parameter file %s\n", argv[i]);
+		    }
+		}
+	    } else if (argmatch(argv[i], "-results", 2)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing results file name\n");
+		    usage(stderr, argv[0]);
+		} else {
+                    /*  open resfile if -results option given */
+		    if ((rt->resfp = grace_openw(argv[i])) == NULL) {
+		        exit(1);
+		    }
+		}
+	    } else if (argmatch(argv[i], "-saveall", 8)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing save file name\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    save_project(argv[i]);
+		}
+	    } else if (argmatch(argv[i], "-wd", 3)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing parameters for working directory\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    if (set_workingdir(argv[i]) != RETURN_SUCCESS) {
+			fprintf(stderr, "Can't change to directory %s, fatal error", argv[i]);
+			exit(1);
+		    }
+		}
+	    } else if (argmatch(argv[i], "-source", 2)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for data source parameter\n");
+		    usage(stderr, argv[0]);
+		}
+		if (argmatch(argv[i], "pipe", 4)) {
+		    rt->cursource = SOURCE_PIPE;
+		} else if (argmatch(argv[i], "disk", 4)) {
+		    rt->cursource = SOURCE_DISK;
+		}
+	    } else if (argmatch(argv[i], "-viewport", 2)) {
+		i++;
+		if (i > argc - 4) {
+		    fprintf(stderr, "Missing parameter(s) for viewport setting\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    v.xv1 = atof(argv[i++]);
+		    v.yv1 = atof(argv[i++]);
+		    v.xv2 = atof(argv[i++]);
+		    v.yv2 = atof(argv[i]);
+		    set_graph_viewport(cur_graph, v);
+		}
+	    } else if (argmatch(argv[i], "-world", 2)) {
+		i++;
+		if (i > argc - 4) {
+		    fprintf(stderr, "Missing parameter(s) for world setting\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    w.xg1 = atof(argv[i++]);
+		    w.yg1 = atof(argv[i++]);
+		    w.xg2 = atof(argv[i++]);
+		    w.yg2 = atof(argv[i]);
+                    set_graph_world(cur_graph, w);
+		}
+	    } else if (argmatch(argv[i], "-seed", 5)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing seed for srand48()\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    srand48(atol(argv[i]));	/* note atol() */
+		}
+	    } else if (argmatch(argv[i], "-help", 2)) {
+		usage(stdout, argv[0]);
+	    } else if (argmatch(argv[i], "-usage", 5)) {
+		usage(stdout, argv[0]);
+	    } else {
+		fprintf(stderr, "No option %s\n", argv[i]);
+		usage(stderr, argv[0]);
+	    }
+	} else {
+	    if (getdata(cur_graph, argv[i], rt->cursource, LOAD_SINGLE) ==
+                                                RETURN_SUCCESS) {
+		set_docname(argv[i]);
+		if (remove_flag) {
+		    unlink(argv[i]);
+		}
+		clear_dirtystate();
+	    }
+	} /* end else */
+    } /* end for */
     
     /*
      * Process events.
@@ -728,7 +723,7 @@ void cli_loop(void)
 
 static void usage(FILE *stream, char *progname)
 {
-/* We use alphabetial order */
+    /* We use alphabetical order */
 
     fprintf(stream, "Usage of %s command line arguments: \n", progname);
 
