@@ -115,17 +115,18 @@ static void _quark_free(Quark *q)
         if (q->cb) {
             q->cb(q, QUARK_ETYPE_DELETE, q->cbdata);
         }
-        qf->data_free(q->data);
         if (parent) {
             parent->refcount--;
         }
         
         storage_free(q->children);
+        
+        qf->data_free(q->data);
         xfree(q->idstr);
-        xfree(q);
         if (q->refcount != 0) {
             errmsg("Freed a referenced quark!");
         }
+        xfree(q);
     }
 }
 
