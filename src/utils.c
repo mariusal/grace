@@ -1020,8 +1020,10 @@ void update_app_title(Quark *q)
 void set_dirtystate(void)
 {
     Quark *q = grace->project;
-    quark_dirtystate_set(q, TRUE);
-    project_set_dirtystate(q);
+    if (q) {
+        quark_dirtystate_set(q, TRUE);
+        project_set_dirtystate(q);
+    }
 }
 
 void clear_dirtystate(void)

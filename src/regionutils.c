@@ -117,7 +117,7 @@ char *region_types(int it, int which)
 
 void kill_region(int r)
 {
-    if (rg[r].active) {
+    if (grace->project && rg[r].active) {
 	XCFREE(rg[r].x);
 	XCFREE(rg[r].y);
         rg[r].active = FALSE;
