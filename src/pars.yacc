@@ -111,20 +111,15 @@ static int alias_force = FALSE; /* controls whether aliases can override
 extern char print_file[];
 extern char *close_input;
 
-static int check_err;
-
 static int filltype_obs;
 
 static int index_shift = 0;     /* 0 for C, 1 for F77 index notation */
 
-double rnorm(double mean, double sdev);
-double fx(double x);
-double vmin(double *x, int n);
-double vmax(double *x, int n);
-void set_prop(int gno,...);
-int getcharstr(void);
-void ungetchstr(void);
-int follow(int expect, int ifyes, int ifno);
+static double rnorm(double mean, double sdev);
+static double fx(double x);
+static int getcharstr(void);
+static void ungetchstr(void);
+static int follow(int expect, int ifyes, int ifno);
 
 static double ai_wrap(double x);
 static double bi_wrap(double x);
@@ -507,9 +502,9 @@ symtab_entry *key;
 
 %token <ival> SCRARRAY
 
-%token <val> FITPARM
-%token <val> FITPMAX
-%token <val> FITPMIN
+%token <ival> FITPARM
+%token <ival> FITPMAX
+%token <ival> FITPMIN
 %token <val> NUMBER
 
 %type <ival> colpat_obs
@@ -606,13 +601,13 @@ expr:	NUMBER {
 	    $$ = $1;
 	}
 	|  FITPARM {
-	    $$ = nonl_parms[(int) $1].value;
+	    $$ = nonl_parms[$1].value;
 	}
 	|  FITPMAX {
-	    $$ = nonl_parms[(int) $1].max;
+	    $$ = nonl_parms[$1].max;
 	}
 	|  FITPMIN {
-	    $$ = nonl_parms[(int) $1].min;
+	    $$ = nonl_parms[$1].min;
 	}
 	|  SCRARRAY '[' expr ']' {
 	    int itmp = (int) $3 - index_shift;
@@ -652,7 +647,7 @@ expr:	NUMBER {
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
-	    switch ((int) $5) {
+	    switch ($5) {
 	    case MINP:
 		$$ = vmin(ptr, getsetlength(gno, setno));
 		break;
@@ -676,7 +671,7 @@ expr:	NUMBER {
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
-	    switch ((int) $3) {
+	    switch ($3) {
 	    case MINP:
 		$$ = vmin(ptr, getsetlength(whichgraph, whichset));
 		break;
@@ -1471,15 +1466,15 @@ vexpr:
 asgn:
 	FITPARM '=' expr
 	{
-	    nonl_parms[(int) $1].value = $3;
+	    nonl_parms[$1].value = $3;
 	}
 	| FITPMAX '=' expr
 	{
-	    nonl_parms[(int) $1].max = $3;
+	    nonl_parms[$1].max = $3;
 	}
 	| FITPMIN '=' expr
 	{
-	    nonl_parms[(int) $1].min = $3;
+	    nonl_parms[$1].min = $3;
 	}
 	| SCRARRAY '[' expr ']' '=' expr
 	{
@@ -1633,10 +1628,10 @@ regionset:
 	    rg[$1].type = $3;
 	}
 	| REGNUM color_select {
-	    rg[$1].color = (int) $2;
+	    rg[$1].color = $2;
 	}
 	| REGNUM lines_select {
-	    rg[$1].lines = (int) $2;
+	    rg[$1].lines = $2;
 	}
 	| REGNUM linew_select {
 	    rg[$1].linew = $2;
@@ -1742,7 +1737,7 @@ parmset:
                 yyerror("Unknown device");
             } else {
                 dev = get_device_props(device_id);
-                dev.fontaa = (int) $5;
+                dev.fontaa = $5;
                 set_device_props(device_id, dev);
             }
             free($2);
@@ -1756,7 +1751,7 @@ parmset:
                 yyerror("Unknown device");
             } else {
                 dev = get_device_props(device_id);
-                dev.devfonts = (int) $4;
+                dev.devfonts = $4;
                 set_device_props(device_id, dev);
             }
             free($2);
@@ -1781,10 +1776,10 @@ parmset:
             free($3);
         }
 	| BACKGROUND color_select {
-	    setbgcolor((int) $2);
+	    setbgcolor($2);
 	}
 	| PAGE BACKGROUND FILL onoff {
-	    setbgfill((int) $4);
+	    setbgfill($4);
 	}
 	| PAGE SCROLL NUMBER '%' {
 	    scroll_proc((int) $3);
@@ -1860,19 +1855,19 @@ parmset:
 	    box_loctype = $3;
 	}
 	| BOX lines_select {
-	    box_lines = (int) $2;
+	    box_lines = $2;
 	}
 	| BOX linew_select {
 	    box_linew = $2;
 	}
 	| BOX color_select {
-	    box_color = (int) $2;
+	    box_color = $2;
 	}
 	| BOX FILL color_select {
-	    box_fillcolor = (int) $3;
+	    box_fillcolor = $3;
 	}
 	| BOX FILL pattern_select {
-	    box_fillpat = (int) $3;
+	    box_fillpat = $3;
 	}
 	| BOX DEF {
 	    if (!is_valid_box(curbox)) {
@@ -1939,19 +1934,19 @@ parmset:
 	    ellipse_loctype = $3;
 	}
 	| ELLIPSE lines_select {
-	    ellipse_lines = (int) $2;
+	    ellipse_lines = $2;
 	}
 	| ELLIPSE linew_select {
 	    ellipse_linew = $2;
 	}
 	| ELLIPSE color_select {
-	    ellipse_color = (int) $2;
+	    ellipse_color = $2;
 	}
 	| ELLIPSE FILL color_select {
-	    ellipse_fillcolor = (int) $3;
+	    ellipse_fillcolor = $3;
 	}
 	| ELLIPSE FILL pattern_select {
-	    ellipse_fillpat = (int) $3;
+	    ellipse_fillpat = $3;
 	}
 	| ELLIPSE DEF {
 	    if (!is_valid_ellipse(curellipse)) {
@@ -2021,10 +2016,10 @@ parmset:
 	    line_linew = $2;
 	}
 	| LINE lines_select {
-	    line_lines = (int) $2;
+	    line_lines = $2;
 	}
 	| LINE color_select {
-	    line_color = (int) $2;
+	    line_color = $2;
 	}
 	| LINE ARROW NUMBER {
 	    line_arrow_end = (int) $3;
@@ -2088,13 +2083,13 @@ parmset:
             string_loctype = $3;
         }
 	| STRING color_select {
-            string_color = (int) $2;
+            string_color = $2;
         }
 	| STRING ROT NUMBER {
             string_rot = (int) $3;
         }
 	| STRING font_select {
-            string_font = (int) $2;
+            string_font = $2;
         }
 	| STRING JUST NUMBER {
             string_just = (int) $3;
@@ -2122,7 +2117,7 @@ parmset:
             timestamp.active = $2;
         }
 	| TIMESTAMP font_select {
-            timestamp.font = (int) $2;
+            timestamp.font = $2;
         }
 	| TIMESTAMP CHAR SIZE NUMBER {
             timestamp.charsize = $4;
@@ -2131,7 +2126,7 @@ parmset:
             timestamp.rot = (int) $3;
         }
 	| TIMESTAMP color_select {
-            timestamp.color = (int) $2;
+            timestamp.color = $2;
         }
 	| TIMESTAMP NUMBER ',' NUMBER {
 	    timestamp.x = $2;
@@ -2144,22 +2139,22 @@ parmset:
 
 /* defaults */
 	| DEFAULT lines_select {
-	    grdefaults.lines = (int) $2;
+	    grdefaults.lines = $2;
 	}
 	| DEFAULT linew_select {
 	    grdefaults.linew = $2;
 	}
 	| DEFAULT color_select {
-	    grdefaults.color = (int) $2;
+	    grdefaults.color = $2;
 	}
 	| DEFAULT pattern_select {
-	    grdefaults.pattern = (int) $2;
+	    grdefaults.pattern = $2;
 	}
 	| DEFAULT CHAR SIZE NUMBER {
 	    grdefaults.charsize = $4;
 	}
 	| DEFAULT font_select {
-	    grdefaults.font = (int) $2;
+	    grdefaults.font = $2;
 	}
 	| DEFAULT SYMBOL SIZE NUMBER {
 	    grdefaults.symsize = $4;
@@ -2233,39 +2228,39 @@ parmset:
 	    free($2);
 	}
 	| TITLE font_select {
-	    g[whichgraph].labs.title.font = (int) $2;
+	    g[whichgraph].labs.title.font = $2;
 	}
 	| TITLE SIZE NUMBER {
 	    g[whichgraph].labs.title.charsize = $3;
 	}
 	| TITLE color_select {
-	    g[whichgraph].labs.title.color = (int) $2;
+	    g[whichgraph].labs.title.color = $2;
 	}
 	| SUBTITLE CHRSTR {
 	    set_plotstr_string(&g[whichgraph].labs.stitle, $2);
 	    free($2);
 	}
 	| SUBTITLE font_select {
-	    g[whichgraph].labs.stitle.font = (int) $2;
+	    g[whichgraph].labs.stitle.font = $2;
 	}
 	| SUBTITLE SIZE NUMBER {
 	    g[whichgraph].labs.stitle.charsize = $3;
 	}
 	| SUBTITLE color_select {
-	    g[whichgraph].labs.stitle.color = (int) $2;
+	    g[whichgraph].labs.stitle.color = $2;
 	}
 
 	| XAXES SCALE scaletype {
-	    g[whichgraph].xscale = (int) $3;
+	    g[whichgraph].xscale = $3;
 	}
 	| YAXES SCALE scaletype {
-	    g[whichgraph].yscale = (int) $3;
+	    g[whichgraph].yscale = $3;
 	}
 	| XAXES INVERT onoff {
-	    g[whichgraph].xinvert = (int) $3;
+	    g[whichgraph].xinvert = $3;
 	}
 	| YAXES INVERT onoff {
-	    g[whichgraph].yinvert = (int) $3;
+	    g[whichgraph].yinvert = $3;
 	}
 
 	| DESCRIPTION CHRSTR {
@@ -2297,22 +2292,22 @@ parmset:
 	    g[whichgraph].l.len = (int) $3;
 	}
 	| LEGEND INVERT onoff {
-	    g[whichgraph].l.invert = (int) $3;
+	    g[whichgraph].l.invert = $3;
         }
 	| LEGEND BOX FILL color_select {
-	    g[whichgraph].l.boxfillpen.color = (int) $4;
+	    g[whichgraph].l.boxfillpen.color = $4;
         }
 	| LEGEND BOX FILL pattern_select {
-	    g[whichgraph].l.boxfillpen.pattern = (int) $4;
+	    g[whichgraph].l.boxfillpen.pattern = $4;
         }
 	| LEGEND BOX color_select {
-	    g[whichgraph].l.boxpen.color = (int) $3;
+	    g[whichgraph].l.boxpen.color = $3;
 	}
 	| LEGEND BOX pattern_select {
-	    g[whichgraph].l.boxpen.pattern = (int) $3;
+	    g[whichgraph].l.boxpen.pattern = $3;
 	}
 	| LEGEND BOX lines_select {
-	    g[whichgraph].l.boxlines = (int) $3;
+	    g[whichgraph].l.boxlines = $3;
 	}
 	| LEGEND BOX linew_select {
 	    g[whichgraph].l.boxlinew = $3;
@@ -2331,10 +2326,10 @@ parmset:
 	    g[whichgraph].l.charsize = $4;
 	}
 	| LEGEND font_select {
-	    g[whichgraph].l.font = (int) $2;
+	    g[whichgraph].l.font = $2;
 	}
 	| LEGEND color_select {
-	    g[whichgraph].l.color = (int) $2;
+	    g[whichgraph].l.color = $2;
 	}
 	| LEGEND STRING NUMBER CHRSTR {
 	    strcpy(g[whichgraph].p[(int) $3].lstr, $4);
@@ -2348,24 +2343,24 @@ parmset:
 	    g[whichgraph].f.type = (int) $3;
 	}
 	| FRAMEP lines_select {
-	    g[whichgraph].f.lines = (int) $2;
+	    g[whichgraph].f.lines = $2;
 	}
 	| FRAMEP linew_select {
 	    g[whichgraph].f.linew = $2;
 	}
 	| FRAMEP color_select {
-	    g[whichgraph].f.pen.color = (int) $2;
+	    g[whichgraph].f.pen.color = $2;
 	}
 	| FRAMEP pattern_select {
-	    g[whichgraph].f.pen.pattern = (int) $2;
+	    g[whichgraph].f.pen.pattern = $2;
 	}
 	| FRAMEP BACKGROUND color_select
         { 
-            g[whichgraph].f.fillpen.color = (int) $3;
+            g[whichgraph].f.fillpen.color = $3;
         }
 	| FRAMEP BACKGROUND pattern_select
         {
-            g[whichgraph].f.fillpen.pattern = (int) $3;
+            g[whichgraph].f.fillpen.pattern = $3;
         }
 
 	| GRAPHNO onoff {
@@ -2430,7 +2425,7 @@ parmset:
 	    free($3);
 	}
 	| ALIAS FORCE onoff {
-	    alias_force = (int) $3;
+	    alias_force = $3;
 	}
 	| USE CHRSTR TYPE proctype FROM CHRSTR {
 	    if (load_module($6, $2, $2, $4) != 0) {
@@ -2450,14 +2445,14 @@ parmset:
 
 /* I/O filters */
 	| DEFINE filtertype CHRSTR filtermethod CHRSTR {
-	    if (add_io_filter((int) $2, (int) $4, $5, $3) != 0) {
+	    if (add_io_filter($2, $4, $5, $3) != 0) {
 	        yyerror("Failed adding i/o filter");
 	    }
 	    free($3);
 	    free($5);
 	}
 	| CLEAR filtertype {
-	    clear_io_filters((int) $2);
+	    clear_io_filters($2);
 	}
 
 	| SOURCE sourcetype {
@@ -2468,7 +2463,7 @@ parmset:
 	}
         | FIT nonlfitopts { }
 	| FITPARM CONSTRAINTS onoff {
-	    nonl_parms[(int) $1].constr = $3;
+	    nonl_parms[$1].constr = $3;
 	}
 	;
 
@@ -2510,7 +2505,7 @@ actions:
             free($3);
 	}
 	| PAGE direction {
-	    switch ((int) $2) {
+	    switch ($2) {
 	    case UP:
 		graph_scroll(GSCROLL_UP);
 		break;
@@ -2550,7 +2545,7 @@ actions:
 	    free($2);
 	}
 	| selectset HIDDEN onoff {
-	    set_set_hidden($1->gno, $1->setno, (int) $3);
+	    set_set_hidden($1->gno, $1->setno, $3);
 	}
 	| selectset LENGTH NUMBER {
 	    setlength($1->gno, $1->setno, (int) $3);
@@ -2640,7 +2635,7 @@ actions:
 	}
         | ffttype '(' selectset ',' fourierdata ',' windowtype ',' 
                       fourierloadx ','  fourierloady ')' {
-	    switch ((int) $1) {
+	    switch ($1) {
 	    case FFT_DFT:
                 do_fourier($3->gno, $3->setno, 0, $11, $9, 0, $5, $7);
 	        break;
@@ -2708,7 +2703,7 @@ actions:
             autotick_axis(whichgraph, ALL_AXES);
         }
 	| FOCUS GRAPHNO {
-	    int gno = (int) $2;
+	    int gno = $2;
             if (is_graph_hidden(gno) == FALSE) {
                 select_graph(gno);
             } else {
@@ -2845,47 +2840,41 @@ setprop:
 	    set_set_hidden($1->gno, $1->setno, !$2);
 	}
 	| selectset TYPE xytype {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, TYPE, $3, 0);
-	}
-	| selectset PREC NUMBER {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, PREC, (int) $3, 0);
-	}
-	| selectset FORMAT formatchoice {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, FORMAT, $3, 0);
+	    set_dataset_type($1->gno, $1->setno, $3);
 	}
 
 	| selectset SYMBOL NUMBER {
-            set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, TYPE, (int) $3, 0);
+	    g[$1->gno].p[$1->setno].sym = (int) $3;
 	}
 	| selectset SYMBOL color_select {
-	    g[$1->gno].p[$1->setno].sympen.color = (int) $3;
+	    g[$1->gno].p[$1->setno].sympen.color = $3;
 	}
 	| selectset SYMBOL pattern_select {
-	    g[$1->gno].p[$1->setno].sympen.pattern = (int) $3;
+	    g[$1->gno].p[$1->setno].sympen.pattern = $3;
 	}
 	| selectset SYMBOL linew_select {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, LINEWIDTH, $3, 0);
+	    g[$1->gno].p[$1->setno].symlinew = $3;
 	}
 	| selectset SYMBOL lines_select {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, LINESTYLE, (int) $3, 0);
+	    g[$1->gno].p[$1->setno].symlines = $3;
 	}
 	| selectset SYMBOL FILL color_select {
-	    g[$1->gno].p[$1->setno].symfillpen.color = (int) $4;
+	    g[$1->gno].p[$1->setno].symfillpen.color = $4;
 	}
 	| selectset SYMBOL FILL pattern_select {
-	    g[$1->gno].p[$1->setno].symfillpen.pattern = (int) $4;
+	    g[$1->gno].p[$1->setno].symfillpen.pattern = $4;
 	}
 	| selectset SYMBOL SIZE expr {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, SIZE, $4, 0);
+	    g[$1->gno].p[$1->setno].symsize = $4;
 	}
 	| selectset SYMBOL CHAR NUMBER {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, CHAR, (int) $4, 0);
+	    g[$1->gno].p[$1->setno].symchar = (int) $4;
 	}
 	| selectset SYMBOL CHAR font_select {
-	    g[$1->gno].p[$1->setno].charfont = (int) $4;
+	    g[$1->gno].p[$1->setno].charfont = $4;
 	}
 	| selectset SYMBOL SKIP NUMBER {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, SKIP, (int) $4, 0);
+	    g[$1->gno].p[$1->setno].symskip = (int) $4;
 	}
 
 	| selectset LINE TYPE NUMBER
@@ -2894,7 +2883,7 @@ setprop:
 	}
 	| selectset LINE lines_select
         {
-	    g[$1->gno].p[$1->setno].lines = (int) $3;
+	    g[$1->gno].p[$1->setno].lines = $3;
 	}
 	| selectset LINE linew_select
         {
@@ -2902,17 +2891,13 @@ setprop:
 	}
 	| selectset LINE color_select
         {
-	    g[$1->gno].p[$1->setno].linepen.color = (int) $3;
+	    g[$1->gno].p[$1->setno].linepen.color = $3;
 	}
 	| selectset LINE pattern_select
         {
-	    g[$1->gno].p[$1->setno].linepen.pattern = (int) $3;
+	    g[$1->gno].p[$1->setno].linepen.pattern = $3;
 	}
 
-	| selectset FILL NUMBER
-        {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, FILL, TYPE, (int) $3, 0);
-	}
 	| selectset FILL TYPE NUMBER
         {
 	    g[$1->gno].p[$1->setno].filltype = (int) $4;
@@ -2923,7 +2908,7 @@ setprop:
 	}
 	| selectset FILL color_select
         {
-	    int prop = (int) $3;
+	    int prop = $3;
 
 	    if (get_project_version() <= 40102 && get_project_version() >= 30000) {
                 switch (filltype_obs) {
@@ -2941,7 +2926,7 @@ setprop:
 	}
 	| selectset FILL pattern_select
         {
-	    int prop = (int) $3;
+	    int prop = $3;
 
 	    if (get_project_version() <= 40102) {
                 switch (filltype_obs) {
@@ -2958,14 +2943,10 @@ setprop:
 	    g[$1->gno].p[$1->setno].setfillpen.pattern = prop;
 	}
 
-	| selectset SKIP NUMBER
-        {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, SKIP, (int) $3, 0);
-	}
         
 	| selectset BASELINE onoff
         {
-	    g[$1->gno].p[$1->setno].baseline = (int) $3;
+	    g[$1->gno].p[$1->setno].baseline = $3;
 	}
 	| selectset BASELINE TYPE NUMBER
         {
@@ -2974,12 +2955,12 @@ setprop:
         
 	| selectset DROPLINE onoff
         {
-	    g[$1->gno].p[$1->setno].dropline = (int) $3;
+	    g[$1->gno].p[$1->setno].dropline = $3;
 	}
 
 	| selectset AVALUE onoff
         {
-	    g[$1->gno].p[$1->setno].avalue.active = (int) $3;
+	    g[$1->gno].p[$1->setno].avalue.active = $3;
 	}
 	| selectset AVALUE TYPE NUMBER
         {
@@ -2991,11 +2972,11 @@ setprop:
 	}
 	| selectset AVALUE font_select
         {
-	    g[$1->gno].p[$1->setno].avalue.font = (int) $3;
+	    g[$1->gno].p[$1->setno].avalue.font = $3;
 	}
 	| selectset AVALUE color_select
         {
-	    g[$1->gno].p[$1->setno].avalue.color = (int) $3;
+	    g[$1->gno].p[$1->setno].avalue.color = $3;
 	}
 	| selectset AVALUE ROT NUMBER
         {
@@ -3003,7 +2984,7 @@ setprop:
 	}
 	| selectset AVALUE FORMAT formatchoice
         {
-	    g[$1->gno].p[$1->setno].avalue.format = (int) $4;
+	    g[$1->gno].p[$1->setno].avalue.format = $4;
 	}
 	| selectset AVALUE PREC NUMBER
         {
@@ -3025,34 +3006,34 @@ setprop:
 	}
 
 	| selectset ERRORBAR onoff {
-	    g[$1->gno].p[$1->setno].errbar.active = (int) $3;
+	    g[$1->gno].p[$1->setno].errbar.active = $3;
 	}
 	| selectset ERRORBAR opchoice_sel {
-	    g[$1->gno].p[$1->setno].errbar.ptype = (int) $3;
+	    g[$1->gno].p[$1->setno].errbar.ptype = $3;
 	}
 	| selectset ERRORBAR color_select {
-	    g[$1->gno].p[$1->setno].errbar.pen.color = (int) $3;
+	    g[$1->gno].p[$1->setno].errbar.pen.color = $3;
 	}
 	| selectset ERRORBAR pattern_select {
-	    g[$1->gno].p[$1->setno].errbar.pen.pattern = (int) $3;
+	    g[$1->gno].p[$1->setno].errbar.pen.pattern = $3;
 	}
 	| selectset ERRORBAR SIZE NUMBER {
             g[$1->gno].p[$1->setno].errbar.barsize = $4;
 	}
 	| selectset ERRORBAR linew_select {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, ERRORBAR, LINEWIDTH, $3, 0);
+            g[$1->gno].p[$1->setno].errbar.linew = $3;
 	}
 	| selectset ERRORBAR lines_select {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, ERRORBAR, LINESTYLE, (int) $3, 0);
+            g[$1->gno].p[$1->setno].errbar.lines = $3;
 	}
 	| selectset ERRORBAR RISER linew_select {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, ERRORBAR, RISER, LINEWIDTH, $4, 0);
+            g[$1->gno].p[$1->setno].errbar.riser_linew = $4;
 	}
 	| selectset ERRORBAR RISER lines_select {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, ERRORBAR, RISER, LINESTYLE, (int) $4, 0);
+            g[$1->gno].p[$1->setno].errbar.riser_lines = $4;
 	}
 	| selectset ERRORBAR RISER CLIP onoff {
-            g[$1->gno].p[$1->setno].errbar.arrow_clip = (int) $5;
+            g[$1->gno].p[$1->setno].errbar.arrow_clip = $5;
 	}
 	| selectset ERRORBAR RISER CLIP LENGTH NUMBER {
             g[$1->gno].p[$1->setno].errbar.cliplen = $6;
@@ -3072,10 +3053,10 @@ setprop:
 
 axisfeature:
 	onoff {
-	    g[whichgraph].t[naxis].active = (int) $1;
+	    g[whichgraph].t[naxis].active = $1;
 	}
 	| TYPE ZERO onoff {
-	    g[whichgraph].t[naxis].zero = (int) $3;
+	    g[whichgraph].t[naxis].zero = $3;
 	}
 	| TICKP tickattr {}
 	| TICKP tickattr_obs {}
@@ -3092,7 +3073,7 @@ axisfeature:
 
 tickattr:
 	onoff {
-	    g[whichgraph].t[naxis].t_flag = (int) $1;
+	    g[whichgraph].t[naxis].t_flag = $1;
 	}
 	| MAJOR expr {
             g[whichgraph].t[naxis].tmajor = $2;
@@ -3101,7 +3082,7 @@ tickattr:
 	    g[whichgraph].t[naxis].nminor = (int) $3;
 	}
 	| PLACE ROUNDED onoff {
-	    g[whichgraph].t[naxis].t_round = (int) $3;
+	    g[whichgraph].t[naxis].t_round = $3;
 	}
 
 	| OFFSETX expr {
@@ -3123,13 +3104,13 @@ tickattr:
 	    g[whichgraph].t[naxis].mprops.size = $3;
 	}
 	| color_select {
-	    g[whichgraph].t[naxis].props.color = g[whichgraph].t[naxis].mprops.color = (int) $1;
+	    g[whichgraph].t[naxis].props.color = g[whichgraph].t[naxis].mprops.color = $1;
 	}
 	| MAJOR color_select {
-	    g[whichgraph].t[naxis].props.color = (int) $2;
+	    g[whichgraph].t[naxis].props.color = $2;
 	}
 	| MINOR color_select {
-	    g[whichgraph].t[naxis].mprops.color = (int) $2;
+	    g[whichgraph].t[naxis].mprops.color = $2;
 	}
 	| linew_select {
 	    g[whichgraph].t[naxis].props.linew = g[whichgraph].t[naxis].mprops.linew = $1;
@@ -3141,10 +3122,10 @@ tickattr:
 	    g[whichgraph].t[naxis].mprops.linew = $2;
 	}
 	| MAJOR lines_select {
-	    g[whichgraph].t[naxis].props.lines = (int) $2;
+	    g[whichgraph].t[naxis].props.lines = $2;
 	}
 	| MINOR lines_select {
-	    g[whichgraph].t[naxis].mprops.lines = (int) $2;
+	    g[whichgraph].t[naxis].mprops.lines = $2;
 	}
 	| MAJOR GRID onoff {
 	    g[whichgraph].t[naxis].props.gridflag = $3;
@@ -3238,10 +3219,10 @@ ticklabelattr:
 	    g[whichgraph].t[naxis].tl_charsize = $3;
 	}
 	| font_select {
-	    g[whichgraph].t[naxis].tl_font = (int) $1;
+	    g[whichgraph].t[naxis].tl_font = $1;
 	}
 	| color_select {
-	    g[whichgraph].t[naxis].tl_color = (int) $1;
+	    g[whichgraph].t[naxis].tl_color = $1;
 	}
 	| NUMBER ',' CHRSTR {
 	    g[whichgraph].t[naxis].tloc[(int) $1].label = 
@@ -3282,16 +3263,16 @@ axislabeldesc:
 	    g[whichgraph].t[naxis].label.y = $4;
 	}
 	| JUST justchoice {
-	    g[whichgraph].t[naxis].label.just = (int) $2;
+	    g[whichgraph].t[naxis].label.just = $2;
 	}
 	| CHAR SIZE NUMBER {
 	    g[whichgraph].t[naxis].label.charsize = $3;
 	}
 	| font_select {
-	    g[whichgraph].t[naxis].label.font = (int) $1;
+	    g[whichgraph].t[naxis].label.font = $1;
 	}
 	| color_select {
-	    g[whichgraph].t[naxis].label.color = (int) $1;
+	    g[whichgraph].t[naxis].label.color = $1;
 	}
 	| opchoice_sel {
 	    g[whichgraph].t[naxis].label_op = $1;
@@ -3303,10 +3284,10 @@ axisbardesc:
 	    g[whichgraph].t[naxis].t_drawbar = $1;
 	}
 	| color_select {
-	    g[whichgraph].t[naxis].t_drawbarcolor = (int) $1;
+	    g[whichgraph].t[naxis].t_drawbarcolor = $1;
 	}
 	| lines_select {
-	    g[whichgraph].t[naxis].t_drawbarlines = (int) $1;
+	    g[whichgraph].t[naxis].t_drawbarlines = $1;
 	}
 	| linew_select {
 	    g[whichgraph].t[naxis].t_drawbarlinew = $1;
@@ -3708,9 +3689,9 @@ parmset_obs:
 	    add_world(whichgraph, $3, $5, $7, $9);
 	}
 
-	| BOX FILL colpat_obs {filltype_obs = (int) $3;}
+	| BOX FILL colpat_obs {filltype_obs = $3;}
 
-	| ELLIPSE FILL colpat_obs {filltype_obs = (int) $3;}
+	| ELLIPSE FILL colpat_obs {filltype_obs = $3;}
 
 	| STRING linew_select { }
 
@@ -3725,7 +3706,7 @@ parmset_obs:
             }
 	}
 	| LEGEND BOX FILL onoff { }
-	| LEGEND BOX FILL WITH colpat_obs {filltype_obs = (int) $5;}
+	| LEGEND BOX FILL WITH colpat_obs {filltype_obs = $5;}
 	| LEGEND lines_select { }
 	| LEGEND linew_select { }
 
@@ -3800,26 +3781,64 @@ axislabeldesc_obs:
 
 setprop_obs:
 	selectset SYMBOL FILL NUMBER {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, FILL, (int) $4, 0);
+	    switch ((int) $4){
+	    case 0:
+	        g[$1->gno].p[$1->setno].symfillpen.pattern = 0;
+	        break;
+	    case 1:
+	        g[$1->gno].p[$1->setno].symfillpen.pattern = 1;
+	        break;
+	    case 2:
+	        g[$1->gno].p[$1->setno].symfillpen.pattern = 1;
+	        g[$1->gno].p[$1->setno].symfillpen.color = getbgcolor();
+	        break;
+	    }
+	}
+	| selectset SKIP NUMBER
+        {
+	    g[$1->gno].p[$1->setno].symskip = (int) $3;
+	}
+	| selectset FILL NUMBER
+        {
+	    switch ((int) $3) {
+            case 0:
+                g[$1->gno].p[$1->setno].filltype = SETFILL_NONE;
+                break;
+            case 1:
+                g[$1->gno].p[$1->setno].filltype = SETFILL_POLYGON;
+                break;
+            case 2:
+                g[$1->gno].p[$1->setno].filltype = SETFILL_BASELINE;
+                g[$1->gno].p[$1->setno].baseline_type = BASELINE_TYPE_0;
+                break;
+            case 6:
+                g[$1->gno].p[$1->setno].filltype = SETFILL_BASELINE;
+                g[$1->gno].p[$1->setno].baseline_type = BASELINE_TYPE_GMIN;
+                break;
+            case 7:
+                g[$1->gno].p[$1->setno].filltype = SETFILL_BASELINE;
+                g[$1->gno].p[$1->setno].baseline_type = BASELINE_TYPE_GMAX;
+                break;
+            }
+	}
+	| selectset ERRORBAR TYPE opchoice_obs {
+	    g[$1->gno].p[$1->setno].errbar.ptype = $4;
 	}
 	| selectset SYMBOL COLOR '-' NUMBER {
 	    g[$1->gno].p[$1->setno].sympen.color = -1;
 	}
 	| selectset SYMBOL CENTER onoff { }
 	| selectset lines_select {
-	    g[$1->gno].p[$1->setno].lines = (int) $2;
+	    g[$1->gno].p[$1->setno].lines = $2;
 	}
 	| selectset linew_select {
 	    g[$1->gno].p[$1->setno].linew = $2;
 	}
 	| selectset color_select {
-	    g[$1->gno].p[$1->setno].linepen.color = (int) $2;
+	    g[$1->gno].p[$1->setno].linepen.color = $2;
 	}
-	| selectset FILL WITH colpat_obs {filltype_obs = (int) $4;}
+	| selectset FILL WITH colpat_obs {filltype_obs = $4;}
 	| selectset XYZ expr ',' expr { }
-	| selectset ERRORBAR TYPE opchoice_obs {
-	    set_prop($1->gno, SET, SETNUM, $1->setno, ERRORBAR, TYPE, $4, 0);
-	}
 	| selectset ERRORBAR LENGTH NUMBER {
             g[$1->gno].p[$1->setno].errbar.barsize = $4;
 	}
@@ -3830,7 +3849,7 @@ setprop_obs:
 tickattr_obs:
 	MAJOR onoff {
 	    /* <= xmgr-4.1 */
-	    g[whichgraph].t[naxis].active = (int) $2;
+	    g[whichgraph].t[naxis].active = $2;
 	}
 	| MINOR onoff { }
 	| ALT onoff   { }
@@ -4919,380 +4938,6 @@ void yyerror(char *s)
 }
 
 
-
-/* TODO: the whole set_prop stuff to be removed! */
-#include <stdarg.h>
-
-void set_prop(int gno,...)
-{
-    va_list var;
-    int prop, allsets = 0;
-    int i, j, startg, endg, starts = 0, ends = 0;
-    double dprop;
-    char *cprop;
-    char buf[256];
-
-    if (gno == -1) {
-	startg = 0;
-	endg = number_of_graphs()  - 1;
-    } else {
-	startg = endg = gno;
-    }
-
-    va_start(var, gno);
-    while ((prop = va_arg(var, int)) != 0) {
-	switch (prop) {
-	case SET:
-	    switch (prop = va_arg(var, int)) {
-	    case SETNUM:
-		prop = va_arg(var, int);
-		if (prop == -1) {
-		    allsets = 1;
-		    starts = 0;
-		    ends = number_of_sets(gno) - 1;
-		} else {
-		    allsets = 0;
-		    starts = ends = prop;
-		}
-		break;
-	    }
-	    break;
-	case TYPE:
-	    prop = va_arg(var, int);
-	    for (i = startg; i <= endg; i++) {
-		if (allsets) {
-		    ends = g[i].maxplot - 1;
-		}
-		for (j = starts; j <= ends; j++) {
-		    g[i].p[j].type = prop;
-		}
-	    }
-	    break;
-	case PREC:
-	    prop = va_arg(var, int);
-	    for (i = startg; i <= endg; i++) {
-		if (allsets) {
-		    ends = g[i].maxplot - 1;
-		}
-		for (j = starts; j <= ends; j++) {
-		    g[i].p[j].avalue.prec = prop;
-		}
-	    }
-	    break;
-	case FORMAT:
-	    prop = va_arg(var, int);
-	    for (i = startg; i <= endg; i++) {
-		if (allsets) {
-		    ends = g[i].maxplot - 1;
-		}
-		for (j = starts; j <= ends; j++) {
-		    g[i].p[j].avalue.format = prop;
-		}
-	    }
-	    break;
-	case LINEWIDTH:
-	    prop = va_arg(var, double);
-	    for (i = startg; i <= endg; i++) {
-		if (allsets) {
-		    ends = g[i].maxplot - 1;
-		}
-		for (j = starts; j <= ends; j++) {
-		    g[i].p[j].linew = prop;
-		}
-	    }
-	    break;
-	case LINESTYLE:
-	    prop = va_arg(var, int);
-	    for (i = startg; i <= endg; i++) {
-		if (allsets) {
-		    ends = g[i].maxplot - 1;
-		}
-		for (j = starts; j <= ends; j++) {
-		    g[i].p[j].lines = prop;
-		    if (check_err) {
-			return;
-		    }
-		}
-	    }
-	    break;
-	case COMMENT:
-	    cprop = va_arg(var, char *);
-	    for (i = startg; i <= endg; i++) {
-		if (allsets) {
-		    ends = g[i].maxplot - 1;
-		}
-		for (j = starts; j <= ends; j++) {
-		    strcpy(g[i].p[j].comments, cprop);
-		}
-	    }
-	    break;
-	case FILL:
-	    switch (prop = va_arg(var, int)) {
-	    case TYPE:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			switch (prop) {
-                        case 0:
-                            g[i].p[j].filltype = SETFILL_NONE;
-                            break;
-                        case 1:
-                            g[i].p[j].filltype = SETFILL_POLYGON;
-                            break;
-                        case 2:
-                            g[i].p[j].filltype = SETFILL_BASELINE;
-                            g[i].p[j].baseline_type = BASELINE_TYPE_0;
-                            break;
-                        case 6:
-                            g[i].p[j].filltype = SETFILL_BASELINE;
-                            g[i].p[j].baseline_type = BASELINE_TYPE_GMIN;
-                            break;
-                        case 7:
-                            g[i].p[j].filltype = SETFILL_BASELINE;
-                            g[i].p[j].baseline_type = BASELINE_TYPE_GMAX;
-                            break;
-                        }
-		    }
-		}
-		break;
-	    case WITH:
-		prop = va_arg(var, int);
-                break;
-	    case PATTERN:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].setfillpen.pattern = prop;
-		    }
-		}
-		break;
-	    default:
-		sprintf(buf, "Attribute not found in setprops()-FILL, # = %d", prop);
-		errmsg(buf);
-		break;
-	    }
-	    break;
-	case SKIP:
-	    prop = va_arg(var, int);
-	    for (i = startg; i <= endg; i++) {
-		if (allsets) {
-		    ends = g[i].maxplot - 1;
-		}
-		for (j = starts; j <= ends; j++) {
-		    g[i].p[j].symskip = prop;
-		}
-	    }
-	    break;
-	case SYMBOL:
-	    switch (prop = va_arg(var, int)) {
-	    case TYPE:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].sym = prop;
-		    }
-		}
-		break;
-	    case FILL:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-	    	    	switch (prop){
-	    	    	case 0:
-	    	    	    g[i].p[j].symfillpen.pattern = 0;
-	    	    	    break;
-	    	    	case 1:
-	    	    	    g[i].p[j].symfillpen.pattern = 1;
-	    	    	    break;
-	    	    	case 2:
-	    	    	    g[i].p[j].symfillpen.pattern = 1;
-			    g[i].p[j].symfillpen.color = getbgcolor();
-	    	    	    break;
-	    	    	}
-		    }
-		}
-		break;
-	    case SIZE:
-		dprop = va_arg(var, double);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-                        g[i].p[j].symsize = dprop;
-		    }
-		}
-		break;
-	    case SKIP:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].symskip = prop;
-		    }
-		}
-		break;
-	    case CHAR:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].symchar = prop;
-		    }
-		}
-		break;
-	    case PATTERN:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].sympen.pattern = prop;
-		    }
-		}
-		break;
-	    case LINEWIDTH:
-		prop = va_arg(var, double);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].symlinew = prop;
-		    }
-		}
-		break;
-	    case LINESTYLE:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].symlines = prop;
-		    }
-		}
-		break;
-	    default:
-		sprintf(buf, "Attribute not found in setprops()-SYMBOL, # = %d", prop);
-		errmsg(buf);
-		break;
-	    }
-	    break;
-	case ERRORBAR:
-	    switch (prop = va_arg(var, int)) {
-	    case LENGTH:
-		dprop = va_arg(var, double);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].errbar.barsize = dprop;
-		    }
-		}
-		break;
-	    case TYPE:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].errbar.ptype = prop;
-		    }
-		}
-		break;
-	    case LINEWIDTH:
-		prop = va_arg(var, double);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].errbar.linew = prop;
-		    }
-		}
-		break;
-	    case LINESTYLE:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].errbar.lines = prop;
-		    }
-		}
-		break;
-	    case RISER:
-		prop = va_arg(var, int);
-		switch (prop) {
-		case ON:
-		    prop = va_arg(var, int);
-                    break;
-		case LINEWIDTH:
-		    prop = va_arg(var, double);
-		    for (i = startg; i <= endg; i++) {
-			if (allsets) {
-			    ends = g[i].maxplot - 1;
-			}
-			for (j = starts; j <= ends; j++) {
-			    g[i].p[j].errbar.riser_linew = prop;
-			}
-		    }
-		    break;
-		case LINESTYLE:
-		    prop = va_arg(var, int);
-		    for (i = startg; i <= endg; i++) {
-			if (allsets) {
-			    ends = g[i].maxplot - 1;
-			}
-			for (j = starts; j <= ends; j++) {
-			    g[i].p[j].errbar.riser_lines = prop;
-			}
-		    }
-		    break;
-		default:
-		    sprintf(buf, "Attribute not found in setprops()-RISER, # = %d", prop);
-		    errmsg(buf);
-		    break;
-		}
-		break;
-	    default:
-		sprintf(buf, "Attribute not found in setprops()-ERRORBAR, # = %d", prop);
-		errmsg(buf);
-		break;
-	    }
-	    break;
-	default:
-	    sprintf(buf, "Attribute not found in setprops()-top, # = %d", prop);
-	    errmsg(buf);
-	    break;
-	}
-    }
-    va_end(var);
-    set_dirtystate();
-}
-
-
 /* Wrappers for some functions*/
 
 static double ai_wrap(double x)
@@ -5437,14 +5082,14 @@ static double rad_uconst(void)
 #define C1 0.1978977093962766
 #define C2 0.1352915131768107
 
-double rnorm(double mean, double sdev)
+static double rnorm(double mean, double sdev)
 {
     double u = drand48();
 
     return mean + sdev * (pow(u, C2) - pow(1.0 - u, C2)) / C1;
 }
 
-double fx(double x)
+static double fx(double x)
 {
     return 1.0 / sqrt(2.0 * M_PI) * exp(-x * x * 0.5);
 }
