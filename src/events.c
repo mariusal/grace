@@ -1111,8 +1111,6 @@ static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
         atext_set_ap(q, &ap);
     }
     
-    snapshot_and_update(q, TRUE);
-    
     raise_explorer(grace->gui, q);
 
     return RETURN_SUCCESS;

@@ -430,7 +430,7 @@ static void autoscale_proc(Grace *grace, int type)
     Quark *cg = graph_get_current(grace->project);
     
     if (autoscale_graph(cg, type) == RETURN_SUCCESS) {
-        xdrawgraph(grace->project, FALSE);
+        snapshot_and_update(grace->project, TRUE);
     } else {
 	errmsg("Can't autoscale (no active sets?)");
     }
@@ -457,7 +457,7 @@ static void autoscale_y_cb(Widget but, void *data)
 static void autoticks_cb(Widget but, void *data)
 {
     autotick_graph_axes(graph_get_current(grace->project), AXIS_MASK_XY);
-    xdrawgraph(grace->project, FALSE);
+    snapshot_and_update(grace->project, TRUE);
 }
 
 /*

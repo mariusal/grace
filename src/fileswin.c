@@ -113,7 +113,8 @@ void create_openproject_popup(void)
 static int open_proc(FSBStructure *fsb, char *filename, void *data)
 {
     if (load_project(grace, filename) == RETURN_SUCCESS) {
-        snapshot_and_update(grace->project, TRUE);
+        xdrawgraph(grace->project, FALSE);
+        update_all();
         return TRUE;
     } else {
         return FALSE;
