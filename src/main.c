@@ -348,9 +348,9 @@ int main(int argc, char *argv[])
 			strcpy(yvar_name, argv[i]);
 		    }
 		    if (strcmp(xvar_name, "null")) {
-			readnetcdf(get_cg(), -1, netcdf_name, xvar_name, yvar_name, -1, -1, 1);
+			readnetcdf(cur_graph, -1, netcdf_name, xvar_name, yvar_name, -1, -1, 1);
 		    } else {
-			readnetcdf(get_cg(), -1, netcdf_name, NULL, yvar_name, -1, -1, 1);
+			readnetcdf(cur_graph, -1, netcdf_name, NULL, yvar_name, -1, -1, 1);
 		    }
 #endif				/* HAVE_NETCDF */
 		} else if (argmatch(argv[i], "-timer", 6)) {
@@ -360,19 +360,6 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    } else {
 			timer_delay = atoi(argv[i]);
-		    }
-		} else if (argmatch(argv[i], "-maxblock", 9)) {
-		    int itmp;			
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for max size of block data\n");
-			usage(stderr, argv[0]);
-		    } else {
-			itmp = atoi(argv[i]);
-			if (itmp < maxblock) {
-			    itmp = maxblock;
-			}
-			alloc_blockdata(itmp);
 		    }
 #ifndef NONE_GUI
 		} else if (argmatch(argv[i], "-install", 7)) {
@@ -475,21 +462,29 @@ int main(int argc, char *argv[])
 		} else if (argmatch(argv[i], "-block", 6)) {
 		    i++;
 		    if (i == argc) {
-			fprintf(stderr, "Missing parameter for block data\n");
+			fprintf(stderr, "Missing filename for block data\n");
 			usage(stderr, argv[0]);
 		    } else {
-			getdata(cur_graph, argv[i], cursource, SET_BLOCK);
+			getdata(cur_graph, argv[i], cursource, LOAD_BLOCK);
 		    }
 		} else if (argmatch(argv[i], "-bxy", 4)) {
 		    char blocksetcols[32];
 		    i++;
 		    if (i == argc) {
 			fprintf(stderr, "Missing parameter for block data set creation\n");
-		    }
-		    strcpy(blocksetcols, argv[i]);
-		    create_set_fromblock(get_cg(), curtype, blocksetcols);
+			usage(stderr, argv[0]);
+		    } else {
+		        strcpy(blocksetcols, argv[i]);
+		        create_set_fromblock(cur_graph, curtype, blocksetcols);
+                    }
 		} else if (argmatch(argv[i], "-nxy", 4)) {
-		    curtype = SET_NXY;
+		    i++;
+		    if (i == argc) {
+			fprintf(stderr, "Missing filename for nxy data\n");
+			usage(stderr, argv[0]);
+		    } else {
+			getdata(cur_graph, argv[i], cursource, LOAD_NXY);
+		    }
 		} else if (argmatch(argv[i], "-type", 2) ||
                            argmatch(argv[i], "-settype", 8)) {
 		    /* set types */
@@ -660,17 +655,13 @@ int main(int argc, char *argv[])
 		}
 	    } else {
 		if (i != argc) {
-		    lock_dirtystate(TRUE);
-		    if (getdata(cur_graph, argv[i], cursource, curtype) ==
+		    if (getdata(cur_graph, argv[i], cursource, LOAD_SINGLE) ==
                                                         GRACE_EXIT_SUCCESS) {
 			strcpy(docname, argv[i]);
 			if (remove_flag) {
 			    unlink(argv[i]);
 			}
 			clear_dirtystate();
-		    } else {
-		        lock_dirtystate(FALSE);
-			set_dirtystate();
 		    }
 		}		/* end if */
 	    }			/* end else */
@@ -722,7 +713,7 @@ int main(int argc, char *argv[])
 	    exit(1);
 	}
 	if (inpipe == TRUE) {
-	    getdata(get_cg(), "stdin", SOURCE_DISK, curtype);
+	    getdata(cur_graph, "stdin", SOURCE_DISK, LOAD_SINGLE);
 	    inpipe = FALSE;
 	}
 	if (batchfile[0]) {
@@ -763,7 +754,7 @@ void cli_loop(void)
     int previous = -1;
 
     if (inpipe == TRUE) {
-        getdata(get_cg(), "stdin", SOURCE_DISK, curtype);
+        getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE);
         inpipe = FALSE;
     }
     if (batchfile[0]) {
@@ -822,8 +813,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-log       [x|y|xy]                   Set the axis scaling of the current graph\n");
     fprintf(stream, "                                        to logarithmic\n");
     fprintf(stream, "-logwindow                            Open the log window\n");
-    fprintf(stream, "-maxblock  [number_of_columns]        Set the number of columns for block data\n");
-    fprintf(stream, "                                        (default is %d)\n", MAXBLOCK);
     fprintf(stream, "-mono                                 Run %s in monochrome mode (affects\n", progname);
     fprintf(stream, "                                        the display only)\n");
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)

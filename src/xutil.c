@@ -350,7 +350,7 @@ void expose_resize(Widget w, XtPointer client_data,
 	}
 	
 	if (inpipe == TRUE) {
-	    getdata(get_cg(), "stdin", SOURCE_DISK, curtype);
+	    getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE);
 	    inpipe = FALSE;
 	}
 

@@ -80,8 +80,6 @@ void set_program_defaults(void)
     
     set_default_string(&timestamp);
     
-    alloc_blockdata(maxblock);
-    
     timestamp.x = 0.03;
     timestamp.y = 0.03;
     

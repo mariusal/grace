@@ -79,7 +79,7 @@ int naxis = 0;	/* current axis */
 static int curline, curbox, curellipse, curstring;
 /* these guys attempt to avoid reentrancy problems */
 static int gotparams = FALSE, gotread = FALSE, gotnlfit = FALSE; 
-int readtype, readsrc, readxformat;
+int readxformat;
 static int nlfit_gno, nlfit_setno, nlfit_nsteps;
 
 char batchfile[GR_MAXPATHLEN] = "",
@@ -102,7 +102,6 @@ static int alias_force = FALSE; /* controls whether aliases can override
                                                        existing keywords */
 
 extern char print_file[];
-extern int change_type;
 extern char *close_input;
 
 static int check_err;
@@ -2510,7 +2509,6 @@ parmset:
         
 	| TYPE xytype {
 	    curtype = $2;
-	    change_type = curtype;
 	}
 
 
@@ -2876,8 +2874,6 @@ actions:
 	}
 	| READ CHRSTR {
 	    gotread = TRUE;
-	    readtype = curtype;
-	    readsrc = cursource;
 	    strcpy(readfile, (char *) $2);
 	    free((char *) $2);
 	}
@@ -2886,11 +2882,11 @@ actions:
 	    free((char *) $3);
 	}
 	| READ BLOCK CHRSTR {
-	    getdata(whichgraph, (char *) $3, SOURCE_DISK, SET_BLOCK);
+	    getdata(whichgraph, (char *) $3, SOURCE_DISK, LOAD_BLOCK);
 	    free((char *) $3);
 	}
 	| READ BLOCK sourcetype CHRSTR {
-	    getdata(whichgraph, (char *) $4, $3, SET_BLOCK);
+	    getdata(whichgraph, (char *) $4, $3, LOAD_BLOCK);
 	    free((char *) $4);
 	}
 	| BLOCK xytype CHRSTR {
@@ -2899,16 +2895,15 @@ actions:
 	}
 	| READ xytype CHRSTR {
 	    gotread = TRUE;
-	    readtype = $2;
-	    readsrc = cursource;
+	    curtype = $2;
 	    strcpy(readfile, (char *) $3);
 	    free((char *) $3);
 	}
 	| READ xytype sourcetype CHRSTR {
 	    gotread = TRUE;
 	    strcpy(readfile, (char *) $4);
-	    readtype = $2;
-	    readsrc = $3;
+	    curtype = $2;
+	    cursource = $3;
 	    free((char *) $4);
 	}
 	| WRITE SETNUM {
@@ -3554,7 +3549,6 @@ xytype:
 	| XYHILO { $$ = SET_XYHILO; }
 	| XYR { $$ = SET_XYR; }
 	| XYSTRING { $$ = SET_XYSTRING; }
-	| NXY { $$ = SET_NXY; }
 	;
 
 graphtype:
@@ -4694,7 +4688,7 @@ int scanner(char *s)
     
     if (gotread) {
 	gotread = FALSE;
-        getdata(whichgraph, readfile, readsrc, readtype);
+        getdata(whichgraph, readfile, cursource, LOAD_SINGLE);
     }
     
     if (gotnlfit) {

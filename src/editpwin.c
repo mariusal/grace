@@ -506,11 +506,10 @@ void do_ext_editor(int gno, int setno)
     save_autos = autoscale_onread;
     autoscale_onread = AUTOSCALE_NONE;
     if (is_set_active(gno, setno)) {
+        curtype = dataset_type(gno, setno);
 	killsetdata(gno, setno);	
-        getdata(gno, fname, SOURCE_DISK, dataset_type(gno, setno));
-    } else {
-        getdata(gno, fname, SOURCE_DISK, SET_XY);
     }
+    getdata(gno, fname, SOURCE_DISK, LOAD_SINGLE);
     autoscale_onread = save_autos;
     unlink(fname);
     update_all();

@@ -48,6 +48,7 @@
 #include "plotone.h"
 #include "utils.h"
 #include "files.h"
+#include "ssdata.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -78,12 +79,13 @@ static void update_eblock(int gno);
  */
 void create_eblock_frame(int gno)
 {
-    int i;
+    int i, blockncols;
     char buf[32];
     Widget rc, buts[2];
 
+    blockncols = get_blockncols();
     if (blockncols == 0) {
-	errwin("Need to read block data first");
+	errmsg("Need to read block data first");
 	return;
     }
     set_wait_cursor();
@@ -137,7 +139,7 @@ void create_eblock_frame(int gno)
 
 static void update_eblock(int gno)
 {
-    static int old_blockncols = 0;
+    static int blocklen, blockncols, old_blockncols = 0;
     int i, ncols;
     char buf[16];
     OptionItem *blockitems;
@@ -145,10 +147,12 @@ static void update_eblock(int gno)
     if (eblock_frame == NULL) {
 	return;
     }
+    blockncols = get_blockncols();
     if (blockncols == 0) {
 	errmsg("Need to read block data first");
 	return;
     }
+    blocklen = get_blocknrows();
     if (is_valid_gno(gno)) {
         SelectListChoice(eblock_graph_choice_item, gno);
     }

@@ -150,10 +150,6 @@ typedef struct {
     OptionStructure *load_item;    /* load as single/nxy/block */
 } rdataGUI;
 
-#define LOAD_SINGLE 0
-#define LOAD_NXY    1
-#define LOAD_BLOCK  2
-
 void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
 {
     static FSBStructure *rdata_dialog = NULL;
@@ -219,7 +215,7 @@ void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
 static int read_sets_proc(char *filename, void *data)
 {
     int graphno;
-    int load, type;
+    int load;
     
     rdataGUI *gui = (rdataGUI *) data;
     
@@ -227,25 +223,18 @@ static int read_sets_proc(char *filename, void *data)
     if (GetSingleListChoice(gui->graph_item, &graphno) != GRACE_EXIT_SUCCESS) {
         errmsg("Please select a single graph");
     } else {
-        switch(load) {
-        case LOAD_NXY:
-            type = SET_NXY;
-            break;
-        case LOAD_BLOCK:
-            type = SET_BLOCK;
-            break;
-        default:
-            type = GetOptionChoice(gui->ftype_item);
-            break;
+        if (load == LOAD_SINGLE) {
+            curtype = GetOptionChoice(gui->ftype_item);
         }
-        getdata(graphno, filename, cursource, type);
+
+        getdata(graphno, filename, cursource, load);
 
 	if (load == LOAD_BLOCK) {
             create_eblock_frame(graphno);
+        } else {
+            update_all();
+            drawgraph();
         }
-        
-        update_all();
-        drawgraph();
     }
     /* never close the popup */
     return FALSE;
