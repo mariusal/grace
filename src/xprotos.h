@@ -204,11 +204,6 @@ void create_datasetop_popup(Widget but, void *data);
 void create_featext_frame(Widget but, void *data);
 void create_cumulative_frame(Widget but, void *data);
 
-void create_ss_frame(Quark *pset);
-void update_ss_editors(Quark *gr);
-void close_ss_editors(Quark *pset);
-void do_ext_editor(Quark *pset);
-
 void init_cursors(GUI *gui);
 void set_cursor(GUI *gui, int c);
 void set_wait_cursor(void);

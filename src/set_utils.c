@@ -817,17 +817,6 @@ int set_set_colors(Quark *pset, unsigned int color)
     }
 }
 
-static int set_delete_cb(Quark *q, int etype, void *data)
-{
-#ifndef NONE_GUI
-    if (etype == QUARK_ETYPE_DELETE) {
-        close_ss_editors(q);
-    }
-#endif
-    return RETURN_SUCCESS;
-}
-
-
 Quark *grace_set_new(Quark *gr)
 {
     Quark *pset = set_new(gr);
@@ -843,8 +832,6 @@ Quark *grace_set_new(Quark *gr)
     }
     set_set_colors(pset, rt->setcolor);
 
-    quark_cb_set(pset, set_delete_cb, NULL);
-    
     return pset;
 }
 

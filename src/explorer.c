@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2002-2004 Grace Development Team
+ * Copyright (c) 2002-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -195,6 +195,59 @@ static ListTreeItem *q_create(Widget w,
     return item;
 }
 
+static void manage_plugin(ExplorerUI *ui, Widget managed_top)
+{
+    if (managed_top == ui->project_ui->top) {
+        ManageChild(ui->project_ui->top);
+    } else {
+        UnmanageChild(ui->project_ui->top);
+    }
+    if (managed_top == ui->ssd_ui->top) {
+        ManageChild(ui->ssd_ui->top);
+    } else {
+        UnmanageChild(ui->ssd_ui->top);
+    }
+    if (managed_top == ui->frame_ui->top) {
+        ManageChild(ui->frame_ui->top);
+    } else {
+        UnmanageChild(ui->frame_ui->top);
+    }
+    if (managed_top == ui->graph_ui->top) {
+        ManageChild(ui->graph_ui->top);
+    } else {
+        UnmanageChild(ui->graph_ui->top);
+    }
+    if (managed_top == ui->set_ui->top) {
+        ManageChild(ui->set_ui->top);
+    } else {
+        UnmanageChild(ui->set_ui->top);
+    }
+    if (managed_top == ui->axisgrid_ui->top) {
+        ManageChild(ui->axisgrid_ui->top);
+    } else {
+        UnmanageChild(ui->axisgrid_ui->top);
+    }
+    if (managed_top == ui->axis_ui->top) {
+        ManageChild(ui->axis_ui->top);
+    } else {
+        UnmanageChild(ui->axis_ui->top);
+    }
+    if (managed_top == ui->object_ui->top) {
+        ManageChild(ui->object_ui->top);
+    } else {
+        UnmanageChild(ui->object_ui->top);
+    }
+    if (managed_top == ui->atext_ui->top) {
+        ManageChild(ui->atext_ui->top);
+    } else {
+        UnmanageChild(ui->atext_ui->top);
+    }
+    if (managed_top == ui->region_ui->top) {
+        ManageChild(ui->region_ui->top);
+    } else {
+        UnmanageChild(ui->region_ui->top);
+    }
+}
 
 static void highlight_cb(Widget w, XtPointer client, XtPointer call)
 {
@@ -246,150 +299,60 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         SetSensitive(ui->aacbuts[0], FALSE);
         SetSensitive(ui->aacbuts[1], FALSE);
         
-        UnmanageChild(ui->project_ui->top);
-        UnmanageChild(ui->frame_ui->top);
-        UnmanageChild(ui->graph_ui->top);
-        UnmanageChild(ui->set_ui->top);
-        UnmanageChild(ui->axisgrid_ui->top);
-        UnmanageChild(ui->axis_ui->top);
-        UnmanageChild(ui->object_ui->top);
-        UnmanageChild(ui->atext_ui->top);
-        UnmanageChild(ui->region_ui->top);
+        manage_plugin(ui, NULL);
     } else {
         SetSensitive(ui->aacbuts[0], TRUE);
         SetSensitive(ui->aacbuts[1], TRUE);
         
         if (count == 1) {
+            Widget managed_top;
             switch (fid) {
             case QFlavorProject:
                 update_project_ui(ui->project_ui, q);
-
-                ManageChild(ui->project_ui->top);
-                UnmanageChild(ui->frame_ui->top);
-                UnmanageChild(ui->graph_ui->top);
-                UnmanageChild(ui->set_ui->top);
-                UnmanageChild(ui->axisgrid_ui->top);
-                UnmanageChild(ui->axis_ui->top);
-                UnmanageChild(ui->object_ui->top);
-                UnmanageChild(ui->atext_ui->top);
-                UnmanageChild(ui->region_ui->top);
+                managed_top = ui->project_ui->top;
+                break;
+            case QFlavorSSD:
+                update_ssd_ui(ui->ssd_ui, q);
+                managed_top = ui->ssd_ui->top;
                 break;
             case QFlavorFrame:
                 update_frame_ui(ui->frame_ui, q);
-
-                UnmanageChild(ui->project_ui->top);
-                ManageChild(ui->frame_ui->top);
-                UnmanageChild(ui->graph_ui->top);
-                UnmanageChild(ui->set_ui->top);
-                UnmanageChild(ui->axisgrid_ui->top);
-                UnmanageChild(ui->axis_ui->top);
-                UnmanageChild(ui->object_ui->top);
-                UnmanageChild(ui->atext_ui->top);
-                UnmanageChild(ui->region_ui->top);
+                managed_top = ui->frame_ui->top;
                 break;
             case QFlavorGraph:
                 update_graph_ui(ui->graph_ui, q);
-
-                UnmanageChild(ui->project_ui->top);
-                UnmanageChild(ui->frame_ui->top);
-                ManageChild(ui->graph_ui->top);
-                UnmanageChild(ui->set_ui->top);
-                UnmanageChild(ui->axisgrid_ui->top);
-                UnmanageChild(ui->axis_ui->top);
-                UnmanageChild(ui->object_ui->top);
-                UnmanageChild(ui->atext_ui->top);
-                UnmanageChild(ui->region_ui->top);
+                managed_top = ui->graph_ui->top;
                 break;
             case QFlavorSet:
                 update_set_ui(ui->set_ui, q);
-
-                UnmanageChild(ui->project_ui->top);
-                UnmanageChild(ui->frame_ui->top);
-                UnmanageChild(ui->graph_ui->top);
-                ManageChild(ui->set_ui->top);
-                UnmanageChild(ui->axisgrid_ui->top);
-                UnmanageChild(ui->axis_ui->top);
-                UnmanageChild(ui->object_ui->top);
-                UnmanageChild(ui->atext_ui->top);
-                UnmanageChild(ui->region_ui->top);
+                managed_top = ui->set_ui->top;
                 break;
             case QFlavorAGrid:
                 update_axisgrid_ui(ui->axisgrid_ui, q);
-
-                UnmanageChild(ui->project_ui->top);
-                UnmanageChild(ui->frame_ui->top);
-                UnmanageChild(ui->graph_ui->top);
-                UnmanageChild(ui->set_ui->top);
-                ManageChild(ui->axisgrid_ui->top);
-                UnmanageChild(ui->axis_ui->top);
-                UnmanageChild(ui->object_ui->top);
-                UnmanageChild(ui->atext_ui->top);
-                UnmanageChild(ui->region_ui->top);
+                managed_top = ui->axisgrid_ui->top;
                 break;
             case QFlavorAxis:
                 update_axis_ui(ui->axis_ui, q);
-
-                UnmanageChild(ui->project_ui->top);
-                UnmanageChild(ui->frame_ui->top);
-                UnmanageChild(ui->graph_ui->top);
-                UnmanageChild(ui->set_ui->top);
-                UnmanageChild(ui->axisgrid_ui->top);
-                ManageChild(ui->axis_ui->top);
-                UnmanageChild(ui->object_ui->top);
-                UnmanageChild(ui->atext_ui->top);
-                UnmanageChild(ui->region_ui->top);
+                managed_top = ui->axis_ui->top;
                 break;
             case QFlavorDObject:
                 update_object_ui(ui->object_ui, q);
-
-                UnmanageChild(ui->project_ui->top);
-                UnmanageChild(ui->frame_ui->top);
-                UnmanageChild(ui->graph_ui->top);
-                UnmanageChild(ui->set_ui->top);
-                UnmanageChild(ui->axisgrid_ui->top);
-                UnmanageChild(ui->axis_ui->top);
-                ManageChild(ui->object_ui->top);
-                UnmanageChild(ui->atext_ui->top);
-                UnmanageChild(ui->region_ui->top);
+                managed_top = ui->object_ui->top;
                 break;
             case QFlavorAText:
                 update_atext_ui(ui->atext_ui, q);
-
-                UnmanageChild(ui->project_ui->top);
-                UnmanageChild(ui->frame_ui->top);
-                UnmanageChild(ui->graph_ui->top);
-                UnmanageChild(ui->set_ui->top);
-                UnmanageChild(ui->axisgrid_ui->top);
-                UnmanageChild(ui->axis_ui->top);
-                UnmanageChild(ui->object_ui->top);
-                ManageChild(ui->atext_ui->top);
-                UnmanageChild(ui->region_ui->top);
+                managed_top = ui->atext_ui->top;
                 break;
             case QFlavorRegion:
                 update_region_ui(ui->region_ui, q);
-
-                UnmanageChild(ui->project_ui->top);
-                UnmanageChild(ui->frame_ui->top);
-                UnmanageChild(ui->graph_ui->top);
-                UnmanageChild(ui->set_ui->top);
-                UnmanageChild(ui->axisgrid_ui->top);
-                UnmanageChild(ui->axis_ui->top);
-                UnmanageChild(ui->object_ui->top);
-                UnmanageChild(ui->atext_ui->top);
-                ManageChild(ui->region_ui->top);
+                managed_top = ui->region_ui->top;
                 break;
             default:
-                UnmanageChild(ui->project_ui->top);
-                UnmanageChild(ui->frame_ui->top);
-                UnmanageChild(ui->graph_ui->top);
-                UnmanageChild(ui->set_ui->top);
-                UnmanageChild(ui->axisgrid_ui->top);
-                UnmanageChild(ui->axis_ui->top);
-                UnmanageChild(ui->object_ui->top);
-                UnmanageChild(ui->atext_ui->top);
-                UnmanageChild(ui->region_ui->top);
+                managed_top = NULL;
                 break;
             }
+            
+            manage_plugin(ui, managed_top);
         }
     }
 
@@ -542,6 +505,11 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
         switch (quark_fid_get(q)) {
         case QFlavorProject:
             if (set_project_data(ui->project_ui, q, caller) != RETURN_SUCCESS) {
+                res = RETURN_FAILURE;
+            }
+            break;
+        case QFlavorSSD:
+            if (set_ssd_data(ui->ssd_ui, q, caller) != RETURN_SUCCESS) {
                 res = RETURN_FAILURE;
             }
             break;
@@ -1010,6 +978,9 @@ void raise_explorer(GUI *gui, Quark *q)
 
         eui->project_ui = create_project_ui(eui);
         UnmanageChild(eui->project_ui->top);
+
+	eui->ssd_ui = create_ssd_ui(eui);
+        UnmanageChild(eui->ssd_ui->top);
 
 	eui->frame_ui = create_frame_ui(eui);
         UnmanageChild(eui->frame_ui->top);

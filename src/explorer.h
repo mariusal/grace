@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2003,2004 Grace Development Team
+ * Copyright (c) 2003-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -58,6 +58,24 @@ typedef struct {
 
     int             current_page_units;
 } ProjectUI;
+
+typedef struct {
+    Quark           *q;
+    
+    Widget          top;
+
+    Widget          main_tp;
+    Widget          hotlink_tp;
+
+    Widget          mw;
+
+    Widget          hotlink;
+    OptionStructure *hotsrc;
+    Widget          hotfile;
+
+    int             cformat[MAX_SET_COLS];
+    int             cprec[MAX_SET_COLS];
+} SSDataUI;
 
 typedef struct {
     Widget          top;
@@ -376,6 +394,7 @@ struct _ExplorerUI {
     int          all_siblings;
 
     ProjectUI    *project_ui;
+    SSDataUI     *ssd_ui;
     FrameUI      *frame_ui;
     GraphUI      *graph_ui;
     SetUI        *set_ui;
@@ -424,6 +443,10 @@ void pen_explorer_cb(Widget but, const Pen *pen, void *data);
 ProjectUI *create_project_ui(ExplorerUI *eui);
 void update_project_ui(ProjectUI *ui, Quark *q);
 int set_project_data(ProjectUI *ui, Quark *q, void *caller);
+
+SSDataUI *create_ssd_ui(ExplorerUI *eui);
+void update_ssd_ui(SSDataUI *ui, Quark *q);
+int set_ssd_data(SSDataUI *ui, Quark *q, void *caller);
 
 FrameUI *create_frame_ui(ExplorerUI *eui);
 void update_frame_ui(FrameUI *ui, Quark *q);

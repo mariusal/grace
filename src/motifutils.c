@@ -2887,15 +2887,10 @@ static StorageStructure **set_selectors = NULL;
 static int nset_selectors = 0;
 
 
-#define SSS_EDITS_CB         0
-#define SSS_EDITE_CB         1
-#define SSS_NEWF_CB          2
-#define SSS_NEWS_CB          3
-#define SSS_NEWE_CB          4
+#define SSS_NEWF_CB          1
 
 typedef struct {
     StorageStructure *graphss;
-    Widget edit_menu;
 } SSSData;
 
 Quark *get_set_choice_gr(StorageStructure *ss)
@@ -2917,92 +2912,20 @@ Quark *get_set_choice_gr(StorageStructure *ss)
 static void sss_any_cb(void *udata, int cbtype)
 {
     StorageStructure *ss = (StorageStructure *) udata;
-    Quark *gr = get_set_choice_gr(ss), *pset;
-    int i, n;
-    Quark **values;
-    
-    n = GetStorageChoices(ss, &values);
-    
-    for (i = 0; i < n; i ++) {
-        Quark *pset = values[i];
-        
-        switch (cbtype) {
-        case SSS_EDITS_CB:
-            create_ss_frame(pset);
-            break;
-        case SSS_EDITE_CB:
-            do_ext_editor(pset);
-            break;
-        }
-    }
+    Quark *gr = get_set_choice_gr(ss);
     
     switch (cbtype) {
     case SSS_NEWF_CB:
         create_leval_frame(NULL, gr);
         break;
-    case SSS_NEWS_CB:
-        if ((pset = grace_set_new(gr))) {
-            set_set_comment(pset, "Editor");
-            create_ss_frame(pset);
-        }
-        break;
-    case SSS_NEWE_CB:
-        if ((pset = grace_set_new(gr))) {
-            set_set_comment(pset, "Editor");
-            do_ext_editor(pset);
-        }
-        break;
-    }
-    
-    if (n > 0) {
-        xfree(values);
     }
     
     snapshot_and_update(grace->project, TRUE);
 }
 
-static void s_editS_cb(Widget but, void *udata)
-{
-    sss_any_cb(udata, SSS_EDITS_CB);
-}
-
-static void s_editE_cb(Widget but, void *udata)
-{
-    sss_any_cb(udata, SSS_EDITE_CB);
-}
-
 static void s_newF_cb(Widget but, void *udata)
 {
     sss_any_cb(udata, SSS_NEWF_CB);
-}
-
-static void s_newS_cb(Widget but, void *udata)
-{
-    sss_any_cb(udata, SSS_NEWS_CB);
-}
-
-static void s_newE_cb(Widget but, void *udata)
-{
-    sss_any_cb(udata, SSS_NEWE_CB);
-}
-
-static void s_popup_cb(StorageStructure *ss, int nselected)
-{
-    SSSData *sssdata = (SSSData *) ss->data;
-    int selected;
-    
-    if (nselected != 0) {
-        selected = TRUE;
-    } else {
-        selected = FALSE;
-    }
-    
-    SetSensitive(sssdata->edit_menu, selected);
-}
-
-static void s_dc_cb(StorageStructure *ss, Quark *pset, void *data)
-{
-    create_ss_frame(pset);
 }
 
 static char *set_labeling(Quark *q, unsigned int *rid)
@@ -3034,7 +2957,6 @@ StorageStructure *CreateSetChoice(Widget parent,
     nvisible = (type == LIST_TYPE_SINGLE) ? 4 : 8; 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, set_labeling);
-    AddStorageChoiceDblClickCB(ss, s_dc_cb, NULL);
     AddHelpCB(ss->rc, "doc/UsersGuide.html#set-selector");
 
     nset_selectors++;
@@ -3044,22 +2966,14 @@ StorageStructure *CreateSetChoice(Widget parent,
     
     sssdata = xmalloc(sizeof(SSSData));
     ss->data = sssdata;
-    ss->popup_cb = s_popup_cb;
     sssdata->graphss = graphss;
     
     popup = ss->popup;
     
     CreateMenuSeparator(popup);
 
-    sssdata->edit_menu = CreateMenu(popup, "Edit", 'E', FALSE);
-    CreateMenuButton(sssdata->edit_menu, "In spreadsheet", '\0',
-    	s_editS_cb, ss);
-    CreateMenuButton(sssdata->edit_menu, "In text editor", '\0',
-    	s_editE_cb, ss);
     submenupane = CreateMenu(popup, "Create new", '\0', FALSE);
     CreateMenuButton(submenupane, "By formula", '\0', s_newF_cb, ss);
-    CreateMenuButton(submenupane, "In spreadsheet", '\0', s_newS_cb, ss);
-    CreateMenuButton(submenupane, "In text editor", '\0', s_newE_cb, ss);
 
     UpdateSetChoice(ss);
     
@@ -4639,7 +4553,6 @@ char *GetStringSimple(XmString xms)
 void update_set_lists(Quark *gr)
 {
     update_set_selectors(gr);
-    update_ss_editors(gr);
     
     snapshot_and_update(grace->project, FALSE);
 }
@@ -4670,7 +4583,6 @@ void update_all(void)
     update_frame_selectors(grace->project);
     update_graph_selectors(grace->project);
     update_set_selectors(NULL);
-    update_ss_editors(NULL);
 
     if (grace->gui->need_colorsel_update == TRUE) {
         init_xvlibcolors();
