@@ -253,8 +253,8 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
     }
     
     /* Don't create too tall pulldowns */
-    if (nchoices/ncols > MAX_PULLDOWN_LENGTH) {
-        ncols = nchoices/MAX_PULLDOWN_LENGTH;
+    if (nchoices > MAX_PULLDOWN_LENGTH*ncols) {
+        ncols = (nchoices + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
     }
     
     XtVaSetValues(optp->pulldown, XmNnumColumns, ncols, NULL);
