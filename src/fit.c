@@ -34,7 +34,6 @@
  *
  * void stasum() - compute mean and variance
  * void linearconv() - convolve one set with another
- * int crosscorr() - cross/auto correlation
  * void spline() - compute a spline fit
  * int seval() - evaluate the spline computed in spline()
  */
@@ -97,34 +96,6 @@ void linearconv(double *x, int n, double *h, int m, double *y)
 	}
     }
 }
-
-/*
- * cross correlation
- */
-int crosscorr(double *x, double *y, int n, int maxlag, double *xcor)
-{
-    double xbar, xsd;
-    double ybar, ysd;
-    int i, j;
-
-    if (maxlag + 2 > n)
-	return 1;
-    for (i = 0; i <= maxlag; i++) {
-        stasum(&x[i], n - i, &xbar, &xsd);
-        if (xsd == 0.0)
-	    return 2;
-        stasum(y, n - i, &ybar, &ysd);
-        if (ysd == 0.0)
-	    return 3;
-	xcor[i] = 0.0;
-	for (j = 0; j < n - i; j++) {
-	    xcor[i] += (y[j] - ybar) * (x[j + i] - xbar);
-	}
-	xcor[i] /= (n - i)*xsd*ysd;
-    }
-    return 0;
-}
-
 
 /*
 	an almost literal translation of the spline routine in

@@ -2893,8 +2893,9 @@ actions:
 	    double dummy;
             do_int($3->gno, $3->setno, $5->gno, $5->setno, FALSE, &dummy);
 	}
- 	| XCOR '(' selectset ',' selectset ',' nexpr ')' {
-	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, $7);
+ 	| XCOR '(' selectset ',' selectset ',' selectset ',' nexpr ')' {
+	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno,
+                $7->gno, $7->setno, $9);
 	}
 	
         | AUTOSCALE {

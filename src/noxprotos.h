@@ -47,7 +47,8 @@ int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 int do_linearc(int gsrc, int setfrom, int gdest, int setto,
     int gconv, int setconv);
-void do_xcor(int gno1, int set1, int gno2, int set2, int lag);
+int do_xcor(int gsrc, int setfrom, int gdest, int setto,
+    int gcor, int setcor, int maxlag);
 int do_int(int gsrc, int setfrom, int gdest, int setto,
     int disponly, double *sum);
 int do_differ(int gsrc, int setfrom, int gdest, int setto,
@@ -87,7 +88,6 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait);
 
 void stasum(double *x, int n, double *xbar, double *sd);
 void linearconv(double *x, int n, double *h, int m, double *y);
-int crosscorr(double *x, double *y, int n, int lag, double *xcor);
 
 void spline(int n, double *x, double *y, double *b, double *c, double *d);
 void aspline(int n, double *x, double *y, double *b, double *c, double *d);

@@ -66,7 +66,7 @@ static int do_runavg_proc(void *data);
 static int do_differ_proc(void *data);
 static int do_int_proc(void *data);
 static int do_linearc_proc(void *data);
-static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_xcor_proc(void *data);
 static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -1086,79 +1086,200 @@ static int do_int_proc(void *data)
     }
 }
 
+/* linear convolution */
+
+typedef struct _Lconv_ui {
+    TransformStructure *tdialog;
+    GraphSetStructure *convsel;
+} Lconv_ui;
+
+void create_lconv_frame(void *data)
+{
+    static Lconv_ui *ui = NULL;
+
+    set_wait_cursor();
+
+    if (ui == NULL) {
+        Widget rc;
+
+        ui = xmalloc(sizeof(Lconv_ui));
+        
+        ui->tdialog = CreateTransformDialogForm(app_shell,
+            "Linear convolution", LIST_TYPE_MULTIPLE);
+
+	rc = CreateVContainer(ui->tdialog->form);
+	ui->convsel = CreateGraphSetSelector(rc,
+            "Convolve with:", LIST_TYPE_SINGLE);
+
+        CreateAACDialog(ui->tdialog->form, rc, do_linearc_proc, (void *) ui);
+    }
+    
+    RaiseWindow(GetParent(ui->tdialog->form));
+    
+    unset_wait_cursor();
+}
+
+/*
+ * linear convolution
+ */
+static int do_linearc_proc(void *data)
+{
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int i, res, err = FALSE;
+    int gconv, setconv;
+    Lconv_ui *ui = (Lconv_ui *) data;
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
+    if (GetSingleListChoice(ui->convsel->graph_sel, &gconv) != RETURN_SUCCESS ||
+        GetSingleListChoice(ui->convsel->set_sel, &setconv) != RETURN_SUCCESS) {
+        errmsg("Please select a single set to be convoluted with");
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < nssrc; i++) {
+	int setfrom, setto;
+        setfrom = svaluessrc[i];
+	if (nsdest) {
+            setto = svaluesdest[i];
+        } else {
+            setto = nextset(gdest);
+        }
+        res = do_linearc(gsrc, setfrom, gdest, setto, gconv, setconv);
+        if (res != RETURN_SUCCESS) {
+            err = TRUE;
+        }
+    }
+
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    
+    update_set_lists(gdest);
+    xdrawgraph();
+
+    if (err) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
+}
+
 
 /* cross correlation */
 
 typedef struct _Cross_ui {
-    Widget top;
-    SetChoiceItem sel1;
-    SetChoiceItem sel2;
-    Widget lag_item;
-    Widget *region_item;
-    Widget rinvert_item;
+    TransformStructure *tdialog;
+    Widget autocor;
+    GraphSetStructure *corsel;
+    SpinStructure *maxlag;
 } Cross_ui;
 
-static Cross_ui crossui;
+static void xcor_self_toggle(int onoff, void *data)
+{
+    Cross_ui *ui = (Cross_ui *) data;
+    
+    SetSensitive(ui->corsel->frame, !onoff);
+}
 
 void create_xcor_frame(void *data)
 {
-    Widget dialog;
+    static Cross_ui *ui = NULL;
 
     set_wait_cursor();
-    if (crossui.top == NULL) {
-	char *label2[3];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	crossui.top = XmCreateDialogShell(app_shell, "X-correlation", NULL, 0);
-	handle_close(crossui.top);
-	dialog = XmCreateRowColumn(crossui.top, "dialog_rc", NULL, 0);
+    
+    if (ui == NULL) {
+        Widget rc;
 
-	crossui.sel1 = CreateSetSelector(dialog, "Select set:",
-					 SET_SELECT_ACTIVE,
-					 FILTER_SELECT_NONE,
-					 GRAPH_SELECT_CURRENT,
-					 SELECTION_TYPE_SINGLE);
-	crossui.sel2 = CreateSetSelector(dialog, "Select set:",
-					 SET_SELECT_ACTIVE,
-					 FILTER_SELECT_NONE,
-					 GRAPH_SELECT_CURRENT,
-					 SELECTION_TYPE_SINGLE);
-	crossui.lag_item = CreateTextItem2(dialog, 10, "Maximum lag:");
+        ui = xmalloc(sizeof(Cross_ui));
+        
+        ui->tdialog = CreateTransformDialogForm(app_shell,
+            "Cross/Auto-correlation", LIST_TYPE_MULTIPLE);
 
-	CreateSeparator(dialog);
+	rc = CreateVContainer(ui->tdialog->form);
+	ui->autocor = CreateToggleButton(rc, "Auto-correlation");
+        AddToggleButtonCB(ui->autocor, xcor_self_toggle, (void *) ui);
+        ui->corsel = CreateGraphSetSelector(rc,
+            "Correlate with:", LIST_TYPE_SINGLE);
+	ui->maxlag = CreateSpinChoice(rc, "Maximum lag:", 6, SPIN_TYPE_INT,
+            (double) 1, (double) 999999, (double) 1);
 
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_xcor_proc, (XtPointer) & crossui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) crossui.top);
+        /* default settings */
+        SetSpinChoice(ui->maxlag, 1);
 
-	ManageChild(dialog);
+        CreateAACDialog(ui->tdialog->form, rc, do_xcor_proc, (void *) ui);
     }
-    RaiseWindow(crossui.top);
+    
+    RaiseWindow(GetParent(ui->tdialog->form));
+    
     unset_wait_cursor();
 }
 
 /*
  * cross correlation
  */
-static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_xcor_proc(void *data)
 {
-    int gno = get_cg();
-    int set1, set2, maxlag;
-    Cross_ui *ui = (Cross_ui *) client_data;
-    set1 = GetSelectedSet(ui->sel1);
-    set2 = GetSelectedSet(ui->sel2);
-    if (set1 == SET_SELECT_ERROR || set2 == SET_SELECT_ERROR) {
-	errwin("Select 2 sets");
-	return;
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int i, res, err = FALSE;
+    int gcor, setcor;
+    int maxlag, autocor;
+    Cross_ui *ui = (Cross_ui *) data;
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
-    if(xv_evalexpri(ui->lag_item, &maxlag) != RETURN_SUCCESS) { 
-        return;
+    
+    maxlag  = (int) GetSpinChoice(ui->maxlag);
+    autocor = GetToggleButtonState(ui->autocor);
+    
+    if (!autocor &&
+        (GetSingleListChoice(ui->corsel->graph_sel, &gcor) != RETURN_SUCCESS ||
+         GetSingleListChoice(ui->corsel->set_sel, &setcor) != RETURN_SUCCESS)) {
+        errmsg("Please select a single set to be correlated with");
+        return RETURN_FAILURE;
     }
-    set_wait_cursor();
-    do_xcor(gno, set1, gno, set2, maxlag);
-    update_set_lists(gno);
+    
+    for (i = 0; i < nssrc; i++) {
+	int setfrom, setto;
+        setfrom = svaluessrc[i];
+	if (nsdest) {
+            setto = svaluesdest[i];
+        } else {
+            setto = nextset(gdest);
+        }
+        if (autocor) {
+            gcor = gsrc;
+            setcor = setfrom;
+        }
+        res = do_xcor(gsrc, setfrom, gdest, setto, gcor, setcor, maxlag);
+        if (res != RETURN_SUCCESS) {
+            err = TRUE;
+        }
+    }
+
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    
+    update_set_lists(gdest);
     xdrawgraph();
-    unset_wait_cursor();
+
+    if (err) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
 }
 
 
@@ -1465,91 +1586,6 @@ static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data)
     xdrawgraph();
 }
 
-
-/* linear convolution */
-
-typedef struct _Lconv_ui {
-    TransformStructure *tdialog;
-    GraphSetStructure *convsel;
-} Lconv_ui;
-
-void create_lconv_frame(void *data)
-{
-    static Lconv_ui *ui = NULL;
-
-    set_wait_cursor();
-
-    if (ui == NULL) {
-        Widget rc;
-
-        ui = xmalloc(sizeof(Lconv_ui));
-        
-        ui->tdialog = CreateTransformDialogForm(app_shell,
-            "Linear convolution", LIST_TYPE_MULTIPLE);
-
-	rc = CreateVContainer(ui->tdialog->form);
-	ui->convsel = CreateGraphSetSelector(rc,
-            "Convolve with:", LIST_TYPE_SINGLE);
-
-        CreateAACDialog(ui->tdialog->form, rc, do_linearc_proc, (void *) ui);
-    }
-    
-    RaiseWindow(GetParent(ui->tdialog->form));
-    
-    unset_wait_cursor();
-}
-
-/*
- * linear convolution
- */
-static int do_linearc_proc(void *data)
-{
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int i, res, err = FALSE;
-    int gconv, setconv;
-    Lconv_ui *ui = (Lconv_ui *) data;
-
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
-    
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-    
-    if (GetSingleListChoice(ui->convsel->graph_sel, &gconv) != RETURN_SUCCESS ||
-        GetSingleListChoice(ui->convsel->set_sel, &setconv) != RETURN_SUCCESS) {
-        errmsg("Please select a single set to be convoluted with");
-        return RETURN_FAILURE;
-    }
-    
-    for (i = 0; i < nssrc; i++) {
-	int setfrom, setto;
-        setfrom = svaluessrc[i];
-	if (nsdest) {
-            setto = svaluesdest[i];
-        } else {
-            setto = nextset(gdest);
-        }
-        res = do_linearc(gsrc, setfrom, gdest, setto, gconv, setconv);
-        if (res != RETURN_SUCCESS) {
-            err = TRUE;
-        }
-    }
-
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
-    }
-    
-    update_set_lists(gdest);
-    xdrawgraph();
-
-    if (err) {
-        return RETURN_FAILURE;
-    } else {
-        return RETURN_SUCCESS;
-    }
-}
 
 
 typedef struct _Featext_ui {

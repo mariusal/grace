@@ -228,7 +228,8 @@ int do_linearc(int gsrc, int setfrom, int gdest, int setto,
     int srclen, convlen, destlen, i, ncols, nc;
     double xspace1, xspace2, *xsrc, *xconv, *xdest, *yconv;
 
-    if (!is_set_active(gsrc, setfrom)) {
+    if (!is_set_active(gsrc, setfrom) ||
+        !is_set_active(gconv, setconv)) {
 	errmsg("Set not active");
 	return RETURN_FAILURE;
     }
@@ -303,42 +304,179 @@ int do_linearc(int gsrc, int setfrom, int gdest, int setto,
 /*
  * cross correlation
  */
-void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
+int do_xcor(int gsrc, int setfrom, int gdest, int setto,
+    int gcor, int setcor, int maxlag)
 {
-    int xcorset, i, ierr;
-    double *xtmp;
+    int autocor;
+    int len, i, ncols1, ncols2, ncols, nc;
+    double xspace1, xspace2, *xsrc, *xcor, *xdest, xoffset;
 
-    if (!(is_set_active(gno1, set1) && is_set_active(gno2, set2))) {
+    if (maxlag < 0) {
+	errmsg("Negative max lag");
+	return RETURN_FAILURE;
+    }
+
+    if (!is_set_active(gsrc, setfrom)) {
 	errmsg("Set not active");
-	return;
+	return RETURN_FAILURE;
     }
-    if (maxlag < 0 || maxlag + 2 > getsetlength(gno1, set1)) {
-	errmsg("Lag incorrectly specified");
-	return;
+    
+    len = getsetlength(gsrc, setfrom);
+    if (len < 2) {
+	errmsg("Set length < 2");
+	return RETURN_FAILURE;
     }
-    if ((getsetlength(gno1, set1) < 3) || (getsetlength(gno2, set2) < 3)) {
-	errmsg("Set length < 3");
-	return;
+
+    xsrc = getcol(gsrc, setfrom, DATA_X);
+    if (monospaced(xsrc, len, &xspace1) != TRUE) {
+        errmsg("Abscissas of the source set are not monospaced");
+        return RETURN_FAILURE;
+    } else {
+        if (xspace1 == 0.0) {
+            errmsg("The source set spacing is 0");
+            return RETURN_FAILURE;
+        }
     }
-    xcorset = nextset(get_cg());
-    if (xcorset != (-1)) {
-	activateset(get_cg(), xcorset);
-	setlength(get_cg(), xcorset, maxlag + 1);
-	if (set1 != set2) {
-	    sprintf(buf, "X-correlation of set %d and %d at maximum lag %d",
-                    set1, set2, maxlag);
-	} else {
-	    sprintf(buf, "Autocorrelation of set %d at maximum lag %d",
-                    set1, maxlag);
-	}
-	ierr = crosscorr(gety(gno1, set1), gety(gno2, set2), getsetlength(gno1, set1),
-                         maxlag, gety(get_cg(), xcorset));
-	xtmp = getx(get_cg(), xcorset);
-	for (i = 0; i <= maxlag; i++) {
-	    xtmp[i] = i;
-	}
-	setcomment(get_cg(), xcorset, buf);
+
+    if (gsrc == gcor && setfrom == setcor) {
+        autocor = TRUE;
+    } else {
+        autocor = FALSE;
     }
+
+    if (!autocor) {
+        if (!is_set_active(gcor, setcor)) {
+	    errmsg("Set not active");
+	    return RETURN_FAILURE;
+        }
+        
+        if (getsetlength(gcor, setcor) != len) {
+	    errmsg("The correlating sets are of different length");
+	    return RETURN_FAILURE;
+        }
+
+        xcor = getcol(gcor, setcor, DATA_X);
+        if (monospaced(xcor, len, &xspace2) != TRUE) {
+            errmsg("Abscissas of the set are not monospaced");
+            return RETURN_FAILURE;
+        } else {
+            if (fabs(xspace2/xspace1 - 1) > 0.01/(2*len)) {
+                errmsg("The source and correlation functions are not equally sampled");
+                return RETURN_FAILURE;
+            }
+        }
+        
+        xoffset = xcor[0] - xsrc[0];
+    } else {
+        xoffset = 0.0;
+    }
+
+    activateset(gdest, setto);
+    if (setlength(gdest, setto, maxlag) != RETURN_SUCCESS) {
+	return RETURN_FAILURE;
+    }
+
+    ncols1 = dataset_cols(gsrc, setfrom);
+    ncols2 = dataset_cols(gcor, setcor);
+    ncols = MIN2(ncols1, ncols2);
+    if (dataset_cols(gdest, setto) != ncols) {
+        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    }
+
+    for (nc = 1; nc < ncols; nc++) {
+        int buflen;
+        double *d1_re, *d1_im, *d2_re, *d2_im, *dres;
+        
+        buflen = len + maxlag;
+        
+        /* reallocate input to pad with zeros */
+        d1_re = copy_data_column(getcol(gsrc, setfrom, nc), len);
+        d1_re = xrealloc(d1_re, SIZEOF_DOUBLE*buflen);
+        d1_im = xcalloc(buflen, SIZEOF_DOUBLE);
+        if (!d1_re || !d1_im) {
+            xfree(d1_re);
+            xfree(d1_im);
+            return RETURN_FAILURE;
+        }
+        /* pad with zeros */
+        for (i = len; i < buflen; i++) {
+            d1_re[i] = 0.0;
+        }
+        
+        /* perform FT */
+        fourier(d1_re, d1_im, buflen, FALSE);
+        
+        /* do the same with the second input if not autocorrelating */
+        if (!autocor) {
+            d2_re = copy_data_column(getcol(gcor, setcor, nc), len);
+            d2_re = xrealloc(d2_re, SIZEOF_DOUBLE*buflen);
+            d2_im = xcalloc(buflen, SIZEOF_DOUBLE);
+            if (!d1_im || !d2_im) {
+                xfree(d1_re);
+                xfree(d2_re);
+                xfree(d1_im);
+                xfree(d2_im);
+                return RETURN_FAILURE;
+            }
+            for (i = len; i < buflen; i++) {
+                d2_re[i] = 0.0;
+            }
+            
+            fourier(d2_re, d2_im, buflen, FALSE);
+        } else {
+            d2_re = NULL;
+            d2_im = NULL;
+        }
+        
+        /* multiply fourier */
+        for (i = 0; i < buflen; i++) {
+            if (autocor) {
+                d1_re[i] = d1_re[i]*d1_re[i] + d1_im[i]*d1_im[i];
+                d1_im[i] = 0.0;
+            } else {
+                double bufc;
+                bufc     = d1_re[i]*d2_re[i] + d1_im[i]*d2_im[i];
+                d1_im[i] = d2_re[i]*d1_im[i] - d1_re[i]*d2_im[i];
+                d1_re[i] = bufc;
+            }
+        }
+        
+        /* these are no longer used */
+        xfree(d2_re);
+        xfree(d2_im);
+
+        /* perform backward FT */
+        fourier(d1_re, d1_im, buflen, TRUE);
+        
+        /* the imaginary part must be zero */
+        xfree(d1_im);
+        
+        dres = getcol(gdest, setto, nc);
+        for (i = 0; i < maxlag; i++) {
+            dres[i] = d1_re[i]/buflen*xspace1;
+        }
+        
+        /* free the remaining buffer storage */
+        xfree(d1_re);
+    }
+
+    xdest = getcol(gdest, setto, DATA_X);
+    for (i = 0; i < maxlag; i++) {
+	xdest[i] = xoffset + i*xspace1;
+    }
+
+    if (autocor) {
+	sprintf(buf,
+            "Auto-correlation of set G%d.S%d at maximum lag %d",
+            gsrc, setfrom, maxlag);
+    } else {
+	sprintf(buf,
+            "Cross-correlation of sets G%d.S%d and G%d.S%d at maximum lag %d",
+            gsrc, setfrom, gcor, setcor, maxlag);
+    }
+    setcomment(gdest, setto, buf);
+    
+    return RETURN_SUCCESS;
 }
 
 
