@@ -392,6 +392,27 @@ int xfile_empty_element(XFile *xf, char *name, Attributes *attrs)
     return RETURN_SUCCESS;
 }
 
+int xfile_text_element(XFile *xf, char *name, Attributes *attrs, char *text)
+{
+    if (is_empty_string(text)) {
+        return xfile_empty_element(xf, name, attrs);
+    } else {
+        xfile_output(xf, "<");
+        xfile_output(xf, name);
+        xfile_output_attributes(xf, attrs);
+        xfile_output(xf, ">");
+
+        /* FIXME: escape special chars */
+        xfile_output(xf, text);
+
+        xfile_output(xf, "</");
+        xfile_output(xf, name);
+        xfile_output(xf, ">\n");
+
+        return RETURN_SUCCESS;
+    }
+}
+
 int xfile_begin(XFile *xf, char *encoding, int standalone,
     char *dtd_name, char *dtd_uri, char *root, Attributes *root_attrs)
 {
@@ -454,23 +475,3 @@ int xfile_comment(XFile *xf, char *comment)
     
     return RETURN_SUCCESS;
 }
-
-int xfile_cdata(XFile *xf, char *cdata)
-{
-    xfile_output(xf, "<![CDATA[\n");
-    
-    xfile_indent_increment(xf);
-    xfile_output(xf, cdata);
-    xfile_indent_decrement(xf);
-    
-    xfile_output(xf, "]]>\n");
-    
-    return RETURN_SUCCESS;
-}
-
-int xfile_pcdata(XFile *xf, char *pcdata)
-{
-    /* FIXME: escape special chars */
-    return xfile_output(xf, pcdata);
-}
-

@@ -87,12 +87,10 @@ int xfile_end(XFile *xf);
 int xfile_begin_element(XFile *xf, char *name, Attributes *attrs);
 int xfile_end_element(XFile *xf, char *name);
 int xfile_empty_element(XFile *xf, char *name, Attributes *attrs);
+int xfile_text_element(XFile *xf, char *name, Attributes *attrs, char *text);
 
 int xfile_comment(XFile *xf, char *comment);
 
 int xfile_processing_instruction(XFile *xf, Attributes *attrs);
-
-int xfile_cdata(XFile *xf, char *cdata);
-int xfile_pcdata(XFile *xf, char *pcdata);
 
 #endif /* __XFILE_H_ */
