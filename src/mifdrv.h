@@ -27,7 +27,7 @@
 
 #include "defines.h"
 
-int mifinitgraphics(const Canvas *canvas, void *data,
+int mif_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats);
 
 void mif_drawpixel(const Canvas *canvas, void *data, const VPoint *vp);

@@ -85,36 +85,17 @@ unsigned int win_h = 0, win_w = 0;
 
 Pixmap resize_bufpixmap(unsigned int w, unsigned int h);
 
-static Device_entry dev_x11 = {
-    DEVICE_TERM,
-    "X11",
-    "",
-    FALSE,
-    TRUE,
-    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-
-    FALSE,
-    FALSE,
-
-    xlibinitgraphics,
-    NULL,
-    NULL,
-    xlibupdatecmap,
-    xlibleavegraphics,
-    xlibdrawpixel,
-    xlibdrawpolyline,
-    xlibfillpolygon,
-    xlibdrawarc,
-    xlibfillarc,
-    xlibputpixmap,
-
-    NULL
-};
-
 int register_x11_drv(Canvas *canvas)
 {
     long mrsize;
     int max_path_limit;
+    Device_entry *d;
+    float dpi;
+    
+    d = device_new("X11", DEVICE_TERM, FALSE, NULL);
+    if (!d) {
+        return -1;
+    }
     
     /* XExtendedMaxRequestSize() appeared in X11R6 */
 #if XlibSpecificationRelease > 5
@@ -135,10 +116,26 @@ int register_x11_drv(Canvas *canvas)
         set_max_path_limit(canvas, max_path_limit);
     }
     
-    dev_x11.pg.dpi = rint(MM_PER_INCH*DisplayWidth(disp, screennumber)/
+    dpi = (float) rint(MM_PER_INCH*DisplayWidth(disp, screennumber)/
         DisplayWidthMM(disp, screennumber));
-
-    return register_device(canvas, &dev_x11);
+    
+    device_set_dpi(d, dpi, FALSE);
+    
+    device_set_procs(d,
+        xlibinitgraphics,
+        xlibleavegraphics,
+        NULL,
+        NULL,
+        xlibupdatecmap,
+        xlibdrawpixel,
+        xlibdrawpolyline,
+        xlibfillpolygon,
+        xlibdrawarc,
+        xlibfillarc,
+        xlibputpixmap,
+        NULL);
+    
+    return register_device(canvas, d);
 }
 
 int xlibinit(const Canvas *canvas)

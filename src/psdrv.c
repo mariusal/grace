@@ -91,62 +91,7 @@ typedef struct {
 
 static void put_string(PS_data *psdata, FILE *fp, const char *s, int len);
 
-
-static Device_entry dev_ps = {
-    DEVICE_PRINT,
-    "PostScript",
-    "ps",
-    TRUE,
-    FALSE,
-    {3300, 2550, 300.0},
-
-    TRUE,
-    FALSE,
-
-    ps_initgraphics,
-    ps_op_parser,
-    ps_gui_setup,
-    NULL,
-    ps_leavegraphics,
-    ps_drawpixel,
-    ps_drawpolyline,
-    ps_fillpolygon,
-    ps_drawarc,
-    ps_fillarc,
-    ps_putpixmap,
-    ps_puttext,
-
-    NULL
-};
-
-static Device_entry dev_eps = {
-    DEVICE_FILE,
-    "EPS",
-    "eps",
-    TRUE,
-    FALSE,
-    {2500, 2500, 300.0},
-
-    TRUE,
-    TRUE,
-
-    ps_initgraphics,
-    ps_op_parser,
-    ps_gui_setup,
-    NULL,
-    ps_leavegraphics,
-    ps_drawpixel,
-    ps_drawpolyline,
-    ps_fillpolygon,
-    ps_drawarc,
-    ps_fillarc,
-    ps_putpixmap,
-    ps_puttext,
-
-    NULL
-};
-
-static PS_data *init_ps_data(const Canvas *canvas, int format)
+static PS_data *init_ps_data(int format)
 {
     PS_data *data;
 
@@ -176,30 +121,78 @@ static PS_data *init_ps_data(const Canvas *canvas, int format)
 
 int register_ps_drv(Canvas *canvas)
 {
+    Device_entry *d;
     PS_data *data;
     
-    data = init_ps_data(canvas, PS_FORMAT);
+    data = init_ps_data(PS_FORMAT);
     if (!data) {
         return RETURN_FAILURE;
     }
 
-    dev_ps.data = data;
-
-    return register_device(canvas, &dev_ps);
+    d = device_new("PostScript", DEVICE_PRINT, TRUE, (void *) data);
+    if (!d) {
+        xfree(data);
+        return -1;
+    }
+    
+    device_set_fext(d, "ps");
+    
+    device_set_dpi(d, 300.0, FALSE);
+    
+    device_set_procs(d,
+        ps_initgraphics,
+        ps_leavegraphics,
+        ps_op_parser,
+        ps_gui_setup,
+        NULL,
+        ps_drawpixel,
+        ps_drawpolyline,
+        ps_fillpolygon,
+        ps_drawarc,
+        ps_fillarc,
+        ps_putpixmap,
+        ps_puttext);
+    
+    return register_device(canvas, d);
 }
 
 int register_eps_drv(Canvas *canvas)
 {
+    Device_entry *d;
     PS_data *data;
     
-    data = init_ps_data(canvas, EPS_FORMAT);
+    data = init_ps_data(EPS_FORMAT);
     if (!data) {
-        return RETURN_FAILURE;
+        return -1;
     }
 
-    dev_eps.data = data;
-
-    return register_device(canvas, &dev_eps);
+    d = device_new("EPS", DEVICE_FILE, TRUE, (void *) data);
+    if (!d) {
+        xfree(data);
+        return -1;
+    }
+    
+    device_set_fext(d, "eps");
+    
+    device_set_dpi(d, 300.0, FALSE);
+    
+    device_set_autocrop(d, TRUE);
+    
+    device_set_procs(d,
+        ps_initgraphics,
+        ps_leavegraphics,
+        ps_op_parser,
+        ps_gui_setup,
+        NULL,
+        ps_drawpixel,
+        ps_drawpolyline,
+        ps_fillpolygon,
+        ps_drawarc,
+        ps_fillarc,
+        ps_putpixmap,
+        ps_puttext);
+    
+    return register_device(canvas, d);
 }
 
 static char *ps_standard_fonts13[] = 

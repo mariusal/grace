@@ -29,7 +29,7 @@
 
 #define GMF_VERSION "0.10"
 
-int mfinitgraphics(const Canvas *canvas, void *data,
+int mf_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats);
 
 void mf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp);

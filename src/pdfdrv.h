@@ -41,7 +41,7 @@ typedef enum {
 
 #define DEFAULT_COLORSPACE  COLORSPACE_RGB
 
-int pdfinitgraphics(const Canvas *canvas, void *data,
+int pdf_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats);
 
 void pdf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp);

@@ -77,39 +77,37 @@ static int pdf_setup_fpprec = 4;
 
 static PDF *phandle;
 
-static Device_entry dev_pdf = {DEVICE_FILE,
-          "PDF",
-          "pdf",
-          TRUE,
-          FALSE,
-          {612, 792, 72.0},
-          
-          TRUE,
-          FALSE,
-
-          pdfinitgraphics,
-          pdf_op_parser,
-          pdf_gui_setup,
-          NULL,
-          pdf_leavegraphics,
-          pdf_drawpixel,
-          pdf_drawpolyline,
-          pdf_fillpolygon,
-          pdf_drawarc,
-          pdf_fillarc,
-          pdf_putpixmap,
-          pdf_puttext,
-
-          NULL
-         };
-
 int register_pdf_drv(Canvas *canvas)
 {
+    Device_entry *d;
+    
     PDF_boot();
-    return register_device(canvas, &dev_pdf);
+    
+    d = device_new("PDF", DEVICE_FILE, TRUE, NULL);
+    if (!d) {
+        return -1;
+    }
+    
+    device_set_fext(d, "pdf");
+    
+    device_set_procs(d,
+        pdf_initgraphics,
+        pdf_leavegraphics,
+        pdf_op_parser,
+        pdf_gui_setup,
+        NULL,
+        pdf_drawpixel,
+        pdf_drawpolyline,
+        pdf_fillpolygon,
+        pdf_drawarc,
+        pdf_fillarc,
+        pdf_putpixmap,
+        pdf_puttext);
+    
+    return register_device(canvas, d);
 }
 
-int pdfinitgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
+int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     int i;
     Page_geometry *pg;

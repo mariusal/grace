@@ -59,63 +59,45 @@ static void xrst_setup_wrapper(const Canvas *canvas, void *data)
 
 int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev)
 {
-    Device_entry *dev;
+    Device_entry *d;
     Xrst_data *ddata;
-    Page_geometry pg = {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0};
-    
-    dev = xmalloc(sizeof(Device_entry));
-    if (!dev) {
-        return -1;
-    }
-    memset(dev, 0, sizeof(Device_entry));
-    
+
     ddata = xmalloc(sizeof(Xrst_data));
     if (!ddata) {
-        xfree(dev);
         return -1;
     }
     memset(ddata, 0, sizeof(Xrst_data));
     
-    dev->type          = xdev->type;
-    dev->name          = copy_string(NULL, xdev->name);
-    dev->fext          = copy_string(NULL, xdev->fext);
-    dev->devfonts      = FALSE;
-    dev->fontaa        = xdev->fontaa;
-    dev->pg            = pg;
+    ddata->dump   = xdev->dump;
+    ddata->data   = xdev->data;
+    ddata->setup  = xdev->setup;
+    ddata->parser = xdev->parser;
     
-    dev->twopass       = FALSE;
-    dev->autocrop      = FALSE;
-    
-    dev->init          = xrst_initgraphics;
-    dev->updatecmap    = NULL;
-    dev->leavegraphics = xrst_leavegraphics;
-    dev->drawpixel     = xrst_drawpixel;
-    dev->drawpolyline  = xrst_drawpolyline;
-    dev->fillpolygon   = xrst_fillpolygon;
-    dev->drawarc       = xrst_drawarc;
-    dev->fillarc       = xrst_fillarc;
-    dev->putpixmap     = xrst_putpixmap;
-    dev->puttext       = NULL;
+    d = device_new(xdev->name, xdev->type, FALSE, (void *) ddata);
+    if (!d) {
+        xfree(ddata);
+        return -1;
+    }
 
-    ddata->dump        = xdev->dump;
-    ddata->data        = xdev->data;
+    device_set_fext(d, xdev->fext);
     
-    if (xdev->parser) {
-        dev->parser    = xrst_parser_wrapper;
-        ddata->parser  = xdev->parser;
-    } else {
-        dev->parser    = NULL;
-    }
-    if (xdev->setup) {
-        dev->setup     = xrst_setup_wrapper;
-        ddata->setup   = xdev->setup;
-    } else {
-        dev->setup     = NULL;
-    }
+    device_set_procs(d,
+        xrst_initgraphics,
+        xrst_leavegraphics,
+        xdev->parser ? xrst_parser_wrapper:NULL,
+        xdev->setup  ? xrst_setup_wrapper:NULL,
+        NULL,
+        xrst_drawpixel,
+        xrst_drawpolyline,
+        xrst_fillpolygon,
+        xrst_drawarc,
+        xrst_fillarc,
+        xrst_putpixmap,
+        NULL);
     
-    dev->data          = ddata;
-    
-    return register_device(canvas, dev);
+    device_set_fontrast(d, FALSE, xdev->fontaa);
+
+    return register_device(canvas, d);
 }
 
 static void VPoint2miPoint(const Xrst_data *ddata, const VPoint *vp, miPoint *mp)

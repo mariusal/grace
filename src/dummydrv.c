@@ -37,39 +37,33 @@
 #include "devlist.h"
 #include "dummydrv.h"
 
-static Device_entry dev_dummy = {
-    DEVICE_TERM,
-    "Dummy",
-    "",
-    TRUE,
-    FALSE,
-    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-    
-    FALSE,
-    FALSE,
-
-    dummyinitgraphics,
-    NULL,
-    NULL,
-    NULL,
-    dummy_leavegraphics,
-    dummy_drawpixel,
-    dummy_drawpolyline,
-    dummy_fillpolygon,
-    dummy_drawarc,
-    dummy_fillarc,
-    dummy_putpixmap,
-    dummy_puttext,
-
-    NULL
-};
-
 int register_dummy_drv(Canvas *canvas)
 {
-    return register_device(canvas, &dev_dummy);
+    Device_entry *d;
+
+    d = device_new("Dummy", DEVICE_TERM, FALSE, NULL);
+    if (!d) {
+        return -1;
+    }
+    
+    device_set_procs(d,
+        dummy_initgraphics,
+        dummy_leavegraphics,
+        NULL,
+        NULL,
+        NULL,
+        dummy_drawpixel,
+        dummy_drawpolyline,
+        dummy_fillpolygon,
+        dummy_drawarc,
+        dummy_fillarc,
+        dummy_putpixmap,
+        dummy_puttext);
+    
+    return register_device(canvas, d);
 }
 
-int dummyinitgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
+int dummy_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     return RETURN_SUCCESS;
 }

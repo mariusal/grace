@@ -46,33 +46,6 @@
 
 static double page_side = 0.0;
 
-static Device_entry dev_mif = {
-    DEVICE_FILE,
-    "MIF",
-    "mif",
-    TRUE,
-    FALSE,
-    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-    
-    FALSE,
-    FALSE,
-
-    mifinitgraphics,
-    NULL,
-    NULL,
-    NULL,
-    mif_leavegraphics,
-    mif_drawpixel,
-    mif_drawpolyline,
-    mif_fillpolygon,
-    mif_drawarc,
-    mif_fillarc,
-    mif_putpixmap,
-    mif_puttext,
-
-    (void *) &page_side
-};
-
 /* mapping between Grace and MIF fill patterns. This is really ugly but
  * MIF uses only 16 patterns which can only be customised on UNIX platforms
  * and there only for the whole FrameMaker-product and not for a single
@@ -241,10 +214,33 @@ static char *escape_specials(unsigned char *s, int len)
 
 int register_mif_drv(Canvas *canvas)
 {
-    return register_device(canvas, &dev_mif);
+    Device_entry *d;
+
+    d = device_new("MIF", DEVICE_FILE, TRUE, (void *) &page_side);
+    if (!d) {
+        return -1;
+    }
+    
+    device_set_fext(d, "mif");
+    
+    device_set_procs(d,
+        mif_initgraphics,
+        mif_leavegraphics,
+        NULL,
+        NULL,
+        NULL,
+        mif_drawpixel,
+        mif_drawpolyline,
+        mif_fillpolygon,
+        mif_drawarc,
+        mif_fillarc,
+        mif_putpixmap,
+        mif_puttext);
+    
+    return register_device(canvas, d);
 }
 
-int mifinitgraphics(const Canvas *canvas, void *data,
+int mif_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
     int i;

@@ -59,33 +59,6 @@ typedef struct {
     int    fill;
 } Svg_data;
 
-static Device_entry dev_svg = {
-    DEVICE_FILE,
-    "SVG",
-    "svg",
-    TRUE,
-    FALSE,
-    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-    
-    FALSE,
-    FALSE,
-
-    svginitgraphics,
-    NULL,
-    NULL,
-    NULL,
-    svg_leavegraphics,
-    svg_drawpixel,
-    svg_drawpolyline,
-    svg_fillpolygon,
-    svg_drawarc,
-    svg_fillarc,
-    svg_putpixmap,
-    svg_puttext,
-
-    NULL
-};
-
 static Svg_data *init_svg_data(const Canvas *canvas)
 {
     Svg_data *data;
@@ -132,15 +105,37 @@ static double convertH (const Svg_data *svgdata, double height)
 
 int register_svg_drv(Canvas *canvas)
 {
+    Device_entry *d;
     Svg_data *data;
     
     data = init_svg_data(canvas);
     if (!data) {
-        return RETURN_FAILURE;
+        return -1;
     }
-    dev_svg.data = data;
-
-    return register_device(canvas, &dev_svg);
+    
+    d = device_new("SVG", DEVICE_FILE, TRUE, (void *) data);
+    if (!d) {
+        xfree(data);
+        return -1;
+    }
+    
+    device_set_fext(d, "svg");
+    
+    device_set_procs(d,
+        svg_initgraphics,
+        svg_leavegraphics,
+        NULL,
+        NULL,
+        NULL,
+        svg_drawpixel,
+        svg_drawpolyline,
+        svg_fillpolygon,
+        svg_drawarc,
+        svg_fillarc,
+        svg_putpixmap,
+        svg_puttext);
+    
+    return register_device(canvas, d);
 }
 
 static void define_pattern(const Canvas *canvas, Svg_data *svgdata, int i)
@@ -242,7 +237,7 @@ static char *escape_specials(unsigned char *s, int len)
     return (es);
 }
 
-int svginitgraphics(const Canvas *canvas, void *data,
+int svg_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
     Svg_data *svgdata = (Svg_data *) data;

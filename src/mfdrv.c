@@ -40,39 +40,35 @@
 #include "devlist.h"
 #include "mfdrv.h"
 
-static Device_entry dev_mf = {DEVICE_FILE,
-          "Metafile",
-          "gmf",
-          TRUE,
-          FALSE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-          
-          TRUE,
-          FALSE,
-          
-          mfinitgraphics,
-          NULL,
-          NULL,
-          NULL,
-          mf_leavegraphics,
-
-          mf_drawpixel,
-          mf_drawpolyline,
-          mf_fillpolygon,
-          mf_drawarc,
-          mf_fillarc,
-          mf_putpixmap,
-          mf_puttext,
-    
-          NULL
-         };
-
 int register_mf_drv(Canvas *canvas)
 {
-    return register_device(canvas, &dev_mf);
+    Device_entry *d;
+
+    d = device_new("Metafile", DEVICE_FILE, TRUE, NULL);
+    if (!d) {
+        return -1;
+    }
+    
+    device_set_fext(d, "gmf");
+    
+    device_set_procs(d,
+        mf_initgraphics,
+        mf_leavegraphics,
+        NULL,
+        NULL,
+        NULL,
+        mf_drawpixel,
+        mf_drawpolyline,
+        mf_fillpolygon,
+        mf_drawarc,
+        mf_fillarc,
+        mf_putpixmap,
+        mf_puttext);
+    
+    return register_device(canvas, d);
 }
 
-int mfinitgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
+int mf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     int i, j;
     Page_geometry *pg;

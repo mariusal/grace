@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -27,7 +27,7 @@
 
 #include "defines.h"
 
-int dummyinitgraphics(const Canvas *canvas, void *data,
+int dummy_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats);
 
 void dummy_drawpixel(const Canvas *canvas, void *data, const VPoint *vp);
