@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -253,6 +253,10 @@ void update_bbox(int type, VPoint vp);
 void update_bboxes(VPoint vp);
 void melt_bbox(int type);
 void activate_bbox(int type, int status);
+int view_extend(view *v, double w);
+int update_bboxes_with_view(view *v);
+int update_bboxes_with_vpoints(VPoint *vps, int n, double lw);
+int VPoints2bbox(VPoint *vp1, VPoint *vp2, view *bb);
 
 void set_draw_mode(int mode);
 int get_draw_mode(void);
