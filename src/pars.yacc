@@ -2077,10 +2077,10 @@ parmset:
                 yyerror("The object is not a line");
 	    } else {
 	        DOLineData *l = (DOLineData *) curobject->odata;
-                l->width  = fabs($6 - $2);
-                l->height = fabs($8 - $4);
-                curobject->ap.x = ($6 + $2)/2;
-                curobject->ap.y = ($8 + $4)/2;
+                curobject->ap.x = $2;
+                curobject->ap.y = $4;
+                l->vector.x = $6 - $2;
+                l->vector.y = $8 - $4;
             }
 	}
 	| LINE ARROW nexpr {

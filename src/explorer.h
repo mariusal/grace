@@ -267,8 +267,8 @@ typedef struct {
 typedef struct {
     Widget top;
     
-    SpinStructure   *width;
-    SpinStructure   *height;
+    SpinStructure   *v_x;
+    SpinStructure   *v_y;
     OptionStructure *arrow_end;
     
     OptionStructure *a_type;

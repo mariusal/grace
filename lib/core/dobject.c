@@ -160,8 +160,7 @@ void *object_odata_new(OType type)
     case DO_LINE:
         {
             DOLineData *l = (DOLineData *) odata;
-            l->width  = 0.0;
-            l->height = 0.0;
+            l->vector.x  = l->vector.y  = 0.0;
             l->arrow_end = 0; 
             set_default_arrow(&l->arrow);
         }

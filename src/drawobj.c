@@ -83,38 +83,36 @@ void draw_object(Canvas *canvas, Quark *q)
         {
             DOLineData *l = (DOLineData *) o->odata;
 
-            VPoint vp1, vp2;
+            VPoint vp1;
             double x, y, co, si;
 
-            x = l->width/2;
-            y = l->height/2;
+            x = l->vector.x;
+            y = l->vector.y;
 
             co = cos(M_PI/180.0*o->angle);
             si = sin(M_PI/180.0*o->angle);
 
             vp1.x = anchor.x + x*co - y*si;
             vp1.y = anchor.y + x*si + y*co;
-            vp2.x = anchor.x - x*co + y*si;
-            vp2.y = anchor.y - x*si - y*co;
 
             setline(canvas, &o->line);
-            DrawLine(canvas, &vp1, &vp2);
+            DrawLine(canvas, &anchor, &vp1);
 
             switch (l->arrow_end) {
             case 0:
                 break;
             case 1:
-                draw_arrowhead(canvas, &vp2, &vp1, &l->arrow,
+                draw_arrowhead(canvas, &vp1, &anchor, &l->arrow,
                     &o->line.pen, &o->fillpen);
                 break;
             case 2:
-                draw_arrowhead(canvas, &vp1, &vp2, &l->arrow,
+                draw_arrowhead(canvas, &anchor, &vp1, &l->arrow,
                     &o->line.pen, &o->fillpen);
                 break;
             case 3:
-                draw_arrowhead(canvas, &vp2, &vp1, &l->arrow,
+                draw_arrowhead(canvas, &vp1, &anchor, &l->arrow,
                     &o->line.pen, &o->fillpen);
-                draw_arrowhead(canvas, &vp1, &vp2, &l->arrow,
+                draw_arrowhead(canvas, &anchor, &vp1, &l->arrow,
                     &o->line.pen, &o->fillpen);
                 break;
             }

@@ -1627,11 +1627,11 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrLineData" type="do_line_data">
         <!-- Attributes -->
-        <attribute name="#AStrWidth" type="dval">
-            $$->width = $?;
+        <attribute name="#AStrX" type="dval">
+            $$->vector.x = $?;
         </attribute>
-        <attribute name="#AStrHeight" type="dval">
-            $$->height = $?;
+        <attribute name="#AStrY" type="dval">
+            $$->vector.y = $?;
         </attribute>
         <attribute name="#AStrArrowsAt" type="ival">
             $$->arrow_end = $?;

@@ -720,8 +720,7 @@ typedef struct {
 } Arrow;
 
 typedef struct _DOLineData {
-    double width;
-    double height;
+    VVector vector;
     int arrow_end;
     Arrow arrow;
 } DOLineData;

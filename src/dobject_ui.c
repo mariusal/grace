@@ -112,8 +112,8 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
 
 static void update_line_ui(LineUI *ui, DOLineData *odata)
 {
-    SetSpinChoice(ui->width,  odata->width);
-    SetSpinChoice(ui->height, odata->height);
+    SetSpinChoice(ui->v_x, odata->vector.x);
+    SetSpinChoice(ui->v_y, odata->vector.y);
     SetOptionChoice(ui->arrow_end, odata->arrow_end);
 
     SetOptionChoice(ui->a_type, odata->arrow.type);
@@ -125,11 +125,11 @@ static void update_line_ui(LineUI *ui, DOLineData *odata)
 static void set_line_odata(LineUI *ui, DOLineData *odata, void *caller)
 {
     if (ui && odata && IsManaged(ui->top)) {
-        if (!caller || caller == ui->width) {
-            odata->width  = GetSpinChoice(ui->width);
+        if (!caller || caller == ui->v_x) {
+            odata->vector.x = GetSpinChoice(ui->v_x);
         }
-        if (!caller || caller == ui->height) {
-            odata->height = GetSpinChoice(ui->height);
+        if (!caller || caller == ui->v_y) {
+            odata->vector.y  = GetSpinChoice(ui->v_y);
         }
         if (!caller || caller == ui->arrow_end) {
             odata->arrow_end = GetOptionChoice(ui->arrow_end);
@@ -157,16 +157,18 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
     ui = xmalloc(sizeof(LineUI));
     
     ui->top = CreateVContainer(parent);
-    fr = CreateFrame(ui->top, "Line properties");
-    rc = CreateVContainer(fr);
-    ui->width = CreateSpinChoice(rc, "Width: ",
+    fr = CreateFrame(ui->top, "Vector");
+    rc = CreateHContainer(fr);
+    ui->v_x = CreateSpinChoice(rc, "X: ",
         8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
-    AddSpinChoiceCB(ui->width, sp_explorer_cb, eui);
-    ui->height = CreateSpinChoice(rc, "Height:",
+    AddSpinChoiceCB(ui->v_x, sp_explorer_cb, eui);
+    ui->v_y = CreateSpinChoice(rc, "Y:",
         8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
-    AddSpinChoiceCB(ui->height, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->v_y, sp_explorer_cb, eui);
 
-    ui->arrow_end = CreatePanelChoice(rc, "Place arrows at:",
+    fr = CreateFrame(ui->top, "Arrows");
+    rc = CreateVContainer(fr);
+    ui->arrow_end = CreatePanelChoice(rc, "Place at:",
 				      5,
 				      "None",
 				      "Start",
@@ -175,8 +177,6 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
 				      NULL);
     AddOptionChoiceCB(ui->arrow_end, oc_explorer_cb, eui);
 
-    fr = CreateFrame(ui->top, "Arrows");
-    rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
     ui->a_type = CreatePanelChoice(rc1, "Type:",
 				   4,

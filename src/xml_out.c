@@ -859,8 +859,8 @@ static int project_save_hook(Quark *q,
             case DO_LINE:
                 {
                     DOLineData *l = (DOLineData *) o->odata;
-                    attributes_set_dval(attrs, AStrWidth, l->width);
-                    attributes_set_dval(attrs, AStrHeight, l->height);
+                    attributes_set_dval(attrs, AStrX, l->vector.x);
+                    attributes_set_dval(attrs, AStrY, l->vector.y);
                     attributes_set_ival(attrs, AStrArrowsAt, l->arrow_end); /* FIXME: textual */
                 }
                 break;

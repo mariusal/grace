@@ -418,15 +418,15 @@ static int project_postprocess_hook(Quark *q,
                 case DO_LINE:
                     {
                         DOLineData *l = (DOLineData *) o->odata;
-                        wp.x = o->ap.x - l->width/2;
-                        wp.y = o->ap.y - l->height/2;
+                        wp.x = o->ap.x;
+                        wp.y = o->ap.y;
                         Wpoint2Vpoint(gr, &wp, &vp1);
-                        wp.x = o->ap.x + l->width/2;
-                        wp.y = o->ap.y + l->height/2;
+                        wp.x = o->ap.x + l->vector.x;
+                        wp.y = o->ap.y + l->vector.y;
                         Wpoint2Vpoint(gr, &wp, &vp2);
 
-                        l->width  = fabs(vp2.x - vp1.x);
-                        l->height = fabs(vp2.y - vp1.y);
+                        l->vector.x = vp2.x - vp1.x;
+                        l->vector.y = vp2.y - vp1.y;
                     }
                     break;
                 case DO_NONE:
