@@ -145,6 +145,9 @@
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR
 
+/* Define if stdio.h defines the sys_errlist table */
+#undef HAVE_SYS_ERRLIST_IN_STDIO_H
+
 /* Define if you have the vsnprintf function.  */
 #undef HAVE_VSNPRINTF
 
@@ -211,6 +214,9 @@
 
 /* Define if math.h defines the lgamma function.  */
 #undef HAVE_LGAMMA_IN_MATH_H
+
+/* Define if math.h defines the signgam variable.  */
+#undef HAVE_SIGNGAM_IN_MATH_H
 
 /* Define if you have the asinh function.  */
 #undef HAVE_ASINH
