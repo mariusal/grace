@@ -475,7 +475,7 @@ int linear_regression(int n, double *x, double *y, double *coeff)
 }
 
 /*
-	a literal translation of the spline routine in
+	an almost literal translation of the spline routine in
 	Forsyth, Malcolm, and Moler
 */
 void spline(int n, double *x, double *y, double *b, double *c, double *d)
@@ -527,11 +527,21 @@ Gack!
 /*
 Fortran 66
 */
+    if (n < 2) {
+        return;
+    }
+    
+    if (n < 3) {
+        b[1] = (y[2] - y[1]) / (x[2] - x[1]);
+        c[1] = 0.0;
+        d[1] = 0.0;
+        b[2] = b[1];
+        c[2] = 0.0;
+        d[2] = 0.0;
+        return;
+    }
+
     nm1 = n - 1;
-    if (n < 2)
-	return;
-    if (n < 3)
-	goto l50;
 /*
 c
 c  set up tridiagonal system
@@ -557,18 +567,18 @@ c
     b[n] = -d[n - 1];
     c[1] = 0.0;
     c[n] = 0.0;
-    if (n == 3)
-	goto l15;
-    c[1] = c[3] / (x[4] - x[2]) - c[2] / (x[3] - x[1]);
-    c[n] = c[n - 1] / (x[n] - x[n - 2]) - c[n - 2] / (x[n - 1] - x[n - 3]);
-    c[1] = c[1] * d[1] * d[1] / (x[4] - x[1]);
-    c[n] = -c[n] * d[n - 1] * d[n - 1] / (x[n] - x[n - 3]);
+
+    if (n != 3) { /* i.e. n > 3 here */
+	c[1] = c[3] / (x[4] - x[2]) - c[2] / (x[3] - x[1]);
+	c[n] = c[n - 1] / (x[n] - x[n - 2]) - c[n - 2] / (x[n - 1] - x[n - 3]);
+	c[1] = c[1] * d[1] * d[1] / (x[4] - x[1]);
+	c[n] = -c[n] * d[n - 1] * d[n - 1] / (x[n] - x[n - 3]);
+    }
 /*
 c
 c  forward elimination
 c
 */
-l15:;
     for (i = 2; i <= n; i++) {
 	t = d[i - 1] / b[i - 1];
 	b[i] = b[i] - t * d[i - 1];
@@ -601,14 +611,6 @@ c
     d[n] = d[n - 1];
     return;
 
-l50:;
-    b[1] = (y[2] - y[1]) / (x[2] - x[1]);
-    c[1] = 0.0;
-    d[1] = 0.0;
-    b[2] = b[1];
-    c[2] = 0.0;
-    d[2] = 0.0;
-    return;
 }
 
 /***************************************************************************
