@@ -247,6 +247,11 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
     if (vpp != NULL) {
         vp = *vpp;
     }
+
+    if (is_graph_hidden(cg)) {
+        SetLabel(loclab, "[No graphs]");
+        return;
+    }
     
     get_graph_viewport(cg, &v);
     if (!is_vpoint_inside(&v, &vp, 0.0)) {
@@ -257,10 +262,6 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
     view2world(vp.x, vp.y, &wx, &wy);
     
     locator = get_graph_locator(cg);
-    if (!locator) {
-        SetLabel(loclab, "[No graphs]");
-        return;
-    }
     
     if (locator->pointset) {
 	dsx = locator->dsx;
