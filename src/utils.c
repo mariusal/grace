@@ -86,22 +86,6 @@ void *xmalloc(size_t size)
     return retval;
 }
 
-void *xcalloc(size_t nmemb, size_t size)
-{
-    void *retval;
-
-    if (nmemb == 0) {
-        retval = NULL;
-    } else {
-        retval = calloc(nmemb, size);
-    }
-    
-    if (retval == NULL && nmemb != 0) {
-        errmsg("Memory storage exceeded!");
-    }
-    return retval;
-}
-
 void *xrealloc(void *ptr, size_t size)
 {
     void *retval;
@@ -110,21 +94,33 @@ void *xrealloc(void *ptr, size_t size)
     if (ptr == NULL) {
         retval = malloc(size);
     } else if (size == 0) {
-        xfree(ptr);
+        if (ptr) {
+            free(ptr);
+        }
         retval = NULL;
     } else {
         retval = realloc(ptr, size); 
     }
 #else
     retval = realloc(ptr, size);
-    if (size == 0) {
-        retval = NULL;
-    }
 #endif
     
     if (retval == NULL && size != 0) {
         errmsg("Memory storage exceeded!");
     }
+    return retval;
+}
+
+
+void *xcalloc(size_t nmemb, size_t size)
+{
+    void *retval;
+
+    retval = xmalloc(nmemb*size);
+    if (retval) {
+        memset(retval, 0, nmemb*size);
+    }
+
     return retval;
 }
 
