@@ -68,12 +68,20 @@
 #define MARK_NONE   -1
 #define MAX_MARKS   32
 
+#define UNIT_TM {1.0, 0.0, 0.0, 1.0}
+
 typedef struct {
     double cxx, cxy;
     double cyx, cyy;
 } TextMatrix;
 
-#define UNIT_TM {1.0, 0.0, 0.0, 1.0}
+typedef struct {
+    int direction;
+    int advancing;
+    int ligatures;
+    int setmark;
+    int gotomark;
+} CSAux;
 
 typedef struct {
     char *s;
@@ -84,9 +92,8 @@ typedef struct {
     double vshift;
     int underline;
     int overline;
-    int advancing;
-    int setmark;
-    int gotomark;
+    int kerning;
+    CSAux aux;
 } CompositeString;
 
 typedef struct {

@@ -398,44 +398,19 @@ static void tm_slant(TextMatrix *tm, double slant)
     }
 }
 
-static void reverse_string(char *s, int len)
-{
-    char cbuf;
-    int i;
-    
-    if (s == NULL) {
-        return;
-    }
-    
-    for (i = 0; i < len/2; i++) {
-        cbuf = s[i];
-        s[i] = s[len - i - 1];
-        s[len - i - 1] = cbuf;
-    }
-}
-
 GLYPH *GetGlyphString(CompositeString *cs)
 {
-    int i, j, k, l, m, none_found;
+    int i;
     
-    char *theString = cs->s;
     int len = cs->len;
     int FontID = cs->font;
     
     float Size;
 
-/*
- *     int Kerning = 0;
- */
     long Space = 0;
-    int LigDetect = 0;
     
     GLYPH *glyph;
     
-    char *ligtheString;
-    char *succs, *ligs;
-    char buf_char;
-
     static int aacolors[T1_AALEVELS];
     unsigned int fg, bg;
     static unsigned long last_bg = 0, last_fg = 0;
@@ -463,39 +438,9 @@ GLYPH *GetGlyphString(CompositeString *cs)
     matrix.cyx = (float) cs->tm.cyx/Size;
     matrix.cyy = (float) cs->tm.cyy/Size;
 
-    /* Now comes the ligature handling */
-    ligtheString = xmalloc((len + 1)*SIZEOF_CHAR);
-    if (LigDetect){
-      	for (j = 0, m = 0; j < len; j++, m++) { /* Loop through the characters */
-  	    if ((k = T1_QueryLigs(FontID, theString[j], &succs, &ligs)) > 0) {
-  	      	buf_char = theString[j];
-  	      	while (k > 0){
-  	    	    none_found = 1;
-  	    	    for (l = 0; l < k; l++) { /* Loop through the ligatures */
-  	    	      	if (succs[l] == theString[j + 1]) {
-  	    	    	    buf_char = ligs[l];
-  	    	    	    j++;
-  	    	    	    none_found = 0;
-  	    	    	    break;
-  	    	      	}
-  	    	    }
-  	    	    if (none_found) {
-  	    	        break;
-                    }
-  	    	    k = T1_QueryLigs(FontID, buf_char, &succs, &ligs);
-  	      	}
-  	      	ligtheString[m] = buf_char;
-  	    } else { /* There are no ligatures */
-  	        ligtheString[m] = theString[j];
-  	    }
-      	}
-      	ligtheString[m] = 0;
-    } else {
-        memcpy(ligtheString, theString, len);
-    }
-
     modflag = T1_UNDERLINE * cs->underline |
-              T1_OVERLINE  * cs->overline;
+              T1_OVERLINE  * cs->overline  |
+              T1_KERNING   * cs->kerning;
 
     dev = get_curdevice_props();
     if (dev.fontaa == TRUE) {
@@ -543,14 +488,12 @@ GLYPH *GetGlyphString(CompositeString *cs)
     			   aacolors[3],
     			   aacolors[4]);
 
-    	glyph = T1_AASetString(FontID, ligtheString, len,
+    	glyph = T1_AASetString(FontID, cs->s, len,
     				   Space, modflag, Size, &matrix);
     } else {
-    	glyph = T1_SetString(FontID, ligtheString, len,
+    	glyph = T1_SetString(FontID, cs->s, len,
     				   Space, modflag, Size, &matrix);
     }
- 
-    xfree(ligtheString);
  
     return glyph;
 }
@@ -588,7 +531,7 @@ CompositeString *String2Composite(char *string)
     double new_vshift = vshift; 
     TextMatrix tm = unit_tm;
     TextMatrix tm_new = tm, tm_buf;
-    int font = getfont();
+    int font = BAD_FONT_ID;
     int new_font = font;
     
     double scale;
@@ -601,6 +544,8 @@ CompositeString *String2Composite(char *string)
     int advancing = TEXT_ADVANCING_LR;
     int new_direction = direction, new_advancing = advancing;
 
+    int ligatures = FALSE, new_ligatures = ligatures;
+    int kerning = FALSE, new_kerning = kerning;
     
     slen = strlen(string);
     
@@ -653,6 +598,23 @@ CompositeString *String2Composite(char *string)
             }
             i += 2;
             continue;
+	} else if (string[i] == '\\' && string[i + 1] == 'F') {
+            switch (string[i + 2]) {
+            case 'k':
+		new_kerning = TRUE;
+		break;
+	    case 'K':
+		new_kerning = FALSE;
+		break;
+	    case 'l':
+		new_ligatures = TRUE;
+		break;
+	    case 'L':
+		new_ligatures = FALSE;
+		break;
+            }
+            i += 2;
+            continue;
         } else if (string[i] == '\\' && 
                 isoneof(string[i + 1], "cCsSNBxuUoO+-fhvzZmM#rlqQtT")) {
 	    i++;
@@ -682,7 +644,7 @@ CompositeString *String2Composite(char *string)
                         switch (ccode) {
 	                case 'f':
                             if (j == 0) {
-                                new_font = getfont();
+                                new_font = BAD_FONT_ID;
                             } else if (isdigit(buf[0])) {
                                 new_font = get_mapped_font(atoi(buf));
                             } else {
@@ -775,7 +737,7 @@ CompositeString *String2Composite(char *string)
 		new_vshift = 0.0;
 		break;
 	    case 'B':
-		new_font = getfont();
+		new_font = BAD_FONT_ID;
 		break;
 	    case 'x':
 		new_font = get_font_by_name("Symbol");
@@ -829,12 +791,13 @@ CompositeString *String2Composite(char *string)
 	    (new_vshift != vshift       ) ||
 	    (new_underline != underline ) ||
 	    (new_overline != overline   ) ||
+	    (new_kerning != kerning     ) ||
 	    (new_direction != direction ) ||
 	    (new_advancing != advancing ) ||
+	    (new_ligatures != ligatures ) ||
 	    (setmark >= 0               ) ||
 	    (new_gotomark >= 0          ) ||
 	    (string[i] == 0             )) {
-	    
 	    
             if (isub != 0) {	/* non-empty substring */
 	
@@ -845,13 +808,13 @@ CompositeString *String2Composite(char *string)
 	        csbuf[nss].vshift = vshift;
 	        csbuf[nss].underline = underline;
 	        csbuf[nss].overline = overline;
-	        csbuf[nss].advancing = advancing;
-	        csbuf[nss].setmark = setmark;
+	        csbuf[nss].kerning = kerning;
+	        csbuf[nss].aux.direction = direction;
+	        csbuf[nss].aux.advancing = advancing;
+	        csbuf[nss].aux.ligatures = ligatures;
+	        csbuf[nss].aux.setmark = setmark;
                 setmark = MARK_NONE;
-	        csbuf[nss].gotomark = gotomark;
-	        if (direction == STRING_DIRECTION_RL) {
-                    reverse_string(ss, isub);
-                }
+	        csbuf[nss].aux.gotomark = gotomark;
 
 	        csbuf[nss].s = xmalloc((isub + 1)*SIZEOF_CHAR);
 	        memcpy(csbuf[nss].s, ss, isub);
@@ -875,9 +838,11 @@ CompositeString *String2Composite(char *string)
             }
 	    vshift = new_vshift;
 	    underline = new_underline;
+	    overline = new_overline;
+	    kerning = new_kerning;
 	    direction = new_direction;
 	    advancing = new_advancing;
-	    overline = new_overline;
+	    ligatures = new_ligatures;
             gotomark = new_gotomark;
             if (gotomark >= 0) {
                 /* once a substring is manually advanced, all the following
@@ -935,6 +900,60 @@ GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph,
     return (dest_glyph);
 }
 
+static void reverse_string(char *s, int len)
+{
+    char cbuf;
+    int i;
+    
+    if (s == NULL) {
+        return;
+    }
+    
+    for (i = 0; i < len/2; i++) {
+        cbuf = s[i];
+        s[i] = s[len - i - 1];
+        s[len - i - 1] = cbuf;
+    }
+}
+
+static void proceed_ligatures(CompositeString *cs)
+{
+    int j, k, l, m, none_found;
+    char *ligtheString;
+    char *succs, *ligs;
+    char buf_char;
+
+    ligtheString = xmalloc((cs->len + 1)*SIZEOF_CHAR);
+    for (j = 0, m = 0; j < cs->len; j++, m++) { /* Loop through the characters */
+        if ((k = T1_QueryLigs(cs->font, cs->s[j], &succs, &ligs)) > 0) {
+            buf_char = cs->s[j];
+            while (k > 0){
+                none_found = 1;
+                for (l = 0; l < k; l++) { /* Loop through the ligatures */
+                    if (succs[l] == cs->s[j + 1]) {
+                        buf_char = ligs[l];
+                        j++;
+                        none_found = 0;
+                        break;
+                    }
+                }
+                if (none_found) {
+                    break;
+                }
+                k = T1_QueryLigs(cs->font, buf_char, &succs, &ligs);
+            }
+            ligtheString[m] = buf_char;
+        } else { /* There are no ligatures */
+            ligtheString[m] = cs->s[j];
+        }
+    }
+    ligtheString[m] = 0;
+    
+    xfree(cs->s);
+    cs->s = ligtheString;
+    cs->len = m;
+}
+
 void WriteString(VPoint vp, int rot, int just, char *theString)
 {    
     VPoint vptmp;
@@ -943,8 +962,9 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     float hfudge;
     
     double page_ipv, page_dpv;
+    
+    int def_font = getfont();
  
-    /* Variables for raster parameters */
     double Angle = 0.0;
     int text_advancing;
 
@@ -994,6 +1014,11 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         return;
     }
 
+    cstring = String2Composite(theString);
+    if (cstring == NULL) {
+        return;
+    }
+    
     Angle = (double) rot;
     si = sin(M_PI/180.0*Angle);
     co = cos(M_PI/180.0*Angle);
@@ -1004,22 +1029,27 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         cs_marks[gotomark].y = 0;
     }
     
-    cstring = String2Composite(theString);
-    if (cstring == NULL) {
-        return;
-    }
-    
     first = FALSE;
     iglyph = 0;
     while (cstring[iglyph].s != NULL) {
-        text_advancing = cstring[iglyph].advancing;
-
+	/* Post-process the CS */
+        if (cstring[iglyph].font == BAD_FONT_ID) {
+            cstring[iglyph].font = def_font;
+        }
+        if (cstring[iglyph].aux.ligatures == TRUE) {
+            proceed_ligatures(&cstring[iglyph]);
+        }
+        if (cstring[iglyph].aux.direction == STRING_DIRECTION_RL) {
+            reverse_string(cstring[iglyph].s, cstring[iglyph].len);
+        }
         tm_scale(&cstring[iglyph].tm, scale_factor);
         tm_rotate(&cstring[iglyph].tm, Angle);
 
+        text_advancing = cstring[iglyph].aux.advancing;
+
         glyph = GetGlyphString(&cstring[iglyph]);
 
-        gotomark = cstring[iglyph].gotomark;
+        gotomark = cstring[iglyph].aux.gotomark;
         if (CSglyph != NULL && gotomark >= 0 && gotomark < MAX_MARKS) {
             cstring[iglyph].hshift += 
                 (co*(cs_marks[gotomark].x - CSglyph->metrics.advanceX) +
@@ -1033,9 +1063,6 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
 /*
  *             v_off_last = 0.0;
  */
-            
-            /* not a must; just to avoid confusion in backend devices */
-            cstring[iglyph].gotomark = MARK_NONE;
         }
 
         v_off = scale_factor * cstring[iglyph].vshift;
@@ -1050,7 +1077,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         x_off = (int) rint(h_off*co - v_off*si);
         y_off = (int) rint(v_off*co + h_off*si);
         CSglyph = CatGlyphs(CSglyph, glyph, x_off, y_off, text_advancing);
-        setmark = cstring[iglyph].setmark;
+        setmark = cstring[iglyph].aux.setmark;
         if (CSglyph != NULL && setmark >= 0 && setmark < MAX_MARKS) {
             cs_marks[setmark].x = CSglyph->metrics.advanceX;
             cs_marks[setmark].y = CSglyph->metrics.advanceY;
