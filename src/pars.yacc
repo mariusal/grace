@@ -2280,7 +2280,21 @@ parmset:
                 yyerror("The object is not a line");
 	    } else {
 	        DOLineData *l = (DOLineData *) curobject->odata;
-	        l->arrow.type = $4;
+	        switch ($4) {
+                case 0:
+                    l->arrow.type = ARROW_TYPE_LINE;
+                    break;
+                case 1:
+                    l->arrow.type = ARROW_TYPE_FILLED;
+                    curobject->fillpen.pattern = 1;
+                    curobject->fillpen.color = curobject->line.pen.color;
+                    break;
+                case 2:
+                    l->arrow.type = ARROW_TYPE_FILLED;
+                    curobject->fillpen.pattern = 1;
+                    curobject->fillpen.color = getbgcolor();
+                    break;
+                }
             }
 	}
 	| LINE ARROW LAYOUT expr ',' expr {

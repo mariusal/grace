@@ -1790,7 +1790,7 @@ void drawsetvmap(int gno, set *p)
 
         setlinewidth(eb.linew);
         setlinestyle(eb.lines);
-        draw_arrowhead(vp1, vp2, &arrow);
+        draw_arrowhead(vp1, vp2, &arrow, &p->errbar.pen, &p->errbar.pen);
     }
 }
 
@@ -2026,7 +2026,7 @@ void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
         arrow.length = 2*eb->barsize;
         setlinewidth(eb->linew);
         setlinestyle(eb->lines);
-        draw_arrowhead(vp1, vp2, &arrow);
+        draw_arrowhead(vp1, vp2, &arrow, &eb->pen, &eb->pen);
     } else {
         setlinewidth(eb->riser_linew);
         setlinestyle(eb->riser_lines);
@@ -2045,13 +2045,12 @@ void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
 /*
  * draw arrow head
  */
-void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp)
+void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp,
+    const Pen *pen, const Pen *fill)
 {
     double L, l, d, vlength;
     VVector vnorm;
     VPoint vpc, vpl, vpr, vps[4];
-    int lines;
-    int fg;
     
     vlength = hypot((vp2.x - vp1.x), (vp2.y - vp1.y));
     if (vlength == 0.0) {
@@ -2079,24 +2078,17 @@ void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp)
     vps[2] = vpr;
     vps[3] = vpc;
     
-    lines = getlinestyle();
     setlinestyle(1);
     
     switch (arrowp->type) {
-    case 0:
+    case ARROW_TYPE_LINE:
+        setpen(*pen);
         DrawPolyline(vps, 3, POLYLINE_OPEN);
         break;
-    case 1:
-        setpattern(1);
+    case ARROW_TYPE_FILLED:
+        setpen(*fill);
         DrawPolygon(vps, 4);
-        DrawPolyline(vps, 4, POLYLINE_CLOSED);
-        break;
-    case 2:
-        fg = getcolor();
-        setcolor(getbgcolor());
-        setpattern(1);
-        DrawPolygon(vps, 4);
-        setcolor(fg);
+        setpen(*pen);
         DrawPolyline(vps, 4, POLYLINE_CLOSED);
         break;
     default:
@@ -2104,8 +2096,6 @@ void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp)
         break;
     }
 
-    setlinestyle(lines);
-    
     return;
 }
 
@@ -2120,6 +2110,7 @@ void draw_region(region *this)
     
     WPoint wptmp, wp1, wp2, wp3, wp4;
     VPoint vps[4], *vpstmp;
+    Pen pen = getpen();
 
     set_default_arrow(&arrow);
     
@@ -2199,8 +2190,8 @@ void draw_region(region *this)
         vps[3].x = vps[2].x + xshift;
         vps[3].y = vps[2].y + yshift;
         DrawPolyline(vps, 4, POLYLINE_OPEN);
-        draw_arrowhead(vps[1], vps[0], &arrow);
-        draw_arrowhead(vps[2], vps[3], &arrow);
+        draw_arrowhead(vps[1], vps[0], &arrow, &pen, &pen);
+        draw_arrowhead(vps[2], vps[3], &arrow, &pen, &pen);
     } else {
         vps[0] = Wpoint2Vpoint(wp1);
         vps[1] = Wpoint2Vpoint(wp2);
@@ -2215,7 +2206,7 @@ void draw_region(region *this)
         vps[0] = Wpoint2Vpoint(wp1);
         vps[1] = Wpoint2Vpoint(wp3);
         DrawLine(vps[0], vps[1]);
-        draw_arrowhead(vps[0], vps[1], &arrow);
+        draw_arrowhead(vps[0], vps[1], &arrow, &pen, &pen);
     }
 }
 

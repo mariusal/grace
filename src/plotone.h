@@ -78,7 +78,8 @@ void draw_region(region *r);
 
 void draw_objects(int gno);
 
-void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp);
+void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp,
+    const Pen *pen, const Pen *fill);
 
 void dolegend(int gno);
 void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip);

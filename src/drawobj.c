@@ -154,14 +154,18 @@ static void draw_object(DObject *o)
             case 0:
                 break;
             case 1:
-                draw_arrowhead(vp, anchor, &l->arrow);
+                draw_arrowhead(vp, anchor, &l->arrow,
+                    &o->line.pen, &o->fillpen);
                 break;
             case 2:
-                draw_arrowhead(anchor, vp, &l->arrow);
+                draw_arrowhead(anchor, vp, &l->arrow,
+                    &o->line.pen, &o->fillpen);
                 break;
             case 3:
-                draw_arrowhead(vp, anchor, &l->arrow);
-                draw_arrowhead(anchor, vp, &l->arrow);
+                draw_arrowhead(vp, anchor, &l->arrow,
+                    &o->line.pen, &o->fillpen);
+                draw_arrowhead(anchor, vp, &l->arrow,
+                    &o->line.pen, &o->fillpen);
                 break;
             }
         }

@@ -179,10 +179,9 @@ static LineUI *create_line_ui(Widget parent)
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
     ui->a_type = CreatePanelChoice(rc1, "Type:",
-				   4,
+				   3,
 				   "Line",
 				   "Filled",
-				   "Opaque",
 				   0,
 				   0);
     ui->a_length = CreateSpinChoice(rc1, "Length:",

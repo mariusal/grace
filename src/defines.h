@@ -292,6 +292,10 @@ typedef enum {
 #define TICK_TYPE_MAJOR     0
 #define TICK_TYPE_MINOR     1
 
+/* arrow types */
+#define ARROW_TYPE_LINE     0
+#define ARROW_TYPE_FILLED   1
+
 /* push set direction */
 #define PUSH_SET_TOFRONT    0
 #define PUSH_SET_TOBACK     1
