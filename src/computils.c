@@ -993,43 +993,35 @@ void do_histo(int fromgraph, int fromset, int tograph, int toset,
     double *x, *y, *data, *bins;
     plotarr p;
     
-    if (!is_set_active(get_cg(), fromset)) {
+    if (!is_set_active(fromgraph, fromset)) {
 	errmsg("Set not active");
-	return;
-    }
-    if (getsetlength(get_cg(), fromset) <= 0) {
-	errmsg("Set length = 0");
 	return;
     }
     if (binw <= 0.0) {
 	errmsg("Bin width <= 0");
 	return;
     }
-    if (tograph == -1) {
-	tograph = get_cg();
-    }
-    if (is_graph_active(tograph) == FALSE) {
-	set_graph_active(tograph, TRUE);
-    }
+
     if (toset == SET_SELECT_NEXT) {
 	toset = nextset(tograph);
-	if (toset == -1) {
-	    return;
-	}
+    }
+    if (!is_valid_setno(tograph, toset)) {
+	errmsg("Can't activate target set");
+        return;
     }
     
     ndata = getsetlength(fromgraph, fromset);
     data = gety(fromgraph, fromset);
     
-    nbins = (int) ceil (fabs((xmax - xmin)/binw));
+    nbins = (int) ceil(fabs((xmax - xmin)/binw));
     
-    hist = (int *) xmalloc (nbins*sizeof(int));
+    hist = xmalloc(nbins*SIZEOF_INT);
     if (hist == NULL) {
         errmsg("xmalloc failed in do_histo()");
         return;
     }
 
-    bins = (double *) xmalloc ((nbins + 1)*SIZEOF_DOUBLE);
+    bins = xmalloc((nbins + 1)*SIZEOF_DOUBLE);
     if (bins == NULL) {
         errmsg("xmalloc failed in do_histo()");
         xfree(hist);
