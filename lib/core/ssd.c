@@ -260,6 +260,38 @@ ss_column *ssd_get_col(const Quark *q, int col)
     }
 }
 
+int ssd_set_value(Quark *q, int row, int column, double value)
+{
+    ss_column *col = ssd_get_col(q, column);
+    if (col && col->format != FFORMAT_STRING &&
+        row >= 0 && row < ssd_get_nrows(q)) {
+        double *p = (double *) col->data;
+        p[row] = value;
+
+        quark_dirtystate_set(q, TRUE);
+
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int ssd_set_string(Quark *q, int row, int column, const char *s)
+{
+    ss_column *col = ssd_get_col(q, column);
+    if (col && col->format == FFORMAT_STRING &&
+        row >= 0 && row < ssd_get_nrows(q)) {
+        char **sp = (char **) col->data;
+        sp[row] = amem_strcpy(q->amem, sp[row], s);
+
+        quark_dirtystate_set(q, TRUE);
+
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 Quark *get_parent_ssd(const Quark *q)
 {
     Quark *p = (Quark *) q;

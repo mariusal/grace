@@ -846,6 +846,9 @@ int ssd_set_nrows(Quark *q, unsigned int nrows);
 int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats);
 int ssd_set_label(Quark *q, const char *label);
 
+int ssd_set_value(Quark *q, int row, int column, double value);
+int ssd_set_string(Quark *q, int row, int column, const char *s);
+
 int ssd_set_hotlink(Quark *q, int onoroff, const char *fname, int src);
 int ssd_is_hotlinked(const Quark *q);
 char *ssd_get_hotlink_file(const Quark *q);
