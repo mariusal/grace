@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -45,14 +45,9 @@
 #include "draw.h"
 #include "graphs.h"
 #include "graphutils.h"
-#include "storage.h"
-#include "objutils.h"
 #include "parser.h"
 
 #include "protos.h"
-
-/* FIXMEOBJ */
-extern Storage *objects;
 
 /* graph definition */
 graph *g = NULL;
@@ -1203,7 +1198,7 @@ extern plotstr *pstr;
 
 void postprocess_project(int version)
 {
-    int gno, setno, naxis;
+    int gno, setno, naxis, strno;
     double ext_x, ext_y;
     
     if (version >= bi_version_id()) {
@@ -1308,116 +1303,48 @@ void postprocess_project(int version)
             }
         }
         for (naxis = 0; naxis < MAXAXES; naxis++) {
-	    if (version <= 40102) {
+	    tickmarks *t = get_graph_tickmarks(gno, naxis);
+            if (!t) {
+                continue;
+            }
+            
+            if (version <= 40102) {
                 if ( (is_xaxis(naxis) && g[gno].xscale == SCALE_LOG) ||
                      (!is_xaxis(naxis) && g[gno].yscale == SCALE_LOG) ) {
-                    g[gno].t[naxis]->tmajor = pow(10.0, g[gno].t[naxis]->tmajor);
+                    t->tmajor = pow(10.0, t->tmajor);
                 }
                 
                 /* TODO : world/view translation */
-                g[gno].t[naxis]->offsx = 0.0;
-                g[gno].t[naxis]->offsy = 0.0;
+                t->offsx = 0.0;
+                t->offsy = 0.0;
             }
 	    if (version < 50000) {
 	        /* There was no label_op in Xmgr */
-                g[gno].t[naxis]->label_op = g[gno].t[naxis]->tl_op;
+                t->label_op = t->tl_op;
 	        
                 /* in xmgr, axis label placement was in x,y coordinates */
 	        /* in Grace, it's parallel/perpendicular */
 	        if(!is_xaxis(naxis)) {
-	            fswap(&g[gno].t[naxis]->label.x, &g[gno].t[naxis]->label.y);
+	            fswap(&t->label.x, &t->label.y);
 	        }
-	        g[gno].t[naxis]->label.y *= -1;
+	        t->label.y *= -1;
 	    }
+	    if (version >= 50000 && version < 50103) {
+	        /* Autoplacement of axis labels wasn't implemented 
+                   in early versions of Grace */
+                if (t->label_place == TYPE_AUTO) {
+                    t->label.x = 0.0;
+                    t->label.y = 0.08;
+                    t->label_place = TYPE_SPEC;
+                }
+            }
         }
     }
     
     if (version >= 40200 && version <= 50005) {
-        int i, n;
-        DObject *o;
         /* BBox type justification was erroneously set */
-        storage_rewind(objects);
-        n = storage_count(objects);
-        for (i = 0; i < n; i++) {
-            if (storage_get_data(objects, (void **) &o) == RETURN_SUCCESS) {
-                if (o->type == DO_STRING) {
-                    DOStringData *s = (DOStringData *) o->odata;
-                    s->just |= JUST_MIDDLE;
-                }
-            } else {
-                break;
-            }
-            storage_next(objects);
+        for (strno = 0; strno < number_of_strings(); strno++) {
+            pstr[strno].just |= JUST_MIDDLE;
         }
-    }
-    if (version <= 50101) {
-        int i, n, gsave;
-        DObject *o;
-        
-        gsave = get_cg();
-        
-        storage_rewind(objects);
-        n = storage_count(objects);
-        for (i = 0; i < n; i++) {
-            if (storage_get_data(objects, (void **) &o) == RETURN_SUCCESS) {
-                if (o->loctype == COORD_WORLD && is_valid_gno(o->gno)) {
-                    WPoint wp;
-                    VPoint vp1, vp2;
-                    
-                    select_graph(o->gno);
-                    
-                    switch (o->type) {
-                    case DO_BOX:
-                        {
-                            DOBoxData *b = (DOBoxData *) o->odata;
-                            wp.x = o->ap.x - b->width/2;
-                            wp.y = o->ap.y - b->height/2;
-                            vp1 = Wpoint2Vpoint(wp);
-                            wp.x = o->ap.x + b->width/2;
-                            wp.y = o->ap.y + b->height/2;
-                            vp2 = Wpoint2Vpoint(wp);
-                            
-                            b->width  = fabs(vp2.x - vp1.x);
-                            b->height = fabs(vp2.y - vp1.y);
-                        }
-                        break;
-                    case DO_ARC:
-                        {
-                            DOArcData *a = (DOArcData *) o->odata;
-                            wp.x = o->ap.x - a->width/2;
-                            wp.y = o->ap.y - a->height/2;
-                            vp1 = Wpoint2Vpoint(wp);
-                            wp.x = o->ap.x + a->width/2;
-                            wp.y = o->ap.y + a->height/2;
-                            vp2 = Wpoint2Vpoint(wp);
-                            
-                            a->width  = fabs(vp2.x - vp1.x);
-                            a->height = fabs(vp2.y - vp1.y);
-                        }
-                        break;
-                    case DO_LINE:
-                        {
-                            DOLineData *l = (DOLineData *) o->odata;
-                            wp.x = o->ap.x;
-                            wp.y = o->ap.y;
-                            vp1 = Wpoint2Vpoint(wp);
-                            wp.x = o->ap.x + l->length*cos(o->angle);
-                            wp.y = o->ap.y + l->length*sin(o->angle);
-                            vp2 = Wpoint2Vpoint(wp);
-                            
-                            l->length = hypot(vp2.x - vp1.x, vp2.y - vp1.y);
-                            o->angle  = atan2(vp2.y - vp1.y, vp2.x - vp1.x);
-                        }
-                        break;
-                    case DO_STRING:
-                        break;
-                    }
-                }
-            } else {
-                break;
-            }
-            storage_next(objects);
-        }
-        select_graph(gsave);
     }
 }

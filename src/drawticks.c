@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -190,7 +190,7 @@ void drawaxes(int gno)
     tickmarks *t;
     tickprops tprops;
     world w;
-    view v;
+    view v, bb;
     double vbase1, vbase2, vbase1_start, vbase1_stop, vbase2_start, vbase2_stop;
     double vbase_tlabel, vbase_tlabel1, vbase_tlabel2;
     double tsize, tlsize, wtpos, vtpos;
@@ -198,7 +198,7 @@ void drawaxes(int gno)
     WPoint wp1_start, wp1_stop, wp2_start, wp2_stop;
     VPoint vp1_start, vp1_stop, vp2_start, vp2_stop;
     VPoint vp_tick1_start, vp_tick1_stop, vp_tick2_start, vp_tick2_stop;
-    VPoint vp_tlabel, vp_label, vp_label_offset;
+    VPoint vp_tlabel, vp_label, vp_label_offset1, vp_label_offset2;
     VPoint vpc, vp1, vp2;
     double phi_start, phi_stop, rho;
     VVector ort_para, ort_perp;
@@ -207,7 +207,7 @@ void drawaxes(int gno)
     int ittype_loop, itick, itcur;
     int ttype;
     char tlabel[MAX_STRING_LENGTH];
-    int tlabel1_just, tlabel2_just;
+    int tlabel1_just, tlabel2_just, label1_just, label2_just;
     int langle;
     
     int tick_dir_sign;
@@ -432,6 +432,9 @@ void drawaxes(int gno)
             continue;
         }
 
+        activate_bbox(BBOX_TYPE_TEMP, TRUE);
+        reset_bbox(BBOX_TYPE_TEMP);
+
 	/* Begin axis tick stuff */
 	if (t->t_flag) {
 	    for (ittype_loop = 0; ittype_loop < 2; ittype_loop++) {
@@ -510,7 +513,7 @@ void drawaxes(int gno)
 
 
 	/* Begin tick label stuff */
-	    
+
 	if(t->tl_gaptype==TYPE_AUTO) {
 	  /* hard coded offsets for autoplacement of tick labels */
 	  tl_trans=0.0;     /* parallel */
@@ -603,7 +606,7 @@ void drawaxes(int gno)
 		    /* Tick labels on opposite side */
 	            if (t->tl_op == PLACEMENT_OPPOSITE ||
 	                t->tl_op == PLACEMENT_BOTH) {
-	                vbase_tlabel = vbase_tlabel2 + (tl_offset + tlsize)*
+                        vbase_tlabel = vbase_tlabel2 + (tl_offset + tlsize)*
 	                                        (itcur % (t->tl_staggered + 1));
 	                vp_tlabel.x = (vtpos + tl_trans)*ort_para.x +
                                                        vbase_tlabel*ort_perp.x;
@@ -615,25 +618,45 @@ void drawaxes(int gno)
                 itcur++;
 	    }
 	}
+
         /* End tick label stuff */
 
+        bb = get_bbox(BBOX_TYPE_TEMP);
 
 	/* Begin axis label stuff */
 	
-	/* hard coded offsets for autoplacement of axis label */
-	vp_label_offset.x = 0.00; /* parallel */
-	vp_label_offset.y = 0.08; /* perpendicular */
+	if (t->label_place == TYPE_SPEC) {
+	    vp_label_offset1.x = t->label.x;
+	    vp_label_offset1.y = t->label.y;
+	    vp_label_offset2.x = t->label.x;
+	    vp_label_offset2.y = t->label.y;
+            
+            /* These settings are for backward compatibility */
+            label1_just = JUST_CENTER|JUST_MIDDLE;
+            label2_just = JUST_CENTER|JUST_MIDDLE;
+	} else {
+            /* parallel is trivial ;-) */
+	    vp_label_offset1.x = 0.00;
+	    vp_label_offset2.x = 0.00;
+	    
+            /* perpendicular */
+            if (is_xaxis(caxis)) {
+                vp_label_offset1.y = vbase1 - bb.yv1;
+                vp_label_offset2.y = bb.yv2 - vbase2;
+            } else {
+                vp_label_offset1.y = vbase1 - bb.xv1;
+                vp_label_offset2.y = bb.xv2 - vbase2;
+            }
+            
+            vp_label_offset1.y += tl_offset;
+            vp_label_offset2.y += tl_offset;
+
+            label1_just = tlabel1_just;
+            label2_just = tlabel2_just;
+	}
 
 	if (t->label.s && t->label.s[0]) {
 	    
-	    if (t->label_place == TYPE_SPEC) {
-	        vp_label_offset.x = t->label.x;
-		vp_label_offset.y = t->label.y;
-	    } else {
-		t->label.x = vp_label_offset.x;
-		t->label.y = vp_label_offset.y;
-	    }
-
 	    setcharsize(t->label.charsize);
 	    setfont(t->label.font);
 	    setcolor(t->label.color);
@@ -642,26 +665,29 @@ void drawaxes(int gno)
 	    if (t->label_op == PLACEMENT_NORMAL ||
 		t->label_op == PLACEMENT_BOTH) {
 
-	        vp_label.x = (vp1_start.x + vp1_stop.x)/2 + vp_label_offset.x*ort_para.x
-                                                        - vp_label_offset.y*ort_perp.x ;
-	        vp_label.y = (vp1_start.y + vp1_stop.y)/2 + vp_label_offset.x*ort_para.y
-                                                        - vp_label_offset.y*ort_perp.y ;
+	        vp_label.x = (vp1_start.x + vp1_stop.x)/2
+                    + vp_label_offset1.x*ort_para.x
+                    - vp_label_offset1.y*ort_perp.x;
+	        vp_label.y = (vp1_start.y + vp1_stop.y)/2
+                    + vp_label_offset1.x*ort_para.y
+                    - vp_label_offset1.y*ort_perp.y;
 
-	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE, t->label.s);
+	        WriteString(vp_label, langle, label1_just, t->label.s);
 	    }
 
 	    /* Axis label on opposite side */
 	    if (t->label_op == PLACEMENT_OPPOSITE ||
 		t->label_op == PLACEMENT_BOTH) {
 
-	        vp_label.x = (vp2_start.x + vp2_stop.x)/2 + vp_label_offset.x*ort_para.x
-		                                        + vp_label_offset.y*ort_perp.x ;
-	        vp_label.y = (vp2_start.y + vp2_stop.y)/2 + vp_label_offset.x*ort_para.y
-                                                        + vp_label_offset.y*ort_perp.y ;
+	        vp_label.x = (vp2_start.x + vp2_stop.x)/2
+                    + vp_label_offset2.x*ort_para.x
+		    + vp_label_offset2.y*ort_perp.x ;
+	        vp_label.y = (vp2_start.y + vp2_stop.y)/2
+                    + vp_label_offset2.x*ort_para.y
+                    + vp_label_offset2.y*ort_perp.y ;
 
-	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE, t->label.s);
+	        WriteString(vp_label, langle, label2_just, t->label.s);
 	    }
-
 	}
         
 	/* End axis label stuff */
