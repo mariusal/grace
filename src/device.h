@@ -129,7 +129,7 @@ int get_device_by_name(char *dname);
 
 int parse_device_options(int dindex, char *options);
 
-void set_printer(int device);
+int set_printer(int device);
 int set_printer_by_name(char *dname);
 void set_ptofile(int flag);
 int get_ptofile(void);
