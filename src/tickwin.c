@@ -904,7 +904,7 @@ static void axis_scale_cb(int value, void *data)
             SetOptionChoice(axis_scale, SCALE_NORMAL);
             return;
         } else if (axestart <= 0.0) {
-            axestart = axestop/pow(10.0, (double) auton);
+            axestart = axestop/1.0e3;
             sprintf(buf, "%g", axestart);
             xv_setstr(axis_world_start, buf);
         }
