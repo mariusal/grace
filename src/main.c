@@ -82,8 +82,8 @@ int main(int argc, char *argv[])
     int fd;
     world w;
     view v;
-    int cur_graph = 0;	        /* default graph is graph 0 */
-    int loadlegend = 0;		/* legend on and load file names */
+    int cur_graph;	        /* default (current) graph */
+    int loadlegend = FALSE;	/* legend on and load file names */
     int gcols = 0, grows = 0;
     int gracebat;		/* if executed as 'gracebat' then TRUE */
     int cli = FALSE;            /* command line interface only */
@@ -147,8 +147,6 @@ int main(int argc, char *argv[])
     /* initialize plots, strings, graphs */
     set_program_defaults();
 
-    select_graph(cur_graph);
-    
     /* initialize the nonl-fit parameters */
     initialize_nonl();
 
@@ -158,8 +156,6 @@ int main(int argc, char *argv[])
     /* initialize the rng */
     srand48(100L);
     
-    set_graph_active(cur_graph, TRUE);
-
     /* initialize T1lib */
     if (init_t1() != GRACE_EXIT_SUCCESS) {
         errmsg("--> Broken or incomplete installation - read the FAQ!");
@@ -233,6 +229,8 @@ int main(int argc, char *argv[])
     /* load default template */
     new_project(NULL);
 
+    cur_graph = get_cg();
+    
     if (argc >= 2) {
 	for (i = 1; i < argc; i++) {
 	    if (argv[i][0] == '-' && argv[i][1] != '\0') {
