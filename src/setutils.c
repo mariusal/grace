@@ -673,22 +673,14 @@ int pushset(int gno, int setno, int push_type)
  */
 void packsets(int gno)
 {
-    int i, j, k;
+    int i, j;
 
-    i = 0;
-    for (i = 0; i < g[gno].maxplot; i++) {
+    for (i = 0; i < number_of_sets(gno); i++) {
 	if (is_set_active(gno, i)) {
-	    j = 0;
-	    while (j < i) {
-		if (!is_set_active(gno, j) && !g[gno].p[j].hidden) {
-		    memcpy(&g[gno].p[j], &g[gno].p[i], sizeof(plotarr));
-		    for (k = 0; k < MAX_SET_COLS; k++) {
-			g[gno].p[i].data.ex[k] = NULL;
-		    }
-		    killset(gno, i);
-		    set_dirtystate();
+	    for (j = 0; j < i; j++) {
+		if (is_set_active(gno, j) != TRUE) {
+		    moveset(gno, i, gno, j);
 		}
-		j++;
 	    }
 	}
     }
