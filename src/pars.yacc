@@ -367,6 +367,7 @@ symtab_entry *key;
 %token <ival> NONE
 %token <ival> NONLFIT
 %token <ival> NORMAL
+%token <ival> NXY
 %token <ival> OFF
 %token <ival> OFFSET
 %token <ival> OFFSETX
@@ -3049,6 +3050,14 @@ actions:
 	    cursource = $3;
 	    xfree($4);
 	}
+	| READ NXY CHRSTR {
+	    getdata(whichgraph, $3, SOURCE_DISK, LOAD_NXY);
+	    xfree($3);
+	}
+	| READ NXY sourcetype CHRSTR {
+	    getdata(whichgraph, $4, $3, LOAD_NXY);
+	    xfree($4);
+	}
 	| WRITE selectset {
 	    outputset($2->gno, $2->setno, "stdout", NULL);
 	}
@@ -4592,6 +4601,7 @@ symtab_entry ikey[] = {
 	{"NORM", FUNC_D, (void *) fx},
 	{"NORMAL", NORMAL, NULL},
 	{"NOT", NOT, NULL},
+	{"NXY", NXY, NULL},
 	{"OFF", OFF, NULL},
 	{"OFFSET", OFFSET, NULL},
 	{"OFFSETX", OFFSETX, NULL},
