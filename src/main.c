@@ -41,6 +41,7 @@
 #include "patchlevel.h"
 
 #include "utils.h"
+#include "files.h"
 
 #include "graphs.h"
 #include "graphutils.h"
@@ -313,7 +314,7 @@ int main(int argc, char *argv[])
 
     if (argc >= 2) {
 	for (i = 1; i < argc; i++) {
-	    if (argv[i][0] == '-') {
+	    if (argv[i][0] == '-' && argv[i][1] != '\0') {
 		if (argmatch(argv[i], "-version", 5)) {
                     VersionInfo();
 		    exit(0);
@@ -690,26 +691,18 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Missing results file name\n");
 			usage(stderr, argv[0]);
 		    } else {
-			strcpy(resfile, argv[i]);
-/*
-*  open resfile if -results option given
-*/
-			if (!fexists(resfile)) {
-			    if ((resfp = filter_write(resfile)) == NULL) {
-				fprintf(stderr, "Unable to open file %s", resfile);
-				exit(1);
-			    }
-			}
+                        /*  open resfile if -results option given */
+		        if ((resfp = grace_openw(argv[i])) == NULL) {
+		            exit(1);
+		        }
 		    }
 		} else if (argmatch(argv[i], "-saveall", 8)) {
-		    char savefile[GR_MAXPATHLEN];
 		    i++;
 		    if (i == argc) {
 			fprintf(stderr, "Missing save file name\n");
 			usage(stderr, argv[0]);
 		    } else {
-			strcpy(savefile, argv[i]);
-			do_writesets(number_of_graphs(), -1, 1, savefile, sformat);
+			save_project(s);
 		    }
 		} else if (argmatch(argv[i], "-wd", 3)) {
 		    i++;
@@ -732,12 +725,6 @@ int main(int argc, char *argv[])
 			cursource = SOURCE_PIPE;
 		    } else if (argmatch(argv[i], "disk", 4)) {
 			cursource = SOURCE_DISK;
-		    } else if (argmatch(argv[i], "stdin", 5)) {
-			cursource = SOURCE_STDIN;
-		    }
-		    /* we are in a pipe */
-		    if (cursource == SOURCE_STDIN) {
-			getdata(cur_graph, "STDIN", SOURCE_STDIN, curtype);
 		    }
 		} else if (argmatch(argv[i], "-viewport", 2)) {
 		    i++;
@@ -821,12 +808,7 @@ int main(int argc, char *argv[])
 	    }
 	}
     }
-/*
- * straighten our cursource if a pipe was used
- */
-    if (cursource == SOURCE_STDIN) {
-	cursource = SOURCE_DISK;
-    }
+
 /*
  * arrange graphs
  */
@@ -856,11 +838,12 @@ int main(int argc, char *argv[])
     if (gracebat == TRUE) {
 	if (hdevice == 0) {
 	    fprintf(stderr,
-		    "%s: terminal device can't be used for batch plotting\n", argv[0]);
+                "%s: terminal device can't be used for batch plotting\n",
+                argv[0]);
 	    exit(1);
 	}
 	if (inpipe == TRUE) {
-	    getdata(get_cg(), "STDIN", SOURCE_STDIN, curtype);
+	    getdata(get_cg(), "stdin", SOURCE_DISK, curtype);
 	    inpipe = FALSE;
 	}
 	if (batchfile[0]) {
@@ -971,7 +954,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        white\n");
     fprintf(stream, "-saveall   [save_file]                Save all graphs to save_file\n");
     fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator\n");
-    fprintf(stream, "-source    [disk|pipe|stdin]          Source of next data file\n");
+    fprintf(stream, "-source    [disk|pipe]                Source of next data file\n");
     fprintf(stream, "-timer     [delay]                    Set timer for named pipes to delay ms \n");
     fprintf(stream, "-timestamp                            Add timestamp to plot\n");
     fprintf(stream, "-settype   [xy|xydx|...]              Set the type of the next data file\n");

@@ -56,7 +56,7 @@ int ptofile = FALSE;            /* flag to indicate destination of hardcopy
                                  * output, ptofile = 0 means print to printer
                                  * non-zero print to file */
 
-char sformat[128] = "%16lg %16lg"; /* format for saving (ascii) projects */
+char sformat[128] = "%16lg";    /* format for saving (ascii) projects */
 
 double *ax, *bx, *cx, *dx;	/* scratch arrays used in scanner */
 
@@ -99,7 +99,6 @@ int noask = FALSE;              /* if TRUE, assume yes for everything (dangerous
 
 int index_shift = 0; 		/* 0 for C, 1 for F77 index notation */
 
-char resfile[GR_MAXPATHLEN];	/* results to file resfile */
 FILE *resfp;			/* file for results */
 
 int inwin = FALSE;		/* true if running X */
@@ -231,7 +230,6 @@ extern char sformat[];
 
 extern int logwindow;		/* TRUE if results are displayed in the log window */
 
-extern char resfile[];
 extern FILE *resfp;
 
 extern int device, tdevice, hdevice;

@@ -44,6 +44,7 @@
 
 #include "globals.h"
 #include "utils.h"
+#include "files.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "protos.h"
@@ -144,35 +145,79 @@ int read_long_line(FILE * fp)
     return retval;
 }
 
-FILE *grace_open(char *fn, int src)
+/* open a file for write */
+FILE *grace_openw(char *fn)
 {
-    FILE *fp;
     struct stat statb;
+    char buf[GR_MAXPATHLEN + 50];
 
+    if (!fn[0]) {
+        errmsg("No file name given");
+	return NULL;
+    } else if (strcmp(fn, "-") == 0 || strcmp(fn, "stdout") == 0) {
+        return stdout;
+    /* check to make sure this is a file and not a dir */
+    } else if (stat(fn, &statb) == 0 && !S_ISREG(statb.st_mode)) {
+        sprintf(buf, "%s is not a regular file", fn);
+        errmsg(buf);
+	return NULL;
+    } else if (fexists(fn)) {
+	return NULL;
+    } else {
+        return filter_write(fn);
+    }
+}
+
+/* open a file for read */
+FILE *grace_openr(char *fn, int src)
+{
+    struct stat statb;
+    char buf[GR_MAXPATHLEN + 50];
+
+    if (!fn[0]) {
+        errmsg("No file name given");
+	return NULL;
+    }
     switch (src) {
     case SOURCE_DISK:
 	/* check to make sure this is a file and not a dir */
-	if (stat(fn, &statb)) {
+	if (strcmp(fn, "-") == 0 || strcmp(fn, "stdin") == 0) {
+            return stdin;
+	} else if (stat(fn, &statb)) {
+            sprintf(buf, "Can't stat file %s", fn);
+            errmsg(buf);
 	    return NULL;
-	}
-	if (!S_ISREG(statb.st_mode)) {
+	} else if (!S_ISREG(statb.st_mode)) {
+            sprintf(buf, "%s is not a regular file", fn);
+            errmsg(buf);
 	    return NULL;
+        } else {
+            return filter_read(fn);
 	}
-	fp = filter_read(fn);
-	break;
+        break;
     case SOURCE_PIPE:
-	fp = popen(popen_path_translate(fn), "r");
-	break;
-    case SOURCE_STDIN:
-	fp = stdin;
+	return popen(popen_path_translate(fn), "r");
 	break;
     default:
-        errmsg("Wrong call to grace_open()");
+        errmsg("Wrong call to grace_openr()");
 	return NULL;
     }
-    
-    return fp;
 }
+
+/*
+ * close either a pipe or a file pointer
+ *
+ */
+void grace_close(FILE *fp)
+{
+    if (fp == stdin || fp == stderr || fp == stdout) {
+        return;
+    }
+    if (pclose(fp) == -1) {
+        fclose(fp);
+    }
+}
+
 
 int getdata(int gno, char *fn, int src, int type)
 {
@@ -180,10 +225,8 @@ int getdata(int gno, char *fn, int src, int type)
     int retval = -1;
     int save_version, cur_version;
     
-    fp = grace_open(fn, src);
+    fp = grace_openr(fn, src);
     if (fp == NULL) {
-	sprintf(buf, "Can't open file %s", fn);
-	errmsg(buf);
 	return GRACE_EXIT_FAILURE;
     }
     
@@ -212,7 +255,7 @@ int getdata(int gno, char *fn, int src, int type)
 	}
     }
 
-    filter_close(fp);
+    grace_close(fp);
     
     cur_version = get_project_version();
     if (cur_version != 0) {         /* a complete project */
@@ -249,10 +292,8 @@ int read_set_fromfile(int gno, int setno, char *fn, int src, int col)
     double *x, *y, tmp;
     char *scstr;                    /* scanf string */
 
-    fp = grace_open(fn, src);
+    fp = grace_openr(fn, src);
     if (fp == NULL) {
-	sprintf(buf, "Can't open file %s", fn);
-	errmsg(buf);
 	return 0;
     }
 
@@ -330,7 +371,7 @@ int read_set_fromfile(int gno, int setno, char *fn, int src, int col)
 
   breakout:;
 
-    filter_close(fp);
+    grace_close(fp);
     
     free(scstr);
     return retval;
@@ -914,37 +955,6 @@ static int readxystring(int gno, char *fn, FILE * fp)
     }
 }
 
-
-void kill_blockdata(void)
-{
-    int j;
-    if (blockdata != NULL) {
-	for (j = 0; j < maxblock; j++) {
-	    cxfree(blockdata[j]);
-	}
-    }
-}
-
-void alloc_blockdata(int ncols)
-{
-    int j;
-    if (blockdata != NULL) {
-	kill_blockdata();
-    }
-    if (ncols < MAXPLOT) {
-	ncols = MAXPLOT;
-    }
-    blockdata = malloc(ncols * sizeof(double *));
-    if (blockdata != NULL) {
-	maxblock = ncols;
-	for (j = 0; j < maxblock; j++) {
-	    blockdata[j] = NULL;
-	}
-    } else {
-	errmsg("alloc_blockdata(): Error, unable to allocate memory for block data");
-    }
-}
-
 /*
  * read block data
  */
@@ -1267,172 +1277,113 @@ void create_set_fromblock(int gno, int type, char *cols)
 
 void outputset(int gno, int setno, char *fname, char *dformat)
 {
-    int i, n;
     FILE *cp;
-    double *x, *y, *dx, *dy, *dz;
-    char format[256];
-    if (fname == NULL) {
-	cp = stdout;
-    } else if ((cp = filter_write(fname)) == NULL) {
-	char s[256];
-	sprintf(s, "Unable to open file %s", fname);
-	errmsg(s);
+    
+    if ((cp = grace_openw(fname)) == NULL) {
 	return;
-    }
-    if (dformat == NULL) {
-	strcpy(format, "%lf %lf");
     } else {
-	strcpy(format, dformat);
+        write_set(gno, setno, cp, dformat);
+	grace_close(cp);
     }
-    if (is_set_active(gno, setno)) {
-	x = getx(gno, setno);
-	y = gety(gno, setno);
-	n = getsetlength(gno, setno);
-	switch (settype_cols(dataset_type(gno, setno))) {
-	case 2:
-	    for (i = 0; i < n; i++) {
-		fprintf(cp, format, x[i], y[i]);
-		fputc('\n', cp);
-	    }
-	    break;
-	case 3:
-	    dx = getcol(gno, setno, 2);
-	    for (i = 0; i < n; i++) {
-		fprintf(cp, "%g %g %g", x[i], y[i], dx[i]);
-		fputc('\n', cp);
-	    }
-	    break;
-	case 4:
-	    dx = getcol(gno, setno, 2);
-	    dy = getcol(gno, setno, 3);
-	    for (i = 0; i < n; i++) {
-		fprintf(cp, "%g %g %g %g", x[i], y[i], dx[i], dy[i]);
-		fputc('\n', cp);
-	    }
-	    break;
-	case 5:
-	    dx = getcol(gno, setno, 2);
-	    dy = getcol(gno, setno, 3);
-	    dz = getcol(gno, setno, 4);
-	    for (i = 0; i < n; i++) {
-		fprintf(cp, "%g %g %g %g %g", x[i], y[i], dx[i], dy[i], dz[i]);
-		fputc('\n', cp);
-	    }
-	    break;
-	}
+}
+
+int save_project(char *fn)
+{
+    FILE *cp;
+    int gno, setno;
+    
+    if ((cp = grace_openw(fn)) == NULL) {
+	return GRACE_EXIT_FAILURE;
     }
-    if (fname != NULL) {
-	filter_close(cp);
+    
+    putparms(-1, cp, TRUE);
+
+    for (gno = 0; gno < number_of_graphs(); gno++) {
+        for (setno = 0; setno < number_of_sets(gno); setno++) {
+            if (is_set_active(gno, setno) == TRUE &&
+                is_set_hidden(gno, setno) == FALSE) {
+                write_set(gno, setno, cp, sformat);
+            }
+        }
     }
+
+    grace_close(cp);
+    return GRACE_EXIT_SUCCESS;
 }
 
 /*
  * write out a set
  */
-int do_writesets(int gno, int setno, int embed, char *fn, char *format)
+int write_set(int gno, int setno, FILE *cp, char *format)
 {
-    int i, j, k, n, which_graph = gno, save_cg = get_cg(), start, stop, set_start, set_stop;
-    FILE *cp;
+    int i, n, ncols;
     double *x, *y, *dx, *dy, *dz;
     char **s;
+    char *format_string;
 
-    if (!fn[0]) {
-	errmsg("Define file name first");
-	return 1;
+    if (cp == NULL) {
+	return GRACE_EXIT_FAILURE;
     }
-    if (fexists(fn)) {
-	return 1;
-    }
-    if ((cp = filter_write(fn)) == NULL) {
-	char s[192];
 
-	sprintf(s, "Unable to open file %s", fn);
-	errmsg(s);
-	return 1;
+    if (is_set_active(gno, setno) == TRUE) {
+        fprintf(cp, "@target G%d.S%d\n", gno, setno);
+        fprintf(cp, "@type %s\n", set_types(dataset_type(gno, setno)));
+        x = getx(gno, setno);
+        y = gety(gno, setno);
+        n = getsetlength(gno, setno);
+        ncols = dataset_cols(gno, setno);
+        /* 2 for "\n" and 4 for "%s" in xystring */
+        format_string = malloc((ncols + 1)*strlen(format) + 6);
+        strcpy(format_string, format);
+        for (i = 1; i < ncols; i++) {
+            strcat(format_string, " ");
+            strcat(format_string, format);
+        }
+        switch (dataset_type(gno, setno)) {
+        case SET_XYSTRING:
+            strcat(format_string, " ");
+            strcat(format_string, "\"%s\"");
+            strcat(format_string, "\n");
+            s = get_set_strings(gno, setno);
+            for (i = 0; i < n; i++) {
+                fprintf(cp, format_string, x[i], y[i], s[i]);
+            }
+            break;
+        default:    
+            strcat(format_string, "\n");
+            switch (ncols) {
+            case 2:
+                for (i = 0; i < n; i++) {
+                    fprintf(cp, format_string, x[i], y[i]);
+                }
+                break;
+            case 3:
+                dx = getcol(gno, setno, 2);
+                for (i = 0; i < n; i++) {
+                    fprintf(cp, format_string, x[i], y[i], dx[i]);
+                }
+                break;
+            case 4:
+                dx = getcol(gno, setno, 2);
+                dy = getcol(gno, setno, 3);
+                for (i = 0; i < n; i++) {
+                    fprintf(cp, format_string, x[i], y[i], dx[i], dy[i]);
+                }
+                break;
+            case 5:
+                dx = getcol(gno, setno, 2);
+                dy = getcol(gno, setno, 3);
+                dz = getcol(gno, setno, 4);
+                for (i = 0; i < n; i++) {
+                    fprintf(cp, format_string, x[i], y[i], dx[i], dy[i], dz[i]);
+                }
+                break;
+            }
+        }
+        fprintf(cp, "&\n");
+        free(format_string);
     }
-    if (which_graph == number_of_graphs()) {
-	start = 0;
-	stop = number_of_graphs() - 1;
-    } else if (which_graph == -1) {
-	start = get_cg();
-	stop = start;
-    } else {
-	start = which_graph;
-	stop = which_graph;
-    }
-    if (embed) {
-	if (start != stop) {
-	    putparms(-1, cp, embed);
-	} else {
-	    putparms(start, cp, embed);
-	}
-    }
-    for (k = start; k <= stop; k++) {
-	if (is_graph_active(k) == TRUE && number_of_sets(k) > 0) {
-	    if (setno == -1) {
-		set_start = 0;
-		set_stop = number_of_sets(k) - 1;
-	    } else {
-		set_start = setno;
-		set_stop = setno;
-	    }
-	    for (j = set_start; j <= set_stop; j++) {
-		if (is_set_active(k, j)) {
-		    fprintf(cp, "@target G%d.S%d\n", k, j);
-		    fprintf(cp, "@type %s\n", set_types(dataset_type(k, j)));
-		    x = getx(k, j);
-		    y = gety(k, j);
-		    n = getsetlength(k, j);
-		    switch (dataset_type(k, j)) {
-		    case SET_XYSTRING:
-			s = get_set_strings(k, j);
-                        for (i = 0; i < n; i++) {
-			    fprintf(cp, "%g %g \"%s\"", x[i], y[i], s[i]);
-			    fputc('\n', cp);
-			}
-			break;
-		    default:    
-                        switch (settype_cols(dataset_type(k, j))) {
-                        case 2:
-		            for (i = 0; i < n; i++) {
-		                fprintf(cp, format, x[i], y[i]);
-		                fputc('\n', cp);
-		            }
-		            break;
-		        case 3:
-		            dx = getcol(k, j, 2);
-		            for (i = 0; i < n; i++) {
-		                fprintf(cp, "%g %g %g", x[i], y[i], dx[i]);
-		                fputc('\n', cp);
-		            }
-		            break;
-		        case 4:
-		            dx = getcol(k, j, 2);
-		            dy = getcol(k, j, 3);
-		            for (i = 0; i < n; i++) {
-		                fprintf(cp, "%g %g %g %g", x[i], y[i], dx[i], dy[i]);
-		                fputc('\n', cp);
-		            }
-		            break;
-		        case 5:
-		            dx = getcol(k, j, 2);
-		            dy = getcol(k, j, 3);
-		            dz = getcol(k, j, 4);
-		            for (i = 0; i < n; i++) {
-		                fprintf(cp, "%g %g %g %g %g", x[i], y[i], dx[i], dy[i], dz[i]);
-		                fputc('\n', cp);
-		            }
-		            break;
-		        }
-		    }
-                    fprintf(cp, "&\n");
-		}
-	    }
-	}
-    }
-    filter_close(cp);
-    select_graph(save_cg);
-    return 0;
+    return GRACE_EXIT_SUCCESS;
 }
 
 
@@ -1653,9 +1604,8 @@ int readnetcdf(int gno,
     return 1;
 }
 
-int write_netcdf(int gno, int setno, char *fname)
+int write_netcdf(char *fname)
 {
-
     char buf[512];
     int ncid;			/* netCDF id */
     int i, j;

@@ -62,6 +62,7 @@
 #include <X11/keysym.h>
 
 #include <Xm/Xm.h>
+#include "motifinc.h"
 
 
 #if defined(MAXHOSTNAMELEN)

@@ -44,6 +44,7 @@
 
 #include "globals.h"
 #include "utils.h"
+#include "files.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "device.h"
@@ -70,28 +71,10 @@ int read_param(char *stext)
 int getparms(char *plfile)
 {
     int linecount = 0, errcnt = 0;
-    FILE *pp;
-    struct stat statb;
     char readbuf[MAX_STRING_LENGTH];
+    FILE *pp;
 
-    if (!strcmp("stdin", plfile)) {
-        pp = stdin;
-    } else {
-        /* check to make sure this is a file and not a dir */
-        if (stat(plfile, &statb)) {
-            sprintf(buf, "Can't stat file %s", plfile);
-            errmsg(buf);
-            return 0;
-        }
-        if (!S_ISREG(statb.st_mode)) {
-            sprintf(buf, "File %s is not a regular file", plfile);
-            errmsg(buf);
-            return 0;
-        }
-    }
-    if ((pp = filter_read(plfile)) == NULL) {
-        sprintf(readbuf, "Can't open parameter file %s", plfile);
-        errmsg(readbuf);
+    if ((pp = grace_openr(plfile, SOURCE_DISK)) == NULL) {
         return 0;
     } else {
         errcnt = 0;
@@ -102,7 +85,7 @@ int getparms(char *plfile)
                 errcnt++;
                 if (errcnt > MAXERR) {
                     if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
-                        filter_close(pp);
+                        grace_close(pp);
                         return 0;
                     } else {
                         errcnt = 0;
@@ -111,13 +94,13 @@ int getparms(char *plfile)
             }
         }
         if (pp != stdin) {
-            filter_close(pp);
+            grace_close(pp);
         }
     }
     return 1;
 }
 
-void putparms(int gno, FILE * pp, int embed)
+void putparms(int gno, FILE *pp, int embed)
 {
     int i, j, k, ming, maxg;
     int ps, pt, gh, gt, fx, fy, px, py;
@@ -522,7 +505,10 @@ void putparms(int gno, FILE * pp, int embed)
 
             for (i = 0; i < number_of_sets(gno); i++) {
                 get_graph_plotarr(gno, i, &p);
-                if (is_set_active(gno, i)) {
+                if (is_set_active(gno, i) == TRUE &&
+                    is_set_hidden(gno, i) == FALSE) {
+                    fprintf(pp, "%s    s%1d hidden %s\n", embedstr, i,
+                                            true_or_false(p.hidden));
                     fprintf(pp, "%s    s%1d type %s\n", embedstr, i, set_types(p.type));
                     fprintf(pp, "%s    s%1d symbol %d\n", embedstr, i, p.sym);
                     fprintf(pp, "%s    s%1d symbol size %f\n", embedstr, i, p.symsize);

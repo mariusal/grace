@@ -55,6 +55,7 @@
 #include "cephes/cephes.h"
 #include "device.h"
 #include "utils.h"
+#include "files.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "plotone.h"
@@ -291,7 +292,6 @@ symtab_entry *key;
 %token <pset> HORIZONTAL
 %token <pset> HORIZO
 %token <pset> IFILTER
-%token <pset> IGNORE
 %token <pset> IN
 %token <pset> INCREMENT
 %token <pset> INOUT
@@ -2399,14 +2399,10 @@ actions:
 	    free((char *) $2);
 	}
 	| PUTP CHRSTR {
-	    if (!fexists((char *) $2)) {
-		FILE *pp = filter_write((char *) $2);
-		if (pp != NULL) {
-		    putparms(get_cg(), pp, 0);
-		    filter_close(pp);
-		} else {
-		    errmsg("Unable to write parameter file");
-		}
+	    FILE *pp = grace_openw((char *) $2);
+	    if (pp != NULL) {
+	        putparms(get_cg(), pp, 0);
+	        grace_close(pp);
 	    }
 	    free((char *) $2);
 	}
@@ -2660,7 +2656,7 @@ actions:
 	    free((char *) $6);
 	}
         | SAVEALL CHRSTR {
-            do_writesets(number_of_graphs() , -1, 1, (char *) $2, sformat);
+            save_project((char *) $2);
             free((char *) $2);
         }
 	| PUSH {
@@ -2725,10 +2721,7 @@ set_setprop:
 
 setprop:
 	onoff {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ON, $1, 0);
-	}
-	| IGNORE {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ON, $1, 0);
+	    set_set_hidden(whichgraph, whichset, !$1);
 	}
 	| TYPE xytype {
 	    set_prop(whichgraph, SET, SETNUM, whichset, TYPE, $2, 0);
@@ -3925,7 +3918,6 @@ symtab_entry ikey[] = {
 	{"IGAM", FUNC_DD, igam},
 	{"IGAMC", FUNC_DD, igamc},
 	{"IGAMI", FUNC_DD, igami},
-	{"IGNORE", IGNORE, NULL},
 	{"IN", IN, NULL},
 	{"INCBET", FUNC_PPD, incbet},
 	{"INCBI", FUNC_PPD, incbi},
@@ -4427,7 +4419,7 @@ int yylex(void)
 	    } else if (ctmp == 'S') {
 	        stmp[i] = '\0';
 		sn = atoi(stmp);
-		if (activateset(whichgraph, sn) == GRACE_EXIT_SUCCESS) {
+		if (allocate_set(whichgraph, sn) == GRACE_EXIT_SUCCESS) {
 		    yylval.ival = sn;
 		    whichset = sn;
 		    lxy = getsetlength(whichgraph, sn);
@@ -4652,25 +4644,6 @@ void set_prop(int gno,...)
 		    starts = ends = prop;
 		}
 		break;
-	    }
-	    break;
-	case ON:
-	    prop = va_arg(var, int);
-	    for (i = startg; i <= endg; i++) {
-		if (allsets) {
-		    ends = number_of_sets(i) - 1;
-		}
-		for (j = starts; j <= ends; j++) {
-		    if (prop == ON) {	/* could have been ignored */
-			if (g[i].p[j].hidden && (g[i].p[j].ex[0] != NULL)) {
-			    g[i].p[j].hidden = FALSE;
-			}
-		    } else if (prop == FALSE) {
-			g[i].p[j].hidden = TRUE;
-		    } else if (prop == IGNORE) {
-			g[i].p[j].hidden = TRUE;
-		    }
-		}
 	    }
 	    break;
 	case TYPE:

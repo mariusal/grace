@@ -237,6 +237,7 @@ int is_valid_gno(int gno);
 
 int set_graph_type(int gno, int gtype);
 
+int allocate_set(int gno, int setno);
 int activateset(int gno, int setno);
 
 int is_valid_setno(int gno, int setno);

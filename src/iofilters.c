@@ -71,11 +71,11 @@ int add_io_filter( int type, int method, char *id, char *comm )
 		return 1;
 }
 
-int add_input_filter( int method, char *id, char *comm )
 /*
  * if method == 0 -> PATTERN MATCHING else method = the number of bytes to
  * match in MAGIC NUMBER
  */
+int add_input_filter( int method, char *id, char *comm )
 {
 	ifilt = (Filter *)realloc( ifilt, ++numIfilt*sizeof(Filter) );
 	ifilt[numIfilt-1].command = (char *)malloc(strlen(comm)+1 );
@@ -109,11 +109,11 @@ int add_output_filter( int method, char *id, char *comm )
 }
 
 
-void clear_io_filters( int f )
 /*
  * eliminate filters:
  * f = 0->output filters, f=1->input filters
  */
+void clear_io_filters( int f )
 {
 	Filter *filt;
 	int *i;
@@ -134,10 +134,10 @@ void clear_io_filters( int f )
 }
 	
 
-FILE *filter_read( char *fn )
 /* 
  * filter input file and return pointer to a pipe
  */
+FILE *filter_read( char *fn )
 {
 	char buf[1024];
 	int i;
@@ -165,10 +165,10 @@ FILE *filter_read( char *fn )
 }
 
 
-FILE *filter_write(  char *fn )
 /*
  * filter output file and return pointer to a pipe or file
  */
+FILE *filter_write(  char *fn )
 {
 	char buf[1024];
 	int i;
@@ -194,21 +194,6 @@ FILE *filter_write(  char *fn )
 	} else {
 		return out;
 	}
-}
-
-
-/*
- * close either a pipe or a file pointer
- *
- */
-void filter_close(FILE *fp)
-{
-    if (fp == stdin || fp == stderr || fp == stdout) {
-        return;
-    }
-    if (pclose(fp) == -1) {
-        fclose(fp);
-    }
 }
 
 
@@ -246,11 +231,11 @@ static int test_pattern( char *ext, char *fn )
 }
 
 
-static void hex2char( Filter *f, char *hex )
 /*
  * convert hex string to character string interpreting 2 hex digits as 1
  * byte 
  */
+static void hex2char( Filter *f, char *hex )
 {
 	int i;
 	char tmp[3], *ptr;
@@ -270,5 +255,3 @@ static void hex2char( Filter *f, char *hex )
 	}
 	f->id[i] = '\0';
 }
-		
-		

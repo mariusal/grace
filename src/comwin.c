@@ -51,6 +51,7 @@
 #include "globals.h"
 #include "graphs.h"
 #include "utils.h"
+#include "files.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -381,20 +382,18 @@ void do_rhist_proc(Widget w, XtPointer client_data, XtPointer call_data)
 
     strcpy(buf, s);
     XtFree(s);
-    if ((fp = filter_read(buf)) != NULL) {
-		while (fgets(buf, 255, fp) != NULL) {
-			sl = strlen(buf);
-			buf[sl - 1] = 0;
-			if (strlen(buf) == 0) {
-				continue;
-			}
-			list_item = XmStringCreateLtoR(buf, charset);
-			XmListAddItemUnselected(h, list_item, 0);
-			XmStringFree(list_item);
-		}
-		filter_close(fp);
-    } else {
-		errwin("Unable to open file");
+    if ((fp = grace_openr(buf, SOURCE_DISK)) != NULL) {
+	while (fgets(buf, 255, fp) != NULL) {
+	    sl = strlen(buf);
+	    buf[sl - 1] = 0;
+	    if (strlen(buf) == 0) {
+                continue;
+	    }
+	    list_item = XmStringCreateLtoR(buf, charset);
+	    XmListAddItemUnselected(h, list_item, 0);
+	    XmStringFree(list_item);
+	}
+	grace_close(fp);
     }
     XtUnmanageChild(rhist_dialog);
 }
@@ -458,25 +457,23 @@ static void whist_apply_notify_proc(Widget w, XtPointer client_data, XtPointer c
     char s[256], *ts;
     XmStringTable xmstrs;
     Arg al[5];
-    strcpy(s, (char *) xv_getstr(whist_text_item));
-    if (!fexists(s)) {
-	FILE *pp = filter_write(s);
-	if (pp != NULL) {
-	    ac = 0;
-	    XtSetArg(al[ac], XmNhistoryItems, &xmstrs);
-	    ac++;
-	    XtSetArg(al[ac], XmNhistoryItemCount, &hc);
-	    ac++;
-	    XtGetValues(command, al, ac);
-	    for (i = 0; i < hc; i++) {
-	    	XmStringGetLtoR(xmstrs[i], charset, &ts);
-	    	fprintf(pp, "%s\n", ts);
-	    	XtFree(ts);
-	    }
-	    filter_close(pp);
-	} else {
-	    errwin("Unable to open file");
-	}
+    FILE *pp;
+    
+    strcpy(s, xv_getstr(whist_text_item));
+    pp = grace_openw(s);
+    if (pp != NULL) {
+        ac = 0;
+        XtSetArg(al[ac], XmNhistoryItems, &xmstrs);
+        ac++;
+        XtSetArg(al[ac], XmNhistoryItemCount, &hc);
+        ac++;
+        XtGetValues(command, al, ac);
+        for (i = 0; i < hc; i++) {
+            XmStringGetLtoR(xmstrs[i], charset, &ts);
+            fprintf(pp, "%s\n", ts);
+            XtFree(ts);
+        }
+        grace_close(pp);
     }
     XtUnmanageChild(whist_frame);
 }

@@ -51,6 +51,7 @@
 #include "graphs.h"
 #include "plotone.h"
 #include "utils.h"
+#include "files.h"
 #include "motifinc.h"
 #include "protos.h"
 

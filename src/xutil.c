@@ -38,6 +38,7 @@
 #include "globals.h"
 
 #include "utils.h"
+#include "files.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "plotone.h"
@@ -305,7 +306,7 @@ void expose_resize(Widget w, XtPointer client_data,
 	}
 	
 	if (inpipe == TRUE) {
-	    getdata(get_cg(), "STDIN", SOURCE_STDIN, curtype);
+	    getdata(get_cg(), "stdin", SOURCE_DISK, curtype);
 	    inpipe = FALSE;
             drawgraph();
 	}

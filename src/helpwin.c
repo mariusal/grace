@@ -31,14 +31,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <X11/cursorfont.h>
-#include <Xm/ToggleB.h>
-
 #include "globals.h"
 #include "patchlevel.h"
 #include "graphs.h"
 #include "utils.h"
 #include "protos.h"
+
+#include <X11/cursorfont.h>
+#include <Xm/ToggleB.h>
+#include "motifinc.h"
 
 #define NO_HELP "nohelp.html"
 

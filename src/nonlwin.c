@@ -51,6 +51,7 @@
 #include "globals.h"
 #include "graphs.h"
 #include "utils.h"
+#include "files.h"
 #include "plotone.h"
 #include "protos.h"
 #include "motifinc.h"
@@ -763,6 +764,7 @@ void create_savefit_popup(Widget w, XtPointer client_data, XtPointer call_data)
 static void do_savefit_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     char *s;
+    FILE *pp;
     
     XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
     if (!XmStringGetLtoR(cbs->value, charset, &s)) {
@@ -770,17 +772,13 @@ static void do_savefit_proc(Widget w, XtPointer client_data, XtPointer call_data
 		return;
     }
     
-    if (!fexists(s)) {
-		FILE *pp = filter_write(s);
-		if (pp != NULL) {
-			set_wait_cursor();
-			strcpy(nonl_opts.title, (char *) xv_getstr(save_title_item));
-			put_fitparms(pp, 0);
-			filter_close(pp);
-			unset_wait_cursor();
-		} else {
-			errmsg("Unable to open file");
-		}
+    pp = grace_openw(s);
+    if (pp != NULL) {
+        set_wait_cursor();
+        strcpy(nonl_opts.title, (char *) xv_getstr(save_title_item));
+        put_fitparms(pp, 0);
+        grace_close(pp);
+        unset_wait_cursor();
     }
     
     XtFree(s);

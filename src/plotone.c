@@ -41,6 +41,7 @@
 
 #include "globals.h"
 #include "utils.h"
+#include "files.h"
 #include "graphs.h"
 #include "draw.h"
 #include "t1fonts.h"
@@ -124,11 +125,9 @@ void do_hardcopy(void)
         strcat(fname, ".prn");
     }
     
-    prstream = filter_write(fname);
+    prstream = grace_openw(fname);
     
     if (prstream == NULL) {
-        sprintf(tbuf, "Can't open %s for write, hardcopy aborted", fname);
-        errmsg(tbuf);
         return;
     }
     
@@ -136,7 +135,7 @@ void do_hardcopy(void)
     
     drawgraph();
     
-    filter_close(prstream);
+    grace_close(prstream);
     
     v = get_bbox(BBOX_TYPE_GLOB);
     get_page_viewport(&vx, &vy);

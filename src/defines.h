@@ -256,7 +256,6 @@
 /* Data source type */
 #define SOURCE_DISK     0
 #define SOURCE_PIPE     1
-#define SOURCE_STDIN    2
 
 /* Justifications */
 #define JUST_LEFT       0

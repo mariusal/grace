@@ -80,7 +80,7 @@
 #include "globals.h"
 #include "bitmaps.h"
 #include "utils.h"
-#include "motifinc.h"
+#include "files.h"
 #include "device.h"
 #include "x11drv.h"
 #include "graphs.h"
@@ -88,6 +88,7 @@
 #include "plotone.h"
 #include "protos.h"
 
+#include "motifinc.h"
 
 /*
  * used to set up XmStrings
@@ -365,7 +366,7 @@ static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data)
 	if (strcmp (docname, NONAME) != 0) {
 	    set_wait_cursor();
 	    
-	    if (do_writesets(number_of_graphs(), -1, 1, docname, sformat) != 1) {
+	    if (save_project(docname) == GRACE_EXIT_SUCCESS) {
 	        clear_dirtystate();
 	    }
 	    

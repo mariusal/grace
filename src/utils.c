@@ -49,6 +49,7 @@
 
 #include "globals.h"
 #include "utils.h"
+#include "files.h"
 #include "protos.h"
 
 static void rereadConfig(void);
@@ -458,7 +459,7 @@ void bailout(void)
 {
     if (!is_dirtystate() || yesno("Exit losing unsaved changes?", NULL, NULL, "file.html#exit")) {
          if (resfp) {
-             filter_close(resfp);
+             grace_close(resfp);
          }
          exit(0);
     }

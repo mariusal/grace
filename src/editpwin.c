@@ -42,6 +42,7 @@
 #include "globals.h"
 #include "graphs.h"
 #include "utils.h"
+#include "files.h"
 #include "plotone.h"
 #include "protos.h"
 
@@ -510,10 +511,16 @@ void create_ss_frame(int gno, int setno)
 void do_ext_editor(int gno, int setno)
 {
     char *fname, ebuf[256], *s;
+    FILE *cp;
 
     fname = tmpnam(NULL);
+    cp = grace_openw(fname);
+    if (cp == NULL) {
+        return;
+    }
 
-    do_writesets(gno, setno, 0, fname, sformat);
+    write_set(gno, setno, cp, sformat);
+    grace_close(cp);
 
     if ((s = getenv("GRACE_EDITOR")) != NULL) {
     	strcpy(ebuf, s);
@@ -522,6 +529,7 @@ void do_ext_editor(int gno, int setno)
     }
     sprintf(ebuf, "%s %s", ebuf, fname);
     system(ebuf);
+
     if (is_set_active(gno, setno)) {
 	killsetdata(gno, setno);	
         getdata(gno, fname, SOURCE_DISK, dataset_type(gno, setno));

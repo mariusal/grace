@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include "globals.h"
 #include "utils.h"
+#include "files.h"
 #include "graphs.h"
 #include "protos.h"
 
@@ -634,17 +635,23 @@ void do_packsets(void)
     packsets(get_cg());
 }
 
+int allocate_set(int gno, int setno)
+{
+    if (is_valid_setno(gno, setno)) {
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return realloc_graph_plots(gno, setno + 1);
+    }
+}    
+
 int activateset(int gno, int setno)
 {
     int retval;
     
     if (is_valid_gno(gno) != TRUE) {
         return GRACE_EXIT_FAILURE;
-    } else if (is_valid_setno(gno, setno)) {
-        set_set_hidden(gno, setno, FALSE);
-        return GRACE_EXIT_SUCCESS;
     } else {
-        retval = realloc_graph_plots(gno, setno + 1);
+        retval = allocate_set(gno, setno);
         if (retval == GRACE_EXIT_SUCCESS) {
             set_set_hidden(gno, setno, FALSE);
         }
@@ -654,8 +661,8 @@ int activateset(int gno, int setno)
 
 /*
  * return the next available set in graph gno
- * ignoring deactivated sets.
- * If target is inactive and not deactivated, choose it (used for loading sets
+ * ignoring hidden sets.
+ * If target is allocated but with no data, choose it (used for loading sets
  * from project files when sets aren't packed)
  */
 int nextset(int gno)
@@ -684,7 +691,7 @@ int nextset(int gno)
 	}
     }
     /* Allocating new set */
-    if (realloc_graph_plots(gno, maxplot + 1) == GRACE_EXIT_SUCCESS) {
+    if (allocate_set(gno, maxplot) == GRACE_EXIT_SUCCESS) {
         return maxplot;
     } else {
         return (-1);
@@ -1843,4 +1850,34 @@ void set_lists_dirty(int d)
 int lists_dirty(void)
 {
     return dp;
+}
+
+void kill_blockdata(void)
+{
+    int j;
+    if (blockdata != NULL) {
+	for (j = 0; j < maxblock; j++) {
+	    cxfree(blockdata[j]);
+	}
+    }
+}
+
+void alloc_blockdata(int ncols)
+{
+    int j;
+    if (blockdata != NULL) {
+	kill_blockdata();
+    }
+    if (ncols < MAXPLOT) {
+	ncols = MAXPLOT;
+    }
+    blockdata = malloc(ncols * sizeof(double *));
+    if (blockdata != NULL) {
+	maxblock = ncols;
+	for (j = 0; j < maxblock; j++) {
+	    blockdata[j] = NULL;
+	}
+    } else {
+	errmsg("alloc_blockdata(): Error, unable to allocate memory for block data");
+    }
 }

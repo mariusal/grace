@@ -90,7 +90,6 @@ void realloc_lines(int n);
 void realloc_boxes(int n);
 void realloc_ellipses(int n);
 void realloc_strings(int n);
-void alloc_blockdata(int ncols);
 void set_default_annotation(void);
 void set_default_ticks(tickmarks * t, int a);
 
@@ -98,16 +97,6 @@ void calculate_tickgrid(int gno);
 void drawgrid(int gno);
 void drawaxes(int gno);
 
-int getdata(int gno, char *fn, int src, int type);
-
-int read_set_fromfile(int gno, int setno, char *fn, int src, int col);
-
-int readnetcdf(int gno, int setno, char *netcdfname, char *xvar, 
-		char *yvar, int start, int stop, int stride);
-int write_netcdf(int gno, int setno, char *fname);
-
-int readblockdata(int gno, char *fn, FILE * fp);
-void create_set_fromblock(int gno, int type, char *cols);
 
 void gauss(int n, double *a, int adim, double *b, double *x);
 void stasum(double *x, int n, double *xbar, double *sd, int flag);
@@ -229,7 +218,6 @@ int do_copyset(int gfrom, int j1, int gto, int j2);
 int do_moveset(int gfrom, int j1, int gto, int j2);
 int do_swapset(int gno1, int setno1, int gno2, int setno2);
 void do_splitsets(int gno, int setno, int lpart);
-int do_writesets(int gno, int setno, int embed, char *fn, char *format);
 void do_activate(int setno, int type, int len);
 void do_hideset(int gno, int setno);
 void do_showset(int gno, int setno);
@@ -249,7 +237,6 @@ void do_join_nearest(void);
 void do_delete_nearest(void);
 void do_cancel_pickop(void);
 
-void outputset(int gno, int setno, char *fname, char *dformat);
 
 void set_hotlink(int gno, int setno, int onoroff, char *fname, int src);
 int is_hotlinked(int gno, int setno);
@@ -300,13 +287,10 @@ void do_main_loop(void);
 void initialize_nonl(void);
 void reset_nonl(void);
 
-int   add_io_filter( int, int , char *, char * );
-FILE *filter_read( char * );
-FILE *filter_write(  char * );
-void  clear_io_filters( int );
-void  filter_close( FILE * );
-
 int is_xaxis(int axis);
 int is_yaxis(int axis);
+
+void kill_blockdata(void);
+void alloc_blockdata(int ncols);
 
 #endif /* __NOXPROTOS_H_ */

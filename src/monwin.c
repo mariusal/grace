@@ -49,6 +49,7 @@
 
 #include "globals.h"
 #include "utils.h"
+#include "files.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -215,19 +216,16 @@ static void wmon_apply_notify_proc(Widget w, XtPointer client_data, XtPointer ca
     int len;
     char s[256];
     char *text;
+    FILE *pp;
 
-    strcpy(s, (char *) xv_getstr(wmon_text_item));
-    if (!fexists(s)) {
-		FILE *pp = filter_write(s);
+    strcpy(s, xv_getstr(wmon_text_item));
+    pp = grace_openw(s);
 
-		if (pp != NULL) {
-			text = XmTextGetString(text_w);
-			len = XmTextGetLastPosition(text_w);
-			fwrite(text, sizeof(char), len, pp);
-			filter_close(pp);
-			XtFree(text);
-		} else {
-			errwin("Unable to open file");
-		}
+    if (pp != NULL) {
+        text = XmTextGetString(text_w);
+        len = XmTextGetLastPosition(text_w);
+        fwrite(text, SIZEOF_CHAR, len, pp);
+        grace_close(pp);
+        XtFree(text);
     }
 }

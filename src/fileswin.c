@@ -62,6 +62,7 @@
 #include "graphutils.h"
 #include "plotone.h"
 #include "utils.h"
+#include "files.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -287,6 +288,7 @@ static void wparam_apply_notify_proc(Widget w, XtPointer client_data, XtPointer 
 {
     char *fname;
     int gno;
+    FILE *pp;
 
     XmFileSelectionBoxCallbackStruct *cbs =
                             (XmFileSelectionBoxCallbackStruct *) call_data;
@@ -301,18 +303,14 @@ static void wparam_apply_notify_proc(Widget w, XtPointer client_data, XtPointer 
 	gno = ALL_GRAPHS;
     }
     
-    if (!fexists(fname)) {
-        FILE *pp = filter_write(fname);
-
-        if (pp != NULL) {
-            set_wait_cursor();
-            putparms(gno, pp, 0);
-            filter_close(pp);
-            unset_wait_cursor();
-        } else {
-            errmsg("Unable to open file");
-        }
+    pp = grace_openw(fname);
+    if (pp != NULL) {
+        set_wait_cursor();
+        putparms(gno, pp, 0);
+        grace_close(pp);
+        unset_wait_cursor();
     }
+    
     XtFree(fname);
 }
 
@@ -878,7 +876,7 @@ static void save_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
     
     strcpy(sformat, (char *) xv_getstr(save_format_item));
-    if (do_writesets(number_of_graphs() , -1, 1, s, sformat) != 1) {
+    if (save_project(s) == GRACE_EXIT_SUCCESS) {
         done_ok = TRUE;
     } else {
         done_ok = FALSE;
@@ -1066,12 +1064,14 @@ void create_describe_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 typedef struct _Write_ui {
     Widget top;
-    SetChoiceItem sel;
-    Widget *graph_item;
-    Widget embed_item;
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
-    Widget netcdf_item;
-#endif
+    ListStructure *sel;
+/*
+ *     Widget *graph_item;
+ *     Widget embed_item;
+ * #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
+ *     Widget netcdf_item;
+ * #endif
+ */
     Widget format_item;
 } Write_ui;
 
@@ -1083,12 +1083,11 @@ Write_ui wui;
  */
 static void do_write_sets_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int *selset, cd, i;
     int gno, setno;
-    int embed;
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
-    int netcdf;
-#endif
     char *fn;
+    FILE *cp;
+    
     Write_ui *ui = (Write_ui *) client_data;
     XmFileSelectionBoxCallbackStruct *cbs =
         (XmFileSelectionBoxCallbackStruct *) call_data;
@@ -1097,37 +1096,27 @@ static void do_write_sets_proc(Widget w, XtPointer client_data, XtPointer call_d
         return;
     }
 
-    embed = (int) XmToggleButtonGetState(ui->embed_item);
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
-    netcdf = (int) XmToggleButtonGetState(ui->netcdf_item);
-#endif
-    setno = GetSelectedSet(ui->sel);
-    if (setno == SET_SELECT_ERROR) {
-	errwin("No sets selected");
-	return;
+    cp = grace_openw(fn);
+    if (cp == NULL) {
+        XtFree(fn);
+        return;
     }
-    if (setno == SET_SELECT_ALL) {
-	setno = ALL_SETS;
-    }
-    if (GetChoice(ui->graph_item) == 0) {
-	gno = get_cg();
-    } else {
-	gno = ALL_GRAPHS;
-    }
-    strcpy(sformat, xv_getstr(ui->format_item));
-    set_wait_cursor();
 
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
-    if (netcdf) {
-	write_netcdf(gno, setno, fn);
+    cd = GetListChoices(ui->sel, &selset);
+    if (cd < 1) {
+        errwin("No set selected");
     } else {
-	do_writesets(gno, setno, embed, fn, sformat);
+        gno = get_cg();
+        strcpy(sformat, xv_getstr(ui->format_item));
+        set_wait_cursor();
+        for(i = 0; i < cd; i++) {
+            setno = selset[i];
+            write_set(gno, setno, cp, sformat);
+        }
+        free(selset);
     }
-#else
-    do_writesets(gno, setno, embed, fn, sformat);
-#endif
-
     XtFree(fn);
+    grace_close(cp);
     unset_wait_cursor();
 }
 
@@ -1152,25 +1141,8 @@ void create_write_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	fr = XmCreateFrame(wui.top, "fr", NULL, 0);
 	dialog = XmCreateRowColumn(fr, "dialog_rc", NULL, 0);
 
-	wui.sel = CreateSetSelector(dialog, "Write set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-	wui.graph_item = CreatePanelChoice(dialog, "From graph:",
-                                           3,
-                                           "Current",
-                                           "All",
-                                           NULL,
-                                           NULL);
-	wui.embed_item = XtVaCreateManagedWidget("Embed parameters",
-					  xmToggleButtonWidgetClass, dialog,
-						 NULL);
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
-	wui.netcdf_item = XtVaCreateManagedWidget("Write netcdf data",
-					  xmToggleButtonWidgetClass, dialog,
-						  NULL);
-#endif
+        wui.sel = CreateSetChoice(dialog, "Write set(s):",
+                                                LIST_TYPE_MULTIPLE, TRUE);
 	wui.format_item = CreateTextItem2(dialog, 15, "Format: ");
 
 	XtManageChild(dialog);
