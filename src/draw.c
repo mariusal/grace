@@ -315,6 +315,7 @@ void leavegraphics(void)
     (*devleavegraphics) ();
 }
 
+
 /*
  * DrawPixel - put a pixel in the current color at position vp
  */
@@ -373,7 +374,7 @@ void FillRect(VPoint vp1, VPoint vp2)
  */
 void DrawPolyline(VPoint *vps, int n, int mode)
 {
-    int i, j, nmax, nc, max_purge, npurged;
+    int i, nmax, nc, max_purge, npurged;
     VPoint vp1, vp2;
     VPoint vp1c, vp2c;
     VPoint *vpsc;
@@ -423,9 +424,8 @@ void DrawPolyline(VPoint *vps, int n, int mode)
                 nc++;
                 
                 if (vp2.x != vp2c.x || vp2.y != vp2c.y || i == nmax - 2) {
-                    for (j = 0; j < nc; j++) {
-                        update_bboxes(vpsc[j]);
-                    }
+                    update_bboxes_with_vpoints(vpsc, nc, getlinewidth());
+                    
                     if (get_draw_mode() == TRUE) {
                         if (nc != nmax) {
                             mode = POLYLINE_OPEN;
@@ -438,15 +438,15 @@ void DrawPolyline(VPoint *vps, int n, int mode)
                         }
                         (*devdrawpolyline)(vpsc, npurged, mode);
                     }
+                    
                     nc = 0;
                 }
             }
         }
         xfree(vpsc);
     } else {
-        for (j = 0; j < n; j++) {
-            update_bboxes(vps[j]);
-        }
+        update_bboxes_with_vpoints(vps, n, getlinewidth());
+
         if (get_draw_mode() == TRUE) {
             if (max_purge && n > max_purge) {
                 npurged = max_purge;
@@ -485,7 +485,7 @@ void DrawLine(VPoint vp1, VPoint vp2)
  */
 void DrawPolygon(VPoint *vps, int n)
 {
-    int i, nc, max_purge, npurged;
+    int nc, max_purge, npurged;
     VPoint *vptmp;
 
     if ((getpen()).pattern == 0) {
@@ -507,6 +507,8 @@ void DrawPolygon(VPoint *vps, int n)
             memcpy(vptmp, vps, n * sizeof(VPoint));
             nc = clip_polygon(vptmp, n);
             if (nc > 2) {
+                update_bboxes_with_vpoints(vptmp, nc, 0.0);
+                
                 if (get_draw_mode() == TRUE) {
                     if (max_purge && nc > max_purge) {
                         npurged = max_purge;
@@ -516,13 +518,12 @@ void DrawPolygon(VPoint *vps, int n)
                     }
                     (*devfillpolygon) (vptmp, npurged);
                 }
-                for (i = 0; i < nc; i++) {
-                    update_bboxes(vptmp[i]);
-                }
             }
             xfree(vptmp);
         }
     } else {
+        update_bboxes_with_vpoints(vps, n, 0.0);
+
         if (get_draw_mode() == TRUE) {
             if (max_purge && n > max_purge) {
                 npurged = max_purge;
@@ -538,9 +539,6 @@ void DrawPolygon(VPoint *vps, int n)
                 (*devfillpolygon) (vps, n);
             }
         }
-        for (i = 0; i < n; i++) {
-            update_bboxes(vps[i]);
-        }
     }
 }
 
@@ -549,6 +547,8 @@ void DrawPolygon(VPoint *vps, int n)
  */
 void DrawArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
 {
+    view v;
+    
     if (getlinestyle() == 0 || (getpen()).pattern == 0) {
         return;
     }
@@ -557,9 +557,11 @@ void DrawArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
     if (get_draw_mode() == TRUE) {
         (*devdrawarc)(vp1, vp2, angle1, angle2);
     }
+    
     /* TODO: consider open arcs! */
-    update_bboxes(vp1);
-    update_bboxes(vp2);
+    VPoints2bbox(&vp1, &vp2, &v);
+    view_extend(&v, getlinewidth()/2);
+    update_bboxes_with_view(&v);
 }
 
 /*
@@ -1847,6 +1849,103 @@ void activate_bbox(int type, int status)
         return;
     }
     bbp->active = status;
+}
+
+/* Extend all view boundaries with w */
+int view_extend(view *v, double w)
+{
+    if (!v) {
+        return RETURN_FAILURE;
+    } else {
+        v->xv1 -= w;
+        v->xv2 += w;
+        v->yv1 -= w;
+        v->yv2 += w;
+        return RETURN_SUCCESS;
+    }
+}
+
+int update_bboxes_with_view(view *v)
+{
+    if (!v) {
+        return RETURN_FAILURE;
+    } else {
+        VPoint vp;
+        
+        vp.x = v->xv1;
+        vp.y = v->yv1;
+        update_bboxes(vp);
+        vp.x = v->xv2;
+        vp.y = v->yv2;
+        update_bboxes(vp);
+        
+        return RETURN_SUCCESS;
+    }
+}
+
+int update_bboxes_with_vpoints(VPoint *vps, int n, double lw)
+{
+    if (!vps || n < 1) {
+        return RETURN_FAILURE;
+    } else {
+        int i;
+        double xmin, xmax, ymin, ymax;
+        view v;
+        
+        xmin = xmax = vps[0].x;
+        ymin = ymax = vps[0].y;
+        
+        for (i = 1; i < n; i++) {
+            if (vps[i].x < xmin) {
+                xmin = vps[i].x;
+            } else
+            if  (vps[i].x > xmax) {
+                xmax = vps[i].x;
+            }
+            
+            if (vps[i].y < ymin) {
+                ymin = vps[i].y;
+            } else
+            if  (vps[i].y > ymax) {
+                ymax = vps[i].y;
+            }
+        }
+        
+        v.xv1 = xmin;
+        v.xv2 = xmax;
+        v.yv1 = ymin;
+        v.yv2 = ymax;
+        
+        view_extend(&v, lw/2);
+        
+        update_bboxes_with_view(&v);
+        
+        return RETURN_SUCCESS;
+    }
+}
+
+int VPoints2bbox(VPoint *vp1, VPoint *vp2, view *bb)
+{
+    if (!bb || !vp1 || !vp2) {
+        return RETURN_FAILURE;
+    } else {
+        if (vp1->x <= vp2->x) {
+            bb->xv1 = vp1->x;
+            bb->xv2 = vp2->x;
+        } else {
+            bb->xv1 = vp2->x;
+            bb->xv2 = vp1->x;
+        }
+        if (vp1->y <= vp2->y) {
+            bb->yv1 = vp1->y;
+            bb->yv2 = vp2->y;
+        } else {
+            bb->yv1 = vp2->y;
+            bb->yv2 = vp1->y;
+        }
+        
+        return RETURN_SUCCESS;
+    }
 }
 
 static int draw_mode = TRUE;

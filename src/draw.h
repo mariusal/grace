@@ -302,6 +302,10 @@ void update_bbox(int type, VPoint vp);
 void update_bboxes(VPoint vp);
 void melt_bbox(int type);
 void activate_bbox(int type, int status);
+int view_extend(view *v, double w);
+int update_bboxes_with_view(view *v);
+int update_bboxes_with_vpoints(VPoint *vps, int n, double lw);
+int VPoints2bbox(VPoint *vp1, VPoint *vp2, view *bb);
 
 void set_draw_mode(int mode);
 int get_draw_mode(void);
