@@ -993,7 +993,7 @@ void create_int_frame(void *data)
         
         iui = xmalloc(sizeof(Run_ui));
         iui->tdialog = CreateTransformDialogForm(app_shell,
-            "Running properties", LIST_TYPE_MULTIPLE);
+            "Integrate", LIST_TYPE_MULTIPLE);
 
 	rc = CreateVContainer(iui->tdialog->form);
 
