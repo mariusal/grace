@@ -114,8 +114,6 @@ int set_point_shift(Quark *pset, int seti, const VVector *vshift);
 
 Datapoint *datapoint_new(void);
 void datapoint_free(Datapoint *dpoint);
-int dataset_set_nrows(Dataset *data, int nrows);
-int dataset_set_ncols(Dataset *data, int ncols);
 int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind);
 
 void killset(Quark *pset);
