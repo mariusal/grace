@@ -58,6 +58,12 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc = CreateHContainer(ui->main_tp);
     ui->active = CreateToggleButton(rc, "Active");
     AddToggleButtonCB(ui->active, tb_explorer_cb, eui);
+    opitems[0].value = AXIS_TYPE_X;
+    opitems[0].label = "X";
+    opitems[1].value = AXIS_TYPE_Y;
+    opitems[1].label = "Y";
+    ui->type = CreateOptionChoice(rc, "Type:", 0, 2, opitems);
+    AddOptionChoiceCB(ui->type, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Axis label");
 
@@ -361,6 +367,8 @@ void update_axis_ui(AxisUI *ui, Quark *q)
         int i;
 
         SetToggleButtonState(ui->active, is_axis_active(t));
+        
+        SetOptionChoice(ui->type, t->type);
 
         SetToggleButtonState(ui->zero, is_zero_axis(t));
 
@@ -498,6 +506,10 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
         
         if (!caller || caller == ui->active) {
             t->active = GetToggleButtonState(ui->active);
+        }
+
+        if (!caller || caller == ui->type) {
+            t->type = GetOptionChoice(ui->type);
         }
 
         if (!caller || caller == ui->label) {
