@@ -81,6 +81,14 @@
 
 typedef double (*ParserFnc)();
 
+/* the graph, set, axis, and object of the parser's current state */
+static Quark *whichgraph;
+static Quark *whichset;
+static tickmarks *curtm;
+static DObject *curobject;
+static Quark *objgno;
+
+
 static double  s_result;    /* return value if a scalar expression is scanned*/
 static grarr *v_result;    /* return value if a vector expression is scanned*/
 
@@ -90,11 +98,6 @@ static int interr;
 
 static grarr freelist[100]; 	/* temporary vectors */
 static int fcnt = 0;		/* number of the temporary vectors allocated */
-
-tickmarks *curtm = NULL;	        /* current axis */
-
-static DObject *curobject;
-static Quark *objgno = NULL;
 
 /* these guys attempt to avoid reentrancy problems */
 static int gotparams = FALSE, gotread = FALSE; 
@@ -107,9 +110,6 @@ char batchfile[GR_MAXPATHLEN] = "",
 static char f_string[MAX_PARS_STRING_LENGTH]; /* buffer for string to parse */
 static int pos;
 
-/* the graph, set, and its length of the parser's current state */
-static Quark *whichgraph;
-static Quark *whichset;
 
 /* the graph and set of the left part of a vector assignment */
 static Quark *vasgn_pset;
@@ -134,10 +134,6 @@ static int getcharstr(void);
 static void ungetchstr(void);
 static int follow(int expect, int ifyes, int ifno);
 
-static int yylex(void);
-static int yyparse(void);
-static void yyerror(char *s);
-
 static int findf(symtab_entry *keytable, char *s);
 
 static void add_xmgr_fonts(Quark *project);
@@ -147,6 +143,10 @@ static Quark *allocate_set(Quark *gr, int setno);
 
 /* Total (intrinsic + user-defined) list of functions and keywords */
 symtab_entry *key;
+
+static int yylex(void);
+static int yyparse(void);
+static void yyerror(char *s);
 
 %}
 
@@ -5057,4 +5057,13 @@ static Quark *allocate_set(Quark *gr, int setno)
     }
     
     return pset;
+}
+
+void parser_state_reset(void)
+{
+    whichgraph = NULL;
+    whichset   = NULL;
+    curtm      = NULL;
+    curobject  = NULL;
+    objgno     = NULL;
 }

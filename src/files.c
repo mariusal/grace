@@ -1094,6 +1094,7 @@ int load_project_file(char *fn, int as_template)
         retval = load_xgr_project(fn);
     } else {
         wipeout();
+	parser_state_reset();
         retval = getdata(0, fn, SOURCE_DISK, LOAD_SINGLE);
     }
 

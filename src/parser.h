@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -55,6 +55,8 @@ int set_parser_gno(Quark *g);
 int set_parser_setno(Quark *pset);
 Quark *get_parser_gno(void);
 Quark *get_parser_setno(void);
+
+void parser_state_reset(void);
 
 int   scanner(char *s);
 int s_scanner(char *s, double *res);
