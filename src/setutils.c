@@ -795,14 +795,18 @@ void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax)
 {
     int i;
     
+    *imin = 0;
+    *imax = 0;
+
     if (x == NULL) {
+        *xmin = 0.0;
+        *xmax = 0.0;
         return;
     }
     
     *xmin = x[0];
     *xmax = x[0];
-    *imin = 0;
-    *imax = 0;
+    
     for (i = 1; i < n; i++) {
 	if (x[i] < *xmin) {
 	    *xmin = x[i];
