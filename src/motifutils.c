@@ -2844,7 +2844,7 @@ OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,.
     i = 0;
     while ((s = va_arg(var, char *)) != NULL) {
         oi[i].value = i;
-        oi[i].label = strdup(s);
+        oi[i].label = copy_string(NULL, s);
 	i++;
     }
 
