@@ -232,7 +232,7 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
         if (quoted) {
             (*formats)[ncols] = FFORMAT_STRING;
             (*nscols)++;
-        } else if (parse_date(token, df_pref, &value, &ddummy) ==
+        } else if (parse_date(token, df_pref, FALSE, &value, &ddummy) ==
             GRACE_EXIT_SUCCESS) {
             (*formats)[ncols] = FFORMAT_DATE;
             (*nncols)++;
@@ -287,7 +287,7 @@ int insert_data_row(ss_data *ssd, int row, char *s)
                 }
             } else if (ssd->formats[i] == FFORMAT_DATE) {
                 np = (double *) ssd->data[i];
-                res = parse_date(token, df_pref, &np[row], &ddummy);
+                res = parse_date(token, df_pref, FALSE, &np[row], &ddummy);
             } else {
                 np = (double *) ssd->data[i];
                 res = parse_float(token, &np[row], &sdummy);

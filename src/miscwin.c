@@ -311,7 +311,8 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
           set_date_hint(FMT_nohint);
           break;
     }
-    if (parse_date_or_number(xv_getstr(date_item), &jul) == GRACE_EXIT_SUCCESS) {
+    if (parse_date_or_number(xv_getstr(date_item), TRUE, &jul)
+        == GRACE_EXIT_SUCCESS) {
         set_ref_date(jul);
     } else {
         errmsg("Invalid date");

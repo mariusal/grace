@@ -705,7 +705,7 @@ static int parse_calendar_date(const char* s,
 /*
  * parse a date given either in calendar or numerical format
  */
-int parse_date(const char* s, Dates_format preferred,
+int parse_date(const char* s, Dates_format preferred, int absolute,
                double *jul, Dates_format *recognized)
 {
     int i, n;
@@ -762,9 +762,11 @@ int parse_date(const char* s, Dates_format preferred,
 
               if (check_date(tab[ky], tab[km], tab[kd], &j)
                   == GRACE_EXIT_SUCCESS) {
-                  *jul = jul_and_time_to_jul(j, tab[3].value, tab[4].value,
-                                             sec)
-                      - get_ref_date();
+                  *jul =
+                      jul_and_time_to_jul(j, tab[3].value, tab[4].value, sec);
+                  if (!absolute) {
+                      *jul -= get_ref_date();
+                  }
 
                   *recognized = trials[i];
                   return GRACE_EXIT_SUCCESS;
@@ -781,12 +783,13 @@ int parse_date(const char* s, Dates_format preferred,
     return GRACE_EXIT_FAILURE;
 }
 
-int parse_date_or_number(const char* s, double *value)
+int parse_date_or_number(const char* s, int absolute, double *value)
 {
     Dates_format dummy;
     const char *sdummy;
     
-    if (parse_date(s, get_date_hint(), value, &dummy) == GRACE_EXIT_SUCCESS) {
+    if (parse_date(s, get_date_hint(), absolute, value, &dummy)
+        == GRACE_EXIT_SUCCESS) {
         return GRACE_EXIT_SUCCESS;
     } else if (parse_float(s, value, &sdummy) == GRACE_EXIT_SUCCESS) {
         return GRACE_EXIT_SUCCESS;

@@ -589,6 +589,7 @@ symtab_entry *key;
 %type <ival> iexpr
 %type <ival> nexpr
 %type <dval> jdate
+%type <dval> jrawdate
 %type <dval> expr
 
 %type <vrbl> array
@@ -886,7 +887,26 @@ jdate:  expr {
         | CHRSTR {
             double jul;
             Dates_format dummy;
-            if (parse_date($1, FMT_iso, &jul, &dummy) == GRACE_EXIT_SUCCESS) {
+            if (parse_date($1, FMT_iso, FALSE, &jul, &dummy)
+                == GRACE_EXIT_SUCCESS) {
+                free($1);
+                $$ = jul;
+            } else {
+                free($1);
+		yyerror("Invalid date");
+		return 1;
+            }
+        }
+        ;
+
+jrawdate:  expr {
+            $$ = $1;
+        }
+        | CHRSTR {
+            double jul;
+            Dates_format dummy;
+            if (parse_date($1, FMT_iso, TRUE, &jul, &dummy)
+                == GRACE_EXIT_SUCCESS) {
                 free($1);
                 $$ = jul;
             } else {
@@ -1972,7 +1992,7 @@ parmset:
             set_printer_by_name($3);
             free($3);
         }
-        | REFERENCE DATE jdate {
+        | REFERENCE DATE jrawdate {
             set_ref_date($3);
 	}
         | DATE WRAP onoff {
