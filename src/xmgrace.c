@@ -1118,11 +1118,6 @@ void startup_gui(void)
  */
     update_app_title();
 
-/*
- * If logging is on, initialize
- */
-    log_results("Startup");
-
     XtAppMainLoop(app_con);
 }
 

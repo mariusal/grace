@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -394,7 +394,6 @@ int store_data(ss_data *ssd, int load_type, char *label)
         if (!strlen(getcomment(gno, setno))) {
             setcomment(gno, setno, label);
         }
-        log_results(label);
         
         XCFREE(ssd->data);
         break;
@@ -423,14 +422,12 @@ int store_data(ss_data *ssd, int load_type, char *label)
             setcol(gno, setno, DATA_X, xdata, nrows);
             setcol(gno, setno, DATA_Y, (double *) ssd->data[i + 1], nrows);
             setcomment(gno, setno, label);
-            log_results(label);
         }
     
         XCFREE(ssd->data);
         break;
     case LOAD_BLOCK:
         set_blockdata(ssd);
-        log_results(label);
         break;
     default:
         errmsg("Internal error");
@@ -603,7 +600,5 @@ int create_set_fromblock(int gno, int setno,
 
     autoscale_graph(gno, autoscale);
 
-    log_results(buf);   
-    
     return RETURN_SUCCESS;
 }

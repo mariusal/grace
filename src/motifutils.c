@@ -3856,8 +3856,6 @@ void errwin(char *s)
 
     keep_grab = True;
     
-    log_results(s);
-    
     if (error_popup == NULL) {
         error_popup = XmCreateErrorDialog(app_shell, "errorDialog", NULL, 0);
 	str = XmStringCreateLocalized(s);

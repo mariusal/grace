@@ -236,7 +236,6 @@ void do_digfilter(int set1, int set2)
 		  gety(get_cg(), set2),
 		  getsetlength(get_cg(), set2));
 	setcomment(get_cg(), digfiltset, buf);
-	log_results(buf);
     }
 }
 
@@ -267,7 +266,6 @@ void do_linearc(int set1, int set2)
 	}
 	sprintf(buf, "Linear convolution of set %d with set %d", set1, set2);
 	setcomment(get_cg(), linearcset, buf);
-	log_results(buf);
     }
 }
 
@@ -309,7 +307,6 @@ void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
 	    xtmp[i] = i;
 	}
 	setcomment(get_cg(), xcorset, buf);
-	log_results(buf);
     }
 }
 
@@ -338,7 +335,6 @@ double do_int(int gno, int setno, int itype)
 	    sprintf(buf, "Cumulative sum of set %d", setno);
 	    sum = trapint(getx(gno, setno), gety(gno, setno), getx(gno, intset), gety(gno, intset), getsetlength(gno, setno));
 	    setcomment(gno, intset, buf);
-	    log_results(buf);
 	}
     } else {
 	sum = trapint(getx(gno, setno), gety(gno, setno), NULL, NULL, getsetlength(gno, setno));
@@ -386,7 +382,6 @@ void do_differ(int gno, int setno, int itype)
 	    break;
 	}
 	setcomment(gno, diffset, buf);
-	log_results(buf);
     }
 }
 
@@ -414,7 +409,6 @@ void do_seasonal_diff(int setno, int period)
 		     getsetlength(get_cg(), setno), period);
 	sprintf(buf, "Seasonal difference of set %d, period %d", setno, period);
 	setcomment(get_cg(), diffset, buf);
-	log_results(buf);
     }
 }
 
@@ -623,7 +617,6 @@ void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int
 	}
 	sprintf(buf, "%d deg fit of set %d", ideg, setno);
 	setcomment(gno, fitset, buf);
-	log_results(buf);
     }
     bustout:;
     if (rno >= 0 && cnt != 0) {	/* had a region and allocated memory there */
@@ -700,7 +693,6 @@ void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr)
 	    break;
 	}
 	setcomment(gno, runset, buf);
-	log_results(buf);
     }
   bustout:;
     if (rno >= 0 && cnt != 0) {	/* had a region and allocated memory there */
@@ -822,7 +814,6 @@ void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invfla
 	    sprintf(buf, "DFT of set %d", setno);
 	}
 	setcomment(get_cg(), specset, buf);
-	log_results(buf);
     }
 }
 
@@ -866,7 +857,6 @@ void do_window(int setno, int type, int wind)
 	} else {		/* shouldn't happen */
 	}
 	setcomment(get_cg(), specset, buf);
-	log_results(buf);
     }
 }
 
@@ -999,8 +989,6 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
     sprintf(p.comments, "Histogram from G%d.S%d", fromgraph, fromset);
     set_graph_plotarr(tograph, toset, &p);
 
-    log_results(buf);
-    
     return RETURN_SUCCESS;
 }
 
@@ -1116,7 +1104,6 @@ void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
     }
     if (npts > 0) {
 	setcomment(gno, resset, buf);
-	log_results(buf);
     }
 }
 
@@ -1426,7 +1413,6 @@ void do_prune(int setno, int typeno, int deltatypeno, float deltax, float deltay
 	break;
     }
     setcomment(get_cg(), resset, buf);
-    log_results(buf);
 }
 
 int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *cnt, double **xt, double **yt)

@@ -1068,7 +1068,6 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
     if (!strlen(getcomment(gno, setno))) {
         setcomment(gno, setno, fn);
     }
-    log_results(fn);
     retval = 1;
 
   breakout:;
@@ -1443,8 +1442,6 @@ int readnetcdf(int gno,
     setcomment(gno, setno, buf);
     
     autoscale_graph(gno, autoscale_onread);
-    
-    log_results(buf);
     
     return 1;
 }

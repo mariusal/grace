@@ -4873,8 +4873,6 @@ static int parser(char *s, int type)
         }
     }
     
-    log_results(s);
-
     lowtoupper(f_string);
         
     pos = 0;

@@ -1651,7 +1651,6 @@ void do_splitsets(int gno, int setno, int lpart)
 	
         sprintf(s, "partition %d of set %d", i + 1, setno);
 	setcomment(gno, tmpset, s);
-	log_results(s);
     }
     
     free_set_data(&ds);
