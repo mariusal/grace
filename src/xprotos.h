@@ -267,6 +267,7 @@ int object_edit_popup(int type, int id);
 void set_title(char *ts);
 
 void set_pagelayout(int layout);
+int get_pagelayout(void);
 
 void errwin(char *s);
 

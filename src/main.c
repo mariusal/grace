@@ -527,11 +527,15 @@ int main(int argc, char *argv[])
 		    	    i++;
 		    	    pg.height = atoi(argv[i]);
                             set_page_geometry(pg);
-		    	    page_layout = PAGE_FIXED;
+#ifndef NONE_GUI
+		    	    set_pagelayout(PAGE_FIXED);
+#endif
 			}
 		    }
+#ifndef NONE_GUI
 		} else if (argmatch(argv[i], "-free", 5)) {
-		    page_layout = PAGE_FREE;
+		    set_pagelayout(PAGE_FREE);
+#endif
 		} else if (argmatch(argv[i], "-noask", 5)) {
 		    noask = TRUE;
 		} else if (argmatch(argv[i], "-mono", 5)) {
@@ -907,7 +911,9 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-dpipe     [descriptor]               Read data from descriptor on startup\n");
     fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device\n");
     fprintf(stream, "-fixed     [width] [height]           Set canvas size fixed to width*height\n");
+#ifndef NONE_GUI
     fprintf(stream, "-free                                 Use free page layout\n");
+#endif
     fprintf(stream, "-graph     [graph_number]             Set the current graph number\n");
     fprintf(stream, "-graphtype [graph_type]               Set the type of the current graph\n");
     fprintf(stream, "-hardcopy                             No interactive session, just print and\n");

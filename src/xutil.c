@@ -306,7 +306,7 @@ void expose_resize(Widget w, XtPointer client_data,
 	inwin = TRUE;
 	inc++;
         
-        if (page_layout == PAGE_FREE) {
+        if (get_pagelayout() == PAGE_FREE) {
             get_canvas_size(&ww, &wh);
             pg = get_page_geometry();
             pg.width = (long) ww;
@@ -347,7 +347,7 @@ void expose_resize(Widget w, XtPointer client_data,
     }
     
     
-    if (page_layout == PAGE_FREE) {
+    if (get_pagelayout() == PAGE_FREE) {
         get_canvas_size(&ww, &wh);
         pg = get_page_geometry();
         if (wh*pg.width - ww*pg.height != 0) {

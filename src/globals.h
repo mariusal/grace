@@ -99,8 +99,6 @@ int focus_policy = FOCUS_CLICK;
 
 int draw_focus_flag = TRUE;
 
-int page_layout = PAGE_FIXED;
-
 plotstr timestamp;       /* timestamp */
 
 /*
@@ -246,7 +244,6 @@ extern int focus_policy;
 extern int draw_focus_flag;
 
 extern plotstr timestamp;       /* timestamp */
-extern int page_layout;
 
 extern int cursource, curtype;
 extern int format_types[];

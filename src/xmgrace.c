@@ -950,7 +950,7 @@ void initialize_screen()
 
     XtManageChild(formbot);
     
-    if (page_layout == PAGE_FIXED) {
+    if (get_pagelayout() == PAGE_FIXED) {
 
         drawing_window = XtVaCreateManagedWidget("drawing_window",
 				     xmScrolledWindowWidgetClass, form,
@@ -1377,6 +1377,12 @@ void set_canvas_size(Dimension w, Dimension h)
                   NULL);
 }
 
+static int page_layout = PAGE_FIXED;
+
+int get_pagelayout(void)
+{
+    return page_layout;
+}
 
 void set_pagelayout(int layout)
 {
