@@ -326,10 +326,6 @@ typedef enum {
 #define FILTER_MAGIC    0
 #define FILTER_PATTERN  1
 
-/* histogram types */
-#define HISTOGRAM_TYPE_ORDINARY     0
-#define HISTOGRAM_TYPE_CUMULATIVE   1
-
 /* set line types */
 #define LINE_TYPE_NONE          0
 #define LINE_TYPE_STRAIGHT      1
