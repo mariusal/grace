@@ -178,7 +178,7 @@ static int png_output(const Canvas *canvas, void *data,
     }
     png_set_PLTE(png_ptr, info_ptr, palette, ncolors);
     
-    res_meter = (png_uint_32) rint(page_dpi(canvas)/0.0254);
+    res_meter = (png_uint_32) rint(page_dpi(canvas)/MM_PER_INCH*1000.0);
     png_set_pHYs(png_ptr, info_ptr, res_meter, res_meter, PNG_RESOLUTION_METER);
 
 #ifdef PNG_WRITE_tRNS_SUPPORTED
