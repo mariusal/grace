@@ -2819,6 +2819,7 @@ Widget CreateDialogForm(Widget parent, char *s)
     XtVaSetValues(dialog,
         XmNallowShellResize, True,
         XmNtitle, bufp,
+        XmNuserData, NULL,
         NULL);
     xfree(bufp);
 
@@ -2828,6 +2829,30 @@ Widget CreateDialogForm(Widget parent, char *s)
     return w;
 }
 
+void AddDialogFormChild(Widget form, Widget child)
+{
+    Widget last_widget;
+    
+    XtVaGetValues(form, XmNuserData, &last_widget, NULL);
+    if (last_widget) {
+        XtVaSetValues(child,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, last_widget,
+            NULL);
+    } else {
+        XtVaSetValues(child,
+            XmNtopAttachment, XmATTACH_FORM,
+            NULL);
+    }
+    XtVaSetValues(child,
+        XmNleftAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_NONE,
+        NULL);
+    XtVaSetValues(form,
+        XmNuserData, child,
+        NULL);
+}
 
 typedef struct {
     Widget form;
@@ -2870,10 +2895,8 @@ void CreateAACDialog(Widget form,
         NULL);
     CreateCommandButtons(fr, 3, aacbut, aaclab);
 
+    AddDialogFormChild(form, container);
     XtVaSetValues(container,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNleftAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_FORM,
         XmNbottomAttachment, XmATTACH_WIDGET,
         XmNbottomWidget, fr,
         NULL);
@@ -2900,6 +2923,67 @@ void CreateAACDialog(Widget form,
     XtManageChild(form);
 }
 
+TransformStructure *CreateTransformDialogForm(Widget parent,
+    char *s, int sel_type)
+{
+    TransformStructure *retval;
+    
+    retval = xmalloc(sizeof(TransformStructure));
+    
+    retval->form = CreateDialogForm(parent, s);
+    
+    retval->srcdest = CreateSrcDestSelector(retval->form, sel_type);
+    AddDialogFormChild(retval->form, retval->srcdest->form);
+
+/*
+ *     retval->restr = CreateRestrictionChoice(retval->form, "Source data filtering");
+ *     AddDialogFormChild(retval->form, retval->restr->frame);
+ */
+    
+    return retval;
+}
+
+int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
+        int *gsrc, int *gdest,
+        int *nssrc, int **svaluessrc, int *nsdest, int **svaluesdest)
+{
+    int gsrc_ok, gdest_ok;
+    
+    gsrc_ok = GetSingleListChoice(tdialog->srcdest->src->graph_sel, gsrc);
+    gdest_ok = GetSingleListChoice(tdialog->srcdest->dest->graph_sel, gdest);
+    if (gsrc_ok == RETURN_FAILURE || gdest_ok == RETURN_FAILURE) {
+        errmsg("Please select single source and destination graphs");
+	return RETURN_FAILURE;
+    }
+    
+    *nssrc = GetListChoices(tdialog->srcdest->src->set_sel, svaluessrc);
+    if (*nssrc == 0) {
+        errmsg("No source sets selected");
+	return RETURN_FAILURE;
+    }    
+    *nsdest = GetListChoices(tdialog->srcdest->dest->set_sel, svaluesdest);
+    if (*nsdest != 0 && *nssrc != *nsdest) {
+        errmsg("Different number of source and destination sets");
+        xfree(*svaluessrc);
+        xfree(*svaluesdest);
+	return RETURN_FAILURE;
+    }
+    
+    /* check for mutually exclusive selections */
+    if (exclusive && *gsrc != *gdest && *nsdest != 0) {
+        int i;
+        for (i = 0; i < *nssrc; i++) {
+            if (*svaluessrc[i] == *svaluesdest[i]) {
+                xfree(*svaluessrc);
+                xfree(*svaluesdest);
+                errmsg("Source and destination set(s) are not mutually exclusive");
+	        return RETURN_FAILURE;
+            }
+        }
+    }
+    
+    return RETURN_SUCCESS;
+}
 
 Widget CreateVContainer(Widget parent)
 {

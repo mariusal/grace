@@ -186,6 +186,11 @@ typedef struct {
     Widget negate;
 } RestrictionStructure;
 
+typedef struct {
+    Widget form;
+    SrcDestStructure *srcdest;
+} TransformStructure;
+
 
 /* OptionChoice CB procedure */
 typedef void (*OC_CBProc)(
@@ -228,6 +233,7 @@ void UnmanageChild(Widget w);
 Widget GetParent(Widget w);
 
 Widget CreateDialogForm(Widget parent, char *s);
+void AddDialogFormChild(Widget form, Widget child);
 Widget CreateFrame(Widget parent, char *s);
 
 Widget CreateSeparator(Widget parent);
@@ -367,6 +373,12 @@ Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
 Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);
 
 Widget *CreatePrecisionChoice(Widget parent, char *s);
+
+TransformStructure *CreateTransformDialogForm(Widget parent,
+    char *s, int sel_type);
+int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
+        int *gsrc, int *gdest,
+        int *nssrc, int **svaluessrc, int *nsdest, int **svaluesdest);
 
 void SetLabel(Widget w, char *s);
 void AlignLabel(Widget w, int alignment);
