@@ -39,7 +39,7 @@
 
 #define MAXLINESTYLES 9
 
-#define MAX_LINEWIDTH 10.0        /* max width of drawn lines */
+#define MAX_LINEWIDTH 20.0        /* max width of drawn lines */
 
 /* polyline drawing modes */
 #define POLYLINE_OPEN	    0
