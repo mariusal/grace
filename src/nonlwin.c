@@ -708,7 +708,7 @@ void create_savefit_popup(Widget w, XtPointer client_data, XtPointer call_data)
     if (fsb == NULL) {
         Widget fr;
         
-        fsb = CreateFileSelectionBox(app_shell, "Save fit parameter file", "*.nc");
+        fsb = CreateFileSelectionBox(app_shell, "Save fit parameter file", "*.fit");
 	fr = CreateFrame(fsb->rc, NULL);
 	title_item = CreateTextItem2(fr, 25, "Title: ");
 	AddFileSelectionBoxCB(fsb, do_savefit_proc, (void *) title_item);
@@ -718,6 +718,8 @@ void create_savefit_popup(Widget w, XtPointer client_data, XtPointer call_data)
     xv_setstr(title_item, nonl_opts.title);
     
     XtRaise(fsb->dialog);
+
+    unset_wait_cursor();
 }
 
 static int do_savefit_proc(char *filename, void *data)
