@@ -501,6 +501,20 @@ void update_ss_editors(Quark *gr)
     }
 }
 
+void close_ss_editors(Quark *pset)
+{
+    EditPoints *ep = ep_start;
+
+    while (ep != NULL) {
+        if (ep->pset == pset) {
+            ep->pset = NULL;
+            update_cells(ep);
+            return;
+        }
+        ep = ep->next;
+    }
+}
+
 /*
  * redo frame since number of data points or set type, etc.,  may change 
  */
