@@ -78,6 +78,7 @@
 typedef double (*ParserFnc)();
 
 /* the graph, set, axis, and object of the parser's current state */
+static Quark *project;
 static Quark *whichframe;
 static Quark *whichgraph;
 static Quark *whichset;
@@ -651,12 +652,12 @@ expr:	NUMBER {
 	}
 	| VXMAX {
 	    double vx, vy;
-            project_get_viewport(grace->project, &vx, &vy);
+            project_get_viewport(project, &vx, &vy);
             $$ = vx;
 	}
 	| VYMAX {
 	    double vx, vy;
-            project_get_viewport(grace->project, &vx, &vy);
+            project_get_viewport(project, &vx, &vy);
             $$ = vy;
 	}
 	| '(' expr ')' {
@@ -743,7 +744,7 @@ jdate:  expr {
         | CHRSTR {
             double jul;
             Dates_format dummy;
-            if (parse_date(grace->project, $1, get_date_hint(), FALSE, &jul, &dummy)
+            if (parse_date(project, $1, get_date_hint(), FALSE, &jul, &dummy)
                 == RETURN_SUCCESS) {
                 xfree($1);
                 $$ = jul;
@@ -761,7 +762,7 @@ jrawdate:  expr {
         | CHRSTR {
             double jul;
             Dates_format dummy;
-            if (parse_date(grace->project, $1, get_date_hint(), TRUE, &jul, &dummy)
+            if (parse_date(project, $1, get_date_hint(), TRUE, &jul, &dummy)
                 == RETURN_SUCCESS) {
                 xfree($1);
                 $$ = jul;
@@ -1773,32 +1774,32 @@ regionset:
 
 parmset:
         VERSION nexpr {
-            if (project_set_version_id(grace->project, $2) != RETURN_SUCCESS) {
+            if (project_set_version_id(project, $2) != RETURN_SUCCESS) {
                 errmsg("Project version is newer than software!");
             }
-            if (project_get_version_id(grace->project) < 50001) {
-                add_xmgr_fonts(grace->project);
+            if (project_get_version_id(project) < 50001) {
+                add_xmgr_fonts(project);
             }
             dobject_id = 0;
         }
         | PAGE SIZE nexpr ',' nexpr {
-            set_page_dimensions(grace, $3, $5, FALSE);
+            project_set_page_dimensions(project, $3, $5);
         }
         | REFERENCE DATE jrawdate {
-            project_set_ref_date(grace->project, $3);
+            project_set_ref_date(project, $3);
 	}
         | DATE WRAP onoff {
-            project_allow_two_digits_years(grace->project, $3);
+            project_allow_two_digits_years(project, $3);
 	}
         | DATE WRAP YEAR iexpr {
-            project_set_wrap_year(grace->project, $4);
+            project_set_wrap_year(project, $4);
 	}
 	| BACKGROUND color_select {
-	    Project *pr = project_get_data(grace->project);
+	    Project *pr = project_get_data(project);
             pr->bgcolor = $2;
 	}
 	| PAGE BACKGROUND FILL onoff {
-	    Project *pr = project_get_data(grace->project);
+	    Project *pr = project_get_data(project);
 	    pr->bgfill = $4;
 	}
 	| PAGE SCROLL expr '%' {
@@ -2003,12 +2004,12 @@ parmset:
 	    } else {
                 Quark *q = NULL;
                 if (curobject_loctype == COORD_VIEW) {
-                    q = object_new(grace->project);
+                    q = object_new(project);
                 } else {
                     Quark *gr;
                     gr = objgno;
                     if (!gr) {
-                        gr = allocate_graph(grace->project, 0);
+                        gr = allocate_graph(project, 0);
                     }
                     if (gr) {
                         q = object_new(gr);
@@ -2027,7 +2028,7 @@ parmset:
 
 /* timestamp and string */
 	| WITH STRING {
-            curatext = atext_new(grace->project);
+            curatext = atext_new(project);
 	}
 	| atext selectgraph {
 	    quark_reparent($1, $2);
@@ -2066,33 +2067,33 @@ parmset:
 
 /* defaults */
 	| DEFAULT lines_select {
-            Project *pr = project_get_data(grace->project);
+            Project *pr = project_get_data(project);
 	    pr->grdefaults.line.style = $2;
 	}
 	| DEFAULT linew_select {
-            Project *pr = project_get_data(grace->project);
+            Project *pr = project_get_data(project);
 	    pr->grdefaults.line.width = $2;
 	}
 	| DEFAULT color_select {
-            Project *pr = project_get_data(grace->project);
+            Project *pr = project_get_data(project);
 	    pr->grdefaults.line.pen.color = $2;
 	}
 	| DEFAULT pattern_select {
-            Project *pr = project_get_data(grace->project);
+            Project *pr = project_get_data(project);
 	    pr->grdefaults.line.pen.pattern = $2;
 	}
 	| DEFAULT CHAR SIZE expr {
-            Project *pr = project_get_data(grace->project);
+            Project *pr = project_get_data(project);
 	    pr->grdefaults.charsize = $4;
 	}
 	| DEFAULT font_select {
-            Project *pr = project_get_data(grace->project);
+            Project *pr = project_get_data(project);
 	    pr->grdefaults.font = $2;
 	}
 	| DEFAULT SYMBOL SIZE expr {
 	}
 	| DEFAULT SFORMAT CHRSTR {
-	    project_set_sformat(grace->project, $3);
+	    project_set_sformat(project, $3);
 	    xfree($3);
 	}
 	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {
@@ -2100,7 +2101,7 @@ parmset:
             f.id = $3;
             f.fontname = $5;
             f.fallback = $7;
-            project_add_font(grace->project, &f);
+            project_add_font(project, &f);
             xfree($5);
 	    xfree($7);
 	}
@@ -2235,11 +2236,11 @@ parmset:
 
 	| DESCRIPTION CHRSTR {
             char *s;
-            s = copy_string(NULL, project_get_description(grace->project));
+            s = copy_string(NULL, project_get_description(project));
             s = concat_strings(s, $2);
 	    xfree($2);
             s = concat_strings(s, "\n");
-            project_set_description(grace->project, s);
+            project_set_description(project, s);
             xfree(s);
 	}
 
@@ -2541,7 +2542,7 @@ setprop:
 	    set *p = set_get_data($1);
 	    int prop = $3;
 
-	    if (project_get_version_id(grace->project) <= 40102 && project_get_version_id(grace->project) >= 30000) {
+	    if (project_get_version_id(project) <= 40102 && project_get_version_id(project) >= 30000) {
                 switch (filltype_obs) {
                 case COLOR:
                     break;
@@ -2560,7 +2561,7 @@ setprop:
 	    set *p = set_get_data($1);
 	    int prop = $3;
 
-	    if (project_get_version_id(grace->project) <= 40102) {
+	    if (project_get_version_id(project) <= 40102) {
                 switch (filltype_obs) {
                 case COLOR:
                     prop = 1;
@@ -2948,7 +2949,7 @@ axisbardesc:
 selectgraph:
         GRAPHNO
         {
-            $$ = allocate_graph(grace->project, $1);
+            $$ = allocate_graph(project, $1);
             whichgraph = $$;
         }
         ;
@@ -3054,10 +3055,10 @@ atext:
             $$ = curatext;
         }
 	| TIMESTAMP {
-            Quark *q = quark_find_descendant_by_idstr(grace->project,
+            Quark *q = quark_find_descendant_by_idstr(project,
                 "timestamp");
             if (!q) {
-                q = atext_new(grace->project);
+                q = atext_new(project);
                 quark_idstr_set(q, "timestamp");
                 atext_set_string(q, "\\${timestamp}");
             }
@@ -3070,7 +3071,7 @@ selectregion:
         REGNUM
         {
             if (!whichgraph) {
-                whichgraph = allocate_graph(grace->project, 0);
+                whichgraph = allocate_graph(project, 0);
             }
             $$ = allocate_region(whichgraph, $1);
         }
@@ -3262,7 +3263,7 @@ font_select:
         }
         | FONTP CHRSTR
         {
-            $$ = get_font_by_name(grace->project, $2);
+            $$ = get_font_by_name(project, $2);
             xfree($2);
         }
         ;
@@ -3371,10 +3372,10 @@ parmset_obs:
                 wpp = 612;
                 hpp = 792;
             }
-            set_page_dimensions(grace, wpp, hpp, FALSE);
+            project_set_page_dimensions(project, wpp, hpp);
         }
         | PAGE SIZE NUMBER NUMBER {
-            set_page_dimensions(grace, (int) $3, (int) $4, FALSE);
+            project_set_page_dimensions(project, (int) $3, (int) $4);
         }
 	| PAGE nexpr {
 	    grace->rt->scrollper = $2 / 100.0;
@@ -3400,7 +3401,7 @@ parmset_obs:
 	| title linew_select { }
 
 	| LEGEND BOX onoff {
-	    if ($3 == FALSE && project_get_version_id(grace->project) <= 40102) {
+	    if ($3 == FALSE && project_get_version_id(project) <= 40102) {
                 legend *l = frame_get_legend(whichframe);
                 l->boxline.pen.pattern = 0;
             }
@@ -4075,8 +4076,8 @@ Quark *get_parser_gno(void)
 
 int set_parser_gno(Quark *gr)
 {
+    whichgraph = gr;
     if (gr) {
-        whichgraph = gr;
         whichframe = get_parent_frame(gr);
         return RETURN_SUCCESS;
     } else {
@@ -4360,7 +4361,7 @@ static int find_set_bydata(double *data, Quark **pset)
         return RETURN_FAILURE;
     } else {
 	int gno;
-        int ngraphs = number_of_graphs(grace->project);
+        int ngraphs = number_of_graphs(project);
         for (gno = 0; gno < ngraphs; gno++) {
 	    int setno;
             int nsets = number_of_sets(gno);
@@ -4587,11 +4588,6 @@ static int yylex(void)
                   c == '_' || c == '$'));
 	ungetchstr();
 	*p = '\0';
-#ifdef DEBUG
-        if (get_debuglevel(grace) == 2) {
-	    printf("->%s<-\n", sbuf);
-	}
-#endif
 	found = -1;
 	if ((found = findf(key, sbuf)) >= 0) {
 	    if (key[found].type == KEY_VAR) {
@@ -4769,12 +4765,17 @@ static Quark *allocate_set(Quark *gr, int setno)
     return pset;
 }
 
-void parser_state_reset(void)
+void parser_state_reset(Quark *pr)
 {
-    whichframe = NULL;
-    whichgraph = NULL;
-    whichset   = NULL;
-    curtm      = NULL;
-    curobject  = NULL;
-    objgno     = NULL;
+    project = pr;
+    if (project) {
+        set_parser_gno(graph_get_current(project));
+    } else {
+        whichframe = NULL;
+        whichgraph = NULL;
+    }
+    whichset  = NULL;
+    curtm     = NULL;
+    curobject = NULL;
+    objgno    = NULL;
 }
