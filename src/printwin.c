@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -37,12 +37,13 @@
 #include <Xm/Xm.h>
 #include <Xm/Form.h>
 #include <Xm/DialogS.h>
-#include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
 
+#include "cmath.h"
 #include "globals.h"
 #include "device.h"
 #include "utils.h"
+#include "graphutils.h"
 #include "plotone.h"
 
 #include "motifinc.h"
@@ -71,24 +72,28 @@ static Widget *page_size_unit_item;
 static Widget dev_res_item;
 static Widget fontaa_item;
 static Widget devfont_item;
+static Widget dsync_item, psync_item;
 
 static void do_pr_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_orient_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 
 static void set_printer_proc(void *data);
-void create_printfiles_popup(Widget, XtPointer, XtPointer call_data);
-void create_devopts_popup(Widget, XtPointer, XtPointer call_data);
+void create_printfiles_popup(void *data);
+void create_devopts_popup(void *data);
 
 static void do_device_toggle(int value, void *data);
 static void do_units_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 static void update_printer_setup(int device_id);
 static void update_device_setup(int device_id);
 
+static void do_print_cb(void *data);
+
 void create_printer_setup(void *data)
 {
     int i, ndev;
     Widget device_panel, rc, rc1, fr, wbut;
+    Widget menubar, menupane;
     OptionItem *option_items;
     
     set_wait_cursor();
@@ -100,8 +105,41 @@ void create_printer_setup(void *data)
         device_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
                                         psetup_frame, 
                                         NULL, 0);
+
+        menubar = CreateMenuBar(device_panel);
+        
+        menupane = CreateMenu(menubar, "File", 'F', FALSE);
+        CreateMenuButton(menupane, "Print", 'P', do_print_cb, NULL);
+        CreateMenuSeparator(menupane);
+        CreateMenuButton(menupane, "Close", 'C',
+            set_printer_proc, (void *) AAC_CLOSE);
+
+        menupane = CreateMenu(menubar, "Options", 'O', FALSE);
+        dsync_item = CreateMenuToggle(menupane,
+            "Sync page size of all devices", 'S', NULL, NULL);
+        SetToggleButtonState(dsync_item, TRUE);
+        psync_item = CreateMenuToggle(menupane,
+            "Rescale plot on page size change", 'R', NULL, NULL);
+        SetToggleButtonState(psync_item, FALSE);
+
+        menupane = CreateMenu(menubar, "Help", 'H', TRUE);
+        CreateMenuButton(menupane, "On device setup", 'd', HelpCB, NULL);
+
+        XtManageChild(menubar);
+        XtVaSetValues(menubar,
+                      XmNtopAttachment, XmATTACH_FORM,
+                      XmNleftAttachment, XmATTACH_FORM,
+                      XmNrightAttachment, XmATTACH_FORM,
+                      NULL);
+
 	psetup_rc = XmCreateRowColumn(device_panel, "psetup_rc", NULL, 0);
-        XtVaSetValues(psetup_rc, XmNrecomputeSize, True, NULL);
+        XtVaSetValues(psetup_rc,
+            XmNrecomputeSize, True,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, menubar,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
 
         fr = CreateFrame(psetup_rc, "Device setup");
         rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -119,12 +157,8 @@ void create_printer_setup(void *data)
 	AddOptionChoiceCB(devices_item, do_device_toggle, NULL);
         xfree(option_items);
         
-        device_opts_item = XtVaCreateManagedWidget("Device options...",
-                                                xmPushButtonWidgetClass, 
-                                                pdev_rc, NULL);
-	XtAddCallback(device_opts_item, XmNactivateCallback, 
-                            (XtCallbackProc) create_devopts_popup,
-                            (XtPointer) NULL);
+        device_opts_item = CreateButton(pdev_rc, "Device options...");
+	AddButtonCB(device_opts_item, create_devopts_popup, NULL);
         XtManageChild(pdev_rc);
         
         XtManageChild(rc1);
@@ -147,11 +181,8 @@ void create_printer_setup(void *data)
 
 	printfile_item = CreateTextItem2(rc_filesel, 20, "File name:");
 
-	wbut = XtVaCreateManagedWidget("Browse...", xmPushButtonWidgetClass,
-                                        rc_filesel, NULL);
-	XtAddCallback(wbut, XmNactivateCallback, 
-                            (XtCallbackProc) create_printfiles_popup,
-                            (XtPointer) NULL);
+	wbut = CreateButton(rc_filesel, "Browse...");
+	AddButtonCB(wbut, create_printfiles_popup, NULL);
 	XtManageChild(rc_filesel);
 
 	XtManageChild(rc1);
@@ -352,6 +383,7 @@ static void set_printer_proc(void *data)
     int page_units;
     Device_entry dev;
     Page_geometry pg;
+    int do_redraw = FALSE;
     
     aac_mode = (int) data;
     
@@ -414,11 +446,22 @@ static void set_printer_proc(void *data)
     
     set_device_props(seldevice, dev);
     
+    if (GetToggleButtonState(dsync_item) == TRUE) {
+        set_page_dimensions((int) rint(72.0*pg.width/pg.dpi),
+                            (int) rint(72.0*pg.height/pg.dpi),
+                            GetToggleButtonState(psync_item) == TRUE);
+        do_redraw = TRUE;
+    }
+    
+    if (seldevice == tdevice) {
+        do_redraw = TRUE;
+    }
+    
     if (aac_mode == AAC_ACCEPT) {
         XtUnmanageChild(psetup_frame);
     }
     
-    if (seldevice == tdevice) {
+    if (do_redraw) {
         drawgraph();
     }
 }
@@ -555,7 +598,7 @@ static int do_prfilesel_proc(char *filename, void *data)
     return TRUE;
 }
 
-void create_printfiles_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_printfiles_popup(void *data)
 {
     static FSBStructure *fsb = NULL;
     int device;
@@ -581,7 +624,7 @@ void create_printfiles_popup(Widget w, XtPointer client_data, XtPointer call_dat
     unset_wait_cursor();
 }
 
-void create_devopts_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_devopts_popup(void *data)
 {
     int device_id;
     Device_entry dev;
@@ -650,4 +693,11 @@ static void do_units_toggle(Widget w, XtPointer client_data, XtPointer call_data
     xv_setstr(page_x_item, buf);
     sprintf (buf, "%.2f", page_y); 
     xv_setstr(page_y_item, buf);
+}
+
+static void do_print_cb(void *data)
+{
+    set_wait_cursor();
+    do_hardcopy();
+    unset_wait_cursor();
 }
