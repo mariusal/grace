@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.10)</title>
 <author>by the Grace Team</author>
-<date>07.12.2002</date>
+<date>03.01.2003</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -53,7 +53,7 @@
 
 <tscreen><verb>
 Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
-Copyright (&copy;) 1996-2002 Grace Development Team
+Copyright (&copy;) 1996-2003 Grace Development Team
 
 Maintained by Evgeny Stambulchik
 
