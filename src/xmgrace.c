@@ -44,10 +44,6 @@
 #include <Xm/DrawingA.h>
 #include <Xm/RepType.h>
 
-#ifdef WITH_EDITRES
-#  include <X11/Xmu/Editres.h>
-#endif
-
 #if defined(HAVE_XPM_H)
 #  include <xpm.h>
 #else
@@ -876,11 +872,8 @@ void startup_gui(void)
  * Allow users to change tear off menus with X resources
  */
     XmRepTypeInstallTearOffModelConverter();
-
-#ifdef WITH_EDITRES    
-    XtAddEventHandler(app_shell, (EventMask) 0, True,
-    			_XEditResCheckMessages, NULL);
-#endif
+    
+    RegisterEditRes(app_shell);
 
 /*
  * We handle important WM events ourselves
