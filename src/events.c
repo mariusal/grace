@@ -129,13 +129,14 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 	vp = xlibdev2VPoint(x, y);
         getpoints(vp);
 
-        switch (action_flag) {
-        case 0:
-            if (focus_policy == FOCUS_FOLLOWS) {
-                if ((newg = next_graph_containing(-1, vp)) != cg) {
-                    switch_current_graph(newg);
-                }
+        if (focus_policy == FOCUS_FOLLOWS) {
+            if ((newg = next_graph_containing(-1, vp)) != cg) {
+                switch_current_graph(newg);
+                cg = newg;
             }
+        }
+        switch (action_flag) {
+        case DO_NOTHING:
             break;
         case VIEW_2ND:
         case ZOOM_2ND:
@@ -520,7 +521,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             break;
 	case Button3:
             switch (action_flag) {
-            case 0:
+            case DO_NOTHING:
 /*
  *                 find_item(cg, vp, &anchor_vp, &type, &id);
  *                 sprintf(buf, "type = %d, id = %d", type, id);
