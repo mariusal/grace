@@ -137,8 +137,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
     XtVaSetValues(retval->menu,
 		  XmNlabelString, str,
 		  XmNsubMenuId, retval->pulldown,
-		  XmNwhichButton, 1,
-		  NULL);
+                  NULL);
     XmStringFree(str);
     XtManageChild(retval->menu);
 
@@ -153,6 +152,11 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
     XmString str;
     
     nold = optp->nchoices;
+
+    for (i = nchoices; i < nold; i++) {
+        XtDestroyWidget(optp->options[i].widget);
+    }
+
     optp->options = xrealloc(optp->options, nchoices*sizeof(OptionWidgetItem));
     optp->nchoices = nchoices;
 
@@ -243,7 +247,6 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     XtVaSetValues(retval->menu,
 		  XmNlabelString, str,
 		  XmNsubMenuId, retval->pulldown,
-		  XmNwhichButton, 1,
 		  NULL);
     XmStringFree(str);
     XtManageChild(retval->menu);
@@ -1805,7 +1808,6 @@ Widget *CreatePanelChoice0(Widget parent, char *labelstr, int ncols, int nchoice
     XtVaSetValues(retval[0],
 		  XmNlabelString, str,
 		  XmNsubMenuId, retval[1],
-		  XmNwhichButton, 1,
 		  NULL);
     XmStringFree(str);
     XtManageChild(retval[0]);
@@ -1845,7 +1847,6 @@ Widget *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,...)
     XtVaSetValues(retval[0],
 		  XmNlabelString, str,
 		  XmNsubMenuId, retval[1],
-		  XmNwhichButton, 1,
 		  NULL);
     XmStringFree(str);
     XtManageChild(retval[0]);
