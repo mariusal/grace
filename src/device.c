@@ -211,3 +211,23 @@ int terminal_device(void)
         return FALSE;
     }
 }
+
+PageFormat get_page_format(int device)
+{
+    Page_geometry pg;
+    int width_pp, height_pp;
+    
+    pg = device_table[device].pg;
+    width_pp  = (int) rint((double) 72*pg.width/pg.dpi_x);
+    height_pp = (int) rint((double) 72*pg.height/pg.dpi_y);
+    
+    if ((width_pp == 612 && height_pp == 792) ||
+        (height_pp == 612 && width_pp == 792)) {
+        return PAGE_FORMAT_USLETTER;
+    } else if ((width_pp == 595 && height_pp == 842) ||
+               (height_pp == 595 && width_pp == 842)) {
+        return PAGE_FORMAT_A4;
+    } else {
+        return PAGE_FORMAT_CUSTOM;
+    }
+}

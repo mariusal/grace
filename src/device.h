@@ -54,9 +54,11 @@
 #define PAGE_ORIENT_PORTRAIT   1
 
 /* Standard formats */
-#define PAGE_FORMAT_CUSTOM    0
-#define PAGE_FORMAT_USLETTER  1
-#define PAGE_FORMAT_A4        2
+typedef enum {
+    PAGE_FORMAT_CUSTOM, 
+    PAGE_FORMAT_USLETTER,
+    PAGE_FORMAT_A4     
+} PageFormat;
 
 #define FONTSRC_BITMAP  0
 #define FONTSRC_DEVICE  1
@@ -129,6 +131,8 @@ void get_page_viewport(double *vx, double *vy);
 
 int terminal_device(void);
 
+PageFormat get_page_format(int device);
+
 /* some useful macros */
 #define page_dpi_x     ((get_page_geometry()).dpi_x)
 #define page_dpi_y     ((get_page_geometry()).dpi_y)
@@ -144,5 +148,8 @@ int terminal_device(void);
 
 #define page_width_cm  (CM_PER_INCH*page_width_in)
 #define page_height_cm (CM_PER_INCH*page_height_in)
+
+#define page_width_pp  (72*page_width_in)
+#define page_height_pp (72*page_height_in)
 
 #endif /* __DEVICE_H_ */
