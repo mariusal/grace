@@ -659,7 +659,7 @@ void mif_putpixmap(VPoint vp, int width, int height, char *databits,
 void mif_puttext(VPoint vp, char *s, int len, int font,
      TextMatrix *tm, int underline, int overline, int kerning)
 {
-    char *fontalias, *fontfullname;
+    char *fontalias, *dash, *family, *fontfullname;
     double angle, side, size;
     Pen pen;
 
@@ -681,7 +681,18 @@ void mif_puttext(VPoint vp, char *s, int len, int font,
     fontalias = get_fontalias(font);
     fontfullname = get_fontfullname(font);
 
-    fprintf(prstream, "    <FFamily `%s'>\n", get_fontfamilyname(font));
+    family  = NULL;
+    if ((dash = strchr(fontalias, '-')) == NULL) {
+        family = copy_string(family, fontalias);
+    } else {
+        family    = xrealloc(family, dash - fontalias + 1);
+        strncpy(family, fontalias, dash - fontalias);
+        family[dash - fontalias] = '\0';
+    }
+
+    fprintf(prstream, "    <FFamily `%s'>\n", family);
+    copy_string(family, NULL);
+    
     fprintf(prstream, "    <FWeight `%s'>\n", get_fontweight(font));
 
     if (strstr(fontfullname, "UltraCompressed") != NULL) {
