@@ -39,6 +39,8 @@
 
 typedef struct {
     Canvas *canvas;
+
+    Quark *saveg;
     
     int refn;
     double *refx, *refy;

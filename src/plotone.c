@@ -84,6 +84,10 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
             plot_rt->refx = NULL;
             plot_rt->refy = NULL;
 
+            plot_rt->saveg = graph_get_current(grace->project);
+
+            select_graph(q);
+
             if (draw_graph(q, plot_rt) != RETURN_SUCCESS) {
                 closure->descend = FALSE;
             }
@@ -96,6 +100,10 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
             if (terminal_device(plot_rt->canvas) == TRUE) {
                 draw_regions(plot_rt->canvas, q);
                 draw_ref_point(plot_rt->canvas, q);
+            }
+
+            if (graph_get_current(grace->project) != plot_rt->saveg) {
+                select_graph(plot_rt->saveg);
             }
         }
         break;
@@ -130,20 +138,13 @@ void drawgraph(Grace *grace)
 {
     Canvas *canvas = grace->rt->canvas;
     Project *pr = project_get_data(grace->project);
-    Quark *saveg;
 
-    saveg = graph_get_current(grace->project);
-    
     canvas_set_docname(canvas, get_docname(grace->project));
     canvas_set_username(canvas, get_username(grace));
     canvas_set_pagefill(canvas, pr->bgfill);
     setbgcolor(canvas, pr->bgcolor);
     
     canvas_draw(canvas, dproc, grace->project);
-    
-    if (graph_get_current(grace->project) != saveg) {
-        select_graph(saveg);
-    }
 }
 
 /*
@@ -223,10 +224,6 @@ int draw_graph(Quark *gr, plot_rt_t *plot_rt)
     graph *g = graph_get_data(gr);
     
     if (!g || !g->active) {
-        return RETURN_FAILURE;
-    }
-
-    if (select_graph(gr) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
 
