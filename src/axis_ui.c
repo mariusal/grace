@@ -46,7 +46,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     int i;
     OptionItem opitems[3];
     char buf[32];
-    Widget tab, rc, rc2, rc3, fr, sw;
+    Widget tab, rc, rc2, rc3, fr;
 
     ui = xmalloc(sizeof(AxisUI));
 
@@ -171,21 +171,13 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
 
     fr = CreateFrame(ui->ticklabel_tp, "Labels");
     rc2 = CreateHContainer(fr);
+    ui->ticklop = CreatePlacementChoice(rc2, "Side:");
     ui->tlcharsize = CreateCharSizeChoice(rc2, "Char size");
     AddSpinChoiceCB(ui->tlcharsize, sp_explorer_cb, eui);
 
     fr = CreateFrame(ui->ticklabel_tp, "Placement");
-    rc = CreateHContainer(fr);
 
-    rc2 = CreateVContainer(rc);
-    ui->ticklop = CreatePlacementChoice(rc2, "Side:");
-    AddOptionChoiceCB(ui->ticklop, oc_explorer_cb, eui);
-    ui->tlstagger = CreatePanelChoice(rc2, "Stagger:",
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
-    AddOptionChoiceCB(ui->tlstagger, oc_explorer_cb, eui);
-
-
-    rc2 = CreateVContainer(rc);
+    rc2 = CreateVContainer(fr);
     rc3 = CreateHContainer(rc2);
     ui->tlstarttype = CreatePanelChoice(rc3, "Start at:",
                                     "Axis min", "Specified:", NULL);
@@ -217,8 +209,13 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     ui->tlskip = CreatePanelChoice(rc2, "Skip every:",
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
     AddOptionChoiceCB(ui->tlskip, oc_explorer_cb, eui);
+    AddOptionChoiceCB(ui->ticklop, oc_explorer_cb, eui);
+    ui->tlstagger = CreatePanelChoice(rc2, "Stagger:",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
+    AddOptionChoiceCB(ui->tlstagger, oc_explorer_cb, eui);
 
-    ui->tlformula = CreateTextInput(rc2, "Axis transform:");
+
+    ui->tlformula = CreateTextInput(rc, "Axis transform:");
     AddTextInputCB(ui->tlformula, text_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
@@ -310,12 +307,12 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->nspec, sp_explorer_cb, eui);
     CreateLabel(ui->special_tp, "Tick location - Label:");
 
-    sw = XtVaCreateManagedWidget("sw",
+    ui->sw = XtVaCreateManagedWidget("ui->sw",
                                  xmScrolledWindowWidgetClass, ui->special_tp,
-				 XmNheight, 240,
+				 XmNheight, 300,
                                  XmNscrollingPolicy, XmAUTOMATIC,
                                  NULL);
-    rc = CreateVContainer(sw);
+    rc = CreateVContainer(ui->sw);
 
     for (i = 0; i < MAX_TICKS; i++) {
         rc3 = CreateHContainer(rc);
@@ -343,6 +340,7 @@ void update_axis_ui(AxisUI *ui, Quark *q)
     if (t && ui) {
         char buf[128];
         int i;
+        Widget vbar;
 
         SetToggleButtonState(ui->active, is_axis_active(t));
         
@@ -462,6 +460,15 @@ void update_axis_ui(AxisUI *ui, Quark *q)
             } else {
                 xv_setstr(ui->speclabel[i], "");
             }
+        }
+
+
+        /* set reasonable scrolling */
+        vbar = XtNameToWidget(ui->sw, "VertScrollBar");
+        if (vbar) {
+            int maxval;
+            XtVaGetValues(vbar, XmNmaximum, &maxval, NULL);
+            XtVaSetValues(vbar, XmNincrement, (int) rint(maxval/MAX_TICKS), NULL);
         }
     }
 }

@@ -194,6 +194,7 @@ typedef struct {
     Widget          ticklabel_tp;
     Widget          tickmark_tp;
     Widget          special_tp;
+    Widget          sw;
 
     Widget          active;
 
