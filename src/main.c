@@ -502,8 +502,6 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    }
 		}
-	    } else if (argmatch(argv[i], "-rvideo", 7)) {
-		reverse_video(canvas);
 	    } else if (argmatch(argv[i], "-param", 2)) {
 		i++;
 		if (i == argc) {
