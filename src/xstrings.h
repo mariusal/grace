@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000-2002 Grace Development Team
+ * Copyright (c) 2000-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -27,6 +27,10 @@
 
 #ifndef __XSTRINGS_H_
 #define __XSTRINGS_H_
+
+/* XML Namespace/URL */
+#define GRACE_NS_PREFIX "grace"
+#define GRACE_NS_URI    "http://plasma-gate.weizmann.ac.il/Grace/"
 
 /* Element names */
 #define EStrAnnotation          "annotation"

@@ -864,6 +864,8 @@ int save_project(char *fn)
         return RETURN_FAILURE;
     }
     
+    xfile_set_ns(xf, GRACE_NS_PREFIX, GRACE_NS_URI, FALSE);
+    
     attributes_reset(attrs);
     attributes_set_ival(attrs, AStrVersion, bi_version_id());
     xfile_begin(xf, FALSE, NULL, "grace.dtd", EStrGrace, attrs);

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<parser>
+<parser ns="#GRACE_NS_URI">
     <!-- Preamble -->
     <preamble><![CDATA[
 #include <stdio.h>
