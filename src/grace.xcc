@@ -27,7 +27,8 @@ typedef struct {
 typedef struct _Page {
     int width;
     int height;
-    Pen bgpen;
+    int bgfill;
+    int bgcolor;
 } Page;
 
 Page *page_new(void)
@@ -37,6 +38,7 @@ Page *page_new(void)
     retval = xmalloc(sizeof(Page));
     if (retval) {
         memset(retval, 0, sizeof(Page));
+        retval->bgfill = TRUE;
     }
     
     return retval;
@@ -773,10 +775,11 @@ char *utf2iso(const char *s)
         <child name="#EStrDefinitions">
         </child>
         <child name="#EStrPage">
-            Project *pr = (Project *) $$->data;
+            Project *pr  = (Project *) $$->data;
             pr->page_wpp = $?->width;
             pr->page_hpp = $?->height,
-            pr->bgpen = $?->bgpen;
+            pr->bgfill   = $?->bgfill;
+            pr->bgcolor  = $?->bgcolor;
             xfree($?);
         </child>
         <child name="#EStrDataFormats">
@@ -838,10 +841,12 @@ char *utf2iso(const char *s)
         <attribute name="#AStrHeight" type="ival">
             $$->height = $?;
         </attribute>
-        <child name="#EStrFillSpec">
-            $$->bgpen = *$?;
-            xfree($?);
-        </child>
+        <attribute name="#AStrColorId" type="ival">
+            $$->bgcolor = $?;
+        </attribute>
+        <attribute name="#AStrFill" type="bval">
+            $$->bgfill = $?;
+        </attribute>
     </element>
     <element name="#EStrDescription" type="string">
         <!-- Child elements -->

@@ -113,6 +113,7 @@
 #define AStrDrawDroplines       "draw-droplines"
 #define AStrExtentAngle         "extent-angle"
 #define AStrFallback            "fallback"
+#define AStrFill                "fill"
 #define AStrFillMode            "fill-mode"
 #define AStrFillRule            "fill-rule"
 #define AStrFillType            "fill-type"

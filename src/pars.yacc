@@ -1961,11 +1961,11 @@ parmset:
 	}
 	| BACKGROUND color_select {
 	    Project *pr = (Project *) grace->project->data;
-            pr->bgpen.color = $2;
+            pr->bgcolor = $2;
 	}
 	| PAGE BACKGROUND FILL onoff {
 	    Project *pr = (Project *) grace->project->data;
-	    pr->bgpen.pattern = $4;
+	    pr->bgfill = $4;
 	}
 	| PAGE SCROLL expr '%' {
 	    scroll_proc((int) $3);

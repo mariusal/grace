@@ -110,7 +110,8 @@ typedef struct _Project {
     Fontdef *fontmap;
     
     /* page fill */
-    Pen bgpen;
+    int bgcolor;
+    int bgfill;
     
     /* format for saving data sets */
     char *sformat;

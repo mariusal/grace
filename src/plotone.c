@@ -81,7 +81,8 @@ void drawgraph(Grace *grace)
     
     canvas_set_docname(canvas, get_docname(grace->project));
     canvas_set_username(canvas, get_username(grace));
-    canvas_set_pagepen(canvas, &pr->bgpen);
+    canvas_set_pagefill(canvas, pr->bgfill);
+    setbgcolor(canvas, pr->bgcolor);
     
     canvas_draw(canvas, dproc, grace->project);
     

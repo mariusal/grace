@@ -1263,7 +1263,7 @@ static int project_postprocess_hook(Quark *q,
 
         if (version_id < 50002) {
             Project *pr = (Project *) q->data;
-            pr->bgpen.pattern = 1;
+            pr->bgfill = TRUE;
         }
 
         if (version_id < 50003) {

@@ -888,11 +888,9 @@ int save_project(char *fn)
     attributes_reset(attrs);
     attributes_set_ival(attrs, AStrWidth, pr->page_wpp);
     attributes_set_ival(attrs, AStrHeight, pr->page_hpp);
-    xfile_begin_element(xf, EStrPage, attrs);
-    {
-        xmlio_write_fill_spec(xf, attrs, &pr->bgpen);
-    }
-    xfile_end_element(xf, EStrPage);
+    attributes_set_bval(attrs, AStrFill, pr->bgfill);
+    xmlio_set_color_ref(attrs, pr->bgcolor);
+    xfile_empty_element(xf, EStrPage, attrs);
 
     xfile_comment(xf, "Data formats");
     xfile_begin_element(xf, EStrDataFormats, NULL);

@@ -89,8 +89,8 @@ Project *project_data_new(void)
     pr->page_wpp = 792;
     pr->page_hpp = 612;
     
-    pr->bgpen.color   = 0;
-    pr->bgpen.pattern = 1;
+    pr->bgcolor  = 0;
+    pr->bgfill   = TRUE;
     
     pr->docname = copy_string(NULL, NONAME);
 
