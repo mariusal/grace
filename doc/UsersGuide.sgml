@@ -8,7 +8,7 @@
 
   <title>Grace User's Guide (for Grace-5.99.0)</title>
   <author><name>The Grace Team</name></author>
-  <date>02.10.2004</date>
+  <date>12.01.2005</date>
   <abstract>
     This document explains the usage of
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -57,7 +57,7 @@
 
 <tscreen><verb>
 Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
-Copyright (&copy;) 1996-2004 Grace Development Team
+Copyright (&copy;) 1996-2005 Grace Development Team
 
 Maintained by Evgeny Stambulchik
 
@@ -132,6 +132,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> Extra libraries. Some features will be available only if
                  additional libraries are installed. Those are:
             <itemize>
+              <item> Multi-level undo functionality is based on the libundo
+                     library, version 0.8.0.
+              </item>
               <item> All raster backends (PNG, JPEG, ...) are based on the
                      (<url name="Xmi library" url="http://www.gnu.org/software/libxmi/libxmi.html">),
                      version 1.2.
@@ -606,11 +609,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <tag> -block <it>block_data</it> </tag>
           <p>
               Assume data file is block data
-          </p>
-        <tag> -bxy <it>x:y:etc.</it> </tag>
-          <p>
-              Form a set from the current block data set using the current set
-              type from columns given in the argument
           </p>
         <tag> -datehint <it>iso|european|us|days|seconds|nohint</it> </tag>
           <p>

@@ -1,4 +1,4 @@
-.TH GRACE 1 "August 14, 2004"
+.TH GRACE 1 "January 13, 2005"
 .LO 1
 .SH NAME
 grace \- command line interface
@@ -33,10 +33,6 @@ Turn off all toolbars
 Assume the data
 .I file
 is block data
-.TP
-.B "\-bxy"       "x:y:etc."
-Form a set from the current block data set using the current set type
-from columns given in the argument
 .TP
 .BI "\-datehint "    "iso|european|us|days|seconds|nohint"              
 Set the hint for dates analysis
@@ -123,7 +119,6 @@ Set the working directory
 This message
 
 .SH RESOURCES
-.TP
 When run in the GUI mode, the interface is a subject to X resource settings.
 Please refer to the User's Guide for a list of important ones.
 
@@ -134,9 +129,10 @@ Specifies the directory where the Grace docs and libs are stored. Default is
 .BR /usr/local/grace
 .TP
 .B GRACE_HELPVIEWER
-Specifies the browser which is used to display the Grace HTML help pages.
-Default is
-.BR netscape
+The  shell command to run an HTML viewer for on-line browsing of the help
+documents. If includes an instance of "%s", it will be replaced with the actual
+URL by Grace. Default is
+.BR mozilla
 .TP
 .B GRACE_EDITOR
 Specifies the editor which is used to edit sets. Default is 

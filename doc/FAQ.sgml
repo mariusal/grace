@@ -6,9 +6,9 @@
 <article>
  <titlepag>
 
-  <title>Grace FAQ (for Grace-5.99.0)</title>
+  <title>Grace FAQ (for Grace-5.99.1)</title>
   <author><name>The Grace Team</name></author>
-  <date>02.10.2004</date>
+  <date>12.01.2005</date>
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -1167,15 +1167,6 @@ XMgrace*background: ...
 
   <sect><heading>Miscellaneous</heading>
 
-    <sect1><heading>Does Grace have an UNDO function?</heading>
-      <p>
-        Not yet. Although it would be nice to have such a
-        function, it is quite hard to implement. We can only ask you
-        to be careful with certain actions and remember to <tt>save
-        often and early (TM)</tt>.
-      </p>
-    </sect1>
-
     <sect1><heading>Can Grace plot 3D graphs?</heading>
       <p>
         No. Not yet, I should say. Be patient. It may take quite a
@@ -1186,7 +1177,7 @@ XMgrace*background: ...
     <sect1><heading>Which features are planned for the future?</heading>
       <p>
         Among the many features planned to be introduced in the
-        future are contour plots, many-level undo/redo, image import and
+        future are contour plots, image import and
         manipulations, a library for 2-way communication, ... Then 3D plots
         would come :-)
       </p>
