@@ -1785,62 +1785,68 @@ int init_option_menus(void) {
     int i, j, k, l, n;
     
     n = number_of_fonts(canvas);
-    font_option_items = xmalloc(n*sizeof(OptionItem));
-    if (font_option_items == NULL) {
-        errmsg("Malloc error in init_option_menus()");
-        return RETURN_FAILURE;
-    }
-    for (i = 0; i < n; i++) {
-        font_option_items[i].value = i;
-        font_option_items[i].label = get_fontalias(canvas, i);
+    if (n) {
+        font_option_items = xmalloc(n*sizeof(OptionItem));
+        if (font_option_items == NULL) {
+            errmsg("Malloc error in init_option_menus()");
+            return RETURN_FAILURE;
+        }
+        for (i = 0; i < n; i++) {
+            font_option_items[i].value = i;
+            font_option_items[i].label = get_fontalias(canvas, i);
+        }
     }
     
     n = number_of_patterns(canvas);
-    pattern_option_items = xmalloc(n*sizeof(BitmapOptionItem));
-    if (pattern_option_items == NULL) {
-        errmsg("Malloc error in init_option_menus()");
-        xfree(font_option_items);
-        return RETURN_FAILURE;
-    }
-    for (i = 0; i < n; i++) {
-        pattern_option_items[i].value = i;
-        if (i == 0) {
-            pattern_option_items[i].bitmap = NULL;
-        } else {
-            Pattern *pat = canvas_get_pattern(canvas, i);
-            pattern_option_items[i].bitmap = pat->bits;
+    if (n) {
+        pattern_option_items = xmalloc(n*sizeof(BitmapOptionItem));
+        if (pattern_option_items == NULL) {
+            errmsg("Malloc error in init_option_menus()");
+            xfree(font_option_items);
+            return RETURN_FAILURE;
+        }
+        for (i = 0; i < n; i++) {
+            pattern_option_items[i].value = i;
+            if (i == 0) {
+                pattern_option_items[i].bitmap = NULL;
+            } else {
+                Pattern *pat = canvas_get_pattern(canvas, i);
+                pattern_option_items[i].bitmap = pat->bits;
+            }
         }
     }
     
     n = number_of_linestyles(canvas);
-    lines_option_items = xmalloc(n*sizeof(BitmapOptionItem));
-    if (lines_option_items == NULL) {
-        errmsg("Malloc error in init_option_menus()");
-        xfree(pattern_option_items);
-        xfree(font_option_items);
-        return RETURN_FAILURE;
-    }
-    for (i = 0; i < n; i++) {
-        LineStyle *linestyle = canvas_get_linestyle(canvas, i);
-        lines_option_items[i].value = i;
-        if (i == 0) {
-            lines_option_items[i].bitmap = NULL;
-            continue;
+    if (n) {
+        lines_option_items = xmalloc(n*sizeof(BitmapOptionItem));
+        if (lines_option_items == NULL) {
+            errmsg("Malloc error in init_option_menus()");
+            xfree(pattern_option_items);
+            xfree(font_option_items);
+            return RETURN_FAILURE;
         }
-        
-        lines_option_items[i].bitmap = 
-              xcalloc(LINES_BM_HEIGHT*LINES_BM_WIDTH/8/SIZEOF_CHAR, SIZEOF_CHAR);
-        
-        k = LINES_BM_WIDTH*(LINES_BM_HEIGHT/2);
-        while (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
-            for (j = 0; j < linestyle->length; j++) {
-                for (l = 0; l < linestyle->array[j]; l++) {
-                    if (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
-                        if (j % 2 == 0) { 
-                            /* black */
-                            lines_option_items[i].bitmap[k/8] |= 1 << k % 8;
+        for (i = 0; i < n; i++) {
+            LineStyle *linestyle = canvas_get_linestyle(canvas, i);
+            lines_option_items[i].value = i;
+            if (i == 0) {
+                lines_option_items[i].bitmap = NULL;
+                continue;
+            }
+
+            lines_option_items[i].bitmap = 
+                  xcalloc(LINES_BM_HEIGHT*LINES_BM_WIDTH/8/SIZEOF_CHAR, SIZEOF_CHAR);
+
+            k = LINES_BM_WIDTH*(LINES_BM_HEIGHT/2);
+            while (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
+                for (j = 0; j < linestyle->length; j++) {
+                    for (l = 0; l < linestyle->array[j]; l++) {
+                        if (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
+                            if (j % 2 == 0) { 
+                                /* black */
+                                lines_option_items[i].bitmap[k/8] |= 1 << k % 8;
+                            }
+                            k++;
                         }
-                        k++;
                     }
                 }
             }
