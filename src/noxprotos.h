@@ -251,6 +251,8 @@ void sortset(int gno, int setno, int sorton, int stype);
 void do_seasonal_diff(int setno, int period);
 int do_nonlfit(int gno, int setno, int nsteps);
 void do_interp(int ygno, int yset, int xgno, int xset, int method);
+int get_restriction_array(int gno, int setno,
+    int rtype, int negate, char **rarray);
 
 int inbounds(int gno, double x, double y);
 int intersect_to_left(double x, double y, double x1, double y1, double x2, double y2);

@@ -376,6 +376,15 @@ typedef enum {
 #define PUSH_SET_TOFRONT    0
 #define PUSH_SET_TOBACK     1
 
+/* restriction types */
+#define RESTRICT_NONE  -1
+#define RESTRICT_WORLD -2
+#define RESTRICT_REG0   0
+#define RESTRICT_REG1   1
+#define RESTRICT_REG2   2
+#define RESTRICT_REG3   3
+#define RESTRICT_REG4   4
+
 
 /*
  * symbol table entry type

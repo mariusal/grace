@@ -82,14 +82,6 @@ static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data
 static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void set_regr_sensitivity(Widget , XtPointer , XtPointer );
 
-#define RESTRICT_NONE  -1
-#define RESTRICT_WORLD -2
-#define RESTRICT_REG0   0
-#define RESTRICT_REG1   1
-#define RESTRICT_REG2   2
-#define RESTRICT_REG3   3
-#define RESTRICT_REG4   4
-
 typedef struct _Eval_ui {
     Widget top;
     SrcDestStructure *srcdest;
@@ -182,61 +174,6 @@ void create_eval_frame(void *data)
     }
     XtRaise(eui.top);
     unset_wait_cursor();
-}
-
-int get_restriction_array(int gno, int setno,
-    int rtype, int negate, char **rarray)
-{
-    int i, n, regno;
-    double *x, *y;
-    world w;
-    WPoint wp;
-    
-    if (rtype == RESTRICT_NONE) {
-        *rarray = NULL;
-        return GRACE_EXIT_SUCCESS;
-    }
-    
-    n = getsetlength(gno, setno);
-    if (n <= 0) {
-        *rarray = NULL;
-        return GRACE_EXIT_FAILURE;
-    }
-    
-    *rarray = malloc(n*SIZEOF_CHAR);
-    if (*rarray == NULL) {
-        return GRACE_EXIT_FAILURE;
-    }
-    
-    x = getcol(gno, setno, DATA_X);
-    y = getcol(gno, setno, DATA_Y);
-    
-    switch (rtype) {
-    case RESTRICT_REG0:
-    case RESTRICT_REG1:
-    case RESTRICT_REG2:
-    case RESTRICT_REG3:
-    case RESTRICT_REG4:
-        regno = rtype - RESTRICT_REG0;
-        for (i = 0; i < n; i++) {
-            (*rarray)[i] = inregion(regno, x[i], y[i]) ? !negate : negate;
-        }
-        break;
-    case RESTRICT_WORLD:
-        get_graph_world(gno, &w);
-        for (i = 0; i < n; i++) {
-            wp.x = x[i];
-            wp.y = y[i];
-            (*rarray)[i] = is_wpoint_inside(&wp, &w) ? !negate : negate;
-        }
-        break;
-    default:
-        errmsg("Internal error in get_restriction_array()");
-        cxfree(*rarray);
-        return GRACE_EXIT_FAILURE;
-        break;
-    }
-    return GRACE_EXIT_SUCCESS;
 }
 
 /*

@@ -1646,3 +1646,58 @@ void do_interp(int ygno, int yset, int xgno, int xset, int method)
     cxfree( newx );
     setcomment(get_cg(), iset, buf);
 }
+
+int get_restriction_array(int gno, int setno,
+    int rtype, int negate, char **rarray)
+{
+    int i, n, regno;
+    double *x, *y;
+    world w;
+    WPoint wp;
+    
+    if (rtype == RESTRICT_NONE) {
+        *rarray = NULL;
+        return GRACE_EXIT_SUCCESS;
+    }
+    
+    n = getsetlength(gno, setno);
+    if (n <= 0) {
+        *rarray = NULL;
+        return GRACE_EXIT_FAILURE;
+    }
+    
+    *rarray = malloc(n*SIZEOF_CHAR);
+    if (*rarray == NULL) {
+        return GRACE_EXIT_FAILURE;
+    }
+    
+    x = getcol(gno, setno, DATA_X);
+    y = getcol(gno, setno, DATA_Y);
+    
+    switch (rtype) {
+    case RESTRICT_REG0:
+    case RESTRICT_REG1:
+    case RESTRICT_REG2:
+    case RESTRICT_REG3:
+    case RESTRICT_REG4:
+        regno = rtype - RESTRICT_REG0;
+        for (i = 0; i < n; i++) {
+            (*rarray)[i] = inregion(regno, x[i], y[i]) ? !negate : negate;
+        }
+        break;
+    case RESTRICT_WORLD:
+        get_graph_world(gno, &w);
+        for (i = 0; i < n; i++) {
+            wp.x = x[i];
+            wp.y = y[i];
+            (*rarray)[i] = is_wpoint_inside(&wp, &w) ? !negate : negate;
+        }
+        break;
+    default:
+        errmsg("Internal error in get_restriction_array()");
+        cxfree(*rarray);
+        return GRACE_EXIT_FAILURE;
+        break;
+    }
+    return GRACE_EXIT_SUCCESS;
+}
