@@ -79,6 +79,18 @@
 #define JUST_TOP        8
 #define JUST_MIDDLE    12
 
+
+/* Types of axis scale mappings */
+typedef enum {
+    SCALE_NORMAL,
+    SCALE_LOG,
+    SCALE_REC,
+    SCALE_LOGIT,
+    SCALE_BAD
+} ScaleType;
+
+#define NUMBER_OF_SCALETYPES  SCALE_BAD
+
 /* Drawing properties */
 typedef struct {
     Pen pen;
@@ -221,7 +233,8 @@ void initialize_cmap(void);
 void reverse_video(void);
 int is_video_reversed(void);
 
-char *scale_types(int it);
+char *scale_types(ScaleType it);
+ScaleType get_scale_type_by_name(const char *name);
 
 int checkon_world(int gno);
 int checkon_viewport(int gno);

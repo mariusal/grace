@@ -45,6 +45,7 @@
 #include "protos.h"
 #include "utils.h"
 #include "graphs.h"
+#include "draw.h"
 #include "graphutils.h"
 #include "motifinc.h"
 

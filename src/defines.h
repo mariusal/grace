@@ -96,14 +96,6 @@
 #define COORDINATES_POLAR   1       /* Polar coordinates */
                                 
 /*
- * types of axis scale mappings
- */
-#define SCALE_NORMAL    0       /* normal linear scale */
-#define SCALE_LOG       1       /* logarithmic  scale */
-#define SCALE_REC       2       /* reciprocal, reserved */
-#define SCALE_LOGIT	  3	  /* logit scale */
-
-/*
  * coordinates
  */
 #define AXIS_TYPE_ANY -1

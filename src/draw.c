@@ -1242,31 +1242,42 @@ int number_of_linestyles(void)
  * ------------- coordinate conversion routines ------------
  */
 
-char *scale_types(int it)
+char *scale_types(ScaleType it)
 {
-    static char s[16];
+    char *s;
 
     switch (it) {
     case SCALE_NORMAL:
-	strcpy(s, "Normal");
+	s = "Normal";
 	break;
     case SCALE_LOG:
-	strcpy(s, "Logarithmic");
+	s = "Logarithmic";
 	break;
     case SCALE_REC:
-	strcpy(s, "Reciprocal");
+	s = "Reciprocal";
 	break;
     case SCALE_LOGIT:
-	strcpy(s, "Logit");
+	s = "Logit";
 	break; 	   
     default:
-        strcpy(s, "Unknown");
+        s = "Unknown";
 	break;
     }
     
     return s;
 }
 
+ScaleType get_scale_type_by_name(const char *name)
+{
+    int i;
+    for (i = 0; i < NUMBER_OF_SCALETYPES; i++) {
+        if (!strcmp(scale_types(i), name)) {
+            return i;
+        }
+    }
+    
+    return GRAPH_BAD;
+}
 
 /*
  * axis scaling
