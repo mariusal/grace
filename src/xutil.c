@@ -581,23 +581,23 @@ static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId)
     unset_wait_cursor();
 }
 
-void xunregister_rti(XtInputId id)
-{
-    if (grace->gui->inwin) {
-        /* the screen has been initialized : we can remove the buffer */
-        XtRemoveInput(id);
-    }
-}
-
 void xregister_rti(Input_buffer *ib)
 {
-    if (grace->gui->inwin) {
+    if (grace->gui->inwin && ib) {
         /* the screen has been initialized : we can register the buffer */
         ib->id = (unsigned long) XtAppAddInput(app_con,
                                                ib->fd,
                                                (XtPointer) XtInputReadMask,
                                                xmonitor_rti,
                                                (XtPointer) ib);
+    }
+}
+
+void xunregister_rti(const Input_buffer *ib)
+{
+    if (grace->gui->inwin && ib) {
+        /* the screen has been initialized : we can remove the buffer */
+        XtRemoveInput((XtInputId) ib->id);
     }
 }
 

@@ -122,8 +122,8 @@ void switch_current_graph(Quark *gr);
 
 char *display_name(GUI *gui);
 
-void xunregister_rti(XtInputId);
 void xregister_rti(Input_buffer *ib);
+void xunregister_rti(const Input_buffer *ib);
 
 void errwin(const char *s);
 int yesnowin(char *msg1, char *msg2, char *s1, char *help_anchor);
