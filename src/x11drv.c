@@ -113,6 +113,8 @@ static Device_entry dev_x11 = {
 
 int register_x11_drv(Canvas *canvas)
 {
+    dev_x11.pg.dpi = rint(MM_PER_INCH*DisplayWidth(disp, screennumber)/
+        DisplayWidthMM(disp, screennumber));
     return register_device(canvas, &dev_x11);
 }
 
