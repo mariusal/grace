@@ -244,7 +244,6 @@ void create_nonl_frame(void *data)
     	    XtManageChild(lab);
 
 	    nonl_uppb_item[i] = CreateTextItem2(nonl_parm_item[i], 6, "");
-	    XtManageChild(nonl_parm_item[i]);
 	}
 
 	XtManageChild(rc2);
