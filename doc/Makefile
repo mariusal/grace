@@ -20,8 +20,8 @@ SGML2HTML   = $(LINUXDOC) --backend=html  --split=0 --toc=2
 SGML2LATEX  = $(LINUXDOC) --backend=latex --output=tex
 SGML2DVI    = $(LINUXDOC) --backend=latex --output=dvi
 DVI2PS      = dvips -t $(PAPERSIZE)
+PS2PDF      = ps2pdf
 LATEX       = latex
-PDFLATEX    = pdflatex
 
 .sgml.html :
 	$(SGML2HTML) $<
@@ -39,11 +39,9 @@ PDFLATEX    = pdflatex
 .dvi.ps :
 	$(DVI2PS) $< -o $@
 
-.tex.pdf :
-	$(PDFLATEX) $<
-	$(PDFLATEX) $<
+.ps.pdf :
+	$(PS2PDF) $< $@
 
-SGMLS    = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
 HTMLS    = NEWS.html GPL.html philosophical-gnu-sm.jpg nohelp.html
 
 HTMLDOCS = FAQ.html UsersGuide.html
@@ -55,9 +53,6 @@ PSDOCS   = FAQ.ps UsersGuide.ps
 PDFDOCS  = FAQ.pdf UsersGuide.pdf
 
 TEXDOCS  = FAQ.tex UsersGuide.tex
-
-TUTDATA  = 2.1.dat 3.dat 7.1.2.agr 7.1.3.agr 8.2.dat \
-           10.1.dat 10a.dat 10c.dat 10b.dat shiftdata.sh mygraph.png
 
 GRACEMAN = grace.1
 MANLINKS = xmgrace.1 gracebat.1
