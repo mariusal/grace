@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2003 Grace Development Team
+ * Copyright (c) 2001-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -360,7 +360,8 @@ static void storage_extract_node(Storage *sto, LLNode *llnode)
     if (prev) {
         prev->next = next;
     }
-    if (sto->start == sto->cp) {
+    
+    if (sto->start == llnode) {
         if (next) {
             sto->start = next;
         } else if (prev) {
@@ -370,20 +371,19 @@ static void storage_extract_node(Storage *sto, LLNode *llnode)
             sto->start = NULL;
         }
     }
-    if (next) {
-        sto->cp = next;
-    } else if (prev) {
-        sto->cp = prev;
-    } else {
-        /* empty storage */
-        sto->cp = sto->start;
+    
+    if (sto->cp == llnode) {
+        if (next) {
+            sto->cp = next;
+        } else if (prev) {
+            sto->cp = prev;
+        } else {
+            /* empty storage */
+            sto->cp = NULL;
+        }
     }
 
     sto->count--;
-    
-    if (sto->cp == llnode) {
-        sto->cp = llnode->prev;
-    }
 }
 
 static void storage_deallocate_node(Storage *sto, LLNode *llnode)
@@ -877,7 +877,9 @@ int storage_delete_by_data(Storage *sto, void *data)
 int storage_extract_data(Storage *sto, void *data)
 {
     if (storage_scroll_to_data(sto, data) == RETURN_SUCCESS) {
-        storage_extract_node(sto, sto->cp);
+        LLNode *llnode = sto->cp;
+        storage_extract_node(sto, llnode);
+        xfree(llnode);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
