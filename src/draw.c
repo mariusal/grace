@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -940,11 +940,12 @@ int number_of_colors(void)
     return maxcolors;
 }
 
-int is_valid_color(RGB rgb)
+int is_valid_color(const RGB *rgb)
 {
-    if (((rgb.red   <= 0xff) && (rgb.red   >= 0x00)) &&
-        ((rgb.green <= 0xff) && (rgb.green >= 0x00)) &&
-        ((rgb.blue  <= 0xff) && (rgb.blue  >= 0x00))) {
+    if (rgb &&
+        ((rgb->red   <= 0xff) && (rgb->red   >= 0x00)) &&
+        ((rgb->green <= 0xff) && (rgb->green >= 0x00)) &&
+        ((rgb->blue  <= 0xff) && (rgb->blue  >= 0x00))) {
         return TRUE;
     } else {
         return FALSE;
@@ -1026,7 +1027,7 @@ int realloc_colors(int n)
 
 int store_color(int n, CMap_entry cmap)
 {
-    if (is_valid_color(cmap.rgb) != TRUE) {
+    if (is_valid_color(&cmap.rgb) != TRUE) {
         return RETURN_FAILURE;
     } else if (n >= maxcolors && realloc_colors(n + 1) == RETURN_FAILURE) {
         return RETURN_FAILURE;
@@ -1060,7 +1061,7 @@ int add_color(CMap_entry cmap)
 {
     int cindex;
     
-    if (is_valid_color(cmap.rgb) != TRUE) {
+    if (is_valid_color(&cmap.rgb) != TRUE) {
         cindex = BAD_COLOR;
     } else if ((cindex = find_color(cmap.rgb)) != BAD_COLOR) {
         if (cmap.ctype == COLOR_MAIN && 
@@ -1083,26 +1084,25 @@ int add_color(CMap_entry cmap)
  * }
  */
 
-RGB *get_rgb(unsigned int cindex)
+int get_rgb(unsigned int cindex, RGB *rgb)
 {
-    if (cindex < maxcolors) {
-        return &(cmap_table[cindex].rgb);
+    if (rgb && cindex < maxcolors) {
+        *rgb = cmap_table[cindex].rgb;
+        return RETURN_SUCCESS;
     } else {
-        return NULL;
+        return RETURN_FAILURE;
     }
 }
 
-fRGB *get_frgb(unsigned int cindex)
+int get_frgb(unsigned int cindex, fRGB *frgb)
 {
-    static fRGB frgb;
-    
-    if (cindex < maxcolors) {
-        frgb.red   = (double) cmap_table[cindex].rgb.red   / (MAXCOLORS - 1);
-        frgb.green = (double) cmap_table[cindex].rgb.green / (MAXCOLORS - 1);
-        frgb.blue  = (double) cmap_table[cindex].rgb.blue  / (MAXCOLORS - 1);
-        return &frgb;
+    if (frgb && cindex < maxcolors) {
+        frgb->red   = (double) cmap_table[cindex].rgb.red   / (MAXCOLORS - 1);
+        frgb->green = (double) cmap_table[cindex].rgb.green / (MAXCOLORS - 1);
+        frgb->blue  = (double) cmap_table[cindex].rgb.blue  / (MAXCOLORS - 1);
+        return RETURN_SUCCESS;
     } else {
-        return NULL;
+        return RETURN_FAILURE;
     }
 }
 
@@ -1133,37 +1133,86 @@ int get_colortype(unsigned int cindex)
     }
 }
 
-YIQ RGB2YIQ(RGB rgb)
+int RGB2YIQ(const RGB *rgb, YIQ *yiq)
 {
-    YIQ yiq;
-    
     if (is_valid_color(rgb)) {
-        yiq.y = (0.299*rgb.red + 0.587*rgb.green + 0.114*rgb.blue)
+        yiq->y = (0.299*rgb->red + 0.587*rgb->green + 0.114*rgb->blue)
                                                             /(MAXCOLORS - 1);
-        yiq.i = (0.596*rgb.red - 0.275*rgb.green - 0.321*rgb.blue)
+        yiq->i = (0.596*rgb->red - 0.275*rgb->green - 0.321*rgb->blue)
                                                             /(MAXCOLORS - 1);
-        yiq.q = (0.212*rgb.red - 0.528*rgb.green + 0.311*rgb.blue)
+        yiq->q = (0.212*rgb->red - 0.528*rgb->green + 0.311*rgb->blue)
                                                              /(MAXCOLORS - 1);
+        return RETURN_SUCCESS;
     } else {
-        yiq.y = 0.0;
-        yiq.i = 0.0;
-        yiq.q = 0.0;
+        return RETURN_FAILURE;
     }
-    
-    return (yiq);
+}
+
+int RGB2CMY(const RGB *rgb, CMY *cmy)
+{
+    if (is_valid_color(rgb)) {
+        cmy->cyan    = MAXCOLORS - 1 - rgb->red;
+        cmy->magenta = MAXCOLORS - 1 - rgb->green;
+        cmy->yellow  = MAXCOLORS - 1 - rgb->blue;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
 
 double get_colorintensity(int cindex)
 {
-    double retval;
+    RGB rgb;
+    YIQ yiq;
     
-    if (cindex < maxcolors) {
-        retval = RGB2YIQ(cmap_table[cindex].rgb).y;
+    if (get_rgb(cindex, &rgb) == RETURN_SUCCESS &&
+        RGB2YIQ(&rgb, &yiq)    == RETURN_SUCCESS) {
+        return yiq.y;
     } else {
-        retval = 0.0;
+        return 0.0;
     }
+}
+
+int get_cmy(unsigned int cindex, CMY *cmy)
+{
+    RGB rgb;
     
-    return (retval);
+    if (get_rgb(cindex, &rgb) == RETURN_SUCCESS &&
+        RGB2CMY(&rgb, cmy)     == RETURN_SUCCESS) {
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int get_cmyk(unsigned int cindex, CMYK *cmyk)
+{
+    CMY cmy;
+    
+    if (get_cmy(cindex, &cmy)     == RETURN_SUCCESS) {
+        cmyk->black   = MIN3(cmy.cyan, cmy.magenta, cmy.yellow);
+        cmyk->cyan    = cmy.cyan    - cmyk->black;
+        cmyk->magenta = cmy.magenta - cmyk->black;
+        cmyk->yellow  = cmy.yellow  - cmyk->black;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int get_fcmyk(unsigned int cindex, fCMYK *fcmyk)
+{
+    CMYK cmyk;
+    
+    if (get_cmyk(cindex, &cmyk) == RETURN_SUCCESS) {
+        fcmyk->cyan    = (double) cmyk.cyan    /(MAXCOLORS - 1);
+        fcmyk->magenta = (double) cmyk.magenta /(MAXCOLORS - 1);
+        fcmyk->yellow  = (double) cmyk.yellow  /(MAXCOLORS - 1);
+        fcmyk->black   = (double) cmyk.black   /(MAXCOLORS - 1);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
 
 static CMap_entry cmap_init[] = {

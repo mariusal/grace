@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -123,6 +123,32 @@ typedef struct {
     double q;
 } YIQ;
 
+typedef struct {
+    int cyan;
+    int magenta;
+    int yellow;
+} CMY;
+
+typedef struct {
+    double cyan;
+    double magenta;
+    double yellow;
+} fCMY;
+
+typedef struct {
+    int cyan;
+    int magenta;
+    int yellow;
+    int black;
+} CMYK;
+
+typedef struct {
+    double cyan;
+    double magenta;
+    double yellow;
+    double black;
+} fCMYK;
+
 #define BAD_COLOR	-1
 
 #define COLOR_NONE      0
@@ -218,19 +244,27 @@ int clip_line(VPoint vp1, VPoint vp2, VPoint *vp1c, VPoint *vp2c);
 int intersect_polygon(VPoint *vps, int n, VPoint vp1p, VPoint vp2p);
 int clip_polygon(VPoint *vps, int n);
 
-int is_valid_color(RGB rgb);
+int is_valid_color(const RGB *rgb);
 int find_color(RGB rgb);
 int get_color_by_name(char *cname);
 int realloc_color(int n);
 int store_color(int n, CMap_entry cmap);
 int add_color(CMap_entry cmap);
-RGB *get_rgb(unsigned int cindex);
-fRGB *get_frgb(unsigned int cindex);
+int get_rgb(unsigned int cindex, RGB *rgb);
+int  get_frgb(unsigned int cindex, fRGB *frgb);
 CMap_entry *get_cmap_entry(unsigned int cindex);
 char *get_colorname(unsigned int cindex);
 int get_colortype(unsigned int cindex);
-YIQ RGB2YIQ(RGB rgb);
+
+int RGB2YIQ(const RGB *rgb, YIQ *yiq);
+int RGB2CMY(const RGB *rgb, CMY *cmy);
+
 double get_colorintensity(int cindex);
+
+int get_cmy(unsigned int cindex, CMY *cmy);
+int get_cmyk(unsigned int cindex, CMYK *cmyk);
+int get_fcmyk(unsigned int cindex, fCMYK *fcmyk);
+
 void initialize_cmap(void);
 void reverse_video(void);
 int is_video_reversed(void);
