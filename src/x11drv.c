@@ -364,6 +364,7 @@ int xlibinitgraphics(void)
         }
     }
     
+    XSetLineAttributes(disp, gc, 1, LineSolid, CapButt, JoinMiter);
     XDrawRectangle(disp, displaybuff, gc, 0, 0, win_w - 1, win_h - 1);
     
     return RETURN_SUCCESS;
