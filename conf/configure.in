@@ -38,8 +38,6 @@ AC_SUBST(T1_AA_TYPE16)
 AC_SUBST(T1_AA_TYPE32)
 AC_SUBST(T1_AA_TYPE64)
 
-SUBDIRS="cephes src"
-
 dnl Check for host type
 AC_CANONICAL_HOST
 
@@ -224,7 +222,8 @@ AC_PROG_MAKE_SET
 dnl **** Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(unistd.h fcntl.h sys/param.h)
+AC_CHECK_HEADERS(unistd.h fcntl.h sys/param.h sys/time.h)
+AC_HEADER_TIME
 dnl **** math.h and related
 AC_CHECK_HEADERS(math.h float.h ieeefp.h)
 
@@ -246,7 +245,7 @@ AC_CHECK_FUNCS(popen)
 AC_CHECK_FUNCS(fnmatch)
 AC_CHECK_FUNCS(vsnprintf)
 AC_CHECK_FUNCS(on_exit)
-AC_CHECK_FUNC(mkfifo, SUBDIRS="$SUBDIRS grace_np")
+AC_CHECK_FUNC(mkfifo, grace_np_dir="grace_np")
 
 dnl **** Check for buggy realloc()
 AC_CACHE_CHECK( "whether realloc is buggy", ac_cv_c_realloc_bug,
@@ -326,8 +325,8 @@ then
   AC_MSG_RESULT(--> Bundled version of T1lib will be used)
 
   T1_LIB='$(TOP)/T1lib/libt1.a'
-  CPPFLAGS='$(CPPFLAGS) -I$(TOP)/T1lib/t1lib'
-  SUBDIRS="T1lib $SUBDIRS"
+  CPPFLAGS="${CPPFLAGS} -I\$(TOP)/T1lib/t1lib"
+  t1lib_dir="T1lib"
 
   dnl **** Check which ANSI integer type is 16 bit
   AC_CACHE_CHECK( "which ANSI integer type is 16 bit", ac_16bit_type,
@@ -391,7 +390,7 @@ if test "${XDR_LIB}" = "NONE"; then
   XDR_LIB=
   AC_MSG_RESULT(--> No XDR library found; grconvert will not be built)
 else
-  SUBDIRS="$SUBDIRS grconvert"
+  grconvert_dir="grconvert"
 fi
 
 dnl **** Check for dlopen() interface
@@ -421,9 +420,6 @@ fi
 
 dnl **** Check how to print
 AC_CHECK_PROG(PRINT_CMD, lpr, 'lpr', 'lp -c')
-
-dnl **** Final list of subdirs
-SUBDIRS="$SUBDIRS fonts doc examples auxiliary"
 
 dnl **** use netcdf  
 AC_ARG_ENABLE(netcdf,
@@ -655,7 +651,7 @@ dnl **** use editres
       dnl **** Use the bundled Xbae library
       AC_MSG_RESULT(--> Bundled version of Xbae library will be used)
       XBAE_LIB='$(TOP)/Xbae/libXbae.a'
-      SUBDIRS="$SUBDIRS Xbae"
+      xbae_dir="Xbae"
     else
       AC_MSG_RESULT(--> Good. Seems you have compatible version of Xbae installed)
     fi
@@ -687,5 +683,8 @@ dnl **** define help viewer
   [HELPVIEWER="-DGRACE_HELPVIEWER=${enableval}"])
 
 fi
+
+dnl **** Final list of subdirs
+SUBDIRS="cephes ${t1lib_dir} ${xbae_dir} src ${grconvert_dir} ${grace_np_dir} fonts doc examples auxiliary"
 
 AC_OUTPUT(Make.conf:conf/Make.conf.in)

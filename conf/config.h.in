@@ -100,8 +100,14 @@
 /* Define if you have the <sys/param.h> header file.  */
 #undef HAVE_SYS_PARAM_H
 
+/* Define if you have the <sys/time.h> header file.  */
+#undef HAVE_SYS_TIME_H
+
 /* Define if your <sys/time.h> declares struct tm.  */
 #undef TM_IN_SYS_TIME
+
+/* Define if <time.h> and <sys/time.h> can be both included.  */
+#undef TIME_WITH_SYS_TIME
 
 /* Define if you have <vfork.h>.  */
 #undef HAVE_VFORK_H
