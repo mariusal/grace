@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.2.0)</title>
 <author>by the Grace Team</author>
-<date>16.08.2002</date>
+<date>03.04.2003</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -53,7 +53,7 @@
 
 <tscreen><verb>
 Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
-Copyright (&copy;) 1996-2002 Grace Development Team
+Copyright (&copy;) 1996-2003 Grace Development Team
 
 Maintained by Evgeny Stambulchik
 
@@ -130,10 +130,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
               <item> The PNG backend needs the <url name="libpng"
                      url="http://www.libpng.org/pub/png/libpng.html">
                      library (version 0.96 or above).
-              <item> The PDF driver requires the PDFlib library of Thomas
-                     Merz to be installed, which is available
+              <item> The PDF driver requires the PDFlib library to be
+                     installed, which is available
                      <url name="here" url="http://www.pdflib.com/">, version
-                     4.0.0 or above.
+                     5.0.0 or above.
               <item> If your computer has the FFTW library (see the
                      <url name="FFTW Home page" url="http://www.fftw.org">)
                      installed when Grace is compiled, Grace will link itself
@@ -1392,16 +1392,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          can be saved in a file and retrieved as needed using the file
          menu of the popup.
 
-         In the "Advanced" tab, you can additionally apply a restriction to the
-         set(s) to be fitted (thus ignoring points not satisfying the
-         criteria), use one of preset weighting schemes or define your own,
-         and choose whether to load the fitted values, the residuals or
-         the function itself. Choosing to load fitted values or residuals leads
-         to a set of the same length and abscissas as the initial set. Choosing
-         to load the function is almost similar to load the fitted values
-         except that you choose yourself the boundaries and the number of
-         points. This can be used for example to draw the curve outside of the
-         data sample range or to produce an evenly spaced set from an irregular
+         In the "Advanced" tab, you can additionally apply a restriction to
+         the set(s) to be fitted (thus ignoring points not satisfying the
+         criteria), use one of preset weighting schemes or define your own
+         (notice that "dY" in the preset "1/dY^2" one actually refers to the
+         third column of the data set; use the "Custom" function if this
+         doesn't make sense for your data set), and choose whether to load
+         the fitted values, the residuals or the function itself. Choosing
+         to load fitted values or residuals leads to a set of the same
+         length and abscissas as the initial set. Choosing to load the
+         function is almost similar to load the fitted values except that
+         you choose yourself the boundaries and the number of points. This
+         can be used for example to draw the curve outside of the data
+         sample range or to produce an evenly spaced set from an irregular
          one.
 
          <sect3> Cross/auto correlation <label id="cross/auto-correlation">
@@ -3242,18 +3245,21 @@ C
         <item> PDF driver:
                <itemize>
                  <item> bitmapped text strings are not transparent
+                 <item> kerning is not implemented
                </itemize>
         <item> MIF driver:
                the driver is a brand new one and still in beta test
                <itemize>
                  <item> some of patterned fills not implemented
                  <item> bitmapped text strings not implemented
+                 <item> kerning is not implemented
                </itemize>
         <item> SVG driver:
                the driver is a brand new one and still in beta test 
                <itemize>
                  <item> patterned fills not implemented
                  <item> bitmapped text strings not implemented
+                 <item> kerning is not implemented
                </itemize>
       </itemize>
       
@@ -3332,13 +3338,13 @@ C
       <table loc="htbp">
       <tabular ca="ll">
           <hline>
-          Command               | Description                                 @
+          Command               | Description                                  @
           <hline>
-          compatibility:PDF-1.2 | set compatibility mode to PDF-1.2           @
-          compatibility:PDF-1.3 | set compatibility mode to PDF-1.3           @
-          compatibility:PDF-1.4 | set compatibility mode to PDF-1.4           @
-          compression:value     | set compression level (0 - 9)               @
-          fpprecision:value     | set floating point precision (4 - 6)        @
+          compatibility:PDF-1.3 | set compatibility mode to PDF-1.3 (Acrobat4) @
+          compatibility:PDF-1.4 | set compatibility mode to PDF-1.4 (Acrobat5) @
+          compatibility:PDF-1.5 | set compatibility mode to PDF-1.5 (Acrobat6) @
+          compression:value     | set compression level (0 - 9)                @
+          fpprecision:value     | set floating point precision (4 - 6)         @
           <hline>
       </tabular>
       <caption>
