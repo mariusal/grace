@@ -7,16 +7,20 @@
 
 TOP=..
 
+include $(TOP)/Make.conf
+
+.SUFFIXES : .sgml .html .dvi
+
 SGML2HTML = sgml2html --split=0
 SGML2DVI = sgml2latex
+
+%.sgml : dummy
 
 %.html : %.sgml
 	$(SGML2HTML) $<
 
 %.dvi : %.sgml
 	$(SGML2DVI) $<
-
-include $(TOP)/Make.conf
 
 SGMLS = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
 
