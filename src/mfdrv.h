@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -27,6 +27,8 @@
  */
 
 #include "defines.h"
+
+#define GMF_VERSION "0.9"
 
 int mfinitgraphics(void);
 
