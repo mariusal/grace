@@ -464,7 +464,7 @@ static int objects_aac(void *data)
     return RETURN_SUCCESS;
 }
 
-static char *dobject_labeling(unsigned int step, Quark *data)
+static char *dobject_labeling(Quark *data, unsigned int *rid)
 {
     Quark *q = data;
     char buf[128];
@@ -472,8 +472,10 @@ static char *dobject_labeling(unsigned int step, Quark *data)
         DObject *o = object_get_data(q);
 
         sprintf(buf, "(%c) DObject #%d (%s)",
-            o->active ? '+':'-', step, object_types(o->type));
+            o->active ? '+':'-', *rid, object_types(o->type));
 
+        (*rid)++;
+        
         return copy_string(NULL, buf);
     } else {
         return NULL;

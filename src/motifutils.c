@@ -758,21 +758,29 @@ void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata)
 #define SS_MOVE_UP_CB        6
 #define SS_MOVE_DOWN_CB      7
 
-static char *default_storage_labeling_proc(unsigned int step, Quark *data)
+static char *default_storage_labeling_proc(Quark *q, unsigned int *rid)
 {
     char buf[128];
     
-    sprintf(buf, "Item #%d (data = %p)", step, (void *) data);
+    sprintf(buf, "Item #%d (data = %p)", *rid, (void *) q);
+    
+    (*rid)++;
     
     return copy_string(NULL, buf);
 }
 
+typedef struct {
+    StorageStructure *ss;
+    unsigned int rid;
+} storage_traverse_data;
+
 static int traverse_hook(unsigned int step, void *data, void *udata)
 {
     char *s;
-    StorageStructure *ss = (StorageStructure *) udata;
+    storage_traverse_data *stdata = (storage_traverse_data *) udata;
+    StorageStructure *ss = stdata->ss;;
     
-    s = ss->labeling_proc(step, data);
+    s = ss->labeling_proc(data, &stdata->rid);
     if (s) {
         XmString str;
         
@@ -1141,6 +1149,7 @@ int SelectStorageChoice(StorageStructure *ss, Quark *choice)
 void UpdateStorageChoice(StorageStructure *ss)
 {
     Quark **selvalues;
+    storage_traverse_data stdata;
     int nsel;
 
     nsel = GetStorageChoices(ss, &selvalues);
@@ -1148,9 +1157,11 @@ void UpdateStorageChoice(StorageStructure *ss)
     XmListDeleteAllItems(ss->list);
     
     ss->nchoices = 0;
+    stdata.rid = 0;
+    stdata.ss = ss;
     if (ss->q) {
         ss->values = xrealloc(ss->values, SIZEOF_VOID_P*quark_count_children(ss->q));
-        storage_traverse(ss->q->children, traverse_hook, ss);
+        storage_traverse(ss->q->children, traverse_hook, &stdata);
 
         SelectStorageChoices(ss, nsel, selvalues);
     }
@@ -2331,14 +2342,16 @@ static void g_dc_cb(Quark *gr, void *data)
     switch_current_graph(gr);
 }
 
-static char *graph_labeling(unsigned int step, Quark *q)
+static char *graph_labeling(Quark *q, unsigned int *rid)
 {
     char buf[128];
     graph *g = graph_get_data(q);
     
     sprintf(buf, "(%c) Graph #%d (type: %s, sets: %d)",
-        !g->hidden ? '+':'-', step, graph_types(grace->rt, g->type),
+        !g->hidden ? '+':'-', *rid, graph_types(grace->rt, g->type),
         number_of_sets(q));
+    
+    (*rid)++;
     
     return copy_string(NULL, buf);
 }
@@ -2567,16 +2580,18 @@ static void s_dc_cb(Quark *pset, void *data)
     create_ss_frame(pset);
 }
 
-static char *set_labeling(unsigned int step, Quark *q)
+static char *set_labeling(Quark *q, unsigned int *rid)
 {
     char buf[128];
     if (q->fid == QFlavorSet) {
         set *p = set_get_data(q);
 
         sprintf(buf, "(%c) Set #%d (type: %s, length: %d)",
-            !p->hidden ? '+':'-', step, set_types(grace->rt, p->type),
+            !p->hidden ? '+':'-', *rid, set_types(grace->rt, p->type),
             getsetlength(q));
 
+        (*rid)++;
+        
         return copy_string(NULL, buf);
     } else {
         return NULL;

@@ -99,8 +99,8 @@ typedef struct {
 
 /* Storage labeling procedure */
 typedef char * (*Storage_LabelingProc)(
-    unsigned int step,   /* # of the current item */
-    Quark *q             /* data of the item */
+    Quark *q,
+    unsigned int *rid
 );
 
 typedef struct _StorageStructure StorageStructure;
