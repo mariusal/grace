@@ -504,6 +504,8 @@ SpinStructure *CreateViewCoordInput(Widget parent, char *s);
 
 RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s);
 
+StorageStructure *CreateSSDChoice(Widget parent, char *labelstr, int type);
+
 StorageStructure *CreateFrameChoice(Widget parent, char *labelstr, int type);
 
 StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);

@@ -2625,6 +2625,61 @@ SpinStructure *CreateViewCoordInput(Widget parent, char *s)
     return CreateSpinChoice(parent, s, 6, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.05);
 }
 
+static StorageStructure **ssd_selectors = NULL;
+static int nssd_selectors = 0;
+
+static char *ssd_labeling(Quark *q, unsigned int *rid)
+{
+    char buf[128];
+    
+    if (quark_fid_get(q) == QFlavorSSD) {
+        sprintf(buf, "SSD \"%s\" (%d x %d)", QIDSTR(q),
+            ssd_get_ncols(q), ssd_get_nrows(q));
+
+        (*rid)++;
+
+        return copy_string(NULL, buf);
+    } else {
+        return NULL;
+    }
+}
+
+StorageStructure *CreateSSDChoice(Widget parent, char *labelstr, int type)
+{
+    StorageStructure *ss;
+    int nvisible;
+    
+    nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
+
+    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
+    SetStorageChoiceLabeling(ss, ssd_labeling);
+    SetStorageChoiceQuark(ss, grace->project);
+
+    nssd_selectors++;
+    ssd_selectors =
+        xrealloc(ssd_selectors, nssd_selectors*sizeof(StorageStructure *));
+    ssd_selectors[nssd_selectors - 1] = ss;
+
+    AddHelpCB(ss->rc, "doc/UsersGuide.html#ssd-selector");
+
+    return ss;
+}
+
+void update_ssd_selectors(Quark *pr)
+{
+    int i;
+    for (i = 0; i < nssd_selectors; i++) {
+        StorageStructure *ss = ssd_selectors[i];
+        if (!ss->q && pr) {
+            ss->q = pr;
+        } else 
+        if (!pr) {
+            ss->q = NULL;
+        }
+        UpdateStorageChoice(ss);
+    }
+}
+
 
 static StorageStructure **graph_selectors = NULL;
 static int ngraph_selectors = 0;
@@ -4618,6 +4673,7 @@ void update_all(void)
         sync_canvas_size(grace);
     }
     
+    update_ssd_selectors(grace->project);
     update_frame_selectors(grace->project);
     update_graph_selectors(grace->project);
     update_set_selectors(NULL);
@@ -4651,6 +4707,9 @@ int clean_graph_selectors(Quark *pr, int etype, void *data)
         int i;
         for (i = 0; i < ngraph_selectors; i++) {
             SetStorageChoiceQuark(graph_selectors[i], NULL);
+        }
+        for (i = 0; i < nssd_selectors; i++) {
+            SetStorageChoiceQuark(ssd_selectors[i], NULL);
         }
     } else
     if (etype == QUARK_ETYPE_MODIFY) {
