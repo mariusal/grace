@@ -434,7 +434,7 @@ char *T1_SubsetFont( int FontID,
      Each charstring must be written once, even if the respective 
      character appears more than once in the encoding. So we set up
      table to remember which charstrings already have been written. */
-  if (( csdone=(char *)calloc( pFontBase->pFontArray[FontID].pType1Data->CharStringsP[0].key.len + 1,
+  if (( csdone=(char *)calloc( pFontBase->pFontArray[FontID].pType1Data->CharStringsP[0].key.len,
 			       1))==NULL) {
     T1_errno=T1ERR_ALLOC_MEM;
     free( filebuf);
@@ -453,7 +453,7 @@ char *T1_SubsetFont( int FontID,
   memcpy(&(filebuf[i]), charstringP, charstringL);
   i+=charstringL;
   i+=sprintf( &(filebuf[i]), " %s\n", ndstring);
-  csdone[currstring_no]=1;
+  csdone[currstring_no-1]=1;
   /* Now, step through the specifier matrix and write only the
      necessary charstrings. */
   for ( j=0; j<256; j++) {

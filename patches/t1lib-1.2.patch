@@ -13,13 +13,13 @@
    Ligature *ligs;
    int i,j;
 --- T1Lib-1.2/lib/t1lib/t1subset.c.orig	Fri May 25 08:45:39 2001
-+++ T1Lib-1.2/lib/t1lib/t1subset.c	Tue Sep  4 23:26:27 2001
-@@ -434,7 +434,7 @@
-      Each charstring must be written once, even if the respective 
-      character appears more than once in the encoding. So we set up
-      table to remember which charstrings already have been written. */
--  if (( csdone=(char *)calloc( pFontBase->pFontArray[FontID].pType1Data->CharStringsP[0].key.len,
-+  if (( csdone=(char *)calloc( pFontBase->pFontArray[FontID].pType1Data->CharStringsP[0].key.len + 1,
- 			       1))==NULL) {
-     T1_errno=T1ERR_ALLOC_MEM;
-     free( filebuf);
++++ T1Lib-1.2/lib/t1lib/t1subset.c	Tue Sep 15 17:10:55 2001
+@@ -453,7 +453,7 @@
+   memcpy(&(filebuf[i]), charstringP, charstringL);
+   i+=charstringL;
+   i+=sprintf( &(filebuf[i]), " %s\n", ndstring);
+-  csdone[currstring_no]=1;
++  csdone[currstring_no-1]=1;
+   /* Now, step through the specifier matrix and write only the
+      necessary charstrings. */
+   for ( j=0; j<256; j++) {
