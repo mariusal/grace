@@ -794,7 +794,7 @@ void do_ext_editor(Quark *pset)
         grace->rt->target_set = pset;
 	killsetdata(pset);	
     }
-    getdata(grace->project, fname, SOURCE_DISK, LOAD_SINGLE);
+    getdata(pr, fname, SOURCE_DISK, LOAD_SINGLE);
     grace->rt->autoscale_onread = save_autos;
     unlink(fname);
     update_all();
