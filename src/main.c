@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
         if (initialize_gui(&argc, argv) == GRACE_EXIT_SUCCESS) {
             cli = FALSE;
         } else {
-	    errmsg("Switching to CLI");
+	    errmsg("Can't open X connection - switching to CLI");
 	    cli = TRUE;
         }
 #endif
