@@ -137,6 +137,7 @@ static int follow(int expect, int ifyes, int ifno);
 static int findf(symtab_entry *keytable, char *s);
 
 static void add_xmgr_fonts(Quark *project);
+static void add_xmgr_colors(Quark *project);
 
 static Quark *allocate_graph(Quark *project, int gno);
 static Quark *allocate_set(Quark *gr, int setno);
@@ -1784,6 +1785,9 @@ parmset:
             }
             if (project_get_version_id(project) < 50001) {
                 add_xmgr_fonts(project);
+            }
+            if (project_get_version_id(project) < 50002) {
+                add_xmgr_colors(project);
             }
             dobject_id = 0;
         }
@@ -4703,6 +4707,51 @@ static void add_xmgr_fonts(Quark *project)
     add_xmgr_font(project, "Helvetica-BoldOblique", 7);
     add_xmgr_font(project, "Symbol", 8);
     add_xmgr_font(project, "ZapfDingbats", 9);
+}
+
+static Colordef cmap_init[] = {
+    /* white  */
+    { 0, {255, 255, 255}, "white"},
+    /* black  */
+    { 1, {0, 0, 0}, "black"},
+    /* red    */
+    { 2, {255, 0, 0}, "red"},
+    /* green  */
+    { 3, {0, 255, 0}, "green"},
+    /* blue   */
+    { 4, {0, 0, 255}, "blue"},
+    /* yellow */
+    { 5, {255, 255, 0}, "yellow"},
+    /* brown  */
+    { 6, {188, 143, 143}, "brown"},
+    /* grey   */
+    { 7, {220, 220, 220}, "grey"},
+    /* violet */
+    { 8, {148, 0, 211}, "violet"},
+    /* cyan   */
+    { 9, {0, 255, 255}, "cyan"},
+    /* magenta*/
+    {10, {255, 0, 255}, "magenta"},
+    /* orange */
+    {11, {255, 165, 0}, "orange"},
+    /* indigo */
+    {12, {114, 33, 188}, "indigo"},
+    /* maroon */
+    {13, {103, 7, 72}, "maroon"},
+    /* turquoise */
+    {14, {64, 224, 208}, "turquoise"},
+    /* forest green */
+    {15, {0, 139, 0}, "green4"}
+};
+
+static void add_xmgr_colors(Quark *project)
+{    
+    int i, n;
+    
+    n = sizeof(cmap_init)/sizeof(Colordef);
+    for (i = 0; i < n; i++) {
+        project_add_color(project, &cmap_init[i]);
+    }
 }
 
 static Quark *allocate_graph(Quark *project, int gno)
