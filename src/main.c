@@ -414,8 +414,10 @@ int main(int argc, char *argv[])
 #endif
 		} else if (argmatch(argv[i], "-noask", 5)) {
 		    noask = TRUE;
+#ifndef NONE_GUI
 		} else if (argmatch(argv[i], "-mono", 5)) {
 		    monomode = TRUE;
+#endif
 		} else if (argmatch(argv[i], "-hdevice", 5)) {
 		    i++;
 		    if (i == argc) {
@@ -835,13 +837,17 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-hardcopy                             No interactive session, just print and\n");
     fprintf(stream, "                                        quit\n");
     fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device\n");
+#ifndef NONE_GUI
     fprintf(stream, "-install                              Install private colormap\n");
+#endif
     fprintf(stream, "-legend    [load]                     Turn the graph legend on\n");
     fprintf(stream, "-log       [x|y|xy]                   Set the axis scaling of the current graph\n");
     fprintf(stream, "                                        to logarithmic\n");
     fprintf(stream, "-logwindow                            Open the log window\n");
+#ifndef NONE_GUI
     fprintf(stream, "-mono                                 Run Grace in monochrome mode (affects\n");
     fprintf(stream, "                                        the display only)\n");
+#endif
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
     fprintf(stream, "-netcdf    [netcdf file]              Assume data file is bnetCDF format\n");
     fprintf(stream, "-netcdfxy  [X var name] [Y var name]  If -netcdf was used previously, read from\n");
@@ -853,7 +859,9 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-noask                                Assume the answer is yes to all requests -\n");
     fprintf(stream, "                                        if the operation would overwrite a file,\n");
     fprintf(stream, "                                        grace will do so without prompting\n");
+#ifndef NONE_GUI
     fprintf(stream, "-noinstall                            Don't use private colormap\n");
+#endif
     fprintf(stream, "-nologwindow                          No log window, overrides resource setting\n");
     fprintf(stream, "-noprint                              In batch mode, do not print\n");
     fprintf(stream, "-nosigcatch                           Don't catch signals\n");
