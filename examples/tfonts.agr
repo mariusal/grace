@@ -21,7 +21,6 @@
 @timestamp char size 1.000000
 @timestamp def "Sun Dec  7 00:39:47 1997"
 @g0 off
-@focus off
 @with string
 @    string on
 @    string loctype view
