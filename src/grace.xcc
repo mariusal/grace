@@ -913,8 +913,9 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrGraph" type="graph">
         <!-- Attributes -->
-        <attribute name="#AStrId" type="ival">
-            /* FIXME */
+        <attribute name="#AStrId" type="sval">
+            quark_idstr_set($$, $?);
+            xfree($?);
         </attribute>
         <attribute name="#AStrActive" type="bval">
             set_graph_hidden($$, !$?);
@@ -1681,8 +1682,9 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrSet" type="set">
         <!-- Attributes -->
-        <attribute name="#AStrId" type="ival">
-            /* FIXME */
+        <attribute name="#AStrId" type="sval">
+            quark_idstr_set($$, $?);
+            xfree($?);
         </attribute>
         <attribute name="#AStrActive" type="bval">
             set_set_hidden($$, !$?);

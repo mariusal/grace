@@ -717,6 +717,7 @@ static int graph_children_save_hook(unsigned int step, void *data, void *udata)
     case QFlavorSet:
         p = set_get_data(q);
         
+        attributes_set_sval(attrs, AStrId, QIDSTR(q));
         xmlio_set_active(attrs, !(p->hidden));
         attributes_set_sval(attrs, AStrType, set_types(grace->rt, p->type));
         attributes_set_ival(attrs, AStrSkip, p->symskip);
@@ -915,7 +916,7 @@ int save_project(char *fn)
     storage_rewind(grace->project->children);
     while (storage_get_data(grace->project->children, (void **) &gr) == RETURN_SUCCESS) {
         attributes_reset(attrs);
-        attributes_set_sval(attrs, AStrId, gr->idstr);
+        attributes_set_sval(attrs, AStrId, QIDSTR(gr));
         xmlio_set_active(attrs, !is_graph_hidden(gr));
         xfile_begin_element(xf, EStrGraph, attrs);
         {
