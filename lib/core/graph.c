@@ -140,7 +140,7 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
-static int graph_free_cb(Quark *gr, int etype, void *data)
+static int graph_cb(Quark *gr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {
         Quark *pr = get_parent_project(gr);
@@ -151,6 +151,9 @@ static int graph_free_cb(Quark *gr, int etype, void *data)
                 project->cg = NULL;
             }
         }
+    } else
+    if (etype == QUARK_ETYPE_REPARENT) {
+        update_graph_ccache(gr);
     }
     return RETURN_SUCCESS;
 }
@@ -169,7 +172,7 @@ Quark *graph_new(Quark *q)
         if (pr && pr->cg == NULL) {
             pr->cg = g;
         }
-        quark_cb_set(g, graph_free_cb, NULL);
+        quark_cb_set(g, graph_cb, NULL);
     }
     return g;
 }
