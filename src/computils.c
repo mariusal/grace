@@ -577,13 +577,13 @@ void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int
 	sprintf(buf, "\nN.B. Statistics refer to the transformed model\n");
 	/* apply inverse transform, output fitted function in human readable form */
 	if( sdeg<11 ) {
-		sprintf(buf, "\ny = %.5g %c %.5g x", c[0], c[1]>=0?'+':'-', fabs(c[1]));
+		sprintf(buf, "\ny = %.5g %c %.5g * x", c[0], c[1]>=0?'+':'-', fabs(c[1]));
 		for( i=2; i<=ideg; i++ )
-			sprintf( buf+strlen(buf), " %c %.5g x^%d", c[i]>=0?'+':'-', 
+			sprintf( buf+strlen(buf), " %c %.5g * x^%d", c[i]>=0?'+':'-', 
 															fabs(c[i]), i );
 		strcat( buf, "\n" );
 	} else if (sdeg == 12) {	/* ln(y) = ln(A) + b * ln(x) */
-		sprintf( buf, "\ny = %.5g x^%.5g\n", exp(c[0]), c[1] );
+		sprintf( buf, "\ny = %.5g * x^%.5g\n", exp(c[0]), c[1] );
 	    for (i = 0; i < len; i++) {
 			xt[i] = exp(xt[i]);
 			yt[i] = exp(yt[i]);
@@ -593,14 +593,14 @@ void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int
 			xr[i] = exp(xr[i]);
 		}
 	} else if (sdeg == 13) { 	/* ln(y) = ln(A) + B * x */
-		sprintf( buf, "\ny = %.5g exp( %.5g x )\n", exp(c[0]), c[1] );
+		sprintf( buf, "\ny = %.5g * exp( %.5g * x )\n", exp(c[0]), c[1] );
 	    for (i = 0; i < len; i++) {
 			yt[i] = exp(yt[i]);
 	    }
 	    for (i = 0; i < fitlen; i++)
 			yr[i] = exp(yr[i]);
 	} else if (sdeg == 14) {	/* y = A + B * ln(x) */
-		sprintf(buf, "\ny = %.5g %c %.5g ln(x)\n", c[0], c[1]>=0?'+':'-',
+		sprintf(buf, "\ny = %.5g %c %.5g * ln(x)\n", c[0], c[1]>=0?'+':'-',
 											fabs(c[1]) );
 	    for (i = 0; i < len; i++) {
 			xt[i] = exp(xt[i]);
@@ -608,7 +608,7 @@ void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int
 	    for (i = 0; i < fitlen; i++)
 			xr[i] = exp(xr[i]);
 	} else if (sdeg == 15) {	/* y = 1/( A + B*x ) */
-		sprintf( buf, "\ny = 1/(%.5g %c %.5g x)\n", c[0], c[1]>=0?'+':'-',
+		sprintf( buf, "\ny = 1/(%.5g %c %.5g * x)\n", c[0], c[1]>=0?'+':'-',
 													fabs(c[1]) );
 	    for (i = 0; i < len; i++) {
 			yt[i] = 1.0 / yt[i];
