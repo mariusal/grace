@@ -1197,7 +1197,7 @@ int GetStorageChoices(StorageStructure *ss, Quark ***values)
     }
     
     if (n) {
-        xfree(selected);
+        XtFree((char *) selected);
     }
     
     return n;
