@@ -141,6 +141,7 @@ int sign(double a);
 double nicenum(double x, int nrange, int round);
 void fswap(double *x, double *y);
 void iswap(int *x, int *y);
+void uswap(unsigned int *x, unsigned int *y);
 void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
 
 /* locale */

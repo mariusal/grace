@@ -187,6 +187,15 @@ void iswap(int *x, int *y)
     *y = tmp;
 }
 
+void uswap(unsigned int *x, unsigned int *y)
+{
+    unsigned int tmp;
+
+    tmp = *x;
+    *x = *y;
+    *y = tmp;
+}
+
 /*
  * compute the mins and maxes of a vector x
  */
