@@ -154,6 +154,7 @@ String fallbackResourcesCommon[] = {
     "XMgrace*XbaeMatrix.selectedForeground: #000000",
     "XMgrace*fontTable.evenRowBackground: #e5e5e5",
     "XMgrace*SSD.evenRowBackground: #ffffff",
+    "XMgrace*SSD.buttonLabelBackground: #cccccc",
     "XMgrace*XmPushButton.background: #b0c4de",
     "XMgrace*XmMenuShell*XmPushButton.background: #e5e5e5",
     "XMgrace*penButton.background: #e5e5e5",
