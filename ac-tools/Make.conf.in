@@ -128,6 +128,9 @@ NOGUI_LIBS=@NOGUI_LIBS@
 # GUI libraries
 GUI_LIBS=@X_LIBS@ @GUI_LIBS@
 
+# Default paper size
+PAPERSIZE=@PAPERSIZE@
+
 # Command used to print
 PRINT_CMD=@PRINT_CMD@
 

@@ -40,19 +40,21 @@ AC_SUBST(XBAE_INC)
 AC_SUBST(HELPVIEWER)
 AC_SUBST(SUBDIRS)
 
+AC_SUBST(PAPERSIZE)
+
 AC_SUBST(PRINT_CMD)
-
-dnl **** Those are for T1lib
-
-AC_SUBST(T1_AA_TYPE16)
-AC_SUBST(T1_AA_TYPE32)
-AC_SUBST(T1_AA_TYPE64)
 
 AC_SUBST(MAJOR_REV)
 AC_SUBST(MINOR_REV)
 AC_SUBST(PATCHLEVEL)
 AC_SUBST(BETA_VER)
 AC_SUBST(PROG_SUFFIX)
+
+dnl **** Those are for T1lib
+
+AC_SUBST(T1_AA_TYPE16)
+AC_SUBST(T1_AA_TYPE32)
+AC_SUBST(T1_AA_TYPE64)
 
 dnl **** Grace version numbers
 MAJOR_REV=5
@@ -223,6 +225,15 @@ AC_ARG_WITH(printcmd,
  fi],
 [PRINT_CMD=NONE]
 )
+
+dnl **** default papersize  
+AC_ARG_ENABLE(papersize,
+[  --enable-papersize=PAPER     select paper size for docs (a4 or letter) [[a4]]],
+[case "${enableval}" in
+  a4)     PAPERSIZE=a4    ;;
+  letter) PAPERSIZE=letter;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-papersize) ;;
+esac],[PAPERSIZE=a4])
 
 dnl **** check if user wants to compile with debugging support
 AC_ARG_ENABLE(debug,

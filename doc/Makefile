@@ -10,9 +10,8 @@ include $(TOP)/Make.conf
 
 .SUFFIXES : .sgml .dvi .html .pdf .ps .tex
 
-# NB: the language and papersize options should be made `configure'able
+# NB: the language option should be made `configure'able
 LANGUAGE    = english
-PAPERSIZE   = letter
 
 LINUXDOC    = linuxdoc --language=$(LANGUAGE) --papersize=$(PAPERSIZE)
 
