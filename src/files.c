@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -794,7 +794,7 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
     int nrows, ncols, nncols, nscols, nncols_req;
     int *formats = NULL;
     int breakon, readerror;
-    ss_data ssd;
+    Quark *q;
     char *s, tbuf[128];
     char *linebuf=NULL;
     int linelen=0;   /* a misleading name ... */
@@ -806,8 +806,11 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
     
     breakon = TRUE;
     
-    memset(&ssd, 0, sizeof(ssd));
-
+    q = ssd_new(pr);
+    if (!q) {
+        return RETURN_FAILURE;
+    }
+    
     while (read_long_line(fp, &linebuf, &linelen) == RETURN_SUCCESS) {
 	linecount++;
         s = linebuf;
@@ -823,15 +826,18 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
 	    /* a data break line */
             if (breakon != TRUE) {
 		/* free excessive storage */
-                realloc_ss_data(&ssd, nrows);
+                ssd_set_nrows(q, nrows);
 
                 /* store accumulated data in set(s) */
-                if (store_data(pr, &ssd, load_type) != RETURN_SUCCESS) {
-		    xfree(linebuf);
+                if (store_data(q, load_type) != RETURN_SUCCESS) {
+		    quark_free(q);
+                    xfree(linebuf);
                     return RETURN_FAILURE;
                 }
                 
                 /* reset state registers */
+                q = ssd_new(pr);
+
                 nrows = 0;
                 readerror = 0;
                 breakon = TRUE;
@@ -868,31 +874,31 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
                 ncols = nncols + nscols;
 
                 /* init the data storage */
-                if (init_ss_data(&ssd, ncols, formats, label)
-                    != RETURN_SUCCESS) {
+                if (ssd_set_ncols(q, ncols, formats) != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
 		    xfree(linebuf);
 		    return RETURN_FAILURE;
                 }
                 
-		breakon = FALSE;
+		ssd_set_label(q, label);
+                breakon = FALSE;
 	    }
 	    if (nrows % BUFSIZE == 0) {
-		if (realloc_ss_data(&ssd, nrows + BUFSIZE) != RETURN_SUCCESS) {
+		if (ssd_set_nrows(q, nrows + BUFSIZE) != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
-                    free_ss_data(&ssd);
+                    quark_free(q);
 		    xfree(linebuf);
 		    return RETURN_FAILURE;
 		}
 	    }
 
-            if (insert_data_row(pr, &ssd, nrows, s) != RETURN_SUCCESS) {
+            if (insert_data_row(q, nrows, s) != RETURN_SUCCESS) {
                 sprintf(tbuf, "Error parsing line %d, skipped", linecount);
                 errmsg(tbuf);
                 readerror++;
                 if (readerror > MAXERR) {
                     if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
-                        free_ss_data(&ssd);
+                        quark_free(q);
 		        xfree(linebuf);
                         return RETURN_FAILURE;
                     } else {
@@ -907,13 +913,17 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
 
     if (nrows > 0) {
         /* free excessive storage */
-        realloc_ss_data(&ssd, nrows);
+        ssd_set_nrows(q, nrows);
 
         /* store accumulated data in set(s) */
-        if (store_data(pr, &ssd, load_type) != RETURN_SUCCESS) {
+        if (store_data(q, load_type) != RETURN_SUCCESS) {
+            quark_free(q);
 	    xfree(linebuf);
 	    return RETURN_FAILURE;
         }
+    } else {
+        /* empty */
+        quark_free(q);
     }
 
     xfree(linebuf);
@@ -1415,8 +1425,10 @@ int readnetcdf(Quark *pset,
  * initialize stuff for the newly created set
  */
     set_set_type(pset, SET_XY);
-    set_set_col(pset, 0, x, n);
-    set_set_col(pset, 1, y, n);
+    set_set_col(pset, DATA_X, x, n);
+    xfree(x);
+    set_set_col(pset, DATA_Y, y, n);
+    xfree(y);
 
     sprintf(buf, "File %s x = %s y = %s", netcdfname, xvar == NULL ? "Index" : xvar, yvar);
     set_set_comment(pset, buf);

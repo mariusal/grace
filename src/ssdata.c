@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -166,102 +166,6 @@ char *cols_to_field_string(int nc, int *cols, int scol)
 }
 
 
-
-
-
-static void set_blockdata(Quark *q, const ss_data *ssd)
-{
-    ss_data *dest_ssd = ssd_get_data(q);
-    if (dest_ssd) {
-        free_ss_data(dest_ssd);
-        memcpy(dest_ssd, ssd, sizeof(ss_data));
-        dest_ssd->label = copy_string(NULL, ssd->label);
-    }
-}
-
-static int get_blockncols(const ss_data *ssd)
-{
-    return ssd->ncols;
-}
-
-static int get_blocknrows(const ss_data *ssd)
-{
-    return ssd->nrows;
-}
-
-static int *get_blockformats(const ss_data *ssd)
-{
-    return ssd->formats;
-}
-
-
-
-int realloc_ss_data(ss_data *ssd, int nrows)
-{
-    int i, j;
-    char  **sp;
-    
-    for (i = 0; i < ssd->ncols; i++) {
-        if (ssd->formats[i] == FFORMAT_STRING) {
-            sp = (char **) ssd->data[i];
-            for (j = nrows; j < ssd->nrows; j++) {
-                XCFREE(sp[j]);
-            }
-            ssd->data[i] = xrealloc(ssd->data[i], nrows*sizeof(char *));
-            sp = (char **) ssd->data[i];
-            for (j = ssd->nrows; j < nrows; j++) {
-                sp[j] = NULL;
-            }
-        } else {
-            ssd->data[i] = xrealloc(ssd->data[i], nrows*SIZEOF_DOUBLE);
-        }
-    }
-    ssd->nrows = nrows;
-    
-    return RETURN_SUCCESS;
-}
-
-void free_ss_data(ss_data *ssd)
-{
-    if (ssd) {
-        int i, j;
-        char  **sp;
-
-        for (i = 0; i < ssd->ncols; i++) {
-            if (ssd->formats[i] == FFORMAT_STRING) {
-                sp = (char **) ssd->data[i];
-                for (j = 0; j < ssd->nrows; j++) {
-                    XCFREE(sp[j]);
-                }
-            }
-            XCFREE(ssd->data[i]);
-        }
-        XCFREE(ssd->data);
-        XCFREE(ssd->formats);
-        ssd->nrows = 0;
-        ssd->ncols = 0;
-        XCFREE(ssd->label);
-    }
-}
-
-int init_ss_data(ss_data *ssd, int ncols, int *formats, const char *label)
-{
-    int i;
-    
-    ssd->data = xmalloc(ncols*SIZEOF_VOID_P);
-    for (i = 0; i < ncols; i++) {
-        ssd->data[i] = NULL;
-    }
-    ssd->formats = xmalloc(ncols*SIZEOF_INT);
-    memcpy(ssd->formats, formats, ncols*SIZEOF_INT);
-    ssd->ncols = ncols;
-    ssd->nrows = 0;
-    
-    ssd->label = copy_string(ssd->label, label);
-
-    return RETURN_SUCCESS;
-}
-
 static char *next_token(char *s, char **token, int *quoted)
 {
     *quoted = FALSE;
@@ -357,10 +261,10 @@ int parse_ss_row(Quark *pr, const char *s, int *nncols, int *nscols, int **forma
 
 
 /* NOTE: the input string will be corrupted! */
-int insert_data_row(Quark *pr, ss_data *ssd, int row, char *s)
+int insert_data_row(Quark *q, unsigned int row, char *s)
 {
-    int i, j;
-    int ncols = ssd->ncols;
+    unsigned int i, ncols = ssd_get_ncols(q);
+    int *formats = ssd_get_formats(q);
     char *token;
     int quoted;
     char  **sp;
@@ -368,29 +272,26 @@ int insert_data_row(Quark *pr, ss_data *ssd, int row, char *s)
     Dates_format df_pref, ddummy;
     const char *sdummy;
     int res;
+    AMem *amem = quark_get_amem(q);
+    ss_data *ssd = ssd_get_data(q);
+    Quark *pr = get_parent_project(q); 
     
     df_pref = get_date_hint();
     for (i = 0; i < ncols; i++) {
         s = next_token(s, &token, &quoted);
         if (s == NULL || token == NULL) {
-            /* invalid line: free the already allocated string fields */
-            for (j = 0; j < i; j++) {
-                if (ssd->formats[j] == FFORMAT_STRING) {
-                    sp = (char **) ssd->data[j];
-                    XCFREE(sp[row]);
-                }
-            }
+            /* invalid line */
             return RETURN_FAILURE;
         } else {
-            if (ssd->formats[i] == FFORMAT_STRING) {
+            if (formats[i] == FFORMAT_STRING) {
                 sp = (char **) ssd->data[i];
-                sp[row] = copy_string(NULL, token);
+                sp[row] = amem_strcpy(amem, sp[row], token);
                 if (sp[row] != NULL) {
                     res = RETURN_SUCCESS;
                 } else {
                     res = RETURN_FAILURE;
                 }
-            } else if (ssd->formats[i] == FFORMAT_DATE) {
+            } else if (formats[i] == FFORMAT_DATE) {
                 np = (double *) ssd->data[i];
                 res = parse_date(pr, token, df_pref, FALSE, &np[row], &ddummy);
             } else {
@@ -398,12 +299,6 @@ int insert_data_row(Quark *pr, ss_data *ssd, int row, char *s)
                 res = parse_float(token, &np[row], &sdummy);
             }
             if (res != RETURN_SUCCESS) {
-                for (j = 0; j < i; j++) {
-                    if (ssd->formats[j] == FFORMAT_STRING) {
-                        sp = (char **) ssd->data[j];
-                        XCFREE(sp[row]);
-                    }
-                }
                 return RETURN_FAILURE;
             }
         }
@@ -447,27 +342,31 @@ static Quark *nextset(Quark *gr)
     }
 }
 
-int store_data(Quark *pr, ss_data *ssd, int load_type)
+int store_data(Quark *q, int load_type)
 {
     int ncols, nncols, nncols_req, nscols, nrows;
     int i, j;
+    int *formats;
     double *xdata;
-    Quark *gr, *pset, *ss;
+    Quark *gr, *pset;
     int x_from_index;
+    Quark *pr = get_parent_project(q); 
     RunTime *rt = rt_from_quark(pr);
+    ss_data *ssd = ssd_get_data(q);
     
     if (ssd == NULL || rt == NULL) {
         return RETURN_FAILURE;
     }
-    ncols = ssd->ncols;
-    nrows = ssd->nrows;
+    ncols = ssd_get_ncols(q);
+    nrows = ssd_get_nrows(q);
+    formats = ssd_get_formats(q);
     if (ncols <= 0 || nrows <= 0) {
         return RETURN_FAILURE;
     }
 
     nncols = 0;
     for (j = 0; j < ncols; j++) {
-        if (ssd->formats[j] != FFORMAT_STRING) {
+        if (formats[j] != FFORMAT_STRING) {
             nncols++;
         }
     }
@@ -482,7 +381,6 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
     case LOAD_SINGLE:
         if (nscols > 1) {
             errmsg("Can not use more than one column of strings per set");
-            free_ss_data(ssd);
             return RETURN_FAILURE;
         }
 
@@ -502,13 +400,14 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
         if (x_from_index) {
             xdata = allocate_index_data(nrows);
             if (xdata == NULL) {
-                free_ss_data(ssd);
+                return RETURN_FAILURE;
             }
-            set_set_col(pset, nncols, xdata, nrows);
+            set_set_col(pset, DATA_X, xdata, nrows);
+            xfree(xdata);
             nncols++;
         }
         for (j = 0; j < ncols; j++) {
-            if (ssd->formats[j] == FFORMAT_STRING) {
+            if (formats[j] == FFORMAT_STRING) {
                 set_set_strings(pset, nrows, (char **) ssd->data[j]);
             } else {
                 set_set_col(pset, nncols, (double *) ssd->data[j], nrows);
@@ -519,50 +418,32 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
             set_set_comment(pset, ssd->label);
         }
         
-        XCFREE(ssd->data);
-        XCFREE(ssd->formats);
-        XCFREE(ssd->label);
+        quark_free(q);
         break;
     case LOAD_NXY:
         if (nscols != 0) {
             errmsg("Can not yet use strings when reading in data as NXY");
-            free_ss_data(ssd);
             return RETURN_FAILURE;
         }
         
         for (i = 0; i < ncols - 1; i++) {
             pset = grace_set_new(gr);
             if (!pset) {
-                free_ss_data(ssd);
                 return RETURN_FAILURE;
             }
-            if (i > 0) {
-                AMem *amem = quark_get_amem(pset);
-                xdata = copy_data_column(amem, (double *) ssd->data[0], nrows);
-                if (xdata == NULL) {
-                    free_ss_data(ssd);
-                }
-            } else {
-                xdata = (double *) ssd->data[0];
-            }
+            xdata = (double *) ssd->data[0];
             set_set_type(pset, SET_XY);
             set_set_col(pset, DATA_X, xdata, nrows);
             set_set_col(pset, DATA_Y, (double *) ssd->data[i + 1], nrows);
             set_set_comment(pset, ssd->label);
         }
     
-        XCFREE(ssd->data);
-        XCFREE(ssd->formats);
-        XCFREE(ssd->label);
         break;
     case LOAD_BLOCK:
-        ss = ssd_new(pr);
-        set_blockdata(ss, ssd);
-        quark_idstr_set(ss, ssd->label);
+        quark_idstr_set(q, ssd->label);
         break;
     default:
         errmsg("Internal error");
-        free_ss_data(ssd);
         return RETURN_FAILURE;
     }
     
@@ -581,13 +462,13 @@ int create_set_fromblock(const Quark *ss, Quark *pset,
         return RETURN_FAILURE;
     }
 
-    blockncols = get_blockncols(blockdata);
+    blockncols = ssd_get_ncols(ss);
     if (blockncols <= 0) {
         errmsg("No block data read");
         return RETURN_FAILURE;
     }
 
-    blocklen = get_blocknrows(blockdata);
+    blocklen = ssd_get_nrows(ss);
     
     ncols = settype_cols(type);
     if (nc > ncols) {
@@ -611,7 +492,7 @@ int create_set_fromblock(const Quark *ss, Quark *pset,
 	return RETURN_FAILURE;
     }
 
-    formats = get_blockformats(blockdata);
+    formats = ssd_get_formats(ss);
     
     /* clear data stored in the set, if any */
     killsetdata(pset);
@@ -624,8 +505,7 @@ int create_set_fromblock(const Quark *ss, Quark *pset,
             cdata = allocate_index_data(blocklen);
         } else {
             if (formats[column] != FFORMAT_STRING) {
-                AMem *amem = quark_get_amem(pset);
-                cdata = copy_data_column(amem,
+                cdata = copy_data_column_simple(
                     (double *) blockdata->data[column], blocklen);
             } else {
                 errmsg("Tried to read doubles from strings!");
@@ -638,6 +518,7 @@ int create_set_fromblock(const Quark *ss, Quark *pset,
             return RETURN_FAILURE;
         }
         set_set_col(pset, i, cdata, blocklen);
+        xfree(cdata);
     }
 
     /* strings, if any */
@@ -647,10 +528,7 @@ int create_set_fromblock(const Quark *ss, Quark *pset,
             killsetdata(pset);
             return RETURN_FAILURE;
         } else {
-            AMem *amem = quark_get_amem(pset);
-            set_set_strings(pset, blocklen,
-                copy_string_column(amem,
-                    (char **) blockdata->data[scol], blocklen));
+            set_set_strings(pset, blocklen, blockdata->data[scol]);
         }
     }
 

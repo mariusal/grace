@@ -44,14 +44,9 @@ double *allocate_mesh(double start, double stop, int len);
 char *cols_to_field_string(int nc, int *cols, int scol);
 int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol);
 
-
-int realloc_ss_data(ss_data *ssd, int nrows);
-void free_ss_data(ss_data *ssd);
-int init_ss_data(ss_data *ssd, int ncols, int *formats, const  char *label);
-
 int parse_ss_row(Quark *pr, const char *s, int *nncols, int *nscols, int **formats);
-int insert_data_row(Quark *pr, ss_data *ssd, int row, char *s);
-int store_data(Quark *pr, ss_data *ssd, int load_type);
+int insert_data_row(Quark *q, unsigned int row, char *s);
+int store_data(Quark *q, int load_type);
 
 int create_set_fromblock(const Quark *ss, Quark *pset,
     int type, int nc, int *coli, int scol, int autoscale);
