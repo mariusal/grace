@@ -356,6 +356,15 @@ typedef struct {
     SpinStructure   *a_lL_ff;
 } ATextUI;
 
+typedef struct {
+    Widget          top;
+
+    Widget          active;
+    
+    OptionStructure *type;
+    OptionStructure *color;
+} RegionUI;
+
 struct _ExplorerUI {
     Widget       top;
     Widget       tree;
@@ -375,6 +384,7 @@ struct _ExplorerUI {
     AxisUI       *axis_ui;
     ObjectUI     *object_ui;
     ATextUI      *atext_ui;
+    RegionUI     *region_ui;
 
     Widget       popup;
 
@@ -432,5 +442,9 @@ int set_object_data(ObjectUI *ui, Quark *q, void *caller);
 ATextUI *create_atext_ui(ExplorerUI *eui);
 void update_atext_ui(ATextUI *ui, Quark *q);
 int set_atext_data(ATextUI *ui, Quark *q, void *caller);
+
+RegionUI *create_region_ui(ExplorerUI *eui);
+void update_region_ui(RegionUI *ui, Quark *q);
+int set_region_data(RegionUI *ui, Quark *q, void *caller);
 
 #endif /* __EXPLORER_H_ */
