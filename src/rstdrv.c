@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -871,6 +871,7 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
     int num_text;
     png_text text_ptr[4];
     char *s;
+    png_uint_32 res_meter;
     
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
         NULL, NULL, NULL);
@@ -920,9 +921,8 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
     }
     png_set_PLTE(png_ptr, info_ptr, palette, num_palette);
     
-/*
- *     png_set_pHYs(png_ptr, info_ptr, res_x, res_y, PNG_RESOLUTION_UNKNOWN);
- */
+    res_meter = (png_uint_32) rint(page_dpi/MM_PER_INCH*1000.0);
+    png_set_pHYs(png_ptr, info_ptr, res_meter, res_meter, PNG_RESOLUTION_METER);
 
 #ifdef PNG_WRITE_tRNS_SUPPORTED
     if (png_setup_transparent) {
