@@ -483,8 +483,33 @@ static void rereadConfig(void)
  */
 static void bugwarn(char *signame)
 {
-    fprintf(stderr, "\a\nOops! Got %s. Please use \"Help/Comments\" to report the bug.\n", signame);
-    exit(GRACE_EXIT_FAILURE);
+    static int emergency_save = FALSE;
+/*
+ *  Since we got so far, memory is probably corrupted so it's better to use
+ *  a static storage
+ */
+    static char buf[GR_MAXPATHLEN];
+    
+    if (emergency_save != FALSE) {
+        /* don't mind signals anymore: we're in emergency save mode already */
+        return;
+    } else {
+        emergency_save = TRUE;
+        fprintf(stderr, "\a\nOops! Got %s\n", signame);
+        if (is_dirtystate()) {
+            strcpy(buf, docname);
+            strcat(buf, "#");
+            fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
+            noask = TRUE;
+            if (save_project(buf) == GRACE_EXIT_SUCCESS) {
+                fprintf(stderr, "ok!\n");
+            } else {
+                fprintf(stderr, "oh, no luck :-(\n");
+            }
+        }
+        fprintf(stderr, "\nPlease use \"Help/Comments\" to report the bug.\n");
+        exit(GRACE_EXIT_FAILURE);
+    }
 }
 
 /*
