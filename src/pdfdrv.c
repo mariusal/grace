@@ -36,6 +36,7 @@
 #include <cmath.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
@@ -63,6 +64,7 @@ static float pixel_size;
 static float page_scalef;
 
 static int *pdf_font_ids;
+static int *pdf_pattern_ids;
 
 static int pdf_color;
 static int pdf_pattern;
@@ -73,6 +75,7 @@ static int pdf_linejoin;
 
 static int pdf_setup_pdf1_3 = TRUE;
 static int pdf_setup_compression = 4;
+static int pdf_setup_tight_bb = FALSE;
 
 extern FILE *prstream;
 
@@ -156,6 +159,37 @@ int pdfinitgraphics(void)
         pdf_font_ids[i] = -1;
     }
     
+    if (pdf_setup_pdf1_3 == TRUE) {
+        pdf_pattern_ids = xmalloc(number_of_patterns()*SIZEOF_INT);
+        for (i = 1; i < number_of_patterns(); i++) {
+/* Unfortunately, there is no way to open a _masked_ image from memory */
+#if 0
+            int im;
+            pdf_pattern_ids[i] = PDF_begin_pattern(phandle,
+                16.0, 16.0, 16.0, 16.0, 2);
+            im = PDF_open_image(phandle, "raw", "memory",
+                (const char *) pat_bits[i], 32, 16, 16, 1, 1, "");
+            PDF_place_image(phandle, im, 0.0, 0.0, 1.0);
+            PDF_close_image(phandle, im);
+            PDF_end_pattern(phandle);
+#else
+            int j, k, l;
+            pdf_pattern_ids[i] = PDF_begin_pattern(phandle,
+                16.0, 16.0, 16.0, 16.0, 2);
+            for (j = 0; j < 256; j++) {
+                k = j%16;
+                l = 15 - j/16;
+                if ((pat_bits[i][j/8] >> (j%8)) & 0x01) {
+                    /* the bit is set */
+                    PDF_rect(phandle, (float) k, (float) l, 1.0, 1.0);
+                    PDF_fill(phandle);
+                }
+            }
+            PDF_end_pattern(phandle);
+#endif
+        }
+    }
+
     PDF_begin_page(phandle, pg.width*72.0/pg.dpi, pg.height*72.0/pg.dpi);
 
     if ((s = get_project_description())) {
@@ -172,17 +206,18 @@ int pdfinitgraphics(void)
     return RETURN_SUCCESS;
 }
 
-void pdf_setpen(void)
+void pdf_setpen(Pen pen)
 {
-    Pen pen;
-    
-    pen = getpen();
     if (pen.color != pdf_color || pen.pattern != pdf_pattern) {
         fRGB frgb;
         get_frgb(pen.color, &frgb);
-        PDF_setrgbcolor(phandle,
-                    (float) frgb.red, (float) frgb.green,(float) frgb.blue);     
-        /* TODO: patterns */
+        PDF_setcolor(phandle, "both", "rgb",
+            (float) frgb.red, (float) frgb.green,(float) frgb.blue, 0.0);     
+        if (pdf_setup_pdf1_3 &&
+            pen.pattern > 1 && pdf_pattern_ids[pen.pattern] >= 0) {
+            PDF_setcolor(phandle, "both", "pattern",
+                (float) pdf_pattern_ids[pen.pattern], 0.0, 0.0, 0.0);     
+        }
         pdf_color = pen.color;
         pdf_pattern = pen.pattern;
     }
@@ -195,7 +230,7 @@ void pdf_setdrawbrush(void)
     int ls;
     float *darray;
 
-    pdf_setpen();
+    pdf_setpen(getpen());
     
     ls = getlinestyle();
     lw = MAX2(getlinewidth(), pixel_size);
@@ -258,7 +293,7 @@ void pdf_setlineprops(void)
 
 void pdf_drawpixel(VPoint vp)
 {
-    pdf_setpen();
+    pdf_setpen(getpen());
     
     if (pdf_linew != pixel_size) {
         PDF_setlinewidth(phandle, pixel_size);
@@ -278,10 +313,18 @@ void pdf_drawpixel(VPoint vp)
     PDF_stroke(phandle);
 }
 
-void pdf_drawpolyline(VPoint *vps, int n, int mode)
+void pdf_poly_path(VPoint *vps, int n)
 {
     int i;
     
+    PDF_moveto(phandle, (float) vps[0].x, (float) vps[0].y);
+    for (i = 1; i < n; i++) {
+        PDF_lineto(phandle, (float) vps[i].x, (float) vps[i].y);
+    }
+}
+
+void pdf_drawpolyline(VPoint *vps, int n, int mode)
+{
     if (getlinestyle() == 0) {
         return;
     }
@@ -289,10 +332,8 @@ void pdf_drawpolyline(VPoint *vps, int n, int mode)
     pdf_setdrawbrush();
     pdf_setlineprops();
     
-    PDF_moveto(phandle, (float) vps[0].x, (float) vps[0].y);
-    for (i = 1; i < n; i++) {
-        PDF_lineto(phandle, (float) vps[i].x, (float) vps[i].y);
-    }
+    pdf_poly_path(vps, n);
+    
     if (mode == POLYLINE_CLOSED) {
         PDF_closepath_stroke(phandle);
     } else {
@@ -302,37 +343,40 @@ void pdf_drawpolyline(VPoint *vps, int n, int mode)
 
 void pdf_fillpolygon(VPoint *vps, int nc)
 {
-    int i;
+    Pen pen;
     
-    if (getpattern() == 0) {
+    pen = getpen();
+    
+    if (pen.pattern == 0) {
         return;
     }
     
-    pdf_setpen();
-    
-    PDF_moveto(phandle, (float) vps[0].x, (float) vps[0].y);
-    for (i = 1; i < nc; i++) {
-        PDF_lineto(phandle, (float) vps[i].x, (float) vps[i].y);
-    }
     if (getfillrule() == FILLRULE_WINDING) {
         PDF_set_parameter(phandle, "fillrule", "winding");
     } else {
         PDF_set_parameter(phandle, "fillrule", "evenodd");
     }
+    
+    if (pdf_setup_pdf1_3 && pen.pattern > 1) {
+        Pen solid_pen;
+        solid_pen.color = getbgcolor();
+        solid_pen.pattern = 1;
+        
+        pdf_setpen(solid_pen);
+        pdf_poly_path(vps, nc);
+        PDF_fill(phandle);
+    }
+    
+    pdf_setpen(pen);
+    pdf_poly_path(vps, nc);
     PDF_fill(phandle);
 }
 
-void pdf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
+void pdf_arc_path(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
     VPoint vpc;
     double rx, ry;
-    
-    if (getlinestyle() == 0) {
-        return;
-    }
-    
-    pdf_setdrawbrush();
-    
+
     vpc.x = (vp1.x + vp2.x)/2;
     vpc.y = (vp1.y + vp2.y)/2;
     rx = fabs(vp2.x - vp1.x)/2;
@@ -342,45 +386,55 @@ void pdf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
         return;
     }
     
-    PDF_save(phandle);
     PDF_scale(phandle, 1.0, ry/rx);
     PDF_moveto(phandle, (float) vpc.x + rx*cos(a1*M_PI/180.0), 
                         (float) rx/ry*vpc.y + rx*sin(a1*M_PI/180.0));
     PDF_arc(phandle, (float) vpc.x, (float) rx/ry*vpc.y, rx, 
                                         (float) a1, (float) a2);
+
+    if (mode == ARCFILL_PIESLICE) {
+        PDF_lineto(phandle, (float) vpc.x, (float) rx/ry*vpc.y);
+    }
+}
+
+void pdf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
+{
+    if (getlinestyle() == 0) {
+        return;
+    }
+    
+    pdf_setdrawbrush();
+    PDF_save(phandle);
+    pdf_arc_path(vp1, vp2, a1, a2, ARCFILL_CHORD);
     PDF_stroke(phandle);
     PDF_restore(phandle);
 }
 
 void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
-    VPoint vpc;
-    double rx, ry;
+    Pen pen;
     
-    if (getpattern() == 0) {
+    pen = getpen();
+    
+    if (pen.pattern == 0) {
         return;
     }
     
-    pdf_setpen();
-    
-    vpc.x = (vp1.x + vp2.x)/2;
-    vpc.y = (vp1.y + vp2.y)/2;
-    rx = fabs(vp2.x - vp1.x)/2;
-    ry = fabs(vp2.y - vp1.y)/2;
-    
-    if (rx == 0.0 || ry == 0.0) {
-        return;
+    if (pdf_setup_pdf1_3 && pen.pattern > 1) {
+        Pen solid_pen;
+        solid_pen.color = getbgcolor();
+        solid_pen.pattern = 1;
+        
+        PDF_save(phandle);
+        pdf_setpen(solid_pen);
+        pdf_arc_path(vp1, vp2, a1, a2, mode);
+        PDF_fill(phandle);
+        PDF_restore(phandle);
     }
-    
+
     PDF_save(phandle);
-    PDF_scale(phandle, 1.0, ry/rx);
-    PDF_moveto(phandle, (float) vpc.x + rx*cos(a1*M_PI/180.0), 
-                        (float) rx/ry*vpc.y + rx*sin(a1*M_PI/180.0));
-    PDF_arc(phandle, (float) vpc.x, (float) rx/ry*vpc.y, rx, 
-                                        (float) a1, (float) a2);
-    if (mode == ARCFILL_PIESLICE) {
-        PDF_lineto(phandle, (float) vpc.x, (float) rx/ry*vpc.y);
-    }
+    pdf_setpen(pen);
+    pdf_arc_path(vp1, vp2, a1, a2, mode);
     PDF_fill(phandle);
     PDF_restore(phandle);
 }
@@ -485,7 +539,7 @@ static int pdf_builtin_font(const char *fname)
 void pdf_puttext(VPoint vp, char *s, int len, int font,
      TextMatrix *tm, int underline, int overline, int kerning)
 {
-    pdf_setpen();
+    pdf_setpen(getpen());
     
     if (pdf_font_ids[font] < 0) {
         char buf[GR_MAXPATHLEN];
@@ -535,10 +589,20 @@ void pdf_puttext(VPoint vp, char *s, int len, int font,
 
 void pdf_leavegraphics(void)
 {
+    if (pdf_setup_tight_bb) {
+        view v = get_bbox(BBOX_TYPE_GLOB);
+        
+        PDF_set_value(phandle, "CropBox/llx", page_scalef*v.xv1 - 1);
+        PDF_set_value(phandle, "CropBox/lly", page_scalef*v.yv1 - 1);
+        PDF_set_value(phandle, "CropBox/urx", page_scalef*v.xv2 + 1);
+        PDF_set_value(phandle, "CropBox/ury", page_scalef*v.yv2 + 1);
+    }
+    
     PDF_end_page(phandle);
     PDF_close(phandle);
     PDF_delete(phandle);
     xfree(pdf_font_ids);
+    XCFREE(pdf_pattern_ids);
 }
 
 static void pdf_error_handler(PDF *p, int type, const char *msg)
@@ -577,6 +641,12 @@ int pdf_op_parser(char *opstring)
         } else {
             return RETURN_FAILURE;
         }
+    } else if (!strcmp(opstring, "bbox:tight")) {
+        pdf_setup_tight_bb = TRUE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "bbox:page")) {
+        pdf_setup_tight_bb = FALSE;
+        return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
@@ -590,6 +660,7 @@ static int set_pdf_setup_proc(void *data);
 static Widget pdf_setup_frame;
 static Widget pdf_setup_pdf1_3_item;
 static SpinStructure *pdf_setup_compression_item;
+static Widget pdf_setup_tight_bb_item;
 
 void pdf_gui_setup(void)
 {
@@ -603,6 +674,7 @@ void pdf_gui_setup(void)
 	fr = CreateFrame(pdf_setup_frame, "PDF options");
         rc = CreateVContainer(fr);
 	pdf_setup_pdf1_3_item = CreateToggleButton(rc, "PDF-1.3");
+	pdf_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
 	pdf_setup_compression_item = CreateSpinChoice(rc,
             "Compression:", 1, SPIN_TYPE_INT, 0.0, 9.0, 1.0);
 
@@ -618,6 +690,7 @@ static void update_pdf_setup_frame(void)
     if (pdf_setup_frame) {
         SetToggleButtonState(pdf_setup_pdf1_3_item, pdf_setup_pdf1_3);
         SetSpinChoice(pdf_setup_compression_item, (double) pdf_setup_compression);
+        SetToggleButtonState(pdf_setup_tight_bb_item, pdf_setup_tight_bb);
     }
 }
 
@@ -625,6 +698,7 @@ static int set_pdf_setup_proc(void *data)
 {
     pdf_setup_pdf1_3 = GetToggleButtonState(pdf_setup_pdf1_3_item);
     pdf_setup_compression = (int) GetSpinChoice(pdf_setup_compression_item);
+    pdf_setup_tight_bb = GetToggleButtonState(pdf_setup_tight_bb_item);
     
     return RETURN_SUCCESS;
 }
