@@ -2091,7 +2091,7 @@ parmset:
 	| LINE ARROW NUMBER {
 	    line_arrow_end = checkon(ARROW, line_arrow_end, (int) $3);
 	}
-	| LINE ARROW SIZE NUMBER {
+	| LINE ARROW LENGTH expr {
 	    line_asize = $4;
 	}
 	| LINE ARROW TYPE NUMBER {
@@ -3840,6 +3840,10 @@ parmset_obs:
         }
 	| GRAPHNO AUTOSCALE TYPE SPEC {
         }
+
+	| LINE ARROW SIZE NUMBER {
+	    line_asize = 2.0*$4;
+	}
 
         | HARDCOPY DEVICE NUMBER { }
         | PS LINEWIDTH BEGIN NUMBER { }

@@ -68,7 +68,7 @@ static OptionStructure *strings_color_item;
 static Widget *strings_just_item;
 
 static Widget *lines_arrow_item;
-static Widget lines_asize_item;
+static SpinStructure *lines_asize_item;
 static Widget *lines_atype_item;
 static SpinStructure *lines_a_dL_ff_item;
 static SpinStructure *lines_a_lL_ff_item;
@@ -127,7 +127,7 @@ void boxes_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 
 void lines_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    line_asize = GetCharSizeChoice(lines_asize_item);
+    line_asize = GetSpinChoice(lines_asize_item);
     line_color = GetOptionChoice(lines_color_item);
     line_arrow_end = GetChoice(lines_arrow_item);
     line_atype = GetChoice(lines_atype_item);
@@ -158,7 +158,7 @@ void update_lines(void)
 	SetSpinChoice(lines_width_item, line_linew);
 	SetChoice(lines_arrow_item, line_arrow_end);
 	SetChoice(lines_atype_item, line_atype);
-	SetCharSizeChoice(lines_asize_item, line_asize);
+	SetSpinChoice(lines_asize_item, line_asize);
         SetSpinChoice(lines_a_dL_ff_item, line_a_dL_ff);
         SetSpinChoice(lines_a_lL_ff_item, line_a_lL_ff);
 	SetChoice(lines_loc_item, line_loctype == COORD_VIEW ? 1 : 0);
@@ -457,7 +457,8 @@ void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
 					     "Opaque",
 					     0,
 					     0);
-	lines_asize_item = CreateCharSizeChoice(rc2, "Length");
+	lines_asize_item = CreateSpinChoice(rc2, "Length",
+            4, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.5);
 	lines_a_dL_ff_item = CreateSpinChoice(rc2, "d/L form factor",
             4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
 	lines_a_lL_ff_item = CreateSpinChoice(rc2, "l/L form factor",
@@ -827,7 +828,7 @@ typedef struct {
     Widget *loc_item;
     Widget *arrow_item;
     Widget *atype_item;
-    Widget asize_item;
+    SpinStructure *asize_item;
     SpinStructure *dL_ff_item;
     SpinStructure *lL_ff_item;
     Widget x1_item;
@@ -846,7 +847,7 @@ void update_line_edit(EditLineUI *ui)
 	SetSpinChoice(ui->linew_item, lines[lineno].linew);
 	SetChoice(ui->arrow_item, lines[lineno].arrow_end);
 	SetChoice(ui->atype_item, lines[lineno].arrow.type);
-	SetCharSizeChoice(ui->asize_item, lines[lineno].arrow.length);
+	SetSpinChoice(ui->asize_item, lines[lineno].arrow.length);
 	SetSpinChoice(ui->dL_ff_item, lines[lineno].arrow.dL_ff);
 	SetSpinChoice(ui->lL_ff_item, lines[lineno].arrow.lL_ff);
 	SetChoice(ui->loc_item, lines[lineno].loctype == COORD_VIEW ? 1 : 0);
@@ -903,7 +904,7 @@ void line_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     xv_evalexpr(ui->y2_item, &lines[lineno].y2);
     lines[lineno].arrow_end = GetChoice(ui->arrow_item);
     lines[lineno].arrow.type = GetChoice(ui->atype_item);
-    lines[lineno].arrow.length = GetCharSizeChoice(ui->asize_item);
+    lines[lineno].arrow.length = GetSpinChoice(ui->asize_item);
     lines[lineno].arrow.dL_ff = GetSpinChoice(ui->dL_ff_item);
     lines[lineno].arrow.lL_ff = GetSpinChoice(ui->lL_ff_item);
     
@@ -955,7 +956,8 @@ void line_edit_popup(int lineno)
 					     0,
 					     0);
 
-	line_ui.asize_item = CreateCharSizeChoice(rc2, "Length");
+	line_ui.asize_item = CreateSpinChoice(rc2, "Length",
+            4, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.5);
 	line_ui.dL_ff_item = CreateSpinChoice(rc2, "d/L form factor",
             4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
 	line_ui.lL_ff_item = CreateSpinChoice(rc2, "l/L form factor",

@@ -2064,7 +2064,7 @@ void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp)
     vnorm.x = (vp2.x - vp1.x)/vlength;
     vnorm.y = (vp2.y - vp1.y)/vlength;
     
-    L = 0.02*arrowp->length;
+    L = 0.01*arrowp->length;
     d = L*arrowp->dL_ff;
     l = L*arrowp->lL_ff;
 

@@ -646,7 +646,7 @@ static void put_objects(int gno, FILE * pp, int embed)
             fprintf(pp, "%s    line color %d\n", embedstr, l.color);
             fprintf(pp, "%s    line arrow %d\n", embedstr, l.arrow_end);
             fprintf(pp, "%s    line arrow type %d\n", embedstr, l.arrow.type);
-            fprintf(pp, "%s    line arrow size %f\n", embedstr, l.arrow.length);
+            fprintf(pp, "%s    line arrow length %f\n", embedstr, l.arrow.length);
             fprintf(pp, "%s    line arrow layout %f, %f\n", embedstr, l.arrow.dL_ff, l.arrow.lL_ff);
             fprintf(pp, "%sline def\n", embedstr);
         }
