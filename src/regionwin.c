@@ -378,6 +378,7 @@ void define_status_popup(void *data)
 void define_region(int nr, int rtype)
 {
     kill_region(nr);
+    xdrawgraph();
     switch (rtype) {
     case 0:
 	regiontype = REGION_POLYI;
