@@ -50,7 +50,7 @@
 @timestamp rot 0
 @timestamp font 0
 @timestamp char size 1.000000
-@timestamp def "Tue Mar  9 02:36:37 1999"
+@timestamp def "Fri Mar 12 01:57:23 1999"
 @with box
 @    box on
 @    box loctype view
@@ -267,7 +267,7 @@
 @    yaxis  label font 0
 @    yaxis  label color 1
 @    yaxis  label op left
-@    yaxis  tick on
+@    yaxis  tick off
 @    yaxis  tick major 0.5
 @    yaxis  tick minor ticks 0
 @    yaxis  tick default 6
