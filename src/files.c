@@ -808,7 +808,6 @@ static int uniread(FILE *fp, int load_type, char *label)
 	        continue;
             }
 	} else {
-	    convertchar(linebuf);
 	    if (breakon) {
 		/* parse the data line */
                 if (parse_ss_row(s, &nncols, &nscols, &formats) != GRACE_EXIT_SUCCESS) {
