@@ -741,16 +741,20 @@ int graph_get_sets(Quark *gr, Quark ***sets)
 {
     set_hook_t p;
     
-    p.nsets = 0;
-    p.sets  = xmalloc(storage_count(gr->children)*SIZEOF_VOID_P);
-    
-    if (p.sets) {
-        storage_traverse(gr->children, set_hook, &p);
+    if (gr) {
+        p.nsets = 0;
+        p.sets  = xmalloc(storage_count(gr->children)*SIZEOF_VOID_P);
+
+        if (p.sets) {
+            storage_traverse(gr->children, set_hook, &p);
+        }
+
+        *sets = xrealloc(p.sets, p.nsets*SIZEOF_VOID_P);
+
+        return p.nsets;
+    } else {
+        return 0;
     }
-    
-    *sets = xrealloc(p.sets, p.nsets*SIZEOF_VOID_P);
-    
-    return p.nsets;
 }
 
 Quark *graph_get_frame(Quark *gr)
