@@ -505,7 +505,9 @@ void installSignal(void){
 #ifdef SIGTERM
     signal(SIGTERM, actOnSignal);   /* software termination signal */
 #endif
-    signal(SIGALRM, actOnSignal);  /* timer */
+#ifdef SIGALRM
+    signal(SIGALRM, actOnSignal);   /* timer */
+#endif
 #ifdef SIGIO
     signal(SIGIO, actOnSignal);     /* input/output ready */
 #endif
