@@ -1375,7 +1375,8 @@ void project_postprocess(Project *pr)
             storage_rewind(g->dobjects);
             n = storage_count(g->dobjects);
             for (i = 0; i < n; i++) {
-                if (storage_get_data(g->dobjects, (void **) &o) == RETURN_SUCCESS) {
+                if (storage_get_data(g->dobjects, (void **) &o) ==
+                    RETURN_SUCCESS) {
                     if (o->type == DO_STRING) {
                         DOStringData *s = (DOStringData *) o->odata;
                         s->just |= JUST_MIDDLE;
@@ -1387,14 +1388,15 @@ void project_postprocess(Project *pr)
             }
         }
 
-        if (pr->version_id <= 50101) {
+        if (pr->version_id < 50200) {
             int i, n;
             DObject *o;
 
             storage_rewind(g->dobjects);
             n = storage_count(g->dobjects);
             for (i = 0; i < n; i++) {
-                if (storage_get_data(g->dobjects, (void **) &o) == RETURN_SUCCESS) {
+                if (storage_get_data(g->dobjects, (void **) &o) ==
+                    RETURN_SUCCESS) {
                     if (o->loctype == COORD_WORLD) {
                         WPoint wp;
                         VPoint vp1, vp2;
@@ -1434,12 +1436,15 @@ void project_postprocess(Project *pr)
                                 wp.x = o->ap.x;
                                 wp.y = o->ap.y;
                                 vp1 = Wpoint2Vpoint(wp);
-                                wp.x = o->ap.x + l->length*cos(o->angle);
-                                wp.y = o->ap.y + l->length*sin(o->angle);
+                                wp.x = o->ap.x +
+                                    l->length*cos(M_PI/180.0*o->angle);
+                                wp.y = o->ap.y +
+                                    l->length*sin(M_PI/180.0*o->angle);
                                 vp2 = Wpoint2Vpoint(wp);
 
                                 l->length = hypot(vp2.x - vp1.x, vp2.y - vp1.y);
-                                o->angle  = atan2(vp2.y - vp1.y, vp2.x - vp1.x);
+                                o->angle  = 180.0/M_PI*atan2(vp2.y - vp1.y,
+                                                             vp2.x - vp1.x);
                             }
                             break;
                         case DO_STRING:
