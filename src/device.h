@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -115,9 +115,10 @@ char *get_device_name(int device);
 void *get_curdevice_data(void);
 void set_curdevice_data(void *data);
 
-void set_device_props(int device, Device_entry dev);
+int set_device_props(int device, Device_entry dev);
 void set_curdevice_props(Device_entry dev);
 
+int is_valid_page_geometry(Page_geometry pg);
 int set_page_geometry(Page_geometry pg);
 Page_geometry get_page_geometry(void);
 

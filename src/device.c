@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -41,11 +41,20 @@ static unsigned int ndevices = 0;
 static int curdevice = 0;
 static Device_entry *device_table = NULL;
 
-int set_page_geometry(Page_geometry pg)
+int is_valid_page_geometry(Page_geometry pg)
 {
     if (pg.width  > 0 &&
 	pg.height > 0 &&
         pg.dpi > 0.0) {
+	return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+int set_page_geometry(Page_geometry pg)
+{
+    if (is_valid_page_geometry(pg) == TRUE) {
         device_table[curdevice].pg = pg;
 	return RETURN_SUCCESS;
     } else {
@@ -210,8 +219,13 @@ void set_curdevice_data(void *data)
     device_table[curdevice].data = data;
 }
 
-void set_device_props(int deviceid, Device_entry device)
+int set_device_props(int deviceid, Device_entry device)
 {
+    if (deviceid >= ndevices || deviceid < 0 ||
+        is_valid_page_geometry(device.pg) != TRUE) {
+        return RETURN_FAILURE;
+    }
+    
     device_table[deviceid].type = device.type;
 /*
  *     device_table[deviceid].init = device.init;
@@ -223,6 +237,7 @@ void set_device_props(int deviceid, Device_entry device)
     device_table[deviceid].pg = device.pg;
     device_table[deviceid].data = device.data;
 
+    return RETURN_SUCCESS;
 }
 
 void set_curdevice_props(Device_entry device)
