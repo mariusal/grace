@@ -178,7 +178,6 @@ static XtActionsRec canvas_actions[] = {
 	{ "refresh_hotlink", (XtActionProc) refresh_hotlink_action },
 	{ "set_viewport", (XtActionProc) set_viewport_action },	
 	{ "write_string", (XtActionProc) write_string_action },	
-	{ "exit_abruptly", (XtActionProc) exit_abruptly_action },	
 	{ "enable_zoom", (XtActionProc) enable_zoom_action }
 };
 
@@ -202,7 +201,6 @@ static char canvas_table[] = "#override\n\
 	Ctrl <Key>U: refresh_hotlink()\n\
 	Ctrl <Key>V: set_viewport()\n\
 	Ctrl <Key>W: write_string()\n\
-	Ctrl <Key>X: exit_abruptly()\n\
 	Ctrl <Key>Z: enable_zoom()";
 
 /*

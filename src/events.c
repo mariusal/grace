@@ -1338,11 +1338,6 @@ void write_string_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
     set_action(STR_LOC);
 }
 
-void exit_abruptly_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
-{
-    bailout();	
-}
-
 void enable_zoom_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
 {
     set_action(DO_NOTHING);
