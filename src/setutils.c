@@ -1090,6 +1090,7 @@ void del_point(int gno, int setno, int pt)
     } else {
 	killsetdata(gno, setno);
     }
+    set_dirtystate();
 }
 
 /*
@@ -1148,6 +1149,7 @@ int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint)
         if (s != NULL) {
             s[ind] = copy_string(s[ind], dpoint->s);
         }
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;

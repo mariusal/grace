@@ -304,8 +304,10 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
     sprintf(buf, scformat[(ep->cformat[cs->column])], ep->cprec[cs->column],
     	    datap[cs->row]);
     if (strcmp(buf, cs->value) != 0) {
+        /* TODO: add edit_point() function to setutils.c */
 	datap[cs->row] = atof(cs->value);
 
+        set_dirtystate();
         update_set_lists(ep->gno);
         drawgraph();
     }
