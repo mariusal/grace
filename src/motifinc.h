@@ -238,6 +238,8 @@ void SetSensitive(Widget w, int onoff);
 
 Widget GetParent(Widget w);
 
+void RegisterEditRes(Widget shell);
+
 void SetDimensions(Widget w, unsigned int width, unsigned int height);
 void GetDimensions(Widget w, unsigned int *width, unsigned int *height);
 

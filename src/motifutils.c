@@ -42,6 +42,10 @@
 #include <X11/X.h>
 #include <X11/Xatom.h>
 
+#ifdef WITH_EDITRES
+#  include <X11/Xmu/Editres.h>
+#endif
+
 #include <Xm/Xm.h>
 #include <Xm/Protocols.h>
 #include <Xm/BulletinB.h>
@@ -172,6 +176,13 @@ Widget GetParent(Widget w)
         errmsg("Internal error: GetParent() called with NULL widget");
         return NULL;
     }
+}
+
+void RegisterEditRes(Widget shell)
+{
+#ifdef WITH_EDITRES    
+    XtAddEventHandler(shell, (EventMask) 0, True, _XEditResCheckMessages, NULL);
+#endif
 }
 
 void SetDimensions(Widget w, unsigned int width, unsigned int height)
