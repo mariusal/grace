@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1550,18 +1550,80 @@ int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *c
     return 1;
 }
 
-void do_interp(int ygno, int yset, int xgno, int xset, int method)
-/* interpolate a set at abscissas from another set
- *  (ygno, yset) - set to interpolate
- *  (xgno, xset) - set supplying abscissas
- *  method - spline or linear interpolation
- *
- * Added by Ed Vigmond 10/2/97
- */
+int interpolate(double *mesh, double *yint, int meshlen,
+    double *x, double *y, int len, int method)
 {
-    int i, j, iset, xsetlength, ysetlength, isetlength;
-    double *x1, *x2, *newx, *y, *b, *c, *d, newy;
-    double xmin, xmax, ymin, ymax;
+    double *b, *c, *d;
+    double dx;
+    int i, ifound;
+    int m;
+
+    switch (method) {
+    case SPLINE_CUBIC:
+    case SPLINE_AKIMA:
+        b = xcalloc(len, SIZEOF_DOUBLE);
+        c = xcalloc(len, SIZEOF_DOUBLE);
+        d = xcalloc(len, SIZEOF_DOUBLE);
+        if (b == NULL || c == NULL || d == NULL) {
+            xfree(b);
+            xfree(c);
+            xfree(d);
+            return RETURN_FAILURE;
+        }
+        if (method == SPLINE_AKIMA){
+            /* Akima spline */
+            aspline(len, x, y, b, c, d);
+        } else {
+            /* Plain cubic spline */
+            spline(len, x, y, b, c, d);
+        }
+        for (i = 0; i < meshlen; i++) {
+            yint[i] = seval(len, mesh[i], x, y, b, c, d);
+        }
+        xfree(b);
+        xfree(c);
+        xfree(d);
+        break;
+    default:
+        /* linear interpolation */
+
+        m = monotonicity(x, len, FALSE);
+        if (m == 0) {
+            errmsg("Can't interpolate a set with non-monotonic abscissas");
+            return RETURN_FAILURE;
+        }
+
+        for (i = 0; i < meshlen; i++) {
+            ifound = find_span_index(x, len, m, mesh[i]);
+            if (ifound < 0) {
+                ifound = 0;
+            } else if (ifound > len - 2) {
+                ifound = len - 2;
+            }
+            dx = x[ifound + 1] - x[ifound];
+            if (dx) {
+                yint[i] = y[ifound] + (mesh[i] - x[ifound])*
+                    ((y[ifound + 1] - y[ifound])/dx);
+            } else {
+                yint[i] = (y[ifound] + y[ifound + 1])/2;
+            }
+        }
+        break;
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+/* interpolate a set at abscissas from another set
+ * (ygno, yset) - set to interpolate
+ * (xgno, xset) - set supplying abscissas
+ * method - type of spline (or linear interpolation)
+ */
+void do_interp(int ygno, int yset, int xgno, int xset, int method)
+{
+    int iset, igno = get_cg();
+    int meshlen, len, i, n;
+    double *x, *xint, *mesh;
 	
     if (!is_set_active(ygno, yset)) {
 	errmsg("Interpolating set not active");
@@ -1571,61 +1633,40 @@ void do_interp(int ygno, int yset, int xgno, int xset, int method)
         errmsg("Sampling set not active");
         return;
     }
-    iset = nextset(get_cg());
-    activateset( get_cg(), iset );
-    /* ensure bounds of new set */
-    x1=getx( ygno, yset );
-    y=gety( ygno, yset );
-    x2=getx( xgno, xset );
-    newx = xcalloc( getsetlength( xgno, xset ), SIZEOF_DOUBLE );
-    xsetlength = getsetlength( xgno, xset );
-    ysetlength = getsetlength( ygno, yset );
-    for(i = 0, j = 0; i < xsetlength; i++) {		/* get intersection of sets */
-    	getsetminmax(ygno, yset, &xmin, &xmax, &ymin, &ymax);
-        if(x2[i] >= xmin && x2[i] <= xmax) {
-    	    newx[j++] = x2[i];
+    
+    meshlen = getsetlength(xgno, xset);
+    len     = getsetlength(ygno, yset);
+
+    iset = nextset(igno);
+    copyset(ygno, yset, igno, iset);
+    setlength(igno, iset, meshlen);
+    activateset(igno, iset);
+    
+    mesh = getcol(xgno, xset, DATA_X);
+    xint = getcol(igno, iset, DATA_X);
+    
+    for (i = 0; i < meshlen; i++) {
+        xint[i] = mesh[i];
+    }
+
+    x = getcol(ygno, yset, DATA_X);
+    for (n = 1; n < dataset_cols(igno, iset); n++) {
+        int res;
+        double *y, *yint;
+        
+        y    = getcol(ygno, yset, n);
+        yint = getcol(igno, iset, n);
+        
+        res = interpolate(mesh, yint, meshlen, x, y, len, method);
+        if (res != RETURN_SUCCESS) {
+            killset(igno, iset);
+            return;
         }
     }
-    isetlength = j;
 
-    if( method ) {					/* spline */
-		b = xcalloc(ysetlength, SIZEOF_DOUBLE);
-		c = xcalloc(ysetlength, SIZEOF_DOUBLE);
-		d = xcalloc(ysetlength, SIZEOF_DOUBLE);
-		if (b == NULL || c == NULL || d == NULL) {
-	    	XCFREE(b);
-	    	XCFREE(c);
-	    	XCFREE(d);
-	    	killset(get_cg(), iset);
-	    	return;
-		}
-		if (method == SPLINE_AKIMA){      /* Akima spline */
-		    aspline(ysetlength, x1, y, b, c, d);
-		} else {                          /* Plain cubic spline */
-		    spline(ysetlength, x1, y, b, c, d);
-		}
-		for (i = 0; i < j; i++) {
-		    add_point(get_cg(), iset, newx[i], seval(ysetlength, newx[i], x1, y,
-		               b, c, d));
-		}
-		
-    }else {				          /* linear interpolation */
-    	for( j=0; j<isetlength; j++ ) {
-    		i=0;
-    		while( (x1[i]>newx[j] || x1[i+1]<=newx[j]) && i<ysetlength )
-    			i++;
-    		if( i>= ysetlength)
-    			newy = y[ysetlength-1];
-    		else 
-    			newy =
-    			(newx[j]-x1[i])*(y[i+1]-y[i])/(x1[i+1]-x1[i])+y[i];
-    		add_point(get_cg(), iset, newx[j], newy);
-    	}
-    }
-    /* activate new set and update sets */
-    sprintf( buf, "Interpolated from Set %d at points from Set %d", yset, xset );
-    XCFREE( newx );
-    setcomment(get_cg(), iset, buf);
+    sprintf(buf, "Interpolated from G%d.S%d at points from G%d.S%d",
+        ygno, yset, xgno, xset);
+    setcomment(igno, iset, buf);
 }
 
 int get_restriction_array(int gno, int setno,
@@ -1681,4 +1722,81 @@ int get_restriction_array(int gno, int setno,
         break;
     }
     return RETURN_SUCCESS;
+}
+
+int monotonicity(double *array, int len, int strict)
+{
+    int i;
+    int s0, s1;
+    
+    if (len < 2) {
+        errmsg("Monotonicity of an array of length < 2 is meaningless");
+        return 0;
+    }
+    
+    s0 = sign(array[1] - array[0]);
+    for (i = 2; i < len; i++) {
+        s1 = sign(array[i] - array[i - 1]);
+        if (s1 != s0) {
+            if (strict) {
+                return 0;
+            } else if (s0 == 0) {
+                s0 = s1;
+            } else if (s1 != 0) {
+                return 0;
+            }
+        }
+    }
+    
+    return s0;
+}
+
+int find_span_index(double *array, int len, int m, double x)
+{
+    int ind, low = 0, high = len - 1;
+    
+    if (len < 2 || m == 0) {
+        errmsg("find_span_index() called with a non-monotonic array");
+        return -2;
+    } else if (m > 0) {
+        /* ascending order */
+        if (x < array[0]) {
+            return -1;
+        } else if (x > array[len - 1]) {
+            return len - 1;
+        } else {
+            while (low <= high) {
+	        ind = (low + high) / 2;
+	        if (x < array[ind]) {
+	            high = ind - 1;
+	        } else if (x > array[ind + 1]) {
+	            low = ind + 1;
+	        } else {
+	            return ind;
+	        }
+            }
+        }
+    } else {
+        /* descending order */
+        if (x > array[0]) {
+            return -1;
+        } else if (x < array[len - 1]) {
+            return len - 1;
+        } else {
+            while (low <= high) {
+	        ind = (low + high) / 2;
+	        if (x > array[ind]) {
+	            high = ind - 1;
+	        } else if (x < array[ind + 1]) {
+	            low = ind + 1;
+	        } else {
+	            return ind;
+	        }
+            }
+        }
+    }
+
+    /* should never happen */
+    errmsg("internal error in find_span_index()");
+    return -2;
 }
