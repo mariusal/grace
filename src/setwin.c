@@ -59,7 +59,7 @@ static void changetypeCB(Widget w, XtPointer client_data, XtPointer call_data);
 static void datasetprop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 static void datasetop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
-static void datasetoptypeCB(Widget w, XtPointer client_data, XtPointer call_data);
+static void datasetoptypeCB(int value, void *data);
 static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 
@@ -439,7 +439,7 @@ void create_datasetop_popup(Widget w, XtPointer client_data, XtPointer call_data
 	datasetopui.optype_item = CreateOptionChoice(dialog,
 						"Operation type:",
 						1, 5, optype_items);
-   	AddOptionChoiceCB(datasetopui.optype_item, datasetoptypeCB);
+   	AddOptionChoiceCB(datasetopui.optype_item, datasetoptypeCB, NULL);
 
 	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
@@ -510,10 +510,10 @@ void create_datasetop_popup(Widget w, XtPointer client_data, XtPointer call_data
     unset_wait_cursor();
 }
 
-static void datasetoptypeCB(Widget w, XtPointer client_data, XtPointer call_data)
+static void datasetoptypeCB(int value, void *data)
 {
     int i;
-    dataSetOpType type = (int) client_data;
+    dataSetOpType type = value;
     
     for (i = 0; i < 5; i++) {
         if (i == type) {
