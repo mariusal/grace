@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -27,7 +26,7 @@
  */
 
 /*
- * GRACE PDF driver
+ * Grace PDF driver
  */
 
 #include <config.h>
@@ -136,8 +135,6 @@ int pdfinitgraphics(void)
         return RETURN_FAILURE;
     }
 
-    PDF_set_value(phandle, "compress", (float) pdf_setup_compression);
-
     if (pdf_setup_pdf1_3 == TRUE) {
         s = "1.3";
     } else {
@@ -149,6 +146,8 @@ int pdfinitgraphics(void)
         return RETURN_FAILURE;
     }
     
+    PDF_set_value(phandle, "compress", (float) pdf_setup_compression);
+
     PDF_set_info(phandle, "Creator", bi_version_string());
     PDF_set_info(phandle, "Author", get_username());
     PDF_set_info(phandle, "Title", get_docname());
