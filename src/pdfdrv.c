@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -139,6 +139,8 @@ int pdfinitgraphics(void)
     if (phandle == NULL) {
         return RETURN_FAILURE;
     }
+
+    PDF_set_parameter(phandle, "prefix", get_grace_home());
 
     sprintf(buf, "%d", pdf_setup_compression);
     PDF_set_parameter(phandle, "compress", buf);
@@ -505,11 +507,11 @@ void pdf_puttext(VPoint vp, char *s, int len, int font,
         if (pdf_builtin_font(fontname)) {
             embed = 0;
         } else {
-            sprintf(buf, "%s=%s/fonts/type1/%s",
-                fontname, get_grace_home(), get_afmfilename(font));
+            sprintf(buf, "%s=fonts/type1/%s",
+                fontname, get_afmfilename(font));
             PDF_set_parameter(phandle, "FontAFM", buf);
-            sprintf(buf, "%s=%s/fonts/type1/%s",
-                fontname, get_grace_home(), get_fontfilename(font));
+            sprintf(buf, "%s=fonts/type1/%s",
+                fontname, get_fontfilename(font));
             PDF_set_parameter(phandle, "FontOutline", buf);
 
             embed = 1;
