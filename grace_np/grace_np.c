@@ -21,14 +21,9 @@
 #ifdef HAVE_SYS_WAIT_H
 #  include <sys/wait.h>
 #endif
-#ifdef HAVE_SYS_RESOURCE_H
-#  include <sys/resource.h>
-#endif
-#ifndef HAVE_GETRLIMIT
-#  include <limits.h>
-#  ifndef OPEN_MAX
-#    define OPEN_MAX 64
-#  endif
+#include <limits.h>
+#ifndef OPEN_MAX
+#  define OPEN_MAX 256
 #endif
 
 #include "grace_np.h"
@@ -40,6 +35,21 @@ static int bufsizeforce;               /* threshold for forcing a flush */
 static int fd_pipe = -1;               /* file descriptor of the pipe */
 static int broken_pipe = 0;            /* is the pipe broken ? */
 static pid_t pid = (pid_t) -1;         /* pid of grace */
+
+/*
+ * notify grace when finished
+ */
+static void
+#ifdef HAVE_ON_EXIT
+notify_grace_on_exit(int status, void* arg)
+#else
+notify_grace_on_exit(void)
+#endif
+{
+    if (fd_pipe != -1) {
+        GraceClosePipe();
+    }
+}
 
 /*
  * default function for reporting errors
@@ -136,14 +146,11 @@ GraceRegisterErrorFunction(GraceErrorFunctionType f)
 }
 
 int
-GraceOpen (const int arg)
+GraceOpen(const int arg)
 {
-    int i, fd[2], fdmax;
+    int i, fd[2];
     int retval;
     char fd_number [4];
-#ifdef HAVE_GETRLIMIT
-    struct rlimit rlim;
-#endif
 
     if (fd_pipe != -1) {
         error_function("Grace subprocess already running");
@@ -157,12 +164,19 @@ GraceOpen (const int arg)
     }
     bufsize = arg;
     bufsizeforce = arg / 2;
-    
+
+    /* make sure the grace subprocess is notified at the end */
+#ifdef HAVE_ON_EXIT
+    on_exit(notify_grace_on_exit, NULL);
+#else
+    atexit(notify_grace_on_exit);
+#endif
+
     /* Don't exit on SIGPIPE */
     signal(SIGPIPE, SIG_IGN);
 
     /* Don't exit when our child "grace" exits */
-    signal (SIGCHLD, SIG_IGN);
+    signal(SIGCHLD, SIG_IGN);
 
     /* Make the pipe */
     if (pipe(fd)) {
@@ -179,16 +193,11 @@ GraceOpen (const int arg)
 
     /* If we are the child, replace ourselves with grace */
     if (pid == (pid_t) 0) {
-#ifdef HAVE_GETRLIMIT
-        getrlimit(RLIMIT_NOFILE, &rlim);
-        fdmax = rlim.rlim_cur;
-#else
-        fdmax = OPEN_MAX;
-#endif
-        for (i = 3; i < fdmax; i++) {
-            if (i != fd[0]) {
-                /* we close everything except stdin, stdout, stderr
-                   and the read part of the pipe */
+        for (i = 0; i < OPEN_MAX; i++) {
+            /* we close everything except stdin, stdout, stderr
+               and the read part of the pipe */
+            if (i != fd[0] &&
+                i != STDIN_FILENO && i != STDOUT_FILENO && i != STDERR_FILENO) {
                 close(i);
             }
         }
@@ -221,13 +230,13 @@ GraceOpen (const int arg)
 }
 
 int
-GraceIsOpen (const int arg)
+GraceIsOpen(const int arg)
 {
     return (fd_pipe >= 0) ? 1 : 0;
 }
 
 int
-GraceClose (void)
+GraceClose(void)
 {
 
     if (fd_pipe == -1) {
@@ -235,7 +244,7 @@ GraceClose (void)
         return (-1);
     }
 
-    /* Tell grace to exit */
+    /* Tell grace to close the pipe */
     if (! broken_pipe) {
         if (GraceCommand ("exit") == -1)
             return (-1);
@@ -261,7 +270,36 @@ GraceClose (void)
 }
 
 int
-GraceFlush (void)
+GraceClosePipe(void)
+{
+
+    if (fd_pipe == -1) {
+        error_function("No grace subprocess");
+        return (-1);
+    }
+
+    /* Tell grace to close the pipe */
+    if (! broken_pipe) {
+        if (GraceCommand ("close") == -1)
+            return (-1);
+        if (GraceFlush() != 0)
+            return (-1);
+    }
+
+    /* Close the pipe and free the buffer */
+    if (close(fd_pipe) == -1) {
+        GracePerror("GraceClose");
+	return (-1);
+    }
+    fd_pipe = -1;
+    free (buf);
+
+    return (0);
+
+}
+
+int
+GraceFlush(void)
 {
     int loop, left;
 
@@ -287,7 +325,7 @@ GraceFlush (void)
 }
 
 int
-GracePrintf (const char* fmt, ...)
+GracePrintf(const char* fmt, ...)
 {
     va_list ap;
     char* str;
@@ -321,7 +359,7 @@ GracePrintf (const char* fmt, ...)
 }
 
 int
-GraceCommand (const char* cmd)
+GraceCommand(const char* cmd)
 {
     int left;
     

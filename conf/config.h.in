@@ -103,9 +103,6 @@
 /* Define if you have the <sys/time.h> header file.  */
 #undef HAVE_SYS_TIME_H
 
-/* Define if you have the <sys/resource.h> header file.  */
-#undef HAVE_SYS_RESOURCE_H
-
 /* Define if you have the <sys/select.h> header file.  */
 #undef HAVE_SYS_SELECT_H
 
@@ -168,9 +165,6 @@
 
 /* Define if you have the shl_load function.  */
 #undef HAVE_SHL_LOAD
-
-/* Define if you have the getrlimit function.  */
-#undef HAVE_GETRLIMIT
 
 /* If words are stored with the most significant byte first (like
                    Motorola and SPARC, but not Intel and VAX, CPUs */

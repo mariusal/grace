@@ -18,15 +18,31 @@ extern "C" {
 #  define EXIT_FAILURE -1
 #endif
 
+/* register a user function to print errors */
+/* (the default function appends a newline and prints to standard error) */
 typedef void (*GraceErrorFunctionType) (const char *);
 GraceErrorFunctionType GraceRegisterErrorFunction(GraceErrorFunctionType f);
 
-int GraceOpen (const int);
-int GraceIsOpen ();
-int GraceClose (void);
-int GraceFlush (void);
-int GracePrintf (const char*, ...);
-int GraceCommand (const char*);
+/* launch a grace subprocess and a communication channel with it */
+int GraceOpen(const int);
+
+/* test if a grace subprocess is currently connected */
+int GraceIsOpen();
+
+/* close the communication channel and exit the grace subprocess */
+int GraceClose(void);
+
+/* close the communication channel and leave the grace subprocess alone */
+int GraceClosePipe(void);
+
+/* flush all the data remaining in the buffer */
+int GraceFlush(void);
+
+/* format a command and send it to the grace subprocess */
+int GracePrintf(const char*, ...);
+
+/* send an already formated command to the grace subprocess */
+int GraceCommand(const char*);
 
 #ifdef __cplusplus
 }

@@ -740,13 +740,16 @@ typedef struct {
 
 /* real time inputs */
 typedef struct _Input_buffer {
-    int           fd;
-    int           lineno;
-    char         *name;
-    int           size;
-    int           used;
-    char         *buf;
-    unsigned long id;
+    int           fd;     /* file descriptor */
+    int           lineno; /* line number */
+    int           zeros;  /* number of successive reads of zero byte */
+    int           reopen; /* non-zero if we should close and reopen */
+                          /* when other side is closed (mainly for fifos) */
+    char         *name;   /* name of the input (filename or symbolic name) */
+    int           size;   /* size of the buffer for already read lines */
+    int           used;   /* number of bytes used in the buffer */
+    char         *buf;    /* buffer for already read lines */
+    unsigned long id;     /* id for X library */
 } Input_buffer;
 
 #endif /* __DEFINES_H_ */

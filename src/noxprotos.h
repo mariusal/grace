@@ -95,7 +95,7 @@ void drawgrid(int gno);
 void drawaxes(int gno);
 
 void unregister_real_time_input(const char *name);
-int register_real_time_input(int fd, const char *name);
+int register_real_time_input(int fd, const char *name, int reopen);
 int real_time_under_monitoring(void);
 int monitor_input(Input_buffer *tbl, int tblsize, int no_wait);
 

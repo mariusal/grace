@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -45,6 +46,9 @@
 #include <errno.h>
 #ifdef HAVE_SYS_SELECT_H
 #  include <sys/select.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
 #endif
 
 #include "globals.h"
@@ -85,14 +89,15 @@ static int readline = 0;	/* line number in file */
 
 int loops_allowed = 0;		/* periodically reset to stop long inputs */
 
-static Input_buffer dummy_ib = {-1, 0, NULL, 0, 0, NULL, 0l};
+static Input_buffer dummy_ib = {-1, 0, 0, 0, NULL, 0, 0, NULL, 0l};
 
-int nb_rt = 0;		        /* number if real time file descriptors */
+int nb_rt = 0;		        /* number of real time file descriptors */
 Input_buffer *ib_tbl = 0;	/* table for each open input */
 int ib_tblsize = 0;		/* number of elements in ib_tbl */
 
 static int expand_ib_tbl(void);
 static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
+static int reopen_real_time_input(Input_buffer *ib);
 static int read_real_time_lines(Input_buffer *ib);
 static int process_complete_lines(Input_buffer *ib);
 static int read_long_line(FILE * fp);
@@ -170,6 +175,41 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
 
 
 /*
+ * reopen an Input_buffer (surely a fifo)
+ */
+static int reopen_real_time_input(Input_buffer *ib)
+{
+    int fd;
+
+    /* in order to avoid race conditions (broken pipe on the write
+       side), we open a new file descriptor before closing the
+       existing one */
+    fd = open(ib->name, O_RDONLY | O_NONBLOCK);
+    if (fd < 0) {
+        sprintf(buf, "Can't reopen real time input %s", ib->name);
+        errmsg(buf);
+        unregister_real_time_input(ib->name);
+        return GRACE_EXIT_FAILURE;
+    }
+
+#ifndef NONE_GUI
+    xunregister_rti((XtInputId) ib->id);
+#endif
+
+    /* swapping the file descriptors */
+    close(ib->fd);
+    ib->fd = fd;
+
+#ifndef NONE_GUI
+    xregister_rti(ib);
+#endif
+
+    return GRACE_EXIT_SUCCESS;
+
+}
+
+
+/*
  * unregister a file descriptor no longer monitored
  * (since Input_buffer structures dedicated to static inputs
  *  are not kept in the table, it is not an error to unregister
@@ -180,13 +220,14 @@ void unregister_real_time_input(const char *name)
     Input_buffer *ib;
     int           l1, l2;
 
-    l1 = strlen (name);
+    l1 = strlen(name);
 
     nb_rt = 0;
     for (ib = ib_tbl; ib < ib_tbl + ib_tblsize; ib++) {
-        l2 = (ib->name == 0) ? -1 : strlen (ib->name);
+        l2 = (ib->name == 0) ? -1 : strlen(ib->name);
         if (l1 == l2 && strcmp (name, ib->name) == 0) {
-            /* this descriptor will be ignored from now */
+            /* name is usually the same pointer as ib->name so we cannot */
+            /* free the string and output the message using name afterwards */
             close(ib->fd);
             ib->fd = -1;
             free(ib->name);
@@ -205,16 +246,31 @@ void unregister_real_time_input(const char *name)
 /*
  * register a file descriptor for monitoring
  */
-int register_real_time_input(int fd, const char *name)
+int register_real_time_input(int fd, const char *name, int reopen)
 {
 
     Input_buffer *ib;
 
+    /* some safety checks */
     if (fd < 0) {
         sprintf(buf, "%s : internal error, wrong file descriptor", name);
         errmsg(buf);
         return GRACE_EXIT_FAILURE;
     }
+
+#ifdef HAVE_FCNTL
+    switch (fcntl(fd, F_GETFL)) {
+    case O_RDONLY:
+    case O_RDWR:
+        break;
+    default:
+        fprintf(stderr,
+                "Descriptor %d not open for reading\n",
+                fd);
+        return GRACE_EXIT_FAILURE;
+        break;
+    }
+#endif
 
     /* remove previous entry for the same set if any */
     unregister_real_time_input(name);
@@ -242,10 +298,12 @@ int register_real_time_input(int fd, const char *name)
 
     /* we keep the current buffer (even if 0),
        and only say everything is available */
-    ib->fd           = fd;
-    ib->lineno       = 0;
-    ib->name         = copy_string(ib->name, name);
-    ib->used         = 0;
+    ib->fd     = fd;
+    ib->lineno = 0;
+    ib->zeros  = 0;
+    ib->reopen = reopen;
+    ib->name   = copy_string(ib->name, name);
+    ib->used   = 0;
 #ifndef NONE_GUI
     xregister_rti (ib);
 #endif
@@ -257,7 +315,7 @@ int register_real_time_input(int fd, const char *name)
 }
 
 /*
- * read a real-time line
+ * read a real-time line (but do not process it)
  */
 static int read_real_time_lines(Input_buffer *ib)
 {
@@ -284,9 +342,14 @@ static int read_real_time_lines(Input_buffer *ib)
                 ib->name);
         errmsg(buf);
         return GRACE_EXIT_FAILURE;
-    } else if (nbread > 0) {
-        ib->used += nbread;
-        ib->buf[ib->used] = '\0';
+    } else {
+        if (nbread == 0) {
+            ib->zeros++;
+        } else {
+            ib->zeros = 0;
+            ib->used += nbread;
+            ib->buf[ib->used] = '\0';
+        }
     }
 
     return GRACE_EXIT_SUCCESS;
@@ -295,7 +358,7 @@ static int read_real_time_lines(Input_buffer *ib)
 
 
 /*
- * process complete lines
+ * process complete lines that have already been read
  */
 static int process_complete_lines(Input_buffer *ib)
 {
@@ -319,7 +382,7 @@ static int process_complete_lines(Input_buffer *ib)
             *end_of_line = '\0';
 
             close_input = NULL;
-            read_param(begin_of_line);
+            read_param(begin_of_line); /* this can reset close_input */
             if (close_input != NULL) {
                 /* something should be closed */
                 if (close_input[0] == '\0') {
@@ -388,6 +451,9 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
         /* first process the already read data */
         /* (it is possible no more data will arrive here) */
         if (process_complete_lines(ib) != GRACE_EXIT_SUCCESS) {
+#ifndef NONE_GUI
+            unset_wait_cursor();
+#endif
             return GRACE_EXIT_FAILURE;
         }
     }
@@ -399,14 +465,19 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
         highest = -1;
         FD_ZERO(&rfds);
         for (ib = tbl; ib < tbl + tblsize; ib++) {
-            FD_SET(ib->fd, &rfds);
-            if (ib->fd > highest) {
-                highest = ib->fd;
+            if (ib->fd >= 0) {
+                FD_SET(ib->fd, &rfds);
+                if (ib->fd > highest) {
+                    highest = ib->fd;
+                }
             }
         }
 
         if (highest < 0) {
             /* there's nothing to do */
+#ifndef NONE_GUI
+            unset_wait_cursor();
+#endif
             return GRACE_EXIT_SUCCESS;
         }
 
@@ -427,8 +498,32 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
                 /* there is pending input */
                 if (read_real_time_lines(ib) != GRACE_EXIT_SUCCESS
                     || process_complete_lines(ib) != GRACE_EXIT_SUCCESS) {
+#ifndef NONE_GUI
+                    unset_wait_cursor();
+#endif
                     return GRACE_EXIT_FAILURE;
                 }
+
+                if (ib->zeros >= 5) {
+                    /* we were told five times something happened, but
+                       never got any byte : we assume the pipe (or
+                       whatever) has been closed by the peer */
+                    if (ib->reopen) {
+                        /* we should reset the input buffer, in case
+                           the peer also reopens it */
+                        if (reopen_real_time_input(ib) != GRACE_EXIT_SUCCESS) {
+                            unset_wait_cursor();
+                            return GRACE_EXIT_FAILURE;
+                        }
+                    } else {
+                        unregister_real_time_input(ib->name);
+                    }
+
+                    /* we have changed the table, we should end the loop */
+                    break;
+
+                }
+
             }
         }
 
@@ -440,7 +535,6 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
 #ifndef NONE_GUI
     unset_wait_cursor();
 #endif
-
     return GRACE_EXIT_SUCCESS;
 
 }

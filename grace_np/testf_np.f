@@ -59,7 +59,7 @@ C          Tell Grace to save the data
 C
            CALL GraceCommandf ('saveall "sample.gr"')
 C
-C          Flush the output buffer and close the pipe
+C          Flush the output buffer and close Grace
 C
            CALL GraceClosef ()
 C

@@ -387,21 +387,11 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    } else {
                         fd = atoi(argv[i]);
-#ifdef HAVE_FCNTL
-                        switch (fcntl(fd, F_GETFL)) {
-                        case O_RDONLY:
-                        case O_RDWR:
-                            break;
-                        default:
-                            fprintf(stderr,
-                                    "Descriptor %d not open for reading\n",
-                                    fd);
-                            exit(1);
-                            break;
-                        }
-#endif
                         sprintf(fd_name, "pipe<%d>", fd);
-                        register_real_time_input(fd, fd_name);
+                        if (register_real_time_input(fd, fd_name, 0) !=
+                            GRACE_EXIT_SUCCESS) {
+                            exit(1);
+                        }
 		    }
 		} else if (argmatch(argv[i], "-npipe", 6)) {
 		    i++;
@@ -413,7 +403,7 @@ int main(int argc, char *argv[])
                         if (fd < 0) {
                             fprintf(stderr, "Can't open fifo\n");
                         } else {
-                            register_real_time_input(fd, argv[i]);
+                            register_real_time_input(fd, argv[i], 1);
                         }
 		    }
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)

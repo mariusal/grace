@@ -63,6 +63,16 @@ graceclosef (void)
 
 int
 #ifdef NEED_F77_UNDERSCORE
+graceclosepipef_ (void)
+#else
+graceclosepipef (void)
+#endif
+{
+    return (GraceClosePipe());
+}
+
+int
+#ifdef NEED_F77_UNDERSCORE
 graceflushf_ (void)
 #else
 graceflushf (void)

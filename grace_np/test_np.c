@@ -59,8 +59,8 @@ main (int argc, char* argv[])
         /* Tell Grace to save the data */
         GracePrintf ("saveall \"sample.gr\"");
 
-        /* Flush the output buffer and close the pipe */
-        GraceClose ();
+        /* Flush the output buffer and close Grace */
+        GraceClose();
 
         /* We are done */
         exit (EXIT_SUCCESS);
