@@ -284,7 +284,7 @@ Quark *object_new_complete(Quark *gr, OType type)
     return q;
 }
 
-DObject *object_get_data(Quark *q)
+DObject *object_get_data(const Quark *q)
 {
     DObject *o;
     

@@ -105,7 +105,7 @@ DObject *object_data_new_complete(OType type);
 Quark *object_new(Quark *gr);
 Quark *object_new_complete(Quark *gr, OType type);
 
-DObject *object_get_data(Quark *q);
+DObject *object_get_data(const Quark *q);
 
 int object_set_active(Quark *q, int flag);
 int object_set_angle(Quark *q, double angle);
