@@ -491,12 +491,21 @@ static void bugwarn(char *signame)
  *  a static storage
  */
     static char buf[GR_MAXPATHLEN];
+/* number of interrupts received during the emergency save */
+    static int interrupts;
     
     if (emergency_save != FALSE) {
         /* don't mind signals anymore: we're in emergency save mode already */
+        interrupts++;
+        if (interrupts > 10) {
+            fprintf(stderr, "oh, no luck :-(\n");
+            fprintf(stderr, "\nPlease use \"Help/Comments\" to report the bug.\n");
+            exit(GRACE_EXIT_FAILURE);
+        }
         return;
     } else {
         emergency_save = TRUE;
+        interrupts = 0;
         fprintf(stderr, "\a\nOops! Got %s\n", signame);
         if (is_dirtystate()) {
             strcpy(buf, docname);
