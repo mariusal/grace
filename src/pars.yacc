@@ -4161,8 +4161,14 @@ ticklabelattr:
 	| nexpr ',' CHRSTR {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
+                xfree($3);
                 return 1;
             }
+	    if ($1 >= MAX_TICKS) {
+	         yyerror("Number of ticks exceeds maximum");
+	         xfree($3);
+	         return 1;
+	    }
 	    g[whichgraph].t[naxis]->tloc[$1].label = 
                 copy_string(g[whichgraph].t[naxis]->tloc[$1].label, $3);
 	    xfree($3);
