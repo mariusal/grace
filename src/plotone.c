@@ -1469,7 +1469,13 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
             
             vp1.x += lw/2.0;
             vp2.x -= lw/2.0;
-            vp1.y += lw/2.0;
+            if (vp2.y > vp1.y) {
+                vp1.y += lw/2.0;
+                vp2.y -= lw/2.0;
+            } else {
+                vp1.y -= lw/2.0;
+                vp2.y += lw/2.0;
+            }
             
 	    if (i &&
 		hypot(vp2.x - vprev.x, vp2.y - vprev.y) < p->symskipmindist)
@@ -1503,7 +1509,13 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
 
             vp1.x += lw/2.0;
             vp2.x -= lw/2.0;
-            vp1.y += lw/2.0;
+            if (vp2.y > vp1.y) {
+                vp1.y += lw/2.0;
+                vp2.y -= lw/2.0;
+            } else {
+                vp1.y -= lw/2.0;
+                vp2.y += lw/2.0;
+            }
 
 	    if (i &&
 		hypot(vp2.x - vprev.x, vp2.y - vprev.y) < p->symskipmindist)
