@@ -442,14 +442,6 @@ typedef struct {
 typedef struct {
     int active;                 /* active flag */
     int type;                   /* regression type */
-    double xmin;
-    double xmax;
-    double coef[15];
-} Regression;
-
-typedef struct {
-    int active;                 /* active flag */
-    int type;                   /* regression type */
     int npts;                   /* number of points */
     double xmin;
     double xmax;
