@@ -2655,14 +2655,16 @@ setprop:
 	}
 	| selectset AVALUE PREPEND CHRSTR
         {
-	    set *p = set_get_data($1);
-            p->avalue.prestr = copy_string(p->avalue.prestr, $4);
+	    AMem *amem = quark_get_amem($1);
+            set *p = set_get_data($1);
+            p->avalue.prestr = amem_strcpy(amem, p->avalue.prestr, $4);
 	    xfree($4);
 	}
 	| selectset AVALUE APPEND CHRSTR
         {
+	    AMem *amem = quark_get_amem($1);
 	    set *p = set_get_data($1);
-            p->avalue.appstr = copy_string(p->avalue.appstr, $4);
+            p->avalue.appstr = amem_strcpy(amem, p->avalue.appstr, $4);
 	    xfree($4);
 	}
 
@@ -2851,11 +2853,13 @@ ticklabelattr:
 	    curtm->tl_format = $2;
 	}
 	| APPEND CHRSTR {
-            curtm->tl_appstr = copy_string(curtm->tl_appstr, $2);
+	    AMem *amem = quark_get_amem(whichaxisgrid);
+            curtm->tl_appstr = amem_strcpy(amem, curtm->tl_appstr, $2);
 	    xfree($2);
 	}
 	| PREPEND CHRSTR {
-            curtm->tl_prestr = copy_string(curtm->tl_prestr, $2);
+	    AMem *amem = quark_get_amem(whichaxisgrid);
+            curtm->tl_prestr = amem_strcpy(amem, curtm->tl_prestr, $2);
 	    xfree($2);
 	}
 	| ANGLE nexpr {
@@ -2876,8 +2880,9 @@ ticklabelattr:
             }
 	}
 	| FORMULA CHRSTR {
+	    AMem *amem = quark_get_amem(whichaxisgrid);
             curtm->tl_formula =
-                copy_string(curtm->tl_formula, $2);
+                amem_strcpy(amem, curtm->tl_formula, $2);
             xfree($2);
 	}
 	| START expr {
@@ -2908,8 +2913,9 @@ ticklabelattr:
 	    curtm->tl_tprops.color = $1;
 	}
 	| nexpr ',' CHRSTR {
+	    AMem *amem = quark_get_amem(whichaxisgrid);
 	    curtm->tloc[$1].label = 
-                copy_string(curtm->tloc[$1].label, $3);
+                amem_strcpy(amem, curtm->tloc[$1].label, $3);
 	    xfree($3);
 	}
 	| OFFSET AUTO {
@@ -3842,18 +3848,19 @@ ticklabelattr_obs:
             }
 	}
 	| SIGN signchoice {
+	    AMem *amem = quark_get_amem(whichaxisgrid);
 	    switch($2) {
             case SIGN_NEGATE:
                 curtm->tl_formula =
-                    copy_string(curtm->tl_formula, "-$t");
+                    amem_strcpy(amem, curtm->tl_formula, "-$t");
                 break;
             case SIGN_ABSOLUTE:
                 curtm->tl_formula =
-                    copy_string(curtm->tl_formula, "abs($t)");
+                    amem_strcpy(amem, curtm->tl_formula, "abs($t)");
                 break;
             default:
                 curtm->tl_formula =
-                    copy_string(curtm->tl_formula, NULL);
+                    amem_strcpy(amem, curtm->tl_formula, NULL);
                 break;
             }
 	}

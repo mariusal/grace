@@ -1276,6 +1276,7 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrTicklabels">
+            AMem *amem = quark_get_amem($$);
             tickmarks *t = axisgrid_get_data($$);
             t->tl_formula   = $?->transform;
             t->tl_tprops    = $?->tprops;
@@ -1289,8 +1290,8 @@ char *utf2iso(const char *s)
             t->tl_start     = $?->start;
             t->tl_stoptype  = $?->autostop ? TYPE_AUTO:TYPE_SPEC;
             t->tl_stop      = $?->stop;
-            t->tl_prestr    = copy_string(NULL, $?->prepend);
-            t->tl_appstr    = copy_string(NULL, $?->append);
+            t->tl_prestr    = amem_strdup(amem, $?->prepend);
+            t->tl_appstr    = amem_strdup(amem, $?->append);
             xfree($?->prepend);
             xfree($?->append);
             xfree($?);

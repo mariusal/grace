@@ -249,8 +249,7 @@ static int eblock_accept_notify_proc(void *data)
 
     create_set_fromblock(ss, pset, block_curtype, nncols, cs, scol, autoscale);
 
-    update_all();
-    xdrawgraph(pset, FALSE);
+    update_set_lists(gr);
     
     return RETURN_SUCCESS;
 }

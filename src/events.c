@@ -294,7 +294,6 @@ static Widget bring_to_front_bt, move_up_bt, move_down_bt, send_to_back_bt;
 static void popup_any_cb(canvas_target *ct, int type)
 {
     Quark *q = ct->q;
-    Quark *pr = get_parent_project(q);
     
     switch (type) {
     case EDIT_CB:
@@ -340,8 +339,8 @@ static void popup_any_cb(canvas_target *ct, int type)
         break;
     }
     
-    xdrawgraph(pr, TRUE);
-    update_all();
+    snapshot_and_update(q, TRUE);
+    // xdrawgraph(pr, TRUE);
 }
 
 static void edit_cb(Widget but, void *udata)
@@ -417,7 +416,7 @@ static void atext_cb(Widget but, void *udata)
     atext_set_ap(q, &ap);
     atext_set_pointer(q, TRUE);
 
-    update_all();
+    snapshot_and_update(q, TRUE);
 
     raise_explorer(gui_from_quark(ct->q), q);
 }
@@ -434,9 +433,7 @@ static void do_clear_point(Widget but, void *udata)
     locator->pointset = FALSE;
     quark_dirtystate_set(ct->q, TRUE);
     
-    update_all();
-
-    xdrawgraph(get_parent_project(ct->q), FALSE);
+    snapshot_and_update(ct->q, TRUE);
 }
 
 /*
@@ -455,9 +452,7 @@ static void set_locator_cb(Widget but, void *udata)
     locator->pointset = TRUE;
     quark_dirtystate_set(ct->q, TRUE);
 
-    update_all();
-
-    xdrawgraph(get_parent_project(ct->q), FALSE);
+    snapshot_and_update(ct->q, TRUE);
 }
 
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
@@ -799,8 +794,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 }
                 ct.found = FALSE;
 
-                xdrawgraph(grace->project, TRUE);
-                update_all();
+                snapshot_and_update(grace->project, TRUE);
             }
             if (!xstuff->collect_points) {
                 set_cursor(grace->gui, -1);
@@ -894,8 +888,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         xstuff->npoints = 0;
         set_cursor(grace->gui, -1);
 
-        xdrawgraph(grace->project, TRUE);
-        update_all();
+        snapshot_and_update(grace->project, TRUE);
     }
 }
 
@@ -1118,7 +1111,7 @@ static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
         atext_set_ap(q, &ap);
     }
     
-    update_all();
+    snapshot_and_update(q, TRUE);
     
     raise_explorer(grace->gui, q);
 

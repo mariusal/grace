@@ -689,17 +689,6 @@ static void undo_stats(AMem *amem)
         amem_get_undo_count(amem), amem_get_redo_count(amem));
 }
 
-static void snapshot_cb(Widget but, void *data)
-{
-    Grace *grace = (Grace *) data;
-    AMem *amem = quark_get_amem(grace->project);
-    
-    amem_snapshot(amem);
-    update_undo_buttons(grace->project);
-    
-    undo_stats(amem);
-}
-
 static void undo_cb(Widget but, void *data)
 {
     Grace *grace = (Grace *) data;
@@ -758,7 +747,6 @@ static Widget CreateMainMenuBar(Widget parent)
     /* Edit menu */
     menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
-    CreateMenuButton(menupane, "Snapshot", 'S', snapshot_cb, grace);
     mwui->undo_button = CreateMenuButton(menupane, "Undo", 'U', undo_cb, grace);
     mwui->redo_button = CreateMenuButton(menupane, "Redo", 'R', redo_cb, grace);
 
@@ -768,7 +756,7 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Arrange frames...", 'r', create_arrange_frame, NULL);
+    CreateMenuButton(menupane, "Arrange frames...", 'f', create_arrange_frame, NULL);
     CreateMenuButton(menupane, "Autoscale graphs...", 'A', create_autos_frame, NULL);
 
     CreateMenuSeparator(menupane);
@@ -1168,8 +1156,7 @@ static void graph_scroll_proc(Grace *grace, int type)
     
     quark_traverse(f, scroll_hook, &type);
     
-    xdrawgraph(grace->project, FALSE);\
-    update_all();
+    snapshot_and_update(grace->project, TRUE);
 }
 
 static void graph_scroll_left_cb(Widget but, void *data)
@@ -1212,8 +1199,7 @@ static void graph_zoom_proc(Grace *grace, int type)
     
     quark_traverse(f, zoom_hook, &type);
     
-    xdrawgraph(grace->project, FALSE);
-    update_all();
+    snapshot_and_update(grace->project, TRUE);
 }
 
 static void graph_zoom_in_cb(Widget but, void *data)

@@ -230,4 +230,6 @@ void installXErrorHandler(void);
 
 Pixmap char_to_pixmap(Widget w, int font, char c, int csize);
 
+void snapshot_and_update(Quark *q, int all);
+
 #endif /* __XPROTOS_H_ */

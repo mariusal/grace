@@ -130,12 +130,10 @@ static int define_arrange_proc(void *data)
         loff, roff, toff, boff, vgap, hgap,
         hpack, vpack);
     
-    update_all();
+    snapshot_and_update(grace->project, TRUE);
     
     SelectStorageChoices(ui->frames, nframes, frames);
     xfree(frames);
-    
-    xdrawgraph(grace->project, FALSE);
     
     return RETURN_SUCCESS;
 }
@@ -273,8 +271,7 @@ static int define_autos_proc(void *data)
     
     xfree(sets);
     
-    update_all();
-    xdrawgraph(grace->project, FALSE);
+    snapshot_and_update(grace->project, TRUE);
     
     return RETURN_SUCCESS;
 }

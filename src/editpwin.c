@@ -161,8 +161,6 @@ static void del_rows_cb(Widget but, void *data)
 
         update_set_lists(get_parent_graph(ep->pset));
         update_cells(ep);
-
-        xdrawgraph(ep->pset, FALSE);
     }
     
     xfree(srows);
@@ -208,8 +206,6 @@ void add_row_cb(Widget but, void *data)
     
     update_set_lists(get_parent_graph(ep->pset));
     update_cells(ep);
-    
-    xdrawgraph(ep->pset, FALSE);
 }
 
 static OptionStructure *editp_col_item;
@@ -364,8 +360,6 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
         ep->update = FALSE;
         update_set_lists(get_parent_graph(ep->pset));
         ep->update = TRUE;
-        
-        xdrawgraph(ep->pset, FALSE);
     }
 }
 
@@ -676,8 +670,7 @@ int ep_aac_proc(void *data)
     XbaeMatrixGetCurrentCell(ep->mw, &cur_row, &cur_col);
     XbaeMatrixEditCell(ep->mw, cur_row, cur_col);
 
-    update_all();
-    xdrawgraph(ep->pset, FALSE);
+    update_set_lists(get_parent_graph(ep->pset));
     
     xfree(comment);
     
@@ -885,6 +878,5 @@ void do_ext_editor(Quark *pset)
     getdata(pr, fname, SOURCE_DISK, LOAD_SINGLE);
     grace->rt->autoscale_onread = save_autos;
     unlink(fname);
-    update_all();
-    xdrawgraph(pset, FALSE);
+    update_set_lists(get_parent_graph(pset));
 }

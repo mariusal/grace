@@ -407,7 +407,6 @@ static int datasetop_aac_cb(void *data)
 
         gr = get_set_choice_gr((StorageStructure *) data);
         update_set_lists(gr);
-        xdrawgraph(gr, FALSE);
         
         return RETURN_SUCCESS;
     }
@@ -627,7 +626,6 @@ static int leval_aac_cb(void *data)
     set_set_comment(pset, "Formula");
     
     update_set_lists(gr);
-    xdrawgraph(gr, FALSE);
     
     return RETURN_SUCCESS;
 }

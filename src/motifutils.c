@@ -1015,8 +1015,7 @@ static void ss_any_cb(StorageStructure *ss, int type)
     
     if (n > 0) {
         xfree(values);
-        update_all();
-        xdrawgraph(grace->project, FALSE);
+        snapshot_and_update(grace->project, TRUE);
     }
 }
 
@@ -2730,8 +2729,7 @@ static void g_popup_cb(StorageStructure *ss, int nselected)
 static void g_new_cb(Widget but, void *udata)
 {
     graph_next(grace->project);
-    update_all();
-    xdrawgraph(grace->project, FALSE);
+    snapshot_and_update(grace->project, TRUE);
 }
 
 static void g_dc_cb(StorageStructure *ss, Quark *gr, void *data)
@@ -2958,8 +2956,7 @@ static void sss_any_cb(void *udata, int cbtype)
         xfree(values);
     }
     
-    update_all();
-    xdrawgraph(grace->project, FALSE);
+    snapshot_and_update(grace->project, TRUE);
 }
 
 static void s_editS_cb(Widget but, void *udata)
@@ -3158,20 +3155,6 @@ SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
 
     return retval;
 }
-
-void UpdateSrcDestSelector(SrcDestStructure *srcdest)
-{
-    Quark *grsrc, *grdest;
-    
-    grsrc  = get_set_choice_gr(srcdest->src->set_sel);
-    grdest = get_set_choice_gr(srcdest->dest->set_sel);
-    
-    update_set_lists(grsrc);
-    if (grsrc != grdest) {
-        update_set_lists(grdest);
-    }
-}
-
 
 void paint_color_selector(OptionStructure *optp)
 {
@@ -3689,7 +3672,7 @@ WidgetList CreateAACDialog(Widget form,
 int td_cb(void *data)
 {
     int res, i, nssrc, error;
-    Quark **srcsets, **destsets;
+    Quark **srcsets, **destsets, *destgr;
     TransformStructure *tdialog = (TransformStructure *) data;
     void *tddata;
 
@@ -3724,9 +3707,10 @@ int td_cb(void *data)
     }
     
     tdialog->free_cb(tddata);
-    UpdateSrcDestSelector(tdialog->srcdest);
-    
-    xdrawgraph(grace->project, FALSE);
+
+    GetSingleStorageChoice(tdialog->srcdest->dest->graph_sel, &destgr);
+
+    update_set_lists(destgr);
     
     if (error == FALSE) {
         return RETURN_SUCCESS;
@@ -4660,8 +4644,8 @@ void update_set_lists(Quark *gr)
 {
     update_set_selectors(gr);
     update_ss_editors(gr);
-    update_explorer(grace->gui->eui, TRUE);
-    update_app_title(grace->project);
+    
+    snapshot_and_update(grace->project, FALSE);
 }
 
 void update_undo_buttons(Quark *project)
@@ -4713,6 +4697,30 @@ void update_all(void)
 void update_all_cb(Widget but, void *data)
 {
     update_all();
+}
+
+void snapshot_and_update(Quark *q, int all)
+{
+    Quark *pr = get_parent_project(q);
+    GUI *gui = gui_from_quark(q);
+    AMem *amem;
+    
+    if (!pr) {
+        return;
+    }
+    
+    amem = quark_get_amem(pr);
+    amem_snapshot(amem);
+
+    xdrawgraph(pr, FALSE);
+    
+    if (all) {
+        update_all();
+    } else {
+        update_undo_buttons(pr);
+        update_explorer(gui->eui, FALSE);
+        update_app_title(pr);
+    }
 }
 
 int clean_graph_selectors(Quark *pr, int etype, void *data)

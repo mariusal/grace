@@ -113,8 +113,7 @@ void create_openproject_popup(void)
 static int open_proc(FSBStructure *fsb, char *filename, void *data)
 {
     if (load_project(grace, filename) == RETURN_SUCCESS) {
-        update_all();
-        xdrawgraph(grace->project, FALSE);
+        snapshot_and_update(grace->project, TRUE);
         return TRUE;
     } else {
         return FALSE;
@@ -214,10 +213,8 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
 
 	if (load == LOAD_BLOCK) {
             create_eblock_frame(gr);
-        } else {
-            xdrawgraph(grace->project, FALSE);
         }
-        update_all();
+        snapshot_and_update(gr, TRUE);
     }
     /* never close the popup */
     return FALSE;

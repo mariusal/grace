@@ -506,8 +506,7 @@ static void drop_cb(Widget w, XtPointer client, XtPointer call)
                     }
                 }
                 cbs->ok = True;
-                xdrawgraph(grace->project, FALSE);
-                update_all();
+                snapshot_and_update(drop_q, TRUE);
             }
         }
     }
@@ -588,11 +587,8 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
         }
     }
     
-    xdrawgraph(grace->project, FALSE);
-    
-    update_explorer(ui, FALSE);
-    update_app_title(grace->project);
-    
+    snapshot_and_update(grace->project, FALSE);
+
     return res;
 }
 
@@ -772,8 +768,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
         }
     }
     
-    xdrawgraph(grace->project, FALSE);
-    update_all();
+    snapshot_and_update(grace->project, TRUE);
 }
 
 static void hide_cb(Widget but, void *udata)

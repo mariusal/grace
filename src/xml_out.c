@@ -950,15 +950,10 @@ int save_project(Quark *project, char *fn)
     FILE *fp;
     XFile *xf;
     Attributes *attrs;
-    Project *pr = project_get_data(project);
     GUI *gui = gui_from_quark(project);
     int noask_save;
     static int save_unsupported = FALSE;
 
-    if (!pr) {
-        return RETURN_FAILURE;
-    }
-    
     if (fn && strstr(fn, ".agr")) {
         errmsg("Cowardly refusing to overwrite an agr file");
         return RETURN_FAILURE;
@@ -998,7 +993,7 @@ int save_project(Quark *project, char *fn)
     xfile_end(xf);
     xfile_free(xf);
     
-    pr->docname = copy_string(pr->docname, fn);
+    project_set_docname(project, fn);
 
     quark_dirtystate_set(project, FALSE);
     

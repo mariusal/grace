@@ -420,6 +420,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
     tickmarks *t = axisgrid_get_data(q);
 
     if (t && ui) {
+        AMem *amem = quark_get_amem(q);
         int i;
         
         if (!caller || caller == ui->type) {
@@ -493,16 +494,18 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->tl_skip = GetOptionChoice(ui->tlskip);
         }
         if (!caller || caller == ui->tlformula) {
-            xfree(t->tl_formula);
-            t->tl_formula = GetTextString(ui->tlformula);
+            char *s = GetTextString(ui->tlformula);
+            t->tl_formula = amem_strcpy(amem, t->tl_formula, s);
+            xfree(s);
         }
         if (!caller || caller == ui->tlprestr) {
             char *s = GetTextString(ui->tlprestr);
-            t->tl_prestr = copy_string(t->tl_prestr, s);
+            t->tl_prestr = amem_strcpy(amem, t->tl_prestr, s);
+            xfree(s);
         }
         if (!caller || caller == ui->tlappstr) {
             char *s = GetTextString(ui->tlappstr);
-            t->tl_appstr = copy_string(t->tl_appstr, s);
+            t->tl_appstr = amem_strcpy(amem, t->tl_appstr, s);
             xfree(s);
         }
         if (!caller || caller == ui->tlgap_para) {
@@ -586,7 +589,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
                 for (i = 0; i < t->nticks; i++) {
                     if (xv_evalexpr(ui->specloc[i], &t->tloc[i].wtpos) ==
                                                         RETURN_SUCCESS) {
-                        char *cp;
+                        char *cp, *s;
                         cp = xv_getstr(ui->speclabel[i]);
                         if (cp[0] == '\0') {
                             t->tloc[i].type = TICK_TYPE_MINOR;
@@ -594,12 +597,12 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
                             t->tloc[i].type = TICK_TYPE_MAJOR;
                         }
                         if (t->t_spec == TICKS_SPEC_BOTH) {
-                            t->tloc[i].label =
-                                copy_string(t->tloc[i].label, cp);
+                            s = cp;
                         } else {
-                            t->tloc[i].label = 
-                                copy_string(t->tloc[i].label, NULL);
+                            s = NULL;
                         }
+                        t->tloc[i].label =
+                            amem_strcpy(amem, t->tloc[i].label, s);
                     }
                 } 
             }

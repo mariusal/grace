@@ -475,6 +475,8 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
     set *p = set_get_data(q);
     
     if (p && ui) {
+        AMem *amem = quark_get_amem(q);
+        
         if (!caller || caller == ui->symskip) {
             p->symskip = GetSpinChoice(ui->symskip);
         }
@@ -598,12 +600,12 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->avalue_prestr) {
             char *s = GetTextString(ui->avalue_prestr);
-            p->avalue.prestr = copy_string(p->avalue.prestr, s);
+            p->avalue.prestr = amem_strcpy(amem, p->avalue.prestr, s);
             xfree(s);
         }
         if (!caller || caller == ui->avalue_appstr) {
             char *s = GetTextString(ui->avalue_appstr);
-            p->avalue.appstr = copy_string(p->avalue.appstr, s);
+            p->avalue.appstr = amem_strcpy(amem, p->avalue.appstr, s);
             xfree(s);
         }
         if (!caller || caller == ui->avalue_offsetx) {
