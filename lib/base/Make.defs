@@ -1,0 +1,11 @@
+##################################################
+#     System-independent Make.defs file for      #
+#            grace-base library                  #
+##################################################
+
+LIB  = $(GRACE_BASE_LIB)
+
+SRCS = memory.c missing.c alloca.c
+
+OBJS = memory$(O) missing$(O) $(ALLOCA)
+

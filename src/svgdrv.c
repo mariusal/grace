@@ -37,7 +37,6 @@
 
 #include "defines.h"
 #include "utils.h"
-#include "cmath.h"
 #include "draw.h"
 #include "graphs.h"
 #include "devlist.h"

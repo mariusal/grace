@@ -33,7 +33,6 @@
  */
 
 #include <config.h>
-#include <cmath.h>
 #include "defines.h"
 
 #include <stdlib.h>

@@ -2,5 +2,5 @@
 # Dependencies (should be generated automatically):
 #
 
-$(OBJS) : $(TOP)/config.h $(TOP)/cmath.h mconf.h cephes.h
+$(OBJS) : $(TOP)/include/config.h $(TOP)/include/grace/baseP.h mconf.h cephes.h
 

@@ -16,12 +16,12 @@ GRACECLI=grace$(EXE)
 
 CEPHES_LIB=$(TOP)/cephes/libcephes.a
 
-CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(T1_INC) $(EXPAT_INC) $(XBAE_INC) $(CPPFLAGS) \
+CFLAGS=$(CFLAGS0) -I$(TOP)/include -I$(TOP)/cephes -I. $(T1_INC) $(EXPAT_INC) $(XBAE_INC) $(CPPFLAGS) \
 	$(GUI_FLAGS)
 
 LIBS=$(GUI_LIBS) $(CEPHES_LIB) $(NETCDF_LIBS) $(FFTW_LIB) \
 	$(T1_LIB) $(XMI_LIB) $(PDF_LIB) $(TIFF_LIB) $(JPEG_LIB) $(PNG_LIB) $(Z_LIB) \
-	$(XCC_LIB) $(EXPAT_LIB) $(NOGUI_LIBS) $(DL_LIB)
+	$(XCC_LIB) $(EXPAT_LIB) $(GRACE_BASE_LIB) $(NOGUI_LIBS) $(DL_LIB)
 
 PREFS=-DGRACE_HOME=\"$(GRACE_HOME)\" -DGRACE_PRINT_CMD=\"$(PRINT_CMD)\" \
 	-DGRACE_EDITOR=\"$(GRACE_EDITOR)\" $(HELPVIEWER) \
@@ -32,14 +32,14 @@ all : $(GRACE)
 
 include Make.common
 
-$(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) : $(TOP)/config.h
+$(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) : $(TOP)/include/config.h
 
 include Make.dep
 
-xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(CEPHES_LIB)
+xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(CEPHES_LIB) $(GRACE_BASE_LIB)
 	$(CC) $(CFLAGS) $(GROBJS) $(GUIOBJS) -o $@ $(LDFLAGS) $(LIBS)
 
-grace$(EXE) : $(GROBJS) $(CEPHES_LIB)
+grace$(EXE) : $(GROBJS) $(CEPHES_LIB) $(GRACE_BASE_LIB)
 	$(CC) $(CFLAGS) $(GROBJS) -o $@ $(LDFLAGS) $(LIBS)
 
 
@@ -81,7 +81,7 @@ clean :
 	$(RM) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo.h buildinfo$(O) buildinfo$(EXE)
 
 distclean : clean
-	$(RM) $(GRACE) tags *.orig *.*gr .gdb_history t1lib.log
+	$(RM) $(GRACE) tags *.orig .gdb_history t1lib.log
 
 devclean : distclean
 	$(RM) $(PARS_C)

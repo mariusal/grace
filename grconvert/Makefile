@@ -16,7 +16,7 @@ SRCS = grconvert.c defaults.c readbin.c writeasc.c util.c
 
 OBJS = grconvert$(O) defaults$(O) readbin$(O) writeasc$(O) util$(O)
 
-CFLAGS = $(CFLAGS0) -I$(TOP) -I. $(CPPFLAGS)
+CFLAGS = $(CFLAGS0) -I$(TOP)/include -I. $(CPPFLAGS)
 
 LIBS = $(XDR_LIB) $(NOGUI_LIBS)
 

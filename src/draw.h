@@ -32,6 +32,7 @@
 
 #include <t1lib.h>
 
+#include "grace/base.h"
 #include "defines.h"
 
 /* bpp that Grace uses internally ( = 256 colors) */

@@ -233,17 +233,6 @@ typedef enum {
 #define RUN_MAX         3
 #define RUN_STD         4
 
-/* return codes */
-#define RETURN_SUCCESS (0)
-#define RETURN_FAILURE (1)
-
-#ifndef TRUE
-#  define TRUE 1
-#endif
-#ifndef FALSE
-#  define FALSE 0
-#endif
-
 /* types of autscales */
 #define AUTOSCALE_NONE    0
 #define AUTOSCALE_X       1

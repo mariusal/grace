@@ -34,14 +34,14 @@
  */
 
 #include <config.h>
-#include <cmath.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "cephes/cephes.h"
+#include "cephes.h"
 
+#include "grace/baseP.h"
 #include "utils.h"
 #include "draw.h"
 #include "ssdata.h"

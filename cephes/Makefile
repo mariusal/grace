@@ -10,7 +10,7 @@ include $(TOP)/Make.conf
 
 .SUFFIXES : .c $(O)
 
-CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(CPPFLAGS)
+CFLAGS=$(CFLAGS0) -I$(TOP)/include -I. $(CPPFLAGS)
 
 LIB=libcephes.a
 

@@ -27,7 +27,6 @@
  */
 
 #include <config.h>
-#include <cmath.h>
 
 #include <stdlib.h>
 #include <string.h>

@@ -1,195 +1,229 @@
 # Generated automatically by `make depend'
-main$(O) : main.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h files.h ssdata.h dicts.h graphs.h ctrans.h graphutils.h \
-  plotone.h devlist.h x11drv.h parser.h protos.h missing.h noxprotos.h \
-  xprotos.h
-quark$(O) : quark.c defines.h utils.h grace.h storage.h draw.h dict3.h
-grace$(O) : grace.c defines.h grace.h storage.h draw.h dict3.h utils.h \
-  dicts.h graphs.h ctrans.h protos.h missing.h noxprotos.h xprotos.h
-project$(O) : project.c defines.h utils.h grace.h storage.h draw.h dict3.h \
-  objutils.h graphs.h ctrans.h protos.h missing.h noxprotos.h xprotos.h
-draw$(O) : draw.c defines.h graphs.h grace.h storage.h draw.h dict3.h \
-  ctrans.h utils.h patterns.h
-ctrans$(O) : ctrans.c ../cmath.h utils.h grace.h defines.h storage.h draw.h \
-  dict3.h ctrans.h
-drawticks$(O) : drawticks.c utils.h grace.h defines.h storage.h draw.h \
-  dict3.h graphs.h ctrans.h graphutils.h parser.h protos.h missing.h \
+main$(O) : main.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  files.h ssdata.h dicts.h graphs.h ctrans.h graphutils.h plotone.h \
+  devlist.h x11drv.h parser.h protos.h noxprotos.h xprotos.h
+quark$(O) : quark.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h
+grace$(O) : grace.c defines.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h utils.h dicts.h \
+  graphs.h ctrans.h protos.h noxprotos.h xprotos.h
+project$(O) : project.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h objutils.h graphs.h \
+  ctrans.h protos.h noxprotos.h xprotos.h
+draw$(O) : draw.c defines.h graphs.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h ctrans.h utils.h \
+  patterns.h
+ctrans$(O) : ctrans.c utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h ctrans.h
+drawticks$(O) : drawticks.c utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h graphutils.h parser.h protos.h noxprotos.h xprotos.h
+drawobj$(O) : drawobj.c draw.h ../include/grace/base.h defines.h plotone.h \
+  graphs.h grace.h ../include/grace/baseP.h storage.h dict3.h ctrans.h \
+  objutils.h
+plotone$(O) : plotone.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  files.h graphs.h ctrans.h graphutils.h objutils.h plotone.h protos.h \
   noxprotos.h xprotos.h
-drawobj$(O) : drawobj.c draw.h defines.h plotone.h graphs.h grace.h \
-  storage.h dict3.h ctrans.h objutils.h
-plotone$(O) : plotone.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h files.h graphs.h ctrans.h graphutils.h objutils.h plotone.h \
-  protos.h missing.h noxprotos.h xprotos.h
-utils$(O) : utils.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h files.h protos.h missing.h noxprotos.h graphs.h ctrans.h \
+utils$(O) : utils.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  files.h protos.h noxprotos.h graphs.h ctrans.h xprotos.h
+files$(O) : files.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  dicts.h graphs.h ctrans.h files.h ssdata.h graphutils.h parser.h \
+  protos.h noxprotos.h xprotos.h
+xfile$(O) : xfile.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h files.h xfile.h
+xml_in$(O) : xml_in.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h files.h \
+  utils.h dicts.h graphs.h ctrans.h graphutils.h objutils.h protos.h \
+  noxprotos.h xprotos.h xstrings.h
+xml_out$(O) : xml_out.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  dicts.h graphs.h ctrans.h graphutils.h objutils.h files.h xfile.h \
+  xstrings.h protos.h noxprotos.h xprotos.h
+ssdata$(O) : ssdata.c defines.h globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h utils.h graphs.h \
+  ctrans.h graphutils.h files.h ssdata.h parser.h protos.h noxprotos.h \
   xprotos.h
-files$(O) : files.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h dicts.h graphs.h ctrans.h files.h ssdata.h graphutils.h \
-  parser.h protos.h missing.h noxprotos.h xprotos.h
-xfile$(O) : xfile.c defines.h utils.h grace.h storage.h draw.h dict3.h \
-  files.h xfile.h
-xml_in$(O) : xml_in.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  files.h utils.h dicts.h graphs.h ctrans.h graphutils.h objutils.h \
-  protos.h missing.h noxprotos.h xprotos.h xstrings.h
-xml_out$(O) : xml_out.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h dicts.h graphs.h ctrans.h graphutils.h objutils.h files.h \
-  xfile.h xstrings.h protos.h missing.h noxprotos.h xprotos.h
-ssdata$(O) : ssdata.c defines.h globals.h grace.h storage.h draw.h dict3.h \
-  utils.h graphs.h ctrans.h graphutils.h files.h ssdata.h parser.h \
-  protos.h missing.h noxprotos.h xprotos.h
-nonlfit$(O) : nonlfit.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  graphs.h ctrans.h utils.h parser.h protos.h missing.h noxprotos.h \
-  xprotos.h f2c.h
-lmdif$(O) : lmdif.c f2c.h
-fourier$(O) : fourier.c defines.h utils.h grace.h storage.h draw.h dict3.h \
-  files.h protos.h missing.h noxprotos.h graphs.h ctrans.h xprotos.h
-graphs$(O) : graphs.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h graphs.h ctrans.h graphutils.h objutils.h parser.h protos.h \
-  missing.h noxprotos.h xprotos.h
-graphutils$(O) : graphutils.c globals.h grace.h defines.h storage.h draw.h \
-  dict3.h utils.h graphs.h ctrans.h objutils.h graphutils.h protos.h \
-  missing.h noxprotos.h xprotos.h
-setutils$(O) : setutils.c globals.h grace.h defines.h storage.h draw.h \
-  dict3.h ssdata.h utils.h files.h graphs.h ctrans.h protos.h missing.h \
-  noxprotos.h xprotos.h
-regionutils$(O) : regionutils.c globals.h grace.h defines.h storage.h draw.h \
-  dict3.h graphs.h ctrans.h utils.h protos.h missing.h noxprotos.h \
+nonlfit$(O) : nonlfit.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h utils.h parser.h protos.h noxprotos.h xprotos.h f2c.h
+lmdif$(O) : lmdif.c ../include/grace/baseP.h ../include/grace/base.h f2c.h
+fourier$(O) : fourier.c ../include/grace/baseP.h ../include/grace/base.h \
+  defines.h utils.h grace.h storage.h draw.h dict3.h files.h protos.h \
+  noxprotos.h graphs.h ctrans.h xprotos.h
+graphs$(O) : graphs.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  graphs.h ctrans.h graphutils.h objutils.h parser.h protos.h noxprotos.h \
   xprotos.h
-objutils$(O) : objutils.c globals.h grace.h defines.h storage.h draw.h \
-  dict3.h graphs.h ctrans.h utils.h objutils.h protos.h missing.h \
-  noxprotos.h xprotos.h
-computils$(O) : computils.c ../cephes/cephes.h utils.h grace.h defines.h \
-  storage.h draw.h dict3.h ssdata.h graphs.h ctrans.h parser.h protos.h \
-  missing.h noxprotos.h xprotos.h
-defaults$(O) : defaults.c defines.h globals.h grace.h storage.h draw.h \
-  dict3.h graphs.h ctrans.h objutils.h utils.h protos.h missing.h \
-  noxprotos.h xprotos.h
-dlmodule$(O) : dlmodule.c dlmodule.h defines.h utils.h grace.h storage.h \
-  draw.h dict3.h parser.h
-missing$(O) : missing.c defines.h missing.h
-alloca$(O) : alloca.c
-iofilters$(O) : iofilters.c defines.h utils.h grace.h storage.h draw.h \
-  dict3.h files.h protos.h missing.h noxprotos.h graphs.h ctrans.h \
+graphutils$(O) : graphutils.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  graphs.h ctrans.h objutils.h graphutils.h protos.h noxprotos.h \
   xprotos.h
-dates$(O) : dates.c defines.h utils.h grace.h storage.h draw.h dict3.h \
-  protos.h missing.h noxprotos.h graphs.h ctrans.h xprotos.h
-t1fonts$(O) : t1fonts.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h files.h
-device$(O) : device.c ../cmath.h defines.h graphutils.h grace.h storage.h \
-  draw.h dict3.h utils.h
-dummydrv$(O) : dummydrv.c defines.h draw.h devlist.h dummydrv.h
-mfdrv$(O) : mfdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
-  devlist.h mfdrv.h
-mifdrv$(O) : mifdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
-  ../cmath.h devlist.h mifdrv.h
-psdrv$(O) : psdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
-  devlist.h psdrv.h protos.h missing.h noxprotos.h graphs.h ctrans.h \
-  xprotos.h motifinc.h
-pdfdrv$(O) : pdfdrv.c ../cmath.h defines.h utils.h grace.h storage.h draw.h \
-  dict3.h devlist.h pdfdrv.h protos.h missing.h noxprotos.h graphs.h \
-  ctrans.h xprotos.h motifinc.h
-svgdrv$(O) : svgdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
-  ../cmath.h graphs.h ctrans.h devlist.h svgdrv.h
-xrstdrv$(O) : xrstdrv.c utils.h grace.h defines.h storage.h draw.h dict3.h \
-  devlist.h xrstdrv.h
-pnmdrv$(O) : pnmdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
-  devlist.h motifinc.h protos.h missing.h noxprotos.h graphs.h ctrans.h \
+setutils$(O) : setutils.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h ssdata.h \
+  utils.h files.h graphs.h ctrans.h protos.h noxprotos.h xprotos.h
+regionutils$(O) : regionutils.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h utils.h protos.h noxprotos.h xprotos.h
+objutils$(O) : objutils.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h utils.h objutils.h protos.h noxprotos.h xprotos.h
+computils$(O) : computils.c ../cephes/cephes.h ../include/grace/baseP.h \
+  ../include/grace/base.h utils.h grace.h defines.h storage.h draw.h \
+  dict3.h ssdata.h graphs.h ctrans.h parser.h protos.h noxprotos.h \
   xprotos.h
-jpgdrv$(O) : jpgdrv.c defines.h utils.h grace.h storage.h draw.h dict3.h \
-  devlist.h motifinc.h protos.h missing.h noxprotos.h graphs.h ctrans.h \
+defaults$(O) : defaults.c defines.h globals.h grace.h \
+  ../include/grace/baseP.h ../include/grace/base.h storage.h draw.h \
+  dict3.h graphs.h ctrans.h objutils.h utils.h protos.h noxprotos.h \
   xprotos.h
-pngdrv$(O) : pngdrv.c ../cmath.h defines.h utils.h grace.h storage.h draw.h \
-  dict3.h devlist.h motifinc.h protos.h missing.h noxprotos.h graphs.h \
-  ctrans.h xprotos.h
-storage$(O) : storage.c defines.h utils.h grace.h storage.h draw.h dict3.h
-dict3$(O) : dict3.c defines.h utils.h grace.h storage.h draw.h dict3.h
-dicts$(O) : dicts.c grace.h defines.h storage.h draw.h dict3.h graphs.h \
-  ctrans.h dicts.h xstrings.h
-mathstuff$(O) : mathstuff.c ../cmath.h protos.h missing.h noxprotos.h \
-  defines.h graphs.h grace.h storage.h draw.h dict3.h ctrans.h xprotos.h \
-  utils.h ../cephes/cephes.h mathstuff.h
+dlmodule$(O) : dlmodule.c dlmodule.h defines.h utils.h grace.h \
+  ../include/grace/baseP.h ../include/grace/base.h storage.h draw.h \
+  dict3.h parser.h
+iofilters$(O) : iofilters.c defines.h utils.h grace.h \
+  ../include/grace/baseP.h ../include/grace/base.h storage.h draw.h \
+  dict3.h files.h protos.h noxprotos.h graphs.h ctrans.h xprotos.h
+dates$(O) : dates.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h protos.h noxprotos.h \
+  graphs.h ctrans.h xprotos.h
+t1fonts$(O) : t1fonts.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  files.h
+device$(O) : device.c defines.h graphutils.h grace.h \
+  ../include/grace/baseP.h ../include/grace/base.h storage.h draw.h \
+  dict3.h utils.h
+dummydrv$(O) : dummydrv.c defines.h draw.h ../include/grace/base.h devlist.h \
+  dummydrv.h
+mfdrv$(O) : mfdrv.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h devlist.h mfdrv.h
+mifdrv$(O) : mifdrv.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h devlist.h mifdrv.h
+psdrv$(O) : psdrv.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h devlist.h psdrv.h \
+  protos.h noxprotos.h graphs.h ctrans.h xprotos.h motifinc.h
+pdfdrv$(O) : pdfdrv.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h devlist.h pdfdrv.h \
+  protos.h noxprotos.h graphs.h ctrans.h xprotos.h motifinc.h
+svgdrv$(O) : svgdrv.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h graphs.h ctrans.h \
+  devlist.h svgdrv.h
+xrstdrv$(O) : xrstdrv.c utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h devlist.h \
+  xrstdrv.h
+pnmdrv$(O) : pnmdrv.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h devlist.h motifinc.h \
+  protos.h noxprotos.h graphs.h ctrans.h xprotos.h
+jpgdrv$(O) : jpgdrv.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h devlist.h motifinc.h \
+  protos.h noxprotos.h graphs.h ctrans.h xprotos.h
+pngdrv$(O) : pngdrv.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h devlist.h motifinc.h \
+  protos.h noxprotos.h graphs.h ctrans.h xprotos.h
+storage$(O) : storage.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h
+dict3$(O) : dict3.c defines.h utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h
+dicts$(O) : dicts.c grace.h ../include/grace/baseP.h ../include/grace/base.h \
+  defines.h storage.h draw.h dict3.h graphs.h ctrans.h dicts.h xstrings.h
+mathstuff$(O) : mathstuff.c protos.h noxprotos.h defines.h graphs.h grace.h \
+  ../include/grace/baseP.h ../include/grace/base.h storage.h draw.h \
+  dict3.h ctrans.h xprotos.h utils.h ../cephes/cephes.h mathstuff.h
 bi$(O) : bi.c buildinfo.h
 Tab$(O) : Tab.c TabP.h Tab.h
 ListTree$(O) : ListTree.c ListTreeP.h ListTree.h
 motifutils$(O) : motifutils.c Tab.h motifinc.h defines.h storage.h globals.h \
-  grace.h draw.h dict3.h jbitmaps.h graphs.h ctrans.h utils.h dicts.h \
-  events.h parser.h protos.h missing.h noxprotos.h xprotos.h
-compwin$(O) : compwin.c graphs.h grace.h defines.h storage.h draw.h dict3.h \
-  ctrans.h utils.h ssdata.h motifinc.h protos.h missing.h noxprotos.h \
-  xprotos.h
-eblockwin$(O) : eblockwin.c graphs.h grace.h defines.h storage.h draw.h \
-  dict3.h ctrans.h utils.h ssdata.h protos.h missing.h noxprotos.h \
-  xprotos.h motifinc.h
-editpwin$(O) : editpwin.c globals.h grace.h defines.h storage.h draw.h \
-  dict3.h graphs.h ctrans.h utils.h files.h protos.h missing.h \
-  noxprotos.h xprotos.h motifinc.h
-events$(O) : events.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  events.h utils.h graphs.h ctrans.h graphutils.h objutils.h x11drv.h \
-  plotone.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
-fileswin$(O) : fileswin.c globals.h grace.h defines.h storage.h draw.h \
-  dict3.h graphs.h ctrans.h graphutils.h utils.h files.h motifinc.h \
-  protos.h missing.h noxprotos.h xprotos.h
-plotwin$(O) : plotwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h protos.h missing.h noxprotos.h graphs.h ctrans.h xprotos.h \
-  motifinc.h
-graphappwin$(O) : graphappwin.c globals.h grace.h defines.h storage.h draw.h \
-  dict3.h graphs.h ctrans.h graphutils.h utils.h cbitmaps.h protos.h \
-  missing.h noxprotos.h xprotos.h motifinc.h
-helpwin$(O) : helpwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h files.h protos.h missing.h noxprotos.h graphs.h ctrans.h \
-  xprotos.h motifinc.h
-locatewin$(O) : locatewin.c graphs.h grace.h defines.h storage.h draw.h \
-  dict3.h ctrans.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
-miscwin$(O) : miscwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h graphs.h ctrans.h motifinc.h protos.h missing.h noxprotos.h \
-  xprotos.h
-monwin$(O) : monwin.c utils.h grace.h defines.h storage.h draw.h dict3.h \
-  files.h parser.h motifinc.h protos.h missing.h noxprotos.h graphs.h \
-  ctrans.h xprotos.h
-nonlwin$(O) : nonlwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  graphs.h ctrans.h utils.h files.h parser.h motifinc.h protos.h \
-  missing.h noxprotos.h xprotos.h
-printwin$(O) : printwin.c ../cmath.h globals.h grace.h defines.h storage.h \
-  draw.h dict3.h utils.h graphutils.h plotone.h graphs.h ctrans.h \
-  motifinc.h protos.h missing.h noxprotos.h xprotos.h
-ptswin$(O) : ptswin.c utils.h grace.h defines.h storage.h draw.h dict3.h \
-  graphs.h ctrans.h events.h protos.h missing.h noxprotos.h xprotos.h \
-  motifinc.h
-regionwin$(O) : regionwin.c globals.h grace.h defines.h storage.h draw.h \
-  dict3.h graphs.h ctrans.h utils.h events.h motifinc.h protos.h \
-  missing.h noxprotos.h xprotos.h
-setwin$(O) : setwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  graphs.h ctrans.h utils.h plotone.h ssdata.h parser.h motifinc.h \
-  protos.h missing.h noxprotos.h xprotos.h
-objwin$(O) : objwin.c ../cmath.h utils.h grace.h defines.h storage.h draw.h \
-  dict3.h graphs.h ctrans.h objutils.h events.h motifinc.h protos.h \
-  missing.h noxprotos.h xprotos.h
-setappwin$(O) : setappwin.c globals.h grace.h defines.h storage.h draw.h \
-  dict3.h graphs.h ctrans.h utils.h motifinc.h protos.h missing.h \
+  grace.h ../include/grace/baseP.h ../include/grace/base.h draw.h dict3.h \
+  jbitmaps.h graphs.h ctrans.h utils.h dicts.h events.h parser.h protos.h \
   noxprotos.h xprotos.h
-explorer$(O) : explorer.c globals.h grace.h defines.h storage.h draw.h \
-  dict3.h utils.h dicts.h graphs.h ctrans.h objutils.h motifinc.h \
-  ListTree.h protos.h missing.h noxprotos.h xprotos.h
-tickwin$(O) : tickwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  protos.h missing.h noxprotos.h graphs.h ctrans.h xprotos.h utils.h \
-  graphutils.h motifinc.h
+compwin$(O) : compwin.c graphs.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h ctrans.h \
+  utils.h ssdata.h motifinc.h protos.h noxprotos.h xprotos.h
+eblockwin$(O) : eblockwin.c graphs.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h ctrans.h \
+  utils.h ssdata.h protos.h noxprotos.h xprotos.h motifinc.h
+editpwin$(O) : editpwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h utils.h files.h protos.h noxprotos.h xprotos.h motifinc.h
+events$(O) : events.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h events.h \
+  utils.h graphs.h ctrans.h graphutils.h objutils.h x11drv.h plotone.h \
+  protos.h noxprotos.h xprotos.h motifinc.h
+fileswin$(O) : fileswin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h graphutils.h utils.h files.h motifinc.h protos.h noxprotos.h \
+  xprotos.h
+plotwin$(O) : plotwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  protos.h noxprotos.h graphs.h ctrans.h xprotos.h motifinc.h
+graphappwin$(O) : graphappwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h graphutils.h utils.h cbitmaps.h protos.h noxprotos.h xprotos.h \
+  motifinc.h
+helpwin$(O) : helpwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  files.h protos.h noxprotos.h graphs.h ctrans.h xprotos.h motifinc.h
+locatewin$(O) : locatewin.c graphs.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h ctrans.h \
+  protos.h noxprotos.h xprotos.h motifinc.h
+miscwin$(O) : miscwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  graphs.h ctrans.h motifinc.h protos.h noxprotos.h xprotos.h
+monwin$(O) : monwin.c utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h files.h \
+  parser.h motifinc.h protos.h noxprotos.h graphs.h ctrans.h xprotos.h
+nonlwin$(O) : nonlwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h utils.h files.h parser.h motifinc.h protos.h noxprotos.h \
+  xprotos.h
+printwin$(O) : printwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  graphutils.h plotone.h graphs.h ctrans.h motifinc.h protos.h \
+  noxprotos.h xprotos.h
+ptswin$(O) : ptswin.c utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h events.h protos.h noxprotos.h xprotos.h motifinc.h
+regionwin$(O) : regionwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h utils.h events.h motifinc.h protos.h noxprotos.h xprotos.h
+setwin$(O) : setwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h utils.h plotone.h ssdata.h parser.h motifinc.h protos.h \
+  noxprotos.h xprotos.h
+objwin$(O) : objwin.c utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h objutils.h events.h motifinc.h protos.h noxprotos.h xprotos.h
+setappwin$(O) : setappwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h graphs.h \
+  ctrans.h utils.h motifinc.h protos.h noxprotos.h xprotos.h
+explorer$(O) : explorer.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  dicts.h graphs.h ctrans.h objutils.h motifinc.h ListTree.h protos.h \
+  noxprotos.h xprotos.h
+tickwin$(O) : tickwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h protos.h \
+  noxprotos.h graphs.h ctrans.h xprotos.h utils.h graphutils.h motifinc.h
 worldwin$(O) : worldwin.c mbitmaps.h graphutils.h defines.h grace.h \
-  storage.h draw.h dict3.h utils.h motifinc.h protos.h missing.h \
-  noxprotos.h graphs.h ctrans.h xprotos.h
-fontwin$(O) : fontwin.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  utils.h motifinc.h protos.h missing.h noxprotos.h graphs.h ctrans.h \
+  ../include/grace/baseP.h ../include/grace/base.h storage.h draw.h \
+  dict3.h utils.h motifinc.h protos.h noxprotos.h graphs.h ctrans.h \
   xprotos.h
-xutil$(O) : xutil.c defines.h globals.h grace.h storage.h draw.h dict3.h \
-  utils.h files.h graphs.h ctrans.h graphutils.h plotone.h x11drv.h \
-  protos.h missing.h noxprotos.h xprotos.h
-x11drv$(O) : x11drv.c defines.h globals.h grace.h storage.h draw.h dict3.h \
-  utils.h devlist.h graphs.h ctrans.h x11drv.h protos.h missing.h \
-  noxprotos.h xprotos.h
-xmgrace$(O) : xmgrace.c globals.h grace.h defines.h storage.h draw.h dict3.h \
-  bitmaps.h utils.h files.h x11drv.h graphs.h ctrans.h graphutils.h \
-  plotone.h events.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
-pars$(O) : pars.c defines.h globals.h grace.h storage.h draw.h dict3.h \
-  ../cephes/cephes.h utils.h files.h graphs.h ctrans.h graphutils.h \
-  objutils.h plotone.h dlmodule.h ssdata.h protos.h missing.h noxprotos.h \
-  xprotos.h parser.h mathstuff.h
+fontwin$(O) : fontwin.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h utils.h \
+  motifinc.h protos.h noxprotos.h graphs.h ctrans.h xprotos.h
+xutil$(O) : xutil.c defines.h globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h utils.h files.h \
+  graphs.h ctrans.h graphutils.h plotone.h x11drv.h protos.h noxprotos.h \
+  xprotos.h
+x11drv$(O) : x11drv.c defines.h globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h utils.h devlist.h \
+  graphs.h ctrans.h x11drv.h protos.h noxprotos.h xprotos.h
+xmgrace$(O) : xmgrace.c globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h storage.h draw.h dict3.h bitmaps.h \
+  utils.h files.h x11drv.h graphs.h ctrans.h graphutils.h plotone.h \
+  events.h protos.h noxprotos.h xprotos.h motifinc.h
+pars$(O) : pars.c defines.h globals.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h storage.h draw.h dict3.h ../cephes/cephes.h \
+  utils.h files.h graphs.h ctrans.h graphutils.h objutils.h plotone.h \
+  dlmodule.h ssdata.h protos.h noxprotos.h xprotos.h parser.h mathstuff.h
 buildinfo$(O) : buildinfo.c

@@ -12,7 +12,7 @@ include $(TOP)/Make.conf
 
 LIB = libgrace_np.a
 
-CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(CPPFLAGS)
+CFLAGS=$(CFLAGS0) -I$(TOP)/include -I. $(CPPFLAGS)
 
 LIBS = $(NOGUI_LIBS)
 
@@ -30,7 +30,7 @@ $(LIB) : $(LIBOBJS)
 	$(AR) cr $@ $(LIBOBJS)
 	$(RANLIB) $@
 
-$(LIBOBJS) : $(TOP)/config.h grace_np.h
+$(LIBOBJS) : $(TOP)/include/config.h grace_np.h
 
 gracef_np_$(O) : gracef_np.c
 	$(CC) $(CFLAGS) -DNEED_F77_UNDERSCORE -c -o $@ gracef_np.c

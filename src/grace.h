@@ -33,6 +33,7 @@
 /* For FILE */
 #include <stdio.h>
 
+#include "grace/baseP.h"
 #include "defines.h"
 #include "storage.h"
 #include "draw.h"

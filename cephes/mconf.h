@@ -67,7 +67,7 @@ Adjusted for use with ACE/gr by Evgeny Stambulchik, October 1997
 #define __GRACE_SOURCE_
 
 #include <config.h>
-#include <cmath.h>
+#include "grace/baseP.h"
 
 /* Type of computer arithmetic */
 /* In ACE/gr, defined as a compiler directive - no need to define here */

@@ -36,11 +36,11 @@ clean :
 
 distclean :
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) distclean) || exit 1; done
-	$(RM) config.log config.status config.cache config.h Make.conf
+	$(RM) config.log config.status config.cache include/config.h Make.conf
 
 devclean :
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) devclean) || exit 1; done
-	$(RM) config.log config.status config.cache config.h Make.conf configure
+	$(RM) config.log config.status config.cache include/config.h Make.conf configure
 
 texts : CHANGES ChangeLog
 

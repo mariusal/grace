@@ -29,9 +29,6 @@
 #ifndef __UTILS_H_
 #define __UTILS_H_
 
-/* for size_t */
-#include <sys/types.h>
-
 /* for time_t */
 #ifdef TIME_WITH_SYS_TIME
 #  include <sys/time.h>
@@ -62,13 +59,6 @@
 
 #define LFORMAT_TYPE_PLAIN      0
 #define LFORMAT_TYPE_EXTENDED   1
-
-#define XCFREE(ptr) xfree(ptr); ptr = NULL
-
-void *xmalloc(size_t size);
-void *xcalloc(size_t nmemb, size_t size);
-void *xrealloc(void *ptr, size_t size);
-void xfree(void *ptr);
 
 void fswap(double *x, double *y);
 void iswap(int *x, int *y);

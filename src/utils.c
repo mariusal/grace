@@ -32,7 +32,6 @@
  */
 
 #include <config.h>
-#include <cmath.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,70 +58,6 @@
 
 static void rereadConfig(void);
 static RETSIGTYPE actOnSignal(int signo);
-
-/*
- * free and check for NULL pointer
- */
-void xfree(void *ptr)
-{
-    if (ptr != NULL) {
-	free(ptr);
-    }
-}
-
-void *xmalloc(size_t size)
-{
-    void *retval;
-
-    if (size == 0) {
-        retval = NULL;
-    } else {
-        retval = malloc(size);
-    }
-
-    if (retval == NULL && size != 0) {
-        errmsg("Memory storage exceeded!");
-    }
-    return retval;
-}
-
-void *xrealloc(void *ptr, size_t size)
-{
-    void *retval;
-
-#if defined(REALLOC_IS_BUGGY)
-    if (ptr == NULL) {
-        retval = malloc(size);
-    } else if (size == 0) {
-        if (ptr) {
-            free(ptr);
-        }
-        retval = NULL;
-    } else {
-        retval = realloc(ptr, size); 
-    }
-#else
-    retval = realloc(ptr, size);
-#endif
-    
-    if (retval == NULL && size != 0) {
-        errmsg("Memory storage exceeded!");
-    }
-    return retval;
-}
-
-
-void *xcalloc(size_t nmemb, size_t size)
-{
-    void *retval;
-
-    retval = xmalloc(nmemb*size);
-    if (retval) {
-        memset(retval, 0, nmemb*size);
-    }
-
-    return retval;
-}
 
 /*
  * swap doubles and ints

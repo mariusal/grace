@@ -15,7 +15,7 @@ GRSRCS =  main.c quark.c grace.c project.c \
 	nonlfit.c lmdif.c fourier.c \
 	graphs.c graphutils.c setutils.c regionutils.c \
 	objutils.c computils.c defaults.c \
-	dlmodule.c missing.c alloca.c \
+	dlmodule.c \
 	iofilters.c dates.c t1fonts.c device.c \
 	dummydrv.c mfdrv.c mifdrv.c psdrv.c pdfdrv.c svgdrv.c \
 	xrstdrv.c pnmdrv.c jpgdrv.c pngdrv.c \
@@ -28,7 +28,7 @@ GROBJS =  main$(O) quark$(O) grace$(O) project$(O) \
 	nonlfit$(O) lmdif$(O) fourier$(O) \
 	graphs$(O) graphutils$(O) setutils$(O) regionutils$(O) \
 	objutils$(O) computils$(O) defaults$(O) \
-	dlmodule$(O) $(PARS_O) missing$(O) $(ALLOCA) \
+	dlmodule$(O) $(PARS_O) \
 	iofilters$(O) dates$(O) t1fonts$(O) device$(O) \
 	dummydrv$(O) mfdrv$(O) mifdrv$(O) psdrv$(O) pdfdrv$(O) svgdrv$(O) \
 	xrstdrv$(O) pnmdrv$(O) jpgdrv$(O) pngdrv$(O) \

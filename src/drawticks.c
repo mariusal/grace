@@ -31,7 +31,6 @@
  */
 
 #include <config.h>
-#include <cmath.h>
 
 #include <stdio.h>
 #include <stdlib.h>

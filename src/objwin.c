@@ -35,7 +35,6 @@
 
 #include <stdio.h>
 
-#include "cmath.h"
 #include "utils.h"
 #include "draw.h"
 #include "storage.h"

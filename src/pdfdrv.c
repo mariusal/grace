@@ -41,7 +41,6 @@
 
 #include <pdflib.h>
 
-#include "cmath.h"
 #include "defines.h"
 #include "utils.h"
 #include "draw.h"

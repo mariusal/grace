@@ -34,7 +34,6 @@
  */
 
 #include <config.h>
-#include <cmath.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +52,7 @@
 #include "defines.h"
 #include "globals.h"
 #include "grace.h"
-#include "cephes/cephes.h"
+#include "cephes.h"
 #include "utils.h"
 #include "files.h"
 #include "graphs.h"

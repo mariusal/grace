@@ -129,3 +129,6 @@ GRACE_EDITOR=@GRACE_EDITOR@
 # HTML help viewer command
 HELPVIEWER=@HELPVIEWER@
 
+# Grace libraries
+GRACE_BASE_LIB=$(TOP)/lib/base/libgrace-base.a
+

@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmath.h"
 #include "defines.h"
 #include "graphutils.h"
 #include "utils.h"

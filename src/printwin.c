@@ -34,7 +34,6 @@
 
 #include <stdio.h>
 
-#include "cmath.h"
 #include "globals.h"
 #include "utils.h"
 #include "graphutils.h"

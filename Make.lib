@@ -1,0 +1,48 @@
+###############################################
+# Universal Makefile stub for Grace libraries #
+###############################################
+
+include $(TOP)/Make.conf
+
+.SUFFIXES : .c $(O)
+
+include Make.defs
+
+CFLAGS=$(CFLAGS0) -I$(TOP)/include $(CPPFLAGS)
+
+all : $(LIB)
+
+$(OBJS) : $(TOP)/include/config.h
+include Make.dep
+
+Make.dep : $(SRCS)
+	@echo -n "Generating dependencies... "
+	@echo "# Generated automatically by \`make depend'" > Make.dep
+	@$(CC) $(CFLAGS) -MM $(SRCS) | sed 's/\.o:/\$$(O)\ :/g' >> Make.dep
+	@echo "done"
+
+$(LIB) : $(OBJS)
+	$(AR) cr $(LIB) $(OBJS)
+	$(RANLIB) $(LIB)
+
+install : $(LIB)
+
+tests : dummy
+
+links : dummy
+
+clean :
+	$(RM) $(LIB) $(OBJS)
+
+distclean : clean
+	$(RM) *.orig
+
+devclean : distclean
+	$(RM) Make.dep
+
+depend : Make.dep
+
+tags : $(SRCS)
+	ctags $(SRCS)
+
+dummy :

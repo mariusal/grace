@@ -31,11 +31,11 @@
  */
 
 #include <config.h>
-#include <cmath.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "grace/baseP.h"
 #include "defines.h"
 #include "utils.h"
 #include "files.h"

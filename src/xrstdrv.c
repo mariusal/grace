@@ -35,8 +35,6 @@
 
 #ifdef HAVE_LIBXMI
 
-#include <cmath.h>
-
 #include <stdlib.h>
 #include <string.h>
 

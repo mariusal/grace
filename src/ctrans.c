@@ -34,7 +34,6 @@
 
 #include <string.h>
 
-#include "cmath.h"
 #include "utils.h"
 #include "ctrans.h"
 

@@ -32,8 +32,6 @@
 
 #if (defined(HAVE_LIBXMI) && defined(HAVE_LIBPNG))
 
-#include "cmath.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -43,9 +43,7 @@
 # define xfree free
 #endif
 
-#include "defines.h"
-#include "utils.h"
-
+#include "grace/base.h"
 #include "storage.h"
 
 #define STORAGE_SAFETY_CHECK(sto, retaction)                            \
