@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Create.c,v 1.1 1999-09-11 01:25:37 fnevgeny Exp $
+ * $Id: Create.c,v 1.2 2000-09-06 22:20:57 fnevgeny Exp $
  */
 
 /*
@@ -33,6 +33,8 @@
 #include <config.h>
 #endif
 
+#include <stdlib.h>
+
 #include <Xm/Xm.h>
 #include <Xbae/MatrixP.h>
 #include <Xbae/Macros.h>
@@ -42,10 +44,6 @@
 #include <Xbae/Create.h>
 
 static Pixmap createInsensitivePixmap P((XbaeMatrixWidget mw));
-
-#ifndef MAXSCREENS
-#define MAXSCREENS 1
-#endif
 
 void
 xbaeCopyBackground(widget, offset, value)
@@ -829,18 +827,19 @@ createInsensitivePixmap(mw)
 XbaeMatrixWidget mw;
 {
     static char stippleBits[] = { 0x01, 0x02 };
-    static Pixmap stipple[MAXSCREENS] = {(Pixmap)NULL};
+    static Pixmap *stipple = NULL;
     Display *dpy = XtDisplay(mw);
     Screen *scr  = XtScreen (mw);
     int i;
     int maxScreens = ScreenCount(dpy);
     
-    if (maxScreens > MAXSCREENS)
-	maxScreens = MAXSCREENS;
-    
-    if (!stipple[0])
+    if (!stipple)
     {
-	for (i = 0 ; i < maxScreens ; i++)
+	stipple = malloc(maxScreens*sizeof(Pixmap));
+        if (!stipple) {
+            return (Pixmap) NULL;
+        }
+        for (i = 0 ; i < maxScreens ; i++)
 	    stipple[i] = XCreatePixmapFromBitmapData(
 		dpy, RootWindow(dpy,i), stippleBits, 2, 2, 0, 1, 1);
     }
