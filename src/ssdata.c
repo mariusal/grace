@@ -181,6 +181,10 @@ static char *next_token(char *s, char **token, int *quoted)
         }
     } else {
         *token = s;
+        if (**token == '\n') {
+            /* EOL reached */
+            return NULL;
+        }
         while (*s != '\n' && *s != '\0' && *s != ' ' && *s != '\t') {
             s++;
         }
