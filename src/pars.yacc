@@ -711,7 +711,7 @@ expr:	NUMBER {
                 $$ = trapint($3->data, $5->data, NULL, NULL, $3->length);
             }
 	}
-	| VEC_D '.' LENGTH {
+	| array '.' LENGTH {
 	    $$ = $1->length;
 	}
 	| selectset '.' LENGTH {
