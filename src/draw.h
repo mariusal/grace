@@ -3,7 +3,6 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
@@ -190,17 +189,6 @@ typedef struct {
     double yellow;
     double black;
 } fCMYK;
-
-/* Types of axis scale mappings */
-typedef enum {
-    SCALE_NORMAL,
-    SCALE_LOG,
-    SCALE_REC,
-    SCALE_LOGIT,
-    SCALE_BAD
-} ScaleType;
-
-#define NUMBER_OF_SCALETYPES  SCALE_BAD
 
 /* Drawing properties */
 typedef struct {
@@ -733,27 +721,6 @@ int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data);
 int get_string_bbox(Canvas *canvas,
     const VPoint *vp, double angle, int just, const char *s, view *bbox);
 
-char *scale_types(ScaleType it);
-ScaleType get_scale_type_by_name(const char *name);
-
 int isvalid_viewport(const view *v);
-
-int is_wpoint_inside(WPoint *wp, world *w);
-int is_validWPoint(WPoint wp);
-
-double fscale(double wc, int scale);
-double ifscale(double vc, int scale);
-
-int polar2xy(double phi, double rho, double *x, double *y);
-void xy2polar(double x, double y, double *phi, double *rho);
-
-double xy_xconv(double wx);
-double xy_yconv(double wy);
-VPoint Wpoint2Vpoint(WPoint wp);
-int world2view(double x, double y, double *xv, double *yv);
-void view2world(double xv, double yv, double *xw, double *yw);
-
-int definewindow(const world *w, const view *v,
-    int gtype, int xscale, int yscale, int invx, int invy);
 
 #endif /* __DRAW_H_ */

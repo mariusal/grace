@@ -10,7 +10,7 @@ PARS_C = pars.c
 PARS_O = pars$(O)
 
 GRSRCS =  main.c quark.c grace.c project.c \
-	draw.c drawticks.c drawobj.c plotone.c \
+	draw.c ctrans.c drawticks.c drawobj.c plotone.c \
 	utils.c files.c xfile.c xml_in.c xml_out.c ssdata.c \
 	nonlfit.c lmdif.c fourier.c \
 	graphs.c graphutils.c setutils.c regionutils.c \
@@ -23,7 +23,7 @@ GRSRCS =  main.c quark.c grace.c project.c \
 
 
 GROBJS =  main$(O) quark$(O) grace$(O) project$(O) \
-	draw$(O) drawticks$(O) drawobj$(O) plotone$(O) \
+	draw$(O) ctrans$(O) drawticks$(O) drawobj$(O) plotone$(O) \
 	utils$(O) files$(O) xfile$(O) xml_in$(O) xml_out$(O) ssdata$(O) \
 	nonlfit$(O) lmdif$(O) fourier$(O) \
 	graphs$(O) graphutils$(O) setutils$(O) regionutils$(O) \

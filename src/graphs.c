@@ -404,17 +404,35 @@ int activate_tick_labels(int gno, int axis, int flag)
     }
 }
 
-
 int select_graph(int gno)
 {
     graph *g = graph_get(gno);
+    int ctrans_type, xyfixed;
     
-    if (g && set_parser_gno(gno) == RETURN_SUCCESS &&
-        isvalid_viewport(&g->v) == TRUE &&
-        definewindow(&g->w, &g->v, g->type,
+    if (!g) {
+        return RETURN_FAILURE;
+    }
+    
+    switch (g->type) {
+    case GRAPH_POLAR:
+        ctrans_type = COORDINATES_POLAR;
+        xyfixed = FALSE;
+        break;
+    case GRAPH_FIXED:
+        ctrans_type = COORDINATES_XY;
+        xyfixed = TRUE;
+        break;
+    default: 
+        ctrans_type = COORDINATES_XY;
+        xyfixed = FALSE;
+        break;
+    }
+    
+    if (definewindow(&g->w, &g->v, ctrans_type, xyfixed,
             g->xscale,  g->yscale,
             g->xinvert, g->yinvert) == RETURN_SUCCESS) {
 
+        set_parser_gno(gno);
         cg = gno;
 
         return RETURN_SUCCESS;

@@ -30,6 +30,7 @@
 #define __GRAPHS_H_
 
 #include "grace.h"
+#include "ctrans.h"
 
 #define CORNER_LL   0
 #define CORNER_UL   1
