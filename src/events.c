@@ -74,6 +74,11 @@ static void scroll(Widget w, int up, int horiz)
     } else {
         vbar = XtNameToWidget(w, "VertScrollBar");
     }
+    
+    if (!vbar) {
+        return;
+    }
+    
     XmScrollBarGetValues(vbar, &value, &slider_size,
         &increment, &page_increment);
     if (up) {
