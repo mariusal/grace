@@ -2285,6 +2285,7 @@ parmset:
                     Quark *q = object_new(gr);
                     object_data_free(object_get_data(q));
                     q->data = curobject;
+                    quark_idstr_set(q, "timestamp");
                 }
             }
         }
