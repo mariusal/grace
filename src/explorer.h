@@ -361,6 +361,7 @@ struct _ExplorerUI {
     Widget       tree;
     Widget       instantupdate;
     WidgetList   aacbuts;
+    TextStructure *idstr;
     Widget       scrolled_window;
     ListTreeItem *project;
     

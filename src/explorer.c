@@ -414,6 +414,8 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
     SetSensitive(ui->insert_axis_bt,     FALSE);
     SetSensitive(ui->insert_object_pane, FALSE);
     if (count == 1) {
+        SetSensitive(ui->idstr->form, TRUE);
+        SetTextString(ui->idstr, q->idstr);
         switch (fid) {
         case QFlavorProject:
             SetSensitive(ui->insert_frame_bt,    TRUE);
@@ -429,6 +431,9 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             SetSensitive(ui->insert_object_pane, TRUE);
             break;
         }
+    } else {
+        SetSensitive(ui->idstr->form, FALSE);
+        SetTextString(ui->idstr, NULL);
     }
 }
 
@@ -467,6 +472,12 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
         ListTreeItem *item = ret.items[i];
         TreeItemData *ti_data = (TreeItemData *) item->user_data;
         Quark *q = ti_data->q;
+
+        if (!caller || caller == ui->idstr) {
+            char *s = GetTextString(ui->idstr);
+            quark_idstr_set(q, s);
+            xfree(s);
+        }
 
         switch (q->fid) {
         case QFlavorProject:
@@ -758,7 +769,7 @@ void raise_explorer(GUI *gui, Quark *q)
     if (!gui->eui) {
         ExplorerUI *eui;
         
-        Widget menubar, menupane, panel;
+        Widget menubar, menupane, panel, form, fr;
 
         eui = xmalloc(sizeof(ExplorerUI));
         
@@ -811,14 +822,34 @@ void raise_explorer(GUI *gui, Quark *q)
         XtAddCallback(eui->tree, XtNdestroyItemCallback, destroy_cb, eui);
         PlaceGridChild(panel, GetParent(eui->tree), 0, 0);
 
+        form = XmCreateForm(panel, "form", NULL, 0);
+        PlaceGridChild(panel, form, 1, 0);
+        fr = CreateFrame(form, NULL);
+        eui->idstr = CreateTextInput(fr, "ID string:");
+        AddTextInputCB(eui->idstr, text_explorer_cb, eui);
+        XtVaSetValues(fr,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNtopAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_NONE,
+            NULL);
+        
         eui->scrolled_window = XtVaCreateManagedWidget("scrolled_window",
-	    xmScrolledWindowWidgetClass, panel,
+	    xmScrolledWindowWidgetClass, form,
             XmNscrollingPolicy, XmAUTOMATIC,
 	    XmNscrollBarDisplayPolicy, XmSTATIC,
 	    NULL);
-        PlaceGridChild(panel, eui->scrolled_window, 1, 0);
+        XtVaSetValues(eui->scrolled_window,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, fr,
+            XmNbottomAttachment, XmATTACH_FORM,
+            NULL);
 
-	eui->project_ui = create_project_ui(eui);
+	ManageChild(form);
+        
+        eui->project_ui = create_project_ui(eui);
         UnmanageChild(eui->project_ui->top);
 
 	eui->frame_ui = create_frame_ui(eui);
