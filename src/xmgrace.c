@@ -122,6 +122,7 @@ static Widget windowbarw[3];
 static void graph_scroll_proc(void *data);
 static void graph_zoom_proc(void *data);
 static void world_stack_proc(void *data);
+static void load_example(void *data);
 
 static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
@@ -549,7 +550,7 @@ void set_locbar(int onoff, void *data)
 static Widget CreateMainMenuBar(Widget parent)
 {
     Widget menubar;
-    Widget menupane, submenupane;
+    Widget menupane, submenupane, sub2menupane;
 
     menubar = CreateMenuBar(parent);
 
@@ -705,21 +706,62 @@ static Widget CreateMainMenuBar(Widget parent)
     menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
     CreateMenuButton(menupane, "User's Guide", 'G', HelpCB, (void *) "UsersGuide.html");
-    
     CreateMenuButton(menupane, "Tutorial", 'T', HelpCB, (void *) "Tutorial.html");
-
     CreateMenuButton(menupane, "FAQ", 'Q', HelpCB, (void *) "FAQ.html");
-
     CreateMenuButton(menupane, "Changes", 'C', HelpCB, (void *) "CHANGES.html");
 
-    CreateMenuButton(menupane, "Comments", 'm', HelpCB, (void *) "http://plasma-gate.weizmann.ac.il/Grace/comments.html");
-   	    
+    CreateMenuSeparator(menupane);
+ 
+    submenupane = CreateMenu(menupane, "Examples", 'E', FALSE);
+    sub2menupane = CreateMenu(submenupane, "General intro", 'i', FALSE);
+    CreateMenuButton(sub2menupane, "Explain", '\0', load_example, "explain.agr");
+    CreateMenuButton(sub2menupane, "Properties", '\0', load_example, "props.agr");
+    CreateMenuButton(sub2menupane, "Axes", '\0',load_example, "axes.agr");
+    CreateMenuButton(sub2menupane, "Fonts", '\0', load_example, "tfonts.agr");
+    CreateMenuButton(sub2menupane, "Arrows", '\0', load_example, "arrows.agr");
+    CreateMenuButton(sub2menupane, "More symbols", '\0', load_example, "moresyms.agr");
+    CreateMenuButton(sub2menupane, "Symbols and lines", '\0', load_example, "symslines.agr");
+    CreateMenuButton(sub2menupane, "Fills", '\0', load_example, "fills.agr");
+    CreateMenuButton(sub2menupane, "World stack", '\0', load_example, "tstack.agr");
+    CreateMenuButton(sub2menupane, "Inset graphs", '\0', load_example, "tinset.agr");
+    CreateMenuButton(sub2menupane, "Many graphs", '\0', load_example, "manygraphs.agr");
+
+    sub2menupane = CreateMenu(submenupane, "XY graphs", 'g', FALSE);
+    CreateMenuButton(sub2menupane, "Log scale", '\0', load_example, "tlog.agr");
+    CreateMenuButton(sub2menupane, "Log2 scale", '\0', load_example, "log2.agr");
+    CreateMenuButton(sub2menupane, "Error bars", '\0', load_example, "terr.agr");
+    CreateMenuButton(sub2menupane, "More error bars", '\0', load_example, "terr2.agr");
+    CreateMenuButton(sub2menupane, "Date/time axis formats", '\0', load_example, "times.agr");
+    CreateMenuButton(sub2menupane, "Australia map", '\0', load_example, "au.agr");
+    CreateMenuButton(sub2menupane, "A CO2 analysis", '\0', load_example, "co2.agr");
+
+    sub2menupane = CreateMenu(submenupane, "XY charts", 'c', FALSE);
+    CreateMenuButton(sub2menupane, "Bar chart", '\0', load_example, "bar.agr");
+    CreateMenuButton(sub2menupane, "Stacked bar", '\0', load_example, "stackedb.agr");
+    CreateMenuButton(sub2menupane, "Bar chart with error bars", '\0', load_example, "chartebar.agr");
+    CreateMenuButton(sub2menupane, "Different charts", '\0', load_example, "charts.agr");
+
+    sub2menupane = CreateMenu(submenupane, "Polar graphs", 'c', FALSE);
+    CreateMenuButton(sub2menupane, "Polar graph", '\0', load_example, "polar.agr");
+
+    sub2menupane = CreateMenu(submenupane, "Special set presentations", 'S', FALSE);
+    CreateMenuButton(sub2menupane, "HILO", '\0', load_example, "hilo.agr");
+    CreateMenuButton(sub2menupane, "XY Radius", '\0', load_example, "txyr.agr");
+    CreateMenuButton(sub2menupane, "XYZ", '\0', load_example, "xyz.agr");
+
+    sub2menupane = CreateMenu(submenupane, "Type setting", 'T', FALSE);
+    CreateMenuButton(sub2menupane, "Simple", '\0', load_example, "test2.agr");
+    CreateMenuButton(sub2menupane, "Advanced", '\0', load_example, "typeset.agr");
+
+    sub2menupane = CreateMenu(submenupane, "Calculus", 'u', FALSE);
+    CreateMenuButton(sub2menupane, "Non-linear fit", '\0', load_example, "logistic.agr");
+ 
     CreateMenuSeparator(menupane);
 
+    CreateMenuButton(menupane, "Comments", 'm', HelpCB, (void *) "http://plasma-gate.weizmann.ac.il/Grace/comments.html");
+    CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "License terms", 'L', HelpCB, (void *) "GPL.html");
-
     CreateMenuButton(menupane, "About...", 'A', create_about_grtool, NULL);
-
 
     return (menubar);
 }
@@ -1096,4 +1138,19 @@ static void world_stack_proc(void *data)
     }
     update_all();
     drawgraph();
+}
+
+static void load_example(void *data)
+{
+    char *s, buf[128];
+    
+    set_wait_cursor();
+    
+    s = (char *) data;
+    sprintf(buf, "examples/%s", s);
+    load_project_file(buf, FALSE);
+    update_all();
+    drawgraph();
+
+    unset_wait_cursor();
 }
