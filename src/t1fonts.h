@@ -52,6 +52,7 @@
 
 #define SSCRIPT_SCALE M_SQRT1_2
 #define ENLARGE_SCALE sqrt(M_SQRT2)
+#define OBLIQUE_FACTOR 0.25
 
 #define T1_DEFAULT_ENCODING_FILE  "Default.enc"
 #define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
@@ -68,12 +69,19 @@
 #define MAX_MARKS   32
 
 typedef struct {
+    double cxx, cxy;
+    double cyx, cyy;
+} TextMatrix;
+
+#define UNIT_TM {1.0, 0.0, 0.0, 1.0}
+
+typedef struct {
     char *s;
     int len;
-    double scale;
+    int font;
+    TextMatrix tm;
     double hshift;
     double vshift;
-    int font;
     int underline;
     int overline;
     int advancing;
@@ -110,7 +118,7 @@ int map_font(int font, int mapped_id);
 int map_font_by_name(char *fname, int mapped_id);
 void map_fonts(int map);
 
-GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
+GLYPH *GetGlyphString(int FontID, float Size, T1_TMATRIX *t1tm, int modflag,
     char *theString, int len);
 GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph,
                     int x_off, int y_off, int advancing);

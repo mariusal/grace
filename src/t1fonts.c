@@ -344,9 +344,61 @@ char *get_encodingscheme(int font)
     return (T1_GetEncodingScheme(font));
 }
 
-static T1_TMATRIX UNITY_MATRIX = {1.0, 0.0, 0.0, 1.0};
+static int tm_scale(TextMatrix *tm, double s)
+{
+    if (s != 0.0) {
+        tm->cxx *= s; tm->cxy *= s; tm->cyx *= s; tm->cyy *= s;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
 
-GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag, 
+static double tm_det(TextMatrix *tm)
+{
+    return tm->cxx*tm->cyy - tm->cxy*tm->cyx;
+}
+
+static int tm_product(TextMatrix *tm, TextMatrix *p)
+{
+    TextMatrix tmp;
+    
+    if (tm_det(p) != 0.0) {
+        tmp.cxx = p->cxx*tm->cxx + p->cxy*tm->cyx;
+        tmp.cxy = p->cxx*tm->cxy + p->cxy*tm->cyy;
+        tmp.cyx = p->cyx*tm->cxx + p->cyy*tm->cyx;
+        tmp.cyy = p->cyx*tm->cxy + p->cyy*tm->cyy;
+        *tm = tmp;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+static void tm_rotate(TextMatrix *tm, double angle)
+{
+    if (angle != 0.0) {
+        double co, si;
+        TextMatrix tmp;
+
+        si = sin(M_PI/180.0*angle);
+        co = cos(M_PI/180.0*angle);
+        tmp.cxx = co; tmp.cyy = co; tmp.cxy = si; tmp.cyx = -si;
+        tm_product(tm, &tmp);
+    }
+}
+
+static void tm_slant(TextMatrix *tm, double slant)
+{
+    if (slant != 0.0) {
+        TextMatrix tmp;
+
+        tmp.cxx = 1.0; tmp.cyy = 1.0; tmp.cxy = 0.0; tmp.cyx = slant;
+        tm_product(tm, &tmp);
+    }
+}
+
+GLYPH *GetGlyphString(int FontID, float Size, T1_TMATRIX *t1tm, int modflag, 
     char *theString, int len)
 {
     int i, j, k, l, m, none_found;
@@ -358,7 +410,6 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
     int LigDetect = 0;
     
     GLYPH *glyph;
-    T1_TMATRIX matrix, *matrixP;
     
     char *ligtheString = '\0';
     char *succs, *ligs;
@@ -377,13 +428,15 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
         return NULL;
     }
 
-    if (Size <= 0.0) {
-        errmsg("t1lib: Size must be positive!");
-        return NULL;
-    }
+/*
+ *     if (Size <= 0.0) {
+ *         errmsg("t1lib: Size must be positive!");
+ *         return NULL;
+ *     }
+ */
 
     /* Now comes the ligatur handling */
-    ligtheString = (char *) xmalloc((len + 1)*sizeof(char));
+    ligtheString = xmalloc((len + 1)*SIZEOF_CHAR);
     if (LigDetect){
       	for (j = 0, m = 0; j < len; j++, m++) { /* Loop through the characters */
   	    if ((k = T1_QueryLigs(FontID, theString[j], &succs, &ligs)) > 0) {
@@ -413,13 +466,6 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
         memcpy(ligtheString, theString, len);
     }
     
-    if (Angle == 0.0){
-        matrixP = NULL;
-    } else {
-        matrix = UNITY_MATRIX;
-        matrixP = T1_RotateMatrix(&matrix, (float) Angle);
-    }
-
     dev = get_curdevice_props();
     if (dev.fontaa == TRUE) {
     	fg = getcolor();
@@ -467,10 +513,10 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
     			   aacolors[4]);
 
     	glyph = T1_AASetString(FontID, ligtheString, len,
-    				   Space, modflag, (float) Size, matrixP);
+    				   Space, modflag, Size, t1tm);
     } else {
     	glyph = T1_SetString(FontID, ligtheString, len,
-    				   Space, modflag, (float) Size, matrixP);
+    				   Space, modflag, Size, t1tm);
     }
  
     xfree(ligtheString);
@@ -488,6 +534,8 @@ void FreeCompositeString(CompositeString *cs)
     }
     xfree(cs);
 }
+
+static const TextMatrix unit_tm = UNIT_TM;
 
 CompositeString *String2Composite(char *string)
 {
@@ -507,10 +555,12 @@ CompositeString *String2Composite(char *string)
     double new_hshift = hshift; 
     double vshift = 0.0;
     double new_vshift = vshift; 
-    double scale = 1.0;
-    double new_scale = scale;
+    TextMatrix tm = unit_tm;
+    TextMatrix tm_new = tm, tm_buf;
     int font = getfont();
     int new_font = font;
+    
+    double scale;
     
     int setmark = MARK_NONE;
     int gotomark = MARK_NONE;
@@ -573,7 +623,7 @@ CompositeString *String2Composite(char *string)
             i += 2;
             continue;
         } else if (string[i] == '\\' && 
-                            isoneof(string[i + 1], "cCsSNBxuUoO+-fhvzZmM#")) {
+                isoneof(string[i + 1], "cCsSNBxuUoO+-fhvzZmM#rlqQtT")) {
 	    i++;
 	    ccode = string[i];
             switch (ccode) {
@@ -585,6 +635,10 @@ CompositeString *String2Composite(char *string)
 	    case 'm':
 	    case 'M':
 	    case '#':
+	    case 'r':
+	    case 'l':
+	    case 't':
+	    case 'T':
 		if (string[i + 1] == '{') {
                     j = 0;
                     while (string[i + 2 + j] != '}' &&
@@ -608,21 +662,48 @@ CompositeString *String2Composite(char *string)
                             if (j == 0) {
                                 new_vshift = 0.0;
                             } else {
-                                new_vshift += new_scale*atof(buf);
+                                new_vshift += tm_new.cyy*atof(buf);
                             }
                             break;
 	                case 'h':
-                            new_hshift = new_scale*atof(buf);
+                            new_hshift = tm_new.cyy*atof(buf);
                             break;
 	                case 'z':
                             if (j == 0) {
-                                new_scale = 1.0;
+                                scale = 1.0/tm_new.cyy;
+                                tm_scale(&tm_new, scale);
                             } else {
-                                new_scale *= atof(buf);
+                                scale = atof(buf);
+                                tm_scale(&tm_new, scale);
                             }
                             break;
 	                case 'Z':
-                            new_scale = atof(buf);
+                            scale = atof(buf)/tm_new.cyy;
+                            tm_scale(&tm_new, scale);
+                            break;
+	                case 'r':
+                            tm_rotate(&tm_new, atof(buf));
+                            break;
+	                case 'l':
+                            tm_slant(&tm_new, atof(buf));
+                            break;
+	                case 't':
+                            if (j == 0) {
+                                tm_new = unit_tm;
+                            } else {
+                                if (sscanf(buf, "%lf %lf %lf %lf",
+                                                &tm_buf.cxx, &tm_buf.cxy,
+                                                &tm_buf.cyx, &tm_buf.cyy) == 4) {
+                                    tm_product(&tm_new, &tm_buf);
+                                }
+                            }
+                            break;
+	                case 'T':
+                            if (sscanf(buf, "%lf %lf %lf %lf",
+                                            &tm_buf.cxx, &tm_buf.cxy,
+                                            &tm_buf.cyx, &tm_buf.cyy) == 4) {
+                                tm_new = tm_buf;
+                            }
                             break;
 	                case 'm':
                             setmark = atoi(buf);
@@ -651,15 +732,15 @@ CompositeString *String2Composite(char *string)
                 }
 		break;
 	    case 's':
-		new_scale *= SSCRIPT_SCALE;
-		new_vshift -= 0.4*scale;
+                tm_scale(&tm_new, SSCRIPT_SCALE);
+		new_vshift -= 0.4*tm_new.cyy;
 		break;
 	    case 'S':
-		new_scale *= SSCRIPT_SCALE;
-		new_vshift += 0.6*scale;
+                tm_scale(&tm_new, SSCRIPT_SCALE);
+		new_vshift += 0.6*tm_new.cyy;
 		break;
 	    case 'N':
-		new_scale = 1.0;
+		tm_new = unit_tm;
 		new_vshift = 0.0;
 		break;
 	    case 'B':
@@ -687,10 +768,16 @@ CompositeString *String2Composite(char *string)
 		new_overline = FALSE;
 		break;
 	    case '-':
-		new_scale /= ENLARGE_SCALE;
+                tm_scale(&tm_new, 1.0/ENLARGE_SCALE);
 		break;
 	    case '+':
-		new_scale *= ENLARGE_SCALE;
+                tm_scale(&tm_new, ENLARGE_SCALE);
+		break;
+	    case 'q':
+                tm_slant(&tm_new, OBLIQUE_FACTOR);
+		break;
+	    case 'Q':
+                tm_slant(&tm_new, -OBLIQUE_FACTOR);
 		break;
 	    }
 	    
@@ -703,7 +790,10 @@ CompositeString *String2Composite(char *string)
         }
 	
         if ((new_font  != font          ) ||
-	    (new_scale != scale         ) ||
+	    (tm_new.cxx != tm.cxx       ) ||
+	    (tm_new.cxy != tm.cxy       ) ||
+	    (tm_new.cyx != tm.cyx       ) ||
+	    (tm_new.cyy != tm.cyy       ) ||
 	    (new_hshift != 0.0          ) ||
 	    (new_vshift != vshift       ) ||
 	    (new_underline != underline ) ||
@@ -719,7 +809,7 @@ CompositeString *String2Composite(char *string)
 	
 	        csbuf = xrealloc(csbuf, (nss + 1)*sizeof(CompositeString));
 	        csbuf[nss].font = font;
-	        csbuf[nss].scale = scale;
+	        csbuf[nss].tm = tm;
 	        csbuf[nss].hshift = hshift;
 	        csbuf[nss].vshift = vshift;
 	        csbuf[nss].underline = underline;
@@ -744,7 +834,7 @@ CompositeString *String2Composite(char *string)
             }
 	    
 	    font = new_font;
-	    scale = new_scale;
+	    tm = tm_new;
 	    hshift = new_hshift;
             if (hshift != 0.0) {
                 /* once a substring is manually advanced, all the following
@@ -824,7 +914,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     double page_ipv, page_dpv;
  
     /* Variables for raster parameters */
-    double Size, Angle = 0.0;
+    double Angle = 0.0;
     int FontID;
     int modflag;
     int text_advancing;
@@ -850,6 +940,8 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     int pinpoint_x, pinpoint_y, justpoint_x, justpoint_y;
 
     int xshift, yshift;
+    
+    T1_TMATRIX matrix, *matrixP;
     
     int setmark, gotomark;
     CSMark cs_marks[MAX_MARKS];
@@ -893,12 +985,19 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     first = FALSE;
     iglyph = 0;
     while (cstring[iglyph].s != NULL) {
-        Size = scale_factor * cstring[iglyph].scale;
   	FontID = cstring[iglyph].font;
         text_advancing = cstring[iglyph].advancing;
         modflag = T1_UNDERLINE * cstring[iglyph].underline |
                   T1_OVERLINE  * cstring[iglyph].overline;
-	glyph = GetGlyphString(FontID, Size, Angle, modflag, cstring[iglyph].s,
+
+        matrix.cxx = (float) cstring[iglyph].tm.cxx;
+        matrix.cxy = (float) cstring[iglyph].tm.cxy;
+        matrix.cyx = (float) cstring[iglyph].tm.cyx;
+        matrix.cyy = (float) cstring[iglyph].tm.cyy;
+
+        matrixP = T1_RotateMatrix(&matrix, (float) Angle);
+        
+        glyph = GetGlyphString(FontID, (float) scale_factor, matrixP, modflag, cstring[iglyph].s,
             cstring[iglyph].len);
 
         gotomark = cstring[iglyph].gotomark;
