@@ -206,6 +206,20 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
     *height = (unsigned int) wh;
 }
 
+void *GetUserData(Widget w)
+{
+    void *udata = NULL;
+    XtVaGetValues(w, XmNuserData, &udata, NULL);
+    
+    return udata;
+}
+
+void SetUserData(Widget w, void *udata)
+{
+    XtVaSetValues(w, XmNuserData, udata, NULL);
+}
+
+
 #define MAX_PULLDOWN_LENGTH 30
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
@@ -2898,7 +2912,7 @@ void AddDialogFormChild(Widget form, Widget child)
 {
     Widget last_widget;
     
-    XtVaGetValues(form, XmNuserData, &last_widget, NULL);
+    last_widget = GetUserData(form);
     if (last_widget) {
         XtVaSetValues(child,
             XmNtopAttachment, XmATTACH_WIDGET,
@@ -2917,9 +2931,7 @@ void AddDialogFormChild(Widget form, Widget child)
         XmNrightAttachment, XmATTACH_FORM,
         XmNbottomAttachment, XmATTACH_FORM,
         NULL);
-    XtVaSetValues(form,
-        XmNuserData, child,
-        NULL);
+    SetUserData(form, child);
 }
 
 typedef struct {

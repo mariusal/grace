@@ -258,6 +258,9 @@ void RegisterEditRes(Widget shell);
 void SetDimensions(Widget w, unsigned int width, unsigned int height);
 void GetDimensions(Widget w, unsigned int *width, unsigned int *height);
 
+void *GetUserData(Widget w);
+void SetUserData(Widget w, void *udata);
+
 Widget CreateDialogForm(Widget parent, char *s);
 void SetDialogFormResizable(Widget form, int onoff);
 void AddDialogFormChild(Widget form, Widget child);
