@@ -54,16 +54,6 @@ extern int ib_tblsize;
 
 static GC gcxor;
 
-/* cursors */
-static Cursor wait_cursor;
-static Cursor line_cursor;
-static Cursor find_cursor;
-static Cursor move_cursor;
-static Cursor text_cursor;
-static Cursor kill_cursor;
-static Cursor drag_cursor;
-static int cur_cursor = -1;
-
 static void resize_drawables(unsigned int w, unsigned int h);
 
 long x11_allocate_color(GUI *gui, const RGB *rgb)
@@ -99,51 +89,52 @@ void set_wait_cursor(void)
         return;
     }
     
-    DefineDialogCursor(wait_cursor);
+    DefineDialogCursor(grace->gui->xstuff->wait_cursor);
 }
 
 void unset_wait_cursor(void)
 {
-    if (grace->gui->xstuff->disp == NULL) {
+    X11Stuff *xstuff = grace->gui->xstuff;
+    if (xstuff->disp == NULL) {
         return;
     }
     
     UndefineDialogCursor();
-    if (cur_cursor >= 0) {
-        set_cursor(grace->gui, cur_cursor);
+    if (xstuff->cur_cursor >= 0) {
+        set_cursor(grace->gui, xstuff->cur_cursor);
     }
 }
 
 void set_cursor(GUI *gui, int c)
 {
     X11Stuff *xstuff = gui->xstuff;
-    if (xstuff->disp == NULL) {
+    if (xstuff->disp == NULL || xstuff->cur_cursor == c) {
         return;
     }
 
     XUndefineCursor(xstuff->disp, xstuff->xwin);
-    cur_cursor = c;
+    xstuff->cur_cursor = c;
     switch (c) {
     case 0:
-        XDefineCursor(xstuff->disp, xstuff->xwin, line_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->line_cursor);
         break;
     case 1:
-        XDefineCursor(xstuff->disp, xstuff->xwin, find_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->find_cursor);
         break;
     case 2:
-        XDefineCursor(xstuff->disp, xstuff->xwin, text_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->text_cursor);
         break;
     case 3:
-        XDefineCursor(xstuff->disp, xstuff->xwin, kill_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->kill_cursor);
         break;
     case 4:
-        XDefineCursor(xstuff->disp, xstuff->xwin, move_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->move_cursor);
         break;
     case 5:
-        XDefineCursor(xstuff->disp, xstuff->xwin, drag_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->drag_cursor);
         break;
     default:
-        cur_cursor = -1;
+        xstuff->cur_cursor = -1;
         break;
     }
     XFlush(xstuff->disp);
@@ -153,15 +144,15 @@ void init_cursors(GUI *gui)
 {
     X11Stuff *xstuff = gui->xstuff;
 
-    wait_cursor = XCreateFontCursor(xstuff->disp, XC_watch);
-    line_cursor = XCreateFontCursor(xstuff->disp, XC_crosshair);
-    find_cursor = XCreateFontCursor(xstuff->disp, XC_dotbox);
-    text_cursor = XCreateFontCursor(xstuff->disp, XC_xterm);
-    kill_cursor = XCreateFontCursor(xstuff->disp, XC_pirate);
-    move_cursor = XCreateFontCursor(xstuff->disp, XC_fleur);
-    drag_cursor = XCreateFontCursor(xstuff->disp, XC_hand2);
+    xstuff->wait_cursor = XCreateFontCursor(xstuff->disp, XC_watch);
+    xstuff->line_cursor = XCreateFontCursor(xstuff->disp, XC_crosshair);
+    xstuff->find_cursor = XCreateFontCursor(xstuff->disp, XC_dotbox);
+    xstuff->text_cursor = XCreateFontCursor(xstuff->disp, XC_xterm);
+    xstuff->kill_cursor = XCreateFontCursor(xstuff->disp, XC_pirate);
+    xstuff->move_cursor = XCreateFontCursor(xstuff->disp, XC_fleur);
+    xstuff->drag_cursor = XCreateFontCursor(xstuff->disp, XC_hand2);
     
-    cur_cursor = -1;
+    xstuff->cur_cursor = -1;
 }
 
 
@@ -269,6 +260,13 @@ void draw_focus(Quark *gr)
         aux_XFillRectangle(gui, ix1 - 5, iy2 - 5, 10, 10);
         aux_XFillRectangle(gui, ix2 - 5, iy2 - 5, 10, 10);
         aux_XFillRectangle(gui, ix2 - 5, iy1 - 5, 10, 10);
+        
+        gui->xstuff->f_x1 = ix1;
+        gui->xstuff->f_x2 = ix2;
+        gui->xstuff->f_y1 = iy1;
+        gui->xstuff->f_y2 = iy2;
+        
+        gui->xstuff->f_v  = v;
     }
 }
 
@@ -336,6 +334,43 @@ void slide_region(GUI *gui, view bb, int shift_x, int shift_y, int erase)
     x11_VPoint2dev(&vp, &x2, &y2);
     x2 += shift_x;
     y2 += shift_y;
+    
+    select_region(gui, x1, y1, x2, y2, erase);
+}
+
+void resize_region(GUI *gui, view bb, int on_focus,
+    int shift_x, int shift_y, int erase)
+{
+    short x1, x2, y1, y2;
+    VPoint vp;
+
+    vp.x = bb.xv1;
+    vp.y = bb.yv1;
+    x11_VPoint2dev(&vp, &x1, &y1);
+    vp.x = bb.xv2;
+    vp.y = bb.yv2;
+    x11_VPoint2dev(&vp, &x2, &y2);
+
+    switch (on_focus) {
+    case 1:
+        x1 += shift_x;
+        y1 += shift_y;
+        break;
+    case 2:
+        x1 += shift_x;
+        y2 += shift_y;
+        break;
+    case 3:
+        x2 += shift_x;
+        y2 += shift_y;
+        break;
+    case 4:
+        x2 += shift_x;
+        y1 += shift_y;
+        break;
+    default:
+        return;
+    }
     
     select_region(gui, x1, y1, x2, y2, erase);
 }

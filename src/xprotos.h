@@ -59,6 +59,20 @@ struct _X11Stuff {
     unsigned int win_h;
     unsigned int win_w;
     unsigned int win_scale;
+
+    /* cursors */
+    Cursor wait_cursor;
+    Cursor line_cursor;
+    Cursor find_cursor;
+    Cursor move_cursor;
+    Cursor text_cursor;
+    Cursor kill_cursor;
+    Cursor drag_cursor;
+    int cur_cursor;
+
+    /* coords of focus markers*/
+    short f_x1, f_y1, f_x2, f_y2;
+    view f_v;
 };
 
 void x11_VPoint2dev(const VPoint *vp, short *x, short *y);
@@ -80,6 +94,8 @@ void setpointer(VPoint vp);
 void select_line(GUI *gui, int x1, int y1, int x2, int y2, int erase);
 void select_region(GUI *gui, int x1, int y1, int x2, int y2, int erase);
 void slide_region(GUI *gui, view bbox, int shift_x, int shift_y, int erase);
+void resize_region(GUI *gui, view bb, int on_focus,
+    int shift_x, int shift_y, int erase);
 void reset_crosshair(GUI *gui, int clear);
 void crosshair_motion(GUI *gui, int x, int y);
 

@@ -350,6 +350,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     KeySym keybuf;
     Grace *grace = (Grace *) data;
     Quark *cg = graph_get_current(grace->project);
+    X11Stuff *xstuff = grace->gui->xstuff;
     
     XMotionEvent *xme;
     XButtonEvent *xbe;
@@ -366,6 +367,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     int npoints = 0, npoints_requested = 0;
     
     static canvas_target ct;
+    static int on_focus;
     
     x = event->xmotion.x;
     y = event->xmotion.y;
@@ -379,6 +381,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 
 	if (xme->state & Button1Mask) {
             if (xme->state & ControlMask) {
+                if (on_focus) {
+                    resize_region(grace->gui, xstuff->f_v, on_focus,
+                        x - last_b1down_x, y - last_b1down_y, TRUE);
+                } else
                 if (ct.found) {
                     slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, TRUE);
                 }
@@ -386,11 +392,38 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
             }
         } else {
-	    x11_dev2VPoint(x, y, &vp);
+            x11_dev2VPoint(x, y, &vp);
 
             if (grace->gui->focus_policy == FOCUS_FOLLOWS) {
                 cg = next_graph_containing(cg, &vp);
             }
+            
+            if (xme->state & ControlMask) {
+                if (abs(x - xstuff->f_x1) <= 5 &&
+                    abs(y - xstuff->f_y1) <= 5) {
+                    on_focus = 1;
+                } else
+                if (abs(x - xstuff->f_x1) <= 5 &&
+                    abs(y - xstuff->f_y2) <= 5) {
+                    on_focus = 2;
+                } else
+                if (abs(x - xstuff->f_x2) <= 5 &&
+                    abs(y - xstuff->f_y2) <= 5) {
+                    on_focus = 3;
+                } else
+                if (abs(x - xstuff->f_x2) <= 5 &&
+                    abs(y - xstuff->f_y1) <= 5) {
+                    on_focus = 4;
+                } else {
+                    on_focus = 0;
+                }
+                if (on_focus) {
+                    set_cursor(grace->gui, 4);
+                } else {
+                    set_cursor(grace->gui, 0);
+                }
+            }
+            
             update_locator_lab(cg, &vp);
         }
         
@@ -418,6 +451,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             if (!dbl_click) {
                 if (xbe->state & ControlMask) {
                     ct.vp = vp;
+                    if (on_focus) {
+                        resize_region(grace->gui, xstuff->f_v, on_focus,
+                            0, 0, FALSE);
+                    } else
                     if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
                         slide_region(grace->gui, ct.bbox, 0, 0, FALSE);
                     }
@@ -545,12 +582,37 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         xbe = (XButtonEvent *) event;
 	switch (event->xbutton.button) {
 	case Button1:
-            if (xbe->state & ControlMask && ct.found) {
-                slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
-
+            if (xbe->state & ControlMask) {
                 x11_dev2VPoint(x, y, &vp);
+                if (on_focus) {
+                    view v;
+                    Quark *fr = get_parent_frame(graph_get_current(grace->project));
+                    frame_get_view(fr, &v);
+                    switch (on_focus) {
+                    case 1:
+                        v.xv1 = vp.x;
+                        v.yv1 = vp.y;
+                        break;
+                    case 2:
+                        v.xv1 = vp.x;
+                        v.yv2 = vp.y;
+                        break;
+                    case 3:
+                        v.xv2 = vp.x;
+                        v.yv2 = vp.y;
+                        break;
+                    case 4:
+                        v.xv2 = vp.x;
+                        v.yv1 = vp.y;
+                        break;
+                    }
+                    frame_set_view(fr, &v);
+                } else
+                if (ct.found) {
+                    slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
 
-                move_target(&ct, &vp);
+                    move_target(&ct, &vp);
+                }
                 ct.found = FALSE;
 
                 update_explorer(grace->gui->eui, TRUE);
