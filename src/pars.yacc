@@ -471,6 +471,7 @@ symtab_entry *key;
 %token <pset> XY
 %token <pset> XYDX
 %token <pset> XYDXDX
+%token <pset> XYDXDXDYDY
 %token <pset> XYDXDY
 %token <pset> XYDY
 %token <pset> XYDYDY
@@ -3523,6 +3524,7 @@ xytype:
 	| XYDXDX { $$ = SET_XYDXDX; }
 	| XYDYDY { $$ = SET_XYDYDY; }
 	| XYDXDY { $$ = SET_XYDXDY; }
+	| XYDXDXDYDY { $$ = SET_XYDXDXDYDY; }
 	| XYHILO { $$ = SET_XYHILO; }
 	| XYR { $$ = SET_XYR; }
 	| XYSTRING { $$ = SET_XYSTRING; }
@@ -4451,6 +4453,7 @@ symtab_entry ikey[] = {
 	{"XY", XY, NULL},
 	{"XYDX", XYDX, NULL},
 	{"XYDXDX", XYDXDX, NULL},
+	{"XYDXDXDYDY", XYDXDXDYDY, NULL},
 	{"XYDXDY", XYDXDY, NULL},
 	{"XYDY", XYDY, NULL},
 	{"XYDYDY", XYDYDY, NULL},

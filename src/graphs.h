@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -42,19 +42,20 @@ typedef enum {
 
 /* Set types */
 typedef enum {
-    SET_XY      ,
-    SET_XYDX    ,
-    SET_XYDY    ,
-    SET_XYDXDX  ,
-    SET_XYDYDY  ,
-    SET_XYDXDY  ,
-    SET_BAR     ,
-    SET_BARDY   ,
-    SET_BARDYDY ,
-    SET_XYSTRING,
-    SET_XYHILO  ,
-    SET_XYZ     ,
-    SET_XYR     ,
+    SET_XY        ,
+    SET_XYDX      ,
+    SET_XYDY      ,
+    SET_XYDXDX    ,
+    SET_XYDYDY    ,
+    SET_XYDXDY    ,
+    SET_XYDXDXDYDY,
+    SET_BAR       ,
+    SET_BARDY     ,
+    SET_BARDYDY   ,
+    SET_XYSTRING  ,
+    SET_XYHILO    ,
+    SET_XYZ       ,
+    SET_XYR       ,
     SET_BAD
 } SetType;
 #define NUMBER_OF_SETTYPES  SET_BAD
