@@ -23,9 +23,6 @@ data.
 
 .SH OPTIONS
 .TP
-.BI "\-arrange "  "rows cols"
-Arrange the graphs in a grid rows by cols
-.TP
 .B "\-autoscale" "x|y|xy|none"
 Set autoscale type
 .TP
@@ -45,9 +42,6 @@ is block data
 .B "\-bxy"       "x:y:etc."
 Form a set from the current block data set using the current set type
 from columns given in the argument
-.TP
-.BI "\-cols "     "gcols"                    
-Arrange graphs in gcols columns
 .TP
 .BI "\-datehint "    "iso|european|us|days|seconds|nohint"              
 Set the hint for dates analysis
@@ -82,9 +76,6 @@ Turn the graph legend on
 .B -log       x|y|xy 
 Set the axis scaling of the current graph to logarithmic
 .TP
-.B -logwindow
-Open the log window
-.TP
 .B -mono                                 
 Run grace in monochrome mode (affects the display only)
 .TP
@@ -94,9 +85,6 @@ a file, grace will do so without prompting
 .TP
 .B -noinstall                            
 Don't use private colormap
-.TP
-.B -nologwindow                          
-No log window, overrides resource setting
 .TP
 .B -noprint                              
 In batch mode, do not print
@@ -131,9 +119,6 @@ Remove data file(s) after read
 .BI "\-results "  "file"             
 Write results of some data manipulations to 
 .I file
-.TP
-.BI "\-rows "     "grows"                    
-Arrange graphs in grows rows 
 .TP
 .B -rvideo
 Exchange the color indices for black and white
