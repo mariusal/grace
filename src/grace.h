@@ -53,6 +53,8 @@ typedef void  (*Quark_gui)(Quark *q, void *data);
 
 typedef int (*Quark_cb)(Quark *q, int etype, void *data); 
 
+typedef int (*Quark_comp_proc)(const Quark *q1, const Quark *q2, void *udata); 
+
 typedef struct _QuarkFlavor {
     Quark_data_new  data_new;
     Quark_data_free data_free;
@@ -280,6 +282,8 @@ int quark_reparent_children(Quark *parent, Quark *newparent);
 
 int quark_move(const Quark *q, int forward);
 int quark_push(const Quark *q, int forward);
+
+int quark_sort_children(Quark *q, Quark_comp_proc fcomp, void *udata);
 
 #define QIDSTR(q) (q->idstr ? q->idstr:"unnamed")
 

@@ -51,6 +51,8 @@
 typedef void (*Storage_data_free)(void *data); 
 typedef void *(*Storage_data_copy)(void *data); 
 typedef void (*Storage_exception_handler)(int type, const char *msg); 
+typedef int (*Storage_comp_proc)(const void *d1, const void *d2, void *udata); 
+
 
 typedef struct _LLNode {
     struct _LLNode *next;
@@ -118,6 +120,8 @@ int storage_data_swap(Storage *sto, int id1, int id2);
 void storage_traverse(Storage *sto, Storage_traverse_hook hook, void *udata);
 
 int storage_extract_data(Storage *sto, void *data);
+
+int storage_sort(Storage *sto, Storage_comp_proc fcomp, void *udata);
 
 int storage2_data_copy_by_id(Storage *sto1, int id1, Storage *sto2, int id2);
 int storage2_data_move_by_id(Storage *sto1, int id1, Storage *sto2, int id2);

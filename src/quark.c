@@ -410,3 +410,25 @@ int quark_push(const Quark *q, int forward)
         return RETURN_FAILURE;
     }
 }
+
+typedef struct {
+    Quark_comp_proc fcomp;
+    void *udata;
+} quark_comp_t;
+
+static int _quark_fcomp(const void *d1, const void *d2, void *udata)
+{
+    Quark *q1 = (Quark *) d1, *q2 = (Quark *) d2;
+    quark_comp_t *qc = (quark_comp_t *) udata;
+    return qc->fcomp(q1, q2, qc->udata);
+}
+
+int quark_sort_children(Quark *q, Quark_comp_proc fcomp, void *udata)
+{
+    quark_comp_t qc;
+    
+    qc.fcomp = fcomp;
+    qc.udata = udata;
+    
+    return storage_sort(q->children, _quark_fcomp, (void *) &qc);
+}

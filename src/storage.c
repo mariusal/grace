@@ -890,6 +890,36 @@ int storage_extract_data(Storage *sto, void *data)
         return RETURN_FAILURE;
     }
 }
+
+static void _storage_sort(Storage *sto,
+    LLNode *start, Storage_comp_proc fcomp, void *udata)
+{
+    LLNode *llnode = start->next;
+    while (llnode) {
+        if (fcomp(start->data, llnode->data, udata) > 0) {
+            void *data;
+            data = start->data;
+            start->data = llnode->data;
+            llnode->data = data;
+        }
+        llnode = llnode->next;
+    }
+    if (start->next) {
+        _storage_sort(sto, start->next, fcomp, udata);
+    }
+}
+
+int storage_sort(Storage *sto, Storage_comp_proc fcomp, void *udata)
+{
+    STORAGE_SAFETY_CHECK(sto, return RETURN_FAILURE)
+    
+    if (sto->count > 1) {
+        _storage_sort(sto, sto->start, fcomp, udata);
+    }
+    
+    return RETURN_SUCCESS;
+}
+
 #ifdef STORAGE_TEST
 
 #define TEST_LEN    10
