@@ -37,6 +37,7 @@
 
 #define FFORMAT_NUMBER  0
 #define FFORMAT_STRING  1
+#define FFORMAT_DATE    2
 
 double *copy_data_column(double *src, int nrows);
 double *allocate_index_data(int nrows);
@@ -62,5 +63,9 @@ int init_ss_data(ss_data *ssd, int ncols, int *formats);
 int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats);
 int insert_data_row(ss_data *ssd, int row, char *s);
 int store_data(ss_data *ssd, int load_type, char *label);
+
+void create_set_fromblock(int gno, int type, int nc, int *coli, int scol);
+char *cols_to_field_string(int nc, int *cols);
+void field_string_to_cols(char *fs, int *nc, int **cols);
 
 #endif /* __SSDATA_H_ */
