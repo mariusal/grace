@@ -758,7 +758,7 @@ AMem *quark_get_amem(const Quark *q);
 Quark *quark_find_child_by_idstr(Quark *q, const char *s);
 Quark *quark_find_descendant_by_idstr(Quark *q, const char *s);
 
-int quark_cb_set(Quark *q, Quark_cb cb, void *cbdata);
+int quark_cb_add(Quark *q, Quark_cb cb, void *cbdata);
 void quark_traverse(Quark *q, Quark_traverse_hook hook, void *udata);
 
 int quark_count_children(const Quark *q);
@@ -780,6 +780,7 @@ int quark_is_first_child(const Quark *q);
 int quark_is_last_child(const Quark *q);
 
 /* Project */
+Quark *project_new(QuarkFactory *qfactory, int mmodel);
 Project *project_get_data(const Quark *q);
 
 int project_get_version_id(const Quark *q);

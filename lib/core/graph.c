@@ -186,7 +186,7 @@ Quark *graph_new(Quark *q)
         if (pr && pr->cg == NULL) {
             pr->cg = g;
         }
-        quark_cb_set(g, graph_cb, NULL);
+        quark_cb_add(g, graph_cb, NULL);
     }
     return g;
 }

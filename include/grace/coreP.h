@@ -41,6 +41,11 @@ struct _QuarkFactory {
     void *udata;
 };
 
+typedef struct {
+    Quark_cb cb;
+    void *cbdata;
+} QuarkCBEntry;
+
 struct _Quark {
     AMem *amem;
     
@@ -58,8 +63,8 @@ struct _Quark {
     
     void *data;
     
-    Quark_cb cb;
-    void *cbdata;
+    unsigned int cbcount;
+    QuarkCBEntry *cblist;
     
     void *udata;
 };

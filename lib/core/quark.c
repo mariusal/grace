@@ -116,6 +116,15 @@ Quark *quark_new(Quark *parent, unsigned int fid)
     return q;
 }
 
+static void quark_call_cblist(Quark *q, int etype)
+{
+    unsigned int i;
+    for (i = 0; i < q->cbcount; i++) {
+        QuarkCBEntry *cbentry = &q->cblist[i];
+        cbentry->cb(q, etype, cbentry->cbdata);
+    }
+}
+
 void quark_free(Quark *q)
 {
     if (q) {
@@ -129,9 +138,9 @@ void quark_free(Quark *q)
         }
         
         qf = quark_flavor_get(q->qfactory, q->fid);
-        if (q->cb) {
-            q->cb(q, QUARK_ETYPE_DELETE, q->cbdata);
-        }
+
+        quark_call_cblist(q, QUARK_ETYPE_DELETE);
+
         if (parent) {
             parent->refcount--;
         }
@@ -143,6 +152,7 @@ void quark_free(Quark *q)
         if (q->refcount != 0) {
             errmsg("Freed a referenced quark!");
         }
+        amem_free(amem, q->cblist);
         amem_free(amem, q);
         if (!parent) {
             /* Root quark -> clean up memory allocator */
@@ -219,16 +229,19 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
     new = quark_new_raw(newparent->amem, newparent, q->fid, data);
     new->active = q->active;
 
-    new->cb     = q->cb;
-    new->cbdata = q->cbdata;
-
+    new->cblist = amem_malloc(new->amem, q->cbcount*sizeof(QuarkCBEntry));
+    if (q->cbcount && !new->cblist) {
+        quark_free(new);
+        return NULL;
+    }
+    memcpy(new->cblist, q->cblist, q->cbcount*sizeof(QuarkCBEntry));
+    new->cbcount = q->cbcount;
+    
     new->udata  = q->udata;
 
     if (newparent != q->parent) {
         quark_idstr_set(new, q->idstr);
-        if (new->cb) {
-            new->cb(new, QUARK_ETYPE_REPARENT, new->cbdata);
-        }
+        quark_call_cblist(new, QUARK_ETYPE_REPARENT);
     }
 
     storage_traverse(q->children, copy_hook, new);
@@ -254,9 +267,7 @@ void quark_dirtystate_set(Quark *q, int flag)
 {
     if (flag) {
         q->dirtystate++;
-        if (q->cb) {
-            q->cb(q, QUARK_ETYPE_MODIFY, q->cbdata);
-        }
+        quark_call_cblist(q, QUARK_ETYPE_MODIFY);
         if (q->parent) {
             quark_dirtystate_set(q->parent, TRUE);
         }
@@ -386,13 +397,23 @@ Quark *quark_find_descendant_by_idstr(Quark *q, const char *s)
     return _cbdata.child;
 }
 
-int quark_cb_set(Quark *q, Quark_cb cb, void *cbdata)
+int quark_cb_add(Quark *q, Quark_cb cb, void *cbdata)
 {
     if (q) {
-        q->cb     = cb;
-        q->cbdata = cbdata;
-        
-        return RETURN_SUCCESS;
+        void *p = amem_realloc(q->amem, q->cblist,
+            (q->cbcount + 1)*sizeof(QuarkCBEntry));
+        if (p) {
+            QuarkCBEntry *cbentry;
+            q->cblist = p;
+            q->cbcount++;
+            cbentry = &q->cblist[q->cbcount - 1];
+            cbentry->cb     = cb;
+            cbentry->cbdata = cbdata;
+            
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
     } else {
         return RETURN_FAILURE;
     }
@@ -512,9 +533,7 @@ int quark_reparent(Quark *q, Quark *newparent)
         newparent->refcount++;
         storage_add(newparent->children, q);
         quark_dirtystate_set(newparent, TRUE);
-        if (q->cb) {
-            q->cb(q, QUARK_ETYPE_REPARENT, q->cbdata);
-        }
+        quark_call_cblist(q, QUARK_ETYPE_REPARENT);
         
         return RETURN_SUCCESS;
     }

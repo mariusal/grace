@@ -131,6 +131,28 @@ int project_qf_register(QuarkFactory *qfactory)
     return quark_flavor_add(qfactory, &qf);
 }
 
+static int project_cb(Quark *q, int etype, void *data)
+{
+    if (etype == QUARK_ETYPE_MODIFY) {
+        project_update_timestamp(q, NULL);
+    }
+
+    return RETURN_SUCCESS;
+}
+
+Quark *project_new(QuarkFactory *qfactory, int mmodel)
+{
+    Quark *q;
+    
+    q = quark_root(mmodel, qfactory, QFlavorProject);
+
+    if (q) {
+        quark_cb_add(q, project_cb, NULL);
+    }
+
+    return q;
+}
+
 int project_get_version_id(const Quark *q)
 {
     Project *pr = project_get_data(q);
