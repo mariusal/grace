@@ -45,8 +45,8 @@
 #include "utils.h"
 #include "draw.h"
 
-/* TODO: move to an .h file */
-void update_color_selectors(void);
+int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
+                                   a separate module */
 
 void (*devupdatecmap)();        /* update color map */
 
@@ -872,15 +872,24 @@ int is_valid_color(RGB rgb)
     }
 }
 
+int compare_rgb(RGB *rgb1, RGB *rgb2)
+{
+    if ((rgb1->red   == rgb2->red)   &&
+        (rgb1->green == rgb2->green) &&
+        (rgb1->blue  == rgb2->blue)) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 int find_color(RGB rgb)
 {
     int i;
     int cindex = BAD_COLOR;
     
     for (i = 0; i < maxcolors; i++) {
-        if ((cmap_table[i].rgb.red   == rgb.red)   &&
-            (cmap_table[i].rgb.green == rgb.green) &&
-            (cmap_table[i].rgb.blue  == rgb.blue)) {
+        if (compare_rgb(&cmap_table[i].rgb, &rgb) == TRUE) {
             cindex = i;
             break;
         }
@@ -896,7 +905,7 @@ int get_color_by_name(char *cname)
     
     for (i = 0; i < maxcolors; i++) {
         if (cmap_table[i].ctype == COLOR_MAIN &&
-            strcmp(cmap_table[i].cname, cname) == 0) {
+            compare_strings(cmap_table[i].cname, cname) == TRUE) {
             cindex = i;
             break;
         }
@@ -958,11 +967,9 @@ int store_color(int n, CMap_entry cmap)
         if (devupdatecmap != NULL) {
             (*devupdatecmap)();
         }
-#ifndef NONE_GUI        
         if (cmap.ctype == COLOR_MAIN) {
-            update_color_selectors();
+            ReqUpdateColorSel = TRUE;
         }
-#endif        
         return GRACE_EXIT_SUCCESS;
     }
 }
@@ -980,9 +987,7 @@ int add_color(CMap_entry cmap)
         if (cmap.ctype == COLOR_MAIN && 
             cmap_table[cindex].ctype != COLOR_MAIN) {
             cmap_table[cindex].ctype = COLOR_MAIN;
-#ifndef NONE_GUI        
-            update_color_selectors();
-#endif
+            ReqUpdateColorSel = TRUE;
         }
     } else if (store_color(maxcolors, cmap) == GRACE_EXIT_FAILURE) {
         cindex = BAD_COLOR;
