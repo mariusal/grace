@@ -534,7 +534,7 @@ fi
 
 if test $netcdf = true
 then
-  ACX_CHECK_NETCDF(AC_DEFINE(HAVE_NETCDF),
+  ACX_CHECK_NETCDF(3.0, AC_DEFINE(HAVE_NETCDF),
                    AC_MSG_RESULT(--> support for netCDF is disabled))
 fi
 

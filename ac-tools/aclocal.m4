@@ -800,12 +800,27 @@ AC_DEFUN(ACX_CHECK_NETCDF,
     netcdf_libraries=-lnetcdf
   fi
 
-  AC_CACHE_CHECK( "for netCDF", acx_cv_netcdf,
+  AC_CACHE_CHECK( "for netCDF API version \>= $1", acx_cv_netcdf,
     AC_CACHE_VAL(acx_cv_netcdf_libraries, acx_cv_netcdf_libraries=$netcdf_libraries)
     ACX_SAVE_STATE
     LIBS="$acx_cv_netcdf_libraries $LIBS"
-    AC_TRY_LINK([#include <netcdf.h>],[main();],
+
+
+    AC_TRY_RUN([
+#include <stdio.h>
+#include <netcdf.h>
+      int main(void) {
+        char *vlib;
+        vlib = nc_inq_libvers();
+        if (strcmp(vlib, "[$1]") < 0) {
+          exit(1);
+        }
+        exit(0);
+      }
+      ],
+
       acx_cv_netcdf="yes",
+      acx_cv_netcdf="no",
       acx_cv_netcdf="no"
     )
     ACX_RESTORE_STATE
@@ -813,10 +828,10 @@ AC_DEFUN(ACX_CHECK_NETCDF,
   if test "$acx_cv_netcdf" = "yes"
   then
     NETCDF_LIBS="$acx_cv_netcdf_libraries"
-    $1
+    $2
   else
     NETCDF_LIBS=
-    $2
+    $3
   fi
 ])dnl
 
