@@ -10,9 +10,12 @@ include $(TOP)/Make.conf
 
 .SUFFIXES : .sgml .dvi .html .pdf .ps .tex
 
-SGML2HTML   = sgml2html --split=0
-SGML2DVI    = sgml2latex --output=dvi
-SGML2LATEX  = sgml2latex --output=tex
+# NB: the language and papersize options should be made `configure'able
+LINUXDOC    = linuxdoc --language=english --papersize=letter
+
+SGML2HTML   = $(LINUXDOC) --backend=html  --split=0 --toc=2
+SGML2LATEX  = $(LINUXDOC) --backend=latex --output=tex
+SGML2DVI    = $(LINUXDOC) --backend=latex --output=dvi
 DVI2PS      = dvips
 LATEX       = latex
 PDFLATEX    = pdflatex
@@ -38,9 +41,9 @@ PDFLATEX    = pdflatex
 	$(PDFLATEX) $<
 
 SGMLS    = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
+HTMLS    = CHANGES.html GPL.html philosophical-gnu-sm.jpg nohelp.html
 
-HTMLDOCS = CHANGES.html GPL.html philosophical-gnu-sm.jpg nohelp.html \
-	   FAQ.html Tutorial.html UsersGuide.html
+HTMLDOCS = FAQ.html Tutorial.html UsersGuide.html
 
 DVIDOCS  = FAQ.dvi Tutorial.dvi UsersGuide.dvi
 
@@ -76,9 +79,9 @@ distclean : clean
 	$(RM) *.orig
 
 devclean : distclean
-	$(RM) $(DVIDOCS) $(PSDOCS)
+	$(RM) $(DVIDOCS) $(PSDOCS) $(PDFDOCS) $(HTMLDOCS)
 
-install : $(HTMLDOCS) $(DVIDOCS) $(TUTDATA) $(MANPAGES)
+install : $(HTMLS) $(HTMLDOCS) $(DVIDOCS) $(TUTDATA) $(MANPAGES)
 	$(MKINSTALLDIRS) $(GRACE_HOME)/doc
 	for i in $?; do $(INSTALL_DATA) $$i $(GRACE_HOME)/doc; done
 	cd $(GRACE_HOME)/doc; \

@@ -74,12 +74,14 @@ static int ps_linejoin;
 
 static int ps_grayscale = FALSE;
 static int ps_level2 = TRUE;
+static int docdata = DOCDATA_8BIT;
 
 static int ps_setup_offset_x = 0;
 static int ps_setup_offset_y = 0;
 
 static int ps_setup_grayscale = FALSE;
 static int ps_setup_level2 = TRUE;
+static int ps_setup_docdata = DOCDATA_8BIT;
 
 static int ps_setup_feed = MEDIA_FEED_AUTO;
 static int ps_setup_hwres = FALSE;
@@ -87,6 +89,7 @@ static int ps_setup_hwres = FALSE;
 static int eps_setup_grayscale = FALSE;
 static int eps_setup_level2 = TRUE;
 static int eps_setup_tight_bb = TRUE;
+static int eps_setup_docdata = DOCDATA_8BIT;
 
 static int tight_bb;
 
@@ -222,8 +225,17 @@ static int ps_initgraphics(int format)
 
     time(&time_value);
     fprintf(prstream, "%%%%CreationDate: %s", ctime(&time_value));
-    fprintf(prstream, "%%%%DocumentData: Clean8Bit\n");
-
+    switch (docdata) {
+    case DOCDATA_7BIT:
+        fprintf(prstream, "%%%%DocumentData: Clean7Bit\n");
+        break;
+    case DOCDATA_8BIT:
+        fprintf(prstream, "%%%%DocumentData: Clean8Bit\n");
+        break;
+    default:
+        fprintf(prstream, "%%%%DocumentData: Binary\n");
+        break;
+    }
     if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
         fprintf(prstream, "%%%%Orientation: Landscape\n");
     } else {
@@ -846,8 +858,26 @@ void ps_leavegraphics(void)
     fprintf(prstream, "%%%%EOF\n");
 }
 
+static int is7bit(unsigned char uc)
+{
+    if (uc >= 0x1b && uc <= 0x7e) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+static int is8bit(unsigned char uc)
+{
+    if (is7bit(uc) || uc >= 0x80) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 /*
- * Put a NOT NULL-terminated string escaping parentheses
+ * Put a NOT NULL-terminated string escaping parentheses and backslashes
  */
 static void put_string(FILE *fp, char *s, int len)
 {
@@ -855,10 +885,17 @@ static void put_string(FILE *fp, char *s, int len)
     
     fputc('(', fp);
     for (i = 0; i < len; i++) {
-        if (s[i] == '(' || s[i] == ')') {
+        char c = s[i];
+        unsigned char uc = (unsigned char) c;
+        if (c == '(' || c == ')' || c == '\\') {
             fputc('\\', fp);
         }
-        fputc(s[i], fp);
+        if ((docdata == DOCDATA_7BIT && !is7bit(uc)) ||
+            (docdata == DOCDATA_8BIT && !is8bit(uc))) {
+            fprintf(fp, "\\%03o", uc);
+        } else {
+            fputc(c, fp);
+        }
     }
     fputc(')', fp);
 }
@@ -869,6 +906,7 @@ int psprintinitgraphics(void)
     
     ps_grayscale = ps_setup_grayscale;
     ps_level2 = ps_setup_level2;
+    docdata = ps_setup_docdata;
     result = ps_initgraphics(PS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
@@ -884,6 +922,7 @@ int epsinitgraphics(void)
     
     ps_grayscale = eps_setup_grayscale;
     ps_level2 = eps_setup_level2;
+    docdata = eps_setup_docdata;
     result = ps_initgraphics(EPS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
@@ -906,6 +945,15 @@ int ps_op_parser(char *opstring)
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "level1")) {
         ps_setup_level2 = FALSE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "docdata:7bit")) {
+        ps_setup_docdata = DOCDATA_7BIT;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "docdata:8bit")) {
+        ps_setup_docdata = DOCDATA_8BIT;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "docdata:binary")) {
+        ps_setup_docdata = DOCDATA_BINARY;
         return RETURN_SUCCESS;
     } else if (!strncmp(opstring, "xoffset:", 8)) {
         ps_setup_offset_x = atoi(opstring + 8);
@@ -947,6 +995,15 @@ int eps_op_parser(char *opstring)
     } else if (!strcmp(opstring, "level1")) {
         eps_setup_level2 = FALSE;
         return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "docdata:7bit")) {
+        eps_setup_docdata = DOCDATA_7BIT;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "docdata:8bit")) {
+        eps_setup_docdata = DOCDATA_8BIT;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "docdata:binary")) {
+        eps_setup_docdata = DOCDATA_BINARY;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "bbox:tight")) {
         eps_setup_tight_bb = TRUE;
         return RETURN_SUCCESS;
@@ -970,6 +1027,7 @@ static SpinStructure *ps_setup_offset_x_item;
 static SpinStructure *ps_setup_offset_y_item;
 static OptionStructure *ps_setup_feed_item;
 static Widget ps_setup_hwres_item;
+static OptionStructure *ps_setup_docdata_item;
 
 void ps_gui_setup(void)
 {
@@ -982,6 +1040,11 @@ void ps_gui_setup(void)
             {MEDIA_FEED_MATCH,  "Match size"},
             {MEDIA_FEED_MANUAL, "Manual"    }
         };
+        OptionItem docdata_op_items[3] = {
+            {DOCDATA_7BIT,   "7bit" },
+            {DOCDATA_8BIT,   "8bit"},
+            {DOCDATA_BINARY, "Binary"    }
+        };
         
 	ps_setup_frame = CreateDialogForm(app_shell, "PS options");
 
@@ -991,6 +1054,8 @@ void ps_gui_setup(void)
         rc = CreateVContainer(fr);
 	ps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
 	ps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
+	ps_setup_docdata_item =
+            CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
 
 	fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
         rc = CreateHContainer(fr);
@@ -1021,6 +1086,7 @@ static void update_ps_setup_frame(void)
         SetSpinChoice(ps_setup_offset_y_item, (double) ps_setup_offset_y);
         SetOptionChoice(ps_setup_feed_item, ps_setup_feed);
         SetToggleButtonState(ps_setup_hwres_item, ps_setup_hwres);
+        SetOptionChoice(ps_setup_docdata_item, ps_setup_docdata);
     }
 }
 
@@ -1032,6 +1098,7 @@ static int set_ps_setup_proc(void *data)
     ps_setup_offset_y  = (int) GetSpinChoice(ps_setup_offset_y_item);
     ps_setup_feed      = GetOptionChoice(ps_setup_feed_item);
     ps_setup_hwres     = GetToggleButtonState(ps_setup_hwres_item);
+    ps_setup_docdata   = GetOptionChoice(ps_setup_docdata_item);
     
     return RETURN_SUCCESS;
 }
@@ -1042,6 +1109,7 @@ static Widget eps_setup_frame;
 static Widget eps_setup_grayscale_item;
 static Widget eps_setup_level2_item;
 static Widget eps_setup_tight_bb_item;
+static OptionStructure *eps_setup_docdata_item;
 
 void eps_gui_setup(void)
 {
@@ -1049,6 +1117,11 @@ void eps_gui_setup(void)
     
     if (eps_setup_frame == NULL) {
         Widget fr, rc;
+        OptionItem docdata_op_items[3] = {
+            {DOCDATA_7BIT,   "7bit" },
+            {DOCDATA_8BIT,   "8bit"},
+            {DOCDATA_BINARY, "Binary"    }
+        };
 	
         eps_setup_frame = CreateDialogForm(app_shell, "EPS options");
 
@@ -1057,7 +1130,8 @@ void eps_gui_setup(void)
 	eps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
 	eps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
 	eps_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
-
+	eps_setup_docdata_item =
+            CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
 	CreateAACDialog(eps_setup_frame, fr, set_eps_setup_proc, NULL);
     }
     update_eps_setup_frame();
@@ -1072,6 +1146,7 @@ static void update_eps_setup_frame(void)
         SetToggleButtonState(eps_setup_grayscale_item, eps_setup_grayscale);
         SetToggleButtonState(eps_setup_level2_item, eps_setup_level2);
         SetToggleButtonState(eps_setup_tight_bb_item, eps_setup_tight_bb);
+        SetOptionChoice(eps_setup_docdata_item, eps_setup_docdata);
     }
 }
 
@@ -1080,6 +1155,7 @@ static int set_eps_setup_proc(void *data)
     eps_setup_grayscale = GetToggleButtonState(eps_setup_grayscale_item);
     eps_setup_level2 = GetToggleButtonState(eps_setup_level2_item);
     eps_setup_tight_bb = GetToggleButtonState(eps_setup_tight_bb_item);
+    eps_setup_docdata = GetOptionChoice(eps_setup_docdata_item);
     
     return RETURN_SUCCESS;
 }

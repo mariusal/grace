@@ -249,20 +249,20 @@ static void update_device_setup(int device_id)
             SetSensitive(device_opts_item, True);
         }
 
-        strcpy(buf, mybasename(get_docname())); 
-        bufptr = strrchr(buf, '.');
-        if (bufptr) {
-            *(bufptr+1)='\0';
-        } else {
-            strcat(buf, ".");
+        if (print_file == NULL || print_file[0] == '\0') {
+            strcpy(print_file, mybasename(get_docname())); 
         }
         
-        if (print_file == NULL || print_file[0] == '\0' || strstr(print_file, buf)) {
-            strcat(buf, dev.fext);
-            xv_setstr(printfile_item, buf);
+        /* Replace existing filename extension */
+        bufptr = strrchr(print_file, '.');
+        if (bufptr) {
+            *(bufptr + 1) = '\0';
         } else {
-            xv_setstr(printfile_item, print_file);
+            strcat(print_file, ".");
         }
+        strcat(print_file, dev.fext);
+        
+        xv_setstr(printfile_item, print_file);
                 
         xv_setstr(print_string_item, get_print_cmd());
         

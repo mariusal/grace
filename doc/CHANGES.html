@@ -15,14 +15,27 @@
  *  [ES] don't hardcode file extensions in file selection dialogs, but define
          them via X resources instead (rep. #671)
 
+<H3>Documentation</H3>
+ *  [ES] HTML docs now include table of contents
+
 <H3>Drivers</H3>
  *  [ES] implemented font kerning in the (E)PS output
+ *  [ES] added option to choose document data (7bit/8bit/binary) for the PS
+         driver
 
 <H3>Bug fixes</H3>
  *  [ES] "-saveall" filename argument was ignored (rep. #841)
  *  [ES] not enough arguments to "-world" or "-viewport" could cause crash
  *  [ES] with "Auto redraw" disabled, several operations still caused an
          immediate redraw
+ *  [ES] backslashes in text strings weren't escaped in the (E)PS output
+ *  [AM] interpolating non-monotonic data by spline caused crash or
+         meaningless results (rep. #866)
+ *  [ES] for some non-standard fonts and/or encodings, the (E)PS output might
+         be binary while declared as 8bit clean
+ *  [ES] path in print setup
+ *  [ES] too wide pulldowns in "Edit block data" if block data contained too
+         many columns
 
 
 <H2>5.1.1</H2>

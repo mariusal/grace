@@ -217,20 +217,10 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
 
     retval = xmalloc(sizeof(OptionStructure));
 
-    retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", NULL, 0);
+    XtSetArg(args[0], XmNpacking, XmPACK_COLUMN);
+    retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", args, 1);
 
-    /* Don't create too tall pulldowns */
-    if (nchoices > MAX_PULLDOWN_LENGTH && ncols == 0) {
-        ncols = MAX_PULLDOWN_LENGTH;
-    }
-    
-    if (ncols > 1) {
-        XtVaSetValues(retval->pulldown,
-                      XmNorientation, XmHORIZONTAL,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNnumColumns, ncols,
-                      NULL);
-    }
+    retval->ncols = ncols;
     
     retval->nchoices = 0;
     retval->options = NULL;
@@ -251,10 +241,23 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
 
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 {
-    int i, nold;
+    int i, nold, ncols;
     XmString str;
     
     nold = optp->nchoices;
+
+    if (optp->ncols == 0) {
+        ncols = 1;
+    } else {
+        ncols = optp->ncols;
+    }
+    
+    /* Don't create too tall pulldowns */
+    if (nchoices/ncols > MAX_PULLDOWN_LENGTH) {
+        ncols = nchoices/MAX_PULLDOWN_LENGTH;
+    }
+    
+    XtVaSetValues(optp->pulldown, XmNnumColumns, ncols, NULL);
 
     for (i = nchoices; i < nold; i++) {
         XtDestroyWidget(optp->options[i].widget);
@@ -309,7 +312,6 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
 
     if (ncols > 0) {
         XtVaSetValues(retval->pulldown,
-                      XmNorientation, XmHORIZONTAL,
                       XmNpacking, XmPACK_COLUMN,
                       XmNnumColumns, ncols,
                       NULL);
@@ -1240,7 +1242,7 @@ OptionStructure *CreateFontChoice(Widget parent, char *s)
 
 OptionStructure *CreatePatternChoice(Widget parent, char *s)
 {
-    return (CreateBitmapOptionChoice(parent, s, 8, number_of_patterns(), 
+    return (CreateBitmapOptionChoice(parent, s, 4, number_of_patterns(), 
                                      16, 16, pattern_option_items));
 }
 
@@ -2682,7 +2684,7 @@ OptionStructure *CreateFormatChoice(Widget parent, char *s)
 {
     OptionStructure *retval;
     
-    retval = CreateOptionChoice(parent, s, 8, 31, fmt_option_items);
+    retval = CreateOptionChoice(parent, s, 4, 31, fmt_option_items);
     
     return(retval);
 }
