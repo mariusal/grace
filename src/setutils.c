@@ -425,7 +425,7 @@ void killsetdata(int gno, int setno)
 	    for (i = 0; i < getsetlength(gno, setno); i++) {
 		cxfree(g[gno].p[setno].data.s[i]);
 	    }
-	    cxfree(g[gno].p[setno].data.s[i]);
+	    cxfree(g[gno].p[setno].data.s);
 	}
 	g[gno].p[setno].data.len = 0;
 	set_set_hidden(gno, setno, TRUE);
