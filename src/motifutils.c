@@ -4539,6 +4539,21 @@ int clean_graph_selectors(Quark *pr, int etype, void *data)
     return RETURN_SUCCESS;
 }
 
+int clean_frame_selectors(Quark *pr, int etype, void *data)
+{
+    if (etype == QUARK_ETYPE_DELETE) {
+        int i;
+        for (i = 0; i < nframe_selectors; i++) {
+            SetStorageChoiceQuark(frame_selectors[i], NULL);
+        }
+    } else
+    if (etype == QUARK_ETYPE_MODIFY) {
+        /* update_frame_selectors(pr); */
+    }
+    
+    return RETURN_SUCCESS;
+}
+
 int clean_set_selectors(Quark *gr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {

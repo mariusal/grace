@@ -178,6 +178,7 @@ void update_set_selectors(Quark *gr);
 
 void graph_set_selectors(Quark *gr);
 int clean_graph_selectors(Quark *pr, int etype, void *data);
+int clean_frame_selectors(Quark *pr, int etype, void *data);
 int clean_set_selectors(Quark *gr, int etype, void *data);
 
 void HelpCB(Widget w, void *data);
