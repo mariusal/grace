@@ -40,6 +40,8 @@
 #include "xstrings.h"
 #include "protos.h"
 
+#define w_or_v(x) ((x == COORD_WORLD)?"VStrWorld":"VStrView")
+
 /*
  * XML project output
  */

@@ -46,6 +46,10 @@
 
 #include "grace.h"
 
+/* bit padding */
+#ifdef PAD
+#  undef PAD
+#endif
 #define  PAD(bits, pad)  (((bits)+(pad)-1)&-(pad))
 
 #define MIN2(a, b) (((a) < (b)) ? a : b)
@@ -53,17 +57,13 @@
 #define MIN3(a, b, c) (((a) < (b)) ? MIN2(a, c) : MIN2(b, c))
 #define MAX3(a, b, c) (((a) > (b)) ? MAX2(a, c) : MAX2(b, c))
 
-#define yes_or_no(x) ((x)?"yes":"no")
 #define on_or_off(x) ((x)?"on":"off")
 #define true_or_false(x) ((x)?"true":"false")
-#define w_or_v(x) ((x == COORD_WORLD)?"world":"view")
 
 #define LFORMAT_TYPE_PLAIN      0
 #define LFORMAT_TYPE_EXTENDED   1
 
 #define XCFREE(ptr) xfree(ptr); ptr = NULL
-
-#define PSTRING(s) ((s == NULL) ? "" : escapequotes(s))
 
 void *xmalloc(size_t size);
 void *xcalloc(size_t nmemb, size_t size);

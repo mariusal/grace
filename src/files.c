@@ -1151,7 +1151,7 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
                 fprintf(cp, format, x[col][i]);
             }
             if (s != NULL) {
-                fprintf(cp, " \"%s\"", PSTRING(s[i]));
+                fprintf(cp, " \"%s\"", escapequotes(s[i]));
             }
             fputs("\n", cp);
         }
