@@ -371,7 +371,7 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
     long buflen;
     PDF_image image;
     int cindex;
-    fRGB *frgb, *ffg, *fbg;
+    RGB *fg, *bg;
     int	i, k, j;
     long paddedW;
 
@@ -402,19 +402,19 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
     bp = buf;
     if (pixmap_bpp == 1) {
         paddedW = PAD(width, bitmap_pad);
-        ffg = get_frgb(getcolor());
-        fbg = get_frgb(getbgcolor());
+        fg = get_rgb(getcolor());
+        bg = get_rgb(getbgcolor());
         for (k = 0; k < image.height; k++) {
             for (j = 0; j < paddedW/bitmap_pad; j++) {
                 for (i = 0; i < bitmap_pad && j*bitmap_pad + i < image.width; i++) {
                     if (bin_dump(&(databits)[k*paddedW/bitmap_pad+j], i, bitmap_pad)) {
-                        *bp++ = (byte) (255 * ffg->red);
-                        *bp++ = (byte) (255 * ffg->green);
-                        *bp++ = (byte) (255 * ffg->blue);
+                        *bp++ = (byte) fg->red;
+                        *bp++ = (byte) fg->green;
+                        *bp++ = (byte) fg->blue;
                     } else {
-                        *bp++ = (byte) (255 * fbg->red);
-                        *bp++ = (byte) (255 * fbg->green);
-                        *bp++ = (byte) (255 * fbg->blue);
+                        *bp++ = (byte) bg->red;
+                        *bp++ = (byte) bg->green;
+                        *bp++ = (byte) bg->blue;
                     }
                 }
             }
@@ -423,10 +423,10 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
         for (k = 0; k < image.height; k++) {
             for (j = 0; j < image.width; j++) {
                 cindex = (databits)[k*image.width+j];
-                frgb = get_frgb(cindex);
-                *bp++ = (byte) (255 * frgb->red);
-                *bp++ = (byte) (255 * frgb->green);
-                *bp++ = (byte) (255 * frgb->blue);
+                fg = get_rgb(cindex);
+                *bp++ = (byte) fg->red;
+                *bp++ = (byte) fg->green;
+                *bp++ = (byte) fg->blue;
             }
         }
     }
