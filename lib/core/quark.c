@@ -256,8 +256,6 @@ QuarkFactory *quark_get_qfactory(const Quark *q)
     }
 }
 
-Quark *quark_copy2(Quark *newparent, const Quark *q);
-
 static int copy_hook(unsigned int step, void *data, void *udata)
 {
     Quark *child = (Quark *) data;
@@ -281,6 +279,9 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
     new->active = q->active;
     if (newparent != q->parent) {
         quark_idstr_set(new, q->idstr);
+        if (q->cb) {
+            q->cb(new, QUARK_ETYPE_REPARENT, new->cbdata);
+        }
     }
 
     storage_traverse(q->children, copy_hook, new);
