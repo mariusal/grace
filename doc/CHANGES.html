@@ -8,6 +8,23 @@
 <H1>Grace list of changes</H1>
 
 <PRE>
+<H2>5.1.12</H2>
+
+<H3>Parser</H3>
+ *  [ES] added INT(x,y) evaluating integral value of y dx
+
+<H3>Bug fixes</H3>
+ *  [ES] fixed memory corruption when reading in block data (rep. #1258). The
+         bug was introduced in 5.1.11
+ *  [ES] fixed a couple of tiny memory leaks associated with loading block
+	 data
+ *  [ES] fixed crash in histogram and interpolation dialogs with multiple sets
+	 selected
+ *  [TO] signal issues with the grace_np library fixed (rep. #1270)
+ *  [ES] implied references to current graph in parser might crash Grace if
+         the graph didn't exist (including reps. #886 and #1267)
+
+
 <H2>5.1.11</H2>
 
 <H3>Functionality</H3>
@@ -30,7 +47,8 @@
  *  [ES] updated auto* stuff to work with autoconf-2.5.* (rep. #1199)
 
 <H3>Bug fixes</H3>
- *  [SR] precision used for special tick locations was insufficient (rep. #1228)
+ *  [SR] precision used for special tick locations was insufficient
+         (rep. #1228)
  *  [ES] referring to "S_" in the parser with no sets in the current project
          crashed the app
  *  [ES] GraceIsOpen() from the grace_np library returned true after the Grace
@@ -1295,6 +1313,7 @@
     [PB]  - Peter Breitenlohner &lt;peb@mppmu.mpg.de&gt;
     [M?]  - Marius &lt;img@mail.lt&gt;
     [YZ]  - Yura Zotov &lt;yznews@hotbox.ru&gt;
+    [TO]  - Tobias Oed &lt;tobias@physics.odu.edu&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)

@@ -2261,6 +2261,7 @@ integral     | cumulative sum @
 	AVG(x)      | average of array x             @
 	SD(x)       | standard deviation of array x  @
 	SUM(x)      | sum of all elements of array x @
+	INT(x,y)    | integral of y dx               @
         <hline>
       </tabular>
       <caption>
