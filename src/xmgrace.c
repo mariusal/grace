@@ -1146,15 +1146,51 @@ void set_pagelayout(int layout)
     }
 }
 
+static int scroll_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    if (q->fid == QFlavorGraph) {
+        int *type = (int *) udata;
+        closure->descend = FALSE;
+        graph_scroll(q, *type);
+    }
+
+    return TRUE;
+}
+
 static void graph_scroll_proc(Widget but, void *data)
 {
-    graph_scroll(graph_get_current(grace->project), (int) data);
+    Quark *cg, *f;
+    int type = (int) data;
+    
+    cg = graph_get_current(grace->project);
+    f = get_parent_frame(cg);
+    
+    quark_traverse(f, scroll_hook, &type);
+    
     xdrawgraph();
+}
+
+static int zoom_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    if (q->fid == QFlavorGraph) {
+        int *type = (int *) udata;
+        closure->descend = FALSE;
+        graph_zoom(q, *type);
+    }
+
+    return TRUE;
 }
 
 static void graph_zoom_proc(Widget but, void *data)
 {
-    graph_zoom(graph_get_current(grace->project), (int) data);
+    Quark *cg, *f;
+    int type = (int) data;
+    
+    cg = graph_get_current(grace->project);
+    f = get_parent_frame(cg);
+    
+    quark_traverse(f, zoom_hook, &type);
+    
     xdrawgraph();
 }
 
