@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -42,6 +42,89 @@
 #include "devlist.h"
 #include "svgdrv.h"
 
+static char *svg_charnames[] =
+    {
+    /* ISO 8859-1 */
+    "space", "exclam", "quotedbl", "numbersign", "dollar", "percent", "ampersand", "quoteright", "parenleft", "parenright", "asterisk",
+    "plus", "comma", "hyphen", "period", "slash", "zero", "one", "two", "three", "four", "five",
+    "six", "seven", "eight", "nine", "colon", "semicolon", "less", "equal", "greater", "question", "at",
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K",
+    "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V",
+    "W", "X", "Y", "Z", "bracketleft", "backslash", "bracketright", "asciicircum", "underscore", "grave", "a",
+    "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
+    "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w",
+    "x", "y", "z", "braceleft", "bar", "braceright", "asciitilde", "space", "exclamdown", "cent", "sterling",
+    "currency", "yen", "brokenbar", "section", "dieresis", "copyright", "ordfeminine", "guillemotleft", "logicalnot", "hyphen", "registered",
+    "macron", "degree", "plusminus", "twosuperior", "threesuperior", "acute", "mu", "paragraph", "periodcentered", "cedilla", "onesuperior",
+    "ordmasculine", "guillemotright", "onequarter", "onehalf", "threequarters", "questiondown", "Agrave", "Aacute", "Acircumflex", "Atilde", "Adieresis",
+    "Aring", "AE", "Ccedilla", "Egrave", "Eacute", "Ecircumflex", "Edieresis", "Igrave", "Iacute", "Icircumflex", "Idieresis",
+    "Eth", "Ntilde", "Ograve", "Oacute", "Ocircumflex", "Otilde", "Odieresis", "multiply", "Oslash", "Ugrave", "Uacute",
+    "Ucircumflex", "Udieresis", "Yacute", "Thorn", "germandbls", "agrave", "aacute", "acircumflex", "atilde", "adieresis", "aring",
+    "ae", "ccedilla", "egrave", "eacute", "ecircumflex", "edieresis", "igrave", "iacute", "icircumflex", "idieresis", "eth",
+    "ntilde", "ograve", "oacute", "ocircumflex", "otilde", "odieresis", "divide", "oslash", "ugrave", "uacute", "ucircumflex",
+    "udieresis", "yacute", "thorn", "ydieresis",
+    /*additional in WinANSI*/
+    "quotesingle", "Euro", "quotesinglbase", "florin", "quotedblbase", "ellipsis", "dagger", "daggerdbl", "circumflex", "perthousand", "Scaron",
+    "guilsinglleft", "OE", "Zcaron", "quoteleft", "quoteright", "quotedblleft", "quotedblright", "bullet", "endash", "emdash", "tilde",
+    "trademark", "scaron", "guilsinglright", "oe", "zcaron", "Ydieresis",
+    /* additional in symbol font, as far as the Adobe SVG-Viewer understands the codes */
+    "universal", "existential", "asteriskmath", "minus", "congruent", "Alpha", "Beta", "Chi", "Delta", "Epsilon", "Phi",
+    "Gamma", "Eta", "Iota", "theta1", "Kappa", "Lambda", "Mu", "Nu", "Omicron", "Pi", "Theta",
+    "Rho", "Sigma", "Tau", "Upsilon", "sigma1", "Omega", "Xi", "Psi", "Zeta", "therefore", "perpendicular",
+    "alpha", "beta", "chi", "delta", "epsilon", "phi", "gamma", "eta", "iota", "phi1", "kappa",
+    "lambda", "mu", "nu", "omicron", "pi", "theta", "rho", "sigma", "tau", "upsilon", "omega1",
+    "omega", "xi", "psi", "zeta", "similar", "Upsilon1", "minute", "lessequal", "fraction", "infinity", "club",
+    "diamond", "heart", "spade", "arrowboth", "arrowleft", "arrowup", "arrowright", "arrowdown", "degree", "plusminus", "second",
+    "greaterequal", "multiply", "proportional", "partialdiff", "divide", "notequal", "equivalence", "approxequal", "carriagereturn", "aleph", "Ifraktur",
+    "Rfraktur", "weierstrass", "circlemultiply", "circleplus", "emptyset", "intersection", "union", "propersuperset", "reflexsuperset", "notsubset", "propersubset",
+    "reflexsubset", "element", "notelement", "angle", "gradient", "product", "radical", "dotmath", "logicalnot", "logicaland", "logicalor",
+    "arrowdblboth", "arrowdblleft", "arrowdblup", "arrowdblright", "arrowdbldown", "lozenge", "angleleft", "summation", "angleright", "integral", "integraltp",
+    "integralbt",
+    /*last item in array*/
+    "\0"
+    };
+static char *svg_charcodes[] =
+    {
+    /* ISO 8859-1 */
+    "\x20", "\x21", "&quot;", "\x23", "\x24", "\x25", "&amp;", "&apos;", "\x28", "\x29", "\x2A",
+    "\x2B", "\x2C", "\x2D", "\x2E", "\x2F", "\x30", "\x31", "\x32", "\x33", "\x34", "\x35",
+    "\x36", "\x37", "\x38", "\x39", "\x3A", "\x3B", "&lt;", "\x3D", "&gt;", "\x3F", "\x40",
+    "\x41", "\x42", "\x43", "\x44", "\x45", "\x46", "\x47", "\x48", "\x49", "\x4A", "\x4B",
+    "\x4C", "\x4D", "\x4E", "\x4F", "\x50", "\x51", "\x52", "\x53", "\x54", "\x55", "\x56",
+    "\x57", "\x58", "\x59", "\x5A", "\x5B", "\x5C", "\x5D", "\x5E", "\x5F", "\x60", "\x61",
+    "\x62", "\x63", "\x64", "\x65", "\x66", "\x67", "\x68", "\x69", "\x6A", "\x6B", "\x6C",
+    "\x6D", "\x6E", "\x6F", "\x70", "\x71", "\x72", "\x73", "\x74", "\x75", "\x76", "\x77",
+    "\x78", "\x79", "\x7A", "\x7B", "\x7C", "\x7D", "\x7E", "\xA0", "\xA1", "\xA2", "\xA3",
+    "\xA4", "\xA5", "\xA6", "\xA7", "\xA8", "\xA9", "\xAA", "\xAB", "\xAC", "\xAD", "\xAE",
+    "\xAF", "\xB0", "\xB1", "\xB2", "\xB3", "\xB4", "\xB5", "\xB6", "\xB7", "\xB8", "\xB9",
+    "\xBA", "\xBB", "\xBC", "\xBD", "\xBE", "\xBF", "\xC0", "\xC1", "\xC2", "\xC3", "\xC4",
+    "\xC5", "\xC6", "\xC7", "\xC8", "\xC9", "\xCA", "\xCB", "\xCC", "\xCD", "\xCE", "\xCF",
+    "\xD0", "\xD1", "\xD2", "\xD3", "\xD4", "\xD5", "\xD6", "\xD7", "\xD8", "\xD9", "\xDA",
+    "\xDB", "\xDC", "\xDD", "\xDE", "\xDF", "\xE0", "\xE1", "\xE2", "\xE3", "\xE4", "\xE5",
+    "\xE6", "\xE7", "\xE8", "\xE9", "\xEA", "\xEB", "\xEC", "\xED", "\xEE", "\xEF", "\xF0",
+    "\xF1", "\xF2", "\xF3", "\xF4", "\xF5", "\xF6", "\xF7", "\xF8", "\xF9", "\xFA", "\xFB",
+    "\xFC", "\xFD", "\xFE", "\xFF",
+    /*additional in WinANSI*/
+    "&apos;", "&#x20AC;", "&#x201A;", "&#x0192;", "&#x201E;", "&#x2026;", "&#x2020;", "&#x2021;", "&#x02C6;", "&#x2030;", "&#x0160;",
+    "&#x2039;", "&#x0152;", "&#x017D;", "&#x2018;", "&#x2019;", "&#x201C;", "&#x201D;", "&#x2022;", "&#x2013;", "&#x2014;", "&#x02DC;",
+    "&#x2122;", "&#x0161;", "&#x203A;", "&#x0153;", "&#x017E;", "&#x0178;",
+    /* additional in symbol font, as far as the Adobe SVG-Viewer understands the codes */
+    "&#8704;", "&#8707;", "&#8727;", "&#8722;", "&#8773;", "&#913;", "&#914;", "&#935;", "&#916;", "&#917;", "&#928;",
+    "&#915;", "&#919;", "&#921;", "&#977;", "&#922;", "&#923;", "&#924;", "&#925;", "&#927;", "&#928;", "&#920;",
+    "&#929;", "&#931;", "&#932;", "&#933;", "&#963;", "&#937;", "&#926;", "&#936;", "&#918;", "&#8756;", "&#8869;",
+    "&#945;", "&#946;", "&#967;", "&#948;", "&#949;", "&#966;", "&#947;", "&#951;", "&#953;", "&#981;", "&#954;",
+    "&#955;", "&#956;", "&#957;", "&#959;", "&#960;", "&#952;", "&#961;", "&#963;", "&#964;", "&#965;", "&#982;",
+    "&#969;", "&#958;", "&#968;", "&#950;", "&#8764;", "&#978;", "&#8242;", "&#8804;", "&#8260;", "&#8734;", "&#9827;",
+    "&#9830;", "&#9829;", "&#9824;", "&#8596;", "&#8592;", "&#8593;", "&#8594;", "&#8595;", "&#176;", "&#177;", "&#8243;",
+    "&#8805;", "&#215;", "&#8733;", "&#8706;", "&#247;", "&#8800;", "&#8801;", "&#8776;", "&#8629;", "&#8501;", "&#8465;",
+    "&#8476;", "&#8472;", "&#8855;", "&#8853;", "&#8709;", "&#8745;", "&#8746;", "&#8835;", "&#8839;", "&#8836;", "&#8834;",
+    "&#8838;", "&#8712;", "&#8713;", "&#8736;", "&#8711;", "&#8719;", "&#8730;", "&#8901;", "&#172;", "&#8743;", "&#8744;",
+    "&#8660;", "&#8656;", "&#8657;", "&#8658;", "&#8659;", "&#9674;", "&#9001;", "&#8721;", "&#9002;", "&#8747;", "&#8992;",
+    "&#8993;",
+    /*last item in array*/
+    "\0"
+    };
+    
 typedef struct {
     double side;
     int   *pattern_defined;
@@ -211,49 +294,35 @@ static void define_pattern(const Canvas *canvas, Svg_data *svgdata, unsigned int
 }
 
 /*
- * escape special characters
+ * escape special characters and use Unicode for non ISO-8859-1 characters
  */
-static char *escape_specials(unsigned char *s, int len)
+static char *escape_specials(const Canvas *canvas,
+    unsigned char *s, int len, int font)
 {
     static char *es = NULL;
-    int i, elen = 0;
+    int i, j;
 
-    elen = 0;
+    es = xrealloc(es, (len * 8 + 1)*SIZEOF_CHAR);
+    es[0] = '\0';
+
     for (i = 0; i < len; i++) {
-        if (s[i] == '&') {
-            elen += 4;
-        } else if (s[i] == '<' || s[i] == '>') {
-            elen += 3;
+        int found = FALSE;
+        char *cname = get_charname(canvas, font, s[i]);
+        for (j = 0; svg_charnames[j] != '\0'; j++) {
+            if (compare_strings(cname, svg_charnames[j])) {
+                es = strcat(es, svg_charcodes[j]);
+                found = TRUE;
+                break;
+            }
         }
-        elen++;
-    }
-
-    es = xrealloc(es, (elen + 1)*SIZEOF_CHAR);
-
-    elen = 0;
-    for (i = 0; i < len; i++) {
-        if (s[i] == '&') {
-            es[elen++] = '&';
-            es[elen++] = 'a';
-            es[elen++] = 'm';
-            es[elen++] = 'p';
-            es[elen++] = ';';
-        } else if (s[i] == '<') {
-            es[elen++] = '&';
-            es[elen++] = 'l';
-            es[elen++] = 't';
-            es[elen++] = ';';
-        } else if (s[i] == '>') {
-            es[elen++] = '&';
-            es[elen++] = 'g';
-            es[elen++] = 't';
-            es[elen++] = ';';
-        } else {
-            es[elen++] = (char) s[i];
+        if (!found) {
+            /* Use private area of Unicode for characters not found in list. */
+            char privcode[9];
+            sprintf(privcode, "&#%d;", 57344 + (int) s[i]);
+            es = strcat(es, privcode); 
         }
     }
-    es[elen] = '\0';
-
+   
     return (es);
 }
 
@@ -288,6 +357,7 @@ int svg_initgraphics(const Canvas *canvas, void *data,
     for (i = 0; i < number_of_colors(canvas); i++) {
         svgdata->colorfilter_defined[i] = FALSE;
     }
+
 
     svgdata->group_is_open = FALSE;
     svgdata->line_width    = 0.0;
@@ -654,13 +724,13 @@ void svg_puttext(const Canvas *canvas, void *data,
     
     fprintf(prstream, "   <text  ");
 
-    family  = NULL;
+    family = NULL;
     fontalias = get_fontalias(canvas, font);
     fontfullname = get_fontfullname(canvas, font);
     if ((dash = strchr(fontalias, '-')) == NULL) {
         family = copy_string(family, fontalias);
     } else {
-        family    = xrealloc(family, dash - fontalias + 1);
+        family = xrealloc(family, dash - fontalias + 1);
         strncpy(family, fontalias, dash - fontalias);
         family[dash - fontalias] = '\0';
     }
@@ -762,7 +832,8 @@ void svg_puttext(const Canvas *canvas, void *data,
             -tm->cxy,-tm->cyy,
             scaleval(data, vp->x), scaleval(data, vp->y));
 
-    fprintf(prstream, "%s", escape_specials((unsigned char *) s, len));
+    fprintf(prstream, "%s", escape_specials(canvas,
+        (unsigned char *) s, len, font));
 
     fprintf(prstream, "</text>\n");
 }
