@@ -37,11 +37,7 @@
 #include <config.h>
 #include <cmath.h>
 
-#if defined (HAVE_LIBT1)
-#  include <t1lib.h>
-#else
-#  include "T1lib/t1lib/t1lib.h"
-#endif
+#include <t1lib.h>
 
 #include "defines.h"
 
