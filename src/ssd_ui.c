@@ -402,7 +402,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             } else {
                 maxlengths[i] = 2*CELL_WIDTH;
             }
-            if (col && col->label) {
+            if (col && !string_is_empty(col->label)) {
                 collabels[i] = copy_string(NULL, col->label);
             } else {
                 char buf[32];
