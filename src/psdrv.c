@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -315,7 +315,7 @@ static int ps_initgraphics(int format)
     enc = get_default_encoding();
     fprintf(prstream, "/DefEncoding [\n");
     for (i = 0; i < 256; i++) {
-        fprintf(prstream, " (%s)\n", enc[i]);
+        fprintf(prstream, " /%s\n", enc[i]);
     }
     fprintf(prstream, "] def\n");
 
