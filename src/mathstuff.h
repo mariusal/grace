@@ -31,30 +31,30 @@
 #ifndef _MATHSTUFF_H__
 #define _MATHSTUFF_H__
 
-extern double ai_wrap(double x);
-extern double bi_wrap(double x);
-extern double chi_wrap(double x);
-extern double ci_wrap(double x);
-extern double ellpe_wrap ( double x );
-extern double ellpk_wrap ( double x );
-extern double fresnlc_wrap(double x);
-extern double fresnls_wrap(double x);
-extern double fx(double x);
-extern double iv_wrap(double v, double x);
-extern double jv_wrap(double v, double x);
-extern double kn_wrap(int n, double x);
-extern double max_wrap(double x, double y);
-extern double min_wrap(double x, double y);
-extern double irand_wrap(int x);
-extern double rnorm(double mean, double sdev);
-extern double shi_wrap(double x);
-extern double si_wrap(double x);
-extern double sqr_wrap(double x);
-extern double yv_wrap(double v, double x);
+double ai_wrap(double x);
+double bi_wrap(double x);
+double chi_wrap(double x);
+double ci_wrap(double x);
+double ellpe_wrap(double x);
+double ellpk_wrap(double x);
+double fresnlc_wrap(double x);
+double fresnls_wrap(double x);
+double fx(double x);
+double iv_wrap(double v, double x);
+double jv_wrap(double v, double x);
+double kn_wrap(int n, double x);
+double max_wrap(double x, double y);
+double min_wrap(double x, double y);
+double irand_wrap(int x);
+double rnorm(double mean, double sdev);
+double shi_wrap(double x);
+double si_wrap(double x);
+double sqr_wrap(double x);
+double yv_wrap(double v, double x);
 
 /* constants */
-extern double pi_const(void);
-extern double deg_uconst(void);
-extern double rad_uconst(void);
+double pi_const(void);
+double deg_uconst(void);
+double rad_uconst(void);
 
 #endif /* _MATHSTUFF_H__ */
