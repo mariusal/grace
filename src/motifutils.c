@@ -2546,6 +2546,25 @@ OptionStructure *CreateFormatChoice(Widget parent, char *s)
     return(retval);
 }
 
+static OptionItem as_option_items[4] = 
+{
+    {AUTOSCALE_NONE, "None"},
+    {AUTOSCALE_X,    "X"},
+    {AUTOSCALE_Y,    "Y"},
+    {AUTOSCALE_XY,   "XY"}
+};
+
+OptionStructure *CreateASChoice(Widget parent, char *s)
+{
+    OptionStructure *retval;
+    
+    retval = CreateOptionChoice(parent, s, 1, 4, as_option_items);
+    /* As init value, use this */
+    SetOptionChoice(retval, autoscale_onread);
+    
+    return(retval);
+}
+
 Widget *CreatePrecisionChoice(Widget parent, char *s)
 {
     Widget *w;
