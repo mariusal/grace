@@ -59,7 +59,6 @@ GUI *gui_new(Grace *grace)
 
     gui->inwin           = FALSE;
     gui->invert          = TRUE;
-    gui->auto_redraw     = TRUE;
     gui->focus_policy    = FOCUS_CLICK;
     gui->draw_focus_flag = TRUE;
 

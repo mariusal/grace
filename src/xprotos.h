@@ -111,7 +111,7 @@ int x11_init(Grace *grace);
 int initialize_gui(int *argc, char **argv);
 void startup_gui(Grace *grace);
 
-void xdrawgraph(const Quark *q, int force);
+void xdrawgraph(const Quark *q);
 void expose_resize(Widget w, XtPointer client_data, XtPointer call_data);
 
 void setpointer(VPoint vp);

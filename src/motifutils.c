@@ -2710,7 +2710,7 @@ static void gss_any_cb(void *udata, int cbtype)
     if (n > 0) {
         xfree(values);
         update_all();
-        xdrawgraph(grace->project, FALSE);
+        xdrawgraph(grace->project);
     }
 }
 
@@ -4712,7 +4712,7 @@ void snapshot_and_update(Quark *q, int all)
     amem = quark_get_amem(pr);
     amem_snapshot(amem);
 
-    xdrawgraph(pr, FALSE);
+    xdrawgraph(pr);
     
     if (all) {
         update_all();

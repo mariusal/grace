@@ -199,7 +199,7 @@ void page_zoom_inout(Grace *grace, int inout)
         } else {
             grace->gui->zoom = 1.0;
         }
-        xdrawgraph(grace->project, TRUE);
+        xdrawgraph(grace->project);
         set_left_footer(NULL);
     }
 }
@@ -465,7 +465,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 	inc = TRUE;
         
         update_all();
-        xdrawgraph(grace->project, TRUE);
+        xdrawgraph(grace->project);
 
         return;
     }
@@ -480,7 +480,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
         if (gui_is_page_free(grace->gui)) {
             sync_canvas_size(grace);
             update_all();
-            xdrawgraph(grace->project, TRUE);
+            xdrawgraph(grace->project);
         }
     }
 }
@@ -488,12 +488,12 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 /* 
  * redraw all
  */
-void xdrawgraph(const Quark *q, int force)
+void xdrawgraph(const Quark *q)
 {
     Quark *project = get_parent_project(q);
     Grace *grace = grace_from_quark(q);
     
-    if (grace && grace->gui->inwin && (force || grace->gui->auto_redraw)) {
+    if (grace && grace->gui->inwin) {
         X11Stuff *xstuff = grace->gui->xstuff;
         Quark *gr = graph_get_current(project);
         Device_entry *d = get_device_props(grace->rt->canvas, grace->rt->tdevice);

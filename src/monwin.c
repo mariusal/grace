@@ -271,7 +271,7 @@ static void cmd_cb(TextStructure *cst, char *s, void *data)
         scanner(s);
         
         if (ui->auto_redraw) {
-            xdrawgraph(grace->project, FALSE);
+            xdrawgraph(grace->project);
         }
 
         if (ui->auto_update) {

@@ -115,7 +115,6 @@ static char canvas_table[] = "#override\n\
  */
 typedef struct {
     Boolean invert;
-    Boolean auto_redraw;
     Boolean toolbar;
     Boolean statusbar;
     Boolean locatorbar;
@@ -126,9 +125,6 @@ static XtResource resources[] =
 {
     {"invertDraw", "InvertDraw", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, invert), XtRImmediate,
-     (XtPointer) TRUE},
-    {"allowRedraw", "AllowRedraw", XtRBoolean, sizeof(Boolean),
-     XtOffset(ApplicationDataPtr, auto_redraw), XtRImmediate,
      (XtPointer) TRUE},
     {"toolBar", "ToolBar", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, toolbar), XtRImmediate,
@@ -402,7 +398,6 @@ int initialize_gui(int *argc, char **argv)
         resources, XtNumber(resources), NULL, 0);
     
     grace->gui->invert = rd.invert;
-    grace->gui->auto_redraw = rd.auto_redraw;
     grace->gui->instant_update = rd.instantupdate;
     grace->gui->toolbar = rd.toolbar;
     grace->gui->statusbar = rd.statusbar;
@@ -418,7 +413,7 @@ int initialize_gui(int *argc, char **argv)
 
 static void do_drawgraph(Widget but, void *data)
 {
-    xdrawgraph(grace->project, TRUE);
+    xdrawgraph(grace->project);
 }
 
 
@@ -623,7 +618,7 @@ static void new_cb(Widget but, void *data)
 {
     Grace *grace = (Grace *) data;
     new_project(grace, NULL);
-    xdrawgraph(grace->project, FALSE);
+    xdrawgraph(grace->project);
 }
 
 
@@ -671,7 +666,7 @@ static void revert_cb(Widget but, void *data)
 	new_project(grace, NULL);
     }
     xfree(s);
-    xdrawgraph(grace->project, FALSE);
+    xdrawgraph(grace->project);
     unset_wait_cursor();
 }
 
@@ -696,7 +691,7 @@ static void undo_cb(Widget but, void *data)
     
     amem_undo(amem);
     
-    xdrawgraph(grace->project, FALSE);
+    xdrawgraph(grace->project);
     update_all();
     
     undo_stats(amem);
@@ -709,7 +704,7 @@ static void redo_cb(Widget but, void *data)
     
     amem_redo(amem);
     
-    xdrawgraph(grace->project, FALSE);
+    xdrawgraph(grace->project);
     update_all();
     
     undo_stats(amem);
@@ -1222,7 +1217,7 @@ static void load_example_cb(Widget but, void *data)
     sprintf(buf, "examples/%s", s);
     load_project_file(grace, buf, FALSE);
 
-    xdrawgraph(grace->project, FALSE);
+    xdrawgraph(grace->project);
 
     unset_wait_cursor();
 }

@@ -60,8 +60,6 @@ typedef struct _GUI {
 
     /* use GXxor or GXinvert for xor'ing */
     int invert;
-    /* if true, redraw graph each time action is performed */
-    int auto_redraw;
     int focus_policy;
     int draw_focus_flag;
     

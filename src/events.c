@@ -340,7 +340,6 @@ static void popup_any_cb(canvas_target *ct, int type)
     }
     
     snapshot_and_update(q, TRUE);
-    // xdrawgraph(pr, TRUE);
 }
 
 static void edit_cb(Widget but, void *udata)

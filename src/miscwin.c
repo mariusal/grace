@@ -56,7 +56,6 @@ static Widget noask_item;
 static OptionStructure *graph_focus_choice_item;
 static Widget graph_drawfocus_choice_item;
 
-static Widget autoredraw_type_item;
 static Widget cursor_type_item;
 static SpinStructure *max_path_item;
 static Widget safe_mode_item;
@@ -100,7 +99,6 @@ void create_props_frame(Widget but, void *data)
 
         graph_drawfocus_choice_item =
             CreateToggleButton(rc1, "Display focus markers");
-	autoredraw_type_item = CreateToggleButton(rc1, "Auto redraw");
 	cursor_type_item = CreateToggleButton(rc1, "Crosshair cursor");
 #if defined WITH_XMHTML
 	force_external_viewer_item = CreateToggleButton(rc1,
@@ -153,7 +151,6 @@ void update_props_items(void)
 	SetOptionChoice(graph_focus_choice_item, itest);
 	SetToggleButtonState(graph_drawfocus_choice_item, gui->draw_focus_flag);
 
-	SetToggleButtonState(autoredraw_type_item, gui->auto_redraw);
 	SetToggleButtonState(cursor_type_item, gui->crosshair_cursor);
 #if defined WITH_XMHTML
 	SetToggleButtonState(force_external_viewer_item, gui->force_external_viewer);
@@ -190,7 +187,6 @@ static int props_define_notify_proc(void *data)
     }
     gui->draw_focus_flag = GetToggleButtonState(graph_drawfocus_choice_item);
 
-    gui->auto_redraw = GetToggleButtonState(autoredraw_type_item);
     gui->crosshair_cursor = GetToggleButtonState(cursor_type_item);
 #if defined WITH_XMHTML
     gui->force_external_viewer = GetToggleButtonState(force_external_viewer_item);
@@ -200,7 +196,7 @@ static int props_define_notify_proc(void *data)
     grace->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
     grace->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
     
-    xdrawgraph(grace->project, FALSE);
+    xdrawgraph(grace->project);
     
     return RETURN_SUCCESS;
 }

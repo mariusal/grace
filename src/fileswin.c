@@ -113,7 +113,7 @@ void create_openproject_popup(void)
 static int open_proc(FSBStructure *fsb, char *filename, void *data)
 {
     if (load_project(grace, filename) == RETURN_SUCCESS) {
-        xdrawgraph(grace->project, FALSE);
+        xdrawgraph(grace->project);
         update_all();
         return TRUE;
     } else {
@@ -384,7 +384,7 @@ static void do_netcdf_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	retval = readnetcdf(NULL, fname, xvar, yvar, -1, -1, 1);
     }
     if (retval) {
-	xdrawgraph(grace->project, FALSE);
+	xdrawgraph(grace->project);
     }
     unset_wait_cursor();
 }
