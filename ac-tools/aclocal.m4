@@ -323,7 +323,7 @@ AC_DEFUN(ACX_CHECK_MOTIF,
     CPPFLAGS="$X_CFLAGS $CPPFLAGS"
     LDFLAGS="$X_LIBS $LDFLAGS"
     AC_TRY_RUN([
-#include <Xm/Xm.h>
+#include <Xm/XmAll.h>
       int main(void) {
         int vlibn, vincn;
         vincn = XmVersion;
