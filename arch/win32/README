@@ -1,15 +1,12 @@
 
 In order to compile Grace, you'll need Cygnus's GNU-win32 development kit 
-(ftp://ftp.cygnus.com/pub/gnu-win32/gnu-win32/) and Arlindo da Silva's
-port of XWindows libs, which can be found at 
-http://dao.gsfc.nasa.gov/software/grads/win32/X11R6.3/. Of course,
-you'll need some X server, too; pointers to some free and commercial
-X servers can be found in the above package.
+(ftp://ftp.cygnus.com/pub/gnu-win32/gnu-win32/), version B20.1 or above,
+and Arlindo da Silva's port of XWindows libs, which can be found at 
+http://dao.gsfc.nasa.gov/software/grads/win32/X11R6.4/. Of course,
+you'll need an X server for Windows, too; for a comprehensive list, see
+http://www.rahul.net/kenton/xsites.html 
 
 Alternatively, you can use a commercial X/Motif SDK for Win32, like eXceed's.
-
-b19 of the GNU-win32 kit lacks the dlfcn.h header. It's included here; move
-it to the "src" directory before the compilation.
 
 Evgeny
 
