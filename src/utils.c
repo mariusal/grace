@@ -1329,13 +1329,37 @@ void msleep_wrap(unsigned int msec)
     select(0, NULL, NULL, NULL, &timeout);    
 }
 
-char *set_locale_num(int flag)
+static int need_locale = FALSE;
+static char *system_locale_string, *posix_locale_string;
+
+int init_locale(void)
+{
+    char *s;
+    s = setlocale(LC_NUMERIC, "");
+    if (s == NULL) {
+        /* invalid/unsupported locale */
+        return GRACE_EXIT_FAILURE;
+    } else if (!strcmp(s, "C")) {
+        /* don't enable need_locale, since the system locale is C */
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        system_locale_string = copy_string(NULL, s);
+        s = setlocale(LC_NUMERIC, "C");
+        posix_locale_string = copy_string(NULL, s);
+        need_locale = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    }
+}
+
+void set_locale_num(int flag)
 {
 #ifdef HAVE_SETLOCALE
-    if (flag == TRUE) {
-        return setlocale(LC_NUMERIC, "");
-    } else {
-        return setlocale(LC_NUMERIC, "C");
+    if (need_locale) {
+        if (flag == TRUE) {
+            setlocale(LC_NUMERIC, system_locale_string);
+        } else {
+            setlocale(LC_NUMERIC, posix_locale_string);
+        }
     }
 #endif
 }

@@ -128,7 +128,8 @@ int is_dirtystate(void);
 int system_wrap(const char *string);
 void msleep_wrap(unsigned int msec);
 
-char *set_locale_num(int flag);
+int init_locale(void);
+void set_locale_num(int flag);
 
 long bi_version_id(void);
 char *bi_version_string(void);
