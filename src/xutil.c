@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -384,8 +384,8 @@ void reset_crosshair(GUI *gui, int clear)
     X11Stuff *xstuff = gui->xstuff;
     crosshair_erase = FALSE;
     if (clear) {
-        aux_XDrawLine(gui, 0, cursor_oldy, xstuff->win_w, cursor_oldy);
-        aux_XDrawLine(gui, cursor_oldx, 0, cursor_oldx, xstuff->win_h);
+        aux_XDrawLine(gui, xstuff->f_x1, cursor_oldy, xstuff->f_x2, cursor_oldy);
+        aux_XDrawLine(gui, cursor_oldx, xstuff->f_y1, cursor_oldx, xstuff->f_y2);
     }
 }
 
@@ -395,15 +395,22 @@ void reset_crosshair(GUI *gui, int clear)
 void crosshair_motion(GUI *gui, int x, int y)
 {
     X11Stuff *xstuff = gui->xstuff;
+    
     /* Erase the previous crosshair */
     if (crosshair_erase == TRUE) {
-        aux_XDrawLine(gui, 0, cursor_oldy, xstuff->win_w, cursor_oldy);
-        aux_XDrawLine(gui, cursor_oldx, 0, cursor_oldx, xstuff->win_h);
+        aux_XDrawLine(gui, xstuff->f_x1, cursor_oldy, xstuff->f_x2, cursor_oldy);
+        aux_XDrawLine(gui, cursor_oldx, xstuff->f_y1, cursor_oldx, xstuff->f_y2);
     }
 
+    if (x < xstuff->f_x1 || x > xstuff->f_x2 ||
+        y < xstuff->f_y2 || y > xstuff->f_y1) {
+        crosshair_erase = FALSE;
+        return;
+    }
+    
     /* Draw the new crosshair */
-    aux_XDrawLine(gui, 0, y, xstuff->win_w, y);
-    aux_XDrawLine(gui, x, 0, x, xstuff->win_h);
+    aux_XDrawLine(gui, xstuff->f_x1, y, xstuff->f_x2, y);
+    aux_XDrawLine(gui, x, xstuff->f_y1, x, xstuff->f_y2);
     crosshair_erase = TRUE;
     cursor_oldx = x;
     cursor_oldy = y;

@@ -379,6 +379,8 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             crosshair_motion(grace->gui, x, y);
         }
 
+        x11_dev2VPoint(x, y, &vp);
+
 	if (xme->state & Button1Mask) {
             if (xme->state & ControlMask) {
                 if (on_focus) {
@@ -392,8 +394,6 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
             }
         } else {
-            x11_dev2VPoint(x, y, &vp);
-
             if (grace->gui->focus_policy == FOCUS_FOLLOWS) {
                 cg = next_graph_containing(cg, &vp);
             }
@@ -423,9 +423,9 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                     set_cursor(grace->gui, 0);
                 }
             }
-            
-            update_locator_lab(cg, &vp);
         }
+
+        update_locator_lab(cg, &vp);
         
         break;
     case ButtonPress:
@@ -655,9 +655,15 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             (keybuf == XK_Shift_L || keybuf == XK_Shift_R)) { /* Shift */
             reset_crosshair(grace->gui, TRUE);
         }
-        if (xke->state & ControlMask && ct.found) {
-            slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
-            ct.found = FALSE;
+        if (xke->state & ControlMask) {
+            if (on_focus) {
+                    resize_region(grace->gui, xstuff->f_v, on_focus,
+                        x - last_b1down_x, y - last_b1down_y, FALSE);
+            } else
+            if (ct.found) {
+                slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
+                ct.found = FALSE;
+            }
         }
         break;
     default:
