@@ -16,7 +16,7 @@
 #include "xstrings.h"
 
 typedef struct {
-    RunTime *rt;
+    Grace *grace;
     int ncol;
     int nrow;
     Quark *ss;
@@ -550,7 +550,7 @@ char *utf2iso(const char *s)
         }
     ]]></attribute-type>
     <attribute-type name="settype" ctype="SetType"><![CDATA[
-        RunTime *rt = ((ParserData *)$U)->rt;
+        RunTime *rt = ((ParserData *)$U)->grace->rt;
         $$ = get_settype_by_name(rt, $?);
     ]]></attribute-type>
     <attribute-type name="fillrule" ctype="int"><![CDATA[
@@ -561,7 +561,7 @@ char *utf2iso(const char *s)
         }
     ]]></attribute-type>
     <attribute-type name="regiontype" ctype="int"><![CDATA[
-        RunTime *rt = ((ParserData *)$U)->rt;
+        RunTime *rt = ((ParserData *)$U)->grace->rt;
         $$ = get_regiontype_by_name(rt, $?);
     ]]></attribute-type>
     <attribute-type name="dateordval" ctype="double"><![CDATA[
@@ -584,7 +584,7 @@ char *utf2iso(const char *s)
     
     <!-- Element types -->
     <element-type name="project" ctype="Quark *"><![CDATA[
-        $$ = project_new(((ParserData *) $U)->rt->qfactory);
+        $$ = grace_project_new(((ParserData *) $U)->grace, AMEM_MODEL_LIBUNDO);
     ]]></element-type>
     <element-type name="page" ctype="Page *"><![CDATA[
         $$ = page_new();
@@ -1021,7 +1021,7 @@ char *utf2iso(const char *s)
     <element name="#EStrPresentationSpec" type="presentationspec">
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->rt;
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
             $$->type = graph_get_type_by_name(rt, $?);
             xfree($?);
         </attribute>
@@ -1452,7 +1452,7 @@ char *utf2iso(const char *s)
         </attribute>
 
         <attribute name="#AStrPosition" type="sval">
-            RunTime *rt = ((ParserData *)$U)->rt;
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
             axis_set_position($$, get_axis_position_by_name(rt, $?));
             xfree($?);
         </attribute>
@@ -2022,10 +2022,10 @@ Quark *load_xgr_project(Grace *grace, char *fn)
 	return NULL;
     }
 
-    udata.rt = grace->rt;
-    udata.ss   = NULL;
-    udata.nrow = -1;
-    udata.ncol = -1;
+    udata.grace = grace;
+    udata.ss    = NULL;
+    udata.nrow  = -1;
+    udata.ncol  = -1;
     
     ret = xcc_parse(fp, &udata, &p, xcc_start_handler, xcc_end_handler);
     project = p;

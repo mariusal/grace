@@ -386,16 +386,6 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     return ui;
 }
 
-static int kill_cb(Quark *q, int etype, void *data)
-{
-    if (etype == QUARK_ETYPE_DELETE) {
-        SSDataUI *ui = (SSDataUI *) data;
-        ui->q = NULL;
-    }
-    
-    return RETURN_SUCCESS;
-}
-
 void update_ssd_ui(SSDataUI *ui, Quark *q)
 {
     if (ui && q) {
@@ -407,9 +397,6 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         char **collabels;
         unsigned char *clab_alignments;
         int cur_row, cur_col, format;
-        
-        quark_cb_set(q, kill_cb, ui);
-        
         
         if (ui->q != q) {
             XbaeMatrixDeselectAll(ui->mw);

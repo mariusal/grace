@@ -211,7 +211,7 @@ struct _Grace {
     Quark *project;
 };
 
-Quark *project_new(QuarkFactory *qfactory);
+Quark *grace_project_new(Grace *grace, int mmodel);
 
 GUI *gui_new(Grace *grace);
 void gui_free(GUI *gui);

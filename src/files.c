@@ -1058,7 +1058,7 @@ extern Quark *load_xgr_project(Grace *grace, const char *fn);
 
 Quark *load_agr_project(Grace *grace, char *fn)
 {
-    Quark *project = project_new(grace->rt->qfactory);
+    Quark *project = grace_project_new(grace, AMEM_MODEL_LIBUNDO);
 
     grace->rt->print_file[0] = '\0';
     grace->rt->curtype = SET_XY;

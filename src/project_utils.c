@@ -43,8 +43,6 @@ static int project_cb(Quark *pr, int etype, void *data)
         }
     } else
     if (etype == QUARK_ETYPE_MODIFY) {
-        project_update_timestamp(pr, NULL);
-
 #if 0
         /* TODO: */
 	if ((dirtystate > SOME_LIMIT) || 
@@ -63,18 +61,19 @@ static int project_cb(Quark *pr, int etype, void *data)
 /* TODO */
 #define MAGIC_FONT_SCALE    0.028
 #define MAGIC_LINEW_SCALE   0.0015
-Quark *project_new(QuarkFactory *qfactory)
+Quark *grace_project_new(Grace *grace, int mmodel)
 {
     Quark *q;
     
-    q = quark_root(AMEM_MODEL_LIBUNDO, qfactory, QFlavorProject);
-    project_set_version_id(q, bi_version_id());
-    project_set_docname(q, NONAME);
-    project_set_fontsize_scale(q, MAGIC_FONT_SCALE);
-    project_set_linewidth_scale(q, MAGIC_LINEW_SCALE);
+    q = project_new(grace->rt->qfactory, mmodel);
 
     if (q) {
-        quark_cb_set(q, project_cb, NULL);
+        project_set_version_id(q, bi_version_id());
+        project_set_docname(q, NONAME);
+        project_set_fontsize_scale(q, MAGIC_FONT_SCALE);
+        project_set_linewidth_scale(q, MAGIC_LINEW_SCALE);
+
+        quark_cb_add(q, project_cb, NULL);
     }
 
     return q;

@@ -617,4 +617,6 @@ void UndefineDialogCursor(void);
 void undo_cb(Widget but, void *data);
 void redo_cb(Widget but, void *data);
 
+void unlink_ssd_ui(Quark *q);
+
 #endif /* __MOTIFINC_H_ */

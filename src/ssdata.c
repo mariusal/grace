@@ -496,3 +496,24 @@ int create_set_fromblock(Quark *pset, int type,
 
     return RETURN_SUCCESS;
 }
+
+static int kill_cb(Quark *q, int etype, void *data)
+{
+#ifndef NONE_GUI
+    if (etype == QUARK_ETYPE_DELETE) {
+        unlink_ssd_ui(q);
+    }
+#endif    
+    return RETURN_SUCCESS;
+}
+
+
+Quark *grace_ssd_new(Quark *parent)
+{
+    Quark *q; 
+    q = ssd_new(parent);
+    if (q) {
+        quark_cb_add(q, kill_cb, NULL);
+    }
+    return q;
+}
