@@ -37,6 +37,106 @@
 #include "utils.h"
 #include "draw.h"
 
+Device_entry *device_new(const char *name, int type, int twopass, void *data)
+{
+    Device_entry *d;
+    
+    d = xmalloc(sizeof(Device_entry));
+    if (d) {
+        memset(d, 0, sizeof(Device_entry));
+        d->pg.dpi = 72.0;
+        
+        d->type    = type;
+        d->twopass = twopass;
+        d->name    = copy_string(NULL, name);
+        d->data    = data;
+    }
+    
+    return d;
+}
+
+int device_set_procs(Device_entry *d,
+    DevInitProc          initgraphics,
+    DevLeaveGraphicsProc leavegraphics,
+    DevParserProc        parser,
+    DevSetupProc         setup,
+    DevUpdateCmapProc    updatecmap,
+    DevDrawPixelProc     drawpixel,
+    DevDrawPolyLineProc  drawpolyline,
+    DevFillPolygonProc   fillpolygon,
+    DevDrawArcProc       drawarc,
+    DevFillArcProc       fillarc,
+    DevPutPixmapProc     putpixmap,
+    DevPutTextProc       puttext)
+{
+    d->initgraphics  = initgraphics;
+    d->leavegraphics = leavegraphics;
+    d->parser        = parser;
+    d->setup         = setup;
+    d->updatecmap    = updatecmap;
+    d->drawpixel     = drawpixel;
+    d->drawpolyline  = drawpolyline;
+    d->fillpolygon   = fillpolygon;
+    d->drawarc       = drawarc;
+    d->fillarc       = fillarc;
+    d->putpixmap     = putpixmap;
+    d->puttext       = puttext;
+    
+    if (d->puttext) {
+        d->devfonts = TRUE;
+        d->fontaa   = FALSE;
+    } else {
+        d->devfonts = FALSE;
+        d->fontaa   = TRUE;
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int device_set_dpi(Device_entry *d, float dpi, int resize)
+{
+    Page_geometry *pg = &d->pg;
+    
+    if (dpi <= 0.0) {
+        return RETURN_FAILURE;
+    }
+    
+    if (resize && pg->dpi) {
+        float rf = dpi/pg->dpi;
+        pg->width  *= rf;
+        pg->height *= rf;
+    }
+    
+    pg->dpi = dpi;
+    
+    return RETURN_SUCCESS;
+}
+
+int device_set_fext(Device_entry *d, const char *fext)
+{
+    d->fext = copy_string(d->fext, fext);
+    
+    return RETURN_SUCCESS;
+}
+
+int device_set_autocrop(Device_entry *d, int autocrop)
+{
+    d->autocrop = autocrop;
+    
+    return RETURN_SUCCESS;
+}
+
+int device_set_fontrast(Device_entry *d, int devfonts, int fontaa)
+{
+    if (!d->puttext && devfonts) {
+        return RETURN_FAILURE;
+    } else {
+        d->devfonts = devfonts;
+        d->fontaa   = fontaa;
+        return RETURN_SUCCESS;
+    }
+}
+
 int is_valid_page_geometry(const Page_geometry *pg)
 {
     if (pg->width  > 0 &&
@@ -75,7 +175,7 @@ int get_device_page_dimensions(const Canvas *canvas,
     }
 }
 
-int register_device(Canvas *canvas, Device_entry *device)
+int register_device(Canvas *canvas, Device_entry *d)
 {
     int dindex;
     
@@ -84,7 +184,7 @@ int register_device(Canvas *canvas, Device_entry *device)
     canvas->device_table = xrealloc(canvas->device_table,
         canvas->ndevices*SIZEOF_VOID_P);
 
-    canvas->device_table[dindex] = device;
+    canvas->device_table[dindex] = d;
     
     return dindex;
 }

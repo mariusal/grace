@@ -414,7 +414,8 @@ int initgraphics(Canvas *canvas, const CanvasStats *cstats)
         canvas_color_trans(canvas, cmap);
     }
     
-    retval = canvas->curdevice->init(canvas, canvas->curdevice->data, cstats);
+    retval = canvas->curdevice->initgraphics(canvas,
+        canvas->curdevice->data, cstats);
     
     if (retval == RETURN_SUCCESS) {
         canvas->device_ready = TRUE;

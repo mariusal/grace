@@ -122,10 +122,6 @@
 
 #define UNIT_TM {1.0, 0.0, 0.0, 1.0}
 
-/* default dimensions of the canvas */
-#define DEFAULT_PAGE_WIDTH  600
-#define DEFAULT_PAGE_HEIGHT 600
-
 #define MM_PER_INCH	25.4
 #define CM_PER_INCH	(MM_PER_INCH/10)
 
@@ -382,11 +378,11 @@ typedef struct {
     int autocrop;                          /* resize canvas to tight BBox */
     
     /* low-level device routines */
-    DevInitProc          init;
+    DevInitProc          initgraphics;
+    DevLeaveGraphicsProc leavegraphics;
     DevParserProc        parser;
     DevSetupProc         setup;
     DevUpdateCmapProc    updatecmap;
-    DevLeaveGraphicsProc leavegraphics;
     DevDrawPixelProc     drawpixel;
     DevDrawPolyLineProc  drawpolyline;
     DevFillPolygonProc   fillpolygon;
@@ -635,7 +631,26 @@ int canvas_set_linestyle(Canvas *canvas, unsigned int n, const LineStyle *ls);
 LineStyle *canvas_get_linestyle(const Canvas *canvas, unsigned int n);
 void initialize_linestyles(Canvas *canvas);
 
-int register_device(Canvas *canvas, Device_entry *device);
+Device_entry *device_new(const char *name, int type, int twopass, void *data);
+int device_set_procs(Device_entry *d,
+    DevInitProc          initgraphics,
+    DevLeaveGraphicsProc leavegraphics,
+    DevParserProc        parser,
+    DevSetupProc         setup,
+    DevUpdateCmapProc    updatecmap,
+    DevDrawPixelProc     drawpixel,
+    DevDrawPolyLineProc  drawpolyline,
+    DevFillPolygonProc   fillpolygon,
+    DevDrawArcProc       drawarc,
+    DevFillArcProc       fillarc,
+    DevPutPixmapProc     putpixmap,
+    DevPutTextProc       puttext);
+int device_set_dpi(Device_entry *d, float dpi, int resize);
+int device_set_fext(Device_entry *d, const char *fext);
+int device_set_autocrop(Device_entry *d, int autocrop);
+int device_set_fontrast(Device_entry *d, int devfonts, int fontaa);
+
+int register_device(Canvas *canvas, Device_entry *d);
 
 int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev);
 
