@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -115,9 +115,9 @@ char *get_workingdir(const Grace *grace);
 char *get_username(const Grace *grace);
 char *get_userhome(const Grace *grace);
 
-void set_docname(Project *pr, const char *s);
-char *get_docname(const Project *pr);
-char *get_docbname(const Project *pr);
+void set_docname(Quark *q, const char *s);
+char *get_docname(const Quark *q);
+char *get_docbname(const Quark *q);
 
 void errmsg(char *msg);
 void echomsg(char *msg);
@@ -132,12 +132,10 @@ void expand_tilde(const Grace *grace, char *buf);
 void update_timestamp(time_t *t);
 char *get_timestamp(void);
 
-void update_app_title(Project *pr);
+void update_app_title(Quark *q);
 
 void set_dirtystate(void);
 void clear_dirtystate(void);
-void lock_dirtystate(int flag);
-int is_dirtystate(void);
 
 int system_wrap(const char *string);
 void msleep_wrap(unsigned int msec);

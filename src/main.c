@@ -93,7 +93,6 @@ int main(int argc, char *argv[])
 
     int wpp, hpp;
     
-    Project *project;
     RunTime *rt;
     GUI *gui;
     Canvas *canvas;
@@ -110,7 +109,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
     
-    project = grace->project = project_new(grace);
+    grace->project = project_new(grace);
     rt      = grace->rt      = runtime_new(grace);
     gui     = grace->gui     = gui_new(grace);
     canvas  = rt->canvas     = canvas_new();

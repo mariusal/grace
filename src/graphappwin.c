@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -457,7 +457,7 @@ static int graphapp_aac_cb(void *data)
     view v;
     labels labs;
     framep f;
-    legend l;
+    legend *l;
     double znorm;
 /*
  *     int flipxy;
@@ -485,7 +485,7 @@ static int graphapp_aac_cb(void *data)
             labs.title.s = copy_string(NULL,labs.title.s);  
             labs.stitle.s = copy_string(NULL,labs.stitle.s);  
             get_graph_framep(gno, &f);
-            get_graph_legend(gno, &l);
+            l = get_graph_legend(gno);
 
             if (data == define_view_xv1 || data == NULL) {
                 xv_evalexpr(define_view_xv1, &v.xv1);  
@@ -562,55 +562,55 @@ static int graphapp_aac_cb(void *data)
                 f.fillpen.pattern = GetOptionChoice(frame_fillpattern_choice_item);
             }
             if (data == legend_charsize_item || data == NULL) {
-                l.charsize = GetCharSizeChoice(legend_charsize_item);
+                l->charsize = GetCharSizeChoice(legend_charsize_item);
             }
             if (data == toggle_legends_item || data == NULL) {
-                l.active = GetToggleButtonState(toggle_legends_item);
+                l->active = GetToggleButtonState(toggle_legends_item);
             }
             if (data == legends_vgap_item || data == NULL) {
-                l.vgap = GetOptionChoice(legends_vgap_item);
+                l->vgap = GetOptionChoice(legends_vgap_item);
             }
             if (data == legends_hgap_item || data == NULL) {
-                l.hgap = GetOptionChoice(legends_hgap_item);
+                l->hgap = GetOptionChoice(legends_hgap_item);
             } 
             if (data == legends_len_item || data == NULL) {
-                l.len = GetOptionChoice(legends_len_item);
+                l->len = GetOptionChoice(legends_len_item);
             }
             if (data == legends_invert_item || data == NULL) {
-                l.invert = GetToggleButtonState(legends_invert_item);
+                l->invert = GetToggleButtonState(legends_invert_item);
             }
             if (data == toggle_legendloc_item || data == NULL) {
-                l.loctype = GetOptionChoice(toggle_legendloc_item) ? COORD_VIEW : COORD_WORLD;
+                l->loctype = GetOptionChoice(toggle_legendloc_item) ? COORD_VIEW : COORD_WORLD;
             }
             if (data == legend_x_item || data == NULL) {
-                xv_evalexpr(legend_x_item, &l.legx);
+                xv_evalexpr(legend_x_item, &l->legx);
             }
             if (data == legend_y_item || data == NULL) {
-                xv_evalexpr(legend_y_item, &l.legy);
+                xv_evalexpr(legend_y_item, &l->legy);
             }
             if (data == legend_font_item || data == NULL) {
-                l.font = GetOptionChoice(legend_font_item);
+                l->font = GetOptionChoice(legend_font_item);
             }
             if (data == legend_color_item || data == NULL) {
-                l.color = GetOptionChoice(legend_color_item);
+                l->color = GetOptionChoice(legend_color_item);
             }
             if (data == legend_boxfillcolor_item || data == NULL) {
-                l.boxfillpen.color = GetOptionChoice(legend_boxfillcolor_item);
+                l->boxfillpen.color = GetOptionChoice(legend_boxfillcolor_item);
             }
             if (data == legend_boxfillpat_item || data == NULL) {
-                l.boxfillpen.pattern = GetOptionChoice(legend_boxfillpat_item);
+                l->boxfillpen.pattern = GetOptionChoice(legend_boxfillpat_item);
             }
             if (data == legend_boxcolor_item || data == NULL) {
-                l.boxpen.color = GetOptionChoice(legend_boxcolor_item);
+                l->boxpen.color = GetOptionChoice(legend_boxcolor_item);
             }
             if (data == legend_boxpattern_item || data == NULL) {
-                l.boxpen.pattern = GetOptionChoice(legend_boxpattern_item);
+                l->boxpen.pattern = GetOptionChoice(legend_boxpattern_item);
             }
             if (data == legend_boxlinew_item || data == NULL) {
-                l.boxlinew = GetSpinChoice(legend_boxlinew_item);
+                l->boxlinew = GetSpinChoice(legend_boxlinew_item);
             }
             if (data == legend_boxlines_item || data == NULL) {
-                l.boxlines = GetOptionChoice(legend_boxlines_item);
+                l->boxlines = GetOptionChoice(legend_boxlines_item);
             }
 
             /* g[gno].xyflip = flipxy; */
@@ -618,7 +618,7 @@ static int graphapp_aac_cb(void *data)
             set_graph_viewport(gno, v);
             set_graph_labels(gno, &labs);
             set_graph_framep(gno, &f);
-            set_graph_legend(gno, &l);
+            set_graph_legend(gno, l);
 	}
     }
     
@@ -707,35 +707,35 @@ void update_view(int gno)
  */
 void updatelegends(int gno)
 {
-    legend l;
+    legend *l;
     char buf[32];
     
     if (graphapp_dialog != NULL) {
-	get_graph_legend(gno, &l);
+	l = get_graph_legend(gno);
         
-        SetCharSizeChoice(legend_charsize_item, l.charsize);
+        SetCharSizeChoice(legend_charsize_item, l->charsize);
 
-	SetToggleButtonState(toggle_legends_item, l.active == TRUE);
+	SetToggleButtonState(toggle_legends_item, l->active == TRUE);
 
-	sprintf(buf, "%.9g", l.legx);
+	sprintf(buf, "%.9g", l->legx);
 	xv_setstr(legend_x_item, buf);
-	sprintf(buf, "%.9g", l.legy);
+	sprintf(buf, "%.9g", l->legy);
 	xv_setstr(legend_y_item, buf);
 
-	SetOptionChoice(legends_vgap_item, l.vgap);
-	SetOptionChoice(legends_hgap_item, l.hgap);
-	SetOptionChoice(legends_len_item, l.len);
-	SetToggleButtonState(legends_invert_item, l.invert);
+	SetOptionChoice(legends_vgap_item, l->vgap);
+	SetOptionChoice(legends_hgap_item, l->hgap);
+	SetOptionChoice(legends_len_item, l->len);
+	SetToggleButtonState(legends_invert_item, l->invert);
 
-	SetOptionChoice(toggle_legendloc_item, l.loctype == COORD_VIEW);
-	SetOptionChoice(legend_font_item, l.font);
-	SetOptionChoice(legend_color_item, l.color);
-	SetOptionChoice(legend_boxfillcolor_item, l.boxfillpen.color);
-	SetOptionChoice(legend_boxfillpat_item, l.boxfillpen.pattern);
-	SetOptionChoice(legend_boxcolor_item, l.boxpen.color);
-	SetOptionChoice(legend_boxpattern_item, l.boxpen.pattern);
-	SetSpinChoice(legend_boxlinew_item, l.boxlinew);
-	SetOptionChoice(legend_boxlines_item, l.boxlines);
+	SetOptionChoice(toggle_legendloc_item, l->loctype == COORD_VIEW);
+	SetOptionChoice(legend_font_item, l->font);
+	SetOptionChoice(legend_color_item, l->color);
+	SetOptionChoice(legend_boxfillcolor_item, l->boxfillpen.color);
+	SetOptionChoice(legend_boxfillpat_item, l->boxfillpen.pattern);
+	SetOptionChoice(legend_boxcolor_item, l->boxpen.color);
+	SetOptionChoice(legend_boxpattern_item, l->boxpen.pattern);
+	SetSpinChoice(legend_boxlinew_item, l->boxlinew);
+	SetOptionChoice(legend_boxlines_item, l->boxlines);
     }
 }
 

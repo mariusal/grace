@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -779,7 +779,7 @@ void do_ext_editor(int gno, int setno)
         return;
     }
 
-    write_set(gno, setno, cp, grace->project->sformat, FALSE);
+    write_set(gno, setno, cp, project_get_sformat(grace->project), FALSE);
     grace_close(cp);
 
     sprintf(ebuf, "%s %s", get_editor(grace), fname);

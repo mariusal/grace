@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -210,7 +210,7 @@ int get_graph_framep(int gno, framep *f);
 int get_graph_world(int gno, world *w);
 int get_graph_viewport(int gno, view *v);
 int get_graph_labels(int gno, labels *labs);
-int get_graph_legend(int gno, legend *leg);
+legend *get_graph_legend(int gno);
 
 int set_graph_active(int gno, int flag);
 void set_graph_framep(int gno, framep *f);
@@ -343,6 +343,6 @@ set *set_copy(set *s);
 graph *graph_get(int gno);
 set *set_get(int gno, int setno);
 
-void project_postprocess(Project *pr);
+void project_postprocess(Quark *q);
 
 #endif /* __GRAPHS_H_ */

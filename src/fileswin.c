@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -79,7 +79,7 @@ static saveGUI save_gui;
 
 static void update_save_gui(saveGUI *gui)
 {
-    xv_setstr(gui->format_item, grace->project->sformat);
+    xv_setstr(gui->format_item, project_get_sformat(grace->project));
     xv_setstr(gui->descr_item, project_get_description(grace->project));
 }
 
@@ -117,7 +117,7 @@ static int save_proc(char *filename, void *data)
     char *s;
     saveGUI *gui = (saveGUI *) data;
     
-    grace->project->sformat = copy_string(grace->project->sformat, xv_getstr(gui->format_item));
+    project_set_sformat(grace->project, xv_getstr(gui->format_item));
     s = XmTextGetString(gui->descr_item);
     project_set_description(grace->project, s);
     XtFree(s);
@@ -305,7 +305,7 @@ void create_write_popup(void *data)
         gui->sel = CreateSetChoice(rc,
             "Write set(s):", LIST_TYPE_MULTIPLE, TRUE);
 	gui->format_item = CreateTextItem2(rc, 15, "Format: ");
-        xv_setstr(gui->format_item, grace->project->sformat);
+        xv_setstr(gui->format_item, project_get_sformat(grace->project));
 
         ManageChild(fsb->FSB);
     }

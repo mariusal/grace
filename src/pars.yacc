@@ -5,7 +5,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -70,7 +70,7 @@
 
 #define MAX_PARS_STRING_LENGTH  4096
 
-#define rg grace->project->rg
+#define rg ((Project *) (grace->project->data))->rg
 #define grdefaults grace->rt->grdefaults
 #define nlfit grace->rt->nlfit
 #define nonl_parms nlfit->parms
@@ -2093,10 +2093,12 @@ parmset:
             set_wrap_year($4);
 	}
 	| BACKGROUND color_select {
-	    grace->project->bgpen.color = $2;
+	    Project *pr = (Project *) grace->project->data;
+            pr->bgpen.color = $2;
 	}
 	| PAGE BACKGROUND FILL onoff {
-	    grace->project->bgpen.pattern = $4;
+	    Project *pr = (Project *) grace->project->data;
+	    pr->bgpen.pattern = $4;
 	}
 	| PAGE SCROLL expr '%' {
 	    scroll_proc((int) $3);
@@ -2477,7 +2479,7 @@ parmset:
 	    grdefaults.symsize = $4;
 	}
 	| DEFAULT SFORMAT CHRSTR {
-	    grace->project->sformat = copy_string(grace->project->sformat, $3);
+	    project_set_sformat(grace->project, $3);
 	    xfree($3);
 	}
 	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {

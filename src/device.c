@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -72,11 +72,12 @@ int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
         return RETURN_FAILURE;
     } else {
         int wpp_old, hpp_old;
-	wpp_old = grace->project->page_wpp;
-	hpp_old = grace->project->page_hpp;
+        Project *pr = (Project *) grace->project->data;
+	wpp_old = pr->page_wpp;
+	hpp_old = pr->page_hpp;
         
-        grace->project->page_wpp = wpp;
-	grace->project->page_hpp = hpp;
+        pr->page_wpp = wpp;
+	pr->page_hpp = hpp;
         if (rescale) {
             if (hpp*wpp_old - wpp*hpp_old != 0) {
                 /* aspect ratio changed */
@@ -99,7 +100,7 @@ int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
                     ext_y = old_aspectr;
                 }
 
-                rescale_viewport(grace->project, ext_x, ext_y);
+                rescale_viewport(pr, ext_x, ext_y);
             } 
         }
         for (i = 0; i < canvas->ndevices; i++) {

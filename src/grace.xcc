@@ -674,7 +674,7 @@ char *utf2iso(const char *s)
     
     <!-- Element types -->
     <element-type name="project" ctype="Project *"><![CDATA[
-        $$ = project_new(grace);
+        $$ = project_data_new();
     ]]></element-type>
     <element-type name="page" ctype="Page *"><![CDATA[
         $$ = page_new();
@@ -828,12 +828,12 @@ char *utf2iso(const char *s)
     <element name="#EStrGrace" type="project">
         <!-- Attributes -->
         <attribute name="#AStrVersion" type="ival">
-            project_set_version_id($$, $?);
+            $$->version_id = $?;
         </attribute>
 
         <!-- Child elements -->
         <child name="#EStrDescription">
-            project_set_description($$, $?->s);
+            $$->description = copy_string($$->description, $?->s);
             xcc_string_free($?);
         </child>
         <child name="#EStrDefinitions">
@@ -2011,7 +2011,7 @@ int load_xgr_project(char *fn)
 
         return grace_set_project(grace, pr);
     } else {
-        project_free(pr);
+        project_data_free(pr);
         
         return RETURN_FAILURE;
     }

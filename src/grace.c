@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001 Grace Development Team
+ * Copyright (c) 2001,2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -282,7 +282,7 @@ void grace_free(Grace *grace)
         return;
     }
     
-    project_free(grace->project);
+    quark_free(grace->project);
     gui_free(grace->gui);
     runtime_free(grace->rt);
     
@@ -292,9 +292,9 @@ void grace_free(Grace *grace)
 int grace_set_project(Grace *grace, Project *pr)
 {
     if (grace && pr) {
-        project_free(grace->project);
-        project_clear_dirtystate(pr);
-        grace->project = pr;
+        quark_data_free(grace->project);
+        grace->project->data = pr;
+        project_clear_dirtystate(grace->project);
         
         /* Set dimensions of all devices */
         set_page_dimensions(grace, pr->page_wpp, pr->page_hpp, TRUE);
@@ -303,4 +303,18 @@ int grace_set_project(Grace *grace, Project *pr)
     } else {
         return RETURN_FAILURE;
     }
+}
+
+
+static QuarkFlavor project_qf = {
+    (Quark_data_new) project_data_new,
+    (Quark_data_free) project_data_free,
+    NULL,
+    NULL
+} ;
+
+
+QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid)
+{
+    return &project_qf;
 }

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001 Grace Development Team
+ * Copyright (c) 2001,2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -44,7 +44,12 @@ static void *wrap_graph_copy(void *data)
     return (void *) graph_copy((graph *) data);
 }
 
-Project *project_new(Grace *grace)
+Quark *project_new(Grace *grace)
+{
+    return quark_root(grace, QFlavorProject);
+}
+
+Project *project_data_new(void)
 {
     Project *pr;
     int i;
@@ -54,8 +59,6 @@ Project *project_new(Grace *grace)
         return NULL;
     }
     memset(pr, 0, sizeof(Project));
-    
-    pr->P = grace;
     
     pr->version_id  = bi_version_id();
     pr->description = NULL;
@@ -84,13 +87,10 @@ Project *project_new(Grace *grace)
     
     pr->docname = copy_string(NULL, NONAME);
 
-    pr->dirtystate = 0;
-    pr->dirtystate_lock = FALSE;
-    
     return pr;
 }
 
-void project_free(Project *pr)
+void project_data_free(Project *pr)
 {
     if (!pr) {
         return;
@@ -111,13 +111,15 @@ void project_free(Project *pr)
 }
 
 
-int project_get_version_id(Project *pr)
+int project_get_version_id(const Quark *q)
 {
+    Project *pr = (Project *) q->data;
     return pr->version_id;
 }
 
-int project_set_version_id(Project *pr, int version_id)
+int project_set_version_id(Quark *q, int version_id)
 {
+    Project *pr = (Project *) q->data;
     int software_version_id = bi_version_id();
     if (version_id > software_version_id) {
         pr->version_id = software_version_id;
@@ -128,32 +130,33 @@ int project_set_version_id(Project *pr, int version_id)
     }
 }
 
-void project_reset_version(Project *pr)
+void project_reset_version(Quark *q)
 {
+    Project *pr = (Project *) q->data;
     pr->version_id = bi_version_id();
 }
 
 
-void project_set_description(Project *pr, char *descr)
+void project_set_description(Quark *q, char *descr)
 {
+    Project *pr = (Project *) q->data;
     pr->description = copy_string(pr->description, descr);
     set_dirtystate();
 }
 
-char *project_get_description(Project *pr)
+char *project_get_description(const Quark *q)
 {
+    Project *pr = (Project *) q->data;
     return pr->description;
 }
 
 /*
  * dirtystate routines
  */
-void project_set_dirtystate(Project *pr)
+void project_set_dirtystate(Quark *q)
 {
-    if (pr->dirtystate_lock == FALSE) {
-        pr->dirtystate++;
-        update_timestamp(NULL);
-        update_app_title(pr);
+    update_timestamp(NULL);
+    update_app_title(q);
 
 /*
  * TODO:
@@ -162,27 +165,27 @@ void project_set_dirtystate(Project *pr)
  * 	    autosave();
  * 	}
  */
-    }
 }
 
-void project_clear_dirtystate(Project *pr)
+void project_clear_dirtystate(Quark *q)
 {
-    pr->dirtystate = 0;
-    pr->dirtystate_lock = FALSE;
-    update_app_title(pr);
+    update_app_title(q);
 }
 
-void project_lock_dirtystate(Project *pr, int flag)
+Storage *project_get_graphs(const Quark *q)
 {
-    pr->dirtystate_lock = flag;
-}
-
-int project_is_dirtystate(Project *pr)
-{
-    return (pr->dirtystate ? TRUE:FALSE);
-}
-
-Storage *project_get_graphs(Project *pr)
-{
+    Project *pr = (Project *) q->data;
     return pr->graphs;
+}
+
+char *project_get_sformat(const Quark *q)
+{
+    Project *pr = (Project *) q->data;
+    return pr->sformat;
+}
+
+void project_set_sformat(Quark *q, const char *s)
+{
+    Project *pr = (Project *) q->data;
+    pr->sformat = copy_string(pr->sformat, s);;
 }

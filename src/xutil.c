@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -153,7 +153,7 @@ void set_title(char *ts)
 {
     static char *ts_save = NULL;
     static int dstate_save = 0;
-    int dstate = is_dirtystate();
+    int dstate = quark_dirtystate_get(grace->project);
     
     if (!grace->gui->inwin || ts == NULL) {
         return;

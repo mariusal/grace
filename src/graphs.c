@@ -53,7 +53,7 @@
 #include "protos.h"
 
 /* graph definition */
-#define graphs grace->project->graphs
+#define graphs project_get_graphs(grace->project)
 
 static int cg = -1;
 
@@ -810,14 +810,13 @@ int get_graph_labels(int gno, labels *labs)
 }
 
 
-int get_graph_legend(int gno, legend *leg)
+legend *get_graph_legend(int gno)
 {
     graph *g = graph_get(gno);
     if (g) {
-        memcpy(leg, &g->l, sizeof(legend));
-        return RETURN_SUCCESS;
+        return &g->l;
     } else {
-        return RETURN_FAILURE;
+        return NULL;
     }
 }
 
@@ -907,7 +906,9 @@ void set_graph_legend(int gno, legend *leg)
         return;
     }
 
-    memcpy(&g->l, leg, sizeof(legend));
+    if (&g->l != leg) {
+        memcpy(&g->l, leg, sizeof(legend));
+    }
 
     set_dirtystate();
 }
@@ -1229,8 +1230,9 @@ char *get_project_description(void)
 
 #undef graphs
 
-void project_postprocess(Project *pr)
+void project_postprocess(Quark *q)
 {
+    Project *pr = (Project *) q->data;
     int ngraphs, gsave, gno, setno, naxis;
     double ext_x, ext_y;
     

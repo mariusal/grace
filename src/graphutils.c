@@ -171,7 +171,7 @@ FormatType get_format_type_by_name(const char *name)
 
 int wipeout(void)
 {
-    project_free(grace->project);
+    quark_free(grace->project);
     grace->project = project_new(grace);
     
     map_fonts(grace->rt->canvas, FONT_MAP_DEFAULT);
@@ -753,20 +753,19 @@ int arrange_graphs_simple(int nrows, int ncols,
 void move_legend(int gno, VVector shift)
 {
     double xtmp, ytmp;
-    legend l;
+    legend *l;
 
     if (is_valid_gno(gno)) {
-        get_graph_legend(gno, &l);
-        if (l.loctype == COORD_VIEW) {
-            l.legx += shift.x;
-            l.legy += shift.y;
+        l = get_graph_legend(gno);
+        if (l && l->loctype == COORD_VIEW) {
+            l->legx += shift.x;
+            l->legy += shift.y;
         } else {
-            world2view(l.legx, l.legy, &xtmp, &ytmp);
+            world2view(l->legx, l->legy, &xtmp, &ytmp);
             xtmp += shift.x;
             ytmp += shift.y;
-            view2world(xtmp, ytmp, &l.legx, &l.legy);
+            view2world(xtmp, ytmp, &l->legx, &l->legy);
         }
-        set_graph_legend(gno, &l);
         set_dirtystate();
     }
 }

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -84,8 +84,8 @@ static int iax[MAX_POLY_POINTS];
 static int iay[MAX_POLY_POINTS];
 static WPoint region_wps[MAX_POLY_POINTS];
 
-#define nr grace->project->nr
-#define rg grace->project->rg
+#define nr ((Project *) (grace->project->data))->nr
+#define rg ((Project *) (grace->project->data))->rg
 
 void anchor_point(int curx, int cury, VPoint curvp)
 {
@@ -942,16 +942,17 @@ int next_graph_containing(int cg, VPoint vp)
 {
     int gno, next = cg;
     view v;
+    Storage *graphs = project_get_graphs(grace->project);
 
-    if (storage_scroll_to_id(grace->project->graphs, cg) != RETURN_SUCCESS) {
-        storage_rewind(grace->project->graphs);
-        if ((cg = storage_get_id(grace->project->graphs)) < 0) {
+    if (storage_scroll_to_id(graphs, cg) != RETURN_SUCCESS) {
+        storage_rewind(graphs);
+        if ((cg = storage_get_id(graphs)) < 0) {
             return -1;
         }
     }
 
-    while (storage_scroll(grace->project->graphs, 1, TRUE) == RETURN_SUCCESS &&
-           (gno = storage_get_id(grace->project->graphs)) >= 0  &&
+    while (storage_scroll(graphs, 1, TRUE) == RETURN_SUCCESS &&
+           (gno = storage_get_id(graphs)) >= 0  &&
            gno != cg) {
 	if (is_graph_hidden(gno)        == FALSE &&
             get_graph_viewport(gno, &v) == RETURN_SUCCESS &&
@@ -967,12 +968,12 @@ int next_graph_containing(int cg, VPoint vp)
 
 int legend_clicked(int gno, VPoint vp, view *bb)
 {
-    legend l;
+    legend *l;
 
     if (is_graph_hidden(gno) == FALSE) {
-        get_graph_legend(gno, &l);
-	if (l.active && is_vpoint_inside(&l.bb, &vp, MAXPICKDIST)) {
-	    *bb = l.bb;
+        l = get_graph_legend(gno);
+	if (l && l->active && is_vpoint_inside(&l->bb, &vp, MAXPICKDIST)) {
+	    *bb = l->bb;
             return TRUE;
 	} else {
             return FALSE;

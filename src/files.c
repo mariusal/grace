@@ -1134,7 +1134,7 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
         s = get_set_strings(gno, setno);
 
         if (format == NULL) {
-            format = grace->project->sformat;
+            format = project_get_sformat(grace->project);
         }
 
         if (!rawdata) {
@@ -1171,8 +1171,9 @@ int load_project_file(char *fn, int as_template)
 {    
     int gno;
     int retval;
+    Storage *graphs;
 
-    if (project_is_dirtystate(grace->project) &&
+    if (quark_dirtystate_get(grace->project) &&
         !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
 	return RETURN_FAILURE;
     }
@@ -1209,13 +1210,14 @@ int load_project_file(char *fn, int as_template)
     }
 
     /* try to switch to the first active graph */
-    storage_rewind(grace->project->graphs);
-    while ((gno = storage_get_id(grace->project->graphs)) >= 0) {
+    graphs = project_get_graphs(grace->project);
+    storage_rewind(graphs);
+    while ((gno = storage_get_id(graphs)) >= 0) {
         if (is_graph_hidden(gno) == FALSE) {
             select_graph(gno);
             break;
         }
-        if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
+        if (storage_next(graphs) != RETURN_SUCCESS) {
             break;
         }
     }

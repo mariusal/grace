@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001 Grace Development Team
+ * Copyright (c) 2001,2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -51,7 +51,8 @@ static void xmlio_set_active(Attributes *attrs, int active)
 
 static void xmlio_set_world_value(Attributes *attrs, char *name, double value)
 {
-    attributes_set_dval_formatted(attrs, name, value, grace->project->sformat);
+    attributes_set_dval_formatted(attrs, name, value,
+        project_get_sformat(grace->project));
 }
 
 static void xmlio_set_inout_placement(RunTime *rt, Attributes *attrs, int inout)
@@ -837,6 +838,7 @@ int save_project(char *fn)
     XFile *xf;
     Attributes *attrs;
     int gno;
+    Project *pr = (Project *) grace->project->data;
     
     xf = xfile_new(fn);
     attrs = attributes_new();
@@ -852,7 +854,7 @@ int save_project(char *fn)
     xfile_comment(xf, "Description");
     xfile_begin_element(xf, EStrDescription, NULL);
     {
-        xmlio_write_text(xf, grace->project->description);
+        xmlio_write_text(xf, pr->description);
     }
     xfile_end_element(xf, EStrDescription);
     
@@ -868,11 +870,11 @@ int save_project(char *fn)
 
     xfile_comment(xf, "Page properties");
     attributes_reset(attrs);
-    attributes_set_ival(attrs, AStrWidth, grace->project->page_wpp);
-    attributes_set_ival(attrs, AStrHeight, grace->project->page_hpp);
+    attributes_set_ival(attrs, AStrWidth, pr->page_wpp);
+    attributes_set_ival(attrs, AStrHeight, pr->page_hpp);
     xfile_begin_element(xf, EStrPage, attrs);
     {
-        xmlio_write_fill_spec(xf, attrs, &grace->project->bgpen);
+        xmlio_write_fill_spec(xf, attrs, &pr->bgpen);
     }
     xfile_end_element(xf, EStrPage);
 
@@ -886,7 +888,7 @@ int save_project(char *fn)
         xfile_empty_element(xf, EStrDates, attrs);
         
         attributes_reset(attrs);
-        attributes_set_sval(attrs, AStrFormat, grace->project->sformat);
+        attributes_set_sval(attrs, AStrFormat, pr->sformat);
         xfile_empty_element(xf, EStrWorld, attrs);
     }
     xfile_end_element(xf, EStrDataFormats);
@@ -896,8 +898,8 @@ int save_project(char *fn)
     save_preferences(xf);
 
     xfile_comment(xf, "Graphs");
-    storage_rewind(grace->project->graphs);
-    while ((gno = storage_get_id(grace->project->graphs)) >= 0) {
+    storage_rewind(pr->graphs);
+    while ((gno = storage_get_id(pr->graphs)) >= 0) {
         graph *g = graph_get(gno);
         int setno;
 
@@ -934,7 +936,7 @@ int save_project(char *fn)
         }
         xfile_end_element(xf, EStrGraph);
 
-        if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
+        if (storage_next(pr->graphs) != RETURN_SUCCESS) {
             break;
         }
     }
@@ -944,7 +946,7 @@ int save_project(char *fn)
     xfile_end(xf);
     xfile_free(xf);
     
-    grace->project->docname = copy_string(grace->project->docname, fn);
+    pr->docname = copy_string(pr->docname, fn);
 
     clear_dirtystate();
     

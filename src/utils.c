@@ -315,7 +315,7 @@ double mytrunc(double a)
  */
 void bailout(Grace *grace)
 {
-    if (!is_dirtystate() ||
+    if (!grace->project->dirtystate ||
          yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
          if (grace->rt->resfp) {
              grace_close(grace->rt->resfp);
@@ -368,7 +368,7 @@ void emergency_exit(Grace *grace, int is_my_bug, char *msg)
         grace->rt->emergency_save = TRUE;
         grace->rt->interrupts = 0;
         fprintf(stderr, "\a\nOops! %s\n", msg);
-        if (is_dirtystate()) {
+        if (grace->project->dirtystate) {
             strcpy(buf, get_docname(grace->project));
             strcat(buf, "$");
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
@@ -981,21 +981,24 @@ void set_help_viewer(Grace *grace, const char *dir)
     grace->rt->help_viewer = copy_string(grace->rt->help_viewer, dir);
 }
 
-char *get_docname(const Project *pr)
+char *get_docname(const Quark *q)
 {
+    Project *pr = (Project *) grace->project->data;
     return pr->docname;
 }
 
-void set_docname(Project *pr, const char *s)
+void set_docname(Quark *q, const char *s)
 {
+    Project *pr = (Project *) grace->project->data;
     if (!s) {
         s = NONAME;
     }
     pr->docname = copy_string(pr->docname, s);
 }
 
-char *get_docbname(const Project *pr)
+char *get_docbname(const Quark *q)
 {
+    Project *pr = (Project *) grace->project->data;
     static char buf[GR_MAXPATHLEN];
     char *bufp;
     
@@ -1178,6 +1181,7 @@ void echomsg(char *msg)
 
 void update_timestamp(time_t *t)
 {
+    Project *pr = (Project *) grace->project->data;
     struct tm tm;
     time_t time_value;
     char *str;
@@ -1192,18 +1196,19 @@ void update_timestamp(time_t *t)
     if (str[strlen(str) - 1] == '\n') {
         str[strlen(str) - 1]= '\0';
     }
-    grace->project->timestamp = copy_string(grace->project->timestamp, str);
+    pr->timestamp = copy_string(pr->timestamp, str);
 }
 
 char *get_timestamp(void)
 {
-    return grace->project->timestamp;
+    Project *pr = (Project *) grace->project->data;
+    return pr->timestamp;
 }
 
-void update_app_title(Project *pr)
+void update_app_title(Quark *q)
 {
 #ifndef NONE_GUI
-    set_title(mybasename(get_docname(pr)));
+    set_title(mybasename(get_docname(q)));
 #endif
 }
 
@@ -1212,22 +1217,16 @@ void update_app_title(Project *pr)
  */
 void set_dirtystate(void)
 {
-    project_set_dirtystate(grace->project);
+    Quark *q = grace->project;
+    quark_dirtystate_set(q, TRUE);
+    project_set_dirtystate(q);
 }
 
 void clear_dirtystate(void)
 {
-    project_clear_dirtystate(grace->project);
-}
-
-void lock_dirtystate(flag)
-{
-    project_lock_dirtystate(grace->project, flag);
-}
-
-int is_dirtystate(void)
-{
-    return project_is_dirtystate(grace->project);
+    Quark *q = grace->project;
+    quark_dirtystate_set(q, FALSE);
+    project_clear_dirtystate(q);
 }
 
 int system_wrap(const char *string)

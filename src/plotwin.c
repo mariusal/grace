@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -105,7 +104,8 @@ void create_plot_frame(void)
 static void update_plot_items(void)
 {
     if (plot_frame) {
-	SetPenChoice(bgpen_item, &grace->project->bgpen);
+	Project *pr = (Project *) grace->project->data;
+        SetPenChoice(bgpen_item, &pr->bgpen);
     }
 }
 
@@ -116,7 +116,8 @@ static int plot_define_notify_proc(void *data)
     }
     
     if (data == bgpen_item || data == NULL) {
-        GetPenChoice(bgpen_item, &grace->project->bgpen);
+	Project *pr = (Project *) grace->project->data;
+        GetPenChoice(bgpen_item, &pr->bgpen);
     }
     
     set_dirtystate();

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001 Grace Development Team
+ * Copyright (c) 2001,2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -40,10 +40,32 @@
 
 typedef struct _Grace Grace;
 
+typedef struct _Quark Quark;
+
+typedef void  (*Quark_data_free)(void *data); 
+typedef void *(*Quark_data_new)(void); 
+typedef void *(*Quark_data_copy)(void *data); 
+typedef void  (*Quark_gui)(Quark *q, void *data); 
+
+typedef struct _QuarkFlavor {
+    Quark_data_new  data_new;
+    Quark_data_free data_free;
+    Quark_data_copy data_copy;
+    Quark_gui gui;
+} QuarkFlavor;
+
+struct _Quark {
+    Grace *grace;
+    unsigned int fid;
+    char *idstr;
+    struct _Quark *parent;
+    unsigned int dirtystate;
+    unsigned int refcount;
+    void *data;
+};
+
+
 typedef struct _Project {
-    /* Parent */
-    Grace *P;
-    
     /* Version ID */
     int version_id;
     
@@ -77,10 +99,6 @@ typedef struct _Project {
 
     /* project file name */
     char *docname;	
-
-    /* dirtystate stuff */
-    int dirtystate;
-    int dirtystate_lock;
 } Project;
 
 typedef struct _GUI {
@@ -188,15 +206,34 @@ typedef struct _RunTime {
 
 struct _Grace {
 #if 0
-    Preferences *prefs;
+    Quark *prefs;
 #endif
     RunTime *rt;
     GUI *gui;
-    Project *project;
+    Quark *project;
 };
 
-Project *project_new(Grace *grace);
-void project_free(Project *pr);
+enum {
+    QFlavorProject
+};
+
+QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid);
+
+Quark *quark_root(Grace *grace, unsigned int fid);
+Quark *quark_new(Quark *parent, unsigned int fid);
+void quark_free(Quark *q);
+Quark *quark_copy(const Quark *q);
+
+void quark_dirtystate_set(Quark *q, int flag);
+int quark_dirtystate_get(const Quark *q);
+
+void quark_data_free(Quark *q);
+
+
+Project *project_data_new(void);
+void project_data_free(Project *pr);
+Quark *project_new(Grace *grace);
+void project_free(Quark *q);
 
 GUI *gui_new(Grace *grace);
 void gui_free(GUI *gui);
@@ -215,18 +252,20 @@ int set_printer_by_name(Grace *grace, const char *dname);
 void set_ptofile(Grace *grace, int flag);
 int get_ptofile(const Grace *grace);
 
-int project_get_version_id(Project *pr);
-int project_set_version_id(Project *pr, int version_id);
-void project_reset_version(Project *pr);
+int project_get_version_id(const Quark *q);
+int project_set_version_id(Quark *q, int version_id);
+void project_reset_version(Quark *q);
 
-void project_set_description(Project *pr, char *descr);
-char *project_get_description(Project *pr);
+void project_set_description(Quark *q, char *descr);
+char *project_get_description(const Quark *q);
 
-void project_set_dirtystate(Project *pr);
-void project_clear_dirtystate(Project *pr);
-void project_lock_dirtystate(Project *pr, int flag);
-int project_is_dirtystate(Project *pr);
+void project_set_dirtystate(Quark *q);
+void project_clear_dirtystate(Quark *q);
 
-Storage *project_get_graphs(Project *pr);
+Storage *project_get_graphs(const Quark *q);
+
+char *project_get_sformat(const Quark *q);
+void project_set_sformat(Quark *q, const char *s);
+
 
 #endif /* __GRACE_H_ */

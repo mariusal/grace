@@ -68,13 +68,14 @@ static void dproc(Canvas *canvas, void *data)
 void drawgraph(Grace *grace)
 {
     Canvas *canvas = grace->rt->canvas;
+    Project *pr = (Project *) grace->project->data;
     int saveg;
 
     saveg = get_cg();
     
     canvas_set_docname(canvas, get_docname(grace->project));
     canvas_set_username(canvas, get_username(grace));
-    canvas_set_pagepen(canvas, &grace->project->bgpen);
+    canvas_set_pagepen(canvas, &pr->bgpen);
     
     canvas_draw(canvas, dproc, NULL);
     
@@ -645,12 +646,13 @@ void xyplot(Canvas *canvas, int gno)
 void draw_regions(Canvas *canvas, int gno)
 {
     int i;
+    Project *pr = (Project *) grace->project->data;
 
     setclipping(canvas, TRUE);
     
     /* draw any defined regions for this graph */
     for (i = 0; i < MAXREGION; i++) {
-        region r = grace->project->rg[i];
+        region r = pr->rg[i];
         if (r.active && r.linkto == gno) {
             setcolor(canvas, r.color);
             setpattern(canvas, 1);
@@ -2214,11 +2216,11 @@ void dolegend(Canvas *canvas, int gno)
     VPoint vp, vp2;
     
     view v;
-    legend l;
+    legend *l;
     set *p;
 
-    get_graph_legend(gno, &l);
-    if (l.active == FALSE) {
+    l = get_graph_legend(gno);
+    if (l->active == FALSE) {
         return;
     }
     
@@ -2238,29 +2240,25 @@ void dolegend(Canvas *canvas, int gno)
     }
     
     if (draw_flag == FALSE) {
-        l.bb.xv1 = l.bb.xv2 = l.bb.yv1 = l.bb.yv2 = 0.0;
-        /* The bb update shouldn't change the dirtystate flag */
-        lock_dirtystate(TRUE);
-        set_graph_legend(gno, &l);
-        lock_dirtystate(FALSE);
+        l->bb.xv1 = l->bb.xv2 = l->bb.yv1 = l->bb.yv2 = 0.0;
         return;
     }
         
     setclipping(canvas, FALSE);
     
-    if (l.loctype == COORD_WORLD) {
-        wptmp.x = l.legx;
-        wptmp.y = l.legy;
+    if (l->loctype == COORD_WORLD) {
+        wptmp.x = l->legx;
+        wptmp.y = l->legy;
         vp = Wpoint2Vpoint(wptmp);
     } else {
-        vp.x = l.legx;
-        vp.y = l.legy;
+        vp.x = l->legx;
+        vp.y = l->legy;
     }
     
-    ldist = 0.01*l.len;
-    sdist = 0.01*(l.hgap + maxsymsize);
+    ldist = 0.01*l->len;
+    sdist = 0.01*(l->hgap + maxsymsize);
     
-    yskip = 0.01*l.vgap;
+    yskip = 0.01*l->vgap;
     
     activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
     reset_bbox(canvas, BBOX_TYPE_TEMP);
@@ -2270,33 +2268,29 @@ void dolegend(Canvas *canvas, int gno)
     putlegends(canvas, gno, &vp, ldist, sdist, yskip);
     get_bbox(canvas, BBOX_TYPE_TEMP, &v);
     
-    vp2.x = vp.x + (v.xv2 - v.xv1) + 2*0.01*l.hgap;
-    vp2.y = vp.y - (v.yv2 - v.yv1) - 2*0.01*l.vgap;
+    vp2.x = vp.x + (v.xv2 - v.xv1) + 2*0.01*l->hgap;
+    vp2.y = vp.y - (v.yv2 - v.yv1) - 2*0.01*l->vgap;
 
-    l.bb.xv1 = vp.x;
-    l.bb.yv1 = vp2.y;
-    l.bb.xv2 = vp2.x;
-    l.bb.yv2 = vp.y;
-    /* The bb update shouldn't change the dirtystate flag */
-    lock_dirtystate(TRUE);
-    set_graph_legend(gno, &l);
-    lock_dirtystate(FALSE);
+    l->bb.xv1 = vp.x;
+    l->bb.yv1 = vp2.y;
+    l->bb.xv2 = vp2.x;
+    l->bb.yv2 = vp.y;
     
     set_draw_mode(canvas, TRUE);
     
-    setpen(canvas, &l.boxfillpen);
+    setpen(canvas, &l->boxfillpen);
     FillRect(canvas, &vp, &vp2);
 
-    if (l.boxlines != 0 && l.boxpen.pattern != 0) {
-        setpen(canvas, &l.boxpen);
-        setlinewidth(canvas, l.boxlinew);
-        setlinestyle(canvas, l.boxlines);
+    if (l->boxlines != 0 && l->boxpen.pattern != 0) {
+        setpen(canvas, &l->boxpen);
+        setlinewidth(canvas, l->boxlinew);
+        setlinestyle(canvas, l->boxlines);
         DrawRect(canvas, &vp, &vp2);
     }
     
     /* correction */
-    vp.x += (vp.x - v.xv1) + 0.01*l.hgap;
-    vp.y += (vp.y - v.yv2) - 0.01*l.vgap;
+    vp.x += (vp.x - v.xv1) + 0.01*l->hgap;
+    vp.y += (vp.y - v.yv2) - 0.01*l->vgap;
    
     reset_bbox(canvas, BBOX_TYPE_TEMP);
     update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
@@ -2310,18 +2304,18 @@ void putlegends(Canvas *canvas,
     int i, setno, nsets;
     VPoint vp1, vp2, vpstr;
     set *p;
-    legend l;
+    legend *l;
     
     vp2.y = vp->y;
     vp2.x = vp->x + ldist;
     vpstr.y = vp->y;
     vpstr.x = vp2.x + sdist;
     
-    get_graph_legend(gno, &l);
+    l = get_graph_legend(gno);
     
     nsets = number_of_sets(gno);
     for (i = 0; i < nsets; i++) {
-        if (l.invert == FALSE) {
+        if (l->invert == FALSE) {
             setno = i;
         } else {
             setno = nsets - i - 1;
@@ -2335,9 +2329,9 @@ void putlegends(Canvas *canvas,
                 continue;
             }
             
-            setcharsize(canvas, l.charsize);
-            setfont(canvas, l.font);
-            setcolor(canvas, l.color);
+            setcharsize(canvas, l->charsize);
+            setfont(canvas, l->font);
+            setcolor(canvas, l->color);
             WriteString(canvas, &vpstr, 0.0, JUST_LEFT|JUST_TOP, p->legstr);
             get_bbox(canvas, BBOX_TYPE_TEMP, &vtmp);
             vp1.x = vp->x;
@@ -2347,7 +2341,7 @@ void putlegends(Canvas *canvas,
             
             setfont(canvas, p->charfont);
             
-            if (l.len != 0 && p->lines != 0 && p->linet != 0) { 
+            if (l->len != 0 && p->lines != 0 && p->linet != 0) { 
                 setpen(canvas, &p->linepen);
                 setlinewidth(canvas, p->linew);
                 setlinestyle(canvas, p->lines);
