@@ -37,8 +37,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "globals.h"
-
 #include "graphs.h"
 #include "draw.h"
 #include "utils.h"

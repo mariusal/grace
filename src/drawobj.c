@@ -34,7 +34,6 @@
 
 #include <stdlib.h>
 
-#include "globals.h"
 #include "draw.h"
 #include "plotone.h"
 #include "objutils.h"

@@ -41,7 +41,6 @@
 #include <Xm/Xm.h>
 #include <Xm/ScrolledW.h>
 
-#include "globals.h"
 #include "protos.h"
 #include "utils.h"
 #include "graphs.h"

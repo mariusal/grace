@@ -42,7 +42,6 @@
 
 #include "cephes/cephes.h"
 
-#include "globals.h"
 #include "utils.h"
 #include "draw.h"
 #include "ssdata.h"

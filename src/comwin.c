@@ -44,7 +44,6 @@
 #include <Xm/Text.h>
 #include <Xm/List.h>
 
-#include "globals.h"
 #include "graphs.h"
 #include "utils.h"
 #include "files.h"

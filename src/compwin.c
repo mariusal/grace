@@ -41,7 +41,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "globals.h"
 #include "graphs.h"
 #include "utils.h"
 #include "ssdata.h"

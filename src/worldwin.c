@@ -40,7 +40,6 @@
 
 #include "mbitmaps.h"
 
-#include "globals.h"
 #include "graphutils.h"
 #include "device.h"
 #include "utils.h"

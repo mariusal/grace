@@ -50,7 +50,6 @@
 #include "dlmodule.h"
 
 #include "defines.h"
-#include "globals.h"
 #include "utils.h"
 #include "parser.h"
 
