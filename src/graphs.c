@@ -321,9 +321,7 @@ int get_graph_tickmarks(int gno, tickmarks *t, int a)
     if (is_valid_gno(gno) == TRUE) {
         memcpy(t, &g[gno].t[a], sizeof(tickmarks));
         for (i = 0; i < MAX_TICKS; i++) {
-            t->tloc[i].label = NULL;
-            t->tloc[i].label =
-                       copy_string(t->tloc[i].label, g[gno].t[a].tloc[i].label);
+            t->tloc[i].label = copy_string(NULL, g[gno].t[a].tloc[i].label);
         }
         return GRACE_EXIT_SUCCESS;
     } else {

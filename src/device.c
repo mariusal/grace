@@ -67,13 +67,8 @@ int register_device(Device_entry device)
     device_table = xrealloc(device_table, ndevices*sizeof(Device_entry));
 
     device_table[dindex] = device;
-
-    device_table[dindex].name = NULL;
-    device_table[dindex].name = 
-                        copy_string(device_table[dindex].name, device.name);
-    device_table[dindex].fext = NULL;
-    device_table[dindex].fext = 
-                        copy_string(device_table[dindex].fext, device.fext);
+    device_table[dindex].name = copy_string(NULL, device.name);
+    device_table[dindex].fext = copy_string(NULL, device.fext);
     
     return dindex;
 }

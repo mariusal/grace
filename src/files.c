@@ -411,8 +411,7 @@ static int readnxy(int gno, char *fn, FILE * fp)
     /*
      * count the columns
      */
-    tmpbuf = NULL;
-    tmpbuf = copy_string(tmpbuf, linebuf);
+    tmpbuf = copy_string(NULL, linebuf);
     s = tmpbuf;
     cnt = 0;
     while ((s = strtok(s, " \t\n")) != NULL) {
@@ -956,7 +955,7 @@ int readblockdata(int gno, char *fn, FILE * fp)
     int i = 0, j, k, ncols = 0, pstat;
     int first = 1, readerror = 0;
     double **data = NULL;
-    char *tmpbuf = NULL, *s, tbuf[256];
+    char *tmpbuf, *s, tbuf[256];
     int linecount = 0;
 
     i = 0;
@@ -972,11 +971,11 @@ int readblockdata(int gno, char *fn, FILE * fp)
 	    read_param(linebuf + 1);
 	    continue;
 	}
-	if ((int) strlen(linebuf) > 1) {
+	if (strlen(linebuf) > 1) {
 	    convertchar(linebuf);
 	    if (first) {	/* count the number of columns */
 		ncols = 0;
-		tmpbuf = copy_string(tmpbuf, linebuf);
+		tmpbuf = copy_string(NULL, linebuf);
                 if (tmpbuf == NULL) {
                     errmsg("Insufficient memory for string");
                     return 0;

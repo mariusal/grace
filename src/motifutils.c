@@ -700,9 +700,7 @@ int init_option_menus(void) {
     }
     for (i = 0; i < NUMBER_OF_SETTYPES; i++) {
         settype_option_items[i].value = i;
-        settype_option_items[i].label = NULL;
-        settype_option_items[i].label =
-            copy_string(settype_option_items[i].label, set_types(i));
+        settype_option_items[i].label = copy_string(NULL, set_types(i));
         lowtoupper(settype_option_items[i].label);
     }
 
@@ -767,12 +765,10 @@ void update_graph_selectors(void)
     }
     for (i = 0; i < new_n; i++) {
         graph_select_items[i].value = i;
-        graph_select_items[i].label = NULL;
         sprintf(buf, "G%d (%s, %d sets)", i, 
                                           is_graph_hidden(i) ? "hidden":"shown",
                                           number_of_sets(i));
-        graph_select_items[i].label =
-            copy_string(graph_select_items[i].label, buf);
+        graph_select_items[i].label = copy_string(NULL, buf);
     }
     ngraph_select_items = new_n;
     
@@ -1200,12 +1196,10 @@ void UpdateSetChoice(ListStructure *listp, int gno)
         if ((sdata->show_nodata == TRUE || is_set_active(gno, i) == TRUE) &&
             (sdata->show_hidden == TRUE || is_set_hidden(gno, i) != TRUE )) {
             set_select_items[j].value = i;
-            set_select_items[j].label = NULL;
             sprintf(buf, "G%d.S%d[%d] (%d cols, %s)", gno, i,
                 getsetlength(gno, i), dataset_cols(gno, i),
                 is_set_hidden(gno, i) ? "hidden":"shown");
-            set_select_items[j].label =
-                copy_string(set_select_items[j].label, buf);
+            set_select_items[j].label = copy_string(NULL, buf);
             j++;
         }
     }
