@@ -8,11 +8,13 @@ EOF
 
 make configure
 make CHANGES
-make MIGRATION
 CDIR=`pwd`
 CDIR_BNAME=`basename $CDIR`
 cd src
 make pars.c
+cd ..
+cd doc
+make all
 cd ..
 rm -f Make.conf
 cd ..
