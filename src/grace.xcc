@@ -1701,10 +1701,11 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrScolumn" type="scolumn">
         <!-- Attributes -->
-        <attribute name="#AStrLabel" type="sval">
-            // $$->label = amem_strdup(amem, $?);
+        <attribute name="#AStrLabel" type="sval"><![CDATA[
+            ParserData *udata = (ParserData *) $U;
+            $$->label = amem_strdup(quark_get_amem(udata->ss), $?);
             xfree($?);
-        </attribute>
+        ]]></attribute>
         <!-- Child elements -->
         <child name="#EStrCell"><![CDATA[
             ParserData *udata = (ParserData *) $U;
@@ -1715,10 +1716,11 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrDcolumn" type="dcolumn">
         <!-- Attributes -->
-        <attribute name="#AStrLabel" type="sval">
-            // $$->label = amem_strdup(amem, $?);
+        <attribute name="#AStrLabel" type="sval"><![CDATA[
+            ParserData *udata = (ParserData *) $U;
+            $$->label = amem_strdup(quark_get_amem(udata->ss), $?);
             xfree($?);
-        </attribute>
+        ]]></attribute>
         <!-- Child elements -->
         <child name="#EStrCell"><![CDATA[
             ParserData *udata = (ParserData *) $U;
