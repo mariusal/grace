@@ -1590,7 +1590,7 @@ void do_splitsets(int gno, int setno, int lpart)
     int i, j, k, ncols, len, plen, tmpset, npsets;
     double *x;
     char s[256];
-    plotarr *p;
+    plotarr p;
     Dataset ds, dstmp;
 
     if ((len = getsetlength(gno, setno)) < 2) {
@@ -1611,26 +1611,33 @@ void do_splitsets(int gno, int setno, int lpart)
     /* get number of columns in this set */
     ncols = dataset_cols(gno, setno);
 
-    p = &g[gno].p[setno];
+    p = g[gno].p[setno];
 
     /* save the contents to a temporary buffer */
-    memcpy(&ds, &p->data, sizeof(Dataset));
+    memcpy(&ds, &p.data, sizeof(Dataset));
 
     /* zero data contents of the original set */
-    zero_set_data(&p->data);
+    zero_set_data(&g[gno].p[setno].data);
 
     /* now load each set */
     for (i = 0; i < npsets; i++) {
 	plen = MIN2(lpart, len - i*lpart); 
         tmpset = nextset(gno);
+        if (!is_valid_setno(gno, tmpset)) {
+            errmsg("Can't create new set");
+            return;
+        }
 	
         /* set the plot parameters */
 	dstmp = g[gno].p[tmpset].data;
-        g[gno].p[tmpset] = *p;
+        g[gno].p[tmpset] = p;
 	g[gno].p[tmpset].data = dstmp;
 
 	set_set_hidden(gno, tmpset, FALSE);
-	setlength(gno, tmpset, plen);
+	if (setlength(gno, tmpset, plen) != RETURN_SUCCESS) {
+            /* should not happen */
+            return;
+        }
         if (ds.s) {
             g[gno].p[tmpset].data.s = xmalloc(plen*sizeof(char *));
         }
@@ -1649,7 +1656,7 @@ void do_splitsets(int gno, int setno, int lpart)
 	    }
         }
 	
-        sprintf(s, "partition %d of set %d", i + 1, setno);
+        sprintf(s, "partition %d of set G%d.S%d", i + 1, gno, setno);
 	setcomment(gno, tmpset, s);
     }
     
