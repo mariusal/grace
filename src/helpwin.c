@@ -511,7 +511,7 @@ void create_helper_frame(char *URL)
         AddDialogFormChild(ui->top, menubar);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
-        CreateMenuButton(menupane, "Close", 'C', destroy_dialog_cb, GetParent(ui->top));
+        CreateMenuCloseButton(menupane, ui->top);
         
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
         CreateMenuButton(menupane, "Find", 'F', create_find_dialog, ui);
