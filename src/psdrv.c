@@ -431,22 +431,40 @@ void ps_drawpolyline(VPoint *vps, int n, int mode)
 void ps_fillpolygon(VPoint *vps, int nc)
 {
     int i;
+    Pen pen = getpen();
     
-    if ((getpen()).pattern == 0 || nc < 3) {
+    if (pen.pattern == 0 || nc < 3) {
         return;
     }
-    
-    ps_setpen();
     
     fprintf(prstream, "n\n");
     fprintf(prstream, "%.4f %.4f m\n", vps[0].x, vps[0].y);
     for (i = 1; i < nc; i++) {
         fprintf(prstream, "%.4f %.4f l\n", vps[i].x, vps[i].y);
     }
+    fprintf(prstream, "c\n");
+
+    /* fill bg first if the pattern != solid */
+    if (pen.pattern != 1 && ps_level2 == TRUE) {
+        fprintf(prstream, "gsave\n");
+        if (ps_grayscale == TRUE) {
+            fprintf(prstream, "Color%d setgray\n", getbgcolor());
+        } else {
+            fprintf(prstream, "Color%d setrgbcolor\n", getbgcolor());
+        }
+        if (getfillrule() == FILLRULE_WINDING) {
+            fprintf(prstream, "fill\n");
+        } else {
+            fprintf(prstream, "eofill\n");
+        }
+        fprintf(prstream, "grestore\n");
+    }
+    
+    ps_setpen();
     if (getfillrule() == FILLRULE_WINDING) {
-        fprintf(prstream, "c fill\n");
+        fprintf(prstream, "fill\n");
     } else {
-        fprintf(prstream, "c eofill\n");
+        fprintf(prstream, "eofill\n");
     }
 }
 
@@ -471,8 +489,11 @@ void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
 {
     VPoint vpc;
     double rx, ry;
+    Pen pen = getpen();
     
-    ps_setpen();
+    if (pen.pattern == 0) {
+        return;
+    }
 
     vpc.x = (vp1.x + vp2.x)/2;
     vpc.y = (vp1.y + vp2.y)/2;
@@ -480,8 +501,23 @@ void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
     ry = fabs(vp2.y - vp1.y)/2;
     
     fprintf(prstream, "n\n");
-    fprintf(prstream, "%.4f %.4f %.4f %.4f %d %d ellipse c fill\n",
+    fprintf(prstream, "%.4f %.4f %.4f %.4f %d %d ellipse c\n",
                        vpc.x, vpc.y, rx, ry, a1, a2);
+
+    /* fill bg first if the pattern != solid */
+    if (pen.pattern != 1 && ps_level2 == TRUE) {
+        fprintf(prstream, "gsave\n");
+        if (ps_grayscale == TRUE) {
+            fprintf(prstream, "Color%d setgray\n", getbgcolor());
+        } else {
+            fprintf(prstream, "Color%d setrgbcolor\n", getbgcolor());
+        }
+        fprintf(prstream, "fill\n");
+        fprintf(prstream, "grestore\n");
+    }
+
+    ps_setpen();
+    fprintf(prstream, "fill\n");
 }
 
 void ps_putpixmap(VPoint vp, int width, int height, 
