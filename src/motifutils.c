@@ -2859,12 +2859,13 @@ void update_set_lists(int gno)
     }
 
     if (inwin && lists_dirty()) {
-	for (i = 0; i < nplist; i++) {
-		if( plist[i].gno == gno || 
-			(gno==get_cg() && plist[i].gno==GRAPH_SELECT_CURRENT) )
-	    	update_set_list(gno, plist[i]);
-	}
-	set_lists_dirty(FALSE);
+        for (i = 0; i < nplist; i++) {
+            if (plist[i].gno == gno || 
+                (gno == get_cg() && plist[i].gno == GRAPH_SELECT_CURRENT)) {
+                update_set_list(gno, plist[i]);
+            }
+        }
+        set_lists_dirty(FALSE);
     }
 }
 
