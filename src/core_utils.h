@@ -120,8 +120,6 @@ char *object_types(OType type);
 void move_object(Quark *q, VVector shift);
 int object_place_at_vp(Quark *q, VPoint vp);
 
-int object_get_loctype(const Quark *q);
-
 char *scale_types(ScaleType it);
 ScaleType get_scale_type_by_name(const char *name);
 
@@ -144,7 +142,5 @@ void autotick_graph_axes(Quark *q, int amask);
 void move_legend(Quark *gr, const VVector *shift);
 
 void rescale_viewport(Quark *pr, double ext_x, double ext_y);
-
-int Apoint2Vpoint(const Quark *q, const APoint *ap, VPoint *vp);
 
 #endif /* __CORE_UTILS_H_ */

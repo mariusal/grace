@@ -1044,10 +1044,16 @@ int is_validWPoint(const Quark *q, const WPoint *wp);
 double xy_xconv(const Quark *q, double wx);
 double xy_yconv(const Quark *q, double wy);
 
+int object_get_loctype(const Quark *q);
+
 int Wpoint2Vpoint(const Quark *q, const WPoint *wp, VPoint *vp);
 int Vpoint2Wpoint(const Quark *q, const VPoint *vp, WPoint *wp);
 
 int Fpoint2Vpoint(const Quark *f, const FPoint *fp, VPoint *vp);
+int Vpoint2Fpoint(const Quark *f, const VPoint *vp, FPoint *fp);
+
+int Apoint2Vpoint(const Quark *q, const APoint *ap, VPoint *vp);
+int Vpoint2Apoint(const Quark *q, const VPoint *vp, APoint *ap);
 
 int update_graph_ccache(Quark *gr);
 

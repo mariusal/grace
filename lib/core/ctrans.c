@@ -56,6 +56,28 @@ static const Quark *get_defining_graph(const Quark *q)
     }
 }
 
+
+int object_get_loctype(const Quark *q)
+{
+    Quark *p = (Quark *) q;
+    
+    while (p) {
+        p = quark_parent_get(p);
+        if (p->fid == QFlavorGraph) {
+            return COORD_WORLD;
+        } else
+        if (p->fid == QFlavorFrame) {
+            return COORD_FRAME;
+        } else
+        if (p->fid == QFlavorProject) {
+            return COORD_VIEW;
+        }
+    }
+    
+    /* default */
+    return COORD_VIEW;
+}
+
 static int get_ctrans_data(const Quark *q, ctrans_data *cd)
 {
     graph *g = graph_get_data(get_defining_graph(q));
@@ -200,6 +222,82 @@ int Fpoint2Vpoint(const Quark *f, const FPoint *fp, VPoint *vp)
     } else {
         return RETURN_FAILURE;
     }
+}
+
+/*
+ * Convert point's viewport coordinates to frame coordinates
+ */
+int Vpoint2Fpoint(const Quark *f, const VPoint *vp, FPoint *fp)
+{
+    view v;
+    if (frame_get_view(f, &v) == RETURN_SUCCESS &&
+        v.xv2 != v.xv1 && v.yv2 != v.yv1) {
+        fp->x = (vp->x - v.xv1)/(v.xv2 - v.xv1);
+        fp->y = (vp->y - v.yv1)/(v.yv2 - v.yv1);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+
+int Apoint2Vpoint(const Quark *q, const APoint *ap, VPoint *vp)
+{
+    int loctype = object_get_loctype(q);
+    if (loctype == COORD_WORLD) {
+        WPoint wp;
+        Quark *gr = get_parent_graph(q);
+        wp.x = ap->x;
+        wp.y = ap->y;
+        
+        if (!is_validWPoint(gr, &wp)) {
+            return RETURN_FAILURE;
+        }
+        
+        Wpoint2Vpoint(gr, &wp, vp);
+    } else
+    if (loctype == COORD_FRAME) {
+        FPoint fp;
+        Quark *f = get_parent_frame(q);
+        fp.x = ap->x;
+        fp.y = ap->y;
+        Fpoint2Vpoint(f, &fp, vp);
+    } else {
+        vp->x = ap->x;
+        vp->y = ap->y;
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int Vpoint2Apoint(const Quark *q, const VPoint *vp, APoint *ap)
+{
+    int loctype = object_get_loctype(q);
+    if (loctype == COORD_WORLD) {
+        WPoint wp;
+        
+        if (Vpoint2Wpoint(q, vp, &wp) != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
+        } else {
+            ap->x = wp.x;
+            ap->y = wp.y;
+        } 
+    } else
+    if (loctype == COORD_FRAME) {
+        Quark *f = get_parent_frame(q);
+        FPoint fp;
+        if (Vpoint2Fpoint(f, vp, &fp) != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
+        } else {
+            ap->x = fp.x;
+            ap->y = fp.y;
+        }
+    } else {
+        ap->x = vp->x;
+        ap->y = vp->y;
+    }
+    
+    return RETURN_SUCCESS;
 }
 
 /*
