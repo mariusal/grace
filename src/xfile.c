@@ -331,7 +331,7 @@ static int xfile_output(XFile *xf, char *str)
             if (uc & 0x80) {
                 /* 2-byte UTF-8 */
                 buf[0] = 0xC0 | (uc >> 6);
-                buf[1] = 0xA0 | (uc & 0x3F);
+                buf[1] = 0x80 | (uc & 0x3F);
                 buf[2] = '\0';
             } else {
                 if (xf->convert == CONVERT_PCDATA && uc == '"') {
