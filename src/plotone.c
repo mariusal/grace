@@ -70,8 +70,6 @@ void drawgraph(void)
         return;
     }
     
-    update_t1();
-        
     setclipping(FALSE);
 
     if (getbgfill() == TRUE) {
