@@ -1008,6 +1008,9 @@ static int fcomp(const Quark *q1, const Quark *q2, void *udata)
         } else {
             return -1;
         }
+    } else
+    if (q1->fid == q2->fid) {
+        return strcmp(QIDSTR(q1), QIDSTR(q2));
     } else {
         return 0;
     }
