@@ -3947,6 +3947,20 @@ Widget CreateMenuLabel(Widget parent, char *name)
     return lab;
 }
 
+static void help_int_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    HelpCB(client_data);
+}
+
+void AddHelpCB(Widget w, char *ha)
+{
+    if (XtHasCallbacks(w, XmNhelpCallback) == XtCallbackHasSome) {
+        /* allow only one help callback */
+        XtRemoveAllCallbacks(w, XmNhelpCallback, NULL);
+    }
+    
+    XtAddCallback(w, XmNhelpCallback, help_int_cb, (XtPointer) ha);
+}
 
 static int yesno_retval = 0;
 static Boolean keep_grab = True;

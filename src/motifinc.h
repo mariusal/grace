@@ -428,6 +428,8 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 	TB_CBProc cb, void *data);
 Widget CreateMenuLabel(Widget parent, char *name);
 
+void AddHelpCB(Widget w, char *ha);
+
 char *GetStringSimple(XmString xms);
 
 char *xv_getstr(Widget w);
