@@ -1,11 +1,11 @@
-                           GRACE 5.x for XFree86 OS/2
-                                (19991228)
+                           Grace 5.1.x for XFree86 OS/2
+                                (April 2000)
 
 
                           Contents of this document:
 
                               1) Introduction
-                              2) How to build xmgrace
+                              2) How to build Grace
                               3) How to install
 
 
@@ -14,8 +14,9 @@
    ------------
 
   This is (xm)grace compiled for OS/2. Since it's an X11 application
-  (well, most of the time ...) it requires XFree86 to be installed.
-  Like every piece of software this port of GRACE may have
+  (well, most of the time and therefore the lon or executable name "xmgrace")
+  it requires XFree86 to be installed.
+  Like every piece of software this port of Grace may have
   some bugs. Some of them are just related to the general problems
   un*x based applications have on non-un*x filesystems. So read the
   documentation and FAQs of XFree86 carefully to get some hints how to
@@ -24,34 +25,38 @@
 
   A pre-compiled version should always be available from
 
-    http://www.tu-darmstadt.de/~st002279/os2.html
+    http://www.tu-darmstadt.de/~st002279/os2/os2stuff.html
 
   This document describes only the OS/2 specifics. If you're going
-  to use GRACE you should read the general documentation files as well!
+  to use Grace you should read the general documentation files as well!
 
 
-2) How to build xmgrace
+2) How to build Grace
    --------------------
    
-  Here I try to give a complete list what you need to build grace.
+  Here I try to give a complete list what you need to build Grace.
   The first listed packages have be installed in any case:
 
-  - EMX 0.9(d) development package
+  - EMX 0.9d development package
       http://hobbes.nmsu.edu, http://www.leo.org
 
   - XFree86 for OS/2, including its development package(s)
       http://borneo.gmd.de/~veit/os2/xf86os2.html
 
-  - LessTif for XFree/2
-      http://www.tu-darmstadt.de/~st002279/lesstif.html
+  - LessTif for XFree/2 (including Xbae)
+      http://www.tu-darmstadt.de/~st002279/os2/lesstif.html
+      
+  - t1lib for XFree/2
+      http://www.tu-darmstadt.de/~st002279/os2/tools.html
+
 
   Additional useful utilities:
 
   - the "usual" GNU utilities (text, shell, file).
   - un*x shell (sh)
 
-  To build grace I use additional libraries which are not integral parts
-  of grace, in fact it can be built without using them.
+  To build Grace I use additional libraries which are not integral parts
+  of Grace, in fact it can be built without using them.
   If you can't find them on my webpage, I'll provide them upon request.
   See the FAQ where to find the sources for these.
 
@@ -95,13 +100,14 @@
   so that xmgrace can run within this setup.
   
   A major remaining problem is how to access installed printers without
-  manual processing the Postscript files. But this is not only tied to GRACE
+  manual processing the Postscript files. But this is not only tied to Grace
   but of every non-PM application on OS/2. I'm using lpr and lpd to access
-  my local Postscript printer (via a loopback interface).
+  my local Postscript printer.
   Check out the printing tools on LEO/Hobbes for useful utiities or
   just print to a file and do the further processing (e.g. running 
-  Ghostview/gvpm) manually.
-
+  Ghostview/gvpm) manually. In future
+    http://www.tu-darmstadt.de/~st002279/os2/printing.html
+  might contain useful hints as well.
 
 ---
 Alexander Mai
