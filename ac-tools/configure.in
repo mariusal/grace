@@ -26,6 +26,8 @@ AC_SUBST(XDR_LIB)
 AC_SUBST(DL_LIB)
 AC_SUBST(T1_LIB)
 AC_SUBST(T1_INC)
+AC_SUBST(EXPAT_LIB)
+AC_SUBST(EXPAT_INC)
 AC_SUBST(FFTW_LIB)
 AC_SUBST(Z_LIB)
 AC_SUBST(JPEG_LIB)
@@ -97,6 +99,15 @@ AC_ARG_WITH(bundled_t1lib,
   no)  bundled_t1lib=false;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-bundled-t1lib) ;;
 esac],[bundled_t1lib=false])
+
+dnl **** use bundled Expat  
+AC_ARG_WITH(bundled_expat,
+[  --with-bundled-expat         use bundled Expat [no]],
+[case "${withval}" in
+  yes) bundled_expat=true ;;
+  no)  bundled_expat=false;;
+  *) AC_MSG_ERROR(bad value ${withval} for --with-bundled-expat) ;;
+esac],[bundled_expat=false])
 
 dnl **** use bundled Xbae  
 AC_ARG_WITH(bundled_xbae,
@@ -441,7 +452,7 @@ AC_TYPE_SIGNAL
 AC_FUNC_ALLOCA
 AC_CHECK_FUNCS(getcwd gethostname)
 AC_CHECK_FUNCS(strstr)
-AC_CHECK_FUNCS(memcpy memmove)
+AC_CHECK_FUNCS(memcpy memmove bcopy)
 AC_CHECK_FUNCS(unlink fcntl)
 AC_CHECK_FUNCS(popen)
 AC_CHECK_FUNCS(gettimeofday)
@@ -525,6 +536,25 @@ then
   ACX_ANSI_TYPES
 else
   AC_MSG_RESULT(--> Good. Seems you have compatible version of T1lib installed)
+fi
+
+dnl **** Check for Expat installed
+if test $bundled_expat = false
+then
+  ACX_CHECK_EXPAT(1.95.7, AC_DEFINE(HAVE_EXPAT), bundled_expat=true)
+fi
+
+if test $bundled_expat = true
+then
+  dnl **** Use the bundled Expat
+
+  AC_MSG_RESULT(--> Bundled version of Expat will be used)
+
+  EXPAT_LIB='$(TOP)/expat/libexpat.a'
+  EXPAT_INC='-I$(TOP)/expat'
+  expat_dir="expat"
+else
+  AC_MSG_RESULT(--> Good. Seems you have compatible version of Expat installed)
 fi
 
 dnl **** Check for XDR
@@ -714,7 +744,7 @@ dnl **** Check for Motif
 fi
 
 dnl **** Final list of subdirs
-SUBDIRS="cephes ${t1lib_dir} ${xbae_dir} lib/base lib/canvas lib/core src ${grconvert_dir} grace_np fonts templates doc examples auxiliary"
+SUBDIRS="cephes ${t1lib_dir} ${expat_dir} ${xbae_dir} lib/base lib/canvas lib/core src ${grconvert_dir} grace_np fonts templates doc examples auxiliary"
 
 dnl **** Create Make.conf
 AC_OUTPUT(Make.conf:ac-tools/Make.conf.in)

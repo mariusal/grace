@@ -443,6 +443,42 @@ AC_DEFUN(ACX_CHECK_T1LIB,
   fi
 ])dnl
 
+dnl ACX_CHECK_EXPAT
+dnl --------------
+AC_DEFUN(ACX_CHECK_EXPAT,
+[
+  AC_CACHE_CHECK([for Expat >= $1], acx_cv_expat,
+    ACX_SAVE_STATE
+    LIBS="-lexpat $LIBS"
+    AC_TRY_RUN([
+#include <string.h>
+#include <expat.h>
+      int main(void) {
+        char *vlib;
+        vlib = XML_ExpatVersion();
+        if (strcmp(vlib, "expat_[$1]") < 0) {
+          exit(1);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_expat="yes",
+      acx_cv_expat="no",
+      acx_cv_expat="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_expat" = "yes"
+  then
+    EXPAT_LIB="-lexpat"
+    $2
+  else
+    EXPAT_LIB=
+    $3
+  fi
+])dnl
+
 dnl ACX_CHECK_ZLIB
 dnl --------------
 AC_DEFUN(ACX_CHECK_ZLIB,

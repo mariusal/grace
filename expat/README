@@ -1,0 +1,5 @@
+
+The code in this directory is the Expat library specially packaged (docs and
+examples omitted etc) for use with Grace. For the original package, see
+http://expat.sourceforge.net/
+

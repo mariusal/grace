@@ -1,0 +1,9 @@
+#####################################################
+#     System-independent Make.common file for       #
+#                   expat library                   #
+#####################################################
+
+SRCS =	xmlparse.c xmlrole.c xmltok.c
+
+OBJS =	xmlparse$(O) xmlrole$(O) xmltok$(O)
+

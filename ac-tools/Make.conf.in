@@ -36,11 +36,14 @@ T1_AA_TYPE16=@T1_AA_TYPE16@
 T1_AA_TYPE32=@T1_AA_TYPE32@
 T1_AA_TYPE64=@T1_AA_TYPE64@
 
+# Expat library
+EXPAT_LIB=@EXPAT_LIB@
+
+# Expat include path
+EXPAT_INC=@EXPAT_INC@
+
 # XCC exec
 XCC=xcc
-
-# Expat library
-EXPAT_LIB=-lexpat
 
 # Library containing XDR functions
 XDR_LIB=@XDR_LIB@
