@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -67,7 +67,7 @@ static Widget axes_tab;
 static Widget *editaxis;        /* which axis to edit */
 static Widget axis_active;      /* active or not */
 static Widget axis_zero;        /* "zero" or "plain" */
-static Widget *axis_scale;      /* axis scale */
+static OptionStructure *axis_scale; /* axis scale */
 static Widget axis_invert;      /* invert axis */
 static Widget *axis_applyto;    /* override */
 static Widget offx;             /* x offset of axis in viewport coords */
@@ -83,7 +83,7 @@ static Widget axislabelcharsize;/* axis label charsize */
 static OptionStructure *axislabelcolor;  /* axis label color */
 static Widget *axislabelop;     /* tick labels normal|opposite|both sides */
 static Widget tmajor;           /* major tick spacing */
-static Widget nminor;           /* minor tick spacing */
+static SpinStructure *nminor;   /* # of minor ticks */
 static Widget *tickop;          /* ticks normal|opposite|both sides */
 static Widget *ticklop;         /* tick labels normal|opposite|both sides */
 static Widget *tlform;          /* format for labels */
@@ -128,13 +128,13 @@ static SpinStructure *nspec;
 static Widget specnum[MAX_TICKS];       /* label denoting which tick/label */
 static Widget specloc[MAX_TICKS];
 static Widget speclabel[MAX_TICKS];
+static Widget axis_world_start;
+static Widget axis_world_stop;
 
 static void set_axis_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void set_active_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void axes_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
-
-static Widget axis_world_start;
-static Widget axis_world_stop;
+static void axis_scale_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 void create_axes_dialog_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
@@ -152,6 +152,7 @@ void create_axes_dialog(int axisno)
 
     int i;
     char buf[32];
+    OptionItem opitems[3];
     
     set_wait_cursor();
     
@@ -160,6 +161,13 @@ void create_axes_dialog(int axisno)
     }
     
     if (axes_dialog == NULL) {
+        opitems[0].value = SCALE_NORMAL;
+        opitems[0].label = "Linear";
+        opitems[1].value = SCALE_LOG;
+        opitems[1].label = "Logarithmic";
+        opitems[2].value = SCALE_REC;
+        opitems[2].label = "Reciprocal";
+
         axes_dialog = XmCreateDialogShell(app_shell, "Axes", NULL, 0);
         handle_close(axes_dialog);
         axes_panel = XtVaCreateWidget("tick_panel", xmFormWidgetClass, 
@@ -194,13 +202,8 @@ void create_axes_dialog(int axisno)
 
         rc = XmCreateRowColumn(rc_head, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-        axis_scale = CreatePanelChoice(rc, "Scale:",
-                                           4,
-                                           "Linear",
-                                           "Logarithmic",
-                                           "Reciprocal",
-                                           NULL,
-                                           NULL);
+        axis_scale = CreateOptionChoice(rc, "Scale:", 0, 3, opitems);
+        AddOptionChoiceCB(axis_scale, axis_scale_cb);
 	axis_invert = CreateToggleButton(rc, "Invert axis");
         XtManageChild(rc);
         
@@ -231,7 +234,8 @@ void create_axes_dialog(int axisno)
         rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
         tmajor = CreateTextItem2(rc2, 8, "Major spacing:");
-        nminor = CreateTextItem2(rc2, 6, "Minor ticks:");
+        nminor = CreateSpinChoice(rc2, "Minor ticks:",
+            2, SPIN_TYPE_INT, 0.0, (double) MAX_TICKS - 1, 1.0);
         XtManageChild(rc2);
 
         rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
@@ -644,8 +648,8 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
     
     t.zero = GetToggleButtonState(axis_zero);
 
-    if (xv_evalexpr(tmajor, &t.tmajor) != GRACE_EXIT_SUCCESS ||
-        xv_evalexpri(nminor, &t.nminor) != GRACE_EXIT_SUCCESS) {
+    t.nminor = (int) GetSpinChoice(nminor);
+    if (xv_evalexpr(tmajor, &t.tmajor) != GRACE_EXIT_SUCCESS) {
         free_ticklabels(&t);
         return;
     }
@@ -822,7 +826,7 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
             }
             set_graph_world(i, w);
             
-            switch (GetChoice(axis_scale)) {
+            switch (GetOptionChoice(axis_scale)) {
             case 0:
                 if (is_xaxis(j)) {
                     set_graph_xscale(i, SCALE_NORMAL);
@@ -873,6 +877,45 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
 }
 
 /*
+ * This CB services the axis "Scale" selector 
+ */
+static void axis_scale_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int scale = (int) client_data;
+    double major_space, axestart, axestop;
+    int auton;
+    char buf[32];
+    
+    xv_evalexpr(tmajor, &major_space);
+    xv_evalexpr(axis_world_start, &axestart) ;
+    xv_evalexpr(axis_world_stop,  &axestop);
+    auton = GetChoice(autonum) + 2;
+    
+    switch (scale) {
+    case SCALE_NORMAL:
+        if (major_space <= 0.0) {
+            sprintf(buf, "%g", (axestop - axestart)/auton);
+            xv_setstr(tmajor, buf);
+        }
+        break;
+    case SCALE_LOG:
+        if (axestart <= 0.0 && axestop <= 0.0) {
+            errmsg("Can't set logarithmic scale for negative coordinates");
+            SetOptionChoice(axis_scale, SCALE_NORMAL);
+            return;
+        } else if (axestart <= 0.0) {
+            axestart = axestop/pow(10.0, (double) auton);
+            sprintf(buf, "%g", axestart);
+            xv_setstr(axis_world_start, buf);
+        }
+        if (major_space <= 1.0) {
+            xv_setstr(tmajor, "10");
+        }
+        break;
+    }
+}
+
+/*
  * Fill 'Axes' dialog with values
  */
 
@@ -903,14 +946,14 @@ void update_ticks(int gno)
             xv_setstr(axis_world_start, buf);
             sprintf(buf, "%.9g", w.xg2);
             xv_setstr(axis_world_stop, buf);
-            SetChoice(axis_scale, get_graph_xscale(gno));
+            SetOptionChoice(axis_scale, get_graph_xscale(gno));
             SetToggleButtonState(axis_invert, is_graph_xinvert(gno));
         } else {
             sprintf(buf, "%.9g", w.yg1);
             xv_setstr(axis_world_start, buf);
             sprintf(buf, "%.9g", w.yg2);
             xv_setstr(axis_world_stop, buf);
-            SetChoice(axis_scale, get_graph_yscale(gno));
+            SetOptionChoice(axis_scale, get_graph_yscale(gno));
             SetToggleButtonState(axis_invert, is_graph_yinvert(gno));
         }
 
@@ -933,12 +976,7 @@ void update_ticks(int gno)
         SetToggleButtonState(baronoff, t.t_drawbar);
         SetCSTextString(axislabel, t.label.s);
 
-        if (islogx(gno) && (curaxis % 2 == 0)) {
-            if (t.tmajor <= 1.0) {
-                t.tmajor = 10.0;
-            }
-            sprintf(buf, "%g", t.tmajor);
-        } else if (islogy(gno) && (curaxis % 2 == 1)) {
+        if (is_log_axis(gno, curaxis)) {
             if (t.tmajor <= 1.0) {
                 t.tmajor = 10.0;
             }
@@ -950,12 +988,7 @@ void update_ticks(int gno)
         }
         xv_setstr(tmajor, buf);
  
-        if (t.nminor >= 0) {
-            sprintf(buf, "%d", t.nminor);
-        } else {
-            strcpy(buf, "UNDEFINED");
-        }
-        xv_setstr(nminor, buf);
+        SetSpinChoice(nminor, t.nminor);
 
         SetOptionChoice(tlfont, t.tl_font);
         SetOptionChoice(tlcolor, t.tl_color);
@@ -1027,7 +1060,11 @@ void update_ticks(int gno)
         for (i = 0; i < t.nticks; i++) {
             sprintf(buf, "%g", t.tloc[i].wtpos);
             xv_setstr(specloc[i], buf);
-            xv_setstr(speclabel[i], t.tloc[i].label);
+            if (t.tloc[i].type == TICK_TYPE_MAJOR) {
+                xv_setstr(speclabel[i], t.tloc[i].label);
+            } else {
+                xv_setstr(speclabel[i], "");
+            }
         }
         
         free_ticklabels(&t);
