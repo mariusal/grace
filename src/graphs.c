@@ -1277,7 +1277,7 @@ void project_postprocess(Quark *q)
         }
 
 	if (pr->version_id <= 40102) {
-            g->l.vgap -= 1;
+            g->l.vgap -= 0.01;
         }
 	if (pr->version_id < 50200) {
             g->l.acorner = CORNER_UL;
