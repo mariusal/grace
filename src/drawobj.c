@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000 Grace Development Team
+ * Copyright (c) 2000,2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -64,19 +64,45 @@ static void draw_object(DObject *o)
     switch (o->type) {
     case DO_BOX:
         {
-            VPoint vp1, vp2;
             DOBoxData *b = (DOBoxData *) o->odata;
-            
-            vp1.x = anchor.x - b->width/2;
-            vp2.x = anchor.x + b->width/2;
-            vp1.y = anchor.y - b->height/2;
-            vp2.y = anchor.y + b->height/2;
+            if (o->angle == 0.0) {
+                VPoint vp1, vp2;
 
-            setpen(o->fillpen);
-            FillRect(vp1, vp2);
+                vp1.x = anchor.x - b->width/2;
+                vp2.x = anchor.x + b->width/2;
+                vp1.y = anchor.y - b->height/2;
+                vp2.y = anchor.y + b->height/2;
 
-            setline(&o->line);
-            DrawRect(vp1, vp2);
+                setpen(o->fillpen);
+                FillRect(vp1, vp2);
+
+                setline(&o->line);
+                DrawRect(vp1, vp2);
+            } else {
+                VPoint vps[4];
+                double x, y, co, si;
+
+                x = b->width/2;
+                y = b->height/2;
+
+                co = cos(M_PI/180.0*o->angle);
+                si = sin(M_PI/180.0*o->angle);
+                
+                vps[0].x = anchor.x + x*co - y*si;
+                vps[0].y = anchor.y + x*si + y*co;
+                vps[1].x = anchor.x - x*co - y*si;
+                vps[1].y = anchor.y - x*si + y*co;
+                vps[2].x = anchor.x - x*co + y*si;
+                vps[2].y = anchor.y - x*si - y*co;
+                vps[3].x = anchor.x + x*co + y*si;
+                vps[3].y = anchor.y + x*si - y*co;
+
+                setpen(o->fillpen);
+                DrawPolygon(vps, 4);
+
+                setline(&o->line);
+                DrawPolyline(vps, 4, POLYLINE_CLOSED);
+            }
         }
         break;
     case DO_ARC:
@@ -90,10 +116,14 @@ static void draw_object(DObject *o)
             vp2.y = anchor.y + e->height/2;
 
             setpen(o->fillpen);
-            DrawFilledArc(vp1, vp2, (int) e->angle1, (int) e->angle2, e->fillmode);
+            /* FIXME: implement true ellipse rotation! */
+            DrawFilledArc(vp1, vp2,
+                (int) (e->angle1 + o->angle), (int) (e->angle2 + o->angle),
+                e->fillmode);
 
             setline(&o->line);
-            DrawArc(vp1, vp2, (int) e->angle1, (int) e->angle2);
+            DrawArc(vp1, vp2,
+                (int) (e->angle1 + o->angle), (int) (e->angle2 + o->angle));
         }
         break;
     case DO_STRING:
