@@ -15,7 +15,7 @@ GRSRCS =  main.c plotone.c files.c ssdata.c utils.c drawticks.c \
 	objutils.c computils.c defaults.c params.c \
 	draw.c dlmodule.c missing.c alloca.c \
 	iofilters.c dates.c t1fonts.c device.c mfdrv.c \
-	mifdrv.c psdrv.c pdfdrv.c gd.c rstdrv.c dummydrv.c
+	mifdrv.c psdrv.c pdfdrv.c svgdrv.c gd.c rstdrv.c dummydrv.c
 
 
 GROBJS =  main$(O) plotone$(O) files$(O) ssdata$(O) utils$(O) drawticks$(O) \
@@ -24,7 +24,8 @@ GROBJS =  main$(O) plotone$(O) files$(O) ssdata$(O) utils$(O) drawticks$(O) \
 	objutils$(O) computils$(O) defaults$(O) params$(O) \
 	draw$(O) dlmodule$(O) $(PARS_O) missing$(O) $(ALLOCA) \
 	iofilters$(O) dates$(O) t1fonts$(O) device$(O) \
-	dummydrv$(O) mfdrv$(O) mifdrv$(O) psdrv$(O) $(PDFDRV_O) gd$(O) rstdrv$(O)
+	dummydrv$(O) mfdrv$(O) mifdrv$(O) psdrv$(O)  \
+	$(PDFDRV_O) svgdrv$(O) gd$(O) rstdrv$(O)
 
 # The following are for a GUI
 #

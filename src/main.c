@@ -206,6 +206,7 @@ int main(int argc, char *argv[])
     register_pdf_drv();
 #endif
     register_mif_drv();
+    register_svg_drv();
     register_pnm_drv();
 #ifdef HAVE_LIBJPEG
     register_jpg_drv();
