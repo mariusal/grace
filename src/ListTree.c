@@ -2262,6 +2262,13 @@ ListTreeHighlightItem(Widget w, ListTreeItem * item)
 }
 
 void
+ListTreeHighlightItemMultiple(Widget w, ListTreeItem * item)
+{
+  HighlightItem((ListTreeWidget)w, item, True, False);
+  ListTreeRefresh(w);
+}
+
+void
 ListTreeHighlightAll(Widget w)
 {
   HighlightAllVisible((ListTreeWidget)w, True, False);

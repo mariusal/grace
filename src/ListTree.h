@@ -136,6 +136,7 @@ int ListTreeUserOrderSiblings (Widget w, ListTreeItem *item, int (*func)(const v
 ListTreeItem *ListTreeFindSiblingName (Widget w, ListTreeItem *item, char *name);
 ListTreeItem *ListTreeFindChildName (Widget w, ListTreeItem *item, char *name);
 void ListTreeHighlightItem (Widget w, ListTreeItem *item);
+void ListTreeHighlightItemMultiple(Widget w, ListTreeItem * item);
 ListTreeItem *ListTreeFirstItem (Widget w);
 void ListTreeGetHighlighted(Widget w,ListTreeMultiReturnStruct *ret);
 void ListTreeSetHighlighted(Widget w,ListTreeItem **items,
