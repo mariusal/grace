@@ -2207,7 +2207,11 @@ parmset:
 	    curbox = next_box();
 	}
 	| WITH BOX nexpr {
-	    curbox = $3;
+            int no = $3;
+            if (is_valid_box(no) ||
+                realloc_boxes(no + 1) == RETURN_SUCCESS) {
+                curbox = no;
+            }
 	}
 	| BOX onoff {
 	    if (!is_valid_box(curbox)) {
@@ -2286,7 +2290,11 @@ parmset:
 		curellipse = next_ellipse();
 	}
 	| WITH ELLIPSE nexpr {
-	    curellipse = $3;
+            int no = $3;
+            if (is_valid_ellipse(no) ||
+                realloc_ellipses(no + 1) == RETURN_SUCCESS) {
+                curellipse = no;
+            }
 	}
 	| ELLIPSE onoff {
 	    if (!is_valid_ellipse(curellipse)) {
@@ -2365,7 +2373,11 @@ parmset:
 	    curline = next_line();
 	}
 	| WITH LINE nexpr {
-	    curline = $3;
+            int no = $3;
+            if (is_valid_line(no) ||
+                realloc_lines(no + 1) == RETURN_SUCCESS) {
+                curline = no;
+            }
 	}
 	| LINE onoff {
 	    if (!is_valid_line(curline)) {
@@ -2437,7 +2449,11 @@ parmset:
             curstring = next_string();
         }
 	| WITH STRING nexpr {
-            curstring = $3;
+            int no = $3;
+            if (is_valid_string(no) ||
+                realloc_strings(no + 1) == RETURN_SUCCESS) {
+                curstring = no;
+            }
         }
 	| STRING onoff {
 	    if (!is_valid_string(curstring)) {
