@@ -221,6 +221,7 @@ String fallbackResources[] = {
     "XMgrace*fontTable.evenRowBackground: #e5e5e5",
     "XMgrace*XmPushButton.background: #b0c4de",
     "XMgrace*XmMenuShell*XmPushButton.background: #e5e5e5",
+    "XMgrace*penButton.background: #e5e5e5",
     "XMgrace*XmText*background: #cfe7e7",
     "XMgrace*XmToggleButton.selectColor: #ff0000",
     "XMgrace*XmToggleButton.fillOnSelect: true",

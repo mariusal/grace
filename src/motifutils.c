@@ -2098,7 +2098,7 @@ Widget CreatePenChoice(Widget parent, char *s)
     
     rc = CreateHContainer(parent);
     CreateLabel(rc, s);
-    button = XtVaCreateWidget("Button",
+    button = XtVaCreateWidget("penButton",
         xmPushButtonWidgetClass, rc,
         XmNlabelType, XmPIXMAP,
         XmNuserData, pdata,
