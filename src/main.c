@@ -912,8 +912,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-graphtype [graph_type]               Set the type of the current graph\n");
     fprintf(stream, "-hardcopy                             No interactive session, just print and\n");
     fprintf(stream, "                                        quit\n");
-    fprintf(stream, "-hilo      [hilo_file]                Assume data is in X HI LO OPEN CLOSE\n");
-    fprintf(stream, "                                        format\n");
     fprintf(stream, "-install                              Install private colormap\n");
     fprintf(stream, "-legend    [load]                     Turn the graph legend on\n");
     fprintf(stream, "-log       [x|y|xy]                   Set the axis scaling of the current graph\n");
