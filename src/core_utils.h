@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -145,6 +145,7 @@ void move_legend(Quark *gr, const VVector *shift);
 
 void rescale_viewport(Quark *pr, double ext_x, double ext_y);
 
+char *get_font_name_by_id(const Quark *project, int id);
 int get_font_by_name(const Quark *project, const char *name);
 int get_color_by_name(const Quark *project, const char *name);
 

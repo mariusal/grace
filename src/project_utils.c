@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2003 Grace Development Team
+ * Copyright (c) 2001-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -117,6 +117,21 @@ int project_get_graphs(Quark *q, Quark ***graphs)
     *graphs = p.graphs;
     
     return p.ngraphs;
+}
+
+char *get_font_name_by_id(const Quark *project, int id)
+{
+    Project *pr = project_get_data(project);
+    unsigned int i;
+    
+    for (i = 0; i < pr->nfonts; i++) {
+        Fontdef *f = &pr->fontmap[i];
+        if (f->id == id) {
+            return f->fontname;
+        }
+    }
+    
+    return NULL;
 }
 
 int get_font_by_name(const Quark *project, const char *name)
