@@ -629,6 +629,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         case XK_Escape: /* Esc */
             fprintf(stderr, "Esc\n");
             abort_action = TRUE;
+            set_cursor(grace->gui, -1);
             return;
             break;
         case XK_KP_Add: /* "Grey" plus */
@@ -657,8 +658,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         }
         if (xke->state & ControlMask) {
             if (on_focus) {
-                    resize_region(grace->gui, xstuff->f_v, on_focus,
-                        x - last_b1down_x, y - last_b1down_y, FALSE);
+                set_cursor(grace->gui, -1);
             } else
             if (ct.found) {
                 slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
