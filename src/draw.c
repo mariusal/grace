@@ -1978,7 +1978,7 @@ static void canvas_char_stats_update(Canvas *canvas,
     
     canvas->FontDBtable[font].used = 1;
     for (j = 0; j < len; j++) {
-        canvas->FontDBtable[font].chars_used[(int) s[j]] = 1; 
+        canvas->FontDBtable[font].chars_used[(unsigned char) s[j]] = 1; 
     }
 }
 
@@ -2043,8 +2043,8 @@ CanvasStats *canvas_stats(const Canvas *canvas)
         for (i = 0, j = 0; i < canvas->nfonts; i++) {
             if (canvas->FontDBtable[i].used) {
                 cstats->fonts[j].font = i;
-                memcpy(cstats->fonts[j].chars_used,
-                    canvas->FontDBtable[i].chars_used, 256);
+                memcpy(&cstats->fonts[j].chars_used,
+                    &canvas->FontDBtable[i].chars_used, 256);
                 j++;
             }
         }
