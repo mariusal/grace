@@ -431,7 +431,6 @@ void killsetdata(int gno, int setno)
 	    cxfree(g[gno].p[setno].data.s);
 	}
 	g[gno].p[setno].data.len = 0;
-	set_set_hidden(gno, setno, TRUE);
 	set_dirtystate();
     }
 }
