@@ -530,13 +530,80 @@ static int get_escape_args(char *s, char *buf)
     return -1;
 }
 
+static char *expand_macros(char *s)
+{
+    char *es, *macro, *subst;
+    int i, j, k, slen, extra_len = 0;
+    
+    if (!s) {
+        return NULL;
+    }
+    
+    slen = strlen(s);
+    macro = xmalloc(slen*SIZEOF_CHAR);
+    
+    i = 0;
+    while (i < slen) {
+        if (s[i] == '\\' && s[i + 1] == '$' &&
+            (k = get_escape_args(&(s[i + 2]), macro)) >= 0) {
+            if (!strcmp(macro, "timestamp")) {
+                subst = get_timestamp();
+            } else
+            if (!strcmp(macro, "filename")) {
+                subst = get_docname();
+            } else
+            if (!strcmp(macro, "filebname")) {
+                subst = get_docbname();
+            } else {
+                subst = "";
+            }
+            /* 4 == strlen("\\${}") */
+            extra_len += (strlen(subst) - (4 + k));
+            i += (4 + k);
+        } else {
+            i++;
+        }
+    }
+    
+    es = xmalloc((slen + extra_len + 1)*SIZEOF_CHAR);
+    if (!es) {
+        return NULL;
+    }
+    
+    i = 0; j = 0;
+    while (i < slen) {
+        if (s[i] == '\\' && s[i + 1] == '$' &&
+            (k = get_escape_args(&(s[i + 2]), macro)) >= 0) {
+            if (!strcmp(macro, "timestamp")) {
+                subst = get_timestamp();
+            } else
+            if (!strcmp(macro, "filename")) {
+                subst = get_docname();
+            } else
+            if (!strcmp(macro, "filebname")) {
+                subst = get_docbname();
+            } else {
+                subst = "";
+            }
+            strcpy(&es[j], subst);
+            i += (4 + k); j += strlen(subst);
+        } else {
+            es[j] = s[i];
+            i++; j++;
+        }
+    }
+    es[j] = '\0';
+    
+    return es;
+}
+
 static const TextMatrix unit_tm = UNIT_TM;
 
-static CompositeString *String2Composite(char *string, int *nss)
+static CompositeString *String2Composite(char *s, int *nss)
 {
     CompositeString *csbuf;
 
-    char *ss, *buf, *acc_buf;
+    char *string, *ss, *buf, *acc_buf;
     int inside_escape = FALSE;
     int i, isub, j;
     int acc_len;
@@ -567,10 +634,12 @@ static CompositeString *String2Composite(char *string, int *nss)
     csbuf = NULL;
     *nss = 0;
     
+    string = expand_macros(s);
+
     if (string == NULL) {
         return NULL;
     }
-
+    
     slen = strlen(string);
     
     if (slen == 0) {
@@ -584,6 +653,7 @@ static CompositeString *String2Composite(char *string, int *nss)
         xfree(acc_buf);
         xfree(buf);
         xfree(ss);
+        xfree(string);
         return NULL;
     }
      
@@ -903,6 +973,7 @@ static CompositeString *String2Composite(char *string, int *nss)
     xfree(acc_buf);
     xfree(buf);
     xfree(ss);
+    xfree(string);
 
     return (csbuf);
 }
