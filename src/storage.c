@@ -364,9 +364,8 @@ static void storage_add_node(Storage *sto, LLNode *llnode, int forward)
         
         if (next) {
             next->prev = llnode;
-        } else {
-            sto->start = llnode;
         }
+        sto->start = llnode;
 
         llnode->next = next;
         llnode->prev = NULL;
