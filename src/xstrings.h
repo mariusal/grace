@@ -57,7 +57,9 @@
 #define EStrLegendEntry         "legend-entry"
 #define EStrLegframe            "legframe"
 #define EStrLine                "line"
+#define EStrLineData            "line-data"
 #define EStrLineSpec            "line-spec"
+#define EStrLocation            "location"
 #define EStrLocator             "locator"
 #define EStrMajor               "major"
 #define EStrMinor               "minor"
@@ -174,6 +176,8 @@
 #define VStrParallel            "parallel"
 #define VStrPerpendicular       "perpendicular"
 #define VStrTicks               "ticks"
+#define VStrView                "view"
 #define VStrWinding             "winding"
+#define VStrWorld               "world"
 
 #endif /* __XSTRINGS_H_ */
