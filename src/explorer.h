@@ -236,8 +236,6 @@ typedef struct {
     Widget          tlstart;
     OptionStructure *tlstoptype;
     Widget          tlstop;
-    OptionStructure *tlgaptype;
-    Widget          tlgap_rc;
     Widget          tlgap_para;
     Widget          tlgap_perp;
     Widget          tlangle;

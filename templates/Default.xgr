@@ -91,7 +91,7 @@
         <minor-tickmarks size="0.5" inout-placement="in">
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </minor-tickmarks>
-        <ticklabels transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
+        <ticklabels transform="" prepend="" append="" offset="(0, 0.01)" skip="0" stagger="0" start="auto" stop="auto">
           <text-properties angle="0" justification="0">
             <face-spec font-id="0" color-id="1" char-size="1"/>
           </text-properties>
@@ -133,7 +133,7 @@
         <minor-tickmarks size="0.5" inout-placement="in">
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </minor-tickmarks>
-        <ticklabels transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
+        <ticklabels transform="" prepend="" append="" offset="(0, 0.01)" skip="0" stagger="0" start="auto" stop="auto">
           <text-properties angle="0" justification="0">
             <face-spec font-id="0" color-id="1" char-size="1"/>
           </text-properties>

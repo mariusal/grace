@@ -254,7 +254,6 @@ typedef struct {
     char *transform;
     char *prepend;
     char *append;
-    int autoplace;
     VPoint offset;
     
     TextProps tprops;
@@ -461,12 +460,10 @@ char *utf2iso(const char *s)
     <attribute-type name="fontid" ctype="int"><![CDATA[
         $$ = atoi($?);
     ]]></attribute-type>
-    <attribute-type name="offset" ctype="VPoint *"><![CDATA[
-        if (!strcmp($?, VStrAuto)) {
-            $$ = NULL;
-        } else {
-            $$ = xmalloc(sizeof(VPoint));
-            sscanf($?, "(%lg, %lg)", &($$->x), &($$->y));
+    <attribute-type name="offset" ctype="VVector *"><![CDATA[
+        $$ = xmalloc(sizeof(VVector));
+        if (sscanf($?, "(%lg, %lg)", &($$->x), &($$->y)) != 2) {
+            $$->x = $$->y = 0.0;
         }
     ]]></attribute-type>
     <attribute-type name="fpoint" ctype="FPoint *"><![CDATA[
@@ -1276,7 +1273,6 @@ char *utf2iso(const char *s)
             t->tl_staggered = $?->stagger;
             t->tl_format    = $?->format.type;
             t->tl_prec      = $?->format.prec;
-            t->tl_gaptype   = $?->autoplace ? TYPE_AUTO:TYPE_SPEC;
             t->tl_gap.x     = $?->offset.x;
             t->tl_gap.y     = $?->offset.y;
             t->tl_starttype = $?->autostart ? TYPE_AUTO:TYPE_SPEC;
@@ -1375,14 +1371,8 @@ char *utf2iso(const char *s)
             $$->append = $?;
         </attribute>
         <attribute name="#AStrOffset" type="offset">
-            if ($?) {
-                $$->autoplace = FALSE;
-                $$->offset.x  = $?->x;
-                $$->offset.y  = $?->y;
-                xfree($?);
-            } else {
-                $$->autoplace = TRUE;
-            }
+            $$->offset = *($?);
+            xfree($?);
         </attribute>
         <attribute name="#AStrSkip" type="ival">
             $$->skip = $?;
@@ -1771,10 +1761,8 @@ char *utf2iso(const char *s)
             $$->type = $?;
         </attribute>
         <attribute name="#AStrOffset" type="offset">
-            if ($?) {
-                $$->offset = *($?);
-                xfree($?);
-            }
+            $$->offset = *($?);
+            xfree($?);
         </attribute>
         <attribute name="#AStrPrepend" type="sval">
             $$->prestr = $?;

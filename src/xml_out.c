@@ -95,16 +95,6 @@ static void xmlio_set_fpoint(Attributes *attrs,
     attributes_set_sval(attrs, aname, buf);
 }
 
-static void xmlio_set_offset_placement(Attributes *attrs,
-    int autoplace, double offset1, double offset2)
-{
-    if (autoplace) {
-        attributes_set_sval(attrs, AStrOffset, VStrAuto);
-    } else {
-        xmlio_set_offset(attrs, offset1, offset2);
-    }
-}
-
 static void xmlio_set_angle(Attributes *attrs, double angle)
 {
     attributes_set_dval(attrs, AStrAngle, angle);
@@ -360,8 +350,7 @@ int save_axisgrid_properties(XFile *xf, Quark *q)
     attributes_set_sval(attrs, AStrTransform, t->tl_formula);
     attributes_set_sval(attrs, AStrPrepend, t->tl_prestr);
     attributes_set_sval(attrs, AStrAppend, t->tl_appstr);
-    xmlio_set_offset_placement(attrs,
-        t->tl_gaptype == TYPE_AUTO, t->tl_gap.x, t->tl_gap.y);
+    xmlio_set_offset(attrs, t->tl_gap.x, t->tl_gap.y);
 
     attributes_set_ival(attrs, AStrSkip, t->tl_skip);
     attributes_set_ival(attrs, AStrStagger, t->tl_staggered);

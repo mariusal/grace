@@ -38,8 +38,6 @@
 #include "explorer.h"
 #include "protos.h"
 
-static void auto_spec_cb(OptionStructure *opt, int value, void *data);
-
 AGridUI *create_axisgrid_ui(ExplorerUI *eui)
 {
     AGridUI *ui;
@@ -230,13 +228,6 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->ticklabel_tp, "Extra");
     rc = CreateVContainer(fr);
 
-    opitems[0].value = TYPE_AUTO;
-    opitems[0].label = "Auto";
-    opitems[1].value = TYPE_SPEC;
-    opitems[1].label = "Specified";
-    rc2 = CreateHContainer(rc);
-    ui->tlgaptype = CreateOptionChoice(rc2, "Location:", 0, 2, opitems);
-
     rc2 = CreateHContainer(rc);
     ui->tlskip = CreatePanelChoice(rc2, "Skip every:",
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
@@ -257,12 +248,10 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     SetTextInputLength(ui->tlappstr, 13);
     AddTextInputCB(ui->tlappstr, text_explorer_cb, eui);
 
-    ui->tlgap_rc = CreateHContainer(rc);
-    AddOptionChoiceCB(ui->tlgaptype, auto_spec_cb, ui->tlgap_rc);
-    AddOptionChoiceCB(ui->tlgaptype, oc_explorer_cb, eui);
-    ui->tlgap_para = CreateTextItem(ui->tlgap_rc, 5, "Parallel offset:");
+    rc2 = CreateHContainer(rc);
+    ui->tlgap_para = CreateTextItem(rc2, 5, "Parallel offset:");
     AddTextItemCB(ui->tlgap_para, titem_explorer_cb, eui);
-    ui->tlgap_perp = CreateTextItem(ui->tlgap_rc, 5, "Perpendicular offset:");
+    ui->tlgap_perp = CreateTextItem(rc2, 5, "Perpendicular offset:");
     AddTextItemCB(ui->tlgap_perp, titem_explorer_cb, eui);
 
 
@@ -363,12 +352,10 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
         SetTextString(ui->tlformula, t->tl_formula);
         SetOptionChoice(ui->tlprec, t->tl_prec);
 
-        SetOptionChoice(ui->tlgaptype, t->tl_gaptype);
         sprintf(buf, "%.2f", t->tl_gap.x);
         xv_setstr(ui->tlgap_para, buf);
         sprintf(buf, "%.2f", t->tl_gap.y);
         xv_setstr(ui->tlgap_perp, buf);
-        SetSensitive(ui->tlgap_rc, t->tl_gaptype == TYPE_SPEC);
 
         SetSpinChoice(ui->tlcharsize, t->tl_tprops.charsize);
         SetAngleChoice(ui->tlangle, t->tl_tprops.angle);
@@ -518,9 +505,6 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->tl_appstr = copy_string(t->tl_appstr, s);
             xfree(s);
         }
-        if (!caller || caller == ui->tlgaptype) {
-            t->tl_gaptype = GetOptionChoice(ui->tlgaptype);
-        }
         if (!caller || caller == ui->tlgap_para) {
             xv_evalexpr(ui->tlgap_para, &t->tl_gap.x);
         }
@@ -627,12 +611,6 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
     } else {
         return RETURN_FAILURE;
     }
-}
-
-static void auto_spec_cb(OptionStructure *opt, int value, void *data)
-{
-    Widget rc = (Widget) data;
-    SetSensitive(rc, value);
 }
 
 AxisUI *create_axis_ui(ExplorerUI *eui)

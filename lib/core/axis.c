@@ -68,9 +68,9 @@ static void set_default_ticks(Quark *q)
     t->tl_stoptype = TYPE_AUTO;
     t->tl_start = 0.0;
     t->tl_stop = 0.0;
-    t->tl_gaptype = TYPE_AUTO;
     t->tl_appstr = NULL;
     t->tl_prestr = NULL;
+
     t->t_spec = TICKS_SPEC_NONE;
     t->t_autonum = 6;
     t->props.inout = TICKS_IN;

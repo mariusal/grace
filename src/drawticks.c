@@ -323,14 +323,8 @@ void draw_axis(Canvas *canvas, Quark *qa)
         }
     }
 
-    if(t->tl_gaptype==TYPE_AUTO) {
-        /* hard coded offsets for autoplacement of tick labels */
-        tl_trans  = 0.0;     /* parallel */
-        tl_offset = 0.01;  /* perpendicular */
-    } else{
-        tl_trans  = t->tl_gap.x;
-        tl_offset = t->tl_gap.y;
-    }
+    tl_trans  = t->tl_gap.x;
+    tl_offset = t->tl_gap.y;
 
     activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
     reset_bbox(canvas, BBOX_TYPE_TEMP);

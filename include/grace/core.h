@@ -503,7 +503,6 @@ typedef struct {
     double tl_start;            /* value of x to begin tick labels and major ticks */
     double tl_stop;             /* value of x to end tick labels and major ticks */
 
-    int tl_gaptype;             /* tick label placement auto or specified */
     VVector tl_gap;             /* tick label to tickmark distance
 				   (parallel and perpendicular to axis) */
 } tickmarks;

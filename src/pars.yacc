@@ -2914,10 +2914,10 @@ ticklabelattr:
 	    xfree($3);
 	}
 	| OFFSET AUTO {
-	    curtm->tl_gaptype = TYPE_AUTO;
+	    curtm->tl_gap.x = 0.0;
+	    curtm->tl_gap.y = 0.01;
 	}
 	| OFFSET SPEC {
-	    curtm->tl_gaptype = TYPE_SPEC;
 	}
 	| OFFSET expr ',' expr {
 	    curtm->tl_gap.x = $2;
