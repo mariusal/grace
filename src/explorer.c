@@ -883,9 +883,8 @@ void raise_explorer(GUI *gui, Quark *q)
 #endif
 
         eui->scrolled_window = XtVaCreateManagedWidget("scrolled_window",
-	    xmScrolledWindowWidgetClass, panel,
+            xmScrolledWindowWidgetClass, panel,
             XmNscrollingPolicy, XmAUTOMATIC,
-	    XmNscrollBarDisplayPolicy, XmSTATIC,
 	    NULL);
 
 #if USE_PANEDW
