@@ -500,18 +500,17 @@ char *cols_to_field_string(int nc, int *cols)
     return s;
 }
 
-void create_set_fromblock(int gno, int type,
-    int nc, int *coli, int scol, int autoscale)
+int create_set_fromblock(int gno, int setno,
+    int type, int nc, int *coli, int scol, int autoscale)
 {
     int i, ncols, blockncols, blocklen, column;
-    int setno;
     double *cdata;
     char buf[256];
 
     blockncols = get_blockncols();
     if (blockncols <= 0) {
         errmsg("No block data read");
-        return;
+        return GRACE_EXIT_FAILURE;
     }
 
     blocklen = get_blocknrows();
@@ -519,31 +518,41 @@ void create_set_fromblock(int gno, int type,
     ncols = settype_cols(type);
     if (nc > ncols) {
         errmsg("Too many columns scanned in column string");
-        return;
+        return GRACE_EXIT_FAILURE;
     }
     if (nc < ncols) {
 	errmsg("Too few columns scanned in column string");
-	return;
+	return GRACE_EXIT_FAILURE;
     }
     
     for (i = 0; i < nc; i++) {
 	if (coli[i] < -1 || coli[i] >= blockncols) {
 	    errmsg("Column index out of range");
-	    return;
+	    return GRACE_EXIT_FAILURE;
 	}
     }
     
     if (scol >= blockncols) {
 	errmsg("String column index out of range");
-	return;
+	return GRACE_EXIT_FAILURE;
     }
     
-    setno = nextset(gno);
-    if (setno == -1) {
-	return;
+    if (setno == NEW_SET) {
+        setno = nextset(gno);
+        if (setno == -1) {
+            errmsg("Can't allocate more sets!");
+            return GRACE_EXIT_FAILURE;
+        }
     }
     
-    activateset(gno, setno);
+    /* clear data stored in the set, if any */
+    killsetdata(gno, setno);
+    
+    if (activateset(gno, setno) != GRACE_EXIT_SUCCESS) {
+        errmsg("Can't allocate more sets!");
+        return GRACE_EXIT_FAILURE;
+    }
+    
     set_dataset_type(gno, setno, type);
 
     for (i = 0; i < nc; i++) {
@@ -556,13 +565,13 @@ void create_set_fromblock(int gno, int type,
             } else {
                 errmsg("Tried to read doubles from strings!");
                 killsetdata(gno, setno);
-                return;
+                return GRACE_EXIT_FAILURE;
             }
         }
         if (cdata == NULL) {
-            errmsg("Can't allocate more sets!");
+            errmsg("Can't allocate more data sets!");
             killsetdata(gno, setno);
-            return;
+            return GRACE_EXIT_FAILURE;
         }
         setcol(gno, setno, i, cdata, blocklen);
     }
@@ -572,7 +581,7 @@ void create_set_fromblock(int gno, int type,
         if (blockdata.formats[scol] != FFORMAT_STRING) {
             errmsg("Tried to read strings from doubles!");
             killsetdata(gno, setno);
-            return;
+            return GRACE_EXIT_FAILURE;
         } else {
             set_set_strings(gno, setno, blocklen, (char **) blockdata.data[scol]);
         }
@@ -584,4 +593,6 @@ void create_set_fromblock(int gno, int type,
     autoscale_graph(gno, autoscale);
 
     log_results(buf);   
+    
+    return GRACE_EXIT_SUCCESS;
 }
