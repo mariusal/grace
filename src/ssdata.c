@@ -500,7 +500,8 @@ char *cols_to_field_string(int nc, int *cols)
     return s;
 }
 
-void create_set_fromblock(int gno, int type, int nc, int *coli, int scol)
+void create_set_fromblock(int gno, int type,
+    int nc, int *coli, int scol, int autoscale)
 {
     int i, ncols, blockncols, blocklen, column;
     int setno;
@@ -580,7 +581,7 @@ void create_set_fromblock(int gno, int type, int nc, int *coli, int scol)
     sprintf(buf, "Cols %s", cols_to_field_string(nc, coli));
     setcomment(gno, setno, buf);
 
-    autoscale_graph(gno, autoscale_onread);
+    autoscale_graph(gno, autoscale);
 
     log_results(buf);   
 }
