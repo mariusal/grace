@@ -291,5 +291,6 @@ void set_graph_selectors(int gno);
 
 void update_props_items(void);
 void update_all(void);
+void update_all_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 #endif /* __XPROTOS_H_ */

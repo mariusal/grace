@@ -3162,3 +3162,9 @@ void update_all(void)
     set_stack_message();
     set_left_footer(NULL);
 }
+
+void update_all_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    update_all();
+}
+
