@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -372,6 +372,7 @@ void xv_setstr(Widget w, char *s);
 void handle_close(Widget w);
 void XtRaise(Widget w);
 void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data);
+void destroy_dialog_cb(void *data);
 void savewidget(Widget w);
 void deletewidget(Widget w);
 

@@ -3026,6 +3026,14 @@ void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
 }
 
 /*
+ * same for AddButtonCB
+ */
+void destroy_dialog_cb(void *data)
+{
+    XtUnmanageChild((Widget) data);
+}
+
+/*
  * handle the close item on the WM menu
  */
 void handle_close(Widget w)
