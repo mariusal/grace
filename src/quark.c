@@ -148,9 +148,7 @@ static int copy_hook(unsigned int step, void *data, void *udata)
     Quark *newchild;
 
     newchild = quark_copy2(newparent, child);
-    
-    storage_add(newparent->children, newchild);
-    
+        
     return TRUE;
 }
 
