@@ -1,11 +1,10 @@
-This describes the ISOLatin1Encoding. 
-It differs slightly from what the PostScript interpreter defines.
-Please note that there is no unique definition for the 
-charactername appearing at 45 (dec) in ISO 8859-1.
+This file contains ISOLatin1Encoding as defined in the PostScript 
+language (Level 2 and above). It differs slightly from what is 
+specified in ISO 8859-1. 
 
 --------------------------------------------------------------------------
 
-Encoding=ISOLatin1Encoding       /* The name of the encoding scheme */
+Encoding=PSLatin1Encoding        /* The name of the encoding scheme */
 .notdef                   	 /* '000  000  "00 */ 
 .notdef                   	 /* '001  001  "01 */ 
 .notdef                   	 /* '002  002  "02 */ 
@@ -51,7 +50,7 @@ parenright           	  	 /* '051  041  "29 */
 asterisk             	  	 /* '052  042  "2A */
 plus                 	  	 /* '053  043  "2B */
 comma                	  	 /* '054  044  "2C */
-hyphen               	  	 /* '055  045  "2D */
+minus               	  	 /* '055  045  "2D */
 period               	  	 /* '056  046  "2E */
 slash                	  	 /* '057  047  "2F */
 zero                 	  	 /* '060  048  "30 */
@@ -102,7 +101,7 @@ backslash            	  	 /* '134  092  "5C */
 bracketright         	  	 /* '135  093  "5D */
 asciicircum          	  	 /* '136  094  "5E */
 underscore           	  	 /* '137  095  "5F */
-grave            	  	 /* '140  096  "60 */
+quoteleft            	  	 /* '140  096  "60 */
 a                    	  	 /* '141  097  "61 */
 b                    	  	 /* '142  098  "62 */
 c                    	  	 /* '143  099  "63 */
