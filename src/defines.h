@@ -139,9 +139,9 @@
 #define ALL_GRAPHS    -1
 
 /* type of splines */
-#define SPLINE_NONE     0
-#define SPLINE_CUBIC    1
-#define SPLINE_AKIMA    2
+#define INTERP_LINEAR   0
+#define INTERP_SPLINE   1
+#define INTERP_ASPLINE  2
 
 /* Canvas types */
 #define PAGE_FREE       0
