@@ -1591,14 +1591,23 @@ int get_colortype(const Canvas *canvas, unsigned int cindex)
     }
 }
 
+double get_rgb_intensity(const RGB *rgb)
+{
+    YIQ yiq;
+    
+    if (RGB2YIQ(rgb, &yiq) == RETURN_SUCCESS) {
+        return yiq.y;
+    } else {
+        return 0.0;
+    }
+}
+
 double get_colorintensity(const Canvas *canvas, int cindex)
 {
     RGB rgb;
-    YIQ yiq;
     
-    if (get_rgb(canvas, cindex, &rgb) == RETURN_SUCCESS &&
-        RGB2YIQ(&rgb, &yiq)    == RETURN_SUCCESS) {
-        return yiq.y;
+    if (get_rgb(canvas, cindex, &rgb) == RETURN_SUCCESS) {
+        return get_rgb_intensity(&rgb);
     } else {
         return 0.0;
     }

@@ -393,15 +393,7 @@ void set_max_path_limit(Canvas *canvas, int limit);
 int get_max_path_limit(const Canvas *canvas);
 
 unsigned int number_of_colors(const Canvas *canvas);
-
-int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb);
-int  get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb);
-
-double get_colorintensity(const Canvas *canvas, int cindex);
-
-int get_cmy(const Canvas *canvas, unsigned int cindex, CMY *cmy);
-int get_cmyk(const Canvas *canvas, unsigned int cindex, CMYK *cmyk);
-int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk);
+double get_rgb_intensity(const RGB *rgb);
 
 unsigned int number_of_fonts(const Canvas *canvas);
 char *get_fontname(const Canvas *canvas, int font);
@@ -615,6 +607,15 @@ Page_geometry *get_page_geometry(const Canvas *canvas);
 int register_device(Canvas *canvas, Device_entry *d);
 
 int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev);
+
+int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb);
+int  get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb);
+
+double get_colorintensity(const Canvas *canvas, int cindex);
+
+int get_cmy(const Canvas *canvas, unsigned int cindex, CMY *cmy);
+int get_cmyk(const Canvas *canvas, unsigned int cindex, CMYK *cmyk);
+int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk);
 
 char *font_subset(const Canvas *canvas,
     int font, char *mask, unsigned long *datalen);
