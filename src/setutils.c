@@ -1819,7 +1819,7 @@ int set_set_colors(Quark *pset, int color)
 int set_set_symskip(Quark *pset, int symskip)
 {
     set *p;
-    if (!pset) {
+    if (!pset || symskip < 0) {
         return RETURN_FAILURE;
     }
     
