@@ -10,6 +10,9 @@
 <PRE>
 <H2>5.1.5</H2>
 
+<H3>Functionality</H3>
+ *  [ES] honour X axis start value and invert flag in pie charts
+
 <H3>Interface</H3>
  *  [ES] automatically adjust Xresources for low-resolution (800x600) displays
          so all dialogs fit in the screen
@@ -21,7 +24,8 @@
  *  [JS] added man page for convcal
  *  [ES] added examples of XYCOLOR set presentation and reciprocal axis scale,
          contributed by Nels Dumin
- *  [AM] include libpng version in the `-version' output
+ *  [AM] include libpng, libjpeg, and libpdf versions in the `-version' and
+	 "Help/About" outputs
 
 <H3>Bug fixes</H3>
  *  [ES] PS output might be broken for plots containing XYCOLOR sets
@@ -35,6 +39,13 @@
          resizing graph from canvas
  *  [ES] std. dev. was calculated using n instead of n-1 in the denominator
          (rep. #1042)
+ *  [ES] fixed crash under some platforms with zero width world/view
+	 coordinates (rep. #1014)
+ *  [ES] optimize updating large pulldown selectors (e.g. in the "Edit block
+         data" popup)
+ *  [ES] allow for setting via the GUI negative gaps in bar charts (rep. #1059)
+ *  [ES] fixed broken AA font rendering and potential crash when the color
+         palette size exceeded 128 (rep. #1061)
 
 
 <H2>5.1.4</H2>
