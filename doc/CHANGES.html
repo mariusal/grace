@@ -20,6 +20,7 @@
  *  [ES] \V{} escape code in strings - baseline shift
  *  [ES] \n escape code in strings - new line
  *  [ES] a region can be linked only to a single graph
+ *  [UH] implemented logit axis scale
  
 <H3>Interface</H3>
  *  [ES] "Edit/Locator props" popup rewritten
@@ -38,10 +39,10 @@
  *  [ES] removed -arrange, -cols, and -rows command line options
  *  [ES] "Results" and error message windows merged into "Console"
  *  [ES] menubar added to the "Graph appearance" dialog
- *  [ES] "File/Read/Parameters" and "File/Write/Parameters" moved to the
-         "Graph appearance" menubar
  *  [ES] "File/Read/Sets" and "File/Write/Sets" moved to the "Data/Import"
          and "Data/Export" submenus, respectively
+ *  [ES] "File/Read/Parameters" and "File/Write/Parameters" moved to the
+         "Plot" menu
  *  [ES] renamed "File/Device setup" to "File/Print setup" and added
          "View/Page setup" (same dialog but with X11 as the selected device)
  *  [ES] split axis/tick label offset input fields into two
@@ -63,6 +64,7 @@
  *  [ES] changed syntax of ARRANGE command
  *  [ES] removed UNLINK REGNUM FROM selectgraph; now that a region links to a
          single graph only the command makes no sense
+ *  [DP] READ NXY CHRSTR
  
 <H3>Portability/Compilation</H3>
  *  [ES] configure checks for netCDF version
@@ -902,6 +904,7 @@
     [JSB] - J. Scott Berg &lt;jsberg@bnl.gov&gt;
     [AC]  - Alber Chin &lt;china@thewrittenword.com&gt;
     [GJ]  - Gerd Jahn &lt;Gerd.Jahn@dss.dornier.dasa.de&gt;
+    [UH]  - Ulrich Harttig &lt;harttigu@ucs.orst.edu&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)
