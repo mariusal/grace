@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -70,12 +70,12 @@ int graph_zoom(int type);
 int overlay_graphs(int gsec, int gpri, int type);
 
 int arrange_graphs(int *graphs, int ngraphs,
-                   int nrows, int ncols, int order,
+                   int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
                    int hpack, int vpack);
 int arrange_graphs_simple(int nrows, int ncols,
-    int order, double offset, double hgap, double vgap);
+    int order, int snake, double offset, double hgap, double vgap);
 
 void autotick_axis(int gno, int axis);
 void autoscale_byset(int gno, int setno, int autos_type);

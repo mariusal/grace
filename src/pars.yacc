@@ -2986,13 +2986,19 @@ actions:
             wipeout();
         }
 	| ARRANGE '(' nexpr ',' nexpr ',' expr ',' expr ',' expr ')' {
-            arrange_graphs_simple($3, $5, 0, $7, $9, $11);
+            arrange_graphs_simple($3, $5, 0, FALSE, $7, $9, $11);
         }
 	| ARRANGE '(' nexpr ',' nexpr ',' expr ',' expr ',' expr ',' onoff ',' onoff ',' onoff ')' {
             int order = ($13 * GA_ORDER_HV_INV) |
                         ($15 * GA_ORDER_H_INV ) |
                         ($17 * GA_ORDER_V_INV );
-            arrange_graphs_simple($3, $5, order, $7, $9, $11);
+            arrange_graphs_simple($3, $5, order, FALSE, $7, $9, $11);
+        }
+	| ARRANGE '(' nexpr ',' nexpr ',' expr ',' expr ',' expr ',' onoff ',' onoff ',' onoff ',' onoff ')' {
+            int order = ($13 * GA_ORDER_HV_INV) |
+                        ($15 * GA_ORDER_H_INV ) |
+                        ($17 * GA_ORDER_V_INV );
+            arrange_graphs_simple($3, $5, order, $19, $7, $9, $11);
         }
 	| NONLFIT '(' selectset ',' nexpr ')' {
 	    gotnlfit = TRUE;

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -68,6 +68,7 @@ typedef struct _Arrange_ui {
     SpinStructure *nrows;
     SpinStructure *ncols;
     OptionStructure *order;
+    Widget snake;
     SpinStructure *toff;
     SpinStructure *loff;
     SpinStructure *roff;
@@ -88,7 +89,7 @@ static int define_arrange_proc(void *data)
 {
     Arrange_ui *ui = (Arrange_ui *) data;
     int ngraphs, *graphs;
-    int nrows, ncols, order;
+    int nrows, ncols, order, snake;
     int hpack, vpack, add, kill;
     double toff, loff, roff, boff, vgap, hgap;
 
@@ -105,6 +106,7 @@ static int define_arrange_proc(void *data)
     }
     
     order = GetOptionChoice(ui->order);
+    snake = GetToggleButtonState(ui->snake);
     
     toff = GetSpinChoice(ui->toff);
     loff = GetSpinChoice(ui->loff);
@@ -135,7 +137,7 @@ static int define_arrange_proc(void *data)
     }
     
     arrange_graphs(graphs, ngraphs,
-        nrows, ncols, order,
+        nrows, ncols, order, snake,
         loff, roff, toff, boff, vgap, hgap,
         hpack, vpack);
     
@@ -193,7 +195,7 @@ void create_arrange_frame(void *data)
         ui->kill = CreateToggleButton(rc, "Kill extra graphs");
 
         fr = CreateFrame(arrange_panel, "Matrix");
-        gr = CreateGrid(fr, 3, 1);
+        gr = CreateGrid(fr, 4, 1);
         ui->ncols = CreateSpinChoice(gr,
             "Cols:", 2, SPIN_TYPE_INT, (double) 1, (double) 99, (double) 1);
         PlaceGridChild(gr, ui->ncols->rc, 0, 0);
@@ -203,6 +205,9 @@ void create_arrange_frame(void *data)
         ui->order = CreateBitmapOptionChoice(gr,
             "Order:", 2, 8, MBITMAP_WIDTH, MBITMAP_HEIGHT, opitems);
         PlaceGridChild(gr, ui->order->menu, 2, 0);
+        rc = CreateHContainer(gr);
+        ui->snake = CreateToggleButton(rc, "Snake fill");
+        PlaceGridChild(gr, rc, 3, 0);
 
 	fr = CreateFrame(arrange_panel, "Page offsets");
         gr = CreateGrid(fr, 3, 3);
