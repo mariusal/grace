@@ -170,8 +170,6 @@ void create_fonttool(Widget cstext)
         XtVaSetValues(string_item->form,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, font_table,
             NULL);
 
         XtAddCallback(string_item->text,
@@ -202,9 +200,17 @@ void create_fonttool(Widget cstext)
         XtVaSetValues(aac_buts,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, string_item->form,
             XmNbottomAttachment, XmATTACH_FORM,
+            NULL);
+
+        XtVaSetValues(string_item->form,
+            XmNbottomAttachment, XmATTACH_WIDGET,
+            XmNbottomWidget, aac_buts,
+            NULL);
+        
+        XtVaSetValues(font_table,
+            XmNbottomAttachment, XmATTACH_WIDGET,
+            XmNbottomWidget, string_item->form,
             NULL);
         
         update_fonttool_cb(0, font_table);
