@@ -46,7 +46,6 @@
 #include "protos.h"
 
 int regiontype = 0;
-int regionlinkto = 0;
 
 /*
  * see if (x,y) lies inside the plot
@@ -116,29 +115,21 @@ char *region_types(int it, int which)
 
 void kill_region(int r)
 {
-    int i;
-
-    if (rg[r].active == TRUE) {
-	if (rg[r].x != NULL) {
-	    xfree(rg[r].x);
-	    rg[r].x = NULL;
-	}
-	if (rg[r].y != NULL) {
-	    xfree(rg[r].y);
-	    rg[r].y = NULL;
-	}
-    }
-    rg[r].active = FALSE;
-    for (i = 0; i < number_of_graphs() ; i++) {
-	rg[r].linkto[i] = FALSE;
+    if (rg[r].active) {
+	XCFREE(rg[r].x);
+	XCFREE(rg[r].y);
+        rg[r].active = FALSE;
+        set_dirtystate();
     }
 }
 
-void activate_region(int r, int type)
+void activate_region(int r, int type, int linkto)
 {
     kill_region(r);
     rg[r].active = TRUE;
     rg[r].type = type;
+    rg[r].linkto = linkto;
+    set_dirtystate();
 }
 
 
@@ -188,12 +179,12 @@ void reporton_region(int gno, int rno, int type)
     stufftext("\n");
 }
 
-void load_poly_region(int r, int n, WPoint *wps)
+void load_poly_region(int r, int gno, int n, WPoint *wps)
 {
     int i;
 
     if (n > 2) {
-	activate_region(r, regiontype);
+	activate_region(r, regiontype, gno);
 	rg[r].n = n;
 	rg[r].x = xcalloc(n, SIZEOF_DOUBLE);
 	rg[r].y = xcalloc(n, SIZEOF_DOUBLE);

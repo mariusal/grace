@@ -2014,10 +2014,7 @@ regionset:
 	    rg[$1].n++;
 	}
 	| LINK REGNUM TO selectgraph {
-	    rg[$2].linkto[$4] = TRUE;
-	}
-	| UNLINK REGNUM FROM selectgraph {
-	    rg[$2].linkto[$4]=FALSE;
+	    rg[$2].linkto = $4;
 	}
 	;
 
@@ -5270,7 +5267,9 @@ static int yylex(void)
 		if (rn >= 0 && rn < MAXREGION) {
 		    yylval.ival = rn;
 		    return REGNUM;
-		}
+		} else {
+                    errmsg("Invalid region number");
+                }
 	    }
 	}
     }

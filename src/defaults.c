@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -87,8 +87,6 @@ void set_program_defaults(void)
 
 void set_region_defaults(int rno)
 {
-    int j;
-
     rg[rno].active = FALSE;
     rg[rno].type = 0;
     rg[rno].color = grdefaults.color;
@@ -98,11 +96,7 @@ void set_region_defaults(int rno)
     rg[rno].x = rg[rno].y = NULL;
     rg[rno].x1 = rg[rno].y1 = rg[rno].x2 = rg[rno].y2 = 0.0;
 
-    /* TODO: Fix this junk! */
-    rg[rno].linkto = xmalloc(64*SIZEOF_INT);
-    for (j = 0; j < 64; j++) {
-        rg[rno].linkto[j] = FALSE;
-    }
+    rg[rno].linkto = 0;
 }
 
 void set_default_framep(framep * f)

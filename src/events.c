@@ -73,7 +73,6 @@ static int move_dir;
 static int action_flag = 0;
 
 extern int regiontype;
-extern int regionlinkto;
 
 /*
  * for region, area and perimeter computation
@@ -94,7 +93,6 @@ void anchor_point(int curx, int cury, VPoint curvp)
 
 void my_proc(Widget parent, XtPointer data, XEvent *event)
 {
-    int i;
     char keybuf;
     KeySym keys;
     XComposeStatus compose;
@@ -467,19 +465,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 	    case DEF_REGION2ND:
 		set_action(DO_NOTHING);
                 select_line(anchor_x, anchor_y, x, y, 0);
-		rg[nr].active = TRUE;
-		rg[nr].type = regiontype;
-		if (regionlinkto) {
-		    for (i = 0; i < number_of_graphs() ; i++) {
-			rg[nr].linkto[i] = TRUE;
-		    }
-		} else {
-		    for (i = 0; i < number_of_graphs() ; i++) {
-			rg[nr].linkto[i] = FALSE;
-		    }
-		    rg[nr].linkto[cg] = TRUE;
-		}
-		rg[nr].type = regiontype;
+                activate_region(nr, regiontype, cg);
 		view2world(anchor_vp.x, anchor_vp.y, &rg[nr].x1, &rg[nr].y1);
 		view2world(vp.x, vp.y, &rg[nr].x2, &rg[nr].y2);
                 xdrawgraph();
@@ -530,17 +516,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case DEF_REGION:
 		/* end region definition */
                 select_line(x, y, iax[0], iay[0], 0);
-		load_poly_region(nr, region_pts, region_wps);
-		if (regionlinkto) {
-		    for (i = 0; i < number_of_graphs() ; i++) {
-		        rg[nr].linkto[i] = TRUE;
-		    }
-		} else {
-		    for (i = 0; i < number_of_graphs() ; i++) {
-		        rg[nr].linkto[i] = FALSE;
-		    }
-		    rg[nr].linkto[cg] = TRUE;
-		}
+		load_poly_region(nr, cg, region_pts, region_wps);
                 set_action(DO_NOTHING);
                 xdrawgraph();
                 break;

@@ -663,7 +663,7 @@ typedef struct {
     int color;                  /* region color */
     int lines;                  /* region linestyle */
     double linew;               /* region line width */
-    int *linkto;                /* associated with graphs in linkto */
+    int linkto;                 /* associated with graph linkto */
     int n;                      /* number of points if type is POLY */
     double *x, *y;              /* coordinates if type is POLY */
     double x1, y1, x2, y2;      /* starting and ending points if type is not POLY */

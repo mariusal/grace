@@ -55,7 +55,7 @@ static Widget but1[2];
 static Widget but2[2];
 static Widget but3[3];
 
-extern int regiontype, regionlinkto;	/* in regionutils.c */
+extern int regiontype;	/* in regionutils.c */
 
 static void do_define_region(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_clear_region(Widget w, XtPointer client_data, XtPointer call_data);
@@ -63,7 +63,6 @@ static void do_clear_region(Widget w, XtPointer client_data, XtPointer call_data
 
 static Widget *define_region_item;
 static Widget *define_type_item;
-static Widget *define_linkto_item;
 
 static char buf[256];
 
@@ -79,8 +78,7 @@ static void do_define_region(Widget w, XtPointer client_data, XtPointer call_dat
     int rtype = GetChoice(define_type_item);
 
     nr = GetChoice(define_region_item);
-    regionlinkto = GetChoice(define_linkto_item);
-    define_region(nr, regionlinkto, rtype);
+    define_region(nr, rtype);
 }
 
 void create_define_frame(void *data)
@@ -116,12 +114,6 @@ void create_define_frame(void *data)
 					     "Out of Horiz. Range",
 					     "Out of Vert. Range",
 					     NULL, 0);
-
-	define_linkto_item = CreatePanelChoice(dialog,
-					       "Link to graph(s):",
-					       3,
-					       "Current", "All",
-					       NULL, 0);
 
 	CreateSeparator(dialog);
 
@@ -382,7 +374,7 @@ void define_status_popup(void *data)
     unset_wait_cursor();
 }
 
-void define_region(int nr, int regionlinkto, int rtype)
+void define_region(int nr, int rtype)
 {
     kill_region(nr);
     switch (rtype) {

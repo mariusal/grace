@@ -109,7 +109,7 @@ void create_clear_frame(void *data);
 void create_reporton_frame(void *data);
 void create_area_frame(void *data);
 
-void define_region(int nr, int regionlinkto, int rtype);
+void define_region(int nr, int rtype);
 
 void define_status_popup(void *data);
 void create_about_grtool(void *data);

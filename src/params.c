@@ -613,6 +613,10 @@ static void put_regions(FILE * pp, int embed)
         embedstr[0] = 0;
     }
     for (i = 0; i < MAXREGION; i++) {
+      fprintf(pp, "%sr%1d %s\n", embedstr, i, on_or_off(rg[i].active));
+      
+      fprintf(pp, "%slink r%1d to g%1d\n", embedstr, i, rg[i].linkto);
+      
       switch (rg[i].type) {
       case REGION_ABOVE:
 	fprintf(pp, "%sr%1d type above\n", embedstr, i);
@@ -656,14 +660,6 @@ static void put_regions(FILE * pp, int embed)
 	    fprintf(pp, "%sr%1d xy %.12g, %.12g\n", embedstr, i, rg[i].x[j], rg[i].y[j]);
 	  }
 	}
-      }
-      for (j = 0; j < number_of_graphs(); j++) {
-	if (rg[i].linkto[j] == TRUE) {
-	  fprintf(pp, "%slink r%1d to g%1d\n", embedstr, i, j);
-	}
-      }
-      if (rg[i].active == TRUE) {
-	fprintf(pp, "%sr%1d on\n", embedstr, i);
       }
     }
 }

@@ -97,14 +97,6 @@ void drawgraph(void)
 
     draw_timestamp();
 
-    /* draw regions and mark the reference points only if in interactive mode */
-    if (terminal_device() == TRUE) {
-        for (i = 0; i < number_of_graphs(); i++) {
-            draw_regions(i);
-            draw_ref_point(i);
-        }
-    }
-
     select_graph(saveg);
 
     leavegraphics();
@@ -247,7 +239,12 @@ void plotone(int gno)
     
     /* draw title and subtitle */
     draw_titles(gno);
-    
+
+    /* draw regions and mark the reference points only if in interactive mode */
+    if (terminal_device() == TRUE) {
+        draw_regions(gno);
+        draw_ref_point(gno);
+    }
 }
 
 void draw_smith_chart(int gno)
@@ -672,7 +669,7 @@ void draw_regions(int gno)
     
     /* draw any defined regions for this graph */
     for (i = 0; i < MAXREGION; i++) {
-        if (rg[i].active && rg[i].linkto[gno]) {
+        if (rg[i].active && rg[i].linkto == gno) {
             setcolor(rg[i].color);
             setpattern(1);
             setlinewidth(rg[i].linew);
