@@ -279,6 +279,7 @@ void reset_nonl(void);
 
 int is_xaxis(int axis);
 int is_yaxis(int axis);
+int is_log_axis(int gno, int axis);
 
 void kill_blockdata(void);
 void alloc_blockdata(int ncols);
