@@ -579,7 +579,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Missing save file name\n");
 			usage(stderr, argv[0]);
 		    } else {
-			save_project(s);
+			save_project(argv[i]);
 		    }
 		} else if (argmatch(argv[i], "-wd", 3)) {
 		    i++;
@@ -605,8 +605,8 @@ int main(int argc, char *argv[])
 		    }
 		} else if (argmatch(argv[i], "-viewport", 2)) {
 		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing parameters for viewport setting\n");
+		    if (i > argc - 4) {
+			fprintf(stderr, "Missing parameter(s) for viewport setting\n");
 			usage(stderr, argv[0]);
 		    } else {
 			v.xv1 = atof(argv[i++]);
@@ -617,8 +617,8 @@ int main(int argc, char *argv[])
 		    }
 		} else if (argmatch(argv[i], "-world", 2)) {
 		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing parameters for world setting\n");
+		    if (i > argc - 4) {
+			fprintf(stderr, "Missing parameter(s) for world setting\n");
 			usage(stderr, argv[0]);
 		    } else {
 			w.xg1 = atof(argv[i++]);
