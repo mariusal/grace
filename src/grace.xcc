@@ -234,6 +234,16 @@ Format *format_new()
     return retval;
 }
 
+TextProps *textprops_new(void)
+{
+    TextProps *retval;
+    retval = xmalloc(sizeof(TextProps));
+    if (retval) {
+        memset(retval, 0, sizeof(TextProps));
+    }
+    return retval;
+}
+
 typedef struct {
     Line line;
 } ABar;
@@ -682,13 +692,13 @@ char *utf2iso(const char *s)
         $$ = location_new();
     ]]></element-type>
     <element-type name="do_line_data" ctype="DOLineData *"><![CDATA[
-        $$ = object_odata_new(DO_LINE);
+        $$ = object_odata_new(quark_get_amem((Quark *)$P), DO_LINE);
     ]]></element-type>
     <element-type name="do_box_data" ctype="DOBoxData *"><![CDATA[
-        $$ = object_odata_new(DO_BOX);
+        $$ = object_odata_new(quark_get_amem((Quark *)$P), DO_BOX);
     ]]></element-type>
     <element-type name="do_arc_data" ctype="DOArcData *"><![CDATA[
-        $$ = object_odata_new(DO_ARC);
+        $$ = object_odata_new(quark_get_amem((Quark *)$P), DO_ARC);
     ]]></element-type>
     <element-type name="textframe" ctype="TextFrame *"><![CDATA[
         $$ = textframe_new();
@@ -722,7 +732,7 @@ char *utf2iso(const char *s)
         $$ = riserline_new();
     ]]></element-type>
     <element-type name="dataset" ctype="Dataset *"><![CDATA[
-        $$ = dataset_new();
+        $$ = dataset_new(quark_get_amem((Quark *)$P));
         ((ParserData *) $U)->nrow = 0;
     ]]></element-type>
     <element-type name="datapoint" ctype="Datapoint *"><![CDATA[

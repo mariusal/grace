@@ -81,16 +81,16 @@ void gui_free(GUI *gui)
 }
 
 
-void *container_data_new(void)
+void *container_data_new(AMem *amem)
 {
     return NULL;
 }
 
-void container_data_free(void *data)
+void container_data_free(AMem *amem, void *data)
 {
 }
 
-void *container_data_copy(void *data)
+void *container_data_copy(AMem *amem, void *data)
 {
     return data;
 }

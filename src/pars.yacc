@@ -1838,7 +1838,7 @@ parmset:
 
 /* Objects */
 	| WITH objecttype {
-            curobject = object_data_new_complete($2);
+            curobject = object_data_new_complete(quark_get_amem(project), $2);
 	}
 	| objecttype onoff {
 	    /* was never off */
@@ -2017,7 +2017,7 @@ parmset:
                 }
                 if (q) {
                     char buf[16];
-                    object_data_free(object_get_data(q));
+                    object_data_free(quark_get_amem(q), object_get_data(q));
                     q->data = curobject;
 	            sprintf(buf, "DO%02d", dobject_id);
                     quark_idstr_set(q, buf);
@@ -4398,7 +4398,7 @@ int v_scanner(char *s, int *reslen, double **vres)
             v_result->length = 0;
             v_result->data = NULL;
         } else {
-            *vres = copy_data_column(v_result->data, v_result->length);
+            *vres = copy_data_column_simple(v_result->data, v_result->length);
         }
         return RETURN_SUCCESS;
     }

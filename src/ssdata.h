@@ -37,6 +37,7 @@
 
 #include "grace.h"
 
+double *copy_data_column_simple(double *src, int nrows);
 double *allocate_index_data(int nrows);
 double *allocate_mesh(double start, double stop, int len);
 

@@ -45,6 +45,21 @@
 
 #include "protos.h"
 
+double *copy_data_column_simple(double *src, int nrows)
+{
+    double *dest;
+    
+    if (!src) {
+        return NULL;
+    }
+    
+    dest = xmalloc(nrows*SIZEOF_DOUBLE);
+    if (dest != NULL) {
+        memcpy(dest, src, nrows*SIZEOF_DOUBLE);
+    }
+    return dest;
+}
+
 /* TODO: index_shift */
 double *allocate_index_data(int nrows)
 {
@@ -441,7 +456,8 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
                 return RETURN_FAILURE;
             }
             if (i > 0) {
-                xdata = copy_data_column((double *) ssd->data[0], nrows);
+                AMem *amem = quark_get_amem(pset);
+                xdata = copy_data_column(amem, (double *) ssd->data[0], nrows);
                 if (xdata == NULL) {
                     free_ss_data(ssd);
                 }
@@ -599,7 +615,9 @@ int create_set_fromblock(const Quark *ss, Quark *pset,
             cdata = allocate_index_data(blocklen);
         } else {
             if (blockdata->formats[column] != FFORMAT_STRING) {
-                cdata = copy_data_column((double *) blockdata->data[column], blocklen);
+                AMem *amem = quark_get_amem(pset);
+                cdata = copy_data_column(amem,
+                    (double *) blockdata->data[column], blocklen);
             } else {
                 errmsg("Tried to read doubles from strings!");
                 killsetdata(pset);
@@ -620,8 +638,10 @@ int create_set_fromblock(const Quark *ss, Quark *pset,
             killsetdata(pset);
             return RETURN_FAILURE;
         } else {
+            AMem *amem = quark_get_amem(pset);
             set_set_strings(pset, blocklen,
-                copy_string_column((char **) blockdata->data[scol], blocklen));
+                copy_string_column(amem,
+                    (char **) blockdata->data[scol], blocklen));
         }
     }
 

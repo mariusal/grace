@@ -42,6 +42,7 @@
 #include "cephes.h"
 
 #include "core_utils.h"
+#include "ssdata.h"
 #include "parser.h"
 #include "protos.h"
 
@@ -575,7 +576,7 @@ int vmedian(double *x, int n, double *med)
         *med = x[0];
     } else {
         if (monotonicity(x, n, FALSE) == 0) {
-            d = copy_data_column(x, n);
+            d = copy_data_column_simple(x, n);
             if (!d) {
                 return RETURN_FAILURE;
             }
@@ -1297,7 +1298,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
         buflen = len + maxlag;
         
         /* reallocate input to pad with zeros */
-        d1_re = copy_data_column(set_get_col(psrc, nc), len);
+        d1_re = copy_data_column_simple(set_get_col(psrc, nc), len);
         d1_re = xrealloc(d1_re, SIZEOF_DOUBLE*buflen);
         d1_im = xcalloc(buflen, SIZEOF_DOUBLE);
         if (!d1_re || !d1_im) {
@@ -1322,7 +1323,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
         
         /* do the same with the second input if not autocorrelating */
         if (!autocor) {
-            d2_re = copy_data_column(set_get_col(pcor, nc), len);
+            d2_re = copy_data_column_simple(set_get_col(pcor, nc), len);
             d2_re = xrealloc(d2_re, SIZEOF_DOUBLE*buflen);
             d2_im = xcalloc(buflen, SIZEOF_DOUBLE);
             if (!d1_im || !d2_im) {
@@ -1587,9 +1588,9 @@ int do_fourier(Quark *psrc, Quark *pdest,
     
     /* copy input data to buffer storage which will be used then to hold out */
     
-    buf_re = copy_data_column(in_re, inlen);
+    buf_re = copy_data_column_simple(in_re, inlen);
     if (in_im) {
-        buf_im = copy_data_column(in_im, inlen);
+        buf_im = copy_data_column_simple(in_im, inlen);
     } else {
         buf_im = xcalloc(inlen, SIZEOF_DOUBLE);
     }

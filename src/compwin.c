@@ -251,8 +251,8 @@ static void *interp_get_cb(void *gui)
                 error = TRUE;
             } else {
                 pars->meshlen = set_get_length(psampl);
-                pars->mesh =
-                    copy_data_column(set_get_col(psampl, DATA_X), pars->meshlen);
+                pars->mesh = copy_data_column_simple(
+                    set_get_col(psampl, DATA_X), pars->meshlen);
             }
         } else {
             double start, stop;
@@ -404,7 +404,7 @@ static void *histo_get_cb(void *gui)
         pars->normalize  = GetToggleButtonState(ui->normalize);
         pars->sampling   = GetOptionChoice(ui->sampling);
         pars->bins       = NULL;
-        pars->nbins     = 0;
+        pars->nbins      = 0;
         
         if (pars->sampling == SAMPLING_SET) {
             Quark *psampl;
@@ -416,8 +416,8 @@ static void *histo_get_cb(void *gui)
                 error = TRUE;
             } else {
                 pars->nbins = set_get_length(psampl) - 1;
-                pars->bins =
-                    copy_data_column(set_get_col(psampl, DATA_X), pars->nbins + 1);
+                pars->bins = copy_data_column_simple(
+                    set_get_col(psampl, DATA_X), pars->nbins + 1);
             }
         } else {
             double start, stop;

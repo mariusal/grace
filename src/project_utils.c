@@ -67,7 +67,7 @@ Quark *project_new(QuarkFactory *qfactory)
 {
     Quark *q;
     
-    q = quark_root(qfactory, QFlavorProject);
+    q = quark_root(AMEM_MODEL_LIBUNDO, qfactory, QFlavorProject);
     project_set_version_id(q, bi_version_id());
     project_set_docname(q, NONAME);
     project_set_fontsize_scale(q, MAGIC_FONT_SCALE);

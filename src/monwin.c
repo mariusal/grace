@@ -107,9 +107,9 @@ static XtActionsRec command_hist_actions[] = {
     {"command_hist_next", command_hist_next}
 };
 
-static void *wrap_str_copy(void *data)
+static void *wrap_str_copy(AMem *amem, void *data)
 {
-    return copy_string(NULL, (char *) data);
+    return amem_strdup(amem, (char *) data);
 }
 
 /*
@@ -122,12 +122,15 @@ static void create_monitor_frame(int force, char *msg)
     set_wait_cursor();
 
     if (ui == NULL) {
+        AMem *amem;
         Widget menubar, menupane, fr;
+        
+        amem = amem_amem_new(AMEM_MODEL_SIMPLE);
 
 	ui = xmalloc(sizeof(console_ui));
         ui->mon_frame = CreateDialogForm(app_shell, "Console");
         ui->save_logs_fsb = NULL;
-        ui->history = storage_new(xfree, wrap_str_copy, NULL);
+        ui->history = storage_new(amem, amem_free, wrap_str_copy, NULL);
         ui->eohistory = TRUE;
         ui->popup_only_on_errors = FALSE;
         ui->auto_redraw = FALSE;

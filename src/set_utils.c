@@ -133,7 +133,7 @@ int copysetdata(Quark *psrc, Quark *pdest)
     }
     
     dataset_free(p2->data);
-    p2->data = dataset_copy(p1->data);
+    p2->data = dataset_copy(quark_get_amem(pdest), p1->data);
     
     if (p2->data) {
         if (set_get_ncols(pdest) != set_get_ncols(psrc)) {
