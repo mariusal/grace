@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -753,6 +753,8 @@ void mif_puttext(VPoint vp, char *s, int len, int font,
             (underline == TRUE) ? "FSingle" : "FNoUnderlining");
     fprintf(prstream, "    <FOverline %s>\n",
             (overline == TRUE) ? "Yes" : "No");
+    fprintf(prstream, "    <FPairKern %s>\n",
+            (kerning == TRUE) ? "Yes" : "No");
     fprintf(prstream, "    <FColor `%s'>\n", get_colorname(pen.color));
     fprintf(prstream, "   > # end of Font\n");
     fprintf(prstream, "   <String `%s'>\n",
