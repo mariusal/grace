@@ -49,6 +49,8 @@ extern XtAppContext app_con;
 
 static void clear_results(void *data);
 static void popup_on(int onoff, void *data);
+static void auto_redraw_cb(int onoff, void *data);
+static void auto_update_cb(int onoff, void *data);
 static void create_wmon_frame(void *data);
 static int save_logs_proc(char *filename, void *data);
 static void cmd_cb(char *s, void *data);
@@ -60,29 +62,36 @@ typedef struct _console_ui
     FSBStructure *save_logs_fsb;
     TextStructure *cmd;
     Storage *history;
+    int eohistory;
     int popup_only_on_errors;
+    int auto_redraw;
+    int auto_update;
 } console_ui;
 
 static void command_hist_prev(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     char *s;
     console_ui *ui = (console_ui *) GetUserData(w);
+    if (!ui->eohistory) {
+        storage_scroll(ui->history, -1, FALSE);
+    }
     if (storage_get_data(ui->history, (void **) &s) == RETURN_SUCCESS) {
         SetTextString(ui->cmd, s);
     }
-    storage_scroll(ui->history, -1, FALSE);
+    ui->eohistory = FALSE;
 }
 
 static void command_hist_next(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     char *s;
     console_ui *ui = GetUserData(w);
-    storage_get_data(ui->history, (void **) &s);
     if (storage_scroll(ui->history, +1, FALSE) == RETURN_SUCCESS) {
-        SetTextString(ui->cmd, s);
+        storage_get_data(ui->history, (void **) &s);
     } else {
-        SetTextString(ui->cmd, "");
+        ui->eohistory = TRUE;
+        s = "";
     }
+    SetTextString(ui->cmd, s);
 }
 
 static char command_hist_table[] = "\
@@ -90,7 +99,7 @@ static char command_hist_table[] = "\
     <Key>osfDown: command_hist_next()";
 
 static XtActionsRec command_hist_actions[] = {
-    {"command_hist_prev",   command_hist_prev},
+    {"command_hist_prev", command_hist_prev},
     {"command_hist_next", command_hist_next}
 };
 
@@ -115,7 +124,10 @@ static void create_monitor_frame(int force, char *msg)
         ui->mon_frame = CreateDialogForm(app_shell, "Console");
         ui->save_logs_fsb = NULL;
         ui->history = storage_new(xfree, wrap_str_copy, NULL);
+        ui->eohistory = TRUE;
         ui->popup_only_on_errors = FALSE;
+        ui->auto_redraw = FALSE;
+        ui->auto_update = FALSE;
 
         menubar = CreateMenuBar(ui->mon_frame);
         ManageChild(menubar);
@@ -131,6 +143,9 @@ static void create_monitor_frame(int force, char *msg)
 
         menupane = CreateMenu(menubar, "Options", 'O', FALSE);
         CreateMenuToggle(menupane, "Popup only on errors", 'e', popup_on, ui);
+        CreateMenuSeparator(menupane);
+        CreateMenuToggle(menupane, "Auto redraw", 'r', auto_redraw_cb, ui);
+        CreateMenuToggle(menupane, "Auto update", 'p', auto_update_cb, ui);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On console", 'c',
@@ -173,6 +188,18 @@ static void popup_on(int onoff, void *data)
 {
     console_ui *ui = (console_ui *) data;
     ui->popup_only_on_errors = onoff;
+}
+
+static void auto_redraw_cb(int onoff, void *data)
+{
+    console_ui *ui = (console_ui *) data;
+    ui->auto_redraw = onoff;
+}
+
+static void auto_update_cb(int onoff, void *data)
+{
+    console_ui *ui = (console_ui *) data;
+    ui->auto_update = onoff;
 }
 
 static void clear_results(void *data)
@@ -232,11 +259,26 @@ static void cmd_cb(char *s, void *data)
 {
     console_ui *ui = (console_ui *) data;
     
-    scanner((char *) s);
-    storage_eod(ui->history);
-    storage_add(ui->history, copy_string(NULL, s));
-    storage_eod(ui->history);
-    SetTextString(ui->cmd, "");
+    ui->eohistory = TRUE;
+    
+    if (!is_empty_string(s)) {
+        scanner(s);
+        
+        if (ui->auto_redraw) {
+            xdrawgraph();
+        }
+
+        if (ui->auto_update) {
+            update_all();
+        }
+        
+        storage_eod(ui->history);
+        storage_add(ui->history, copy_string(NULL, s));
+        storage_eod(ui->history);
+        
+        
+        SetTextString(ui->cmd, "");
+    }
 }
 
 void stufftextwin(char *msg)
