@@ -37,7 +37,8 @@ typedef enum {
     GRAPH_CHART,
     GRAPH_POLAR,
     GRAPH_SMITH,
-    GRAPH_FIXED
+    GRAPH_FIXED,
+    GRAPH_PIE
 } GraphType;
 
 /* Set types */

@@ -45,8 +45,9 @@ void do_hardcopy(void);
 void plotone(int gno);
 
 void xyplot(int gno);
-void draw_smith_chart(int gno);
 void draw_polar_graph(int gno);
+void draw_smith_chart(int gno);
+void draw_pie_chart(int gno);
 
 void drawframe(int gno);
 void fillframe(int gno);

@@ -54,7 +54,7 @@ FILE *prstream;
 char print_file[GR_MAXPATHLEN] = "";
 
 /*
- * draw all active graphs, when graphs are drawn, draw the focus markers
+ * draw all active graphs
  */
 void drawgraph(void)
 {
@@ -177,6 +177,7 @@ void do_hardcopy(void)
 
 void plotone(int gno)
 {
+    GraphType gtype;
     
     if (is_graph_active(gno) != TRUE || is_graph_hidden(gno) == TRUE) {
         return;
@@ -200,23 +201,36 @@ void plotone(int gno)
     /* fill frame */
     fillframe(gno);
     
-    /* calculate tick mark positions for all axes */
-    calculate_tickgrid(gno);
+    gtype = get_graph_type(gno);
     
-    /* draw grid lines */
-    drawgrid(gno);
+    if (gtype != GRAPH_PIE) {
+        /* calculate tick mark positions for all axes */
+        calculate_tickgrid(gno);
+    
+        /* draw grid lines */
+        drawgrid(gno);
+    }
     
     /* plot type specific routines */
-    if (get_graph_type(gno) == GRAPH_POLAR) {
+    switch(gtype) {
+    case GRAPH_POLAR:
         draw_polar_graph(gno);
-    } else if (get_graph_type(gno) == GRAPH_SMITH) {
+        break;
+    case GRAPH_SMITH:
         draw_smith_chart(gno);
-    } else {
+        break;
+    case GRAPH_PIE:
+        draw_pie_chart(gno);
+        break;
+    default:
         xyplot(gno);
+        break;
     }
 
-    /* plot axes and tickmarks */
-    drawaxes(gno);
+    if (gtype != GRAPH_PIE) {
+        /* plot axes and tickmarks */
+        drawaxes(gno);
+    }
     
     /* plot frame */
     drawframe(gno);
@@ -224,8 +238,10 @@ void plotone(int gno)
     /* plot objects */
     draw_objects(gno);
     
-    /* plot legends */
-    dolegend(gno);
+    if (gtype != GRAPH_PIE) {
+        /* plot legends */
+        dolegend(gno);
+    }
     
     /* draw title and subtitle */
     draw_titles(gno);
@@ -234,6 +250,95 @@ void plotone(int gno)
 
 void draw_smith_chart(int gno)
 {
+}
+
+void draw_pie_chart(int gno)
+{
+    int i, setno, nsets = 0;
+    plotarr p;
+    view v;
+    VPoint vpc, vp1, vp2, vps[3];
+    VVector offset;
+    double r, start_angle, stop_angle;
+    double norm;
+    double *x, *c, *e, *pt;
+
+    get_graph_viewport(gno, &v);
+    vpc.x = (v.xv1 + v.xv2)/2;
+    vpc.y = (v.yv1 + v.yv2)/2;
+    r = 0.75*MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2;
+
+    for (setno = 0; setno < number_of_sets(gno); setno++) {
+        if (is_set_drawable(gno, setno)) {
+            nsets++;
+            if (nsets > 1) {
+                errmsg("Only one set per pie chart can be drawn");
+                return;
+            }
+            
+            switch (dataset_type(gno, setno)) {
+            case SET_XYDXDX:
+                get_graph_plotarr(gno, setno, &p);
+                /* data */
+                x = getcol(gno, setno, DATA_X);
+                /* explode factor */
+                e = getcol(gno, setno, DATA_Y);
+                /* colors */
+                c = getcol(gno, setno, DATA_Y1);
+                /* patterns */
+                pt = getcol(gno, setno, DATA_Y2);
+                
+                norm = 0.0;
+                for (i = 0; i < p.data.len; i++) {
+                    if (x[i] < 0.0) {
+                        errmsg("No negative values in pie charts allowed");
+                        return;
+                    }
+                    if (e[i] < 0.0) {
+                        errmsg("No negative offsets in pie charts allowed");
+                        return;
+                    }
+                    norm += x[i];
+                }
+                
+                stop_angle = 0.0;
+                for (i = 0; i < p.data.len; i++) {
+                    start_angle = stop_angle;
+                    stop_angle = start_angle + 2*M_PI*x[i]/norm;
+                    offset.x = e[i]*r*cos((start_angle + stop_angle)/2.0);
+                    offset.y = e[i]*r*sin((start_angle + stop_angle)/2.0);
+                    vps[0].x = vpc.x + r*cos(start_angle) + offset.x;
+                    vps[0].y = vpc.y + r*sin(start_angle) + offset.y;
+                    vps[1].x = vpc.x + offset.x;
+                    vps[1].y = vpc.y + offset.y;
+                    vps[2].x = vpc.x + r*cos(stop_angle) + offset.x;
+                    vps[2].y = vpc.y + r*sin(stop_angle) + offset.y;
+                    vp1.x = vpc.x - r + offset.x;
+                    vp1.y = vpc.y - r + offset.y;
+                    vp2.x = vpc.x + r + offset.x;
+                    vp2.y = vpc.y + r + offset.y;
+                    
+                    setcolor((int) rint(c[i]));
+                    setpattern((int) rint(pt[i]));
+                    DrawFilledArc(vp1, vp2,
+                        (int) rint(180.0/M_PI*start_angle),
+                        (int) rint(180.0/M_PI*stop_angle));
+                    
+                    setpen(p.sympen);
+                    setlinewidth(p.symlinew);
+                    setlinestyle(p.symlines);
+                    DrawPolyline(vps, 3, POLYLINE_OPEN);
+                    DrawArc(vp1, vp2,
+                        (int) rint(180.0/M_PI*start_angle),
+                        (int) rint(180.0/M_PI*stop_angle));
+                }
+                break;
+            default:
+                errmsg("Unsupported in pie chart set type");
+                break;
+            }
+        }
+    }
 }
 
 void draw_polar_graph(int gno)

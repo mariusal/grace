@@ -552,7 +552,7 @@ void DrawArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
 }
 
 /*
- * DrawArcline - draw a filled arc 
+ * DrawFilledArc - draw a filled arc 
  */
 void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
 {

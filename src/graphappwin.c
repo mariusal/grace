@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -174,12 +174,13 @@ void create_graphapp_frame(int gno)
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 	graph_type_choice_item = CreatePanelChoice(rc, 
                                                    "Type:",
-						   6,
+						   7,
 						   "XY graph",
 						   "XY chart",
 						   "Polar graph",
 						   "Smith chart (N/I)",
 						   "Fixed",
+						   "Pie chart",
 						   NULL,
 						   NULL);
 

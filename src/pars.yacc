@@ -381,6 +381,7 @@ symtab_entry *key;
 %token <ival> PERIOD
 %token <ival> PERP
 %token <ival> PHASE
+%token <ival> PIE
 %token <ival> PIPE
 %token <ival> PLACE
 %token <ival> POINT
@@ -2946,24 +2947,18 @@ actions:
 	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, $7);
 	}
 	| AUTOSCALE {
-	    if (activeset(whichgraph)) {
-		autoscale_graph(whichgraph, AUTOSCALE_XY);
-	    } else {
-		errmsg("No active sets!");
+	    if (autoscale_graph(whichgraph, AUTOSCALE_XY) != GRACE_EXIT_SUCCESS) {
+		errmsg("Can't autoscale (no active sets?)");
 	    }
 	}
 	| AUTOSCALE XAXES {
-	    if (activeset(whichgraph)) {
-		autoscale_graph(whichgraph, AUTOSCALE_X);
-	    } else {
-		errmsg("No active sets!");
+	    if (autoscale_graph(whichgraph, AUTOSCALE_X) != GRACE_EXIT_SUCCESS) {
+		errmsg("Can't autoscale (no active sets?)");
 	    }
 	}
 	| AUTOSCALE YAXES {
-	    if (activeset(whichgraph)) {
-                autoscale_graph(whichgraph, AUTOSCALE_Y);
-	    } else {
-		errmsg("No active sets!");
+	    if (autoscale_graph(whichgraph, AUTOSCALE_Y) != GRACE_EXIT_SUCCESS) {
+		errmsg("Can't autoscale (no active sets?)");
 	    }
 	}
 	| AUTOSCALE selectset {
@@ -3697,6 +3692,7 @@ graphtype:
 	| POLAR { $$ = GRAPH_POLAR; }
 	| SMITH { $$ = GRAPH_SMITH; }
 	| FIXED { $$ = GRAPH_FIXED; }
+	| PIE   { $$ = GRAPH_PIE;   }
 	;
         
 pagelayout:
@@ -4569,6 +4565,7 @@ symtab_entry ikey[] = {
 	{"PERP", PERP, NULL},
 	{"PHASE", PHASE, NULL},
 	{"PI", CONSTANT, (void *) pi_const},
+	{"PIE", PIE, NULL},
 	{"PIPE", PIPE, NULL},
 	{"PLACE", PLACE, NULL},
 	{"POINT", POINT, NULL},

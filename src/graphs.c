@@ -104,6 +104,9 @@ char *graph_types(int it)
     case GRAPH_FIXED:
 	strcpy(s, "Fixed");
 	break;
+    case GRAPH_PIE:
+	strcpy(s, "Pie");
+	break;
     default:
         strcpy(s, "Unknown");
 	break;
@@ -617,6 +620,7 @@ int set_graph_type(int gno, int gtype)
         case GRAPH_XY:
         case GRAPH_CHART:
         case GRAPH_FIXED:
+        case GRAPH_PIE:
             break;
         case GRAPH_POLAR:
 	    g[gno].w.xg1 = 0.0;
