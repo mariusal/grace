@@ -383,8 +383,8 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
     
     switch (load_type) {
     case LOAD_SINGLE:
-        if (nncols > MAX_SET_COLS || nscols > 1) {
-            errmsg("Internal error");
+        if (nscols > 1) {
+            errmsg("Can not use more than one column of strings per set");
             free_ss_data(ssd);
             return RETURN_FAILURE;
         }
