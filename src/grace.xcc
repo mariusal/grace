@@ -1863,6 +1863,7 @@ int load_xgr_project(char *fn)
     grace_close(fp);
     
     if (ret == XCC_RETURN_SUCCESS) {
+        pr->docname = copy_string(pr->docname, fn);
         project_free(grace->project);
         grace->project = pr;
 
