@@ -450,31 +450,29 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
     return glyph;
 }
 
-static void FreeCompositeString(CompositeString *cs)
+static void FreeCompositeString(CompositeString *cs, int nss)
 {
     int i = 0;
     
-    while (cs[i].s != NULL) {
+    for (i = 0; i < nss; i++) {
 	xfree(cs[i].s);
 	if (cs[i].glyph != NULL) {
             T1_FreeGlyph(cs[i].glyph);
         }
-	i++;
     }
     xfree(cs);
 }
 
 static const TextMatrix unit_tm = UNIT_TM;
 
-static CompositeString *String2Composite(char *string)
+static CompositeString *String2Composite(char *string, int *nss)
 {
-    CompositeString *csbuf = NULL;
+    CompositeString *csbuf;
 
     char *ss, *buf, *acc_buf;
     int i, isub, j;
     int acc_len;
     int slen;
-    int nss;
     char ccode;
     int upperset = FALSE;
     double scale;
@@ -497,6 +495,13 @@ static CompositeString *String2Composite(char *string)
     
     double val;
 
+    csbuf = NULL;
+    *nss = 0;
+    
+    if (string == NULL) {
+        return NULL;
+    }
+
     slen = strlen(string);
     
     if (slen == 0) {
@@ -513,8 +518,6 @@ static CompositeString *String2Composite(char *string)
         return NULL;
     }
      
-    nss = 0;
-    
     isub = 0;
     ss[isub] = 0;
     
@@ -765,28 +768,28 @@ static CompositeString *String2Composite(char *string)
 	    
             if (isub != 0 || setmark >= 0) {	/* non-empty substring */
 	
-	        csbuf = xrealloc(csbuf, (nss + 1)*sizeof(CompositeString));
-	        csbuf[nss].font = font;
-	        csbuf[nss].color = color;
-	        csbuf[nss].tm = tm;
-	        csbuf[nss].hshift = hshift;
-	        csbuf[nss].vshift = vshift;
-	        csbuf[nss].underline = underline;
-	        csbuf[nss].overline = overline;
-	        csbuf[nss].kerning = kerning;
-	        csbuf[nss].direction = direction;
-	        csbuf[nss].advancing = advancing;
-	        csbuf[nss].ligatures = ligatures;
-	        csbuf[nss].setmark = setmark;
+	        csbuf = xrealloc(csbuf, (*nss + 1)*sizeof(CompositeString));
+	        csbuf[*nss].font = font;
+	        csbuf[*nss].color = color;
+	        csbuf[*nss].tm = tm;
+	        csbuf[*nss].hshift = hshift;
+	        csbuf[*nss].vshift = vshift;
+	        csbuf[*nss].underline = underline;
+	        csbuf[*nss].overline = overline;
+	        csbuf[*nss].kerning = kerning;
+	        csbuf[*nss].direction = direction;
+	        csbuf[*nss].advancing = advancing;
+	        csbuf[*nss].ligatures = ligatures;
+	        csbuf[*nss].setmark = setmark;
                 setmark = MARK_NONE;
-	        csbuf[nss].gotomark = gotomark;
+	        csbuf[*nss].gotomark = gotomark;
 
-	        csbuf[nss].s = xmalloc(isub*SIZEOF_CHAR);
-	        memcpy(csbuf[nss].s, ss, isub);
-	        csbuf[nss].len = isub;
+	        csbuf[*nss].s = xmalloc(isub*SIZEOF_CHAR);
+	        memcpy(csbuf[*nss].s, ss, isub);
+	        csbuf[*nss].len = isub;
 	        isub = 0;
 	
-                nss++;
+                (*nss)++;
             }
 	    
 	    font = new_font;
@@ -817,8 +820,6 @@ static CompositeString *String2Composite(char *string)
 	memcpy(&ss[isub], acc_buf, acc_len*SIZEOF_CHAR);
 	isub += acc_len;
     }
-    csbuf = xrealloc(csbuf, (nss + 1)*sizeof(CompositeString));
-    csbuf[nss].s = NULL;
     
     xfree(acc_buf);
     xfree(buf);
@@ -897,7 +898,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
 
     int text_advancing;
 
-    int iglyph, nglyphs, first = TRUE;
+    int iss, nss, first = TRUE;
     GLYPH *glyph;
  
     CompositeString *cstring;
@@ -966,7 +967,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         return;
     }
 
-    cstring = String2Composite(theString);
+    cstring = String2Composite(theString, &nss);
     if (cstring == NULL) {
         return;
     }
@@ -976,11 +977,10 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         cs_marks[gotomark] = vp;
     }
     
-    iglyph = 0;
     rpoint = vp;
     baseline_start = rpoint;
-    while (cstring[iglyph].s != NULL) {
-	CompositeString *cs = &cstring[iglyph];
+    for (iss = 0; iss < nss; iss++) {
+	CompositeString *cs = &cstring[iss];
         
         /* Post-process the CS */
         if (cs->font == BAD_FONT_ID) {
@@ -1069,10 +1069,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         } else {
             cs->glyph = NULL;
         }
-
-	iglyph++;
     }
-    nglyphs = iglyph;
 
     baseline_stop = rpoint;
     
@@ -1089,15 +1086,15 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     }
     
     /* justification corrections */
-    for (iglyph = 0; iglyph < nglyphs; iglyph++) {
-        glyph = cstring[iglyph].glyph;
+    for (iss = 0; iss < nss; iss++) {
+        glyph = cstring[iss].glyph;
         if (glyph == NULL) {
             continue;
         }
-        cstring[iglyph].start.x -= offset.x;
-        cstring[iglyph].start.y -= offset.y;
-        cstring[iglyph].stop.x  -= offset.x;
-        cstring[iglyph].stop.y  -= offset.y;
+        cstring[iss].start.x -= offset.x;
+        cstring[iss].start.y -= offset.y;
+        cstring[iss].stop.x  -= offset.x;
+        cstring[iss].stop.y  -= offset.y;
     }
         
     /* update BB */
@@ -1108,8 +1105,8 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     update_bboxes(bbox_ll);
     update_bboxes(bbox_ur);
         
-    for (iglyph = 0; iglyph < nglyphs; iglyph++) {
-        CompositeString *cs = &cstring[iglyph];
+    for (iss = 0; iss < nss; iss++) {
+        CompositeString *cs = &cstring[iss];
         glyph = cs->glyph;
         if (glyph == NULL) {
             continue;
@@ -1150,5 +1147,5 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         }
     }
 
-    FreeCompositeString(cstring);
+    FreeCompositeString(cstring, nss);
 }
