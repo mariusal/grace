@@ -476,12 +476,17 @@ void installSignal(void){
  */
 static int reduced_year(int y)
 {
-    if (y < 1950) {
-        return y;
-    } else if (y < 2000) {
-        return y - 1900;
-    } else if (y < 2050) {
-        return y - 2000;
+
+    if (two_digits_years_allowed()) {
+        if (y < 1950) {
+            return y;
+        } else if (y < 2000) {
+            return y - 1900;
+        } else if (y < 2050) {
+            return y - 2000;
+        } else {
+            return y;
+        }
     } else {
         return y;
     }
