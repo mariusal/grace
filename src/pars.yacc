@@ -2029,7 +2029,11 @@ parmset:
 
 /* timestamp and string */
 	| WITH STRING {
+            char buf[16];
             curatext = atext_new(project);
+	    sprintf(buf, "DO%02d", dobject_id);
+            quark_idstr_set(curatext, buf);
+            dobject_id++;
 	}
 	| atext selectgraph {
 	    quark_reparent($1, $2);
