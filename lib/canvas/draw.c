@@ -444,9 +444,9 @@ void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc)
     canvas->fmap_proc = fmap_proc;
 }
 
-void canvas_set_pagepen(Canvas *canvas, const Pen *pen)
+void canvas_set_pagefill(Canvas *canvas, int flag)
 {
-    canvas->pagepen = *pen;
+    canvas->pagefill = flag;
 }
 
 void canvas_set_prstream(Canvas *canvas, FILE *prstream)
@@ -2248,8 +2248,6 @@ int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data)
         activate_bbox(canvas, BBOX_TYPE_TEMP, FALSE);
         canvas_stats_reset(canvas);
         
-        setbgcolor(canvas, canvas->pagepen.color);
-
         if (!canvas->drypass) {
             if (initgraphics(canvas, cstats) != RETURN_SUCCESS) {
                 errmsg("Device wasn't properly initialized");
@@ -2268,7 +2266,7 @@ int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data)
             update_bbox(canvas, BBOX_TYPE_GLOB, &vp);
         }
         
-        if (canvas->pagepen.pattern) {
+        if (canvas->pagefill) {
             VPoint vp1, vp2;
             
             if (cstats && canvas->curdevice->autocrop) {
@@ -2282,7 +2280,8 @@ int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data)
                 get_page_viewport(canvas, &vp2.x, &vp2.y);
             }
             
-            setpen(canvas, &canvas->pagepen);
+            setcolor(canvas, getbgcolor(canvas));
+            setpattern(canvas, 1);
             setclipping(canvas, FALSE);
             FillRect(canvas, &vp1, &vp2);
         }
