@@ -737,18 +737,18 @@ typedef struct _Input_buffer {
 } Input_buffer;
 
 /* dates formats */
-typedef enum   { FMT_iso,
+typedef enum   { FMT_none,
+                 FMT_iso,
                  FMT_european,
                  FMT_us,
                  FMT_days,
                  FMT_seconds,
-                 FMT_auto
+                 FMT_nohint
                } Dates_format;
 
 /* tokens for the calendar dates parser */
 typedef struct { int value;
                  int digits;
                } Int_token;
-
 
 #endif /* __DEFINES_H_ */
