@@ -784,6 +784,7 @@ static Widget CreateMainMenuBar(Widget parent)
  *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
  */
     CreateMenuButton(menupane, "Console", 'l', create_monitor_frame_cb, NULL);
+    CreateMenuButton(menupane, "Explorer", 'E', define_explorer_popup, NULL);
     
 
 /* help menu */

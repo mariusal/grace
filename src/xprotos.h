@@ -139,6 +139,7 @@ void create_graphapp_frame(int gno);
 void create_graphapp_frame_cb(void *data);
 
 void create_monitor_frame_cb(void *data);
+void define_explorer_popup(void *data);
 void stufftextwin(char *s);
 
 void HelpCB(void *data);
