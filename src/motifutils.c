@@ -2819,6 +2819,12 @@ Widget CreateDialogForm(Widget parent, char *s)
     char *bufp;
     
     bufp = label_to_resname(s, "Dialog");
+    if (parent == NULL) {
+        parent = XtVaAppCreateShell("XMgrace", "XMgrace",
+            topLevelShellWidgetClass, disp,
+            XtNtitle, bufp,
+            NULL);
+    }
     dialog = XmCreateDialogShell(parent, bufp, NULL, 0);
     xfree(bufp);
     
@@ -2829,12 +2835,14 @@ Widget CreateDialogForm(Widget parent, char *s)
     XtVaSetValues(dialog,
         XmNallowShellResize, True,
         XmNtitle, bufp,
-        XmNuserData, NULL,
         NULL);
     xfree(bufp);
 
     w = XmCreateForm(dialog, "dialog_form", NULL, 0);
-    XtVaSetValues(w, XmNresizePolicy, XmRESIZE_ANY, NULL);
+    XtVaSetValues(w,
+        XmNresizePolicy, XmRESIZE_ANY,
+        XmNuserData, NULL,
+        NULL);
     
     return w;
 }
