@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.1)</title>
+<title>Grace User's Guide (for Grace-5.2.0)</title>
 <author>by the Grace Team</author>
-<date>30.06.2000</date>
+<date>11.08.2000</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -3295,6 +3295,9 @@ C
               color             | set color output                          @
               level1            | use only PS Level 1 subset of commands    @
               level2            | use also PS Level 2 commands if needed    @
+              docdata:7bit      | the document data is 7bit clean           @
+              docdata:8bit      | the document data is 8bit clean           @
+              docdata:binary    | the document data may be binary           @
               xoffset:<it>x</it> | set page offset in X direction <it>x</it> pp  @
               yoffset:<it>y</it> | set page offset in Y direction <it>y</it> pp  @
               mediafeed:auto    | default input tray                        @

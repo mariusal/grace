@@ -38,6 +38,10 @@
 #define MEDIA_FEED_MATCH   1
 #define MEDIA_FEED_MANUAL  2
 
+#define DOCDATA_7BIT    0  
+#define DOCDATA_8BIT    1  
+#define DOCDATA_BINARY  2  
+
 int psprintinitgraphics(void);
 int epsinitgraphics(void);
 
