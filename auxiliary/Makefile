@@ -20,7 +20,7 @@ distclean : dummy
 devclean : dummy
 
 convcal$(EXE) : convcal.c
-	$(CC) $(CFLAGS0) -o $@ convcal.c $(NOGUI_LIBS)
+	$(CC) $(CFLAGS0) $(CPPFLAGS) -o $@ convcal.c $(NOGUI_LIBS)
 
 install : $(AUXILIARIES) $(PROGRAMS)
 	$(MKINSTALLDIRS) $(GRACE_HOME)/auxiliary

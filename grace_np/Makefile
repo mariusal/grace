@@ -12,7 +12,7 @@ include $(TOP)/Make.conf
 
 LIB = libgrace_np.a
 
-CFLAGS=$(CFLAGS0) -I$(TOP) -I. 
+CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(CPPFLAGS)
 
 LIBS = $(NOGUI_LIBS)
 

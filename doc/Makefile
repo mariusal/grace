@@ -33,7 +33,7 @@ DVIDOCS = FAQ.dvi Tutorial.dvi UsersGuide.dvi
 PSDOCS = FAQ.ps Tutorial.ps UsersGuide.ps
 
 TUTDATA = 2.1.dat 3.dat 7.1.2.agr 7.1.3.agr 8.2.dat \
-	10.1.dat 10a.dat 10c.dat 10b.dat shiftdata.sh mygraph.gif
+	10.1.dat 10a.dat 10c.dat 10b.dat shiftdata.sh mygraph.png
 
 GRACEMAN = grace.1
 MANLINKS = xmgrace.1 gracebat.1
