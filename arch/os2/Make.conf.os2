@@ -17,7 +17,9 @@ SHELL=sh
 PREFIX=$(X11ROOT)/XFree86
 
 # List of subdirectories
-SUBDIRS=cephes T1lib Xbae src grace_np templates doc examples auxiliary
+# I'll comment out if I have a DLL available of the library
+#SUBDIRS=cephes T1lib Xbae src grace_np templates doc examples auxiliary
+SUBDIRS=cephes Xbae src grace_np templates doc examples auxiliary
 
 # Name of executable
 GRACE=xmgrace.exe
@@ -29,12 +31,12 @@ GRACE_HOME=$(X11ROOT)/XFree86/lib/grace
 ALLOCA=
 
 # Type1 fonts library
-T1_LIB=../T1lib/libt1.a
+T1_LIB=-lt1
 
 # T1 include path
-T1_INC=-I../T1lib/t1lib
+T1_INC=
 
-# T1lib defines (if the packaged version to be used)
+# T1lib defines (if the bundled version to be used)
 T1_AA_TYPE16=short
 T1_AA_TYPE32=int
 T1_AA_TYPE64=
@@ -51,20 +53,23 @@ FFTW_LIB=-lfftw
 # netCDF libraries
 NETCDF_LIBS=
 
+# JPEG library
+JPEG_LIB=-ljpeg
+
+# libz library
+Z_LIB=-lz
+
+# PNG library
+PNG_LIB=-lpng
+
+# TIFF library
+TIFF_LIB=-ltiff
+
 # PDFlib library
 PDF_LIB=-lpdf
 
 # PDF driver
 PDFDRV_O=pdfdrv.o
-
-# GD library
-GD_LIB=-lgd
-
-# JPEG library
-JPEG_LIB=-ljpeg
-
-# Generic raster driver
-RSTDRV_O=rstdrv.o
 
 # Location of yacc (or its substitution)
 YACC=yacc
@@ -94,19 +99,20 @@ INSTALL_DATA=
 MKINSTALLDIRS=
 
 # C flags
-CFLAGS0= -Wall -Wno-unused -O2 -I$(X11ROOT)/XFree86/include -Zmt
+CFLAGS0= -Wall -Wno-unused -O2 -m486 -I$(X11ROOT)/XFree86/include -Zmt
 
 # GUI flags
 GUI_FLAGS=
 
 # LDFLAGS
-LDFLAGS=-s -Zmt -Zcrtdll -Zsysv-signals -Zbin-files
+# -Zbin-files is removed. Not sure where this will hurt us (fftw, ?! ) ...
+LDFLAGS=-s -Zmt -Zcrtdll -Zsysv-signals
 
 # Libraries (all but GUI)
 NOGUI_LIBS=
 
 # GUI libraries
-GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/XFree86/lib -lhlpclient ../Xbae/libXbae.a -lXm -lXpm -lXt -lXext -lX11 -lsocket
+GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/XFree86/lib -lhlpclient ../Xbae/libXbae.a -lXm -lXpm -lXt -lXext -lXmu -lX11 -lsocket
 
 # Commamd used to print
 PRINT_CMD='lp'
