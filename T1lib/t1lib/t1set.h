@@ -29,7 +29,7 @@
 
 GLYPH *T1_SetChar( int FontID, char charcode, 
 		   float size, T1_TMATRIX *transform);
-GLYPH *T1_SetString( int FontID, char *string, int len,
+GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 		     long spaceoff, int modflag,
 		     float size, T1_TMATRIX *transform);
 void fill(char *dest, int h, int w,
