@@ -73,6 +73,8 @@ typedef struct {
     PDFColorSpace    colorspace;
     int              compression;
     int              fpprec;
+    
+    int              kerning_supported;
 
 #ifndef NONE_GUI
     Widget           frame;
@@ -119,6 +121,7 @@ int register_pdf_drv(Canvas *canvas)
 
     d = device_new("PDF", DEVICE_FILE, TRUE, data);
     if (!d) {
+        xfree(data);
         return -1;
     }
     
@@ -165,6 +168,13 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
     pdfdata->phandle = PDF_new2(pdf_error_handler, NULL, NULL, NULL, NULL);
     if (pdfdata->phandle == NULL) {
         return RETURN_FAILURE;
+    }
+
+    /* check PDFlib capabilities */
+    if (!strcmp(PDF_get_parameter(pdfdata->phandle, "pdi", 0), "true")) {
+        pdfdata->kerning_supported = TRUE;
+    } else {
+        pdfdata->kerning_supported = FALSE;
     }
 
     switch (pdfdata->compat) {
@@ -694,6 +704,10 @@ void pdf_puttext(const Canvas *canvas, void *data,
 
     PDF_set_parameter(pdfdata->phandle, "underline", true_or_false(underline));
     PDF_set_parameter(pdfdata->phandle, "overline",  true_or_false(overline));
+    if (pdfdata->kerning_supported) {
+        PDF_set_parameter(pdfdata->phandle,
+            "kerning", kerning ? "true":"false");
+    }
     PDF_concat(pdfdata->phandle, (float) tm->cxx, (float) tm->cyx,
                                  (float) tm->cxy, (float) tm->cyy,
                                  vp->x, vp->y);
