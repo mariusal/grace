@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.1)
 <author>by the Grace Team
-<date>23.06.2000
+<date>25.06.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -787,15 +787,207 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         session starts; it could be <tt>.Xdefaults</tt>, <tt>.Xsession</tt> or
         some other file - ask your system administrator when in doubt). 
 
-<!-- **************************************** -->
-<sect>Guide to menus and popups
-<p>
 
-(Not finished yet... Read the <url name="Tutorial" url="Tutorial.html"> as well).
+<!-- **************************************** -->
+<sect>Guide to the graphical user interface<label id="GUI-guide">
+  <p>
+  <sect1>GUI controls
+    <p>
+    This section describes interface controls - basic building blocks, used in
+    many popups.
+    </p>
+    <sect2>File selection dialogs <label id="FS-dialog">
+      <p>
+      Whenever the user is expected to provide a filename, either for reading
+      in or writing some data, a file selection dialog is popped up. In
+      addition to the standard entries (the directory and file lists and the
+      filter entry), there is a pulldown menu for quick directory change to
+      predefined locations (the current working directory, user's home
+      directory and the file system root). Also, a "Set as cwd" button is
+      there which allows to set any directory as you navigate through the
+      directory tree as the current working directory (cwd). Once defined, it
+      can be used in any other file selection dialog to switch to that
+      directory quickly.
+
+    <sect2>List selectors <label id="list-selector">
+      <p>
+      Various selectors are available in several popups. They all display
+      lists of objects (graphs, sets, ...) and can be used to perform
+      simple operations on these objects (copying, deleting, ...). The
+      operations are available from a popup menu that appears when pressing
+      mouse button 3 on them. Depending on the required functionality, they
+      may allow multiple choices or not. The following
+      shortcuts are enabled (if the result of an action would contradict the
+      list's selection policy, this would be ignored):
+      <itemize>
+        <item> Ctrl+a select all
+        <item> Ctrl+u unselect all
+        <item> Ctrl+i invert selection
+      </itemize>
+
+        <sect3> Graph selector <label id="graph-selector">
+        <p>
+        The operations that can be performed on graphs through the graph
+        selector's popup menu are:
+        <itemize>
+          <item> focus to
+          <item> hide
+          <item> show
+          <item> duplicate
+          <item> kill
+          <item> swap
+          <item> create new
+        </itemize>
+        All this operations are not available in every instance of the
+        selector. For example in the "read sets" popup only one graph can
+        be selected at a time, and the swap operation is disabled.
+
+        Double-clicking on a list entry will switch the focus to that graph.
+
+        <sect3> Set selector <label id="set-selector">
+        <p>
+        The operations that can be performed on sets through the set
+        selector's popup menu are:
+        <itemize>
+          <item> hide
+          <item> show
+          <item> bring to front
+          <item> send to back
+          <item> duplicate
+          <item> kill
+          <item> kill data
+          <item> swap
+          <item> edit
+          <itemize>
+            <item> in spreadsheet
+            <item> in text editor
+          </itemize>
+          <item> create new
+          <itemize>
+            <item> by formula
+            <item> in spreadsheet
+            <item> in text editor
+            <item> from block data
+          </itemize>
+          <item> pack all sets
+          <item> selector operations
+          <itemize>
+            <item> view set comments
+            <item> show data-less
+            <item> show hidden
+            <item> select all
+            <item> unselect all
+            <item> invert selection
+            <item> update
+          </itemize>
+        </itemize>
+
+        Double-clicking on a list entry will open the spreadsheet editor on
+        the set data.
+
+  <sect1>The main window<label id="main-window">
+    <p>
+
+    <sect2>The canvas<label id="canvas">
+     <p>
+
+      <sect3>Canvas hotkeys
+        <p>
+
+        When the pointer focus is on the canvas (where the graph is drawn),
+        there are some shortcuts to activate several actions. They are:
+
+        <itemize>
+          <item> Ctrl &lt;Key&gt;A: Autoscale the current graph
+          <item> Ctrl &lt;Key&gt;D: Delete an object
+          <item> Ctrl &lt;Key&gt;L: Move current graph legend
+          <item> Ctrl &lt;Key&gt;M: Move an object
+          <item> Ctrl &lt;Key&gt;T: Place timestamp
+          <item> Ctrl &lt;Key&gt;U: Refresh hotlinks
+          <item> Ctrl &lt;Key&gt;V: Set the viewport with mouse
+          <item> Ctrl &lt;Key&gt;Z: Zoom
+          <item> Ctrl Alt &lt;Key&gt;L: Draw a line
+          <item> Ctrl Alt &lt;Key&gt;B: Draw a box
+          <item> Ctrl Alt &lt;Key&gt;E: Draw an ellipse
+          <item> Ctrl Alt &lt;Key&gt;T: Write a text string
+        </itemize>
+
+      <sect3>Clicks and double clicks<label id="clicks">
+        <p>
+          A single click inside a graph switches focus to that graph. This is the
+          default policy, but it can be changed from the "Edit/Preferences"
+          popup.
+        </p>
+
+        <p>
+          Double clicking on parts of the canvas will invoke certain actions
+          or raise some popups:
+
+          <itemize>
+            <item> on a focus marker: move selected viewport corner 
+            <item> on an axis:  "Plot/Axis properties" popup
+            <item> on a set:    "Plot/Set appearance" popup
+            <item> on a legend: "Plot/Graph appearance" popup
+            <item> on a (sub)title: "Plot/Graph appearance" popup
+            <item> on an object (box, line, ...): a popup for editing
+                   properties of that object
+          </itemize>
+
+          The double clicking actions can be enabled/disabled from the
+          "Edit/Preferences" popup.
+
+    <sect2>Toolbar buttons<label id="toolbar">
+      <p>
+      Along the left-hand side of the canvas (if shown) is the ToolBar. It
+      is armed with several buttons to provide quick and easy access to the
+      more commonly used Grace functions.
+
+      <itemize> 
+        <item> <tt>  Draw</tt>: This will redraw the canvas and sets.
+	  Useful if "Auto Redraw" has been deselected in the Edit|Preferences
+	  dialog or after executing commands directly from the Window|Commands
+	  interpreter.
+          <p>
+
+        <item> <tt>  Lens</tt>: A zoom lens.  Click on the lens, then select the
+          area of interest on the graph with the "rubber band".  The region
+	  enclosed by the rubber band will fill the entire graph.
+        <item> <tt>    AS</tt>: AutoScale.  Autoscales the graph to contain all
+          data points of all visible (not hidden) sets.
+        <item> <tt>   Z/z</tt>:  Zoom in/out by 5%. The zoom percentage can be
+          set in the Edit/Preferences dialog.
+        <item> <tt>Arrows</tt>:  Scroll active graph by 5% in the arrow's
+          direction.  The scroll percentage can be set in the
+	  Edit/Preferences dialog.
+
+          <p>
+        <item> <tt>AutoT</tt>: AutoTick Axes.  This will find the optimum
+          number of major and minor tick marks for both axes.
+        <item> <tt>AutoO</tt>: Autoscale On set.  Click the <tt>AutoO</tt>
+          button, then click on the graph near the set you wish to use for
+	  determining the autoscale boundaries of the graph.
+          <p>
+        <item> <tt>ZX,ZY</tt>: Zoom along an axis.  These buttons work like the
+          zoom lens above but are restricted to a single axis. 
+        <item> <tt>AX,AY</tt>: Autoscale one axis only.
+          <p>
+        The following buttons deal with the graph stack and there is a good
+        example under Help/Examples/General Intro/World Stack.
+        <item> <tt>Pu/Po</tt>: Push and pop the current world settings to/from
+          the graph stack. When popping, makes the new stack top current.
+        <item> <tt>PZ</tt>: Push before Zooming.  Functions as the zoom lens,
+          but first pushes the current world settings to the stack.  
+        <item> <tt>Cy</tt>: Cycles through the stack settings of the active
+          graph.  Each graph may have up to twenty layers on the stack.
+          <p>      
+        <item> <tt>Exit</tt>: Pretty obvious, eh?
+      </itemize>
+
 
    <sect1> File menu <label id="file-menu">
    <p>
-   The file menu contains all entries related to the input/output features of Grace.
+     The file menu contains all entries related to the input/output features
+     of Grace.
 
       <sect2> New <label id="new">
       <p>
@@ -1563,186 +1755,6 @@ integral     | cumulative sum @
         with the "-version" command line flag.
       </p>
 
-  <sect1>Toolbar Buttons<label id="toolbar">
-    <p>
-    Along the left-hand side of the canvas (if shown) is the ToolBar.  It
-    is armed with several buttons to provide quick and easy access to the
-    more commonly used Grace functions.
-
-    <itemize> 
-      <item> <tt>  Draw</tt>: This will redraw the canvas and sets.
-	Useful if "Auto Redraw" has been deselected in the Edit|Preferences
-	dialog or after executing commands directly from the Window|Commands
-	interpreter.
-        <p>
-
-      <item> <tt>  Lens</tt>: A zoom lens.  Click on the lens, then select the
-        area of interest on the graph with the "rubber band".  The region
-	enclosed by the rubber band will fill the entire graph.
-      <item> <tt>    AS</tt>: AutoScale.  Autoscales the graph to contain all
-        data points of all visible (not hidden) sets.
-      <item> <tt>   Z/z</tt>:  Zoom in/out by 5%.
-      <item> <tt>Arrows</tt>:  Scroll active graph by 5% in the arrow's
-        direction.  The scroll percentage can be set in the
-	Edit|Preferences dialog.
-
-        <p>
-      <item> <tt>AutoT</tt>: AutoTick Axes.  This will find the optimum
-        number of major and minor tick marks for both axes.
-      <item> <tt>AutoO</tt>: Autoscale On set.  Click the <tt>AutoO</tt>
-        button, then click on the graph near the set you wish to use for
-	determining the autoscale boundaries of the graph.
-        <p>
-      <item> <tt>ZX,ZY</tt>: Zoom along an axis.  These buttons work like the
-        zoom lens above but are restricted to a single axis. 
-      <item> <tt>AX,AY</tt>: Autoscale one axis only.
-        <p>
-      The following buttons deal with the graph stack and there is a good
-      example under Help|Examples|General Intro|World Stack.
-      <item> <tt>Pu/Po</tt>: Push and pop the current world settings to/from
-        the graph stack.  When popping, makes the new stack top current.
-      <item> <tt>PZ</tt>: Push before Zooming.  Functions as the zoom lens,
-        but first pushes the current world settings to the stack.  
-      <item> <tt>Cy</tt>: Cycles through the stack settings of the active
-        graph.  Each graph may have up to twenty layers on the stack.
-        <p>      
-      <item> <tt>Exit</tt>: Pretty obvious, eh?
-    </itemize>
-
-  <sect1>The Drawing Canvas
-   <p>
-     Shortcuts bound to mouse actions on the drawing canvas
-     are detailed in the <ref name="Canvas actions" id="canvas"> section.
-
-<!-- **************************************** -->
-<sect>GUI controls
-  <p>
-    <sect1>List selectors <label id="list-selector">
-       <p>
-       Various selectors are available in several popups. They all display
-       lists of objects (graphs, sets, ...) and can be used to perform
-       simple operations on these objects (copying, deleting, ...). The
-       operations are available from a popup menu that appears when pressing
-       mouse button 3 on them. Depending on the required functionality, they
-       may allow multiple choices or not. The following
-       shortcuts are enabled (if the result of an action would contradict the
-       list's selection policy, this would be ignored):
-       <itemize>
-         <item> Ctrl+a select all
-         <item> Ctrl+u unselect all
-         <item> Ctrl+i invert selection
-       </itemize>
-
-         <sect2> Graph selector <label id="graph-selector">
-         <p>
-         The operations that can be performed on graphs through the graph
-         selector's popup menu are:
-         <itemize>
-           <item> focus to
-           <item> hide
-           <item> show
-           <item> duplicate
-           <item> kill
-           <item> swap
-           <item> create new
-         </itemize>
-         All this operations are not available in every instance of the
-         selector. For example in the "read sets" popup only one graph can
-         be selected at a time, and the swap operation is disabled.
- 
-         Double-clicking on a list entry will switch the focus to that graph.
-
-         <sect2> Set selector <label id="set-selector">
-         <p>
-         The operations that can be performed on sets through the set
-         selector's popup menu are:
-         <itemize>
-           <item> hide
-           <item> show
-           <item> bring to front
-           <item> send to back
-           <item> duplicate
-           <item> kill
-           <item> kill data
-           <item> swap
-           <item> edit
-           <itemize>
-             <item> in spreadsheet
-             <item> in text editor
-           </itemize>
-           <item> create new
-           <itemize>
-             <item> by formula
-             <item> in spreadsheet
-             <item> in text editor
-             <item> from block data
-           </itemize>
-           <item> pack all sets
-           <item> selector operations
-           <itemize>
-             <item> view set comments
-             <item> show data-less
-             <item> show hidden
-             <item> select all
-             <item> unselect all
-             <item> invert selection
-             <item> update
-           </itemize>
-         </itemize>
-
-         Double-clicking on a list entry will open the spreadsheet editor on
-         the set data.
-
-    
-<!-- **************************************** --> 
-<sect>Canvas actions<label id="canvas">
-  <p>
-
-  <sect1>Hotkeys
-    <p>
-
-      When the pointer focus is on the canvas (where the graph is drawn), there
-      are some shortcuts to activate several actions. They are:
-
-      <itemize>
-        <item> Ctrl &lt;Key&gt;A: Autoscale
-        <item> Ctrl &lt;Key&gt;D: Delete an object
-        <item> Ctrl &lt;Key&gt;L: Move current graph legend
-        <item> Ctrl &lt;Key&gt;M: Move an object
-        <item> Ctrl &lt;Key&gt;T: Place timestamp
-        <item> Ctrl &lt;Key&gt;U: Refresh hotlinks
-        <item> Ctrl &lt;Key&gt;V: Set the viewport with mouse
-        <item> Ctrl &lt;Key&gt;Z: Zoom
-        <item> Ctrl Alt &lt;Key&gt;L: Draw a line
-        <item> Ctrl Alt &lt;Key&gt;B: Draw a box
-        <item> Ctrl Alt &lt;Key&gt;E: Draw an ellipse
-        <item> Ctrl Alt &lt;Key&gt;T: Write a text string
-      </itemize>
-
-  <sect1>Clicks and double clicks<label id="clicks">
-    <p>
-
-      A single click inside a graph switches focus to that graph. This is the
-      default policy, but it can be changed from the "Edit/Preferences"
-      popup.
-
-    <p>
-
-      Double clicking on parts of the canvas will invoke certain actions
-      or raise some popups:
-      
-      <itemize>
-        <item> on a focus marker: move selected viewport corner 
-        <item> on an axis:  "Axis properties" popup
-        <item> on a set:    "Set appearance" popup
-        <item> on a legend: "Graph appearance" popup
-        <item> on a (sub)title: "Graph appearance" popup
-        <item> on an object (box, line, ...): a popup for editing properties of that object
-      </itemize>
-
-      The double clicking actions can be enabled/disabled from the
-      "Edit/Preferences" popup.
-  
 <!-- **************************************** -->
 <sect>Command interpreter <label id="command-interpreter">
   <p>
