@@ -1066,10 +1066,11 @@ void jpg_gui_setup(void)
 
 	fr = CreateFrame(jpg_setup_rc, "JPEG options");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-	jpg_setup_grayscale_item = CreateToggleButton(rc, "Grayscale");
 	jpg_setup_quality_item = CreateSpinChoice(rc,
             "Quality:", 3, SPIN_TYPE_INT, 0.0, 100.0, 5.0);
 	jpg_setup_optimize_item = CreateToggleButton(rc, "Optimize");
+	jpg_setup_progressive_item = CreateToggleButton(rc, "Progressive");
+	jpg_setup_grayscale_item = CreateToggleButton(rc, "Grayscale");
 	XtManageChild(rc);
 
 	fr = CreateFrame(jpg_setup_rc, "JPEG advanced options");
@@ -1077,7 +1078,6 @@ void jpg_gui_setup(void)
 	jpg_setup_smoothing_item = CreateSpinChoice(rc,
             "Smoothing:", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
 	jpg_setup_baseline_item = CreateToggleButton(rc, "Force baseline");
-	jpg_setup_progressive_item = CreateToggleButton(rc, "Progressive");
 	jpg_setup_dct_item = CreatePanelChoice(rc, "DCT: ",
 					 4,
 					 "Fast integer",
