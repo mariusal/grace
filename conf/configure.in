@@ -275,6 +275,9 @@ if test "$ac_cv_func_drand48" = yes; then
       AC_DEFINE(HAVE_DRAND48_IN_STDLIB_H), ac_drand48_in_stdlib_h="no"))
 fi
 
+dnl **** Check for locale
+AC_CHECK_FUNCS(setlocale)
+
 dnl **** Checks for libm
 AC_CHECK_LIB(m, main)
 if test "$ac_cv_lib_m_main" = yes; then
@@ -370,7 +373,7 @@ then
       return(0);
     else
       return(1);
-  }], ac_64bit_type="long", ac_64bit_type="<none>"))
+  }], ac_64bit_type="long", ac_64bit_type="<none>", ac_64bit_type=))
   if test "$ac_64bit_type" = "long"
   then
     T1_AA_TYPE64="long"

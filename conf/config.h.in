@@ -170,6 +170,9 @@
 /* Define if you have the drand48 function.  */
 #undef HAVE_DRAND48
 
+/* Define if your system supports locale.  */
+#undef HAVE_SETLOCALE
+
 /* Define if stdlib.h defines the drand48 function.  */
 #undef HAVE_DRAND48_IN_STDLIB_H
 
