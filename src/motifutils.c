@@ -1466,11 +1466,10 @@ TextStructure *CreateCSText(Widget parent, char *s)
 
 char *GetTextString(TextStructure *cst)
 {
-    static char *buf = NULL;
-    char *s;
+    char *s, *buf;
     
     s = XmTextGetString(cst->text);
-    buf = copy_string(buf, s);
+    buf = copy_string(NULL, s);
     XtFree(s);
     
     return buf;
