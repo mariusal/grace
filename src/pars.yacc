@@ -100,6 +100,7 @@ static int curline, curbox, curellipse, curstring;
 static int gotparams = FALSE, gotread = FALSE, gotnlfit = FALSE; 
 int readxformat;
 static int nlfit_gno, nlfit_setno, nlfit_nsteps;
+static double *nlfit_warray = NULL;
 
 char batchfile[GR_MAXPATHLEN] = "",
      paramfile[GR_MAXPATHLEN] = "",
@@ -2814,6 +2815,14 @@ actions:
 	    nlfit_gno = $3->gno;
 	    nlfit_setno = $3->setno;
 	    nlfit_nsteps = $5;
+	    nlfit_warray = NULL;
+	}
+	| NONLFIT '(' selectset ',' vexpr ',' nexpr ')' {
+	    gotnlfit = TRUE;
+	    nlfit_gno = $3->gno;
+	    nlfit_setno = $3->setno;
+	    nlfit_nsteps = $7;
+	    nlfit_warray = copy_data_column($5->data, $5->length);
 	}
 	| REGRESS '(' selectset ',' nexpr ')' {
 	    do_regress($3->gno, $3->setno, $5, 0, -1, 0, -1);
@@ -4779,11 +4788,15 @@ int s_scanner(char *s, double *res)
 int v_scanner(char *s, int *reslen, double **vres)
 {
     int retval = parser(s, PARSER_TYPE_VEXPR);
-    *reslen = v_result->length;
-    *vres = v_result->data;
-    v_result->length = 0;
-    v_result->data = NULL;
-    return retval;
+    if (retval != GRACE_EXIT_SUCCESS) {
+        return GRACE_EXIT_FAILURE;
+    } else {
+        *reslen = v_result->length;
+        *vres = v_result->data;
+        v_result->length = 0;
+        v_result->data = NULL;
+        return GRACE_EXIT_SUCCESS;
+    }
 }
 
 int scanner(char *s)
@@ -4805,7 +4818,8 @@ int scanner(char *s)
     
     if (gotnlfit) {
 	gotnlfit = FALSE;
-        do_nonlfit(nlfit_gno, nlfit_setno, nlfit_nsteps);
+        do_nonlfit(nlfit_gno, nlfit_setno, nlfit_warray, NULL, nlfit_nsteps);
+        cxfree(nlfit_warray);
     }
     return retval;
 }
