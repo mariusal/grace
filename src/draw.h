@@ -39,7 +39,7 @@
 #define GRACE_BPP	8
 #define MAXCOLORS	(0x01 << GRACE_BPP)
 
-#define MAX_LINEWIDTH 10.0        /* max width of drawn lines */
+#define MAX_LINEWIDTH 20.0        /* max width of drawn lines */
 
 #define MAGIC_LINEW_SCALE 0.0015
 
