@@ -258,13 +258,13 @@ void set_default_plotarr(plotarr * p)
     p->setfillpen.pattern = grdefaults.pattern; /* fill pattern */
 
     p->errbar.active = TRUE;                      /* on by default */
-    p->errbar.ptype = PLACEMENT_NORMAL;           /* error bar placement */
+    p->errbar.ptype = PLACEMENT_BOTH;             /* error bar placement */
     p->errbar.pen.color = grdefaults.color;       /* color */
     p->errbar.pen.pattern = grdefaults.pattern;   /* pattern */
     p->errbar.lines = grdefaults.lines;           /* error bar line width */
     p->errbar.linew = grdefaults.linew;           /* error bar line style */
-    p->errbar.riser_linew = 1;                    /* riser line width */
-    p->errbar.riser_lines = 1;                    /* riser line style */
+    p->errbar.riser_linew = grdefaults.linew;     /* riser line width */
+    p->errbar.riser_lines = grdefaults.lines;     /* riser line style */
     p->errbar.barsize = 1.0;                      /* size of error bar */
     p->errbar.arrow_clip = FALSE;                 /* draw arrows if clipped */
     p->errbar.cliplen = 0.1;                      /* max v.p. riser length */
