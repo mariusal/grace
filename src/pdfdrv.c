@@ -104,7 +104,7 @@ void pdfinitpatterns(void)
 {
     int i;
     
-    if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern) {
+    if (pdf_setup_pdfpattern) {
         pdf_pattern_ids = xmalloc(number_of_patterns()*SIZEOF_INT);
         for (i = 1; i < number_of_patterns(); i++) {
             int j, k, l;
