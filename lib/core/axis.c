@@ -472,11 +472,12 @@ int axis_shift(Quark *q, const VVector *vshift)
     Quark *ag = get_parent_axisgrid(q);
     Axis *a = axis_get_data(q);
     if (ag && a) {
+        int sign = (a->position == AXIS_POS_OPPOSITE) ? +1:-1;
         
         if (axisgrid_is_x(ag)) {
-            a->offset += vshift->y;
+            a->offset += sign*vshift->y;
         } else {
-            a->offset += vshift->x;
+            a->offset += sign*vshift->x;
         }
         
         quark_dirtystate_set(q, TRUE);

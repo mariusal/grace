@@ -2742,7 +2742,7 @@ axisfeature:
 	| LABEL axislabeldesc_obs {}
 	| BAR axisbardesc {}
 	| OFFSET expr ',' expr {
-	    axis_set_offset(normaxis, -$2);
+	    axis_set_offset(normaxis, $2);
 	    axis_set_offset(oppaxis,  $4);
 	}
 	;
@@ -2763,7 +2763,7 @@ tickattr:
 	}
 
 	| OFFSETX expr {
-            axis_set_offset(normaxis, -$2);
+            axis_set_offset(normaxis, $2);
 	}
 	| OFFSETY expr {
             axis_set_offset(oppaxis,  $2);

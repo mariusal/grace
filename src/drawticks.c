@@ -256,8 +256,8 @@ void draw_axis(Canvas *canvas, Quark *qa)
 
         /* TODO axis offset for polar plots */
         if (graph_get_type(gr) != GRAPH_POLAR) {
-             vp1_start.y += axis_get_offset(qa);
-             vp1_stop.y  += axis_get_offset(qa);
+             vp1_start.y -= tick_dir_sign*axis_get_offset(qa);
+             vp1_stop.y  -= tick_dir_sign*axis_get_offset(qa);
         }
 
 	vbase1 = vp1_start.y;
@@ -315,8 +315,8 @@ void draw_axis(Canvas *canvas, Quark *qa)
         Wpoint2Vpoint(gr, &wp1_stop,  &vp1_stop);
 
         if (graph_get_type(gr) != GRAPH_POLAR) {
-            vp1_start.x += axis_get_offset(qa);
-            vp1_stop.x  += axis_get_offset(qa);
+            vp1_start.x -= tick_dir_sign*axis_get_offset(qa);
+            vp1_stop.x  -= tick_dir_sign*axis_get_offset(qa);
         }
 
 	vbase1 = vp1_start.x;
