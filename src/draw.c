@@ -1119,17 +1119,17 @@ fRGB *get_fsrgb(unsigned int cindex)
         if (fsrgb.red <= 0.0031308) {
             fsrgb.red *= 12.92;
         } else {
-            fsrgb.red = 1.055*pow(fsrgb.red,0.4)-0.055;
+            fsrgb.red = 1.055*pow(fsrgb.red,1.0/2.4)-0.055;
         }
         if (fsrgb.green <= 0.0031308) {
             fsrgb.green *= 12.92;
         } else {
-            fsrgb.green = 1.055*pow(fsrgb.green,0.4)-0.055;
+            fsrgb.green = 1.055*pow(fsrgb.green,1.0/2.4)-0.055;
         }
         if (fsrgb.blue <= 0.0031308) {
             fsrgb.blue *= 12.92;
         } else {
-            fsrgb.blue = 1.055*pow(fsrgb.blue,0.4)-0.055;
+            fsrgb.blue = 1.055*pow(fsrgb.blue,1.0/2.4)-0.055;
         }
         return &fsrgb;
     } else {
