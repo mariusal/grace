@@ -141,6 +141,7 @@ int kill_graph(int gno)
             set_default_graph(gno);
         }
         
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -619,6 +620,7 @@ int set_graph_hidden(int gno, int flag)
 {
     if (is_valid_gno(gno) == TRUE) {
         g[gno].hidden = flag;
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -629,6 +631,7 @@ int set_graph_stacked(int gno, int flag)
 {
     if (is_valid_gno(gno) == TRUE) {
         g[gno].stacked = flag;
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -657,6 +660,7 @@ int set_graph_bargap(int gno, double bargap)
 {
     if (is_valid_gno(gno) == TRUE) {
         g[gno].bargap = bargap;
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -703,6 +707,7 @@ int set_graph_xscale(int gno, int scale)
 {
     if (is_valid_gno(gno) == TRUE) {
         g[gno].xscale = scale;
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -713,6 +718,7 @@ int set_graph_yscale(int gno, int scale)
 {
     if (is_valid_gno(gno) == TRUE) {
         g[gno].yscale = scale;
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -741,6 +747,7 @@ int set_graph_xinvert(int gno, int flag)
 {
     if (is_valid_gno(gno) == TRUE) {
         g[gno].xinvert = flag;
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -751,6 +758,7 @@ int set_graph_yinvert(int gno, int flag)
 {
     if (is_valid_gno(gno) == TRUE) {
         g[gno].yinvert = flag;
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -1031,6 +1039,7 @@ int overlay_graphs(int g1, int g2, int type)
 	break;
     }
     
+    set_dirtystate();
     return GRACE_EXIT_SUCCESS;
 }
 
@@ -1105,6 +1114,7 @@ int activate_tick_labels(int gno, int axis, int flag)
 {
     if (is_valid_gno(gno) == TRUE && is_valid_axis(axis) == TRUE) {
         g[gno].t[axis].tl_flag = flag;
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -1124,6 +1134,7 @@ int set_set_colors(int gno, int setno, int color)
     g[gno].p[setno].sympen.color = color;
     g[gno].p[setno].symfillpen.color = color;
     
+    set_dirtystate();
     return GRACE_EXIT_SUCCESS;
 }
 
