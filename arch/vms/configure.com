@@ -447,6 +447,29 @@ $!
 $ IF (F$SEARCH("[--.FONTS.ENC]DEFAULT.ENC") .EQS. "") THEN -
       COPY [--.FONTS.ENC]ISOLATIN1.ENC [--.FONTS.ENC]DEFAULT.ENC
 $!
+$! Rename files in [.DOC].
+$!
+$RENAMEDOC:
+$ FILE = F$SEARCH ("[--.DOC]*.*_*")
+$ IF (FILE .NES. "")
+$ THEN
+$   NAME = F$PARSE (FILE,,, "NAME")
+$   TYPE = F$PARSE (FILE,,, "TYPE") - "."
+$   REAL = F$ELEMENT (3, "_", TYPE)
+$   IF (REAL .EQS. "_")
+$   THEN
+$     REAL = F$ELEMENT (2, "_", TYPE)
+$     IF (REAL .EQS. "_")
+$     THEN
+$       REAL = F$ELEMENT (1, "_", TYPE)
+$     ENDIF
+$   ENDIF
+$   N = F$LENGTH (TYPE) - F$LENGTH (REAL) - 1
+$   NAME = NAME + "_" + F$EXTRACT (0, N, TYPE)
+$   RENAME 'FILE' [--.DOC]'NAME'.'REAL'
+$   GOTO RENAMEDOC
+$ ENDIF
+$!
 $! Define symbols for make.conf.  These symbols are in make.conf_in; they
 $! are set to the value they should be in make.conf.
 $!
@@ -502,8 +525,10 @@ $ ENDIF
 $ IF (PDFLIB .NES. "")
 $ THEN
 $   PDF_LIB = "," + PDFLIB + "/LIBRARY"
+$   PDFDRV_O = "pdfdrv$(O)"
 $ ELSE
 $   PDF_LIB = ""
+$   PDFDRV_O = ""
 $ ENDIF
 $ XBAE_INC = "[-.XBAE.XBAE]"
 $ YACC = ""

@@ -29,13 +29,9 @@ $ SAY "Building CEPHES"
 $ SET DEFAULT [.CEPHES]
 $ CFLAGS = CFLAGS0 + "/INCLUDE=[-]"
 $ LIB = "libcephes.olb"
-$ SRCS = "airy beta chbevl chdtr const dawsn ellie ellik " -
-       + "ellpe ellpk expn fac fdtr fresnl gamma gdtr hyp2f1 " -
-       + "hyperg i0 i1 igam igami incbet incbi iv j0 j1 " -
-       + "jn jv k0 k1 kn log2 mtherr ndtri pdtr polevl " -
-       + "polyn psi revers rgamma round shichi sici " -
-       + "spence stdtr struve unity yn zeta zetac " -
-       + "acosh asinh atanh ndtr cbrt isnan"
+$ FILE = "MAKE.COMMON"
+$ NAME = "OBJS"
+$ GOSUB GETLIST
 $ GOSUB COMPILE
 $ SET DEFAULT [-]
 $ !
@@ -45,8 +41,9 @@ $ CFLAGS = CFLAGS0 -
        + "/INCLUDE=[--]/DEFINE=(GLOBAL_CONFIG_DIR=""""""[]"""""", " -
        + "T1_AA_TYPE16=""''T1_AA_TYPE16'"",T1_AA_TYPE32=""''T1_AA_TYPE32'"")"
 $ LIB = "[-]libt1lib.olb"
-$ SRCS = "arith curves fontfcn hints lines objects paths regions scanfont " -
-       + "spaces t1io t1snap t1stub token type1 util"
+$ FILE = "DESCRIP.MMS"
+$ NAME = "OBJS"
+$ GOSUB GETLIST
 $ GOSUB COMPILE
 $ SET DEFAULT [-.T1LIB]
 $ CFLAGS = CFLAGS0 -
@@ -54,8 +51,9 @@ $ CFLAGS = CFLAGS0 -
        + "T1_AA_TYPE16=""''T1_AA_TYPE16'"",T1_AA_TYPE32=""''T1_AA_TYPE32'"")" -
        + "/WARNING=(DISABLE=DUPEXTERN)"
 $ LIB = "[-]libt1lib.olb"
-$ SRCS = "t1finfo t1base t1delete t1enc t1env t1load t1set t1trans t1aaset " -
-       + "t1afmtool t1outline parseAFM"
+$ FILE = "DESCRIP.MMS"
+$ NAME = "OBJS"
+$ GOSUB GETLIST
 $ GOSUB COMPILE
 $ SET DEFAULT [--]
 $ !
@@ -66,8 +64,9 @@ $ DEFINE/NOLOG XBAE 'XBAE'
 $ CFLAGS = CFLAGS0 + "/INCLUDE=[-]" + GUI_FLAGS -
          + "/DEFINE=(DRAW_RESIZE_SHADOW)/WARNINGS=(DISABLE=LONGEXTERN)"
 $ LIB = "libXbae.OLB"
-$ SRCS = "Actions Clip Converters Create Draw Input " -
-       + "Matrix Methods Public ScrollMgr Shadow Utils"
+$ FILE = "MAKE.COMMON"
+$ NAME = "OBJS"
+$ GOSUB GETLIST
 $ GOSUB COMPILE
 $ DEASSIGN XBAE
 $ SET DEFAULT [--]
@@ -104,23 +103,14 @@ $ DEFINE/NOLOG XBAE 'XBAE'
 $ CFLAGS = CFLAGS0 + "/INCLUDE=([-],[-.T1LIB.T1LIB]''LIB_INC')" -
          + "/DEFINE=(""xfree=xfree_"")"
 $ LIB = "xmgrace.olb"
-$ SRCS = "main plotone files ssdata utils drawticks " -
-       + "nonlfit lmdif as274c fit fourier " -
-       + "graphs graphutils setutils regionutils " -
-       + "objutils computils defaults params " -
-       + "compute draw dlmodule pars missing " -
-       + "iofilters dates t1fonts device " -
-       + "dummydrv mfdrv psdrv pdfdrv gd rstdrv"
-$ IF (ALLOCA .NES. "") THEN SRCS = SRCS + " alloca"
+$ PARS_O = "pars$(O)"
+$ FILE = "MAKE.COMMON"
+$ NAME = "GROBJS"
+$ GOSUB GETLIST
 $ GOSUB COMPILE
-$ SRCS = "Tab motifutils " -
-       + "compwin comwin eblockwin " -
-       + "editpwin events featext fileswin plotwin " -
-       + "graphappwin helpwin hotwin " -
-       + "locatewin miscwin monwin " -
-       + "nonlwin printwin ptswin regionwin " -
-       + "setwin strwin setappwin " -
-       + "tickwin worldwin fontwin xutil x11drv xmgrace"
+$ FILE = "MAKE.COMMON"
+$ NAME = "GUIOBJS"
+$ GOSUB GETLIST
 $ GOSUB COMPILE
 $ CEPHES_LIB = ",[-.CEPHES]LIBCEPHES.OLB/LIB"
 $ V = F$VERIFY(1)
@@ -136,6 +126,54 @@ $ !
 $ SAY "Done"
 $ V = F$VERIFY(V)
 $ EXIT
+$ !
+$GETLIST:
+$ SRCS = ""
+$ OPEN/READ IN 'FILE'
+$GETLISTLOOP1:
+$ READ/END=GETLISTDONE IN REC
+$ IF (F$ELEMENT(0," ",REC) .NES. NAME) THEN GOTO GETLISTLOOP1
+$ REC = REC - NAME - "="
+$ GOSUB MOVETOSRCS
+$ IF (REC .NES. "\") THEN GOTO GETLISTDONE
+$GETLISTLOOP2:
+$ READ/END=GETLISTDONE IN REC
+$ GOSUB MOVETOSRCS
+$ IF (REC .NES. "\") THEN GOTO GETLISTDONE
+$ GOTO GETLISTLOOP2
+$GETLISTDONE:
+$ CLOSE IN
+$ RETURN
+$MOVETOSRCS:
+$ REC = F$EDIT (REC, "TRIM,COMPRESS")
+$ N = 0
+$MOVETOSRCSLOOP:
+$ OBJ = F$ELEMENT (N, " ", REC)
+$ N = N + 1
+$ IF (OBJ .EQS. " ")
+$ THEN
+$   REC = ""
+$   RETURN
+$ ENDIF
+$ IF (OBJ .EQS. "\")
+$ THEN
+$   REC = "\"
+$   RETURN
+$ ENDIF
+$ IF (F$EXTRACT (0, 2, OBJ) .EQS. "$(")
+$ THEN
+$   OBJ = OBJ - "$(" - ")"
+$   IF (F$TYPE('OBJ') .NES. "")
+$   THEN
+$     OBJ = 'OBJ'
+$     IF (OBJ .EQS. "") THEN GOTO MOVETOSRCSLOOP
+$   ELSE
+$     GOTO MOVETOSRCSLOOP
+$   ENDIF
+$ ENDIF
+$ OBJ = OBJ - "$(O)"
+$ SRCS = SRCS + " " + OBJ
+$ GOTO MOVETOSRCSLOOP
 $ !
 $COMPILE:
 $ IF (LIB .NES. "" .AND. F$SEARCH(LIB) .EQS. "") THEN LIBRARY/CREATE/LOG 'LIB'

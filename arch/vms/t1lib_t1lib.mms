@@ -4,7 +4,12 @@ include $(TOP)Make.conf
 
 CFLAGS = $(CFLAGS0)/INCLUDE=[--]/DEFINE=(GLOBAL_CONFIG_DIR="""[]""",\
          T1_AA_TYPE16="$(T1_AA_TYPE16)",T1_AA_TYPE32="$(T1_AA_TYPE32)")\
-         /WARNING=(DISABLE=DUPEXTERN)
+         /UNDEFINE=("VMS")
+
+# The VMS specific code defines ] as the directory separator.  Grace uses
+# unix format for all file specifications, so having the T1 library add
+# a ] instead of a / causes problems.  I undefine VMS when compiling to
+# prevent this problem.
 
 OBJS = \
 	t1finfo$(O) \
