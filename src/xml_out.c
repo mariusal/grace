@@ -396,7 +396,7 @@ int save_axis_properties(XFile *xf, tickmarks *t)
             xmlio_write_face_spec(xf, attrs,
                 t->tl_font, t->tl_charsize, t->tl_color);
             xmlio_write_format_spec(xf, attrs,
-                AStrFormat, t->tl_format, t->tl_prec);
+                EStrFormat, t->tl_format, t->tl_prec);
         }
         xfile_end_element(xf, EStrTicklabels);
     }
@@ -612,7 +612,7 @@ int save_set_properties(XFile *xf, set *p)
         xmlio_write_face_spec(xf, attrs,
             p->avalue.font, p->avalue.size, p->avalue.color);
         xmlio_write_format_spec(xf, attrs,
-            AStrFormat, p->avalue.format, p->avalue.prec);
+            EStrFormat, p->avalue.format, p->avalue.prec);
     }
     xfile_end_element(xf, EStrAnnotation);
 

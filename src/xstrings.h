@@ -49,6 +49,7 @@
 #define EStrFixedpoint          "fixedpoint"
 #define EStrFontDef             "font-def"
 #define EStrFontmap             "fontmap"
+#define EStrFormat              "format"
 #define EStrFrame               "frame"
 #define EStrGrace               "grace"
 #define EStrGraph               "graph"
