@@ -85,16 +85,19 @@ devclean : distclean
 	$(RM) $(DVIDOCS) $(PSDOCS) $(PDFDOCS) $(HTMLDOCS)
 
 install : $(HTMLS) $(HTMLDOCS) $(DVIDOCS) $(TUTDATA) $(MANPAGES)
-	$(MKINSTALLDIRS) $(GRACE_HOME)/doc
-	for i in $?; do $(INSTALL_DATA) $$i $(GRACE_HOME)/doc; done
-	cd $(GRACE_HOME)/doc; \
+	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/doc
+	for i in $?; do $(INSTALL_DATA) $$i $(DESTDIR)$(GRACE_HOME)/doc; done
+	cd $(DESTDIR)$(GRACE_HOME)/doc; \
 	for i in $(MANLINKS); do $(RM) $$i; $(LN_S) $(GRACEMAN) $$i; done
 
-links : $(MANPAGES)
-	$(MKINSTALLDIRS) $(PREFIX)/man
-	$(MKINSTALLDIRS) $(PREFIX)/man/man1
-	cd $(PREFIX)/man/man1; \
-	for i in $? $(MANLINKS); do $(RM) $$i; $(LN_S) $(GRACE_HOME)/doc/$$i $$i; done
+$(DESTDIR)$(GRACE_HOME)/doc/grace.1 : $(MANPAGES)
+	$(MAKE) install
+
+links : $(DESTDIR)$(GRACE_HOME)/doc/grace.1
+	$(MKINSTALLDIRS) $(DESTDIR)$(PREFIX)/man
+	$(MKINSTALLDIRS) $(DESTDIR)$(PREFIX)/man/man1
+	cd $(DESTDIR)$(PREFIX)/man/man1; \
+	for i in $(MANPAGES) $(MANLINKS); do $(RM) $$i; $(LN_S) $(GRACE_HOME)/doc/$$i $$i; done
 
 tests : dummy
 

@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.2.0)
   <author>by the Grace Team
-  <date>5.02.2002
+  <date>30.04.2002
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -132,8 +132,7 @@
         
         <itemize>
 
-          <item> <url url="http://people.ne.mediaone.net/moshier/index.html"
-               name="Cephes math library">
+          <item> <url url="http://www.moshier.net/" name="Cephes math library">
 
           <item> <url url="http://www.neuroinformatik.ruhr-uni-bochum.de/ini/PEOPLE/rmz/t1lib.html" name="T1lib">
           
@@ -477,8 +476,34 @@
         <ref id="manual" name="User's Guide">, which covers the compilation
         process.
 
-    <sect1>When I type './configure' I get: ``configure: warning:
-        M*tif has not been found; building a GUI-less version''
+    <sect1>When I run `configure', it says the XXX package is not found,
+           whereas I am certain it was installed on my system!
+      <p>
+        There are several possible reasons:
+        <itemize>
+          <item>
+            You have only the run-time part installed (this especially
+            concerns GNU/Linux users). However, you should have the
+            relevant development package (C header files etc) installed, too.
+            E.g., for the JPEG library to be recognized by `configure',
+            <it>both</it> <tt>libjpeg62</tt> and <tt>libjpeg62-devel</tt>
+            packages must be installed.
+          </item>
+          <item>
+            The library and the header files don't match each other (they are
+            from  different versions). This usually happens on large Unix
+            systems with a less than capable sysadmin...
+          </item>
+          <item>
+            Either the library or the header files can't be found by the
+            compiler. Use the <tt>--with-extra-ldpath</tt> and
+            <tt>--with-extra-incpath</tt> configure options to provide the
+            extra paths, respectively.
+          </item>
+        </itemize>
+
+    <sect1>When I type './configure' I get: ``configure: error:
+        M*tif has not been found''
       <p>
 
         Check whether M*tif (question <ref id="motif"
@@ -487,7 +512,8 @@
 
         <tt>configure:8900: checking for a Motif &gt;= 1002 compatible API</tt>
 
-        What comes directly after it? Could be a hint.
+        What comes directly after it? Could be a hint. Also, see the previous
+        question.
 
     <sect1>What is Motif (LessTif)? <label id="motif">
       <p>
@@ -512,25 +538,6 @@
         that a few remaining bugs in LessTif will be fixed rather quickly.
         
         
-    <sect1>While compiling Grace I get error messages about missing include
-           files.
-      <p>
-
-        The answer to this question varies: 
-
-        <itemize>
-
-            <item> The include files are there but in a non-standard
-              place. Check with your local sys admin.
-
-            <item> If the missing files are like Xm/*.h, this means
-              you don't have M*tif development kit installed (or
-              again, you have to tell explicitly to compiler where
-              to look for the header files). This mostly concerns
-              GNU/Linux.
-
-          </itemize>
-
     <sect1>`configure' stops telling it can't find "ar".
       <p>
 
@@ -544,8 +551,8 @@
       <p>
 
         You will find binaries for several flavours of UNIX and probably
-        a Win32 package at <url
-        url="ftp://plasma-gate.weizmann.ac.il/pub/grace/bin/">.
+        a Win32 package at
+        <url url="ftp://plasma-gate.weizmann.ac.il/pub/grace/bin/">.
 
     <sect1>Is there a Windows&verbar;OS/2&verbar;VMS port of Grace?
       <p>

@@ -41,8 +41,8 @@ devclean :
 	$(RM) $(PROG) $(OBJS)
 
 install : $(PROG)
-	$(MKINSTALLDIRS) $(GRACE_HOME)/bin
-	$(INSTALL_PROGRAM) -s $(PROG) $(GRACE_HOME)/bin/$(PROG)
+	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/bin
+	$(INSTALL_PROGRAM) -s $(PROG) $(DESTDIR)$(GRACE_HOME)/bin/$(PROG)
 
 dummy :
 

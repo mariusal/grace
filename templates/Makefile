@@ -20,13 +20,13 @@ distclean :
 devclean : dummy
 
 install : $(DEFAULT_AGR)
-	$(MKINSTALLDIRS) $(GRACE_HOME)/templates
-	@if test -f $(GRACE_HOME)/templates/$(DEFAULT_AGR); then \
-		echo "	$(GRACE_HOME)/templates/$(DEFAULT_AGR) exists"; \
-		echo "	Installing only $(GRACE_HOME)/templates/$(DEFAULT_AGR).sample"; \
-		$(INSTALL_DATA) $(DEFAULT_AGR) $(GRACE_HOME)/templates/$(DEFAULT_AGR).sample; \
+	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/templates
+	@if test -f $(DESTDIR)$(GRACE_HOME)/templates/$(DEFAULT_AGR); then \
+		echo "	$(DESTDIR)$(GRACE_HOME)/templates/$(DEFAULT_AGR) exists"; \
+		echo "	Installing only $(DESTDIR)$(GRACE_HOME)/templates/$(DEFAULT_AGR).sample"; \
+		$(INSTALL_DATA) $(DEFAULT_AGR) $(DESTDIR)$(GRACE_HOME)/templates/$(DEFAULT_AGR).sample; \
 	else \
-		$(INSTALL_DATA) $(DEFAULT_AGR) $(GRACE_HOME)/templates/$(DEFAULT_AGR); \
+		$(INSTALL_DATA) $(DEFAULT_AGR) $(DESTDIR)$(GRACE_HOME)/templates/$(DEFAULT_AGR); \
 	fi
 
 links : dummy

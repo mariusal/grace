@@ -45,16 +45,19 @@ test_np$(O) : $(LIB)
 testf_np$(O) : $(LIB)
 
 install : $(LIB)
-	$(MKINSTALLDIRS) $(GRACE_HOME)/lib
-	$(INSTALL_DATA) $(LIB) $(GRACE_HOME)/lib/$(LIB)
-	$(MKINSTALLDIRS) $(GRACE_HOME)/include
-	$(INSTALL_DATA) grace_np.h $(GRACE_HOME)/include/grace_np.h
+	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/lib
+	$(INSTALL_DATA) $(LIB) $(DESTDIR)$(GRACE_HOME)/lib/$(LIB)
+	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/include
+	$(INSTALL_DATA) grace_np.h $(DESTDIR)$(GRACE_HOME)/include/grace_np.h
 
-links : $(GRACE_HOME)/lib/$(LIB) $(GRACE_HOME)/include/grace_np.h
-	$(MKINSTALLDIRS) $(PREFIX)/lib
-	cd $(PREFIX)/lib; $(RM) $(LIB); $(LN_S) $(GRACE_HOME)/lib/$(LIB) $(LIB)
-	$(MKINSTALLDIRS) $(PREFIX)/include
-	cd $(PREFIX)/include; $(RM) grace_np.h; $(LN_S) $(GRACE_HOME)/include/grace_np.h grace_np.h
+$(DESTDIR)$(GRACE_HOME)/lib/$(LIB) : $(LIB)
+	$(MAKE) install
+
+links : $(DESTDIR)$(GRACE_HOME)/lib/$(LIB)
+	$(MKINSTALLDIRS) $(DESTDIR)$(PREFIX)/lib
+	cd $(DESTDIR)$(PREFIX)/lib; $(RM) $(LIB); $(LN_S) $(GRACE_HOME)/lib/$(LIB) $(LIB)
+	$(MKINSTALLDIRS) $(DESTDIR)$(PREFIX)/include
+	cd $(DESTDIR)$(PREFIX)/include; $(RM) grace_np.h; $(LN_S) $(GRACE_HOME)/include/grace_np.h grace_np.h
 	
 clean :
 	$(RM) *.o sample.agr $(TESTS)

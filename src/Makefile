@@ -62,17 +62,20 @@ xml_in.c : grace.xcc
 	xcc < $? > $@
 
 install : $(GRACE)
-	$(MKINSTALLDIRS) $(GRACE_HOME)/bin
-	$(INSTALL_PROGRAM) -s $(GRACE) $(GRACE_HOME)/bin/$(GRACE)
-	cd $(GRACE_HOME)/bin; $(RM) $(GRBATCH); $(LN_S) $(GRACE) $(GRBATCH)
+	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/bin
+	$(INSTALL_PROGRAM) -s $(GRACE) $(DESTDIR)$(GRACE_HOME)/bin/$(GRACE)
+	cd $(DESTDIR)$(GRACE_HOME)/bin; $(RM) $(GRBATCH); $(LN_S) $(GRACE) $(GRBATCH)
 
 tests : dummy
 
-links : $(GRACE_HOME)/bin/$(GRACE)
-	$(MKINSTALLDIRS) $(PREFIX)/bin
-	cd $(PREFIX)/bin; $(RM) $(GRACE); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRACE)
-	cd $(PREFIX)/bin; $(RM) $(GRBATCH); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRBATCH)
-	cd $(PREFIX)/bin; $(RM) $(GRACECLI); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRACECLI)
+$(DESTDIR)$(GRACE_HOME)/bin/$(GRACE) : $(GRACE)
+	$(MAKE) install
+
+links : $(DESTDIR)$(GRACE_HOME)/bin/$(GRACE)
+	$(MKINSTALLDIRS) $(DESTDIR)$(PREFIX)/bin
+	cd $(DESTDIR)$(PREFIX)/bin; $(RM) $(GRACE); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRACE)
+	cd $(DESTDIR)$(PREFIX)/bin; $(RM) $(GRBATCH); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRBATCH)
+	cd $(DESTDIR)$(PREFIX)/bin; $(RM) $(GRACECLI); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRACECLI)
 
 clean : 
 	$(RM) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo.h buildinfo$(O) buildinfo$(EXE)
