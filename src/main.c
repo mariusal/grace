@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 
     /* initialize devices */
 #ifndef NONE_GUI
-    if (cli == TRUE) {
+    if (cli == TRUE || gracebat == TRUE) {
         tdevice = register_dummy_drv();
     } else {
         tdevice = register_x11_drv();
