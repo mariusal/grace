@@ -1262,6 +1262,31 @@ char *get_workingdir(void)
     return workingdir;
 }
 
+static char *username = NULL;
+
+void init_username(void)
+{
+    char *s;
+
+/*
+ *     We don't use it for any kind of authentication, so why not let
+ *     user to customize her name? :)
+ */
+    s = getenv("LOGNAME");
+    if (s == NULL || s[0] == '\0') {
+        s = getlogin();
+        if (s == NULL || s[0] == '\0') {
+            s = "a user";
+        }
+    }
+    username = copy_string(username, s);
+}
+
+char *get_username(void)
+{
+    return username;
+}
+
 /* TODO this needs some work */
 void expand_tilde(char *buf)
 {
