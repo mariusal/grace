@@ -367,8 +367,8 @@ static void please_report_the_bug(void)
 #ifdef HAVE_LESSTIF
     fprintf(stderr, "NB. This version of Grace was compiled with LessTif.\n");
     fprintf(stderr, "    Make sure to read the FAQ carefully prior to\n");
-    fprintf(stderr, "    reporting the bug, ESPECIALLY is the problem is\n");
-    fprintf(stderr, "    related to the graphical interface.\n");
+    fprintf(stderr, "    reporting the bug, ESPECIALLY is the problem might\n");
+    fprintf(stderr, "    be related to the graphical interface.\n");
 #endif
 }
 
