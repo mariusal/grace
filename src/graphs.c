@@ -1068,7 +1068,6 @@ int set_set_hidden(int gno, int setno, int flag)
 {
     if (is_valid_setno(gno, setno) == TRUE) {
         g[gno].p[setno].hidden = flag;
-        set_lists_dirty(TRUE);
         set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
