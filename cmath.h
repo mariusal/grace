@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -58,6 +58,10 @@ extern double MAXNUM;
 
 #ifndef M_PI
 #  define M_PI  3.14159265358979323846
+#endif
+
+#ifndef M_SQRT2
+#  define M_SQRT2     1.41421356237309504880      /* sqrt(2) */
 #endif
 
 #ifndef M_SQRT1_2
@@ -149,14 +153,14 @@ extern double j1 ( double x );
 extern double jn ( int n, double x );
 #endif
 
-/* HP-11 defines isfinite via macro */
+/* isfinite is a macro */
 #ifdef isfinite
-#  undef isfinite
+#  define HAVE_ISFINITE_MACRO
 #endif
 
 #ifndef HAVE_FINITE
 #  define finite isfinite
-#  ifndef HAVE_ISFINITE_DECL
+#  if !defined(HAVE_ISFINITE_DECL) && !defined(HAVE_ISFINITE_MACRO)
 extern int isfinite ( double x );
 #  endif
 #else
