@@ -27,84 +27,6 @@
  * The following command will compile the program :
  *  cc -o convcal convcal.c -lm
 
- * The utility reads the dates either on the command line or in the
- * standard input if the command line contains no date. The following
- * date formats are supported (hour, minutes and seconds are always optional):
-
- * iso       : 1999-12-31 23:59:59.999
- * european  : 31/12/1999 23:59:59.999 or 31/12/99 23:59:59.999
- * us        : 12/31/1999 23:59:59.999 or 12/31/99 23:59:59.999
- * days      : 123456.789
- * seconds   : 123456.789
-
- * The formats are tried in the following order : users's choice,
- * iso, european and us (there is no ambiguity between calendar
- * formats and numerical formats and therefore no order is specified
- * for them). The default user's choice (nohint) does nothing so the
- * following formats of the list are used ; the main use of user's
- * choice is to put another format before the other ones. The
- * separators between various fields can be any characters in the set
- * : " :/.-" (one or more spaces act as one separator, other characters
- * can not be repeated), so the string "1999-12 31:23-59" is allowed
- * (but not recommended).  The '-' character is used both as a
- * separator (it is traditionally used in iso8601 format) and as the
- * unary minus (for dates in the far past or for numerical
- * dates). When the year is between 0 and 99 and is written with two
- * or less digits, it is mapped to the era beginning at wrap year and
- * ending at wrap year + 99 as follows :
- *   [wy ; 99] -> [ wrap_year ; 100*(1 + wrap_year/100) - 1 ]
- *   [00 ; wy-1] -> [ 100*(1 + wrap_year/100) ; wrap_year + 99]
- * so for example if the wrap year is set to 1950 (which is the default
- * value), then the mapping is :
- *    range [00 ; 49] is mapped to [2000 ; 2049]
- *    range [50 ; 99] is mapped to [1950 ; 1999]
- * this is reasonably Y2K compliant and is consistent with current use.
- * Specifying year 1 is still possible using more than two digits as
- * follows : "0001-03-04" is unambiguously March the 4th, year 1, even
- * if the user's choice is us format. However using two digits only is
- * not recommended (we introduce a 2050 bug here so this feature
- * should be removed at some point in the future ;-)
-
- * Numerical dates (days and seconds formats) can be specified using
- * integral, real or exponential formats (the 'd' and 'D' exponant
- * markers from fortran are supported in addition to 'e' and 'E').
- * They are computed according to a customizable reference date.
- * The default value is given by the REFDATE constant below. You
- * can change this value as you want before compiling, and you can
- * change it at will using the -r command line option. The default
- * value in the distributed file is "-4713-01-01 12:00:00", it is a
- * classical reference for astronomical events (note that the '-' is
- * used here both as a unary minus and as a separator).
-
- * The program can be used either for Denys's and gregorian
- * calendars. It does not take into account leap seconds : you can
- * think it works only in International Atomic Time (TAI) and not in
- * Coordinated Unified Time (UTC) ...  Inexistant dates are detected,
- * they include year 0, dates between 1582-10-05 and 1582-10-14,
- * February 29th of non leap years, months below 1 or above 12, ...
-
- * The following command line options are supported. Apart from the -h
- * flag, all of these options can be used several times, each new
- * value overriding the preceding one.
- *
- * -i format : set user's choice for input format, supported formats are
- *             iso, european, us, days, seconds and nohint.
- *             At the beginning the input format is nohint, which means
- *             the program try to guess the format by itself, if the
- *             user's choice does not allow to parse the date, other
- *             formats are tried
- * -o format : force output format, supported formats are
- *             iso, european, us, days, seconds and nohint.
- *             At the beginning, the output format is nohint, which means
- *             the program uses days format for dates read in any
- *             calendar format and uses iso8601 for dates read in
- *             numerical format
- * -r date   : set reference date (the date is read using the current
- *             input format) at the beginning the reference is set
- *             according to the REFDATE constant below.
- * -w year   : set the wrap year to year
- * -h        : prints an help message on stderr and exits successfully
-
  */
 
 #include <math.h>
@@ -118,7 +40,7 @@
 #define EXIT_FAILURE 1
 #endif
 
-#define REFDATE "-4713-01-01 12:00:00"
+#define REFDATE "-4713-01-01T12:00:00"
 
 typedef enum   { FMT_iso,
                  FMT_european,
@@ -343,8 +265,8 @@ double cal_and_time_to_jul(int y, int m, int d,
 
 /*
  * convert julian day to calendar and hourly elements
- * rounding_tol allows to say 1999-12-31 23:59:59.501
- * should be rounded to 2000-01-01 00:00:00.000 assuming
+ * rounding_tol allows to say 1999-12-31T23:59:59.501
+ * should be rounded to 2000-01-01T00:00:00.000 assuming
  * it is set to 0.5 second. It is wise to set it according
  * to the display accuracy of seconds.
  */
@@ -518,8 +440,13 @@ static int parse_calendar_date(const char* s,
               negative = 0;
               break;
 
-          case '/' : case ':' : case '.' : /* non-repeatable separator */
+          case '/' : case ':' : case '.' : case 'T' : /* non-repeatable separator */
               if (waiting_separator) {
+                  if ((*s == 'T') && (i != 3)) {
+                      /* the T separator is only allowed between date
+                         and time (mainly for iso8601) */
+                      return -1;
+                  }
                   s++;
                   negative = 0;
                   waiting_separator = 0;
@@ -718,7 +645,7 @@ int convert_and_write(const char *s,
     switch (output_format) {
       case FMT_iso :
           jul_to_cal_and_time(jul, 0.0005, &y, &m, &d, &hour, &min, &sec);
-          fprintf(stdout, "%04d-%02d-%02d %02d:%02d:%06.3f\n",
+          fprintf(stdout, "%04d-%02d-%02dT%02d:%02d:%06.3f\n",
                   y, m, d, hour, min, sec);
           break;
 
@@ -812,6 +739,171 @@ static void expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
     *adrBuf  = newbuf;
     *ptrSize = newsize;    
 
+}
+
+/*
+ * help message
+ */
+static void usage (FILE *stream, const char *progname)
+{
+    fprintf (stream,
+             "%s reads the dates either on the command line or in the\n", progname);
+    fprintf (stream,
+             "standard input if the command line contains no date. The following\n");
+    fprintf (stream,
+             "date formats are supported (hour, minutes and seconds are always optional):\n");
+    fprintf (stream,
+             "\n");
+    fprintf (stream,
+             "iso       : 1999-12-31T23:59:59.999\n");
+    fprintf (stream,
+             "european  : 31/12/1999 23:59:59.999 or 31/12/99 23:59:59.999\n");
+    fprintf (stream,
+             "us        : 12/31/1999 23:59:59.999 or 12/31/99 23:59:59.999\n");
+    fprintf (stream,
+             "days      : 123456.789\n");
+    fprintf (stream,
+             "seconds   : 123456.789\n");
+    fprintf (stream,
+             "\n");
+    fprintf (stream,
+             "The formats are tried in the following order : users's choice,\n");
+    fprintf (stream,
+             "iso, european and us (there is no ambiguity between calendar\n");
+    fprintf (stream,
+             "formats and numerical formats and therefore no order is specified\n");
+    fprintf (stream,
+             "for them). The default user's choice (nohint) does nothing so the\n");
+    fprintf (stream,
+             "following formats of the list are used ; the main use of user's\n");
+    fprintf (stream,
+             "choice is to put another format before the other ones. The\n");
+    fprintf (stream,
+             "separators between various fields can be any characters in the set:\n");
+    fprintf (stream,
+             "\" :/.-T\". One or more spaces act as one separator, other characters\n");
+    fprintf (stream,
+             "can not be repeated, the T separator is allowed only between date and\n");
+    fprintf (stream,
+             "time, mainly for iso8601. So the string \"1999-12 31:23-59\" is allowed\n");
+    fprintf (stream,
+             "(but not recommended).  The '-' character is used both as a\n");
+    fprintf (stream,
+             "separator (it is traditionally used in iso8601 format) and as the\n");
+    fprintf (stream,
+             "unary minus (for dates in the far past or for numerical\n");
+    fprintf (stream,
+             "dates). When the year is between 0 and 99 and is written with two\n");
+    fprintf (stream,
+             "or less digits, it is mapped to the era beginning at wrap year and\n");
+    fprintf (stream,
+             "ending at wrap year + 99 as follows :\n");
+    fprintf (stream,
+             "  [wy ; 99] -> [ wrap_year ; 100*(1 + wrap_year/100) - 1 ]\n");
+    fprintf (stream,
+             "  [00 ; wy-1] -> [ 100*(1 + wrap_year/100) ; wrap_year + 99]\n");
+    fprintf (stream,
+             "so for example if the wrap year is set to 1950 (which is the default\n");
+    fprintf (stream,
+             "value), then the mapping is :\n");
+    fprintf (stream,
+             "   range [00 ; 49] is mapped to [2000 ; 2049]\n");
+    fprintf (stream,
+             "   range [50 ; 99] is mapped to [1950 ; 1999]\n");
+    fprintf (stream,
+             "this is reasonably Y2K compliant and is consistent with current use.\n");
+    fprintf (stream,
+             "Specifying year 1 is still possible using more than two digits as\n");
+    fprintf (stream,
+             "follows : \"0001-03-04\" is unambiguously March the 4th, year 1, even\n");
+    fprintf (stream,
+             "if the user's choice is us format. However using two digits only is\n");
+    fprintf (stream,
+             "not recommended (we introduce a 2050 bug here so this feature\n");
+    fprintf (stream,
+             "should be removed at some point in the future ;-)\n");
+    fprintf (stream,
+             "\n");
+    fprintf (stream,
+             "Numerical dates (days and seconds formats) can be specified using\n");
+    fprintf (stream,
+             "integral, real or exponential formats (the 'd' and 'D' exponant\n");
+    fprintf (stream,
+             "markers from fortran are supported in addition to 'e' and 'E').\n");
+    fprintf (stream,
+             "They are computed according to a customizable reference date.\n");
+    fprintf (stream,
+             "The default value is given by the REFDATE constant in the source file.\n");
+    fprintf (stream,
+             "You can change this value as you want before compiling, and you can\n");
+    fprintf (stream,
+             "change it at will using the -r command line option. The default\n");
+    fprintf (stream,
+             "value in the distributed file is \"-4713-01-01T12:00:00\", it is a\n");
+    fprintf (stream,
+             "classical reference for astronomical events (note that the '-' is\n");
+    fprintf (stream,
+             "used here both as a unary minus and as a separator).\n");
+    fprintf (stream,
+             "\n");
+    fprintf (stream,
+             "The program can be used either for Denys's and gregorian\n");
+    fprintf (stream,
+             "calendars. It does not take into account leap seconds : you can\n");
+    fprintf (stream,
+             "think it works only in International Atomic Time (TAI) and not in\n");
+    fprintf (stream,
+             "Coordinated Unified Time (UTC) ...  Inexistant dates are detected,\n");
+    fprintf (stream,
+             "they include year 0, dates between 1582-10-05 and 1582-10-14,\n");
+    fprintf (stream,
+             "February 29th of non leap years, months below 1 or above 12, ...\n");
+    fprintf (stream,
+             "\n");
+    fprintf (stream,
+             "The following command line options are supported. Apart from the -h\n");
+    fprintf (stream,
+             "flag, all of these options can be used several times, each new\n");
+    fprintf (stream,
+             "value overriding the preceding one.\n");
+    fprintf (stream,
+             "\n");
+    fprintf (stream,
+             "-i format : set user's choice for input format, supported formats are\n");
+    fprintf (stream,
+             "            iso, european, us, days, seconds and nohint.\n");
+    fprintf (stream,
+             "            At the beginning the input format is nohint, which means\n");
+    fprintf (stream,
+             "            the program try to guess the format by itself, if the\n");
+    fprintf (stream,
+             "            user's choice does not allow to parse the date, other\n");
+    fprintf (stream,
+             "            formats are tried\n");
+    fprintf (stream,
+             "-o format : force output format, supported formats are\n");
+    fprintf (stream,
+             "            iso, european, us, days, seconds and nohint.\n");
+    fprintf (stream,
+             "            At the beginning, the output format is nohint, which means\n");
+    fprintf (stream,
+             "            the program uses days format for dates read in any\n");
+    fprintf (stream,
+             "            calendar format and uses iso8601 for dates read in\n");
+    fprintf (stream,
+             "            numerical format\n");
+    fprintf (stream,
+             "-r date   : set reference date (the date is read using the current\n");
+    fprintf (stream,
+             "            input format) at the beginning the reference is set\n");
+    fprintf (stream,
+             "            according to the REFDATE constant below.\n");
+    fprintf (stream,
+             "-w year   : set the wrap year to year\n");
+    fprintf (stream,
+             "-h        : prints this help message on stderr and exits successfully\n");
+
+    exit(0);
 }
 
 /*
@@ -917,12 +1009,7 @@ int main(int argc, char *argv[])
 
         } else if (string_equal(argv[i], "-h")) {
             /* help */
-            fprintf(stderr,
-                    "usage : %s [-i input_format] [-o output_format]"
-                    " [-r reference_date] [-w wrap_year] [date ...]\n",
-                    argv[0]);
-            return EXIT_SUCCESS;
-
+            usage(stderr, argv[0]);
         } else {
             /* date */
             converted = 1;
