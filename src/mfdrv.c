@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -27,7 +27,7 @@
  */
 
 /*
- * Driver for the GRACE Metafile format
+ * Driver for the Grace Metafile format
  */
 
 #include <config.h>
@@ -38,6 +38,7 @@
 #include "defines.h"
 #include "utils.h"
 #include "draw.h"
+#include "patterns.h"
 #include "device.h"
 #include "devlist.h"
 #include "mfdrv.h"
@@ -63,6 +64,9 @@ int register_mf_drv(void)
 
 int mfinitgraphics(void)
 {
+    int i, j;
+    Page_geometry pg;
+    
     /* device-dependent routines */
     devupdatecmap   = NULL;
     
@@ -76,7 +80,46 @@ int mfinitgraphics(void)
     
     devleavegraphics = mf_leavegraphics;
 
-    fprintf(prstream, "InitGraphics { }\n");
+    fprintf(prstream, "#GMF-%s\n", GMF_VERSION);
+
+    fprintf(prstream, "FontResources {\n");
+    for (i = 0; i < number_of_fonts(); i++) {
+        fprintf(prstream, "\t( %d , \"%s\" , \"%s\" )\n", 
+            i, get_fontalias(i), get_fontfallback(i));
+    }
+    fprintf(prstream, "}\n");
+
+    fprintf(prstream, "ColorResources {\n");
+    for (i = 0; i < number_of_colors(); i++) {
+        RGB *rgb = get_rgb(i);
+        fprintf(prstream, "\t( %d , \"%s\" , %d , %d , %d )\n", 
+            i, get_colorname(i), rgb->red, rgb->green, rgb->blue);
+    }
+    fprintf(prstream, "}\n");
+
+    fprintf(prstream, "PatternResources {\n");
+    for (i = 0; i < number_of_patterns(); i++) {
+        fprintf(prstream, "\t( %d , ", i);
+        for (j = 0; j < 32; j++) {
+            fprintf(prstream, "%02x", pat_bits[i][j]);
+        }
+        fprintf(prstream, " )\n");
+    }
+    fprintf(prstream, "}\n");
+
+    fprintf(prstream, "DashResources {\n");
+    for (i = 0; i < number_of_linestyles(); i++) {
+        fprintf(prstream, "\t( %d , [ ", i);
+        for (j = 0; j < dash_array_length[i]; j++) {
+            fprintf(prstream, "%d ", dash_array[i][j]);
+        }
+        fprintf(prstream, "] )\n");
+    }
+    fprintf(prstream, "}\n");
+    
+    pg = get_page_geometry();
+    fprintf(prstream, "InitGraphics { %.4f %ld %ld }\n",
+        pg.dpi, pg.width, pg.height);
     
     return RETURN_SUCCESS;
 }
@@ -86,13 +129,13 @@ void mf_setpen(void)
     Pen pen;
     
     pen = getpen();
-    fprintf(prstream, "SetPen { %3d %3d }\n", pen.color, pen.pattern);
+    fprintf(prstream, "SetPen { %d %d }\n", pen.color, pen.pattern);
 }
 
 void mf_setdrawbrush(void)
 {
     fprintf(prstream, "SetLineWidth { %.4f }\n", getlinewidth());
-    fprintf(prstream, "SetLineStyle { %3d }\n", getlinestyle());
+    fprintf(prstream, "SetLineStyle { %d }\n", getlinestyle());
 }
 
 void mf_drawpixel(VPoint vp)
@@ -139,7 +182,7 @@ void mf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
     mf_setpen();
     mf_setdrawbrush();
     
-    fprintf(prstream, "DrawArc { ( %.4f , %.4f ) ( %.4f , %.4f ) %3d %3d }\n", 
+    fprintf(prstream, "DrawArc { ( %.4f , %.4f ) ( %.4f , %.4f ) %d %d }\n", 
                                    vp1.x, vp1.y,   vp2.x, vp2.y, a1, a2);
 }
 
@@ -155,7 +198,7 @@ void mf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
     } else {
         name = "FillPieSlice";
     }
-    fprintf(prstream, "%s { ( %.4f , %.4f ) ( %.4f , %.4f ) %3d %3d }\n", 
+    fprintf(prstream, "%s { ( %.4f , %.4f ) ( %.4f , %.4f ) %d %d }\n", 
         name, vp1.x, vp1.y,   vp2.x, vp2.y, a1, a2);
 }
 
@@ -221,10 +264,10 @@ void mf_puttext(VPoint vp, char *s, int len, int font,
     fprintf(prstream, "PutText {\n");
     fprintf(prstream, "\t( %.4f , %.4f )\n", vp.x, vp.y); 
 
-    fprintf(prstream, "\t %d %.4f %.4f %.4f %.4f %d %d %d \"", 
+    fprintf(prstream, "\t %d %.4f %.4f %.4f %.4f %d %d %d %d \"", 
                         font,
                         tm->cxx, tm->cxy, tm->cyx, tm->cyy, 
-                        underline, overline, kerning);
+                        underline, overline, kerning, len);
     for (i = 0; i < len; i++) {
         fputc(s[i], prstream);
     }
@@ -235,6 +278,10 @@ void mf_puttext(VPoint vp, char *s, int len, int font,
 
 void mf_leavegraphics(void)
 {
-    fprintf(prstream, "LeaveGraphics { }\n");
+    view v;
+    
+    v = get_bbox(BBOX_TYPE_GLOB);
+    fprintf(prstream, "LeaveGraphics { %.4f %.4f %.4f %.4f }\n",
+        v.xv1, v.yv1, v.xv2, v.yv2);
 }
 
