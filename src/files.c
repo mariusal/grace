@@ -199,7 +199,7 @@ static int reopen_real_time_input(Grace *grace, Input_buffer *ib)
     }
 
 #ifndef NONE_GUI
-    xunregister_rti((XtInputId) ib->id);
+    xunregister_rti(ib);
 #endif
 
     /* swapping the file descriptors */
@@ -235,7 +235,7 @@ void unregister_real_time_input(const char *name)
             /* name is usually the same pointer as ib->name so we cannot */
             /* free the string and output the message using name afterwards */
 #ifndef NONE_GUI
-            xunregister_rti((XtInputId) ib->id);
+            xunregister_rti(ib);
 #endif
             close(ib->fd);
             ib->fd = -1;
@@ -404,7 +404,7 @@ static int process_complete_lines(Input_buffer *ib)
 #ifndef NONE_GUI
                     /* this prevents from being called recursively by
                        the inner X loop of yesno */
-                    xunregister_rti((XtInputId) ib->id);
+                    xunregister_rti(ib);
 #endif
                     if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
                         close_input = copy_string(close_input, "");
@@ -1091,6 +1091,14 @@ int load_project_file(Grace *grace, char *fn, int as_template)
             project_set_docname(grace->project, fn);
         }
         
+        /* Set idstr = basename */
+        strcpy(buf, mybasename(fn)); 
+        bufp = strrchr(buf, '.');
+        if (bufp) {
+            *(bufp) = '\0';
+        }
+        quark_idstr_set(grace->project, buf);
+        
         /* Set timestamp */
         tfn = grace_path(grace, fn);
         if (tfn && !stat(tfn, &statb)) {
@@ -1099,17 +1107,9 @@ int load_project_file(Grace *grace, char *fn, int as_template)
             /* Probably, piped */
             time(&mtime);
         }
-
         project_update_timestamp(grace->project, &mtime);
 
-        strcpy(buf, mybasename(fn)); 
-        bufp = strrchr(buf, '.');
-        if (bufp) {
-            *(bufp) = '\0';
-        }
-        
-        quark_idstr_set(grace->project, buf);
-        
+        /* Clear dirtystate */
         quark_dirtystate_set(grace->project, FALSE);
     }
 
