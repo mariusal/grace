@@ -376,7 +376,7 @@ static int read_real_time_lines(Input_buffer *ib)
  */
 static int process_complete_lines(Input_buffer *ib)
 {
-
+    int line_corrupted;
     char *begin_of_line, *end_of_line;
 
     if (ib->used <= 0) {
@@ -386,14 +386,19 @@ static int process_complete_lines(Input_buffer *ib)
     end_of_line = NULL;
     do {
         /* loop over the embedded lines */
-        begin_of_line = (end_of_line == NULL) ? ib->buf : (end_of_line + 1);
-        end_of_line   = begin_of_line;
-        while (*end_of_line != '\0' && *end_of_line != '\n') {
-            ++end_of_line;
-        }
-        if (end_of_line == ib->buf + ib->used) {
-            /* this is not an embedded null character */
-            end_of_line = NULL;
+        begin_of_line  = (end_of_line == NULL) ? ib->buf : (end_of_line + 1);
+        end_of_line    = begin_of_line;
+        line_corrupted = 0;
+        while (end_of_line != NULL && *end_of_line != '\n') {
+            /* trying to find a complete line */
+            if (end_of_line == ib->buf + ib->used) {
+                end_of_line = NULL;
+            } else {
+                if (*end_of_line == '\0') {
+                    line_corrupted = 1;
+                }
+                ++end_of_line;
+            }
         }
 
         if (end_of_line != NULL) {
@@ -403,7 +408,7 @@ static int process_complete_lines(Input_buffer *ib)
             *end_of_line = '\0';
             close_input = NULL;
 
-            if (read_param(begin_of_line)) {
+            if (line_corrupted || read_param(begin_of_line)) {
                 sprintf(buf, "Error at line %d: %s\n",
                         ib->lineno, begin_of_line);
                 errmsg(buf);
