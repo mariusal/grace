@@ -1066,7 +1066,7 @@ int getbinary(int gno, char *fname, int imbed)
     char buf[256];
     char ver[64], ord[64], math[64], name[64];
     FILE *pp;
-    if ((pp = fopen(fname, "r")) == NULL) {
+    if ((pp = fopen(fname, "rb")) == NULL) {
 	sprintf(buf, "Can't open project file %s", fname);
 	errmsg(buf);
 	return 1;
