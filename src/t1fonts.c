@@ -720,6 +720,11 @@ GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph, int x_off, int y_off)
     GLYPH *buf_glyph;
     
     if (src_glyph == NULL) {
+        /* even if T1lib fails for some reason, don't miss the offsets! */
+        if (dest_glyph != NULL) {
+            dest_glyph->metrics.advanceX += x_off;
+            dest_glyph->metrics.advanceY += y_off;
+        }
         return (dest_glyph);
     }
     
