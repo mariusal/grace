@@ -184,8 +184,8 @@ void create_printer_setup(void *data)
 
 	rc = XmCreateRowColumn(rc1, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-        page_x_item = CreateTextItem2(rc, 6, "Dimensions:");
-        page_y_item = CreateTextItem2(rc, 6, "x ");
+        page_x_item = CreateTextItem2(rc, 7, "Dimensions:");
+        page_y_item = CreateTextItem2(rc, 7, "x ");
 	page_size_unit_item = CreatePanelChoice(rc, " ",
 			                        4,
 			                        "pix",
