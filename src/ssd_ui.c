@@ -46,8 +46,8 @@
 #define STRING_CELL_WIDTH 128
 
 /* minimum size of the spreadseet matrix */
-#define MIN_SS_ROWS      20
-#define MIN_SS_COLS       8
+#define EXTRA_SS_ROWS      20
+#define EXTRA_SS_COLS       3
 
 #define VISIBLE_SS_ROWS  15
 #define VISIBLE_SS_COLS   3
@@ -142,7 +142,7 @@ static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
         (XbaeMatrixEnterCellCallbackStruct *) call_data;
     int ncols = ssd_get_ncols(ui->q);
     
-    if (cs->column >= 0 && cs->column < ncols) {
+    if (cs->column >= 0 && cs->column <= ncols) {
         XbaeMatrixDeselectAll(ui->mw);
     } else {
         cs->doit = False;
@@ -159,22 +159,36 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     int nrows = ssd_get_nrows(ui->q);
     int ncols = ssd_get_ncols(ui->q);
     int format;
+    double value;
     
     int changed = FALSE;
     
-    if (cs->row < 0 || cs->column < 0 || cs->column >= ncols) {
+    if (cs->row < 0 || cs->column < 0 || cs->column > ncols) {
         return;
     }
     
     if (cs->row >= nrows && !string_is_empty(cs->value)) {
-        ssd_set_nrows(ui->q, cs->row + 1);
-        changed = TRUE;
+        if (ssd_set_nrows(ui->q, cs->row + 1) == RETURN_SUCCESS) {
+            changed = TRUE;
+        }
+    }
+    
+    if (cs->column == ncols && !string_is_empty(cs->value)) {
+        if (parse_date_or_number(get_parent_project(ui->q),
+                    cs->value, FALSE, &value) == RETURN_SUCCESS) {
+            format = FFORMAT_NUMBER;
+        } else {
+            format = FFORMAT_STRING;
+        }
+        if (ssd_add_col(ui->q, format)) {
+            ncols++;
+            changed = TRUE;
+        }
     }
     
     if (cs->column < ncols) {
         char *old_value = get_cell_content(ui, cs->row, cs->column, &format);
         if (!strings_are_equal(old_value, cs->value)) {
-            double value;
 	    switch (format) {
             case FFORMAT_STRING:
                 if (ssd_set_string(ui->q, cs->row, cs->column, cs->value) ==
@@ -277,10 +291,10 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     SSDataUI *ui;
 
     int i;
-    short widths[MIN_SS_COLS];
-    char *rowlabels[MIN_SS_ROWS];
-    char *collabels[MIN_SS_COLS];
-    unsigned char clab_alignments[MIN_SS_COLS];
+    short widths[EXTRA_SS_COLS];
+    char *rowlabels[EXTRA_SS_ROWS];
+    char *collabels[EXTRA_SS_COLS];
+    unsigned char clab_alignments[EXTRA_SS_COLS];
     Widget tab, fr, rc, rc1, wbut, tfield;
     
     ui = xmalloc(sizeof(SSDataUI));
@@ -304,16 +318,16 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
         ui->cformat[i] = CELL_FORMAT;
     }
 
-    for (i = 0; i < MIN_SS_ROWS; i++) {
+    for (i = 0; i < EXTRA_SS_ROWS; i++) {
     	char buf[32];
         sprintf(buf, "%d", i + 1);
     	rowlabels[i] = copy_string(NULL, buf);
     }
-    for (i = 0; i < MIN_SS_COLS; i++) {
+    for (i = 0; i < EXTRA_SS_COLS; i++) {
     	collabels[i] = "";
         clab_alignments[i] = XmALIGNMENT_CENTER;
     }
-    for (i = 0; i < MIN_SS_COLS; i++) {
+    for (i = 0; i < EXTRA_SS_COLS; i++) {
         widths[i] = CELL_WIDTH;
     }
 
@@ -323,11 +337,11 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
         XmNhorizontalScrollBarDisplayPolicy, XmDISPLAY_NONE,
         XmNverticalScrollBarDisplayPolicy, XmDISPLAY_NONE,
 #endif
-        XmNrows, MIN_SS_ROWS,
+        XmNrows, EXTRA_SS_ROWS,
         XmNvisibleRows, VISIBLE_SS_ROWS,
         XmNbuttonLabels, True,
         XmNrowLabels, rowlabels,
-        XmNcolumns, MIN_SS_COLS,
+        XmNcolumns, EXTRA_SS_COLS,
         XmNvisibleColumns, VISIBLE_SS_COLS,
         XmNcolumnLabels, collabels,
         XmNcolumnLabelAlignments, clab_alignments,
@@ -343,7 +357,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     tfield = XtNameToWidget(ui->mw, "textField");
     XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
 
-    for (i = 0; i < MIN_SS_ROWS; i++) {
+    for (i = 0; i < EXTRA_SS_ROWS; i++) {
 	xfree(rowlabels[i]);
     }
 
@@ -406,8 +420,8 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         ncols = ssd_get_ncols(q);
         nrows = ssd_get_nrows(q);
         
-        new_nc = ncols + MIN_SS_COLS;
-        new_nr = nrows + MIN_SS_ROWS;
+        new_nc = ncols + EXTRA_SS_COLS;
+        new_nr = nrows + EXTRA_SS_ROWS;
 
         XtVaGetValues(ui->mw, XmNrows, &nr, XmNcolumns, &nc, NULL);
 
@@ -477,9 +491,9 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             XtVaSetValues(ui->mw, XmNcolumnWidths, widths, NULL);
         }
 
-#if 1
+#if XbaeVersion < 45102
         /* A bug in Xbae - the cell with focus on is NOT updated, so we do it*/
-        /* NB: not needed with current Xbae CVS */
+        /* Fixed in 4.51.02 */
         XbaeMatrixGetCurrentCell(ui->mw, &cur_row, &cur_col);
         XbaeMatrixSetCell(ui->mw, cur_row, cur_col,
             get_cell_content(ui, cur_row, cur_col, &format));
