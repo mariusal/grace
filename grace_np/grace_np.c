@@ -167,7 +167,7 @@ GraceOneWrite(int left)
 }
 
 /*
- * register an user function to report errors
+ * register a user function to report errors
  */
 GraceErrorFunctionType
 GraceRegisterErrorFunction(GraceErrorFunctionType f)
@@ -183,13 +183,13 @@ static void
 handle_sigchld(int signum)
 {
     int status;
-    int retval;
+    pid_t retval;
     
     if (fd_pipe != -1) {
         retval = waitpid(pid, &status, WNOHANG);
         if (retval == pid) {
             /* Grace just died */
-            GraceCleanup();
+            pid = (pid_t) -1;
         }
     }
 }
@@ -209,7 +209,7 @@ GraceOpenVA(char* exe, int bs, ...)
         return (-1);
     }
 
-    /* Set the buffer sizes according to arg */
+    /* Make sure the buffer is not too small */
     if (bs < 64) {
         error_function("The buffer size in GraceOpenVA should be >= 64");
         return (-1);
@@ -227,7 +227,7 @@ GraceOpenVA(char* exe, int bs, ...)
     /* Don't exit on SIGPIPE */
     signal(SIGPIPE, SIG_IGN);
     
-    /* Don't exit when our child "grace" exits */
+    /* Clean up zombie prcesses */
     signal(SIGCHLD, handle_sigchld);
 
     /* Make the pipe */
@@ -319,8 +319,8 @@ GraceClose(void)
         return (-1);
     }
 
-    /* Tell grace to close the pipe */
-    if (GraceCommand ("exit") == -1 || GraceFlush() != 0){
+    /* Tell grace to exit */
+    if (GraceCommand ("exit") == -1 || GraceFlush() == -1){
         kill(pid, SIGTERM);
     }
 
@@ -338,10 +338,10 @@ GraceClosePipe(void)
     }
 
     /* Tell grace to close the pipe */
-    if (GraceCommand ("close") == -1)
+    if (GraceCommand ("close") == -1 || GraceFlush() == -1){
+        GraceCleanup();
         return (-1);
-    if (GraceFlush() != 0)
-        return (-1);
+    }
 
     GraceCleanup();
     
