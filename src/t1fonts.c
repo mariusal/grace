@@ -444,7 +444,7 @@ GLYPH *GetGlyphString(CompositeString *cs)
 
     dev = get_curdevice_props();
     if (dev.fontaa == TRUE) {
-    	fg = getcolor();
+    	fg = cs->color;
     	bg = getbgcolor();
 
     	aacolors[0] = bg;
@@ -521,32 +521,25 @@ CompositeString *String2Composite(char *string)
     int slen;
     int nss;
     char ccode;
-    
     int upperset = FALSE;
+    double scale;
+    TextMatrix tm_buf;
+    
+    int font = BAD_FONT_ID, new_font = font;
+    int color = BAD_COLOR, new_color = color;
+    TextMatrix tm = unit_tm, tm_new = tm;
+    double hshift = 0.0, new_hshift = hshift;
+    double vshift = 0.0, new_vshift = vshift;
     int underline = FALSE, overline = FALSE;
     int new_underline = underline, new_overline = overline;
-    double hshift = 0.0;
-    double new_hshift = hshift; 
-    double vshift = 0.0;
-    double new_vshift = vshift; 
-    TextMatrix tm = unit_tm;
-    TextMatrix tm_new = tm, tm_buf;
-    int font = BAD_FONT_ID;
-    int new_font = font;
-    
-    double scale;
-    
-    int setmark = MARK_NONE;
-    int gotomark = MARK_NONE;
-    int new_gotomark = gotomark;
-    
-    int direction = STRING_DIRECTION_LR;
-    int advancing = TEXT_ADVANCING_LR;
-    int new_direction = direction, new_advancing = advancing;
-
-    int ligatures = FALSE, new_ligatures = ligatures;
     int kerning = FALSE, new_kerning = kerning;
-    
+    int direction = STRING_DIRECTION_LR, new_direction = direction;
+    int advancing = TEXT_ADVANCING_LR, new_advancing = advancing;
+    int ligatures = FALSE, new_ligatures = ligatures;
+
+    int setmark = MARK_NONE;
+    int gotomark = MARK_NONE, new_gotomark = gotomark;
+
     slen = strlen(string);
     
     if (slen == 0) {
@@ -616,7 +609,7 @@ CompositeString *String2Composite(char *string)
             i += 2;
             continue;
         } else if (string[i] == '\\' && 
-                isoneof(string[i + 1], "cCsSNBxuUoO+-fhvzZmM#rlqQtT")) {
+                isoneof(string[i + 1], "cCsSNBxuUoO+-fhvzZmM#rlqQtTR")) {
 	    i++;
 	    ccode = string[i];
             switch (ccode) {
@@ -632,6 +625,7 @@ CompositeString *String2Composite(char *string)
 	    case 'l':
 	    case 't':
 	    case 'T':
+	    case 'R':
 		if (string[i + 1] == '{') {
                     j = 0;
                     while (string[i + 2 + j] != '}' &&
@@ -719,6 +713,15 @@ CompositeString *String2Composite(char *string)
                                 }
                             }
                             break;
+	                case 'R':
+                            if (j == 0) {
+                                new_color = BAD_COLOR;
+                            } else if (isdigit(buf[0])) {
+                                    new_color = atof(buf);
+                            } else {
+                                new_color = get_color_by_name(buf);
+                            }
+                            break;
                         }
                         i += (j + 2);
                     }
@@ -782,27 +785,29 @@ CompositeString *String2Composite(char *string)
             acc_len = 1;
         }
 	
-        if ((new_font  != font          ) ||
-	    (tm_new.cxx != tm.cxx       ) ||
-	    (tm_new.cxy != tm.cxy       ) ||
-	    (tm_new.cyx != tm.cyx       ) ||
-	    (tm_new.cyy != tm.cyy       ) ||
-	    (new_hshift != 0.0          ) ||
-	    (new_vshift != vshift       ) ||
+        if ((new_font      != font      ) ||
+	    (new_color     != color     ) ||
+	    (tm_new.cxx    != tm.cxx    ) ||
+	    (tm_new.cxy    != tm.cxy    ) ||
+	    (tm_new.cyx    != tm.cyx    ) ||
+	    (tm_new.cyy    != tm.cyy    ) ||
+	    (new_hshift    != 0.0       ) ||
+	    (new_vshift    != vshift    ) ||
 	    (new_underline != underline ) ||
-	    (new_overline != overline   ) ||
-	    (new_kerning != kerning     ) ||
+	    (new_overline  != overline  ) ||
+	    (new_kerning   != kerning   ) ||
 	    (new_direction != direction ) ||
 	    (new_advancing != advancing ) ||
 	    (new_ligatures != ligatures ) ||
-	    (setmark >= 0               ) ||
-	    (new_gotomark >= 0          ) ||
-	    (string[i] == 0             )) {
+	    (setmark       >= 0         ) ||
+	    (new_gotomark  >= 0         ) ||
+	    (string[i]     == 0         )) {
 	    
             if (isub != 0) {	/* non-empty substring */
 	
 	        csbuf = xrealloc(csbuf, (nss + 1)*sizeof(CompositeString));
 	        csbuf[nss].font = font;
+	        csbuf[nss].color = color;
 	        csbuf[nss].tm = tm;
 	        csbuf[nss].hshift = hshift;
 	        csbuf[nss].vshift = vshift;
@@ -828,6 +833,7 @@ CompositeString *String2Composite(char *string)
             }
 	    
 	    font = new_font;
+	    color = new_color;
 	    tm = tm_new;
 	    hshift = new_hshift;
             if (hshift != 0.0) {
@@ -964,6 +970,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     double page_ipv, page_dpv;
     
     int def_font = getfont();
+    int def_color = getcolor();
  
     double Angle = 0.0;
     int text_advancing;
@@ -1035,6 +1042,9 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
 	/* Post-process the CS */
         if (cstring[iglyph].font == BAD_FONT_ID) {
             cstring[iglyph].font = def_font;
+        }
+        if (cstring[iglyph].color == BAD_COLOR) {
+            cstring[iglyph].color = def_color;
         }
         if (cstring[iglyph].aux.ligatures == TRUE) {
             proceed_ligatures(&cstring[iglyph]);

@@ -87,6 +87,7 @@ typedef struct {
     char *s;
     int len;
     int font;
+    int color;
     TextMatrix tm;
     double hshift;
     double vshift;
