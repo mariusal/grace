@@ -906,7 +906,7 @@ static int axes_aac_cb(void *data)
     
     xdrawgraph();
 
-    //update_ticks(cg);
+    update_ticks(cg);
     
     return RETURN_SUCCESS;
 }
