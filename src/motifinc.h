@@ -353,6 +353,7 @@ typedef int (*AACDialog_CBProc)(
 
 void ManageChild(Widget w);
 void UnmanageChild(Widget w);
+int IsManaged(Widget w);
 void SetSensitive(Widget w, int onoff);
 
 Widget GetParent(Widget w);

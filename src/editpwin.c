@@ -476,7 +476,7 @@ EditPoints *get_unused_ep()
     EditPoints *ep_tmp = ep_start;
 
     while (ep_tmp != NULL) {
-        if (XtIsManaged(GetParent(ep_tmp->top)) == False) {
+        if (IsManaged(GetParent(ep_tmp->top)) == False) {
             break;
         }
         ep_tmp = ep_tmp->next;
@@ -491,7 +491,7 @@ void update_ss_editors(Quark *gr)
     while (ep != NULL) {
         if (!gr || ep->pset->parent == gr) {
             /* don't spend time on unmanaged SS editors */
-            if (XtIsManaged(GetParent(ep->top))) {
+            if (IsManaged(GetParent(ep->top))) {
                 update_cells(ep);
             }
         }

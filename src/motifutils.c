@@ -164,6 +164,11 @@ void UnmanageChild(Widget w)
     XtUnmanageChild(w);
 }
 
+int IsManaged(Widget w)
+{
+    return (XtIsManaged(w) == True) ? TRUE:FALSE;
+}
+
 void SetSensitive(Widget w, int onoff)
 {
     XtSetSensitive(w, onoff ? True : False);

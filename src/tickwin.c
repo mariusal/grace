@@ -962,7 +962,7 @@ void update_ticks(Quark *gr)
     char buf[128];
     int i;
 
-    if (axes_dialog && XtIsManaged(axes_dialog)) {
+    if (axes_dialog && IsManaged(axes_dialog)) {
         t = get_graph_tickmarks(gr, curaxis);
         if (!t) {
             return;
