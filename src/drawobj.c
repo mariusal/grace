@@ -52,6 +52,11 @@ void draw_object(Canvas *canvas, Quark *q)
         WPoint wp;
         wp.x = o->ap.x;
         wp.y = o->ap.y;
+        
+        if (!is_validWPoint(wp)) {
+            return;
+        }
+        
         anchor = Wpoint2Vpoint(wp);
     } else
     if (loctype == COORD_FRAME) {
@@ -67,11 +72,7 @@ void draw_object(Canvas *canvas, Quark *q)
     anchor.x += o->offset.x;
     anchor.y += o->offset.y;
     
-    if (loctype == COORD_VIEW) {
-        setclipping(canvas, FALSE);
-    } else {
-        setclipping(canvas, TRUE);
-    }
+    setclipping(canvas, FALSE);
     
     activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
     reset_bbox(canvas, BBOX_TYPE_TEMP);
