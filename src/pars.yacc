@@ -2903,6 +2903,9 @@ actions:
 	| FLUSH {
             wipeout();
         }
+	| ARRANGE '(' nexpr ',' nexpr ',' expr ',' expr ',' expr ')' {
+            arrange_graphs_simple($3, $5, 0, $7, $9, $11);
+        }
 	| ARRANGE '(' nexpr ',' nexpr ',' expr ',' expr ',' expr ',' onoff ',' onoff ',' onoff ')' {
             int order = ($13 * GA_ORDER_HV_INV) |
                         ($15 * GA_ORDER_H_INV ) |
