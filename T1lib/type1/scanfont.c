@@ -365,7 +365,7 @@ static int getEncoding(arrayP)
       arrayP->len = 256;
 
       for (i=0; i<256; i++)
-	  objFormatName(objP + i, 7, ".notdef");
+	  objFormatName(objP + i, 7, not_def);
 
       while (TRUE)
       {
@@ -457,20 +457,24 @@ static int getArray(arrayP)
   /* NOTREACHED*/
 }
 /***================================================================***/
-static int getName(nameP)
-    char *nameP;
-{
-  do {
-    scan_token(inputP);
-    if (tokenType <= TOKEN_NONE) {
-      if (tokenTooLong) return(SCAN_OUT_OF_MEMORY);
-      return(SCAN_ERROR);
-    }
+/* is not needed */
+/*
+  static int getName(nameP)
+  char *nameP;
+  {
+  do { 
+  scan_token(inputP);
+  if (tokenType <= TOKEN_NONE) {
+  if (tokenTooLong) return(SCAN_OUT_OF_MEMORY);
+  return(SCAN_ERROR);
+  }
   } while ((tokenType != TOKEN_NAME) ||
-    (0 != strncmp(tokenStartP,nameP,strlen(nameP))) );
-  /* found */
+  (0 != strncmp(tokenStartP,nameP,strlen(nameP))) );
+  
   return(SCAN_OK);
-}
+  }
+*/
+
 /***================================================================***/
 static int getNbytes(N)
     int N;
@@ -518,7 +522,7 @@ static int getLiteralName(nameObjP)
  
 /***================================================================***/
 /*
- *   BuildSubrs routine
+ *   BuildSubrs routine 
  */
 /***================================================================***/
  
@@ -543,8 +547,19 @@ static int BuildSubrs(FontP)
      /* process all the Subrs, but do not update anything */
      /* can not just skip them because of the binary data */
      for (i=0;i<N;i++) {
-       /* look for dup */
-       rc = getName("dup");
+       /* look for "dup" or "ND" or "|-" or (noaccess) "def". If one of
+	  the latter three token appears, we are done even if still i < N-1.
+	  in this case, there aren´t as much subroutines as fields in the
+	  array which is allowed (Fix thanks to Derek B. Noonburg) */
+       do {
+	 rc = getNextValue(TOKEN_NAME);
+	 if ( rc != SCAN_OK ) return(rc);
+	 if (!strncmp(tokenStartP, "ND", 2) ||
+	     !strncmp(tokenStartP, "|-", 2) ||
+	     !strncmp(tokenStartP, "def", 3)) {
+	   return SCAN_OK;
+	 }
+       } while (strncmp(tokenStartP, "dup", 3));
        if (rc) return(rc);
        /* get 2 integers */
        I = getInt();
@@ -563,17 +578,30 @@ static int BuildSubrs(FontP)
  
    arrayP = (psobj *)vm_alloc(N*sizeof(psobj));
    if (!(arrayP) ) return(SCAN_OUT_OF_MEMORY);
+   /* explicitly resetting the array is not necessary since the pointer
+      as well as the subroutines both are located in VM and we can
+      assume that only define subroutines are referenced. */
    FontP->Subrs.len = N;
    FontP->Subrs.data.arrayP =  arrayP;
    /* get N values for Subrs */
    for (i=0;i<N;i++) {
-     /* look for dup */
-     rc = getName("dup");
-     if (rc) return(rc);
+     /* look for "dup" or "ND" or "|-" or (noaccess) "def". If one of
+	the latter three token appears, we are done even if still i < N-1.
+	in this case, there aren´t as much subroutines as fields in the
+	array which is allowed (Fix thanks to Derek B. Noonburg) */
+     do {
+       rc = getNextValue(TOKEN_NAME);
+       if ( rc != SCAN_OK ) return(rc);
+       if (!strncmp(tokenStartP, "ND", 2) ||
+	   !strncmp(tokenStartP, "|-", 2) ||
+	   !strncmp(tokenStartP, "def", 3)) {
+	 return SCAN_OK;
+       }
+     } while (strncmp(tokenStartP, "dup", 3));
      /* get 2 integers */
-     I = getInt();
-     if (rc) return(rc);
-     J = getInt();
+     I = getInt();       /* index into array of Subroutines */
+     if (rc) return(rc); 
+     J = getInt();       /* number of binary bytes that follow */
      if (rc) return(rc);
      if ( (I < 0) || (J < 0 ) ) return (SCAN_ERROR);
      arrayP[I].len = J;
@@ -590,6 +618,8 @@ static int BuildSubrs(FontP)
    return(SCAN_OK);
  
 }
+
+
 /***================================================================***/
 /***================================================================***/
 /*
@@ -632,6 +662,8 @@ static int BuildCharStrings(FontP)
    for (i=1;i<=N;i++) {
      /* look for next literal name  */
      rc = getLiteralName(&(dictP[i].key));
+     /* If rc=SCAN_END, the end of file has been reached. This means
+	there were less than N charstrings. This is perfectly valid. */
      if (rc) return(rc);
      /* get 1 integer */
      J = getInt();
@@ -646,7 +678,10 @@ static int BuildCharStrings(FontP)
        dictP[i].value.data.valueP = tokenStartP;
        if ( !(vm_alloc(J)) ) return(SCAN_OUT_OF_MEMORY);
      }
-     else return(rc);
+     else {
+       return(rc);
+     }
+     
    }
    return(SCAN_OK);
  

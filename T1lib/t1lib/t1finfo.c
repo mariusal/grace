@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1finfo.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-06-05
+  ----- Date:        1999-09-01
   ----- Description: This file is part of the t1-library. It contains
                      functions for accessing afm-data and some other
 		     fontinformation data.
@@ -62,6 +62,10 @@
    global variable ForceAFMBBox: */
 static int ForceAFMBBoxInternal=0;
 
+
+extern int ForceAFMBBox;
+extern char *t1_get_abort_message( int number);
+  
 
 /* int T1_GetKerning(): This function returns the amount of kerning that
    is specified in the afm-file for the supplied character-pair. If an
@@ -160,14 +164,11 @@ BBox T1_GetCharBBox( int FontID, char char1)
   int mode=0;
   int i;
   
-  extern int ForceAFMBBox;
   BBox NullBBox= { 0, 0, 0, 0}; /* A bounding box containing all 0's. */
   BBox ResultBox= { 0, 0, 0, 0}; /* The Box returned if char is found */
   
   unsigned char uchar1;
 
-  extern char *t1_get_abort_message( int number);
-  
 
   /* We return to this if something goes wrong deep in the rasterizer */
   if ((i=setjmp( stck_state))!=0) {

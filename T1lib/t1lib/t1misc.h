@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1misc.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-06-12
+  ----- Date:        1999-09-02
   ----- Description: This file is part of the t1-library. It contains
                      some miscellaneous definitions.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
@@ -66,9 +66,18 @@
    determined by configure at compile time) */
 #define T1_CONFIGFILENAME    ".t1librc"
 #define ENV_CONF_STRING      "T1LIB_CONFIG"
+#define GLOBAL_CONFIG_FILE   "t1lib.config"
 #define DIRECTORY_SEP        "/"
 #define DIRECTORY_SEP_CHAR   '/'
-#define GLOBAL_CONFIG_FILE   "t1lib.config"
+/* For EMX-environment, we define the default path separator to
+   be ';' instead of ':' */
+#ifdef __EMX__
+#define PATH_SEP             ";"
+#define PATH_SEP_CHAR        ';'
+#else
+#define PATH_SEP             ":"
+#define PATH_SEP_CHAR        ':'
+#endif
 
 
 /* Default name for t1lib-logfile: */
@@ -183,3 +192,7 @@ extern int errno;
 /*   */
 #define DO_RASTER                     0x1
 #define DO_NOT_RASTER                 0x0
+
+
+/* this definition reports a character substitution from fontfcn */
+#define FF_NOTDEF_SUBST               -1

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1set.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-06-28
+  ----- Date:        1999-09-02
   ----- Description: This file is part of the t1-library. It contains
                      definitions and declarations for t1set.c.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
@@ -47,11 +47,12 @@ GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2,
 void T1_DumpGlyph( GLYPH *glyph);
 GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag);
 
+
 #else
 
 extern GLYPH *T1_SetChar( int FontID, char charcode, 
 			  float size, T1_TMATRIX *transform);
-extern GLYPH *T1_SetString( int FontID, char *string, int len,
+extern GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 			    long spaceoff, int modflag,
 			    float size, T1_TMATRIX *transform);
 extern void fill(char *dest, int h, int w,
@@ -69,4 +70,9 @@ extern GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag);
 
 extern struct region *fontfcnB( );
 extern struct region *fontfcnB_string( );
+extern struct region *fontfcnB_ByName( int FontID, int modflag,
+				       struct XYspace *S,
+				       char *charname,
+				       int *mode, psfont *Font_Ptr,
+				       int do_raster);
 

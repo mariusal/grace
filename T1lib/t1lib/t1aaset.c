@@ -2,7 +2,7 @@
   ----- File:        t1aaset.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
                      Subsampling based on code by Raph Levien (raph@acm.org)
-  ----- Date:        1999-06-06
+  ----- Date:        1999-09-01
   ----- Description: This file is part of the t1-library. It contains
                      functions for antialiased setting of characters
 		     and strings of characters.
@@ -1356,7 +1356,6 @@ int T1_AAHGetGrayValues( long *pgrayvals)
    foreground */
 int T1_AANGetGrayValues( long *pgrayvals) 
 {
-  int i;
 
   if (CheckForInit()) {
     T1_errno=T1ERR_OP_NOT_PERMITTED;

@@ -89,7 +89,7 @@ F_FILE *T1Open(fn, mode)
  
   /* We know we are only reading */
   /* cygwin32 also needs the binary flag to be set */
-#if defined(MSDOS) | defined(_WIN32)
+#if defined(MSDOS) | defined(_WIN32) | defined (__EMX__)
   if ((of->fd=open(fn, O_RDONLY | O_BINARY)) < 0) return NULL;
 #else
   if ((of->fd=open(fn, O_RDONLY)) < 0) return NULL;

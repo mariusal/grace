@@ -4,7 +4,7 @@
   --------------------------------------------------------------------------
 
 /*--------------------------------------------------------------------------
-  ----- File:        REAMDE.t1lib-0.9.1
+  ----- File:        REAMDE.t1lib-0.9.2
   ----- Author:      Rainer Menzner 
 		     (Rainer.Menzner@neuroinformatik.ruhr-uni-bochum.de)
 
@@ -12,7 +12,7 @@
 		     from:
                                 Raph Levien (raph@acm.org) and 
 				Fred L. Drake, Jr. (fdrake@acm.org)
-  ----- Date:        1999-06-14
+  ----- Date:        1999-08-04
   ----- Description: This is file README.t1lib of the t1lib-package. It
                      contains an overview and brief installation
                      instructions for the t1-library.
@@ -177,11 +177,11 @@ How to get it:
 
 t1lib is available at
 
-ftp://ftp.neuroinformatik.ruhr-uni-bochum.de/pub/software/t1lib/t1lib-0.9.1.tar.gz
+ftp://ftp.neuroinformatik.ruhr-uni-bochum.de/pub/software/t1lib/t1lib-0.9.2.tar.gz
 
 and 
 
-ftp://sunsite.unc.edu/pub/Linux/libs/graphics/t1lib-0.9.1.tar.gz
+ftp://sunsite.unc.edu/pub/Linux/libs/graphics/t1lib-0.9.2.tar.gz
 
 
 Closing:

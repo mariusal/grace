@@ -92,7 +92,15 @@ typedef struct xobject xobject;
 #define HMOVETO     22
 #define VHCURVETO   30
 #define HVCURVETO   31
- 
+
+/* The following charstring code appears in some old Adobe font files
+   in space and .notdef character and does not seems to do anything
+   useful aside from taking two args from the stack. We allow this
+   command and ignore it. The source code of ghostscript states that
+   this command is obsolete *and* undocumented.
+   This code may also appear in an Escape-sequence! */
+#define UNKNOWN_15  15
+
 /*******************************************/
 /* Adobe Type 1 CharString Escape commands */
 /*******************************************/
@@ -133,9 +141,7 @@ static LONG tmpi;    /* Store converted value in tmpi to avoid re-evaluation */
 #define ROUND(x) FLOOR((x) + 0.5)
 #define ODD(x) (((int)(x)) & 01)
 
-int currentchar = -1; /* for error reporting */
-
-#define CC IfTrace1(TRUE, "'%03o ", currentchar)
+#define CC IfTrace1(TRUE, "Char \"%s\": ", currentchar)
 
 /* To make some compiler happy we have to care about return  types! */
 #define Errori {errflag = TRUE; return 0;}    /* integer */
@@ -174,6 +180,7 @@ static int errflag;
 /* Global variables to hold Type1Char parameters */
 /*************************************************/
 static char *Environment;
+static char *currentchar;
 static struct XYspace *CharSpace;
 static psobj *CharStringP, *SubrsP, *OtherSubrsP;
 static int *ModeP;
@@ -885,8 +892,9 @@ static int PSFakePush(Num)
 static DOUBLE PSFakePop ()
 {
   if (PSFakeTop >= 0) return(PSFakeStack[PSFakeTop--]);
+  
   else Error0d("PSFakePop : Stack empty\n");
-  return(0.0);
+
   /*NOTREACHED*/
 }
  
@@ -1217,6 +1225,10 @@ static int DoCommand(Code)
       RRCurveTo(Stack[0], 0.0, Stack[1], Stack[2], 0.0, Stack[3]);
       ClearStack();
       break;
+  case UNKNOWN_15:
+    if (Top < 1) Error1i("DoCommand: Stack low (Code=%d)\n", Code);
+    ClearStack();
+    break;
     default: /* Unassigned command code */
 #ifdef DoCommandDebug
       printf("DoCommand: Unassigned\n");
@@ -1305,17 +1317,21 @@ static int Escape(Code)
       /* onto the Type 1 BuildChar operand stack */
       Push(PSFakePop());
       break;
-    case SETCURRENTPOINT: /* |- x y SETCURRENTPOINT |- */
-      /* Sets the current point to (x,y) in absolute */
-      /* character space coordinates without per- */
-      /* forming a CharString MOVETO command */
-      if (Top < 1) Error1i("DoCommand: Stack low (Code=%d)\n", Code);
-      SetCurrentPoint(Stack[0], Stack[1]);
-      ClearStack();
-      break;
-    default: /* Unassigned escape code command */
-      ClearStack();
-      Error1i("Escape: Unassigned code %d\n", Code);
+  case SETCURRENTPOINT: /* |- x y SETCURRENTPOINT |- */
+    /* Sets the current point to (x,y) in absolute */
+    /* character space coordinates without per- */
+    /* forming a CharString MOVETO command */
+    if (Top < 1) Error1i("DoCommand: Stack low (Code=%d)\n", Code);
+    SetCurrentPoint(Stack[0], Stack[1]);
+    ClearStack();
+    break;
+  case UNKNOWN_15:
+    if (Top < 1) Error1i("DoCommand: Stack low (Code=%d)\n", Code);
+    ClearStack();
+    break;
+  default: /* Unassigned escape code command */
+    ClearStack();
+    Error1i("Escape: Unassigned code %d\n", Code);
   }
   return(0);
 
@@ -1544,7 +1560,6 @@ static int Seac(asb, adx, ady, bchar, achar)
   CharStringP = GetType1CharString(Environment, achar);
   if (CharStringP == NULL) {
      Error1i("Invalid accent ('%03o) in SEAC\n", achar);
-     return(0);
   }
   StartDecrypt();
  
@@ -1965,7 +1980,7 @@ struct xobject *Type1Char(psfont *env, struct XYspace *S,
 			  psobj *charstrP, psobj *subrsP,
 			  psobj *osubrsP,
 			  struct blues_struct *bluesP,
-			  int *modeP)
+			  int *modeP, char *charname)
 {
   int Code;
  
@@ -1973,6 +1988,7 @@ struct xobject *Type1Char(psfont *env, struct XYspace *S,
   errflag = FALSE;
  
   /* Make parameters available to all Type1 routines */
+  currentchar=charname;
   Environment = (char *)env;
   CharSpace = S; /* used when creating path elements */
   CharStringP = charstrP;

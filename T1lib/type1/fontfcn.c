@@ -49,17 +49,22 @@ extern xobject Type1Char(psfont *env, struct XYspace *S,
 			 psobj *charstrP, psobj *subrsP,
 			 psobj *osubrsP,
 			 struct blues_struct *bluesP,
-			 int *modeP);
+			 int *modeP, char *name);
 extern xobject Type1Line(psfont *env, struct XYspace *S,
 				 float line_position,
 				 float line_thickness,
 				 float line_length);
-extern void T1io_reset(void);
+extern  boolean Init_BuiltInEncoding( void);
+void objFormatName(psobj *objP, int length, char *valueP);
+  
+extern void T1io_reset( void);
+
 
 
 /***================================================================***/
 /*   GLOBALS                                                          */
 /***================================================================***/
+static char CurCharName[257]="";
 char CurFontName[120];
 char *CurFontEnv;
 char *vm_base = NULL;
@@ -108,9 +113,6 @@ int SearchDictName(dictP,keyP)
  */
 boolean initFont()
 {
-  extern  boolean Init_BuiltInEncoding();
-
-  
   if (!(vm_init())) return(FALSE);
   vm_base = vm_next_byte();
   if (!(Init_BuiltInEncoding())) return(FALSE);
@@ -181,7 +183,6 @@ xobject fontfcnB(int FontID, int modflag,
 		 psfont *Font_Ptr,
 		 int do_raster)
 {
-  path updateWidth();
  
   psobj *charnameP; /* points to psobj that is name of character*/
   int   N;
@@ -189,11 +190,9 @@ xobject fontfcnB(int FontID, int modflag,
   psobj   CodeName;   /* used to store the translation of the name*/
   psobj  *SubrsArrayP;
   psobj  *theStringP;
- 
-  struct segment *charpath;   /* the path for this character   */           
-  struct segment *tmppath1;   /* For concatenation */
-  int acc_width;
+  int localmode=0;
   
+  struct segment *charpath;   /* the path for this character   */           
   
   /* set the global font pointer to the address of already allocated
      structure */
@@ -221,11 +220,20 @@ xobject fontfcnB(int FontID, int modflag,
     charnameP->data.stringP = (unsigned char *) &notdef;
     N = SearchDictName(CharStringsDictP,charnameP);
     /* Font must be completely damaged if it doesn't define a .notdef */
-    if (N<=0){
+    if (N<=0) {
       *mode=FF_PARSE_ERROR;
       return(NULL);
     }
   }
+  /* we provide the Type1Char() procedure with the name of the character
+     to rasterize for debugging purposes */
+  strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
+  CurCharName[charnameP->len]='\0';
+  /* tell the calling function about rastering .notdef */
+  if (strcmp( CurCharName, ".notdef")==0) {
+    localmode=FF_NOTDEF_SUBST;
+  }
+  
   /* ok, the nth item is the psobj that is the string for this char */
   theStringP = &(CharStringsDictP[N].value);
  
@@ -235,67 +243,8 @@ xobject fontfcnB(int FontID, int modflag,
 
   /* call the type 1 routine to rasterize the character     */
   charpath = (struct segment *) Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
-					  FontP->BluesP , mode);
+					  FontP->BluesP,mode,CurCharName);
   
-  /* for debugging path elements */
-  /*  tmppath1=charpath;
-#define   LINETYPE    (0x10)
-#define   CONICTYPE   (0x11)
-#define   BEZIERTYPE  (0x12)
-#define   HINTTYPE    (0x13)
- 			
-#define   MOVETYPE    (0x15)
-#define   TEXTTYPE    (0x16)
-  
-  while (tmppath1->link!=NULL){
-    printf("tmppath1=%p\n", tmppath1);
-    
-    if (tmppath1->type==LINETYPE)
-      printf("path->type: LINETYPE\n");
-    if (tmppath1->type==CONICTYPE)
-      printf("path->type: CONICTYPE\n");
-    if (tmppath1->type==MOVETYPE)
-      printf("path->type: MOVETYPE\n");
-    if (tmppath1->type==BEZIERTYPE)
-      printf("path->type: BEZIERTYPE\n");
-    if (tmppath1->type==HINTTYPE)
-      printf("path->type: HINTTYPE\n");
-    if (tmppath1->type==TEXTTYPE)
-      printf("path->type: TEXTTYPE\n");
-    tmppath1=tmppath1->link;
-    }
-  */
-    
-  /* Get width of char in charspace coordinates. We do not multiply with
-     extension factor because extension is already done in the space matrix */
-  /*
-  acc_width = (int) (pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) index]].wx);
-  */
-  
-  /* Take care for underlining and such */
-  /*
-  if (modflag & T1_UNDERLINE) {
-    tmppath1=(struct segment *)Type1Line(FontP,S,
-					 pFontBase->pFontArray[FontID].UndrLnPos,
-					 pFontBase->pFontArray[FontID].UndrLnThick,
-					 (float) acc_width);
-    charpath=(struct segment *)Join(charpath,tmppath1);
-  }
-  if (modflag & T1_OVERLINE) {
-    tmppath1=(struct segment *)Type1Line(FontP,S,
-					 pFontBase->pFontArray[FontID].OvrLnPos,
-					 pFontBase->pFontArray[FontID].OvrLnThick,
-					 (float) acc_width);
-    charpath=(struct segment *)Join(charpath,tmppath1);
-  }
-  if (modflag & T1_OVERSTRIKE) {
-    tmppath1=(struct segment *)Type1Line(FontP,S,
-					 pFontBase->pFontArray[FontID].OvrStrkPos,
-					 pFontBase->pFontArray[FontID].OvrStrkThick,
-					 (float) acc_width);
-    charpath=(struct segment *)Join(charpath,tmppath1);
-  }
-  */
   /* if Type1Char reported an error, then return */
 
   if ( *mode == FF_PARSE_ERROR)  return(NULL);
@@ -306,6 +255,9 @@ xobject fontfcnB(int FontID, int modflag,
       charpath =  (struct segment *)Interior(charpath,WINDINGRULE+CONTINUITY);
     }
   }
+
+  if (*mode==0)
+    *mode=localmode;
   
   return((xobject) charpath);
 }
@@ -391,8 +343,6 @@ pointer infoValue;    /* parameter returned here    */
 int  *rcodeP;
 {
 
-  void objFormatName(psobj *objP, int length, char *valueP);
-  
   int rc,N,i;
   psdict *dictP;
   psobj  nameObj;
@@ -481,7 +431,6 @@ xobject fontfcnB_string( int FontID, int modflag,
 			 int *kern_pairs, long spacewidth,
 			 int do_raster)
 {
-  path updateWidth();
  
   psobj *charnameP; /* points to psobj that is name of character*/
   int   N;
@@ -492,6 +441,7 @@ xobject fontfcnB_string( int FontID, int modflag,
   long   acc_width=0;
   int    i;
   struct segment  *charpath, *tmppath1, *tmppath2;
+  int localmode=0;
   
   /* set the global font pointer to the address of already allocated
      structure */
@@ -504,13 +454,13 @@ xobject fontfcnB_string( int FontID, int modflag,
   
   /* In the following for-loop, all characters are processed, one after
      the other. Between them, the amount of kerning is inserted: */
-  for (i=0; i<no_chars;i++){
+  for (i=0; i<no_chars;i++) {
     if (ev==NULL){  /* font-internal encoding should be used */
       charnameP = &CodeName;
       charnameP->len = FontP->fontInfoP[ENCODING].value.data.arrayP[string[i]].len;
       charnameP->data.stringP = (unsigned char *) FontP->fontInfoP[ENCODING].value.data.arrayP[string[i]].data.arrayP;
     }
-    else{           /* some user-supplied encoding is yo be used */
+    else {           /* some user-supplied encoding is to be used */
       charnameP = &CodeName;
       charnameP->len = strlen(ev[string[i]]);
       charnameP->data.stringP = (unsigned char*) ev[string[i]];
@@ -523,31 +473,33 @@ xobject fontfcnB_string( int FontID, int modflag,
       acc_width += spacewidth;
       
     }
-    /* We ignore the .notdef character completely */
-    else if (strcmp((char *)charnameP->data.stringP, ".notdef")==0){
-      tmppath1=(struct segment *)ILoc(S, 0, 0);
-    }
-    else{
+    else {
       /* search the chars string for this charname as key */
       N = SearchDictName(CharStringsDictP,charnameP);
       if (N<=0) {
-	if (no_chars==1){
-	  /* Instead of returning an error, we substitute .notdef (RMz) */
-	  charnameP = &CodeName;
-	  charnameP->len = 7;
-	  charnameP->data.stringP = (unsigned char *) &notdef;
-	  N = SearchDictName(CharStringsDictP,charnameP);
-	}
-	else
-	  /* We simply omit that character */
-	  continue;
+	/* Instead of returning an error, we substitute .notdef (RMz) */
+	charnameP = &CodeName;
+	charnameP->len = 7;
+	charnameP->data.stringP = (unsigned char *) &notdef;
+	N = SearchDictName(CharStringsDictP,charnameP);
 	/* Font must be completely damaged if it doesn't define a .notdef */
-	if (N<=0){
+	if (N<=0) {
 	  *mode=FF_PARSE_ERROR;
+	  if (charpath!=NULL)
+	    KillPath(charpath);
 	  return(NULL);
 	}
       }
 
+      /* we provide the Type1Char() procedure with the name of the character
+	 to rasterize for debugging purposes */
+      strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
+      CurCharName[charnameP->len]='\0';
+      /* tell the calling function about rastering .notdef */
+      if (strcmp( CurCharName, ".notdef")==0) {
+	localmode=FF_NOTDEF_SUBST;
+      }
+  
       acc_width += (int) ((pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) string[i]]].wx));
       
       
@@ -556,7 +508,7 @@ xobject fontfcnB_string( int FontID, int modflag,
       
       /* call the type 1 routine to rasterize the character     */
       tmppath1=(struct segment *) Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
-					    FontP->BluesP , mode);
+					    FontP->BluesP,mode,CurCharName);
     }
     
     if (i<no_chars-1){
@@ -617,6 +569,9 @@ xobject fontfcnB_string( int FontID, int modflag,
     }
   }
   
+  if (*mode==0)
+    *mode=localmode;
+
   return((path)charpath);
 }
 
@@ -629,8 +584,7 @@ xobject fontfcnB_ByName( int FontID, int modflag,
 			 int *mode, psfont *Font_Ptr,
 			 int do_raster)
 {
-  path updateWidth();
- 
+
   psobj *charnameP; /* points to psobj that is name of character*/
   int   N;
   psdict *CharStringsDictP; /* dictionary with char strings     */
@@ -656,6 +610,11 @@ xobject fontfcnB_ByName( int FontID, int modflag,
     *mode = FF_PARSE_ERROR;
     return(NULL);
   }
+  /* we provide the Type1Char() procedure with the name of the character
+     to rasterize for debigging purposes */
+  strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
+  CurCharName[charnameP->len]='\0';
+  
   /* ok, the nth item is the psobj that is the string for this char */
   theStringP = &(CharStringsDictP[N].value);
  
@@ -666,7 +625,7 @@ xobject fontfcnB_ByName( int FontID, int modflag,
   /* call the type 1 routine to rasterize the character     */
   charpath = (struct segment *)Type1Char(FontP,S,theStringP,
 					 SubrsArrayP,NULL,
-					 FontP->BluesP , mode);
+					 FontP->BluesP,mode,CurCharName);
 
   /* if Type1Char reported an error, then return */
 

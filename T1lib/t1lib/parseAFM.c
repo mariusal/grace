@@ -2,7 +2,7 @@
   ----- File:        parseAFM.c
   ----- Author:      Adobe Systems Inc., modifications by
                      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        10/01/1998
+  ----- Date:        1999-08-16
   ----- Description: This file is part of the t1-library. It is the original
                      parseAFM.h modified at a few points, especially for
 		     reading MSDOS-style AFM files..
@@ -81,6 +81,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <sys/types.h>  /* this seems to be necessary on some SCO-systems */
 #include <sys/file.h>
 #include <math.h>
 #include <string.h>

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1load.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-06-05
+  ----- Date:        1999-09-03
   ----- Description: This file is part of the t1-library. It contains
                      functions for loading fonts  and for managing size
 		     dependent data.
@@ -60,6 +60,11 @@
 
 
 
+extern psobj *StdEncArrayP;       /* For checking of a fonts encoding */
+extern char not_def[];            /* for checking the ".notdef"-string */
+
+
+
 /* T1_LoadFont(FontID): Loads a Type1 font into memory and allocates all
    memory, necessary for this. */
 
@@ -78,9 +83,6 @@ int T1_LoadFont( int FontID)
   unsigned long ldummy;
   char *tmp_ptr;
 #endif
-
-  extern psobj *StdEncArrayP;       /* For checking of a fonts encoding */
-  extern char not_def[];            /* for checking the ".notdef"-string */
 
 
   /* These are for constructing the kerning lookup table: */
@@ -543,10 +545,15 @@ int T1_LoadFont( int FontID)
       T1_errno=T1ERR_ALLOC_MEM;
       return(-1);
     }
-    for (i=0; i<256; i++)
-      pFontBase->pFontArray[FontID].pEncMap[i]=-1;
     for (i=0; i<256; i++){
+      pFontBase->pFontArray[FontID].pEncMap[i]=-1;
       charname=T1_GetCharName( FontID, i);
+      if (strcmp( charname, ".notdef")==0) {
+	/* This is because not all AFM files have the .notdef, so we can't
+	   rely on it */
+	pFontBase->pFontArray[FontID].pEncMap[i]=-2;
+	continue;
+      }
       for ( j=0; j<pFontBase->pFontArray[FontID].pAFMData->numOfChars; j++){
 	if (strcmp( charname,
 		    pFontBase->pFontArray[FontID].pAFMData->cmi[j].name)==0){

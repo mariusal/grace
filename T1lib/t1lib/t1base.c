@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1base.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-06-07
+  ----- Date:        1999-08-26
   ----- Description: This file is part of the t1-library. It contains basic
                      basic routines to initialize the data structures used
 		     by the t1-library.
@@ -96,22 +96,25 @@ void *T1_InitLib( int log)
   
   
   /* Open log-file: */
-  if ((log & LOGFILE)){
+  if ((log & LOGFILE)) {
     pFontBase->t1lib_flags |= LOGFILE;
     /* Try first opening in current directory: */
-    if ((t1lib_log_file=fopen( T1_LOG_FILE, "w"))==NULL){
-
-      usershome=getenv("HOME");
-      logfilepath=(char *)malloc((strlen(usershome) +
-					   strlen(T1_LOG_FILE) + 2
-					   ) * sizeof(char));
-      strcpy( logfilepath, usershome);
-      strcat( logfilepath, DIRECTORY_SEP);
-      strcat( logfilepath, T1_LOG_FILE);
-      if ((t1lib_log_file=fopen( logfilepath, "w"))==NULL){
-	print_msg( "T1_InitLib()", "Warning: Unable to open log-file");
+    if ((t1lib_log_file=fopen( T1_LOG_FILE, "w"))==NULL) {
+      if ((usershome=getenv("HOME"))!=NULL) {
+	logfilepath=(char *)malloc((strlen(usershome) +
+				    strlen(T1_LOG_FILE) + 2
+				    ) * sizeof(char));
+	strcpy( logfilepath, usershome);
+	strcat( logfilepath, DIRECTORY_SEP);
+	strcat( logfilepath, T1_LOG_FILE);
+	if ((t1lib_log_file=fopen( logfilepath, "w"))==NULL){
+	  print_msg( "T1_InitLib()", "Warning: Unable to open log-file");
+	}
+	free( logfilepath);
       }
-      free( logfilepath);
+      else {
+	print_msg( "T1_InitLib()", "Warning: Unable to open log-file in . and $(HOME)");
+      }
     }
     T1_PrintLog( "T1_InitLib()", "Initialization started",
 	       T1LOG_STATISTIC);
@@ -1133,6 +1136,7 @@ char *T1_GetLibIdent( void)
   static char buf[15];
 
   sprintf( buf, "%s", T1LIB_IDENT);
+  
   return( (char *)buf);
 }
 

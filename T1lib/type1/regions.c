@@ -65,6 +65,8 @@ static int edgemax();
 static int discard();
 static int edgecheck();
 static struct edgelist *NewEdge();
+struct edgelist *swathxsort();  /* 'SortSwath' function               */
+extern struct XYspace *IDENTITY;
  
 /*
 :h3.Functions Provided to the TYPE1IMAGER User
@@ -752,7 +754,6 @@ static int newfilledge(R, xmin, xmax, ymin, ymax, isdown)
        fractpel ymin,ymax;   /* Y range of this edge                         */
        int isdown;           /* flag:  TRUE means edge goes down, else up    */
 {
-       struct edgelist *swathxsort();  /* 'SortSwath' function               */
  
        register pel pelxmin,pelymin,pelxmax,pelymax;  /* pel versions of bounds */
        register struct edgelist *edge;  /* newly created edge                */
@@ -1666,7 +1667,6 @@ struct region *CoerceRegion(tp)
 struct segment *RegionBounds(R)
        register struct region *R;
 {
-       extern struct XYspace *IDENTITY;
  
        register struct segment *path;  /* returned path                      */
  

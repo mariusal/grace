@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1enc.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        10/01/1998
+  ----- Date:        1999-09-03
   ----- Description: This file is part of the t1-library. It contains
                      functions encoding handling at runtime.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
@@ -309,9 +309,15 @@ int T1_ReencodeFont( int FontID, char **Encoding)
 
   /* Now update afm index mapping: */
   if (pFontBase->pFontArray[FontID].pAFMData != NULL){
-    for (i=0; i<256; i++)
-      pFontBase->pFontArray[FontID].pEncMap[i]=-1;
     for (i=0; i<256; i++){
+      pFontBase->pFontArray[FontID].pEncMap[i]=-1;
+      charname=T1_GetCharName( FontID, i);
+      if (strcmp( charname, ".notdef")==0) {
+	/* This is because not all AFM files have the .notdef, so we can't
+	   rely on it */
+	pFontBase->pFontArray[FontID].pEncMap[i]=-2;
+	continue;
+      }
       charname=T1_GetCharName( FontID, i);
       for ( j=0; j<pFontBase->pFontArray[FontID].pAFMData->numOfChars; j++){
 	if (strcmp( charname,

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1delete.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-03-20
+  ----- Date:        1999-08-26
   ----- Description: This file is part of the t1-library. It contains
                      functions for giving free previously allocated
 		     memory areas and similar things.
@@ -159,7 +159,8 @@ int T1_DeleteAllSizes( int FontID)
 int T1_FreeGlyph( GLYPH *glyph)
 {
   if (glyph!=NULL){
-    free(glyph->bits);
+    if (glyph->bits!=NULL)
+      free(glyph->bits);
     free(glyph);
     glyph=NULL;
   }

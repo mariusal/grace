@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1env.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-03-31
+  ----- Date:        1999-08-12
   ----- Description: This file is part of the t1-library. It implements
                      the reading of a configuration file and path-searching
 		     of type1-, afm- and encoding files.
@@ -80,24 +80,29 @@ int ScanConfigFile( char **pfabenv_ptr,
   environ=getenv(ENV_CONF_STRING);
 
 
-  if (environ==NULL){
+  if (environ==NULL) {
     /* environment variable not set, try to open default file
        in user's home directory and afterwards global config file */
-    usershome=getenv("HOME");
-    cnffilepath=(char *)malloc((strlen(usershome) +
-					 strlen(T1_CONFIGFILENAME) + 2
-					 ) * sizeof(char));
-    if (cnffilepath==NULL){
-      T1_errno=T1ERR_ALLOC_MEM;
-      return(-1);
+    if ((usershome=getenv("HOME"))!=NULL) {
+      cnffilepath=(char *)malloc((strlen(usershome) +
+				  strlen(T1_CONFIGFILENAME) + 2
+				  ) * sizeof(char));
+      if (cnffilepath==NULL){
+	T1_errno=T1ERR_ALLOC_MEM;
+	return(-1);
+      }
+      strcpy( cnffilepath, usershome);
     }
-    strcpy( cnffilepath, usershome);
+    else {
+      cnffilepath=(char *)malloc((strlen(T1_CONFIGFILENAME) + 2
+				  ) * sizeof(char));
+    }
     strcat( cnffilepath, DIRECTORY_SEP);
     strcat( cnffilepath, T1_CONFIGFILENAME);
 
     globalcnffilepath=(char*)malloc((strlen(GLOBAL_CONFIG_DIR) +
-					      strlen(GLOBAL_CONFIG_FILE) + 2
-					      ) * sizeof(char));
+				     strlen(GLOBAL_CONFIG_FILE) + 2
+				     ) * sizeof(char));
     if (globalcnffilepath==NULL){
       T1_errno=T1ERR_ALLOC_MEM;
       return(-1);
@@ -107,11 +112,13 @@ int ScanConfigFile( char **pfabenv_ptr,
     strcat( globalcnffilepath, GLOBAL_CONFIG_FILE);
 
     if ((cfg_fp=fopen( cnffilepath, "r"))==NULL){
-      sprintf( err_warn_msg_buf, "Could not open %s", cnffilepath);
+      sprintf( err_warn_msg_buf, "Could not open configfile %s",
+	       cnffilepath);
       T1_PrintLog( "ScanConfigFile()", err_warn_msg_buf, T1LOG_STATISTIC);
       /* Try global config file */
       if ((cfg_fp=fopen( globalcnffilepath, "r"))==NULL){
-	sprintf( err_warn_msg_buf, "Could not open %s", globalcnffilepath);
+	sprintf( err_warn_msg_buf, "Could not open global configfile %s",
+		 globalcnffilepath);
 	T1_PrintLog( "ScanConfigFile()", err_warn_msg_buf, T1LOG_WARNING);
       }
       else{
@@ -294,21 +301,29 @@ char *Env_GetCompletePath( char *FileName,
   enamelen=strlen(env_ptr);
   /* We check whether absolute or relative pathname is given. If so,
      stat() it and if appropriate, return that string immediately. */
-  if ( (FileName[0]==DIRECTORY_SEP_CHAR) ||
+  if ( (FileName[0]==DIRECTORY_SEP_CHAR)
+       ||
        ((fnamelen>1) && (FileName[0]=='.') &&
-	(FileName[1]==DIRECTORY_SEP_CHAR)) ||
+	(FileName[1]==DIRECTORY_SEP_CHAR))
+       ||
        ((fnamelen>2) && (FileName[0]=='.') &&
-	(FileName[1]=='.') && (FileName[2]==DIRECTORY_SEP_CHAR))) {
+	(FileName[1]=='.') && (FileName[2]==DIRECTORY_SEP_CHAR))
+#ifdef __EMX__
+       ||
+       ((isalpha(FileName[0])) && (FileName[1]==':'))
+#endif
+       )
+    {
     /* Check for existence of the path: */
-    if (!stat( FileName, &filestats)){
-      if (t1lib_log_file!=NULL){
+    if (!stat( FileName, &filestats)) {
+      if (t1lib_log_file!=NULL) {
 	sprintf( err_warn_msg_buf, "stat()'ing complete path %s successful",
 		 FileName);
 	T1_PrintLog( "Env_GetCompletePath()", err_warn_msg_buf,
 		     T1LOG_DEBUG);
       }
       /* Return a copy of the string */
-      if ((FullPathName=(char *)malloc( fnamelen + 1))==NULL){
+      if ((FullPathName=(char *)malloc( fnamelen + 1))==NULL) {
 	T1_errno=T1ERR_ALLOC_MEM;
 	return(NULL);
       }
@@ -326,7 +341,7 @@ char *Env_GetCompletePath( char *FileName,
        path entries. */
     i=fnamelen-1;
     StrippedName=&(FileName[i]);
-    while ( FileName[i]!=DIRECTORY_SEP_CHAR){
+    while ( FileName[i]!=DIRECTORY_SEP_CHAR) {
       i--;
     }
     i++;
@@ -345,7 +360,7 @@ char *Env_GetCompletePath( char *FileName,
   i=0;
   while (i<enamelen){
     j=i;      /* Save start of current path string */
-    while ((env_ptr[i]!=':')&&(env_ptr[i]!=0))
+    while ((env_ptr[i]!=PATH_SEP_CHAR)&&(env_ptr[i]!=0))
       i++;
     /* Save the character that indicated end of path */
     save_char=env_ptr[i];
@@ -514,12 +529,12 @@ int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname)
     }
     if (mode & T1_PREPEND_PATH){ /* prepend */
       strcpy(tmp_ptr, pathname);
-      strcat(tmp_ptr, ":");
+      strcat(tmp_ptr, PATH_SEP);
       strcat(tmp_ptr, T1_PFAB_ptr);
     }
     else{ /* append */
       strcpy(tmp_ptr,T1_PFAB_ptr);
-      strcat(tmp_ptr, ":");
+      strcat(tmp_ptr, PATH_SEP);
       strcat(tmp_ptr, pathname);
     }
     if ((void *)T1_PFAB_ptr!=(void *)&T1_pfab)
@@ -535,12 +550,12 @@ int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname)
     }
     if (mode & T1_PREPEND_PATH){ /* prepend */
       strcpy(tmp_ptr, pathname);
-      strcat(tmp_ptr, ":");
+      strcat(tmp_ptr, PATH_SEP);
       strcat(tmp_ptr, T1_AFM_ptr);
     }
     else{ /* append */
       strcpy(tmp_ptr,T1_AFM_ptr);
-      strcat(tmp_ptr, ":");
+      strcat(tmp_ptr, PATH_SEP);
       strcat(tmp_ptr, pathname);
     }
     if ((void *)T1_AFM_ptr!=(void *)&T1_afm)
@@ -556,12 +571,12 @@ int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname)
     }
     if (mode & T1_PREPEND_PATH){ /* prepend */
       strcpy(tmp_ptr, pathname);
-      strcat(tmp_ptr, ":");
+      strcat(tmp_ptr, PATH_SEP);
       strcat(tmp_ptr, T1_ENC_ptr);
     }
     else{ /* append */
       strcpy(tmp_ptr,T1_ENC_ptr);
-      strcat(tmp_ptr, ":");
+      strcat(tmp_ptr, PATH_SEP);
       strcat(tmp_ptr, pathname);
     }
     if ((void *)T1_ENC_ptr!=(void *)&T1_enc)

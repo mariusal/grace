@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1outline.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-06-26
+  ----- Date:        1999-09-01
   ----- Description: This file is part of the t1-library. It contains
                      functions for getting glyph outline descriptions of
 		     strings and characters.
@@ -69,6 +69,19 @@
 #endif
 
 
+extern char *t1_get_abort_message( int number);
+extern struct segment *Type1Line(psfont *env, struct XYspace *S,
+				 float line_position,
+				 float line_thickness,
+				 float line_length);
+extern struct segment *t1_Join( struct segment *path1,
+				struct segment *path2);
+extern struct segment *CopyPath( struct segment *p);
+extern void KillPath( struct segment *p);
+
+
+
+
 /* T1_SetChar(...): Generate the bitmap for a character */
 T1_OUTLINE *T1_GetCharOutline( int FontID, char charcode, float size,
 			       T1_TMATRIX *transform)
@@ -88,9 +101,6 @@ T1_OUTLINE *T1_GetCharOutline( int FontID, char charcode, float size,
   int modflag=0;
 
   
-  extern char *t1_get_abort_message( int number);
-  
-
   /* We return to this if something goes wrong deep in the rasterizer */
   if ((i=setjmp( stck_state))!=0) {
     T1_errno=T1ERR_TYPE1_ABORT;
@@ -193,8 +203,6 @@ T1_OUTLINE *T1_GetStringOutline( int FontID, char *string, int len,
 
   unsigned char *ustring;
 
-  extern char *t1_get_abort_message( int number);
-  
 
   /* We return to this if something goes wrong deep in the rasterizer */
   if ((i=setjmp( stck_state))!=0) {
@@ -350,12 +358,6 @@ T1_OUTLINE *T1_GetMoveOutline( int FontID, int deltax, int deltay, int modflag,
   psfont *FontP;
   float length;
   
-  extern struct segment *Type1Line(psfont *env, struct XYspace *S,
-				   float line_position,
-				   float line_thickness,
-				   float line_length);
-  extern char *t1_get_abort_message( int number);
-  
 
   /* We return to this if something goes wrong deep in the rasterizer */
   if ((i=setjmp( stck_state))!=0) {
@@ -452,8 +454,6 @@ T1_OUTLINE *T1_GetMoveOutline( int FontID, int deltax, int deltay, int modflag,
 /* T1_ConcatOutlines(): Concatenate two outline to one path */
 T1_OUTLINE *T1_ConcatOutlines( T1_OUTLINE *path1, T1_OUTLINE *path2)
 {
-  extern struct segment *t1_Join( struct segment *path1,
-				  struct segment *path2);
 
   return( (T1_OUTLINE *) t1_Join( (struct segment *) path1,
 				  (struct segment *) path2));
@@ -741,7 +741,6 @@ void T1_ManipulatePath( T1_OUTLINE *path,
                      Returns a pointer to the path or NULL */
 T1_OUTLINE *T1_CopyOutline( T1_OUTLINE *path)
 {
-  extern struct segment *CopyPath( struct segment *p);
 
   return( (T1_OUTLINE *) CopyPath( (struct segment *)path));
 	  
@@ -752,7 +751,6 @@ T1_OUTLINE *T1_CopyOutline( T1_OUTLINE *path)
 /* T1_FreeOutline(): Free an outline. */
 void T1_FreeOutline( T1_OUTLINE *path)
 {
-  extern void KillPath( struct segment *p);
   
   KillPath( (struct segment *)path);
   return;

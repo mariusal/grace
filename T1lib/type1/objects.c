@@ -286,7 +286,13 @@ It therefore seems logical that its reference count field should be
 set to 1. So, a nun-NULL template must also have a "references" field.
 PNM 3-26-91
 */
- 
+
+
+/* to pacify gcc we put the externals here ... */
+extern struct XYspace *USER;
+extern jmp_buf stck_state;
+
+
 struct xobject *t1_Allocate(size, template, extra)  /* non-ANSI; type checking was too strict */
        register int size;    /* number of bytes to allocate & initialize     */
        register struct xobject *template;  /* example structure to allocate  */
@@ -859,10 +865,12 @@ environment.
                        StopProfile();
        }
 #endif
+       /* GimeSpace() is define as false ... */
+       /*
        else if (!strcmp(name, "FLUSHCACHE")) {
                while (GimeSpace()) { ; }
        }
- 
+       */
        else if (!strcmp(name, "CACHEDCHARS"))
                CachedChars = (value <= 0) ? 1 : value;
  
@@ -1018,7 +1026,6 @@ This is a subroutine of TypeErr() and ArgErr().
 static int ObjectPostMortem(obj) /* non-ANSI avoids overly strict type checking  */
        register struct xobject *obj;
 {
-       extern struct XYspace *USER;
  
        Pragmatics("Debug", 10);
        IfTrace2(TRUE,"Bad object is of %s type %p\n", TypeFmt(obj->type), obj);
@@ -1069,7 +1076,6 @@ void abort(string, no)
        char *string;
        int no;
 {
-  extern jmp_buf stck_state;
   
   LineIOTrace = TRUE;
   TraceClose();

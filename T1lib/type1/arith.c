@@ -342,6 +342,7 @@ fractpel FPmult(u, v)
 {
   doublelong w;
   register int negative = FALSE; /* sign flag */
+  int maxshort = MAXSHORT; /* To avoid that overflow warning (RMz) */
  
   if ((u == 0) || (v == 0)) return (0);
  
@@ -356,7 +357,7 @@ fractpel FPmult(u, v)
   DLrightshift(w, FRACTBITS);
   if (w.high != 0 || SIGNBITON(w.low)) {
         IfTrace2(TRUE,"FPmult: overflow, %dx%d\n", u, v);
-        w.low = TOFRACTPEL(MAXSHORT);
+        w.low = TOFRACTPEL(maxshort);
   }
  
   return ((negative) ? -w.low : w.low);
@@ -374,6 +375,7 @@ fractpel FPdiv(dividend, divisor)
 {
        doublelong w;         /* result will be built here                    */
        int negative = FALSE; /* flag for sign bit                            */
+       int maxshort = MAXSHORT; /* To avoid that overflow warning (RMz) */
  
        if (dividend < 0) {
                dividend = -dividend;
@@ -388,7 +390,7 @@ fractpel FPdiv(dividend, divisor)
        DLdiv(&w, divisor);
        if (w.high != 0 || SIGNBITON(w.low)) {
                IfTrace2(TRUE,"FPdiv: overflow, %d/%d\n", dividend, divisor);
-               w.low = TOFRACTPEL(MAXSHORT);
+               w.low = TOFRACTPEL(maxshort);
        }
        return( (negative) ? -w.low : w.low);
 }
@@ -406,7 +408,8 @@ fractpel FPstarslash(a, b, c)
 {
        doublelong w;         /* result will be built here                    */
        int negative = FALSE;
- 
+       int maxshort = MAXSHORT; /* To avoid that overflow warning (RMz) */
+       
        if (a < 0) { a = -a; negative = TRUE; }
        if (b < 0) { b = -b; negative = !negative; }
        if (c < 0) { c = -c; negative = !negative; }
@@ -415,7 +418,7 @@ fractpel FPstarslash(a, b, c)
        DLdiv(&w, c);
        if (w.high != 0 || SIGNBITON(w.low)) {
                IfTrace3(TRUE,"FPstarslash: overflow, %d*%d/%d\n", a, b, c);
-               w.low = TOFRACTPEL(MAXSHORT);
+               w.low = TOFRACTPEL(maxshort);
        }
        return((negative) ? -w.low : w.low);
 }

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1afmtool.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-04-22
+  ----- Date:        1999-09-03
   ----- Description: This file is part of the t1-library. It contains
                      functions for generating a fallback set of afm data
 		     from type 1 font files.
@@ -66,6 +66,10 @@
 #define T1LIB_IDENT  "???.???"
 #endif
 
+
+extern char *t1_get_abort_message( int number);
+  
+
 /* T1_GenerateAFMFallbackInfo(): Generate fallback information from
    Type 1 font file by rasterizing every character at 1000 bp. Returns
    a pointer to a generated FontInfo struct or NULL in case of an error.
@@ -81,9 +85,6 @@ FontInfo *T1_GenerateAFMFallbackInfo( int FontID)
   FontInfo *pAFMData;
   
   
-  extern char *t1_get_abort_message( int number);
-  
-
   /* We return to this if something goes wrong deep in the rasterizer */
   if ((i=setjmp( stck_state))!=0) {
     T1_errno=T1ERR_TYPE1_ABORT;
@@ -146,7 +147,7 @@ FontInfo *T1_GenerateAFMFallbackInfo( int FontID)
   /* and count number of characters */
   nochars=0;
   
-  while (charnames[nochars]!=NULL)
+  while (charnames[nochars]!=NULL) 
     nochars++;
   pAFMData->numOfChars=nochars;
   /* Allocate memory for CharMetricInfo area */
@@ -177,10 +178,12 @@ FontInfo *T1_GenerateAFMFallbackInfo( int FontID)
       T1_PrintLog( "T1_GenerateAFMFallbackInfo()", err_warn_msg_buf,
 		   T1LOG_WARNING);
       /* Return since we don't know how to fill the values */
-      for (j=i; j>=0; j--)
+      for (j=i-1; j>=0; j--)
 	free( pAFMData->cmi[j].name);
-      free( pAFMData->cmi);
-      free( pAFMData);
+      if (pAFMData->cmi!=NULL)
+	free( pAFMData->cmi);
+      if (pAFMData!=NULL)
+	free( pAFMData);
       T1_errno=mode;
       /* make sure to free S */
       if (S) {
