@@ -189,8 +189,8 @@ String fallbackResourcesCommon[] = {
     "XMgrace*fileMenu.exitButton.accelerator: Ctrl<Key>q",
     "XMgrace*fileMenu.printButton.acceleratorText: Ctrl+P",
     "XMgrace*fileMenu.printButton.accelerator: Ctrl<Key>p",
-    "XMgrace*toolsMenu.explorerButton.acceleratorText: Ctrl+E",
-    "XMgrace*toolsMenu.explorerButton.accelerator: Ctrl<Key>e",
+    "XMgrace*editMenu.explorerButton.acceleratorText: Ctrl+E",
+    "XMgrace*editMenu.explorerButton.accelerator: Ctrl<Key>e",
     "XMgrace*helpMenu.onContextButton.acceleratorText: Shift+F1",
     "XMgrace*helpMenu.onContextButton.accelerator: Shift<Key>F1",
     "XMgrace*pageZoomMenu.smallerButton.acceleratorText: Ctrl+-",
@@ -709,12 +709,13 @@ static Widget CreateMainMenuBar(Widget parent)
     /* Edit menu */
     menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
-    CreateMenuButton(menupane, "Data sets...", 'D', create_datasetprop_popup, NULL);
+    CreateMenuButton(menupane, "Explorer...", 'E', define_explorer_popup, grace->gui);
 
     CreateMenuSeparator(menupane);
+
     CreateMenuButton(menupane, "Arrange frames...", 'r', create_arrange_frame, NULL);
-    CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Autoscale graphs...", 'A', create_autos_frame, NULL);
+
     CreateMenuSeparator(menupane);
 
     CreateMenuButton(menupane, "Preferences...", 'P', create_props_frame, NULL);
@@ -751,7 +752,7 @@ static Widget CreateMainMenuBar(Widget parent)
 #ifdef HAVE_NETCDF
     CreateMenuButton(submenupane, "NetCDF...", 'N', create_netcdfs_popup, NULL);
 #endif
-   
+
     submenupane = CreateMenu(menupane, "Export", 'E', FALSE);
     CreateMenuButton(submenupane, "ASCII...", 'A', create_write_popup, NULL);
 
@@ -786,7 +787,6 @@ static Widget CreateMainMenuBar(Widget parent)
     /* Window menu */
     menupane = CreateMenu(menubar, "Tools", 'T', FALSE);
    
-    CreateMenuButton(menupane, "Explorer", 'E', define_explorer_popup, grace->gui);
     CreateMenuButton(menupane, "Console", 'C', create_monitor_frame_cb, NULL);
 #if 0
     CreateMenuButton(menupane, "Point explorer", 'P', create_points_frame, NULL);
@@ -795,7 +795,7 @@ static Widget CreateMainMenuBar(Widget parent)
 /*
  *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
  */
-    
+    CreateMenuButton(menupane, "Dataset statistics", 'D', create_datasetprop_popup, NULL);
 
     /* Help menu */
     menupane = CreateMenu(menubar, "Help", 'H', TRUE);
