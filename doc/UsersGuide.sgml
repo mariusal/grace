@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.12)</title>
 <author>by the Grace Team</author>
-<date>18.02.2003</date>
+<date>22.02.2003</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -2155,6 +2155,7 @@ integral     | cumulative sum @
 	rand            | pseudo random number distributed uniformly on (0.0,1.0) @
 	rand(n)         | array of n random numbers @
 	rint(x)         | round to closest integer @
+	rsum(x)         | running sum of x @
 	sin(x)          | sine function @
 	sinh(x)         | hyperbolic sine @
 	sqr(x)          | x^2 @

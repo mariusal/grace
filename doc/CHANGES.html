@@ -10,8 +10,12 @@
 <PRE>
 <H2>5.1.12</H2>
 
+<H3>Functionality</H3>
+ *  [MO] implemented zooming and scrolling of log plots
+
 <H3>Parser</H3>
  *  [ES] added INT(x,y) evaluating integral value of y dx
+ *  [ES] added RSUM(vexpr) - running sum
 
 <H3>Bug fixes</H3>
  *  [ES] fixed memory corruption when reading in block data (rep. #1258). The
@@ -25,6 +29,9 @@
          the graph didn't exist (including reps. #886 and #1267)
  *  [ES] removed extraneous accent glyphs in the 0x9? range of IsoLatin1 and
          IsoLatin2 encodings (including rep. #1269)
+ *  [MO] IsoLatin7 encoding file wasn't installed by "make install"
+ *  [ES] entering negative values of set symbol skip could crash Grace
+         (rep. #1276)
 
 
 <H2>5.1.11</H2>
@@ -64,7 +71,7 @@
 <H2>5.1.10</H2>
 
 <H3>Functionality</H3>
- *  [M?] added IsoLatin7 encoding file
+ *  [MO] added IsoLatin7 encoding file
 
 <H3>Interface</H3>
  *  [ES] disable showing hidden files in file selection dialogs by default
@@ -1313,7 +1320,7 @@
     [JS]  - Jan Schaumann &lt;jschauma@netmeister.org&gt;
     [SR]  - Stewart Rounds &lt;sarounds@usgs.gov&gt;
     [PB]  - Peter Breitenlohner &lt;peb@mppmu.mpg.de&gt;
-    [M?]  - Marius &lt;img@mail.lt&gt;
+    [MO]  - Marius Olechnovi&ccaron;ius &lt;img@mail.lt&gt;
     [YZ]  - Yura Zotov &lt;yznews@hotbox.ru&gt;
     [TO]  - Tobias Oed &lt;tobias@physics.odu.edu&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
