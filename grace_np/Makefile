@@ -16,7 +16,7 @@ CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(CPPFLAGS)
 
 LIBS = $(NOGUI_LIBS)
 
-LIBOBJS = grace_np$(O) gracef_np$(O)
+LIBOBJS = grace_np$(O) gracef_np$(O) gracef_np_$(O)
 TESTS=test_np$(EXE) testf_np$(EXE)
 
 all : $(LIB)
@@ -31,6 +31,9 @@ $(LIB) : $(LIBOBJS)
 	$(RANLIB) $@
 
 $(LIBOBJS) : $(TOP)/config.h grace_np.h
+
+gracef_np_$(O) : gracef_np.c
+	$(CC) $(CFLAGS) -DNEED_F77_UNDERSCORE -c -o $@ $<
 
 test_np$(EXE) : test_np$(O)
 	$(CC) $(CFLAGS) -o $@ $? $(LIB)
