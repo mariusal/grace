@@ -3135,6 +3135,7 @@ void SetLabel(Widget w, char *s)
     XmStringFree(str);
 }
 
+extern int ReqUpdateColorSel;
 
 void update_all(void)
 {
@@ -3144,6 +3145,11 @@ void update_all(void)
 
     update_graph_selectors();
     update_set_selectors(ALL_GRAPHS);
+
+    if (ReqUpdateColorSel == TRUE) {
+        update_color_selectors();
+        ReqUpdateColorSel = FALSE;
+    }
 
     update_ticks(gno);
     update_props_items();
