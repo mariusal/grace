@@ -253,7 +253,7 @@ void create_nonl_frame(void *data)
         option_items[1].value = WEIGHT_Y;
         option_items[1].label = "1/Y";
         option_items[2].value = WEIGHT_DY;
-        option_items[2].label = "1/dY";
+        option_items[2].label = "1/dY^2";
         option_items[3].value = WEIGHT_CUSTOM;
         option_items[3].label = "Custom";
 	nonl_weigh_item = CreateOptionChoice(rc3, "Weights", 1, 4, option_items);
@@ -549,7 +549,7 @@ static void do_nonl_proc(void *data)
                     unset_wait_cursor();
                     return;
                 }
-                warray[i] = 1/ytmp[i];
+                warray[i] = 1/(ytmp[i]*ytmp[i]);
             }
             break;
         case WEIGHT_CUSTOM:
