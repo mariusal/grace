@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -46,6 +46,11 @@
 #include "protos.h"
 
 typedef struct {
+    RGB rgb;
+    unsigned long pixel;
+} x11color;
+
+typedef struct {
     Screen *screen;
     Pixmap pixmap;
     
@@ -64,7 +69,7 @@ typedef struct {
     int linecap;
     int linejoin;
 
-    unsigned long pixels[MAXCOLORS];
+    x11color colors[MAXCOLORS];
 } X11_data;
 
 static X11_data *init_x11_data(void)
@@ -97,15 +102,19 @@ static void x11_initcmap(const Canvas *canvas, X11_data *x11data)
         /* even in mono, b&w must be allocated */
         if (x11data->monomode == FALSE || i < 2) {
             if (get_rgb(canvas, i, &rgb) == RETURN_SUCCESS) {
-                pixel = x11_allocate_color(grace->gui, &rgb);
-                if (pixel >= 0) {
-                    x11data->pixels[i] = pixel;
-                } else {
-                    x11data->pixels[i] = BlackPixelOfScreen(x11data->screen);
+                if (!compare_rgb(&rgb, &x11data->colors[i].rgb)) {
+                    pixel = x11_allocate_color(grace->gui, &rgb);
+                    if (pixel >= 0) {
+                        x11data->colors[i].pixel = pixel;
+                    } else {
+                        x11data->colors[i].pixel =
+                            BlackPixelOfScreen(x11data->screen);
+                    }
+                    x11data->colors[i].rgb = rgb;
                 }
             }
         } else {
-            x11data->pixels[i] = BlackPixelOfScreen(x11data->screen);
+            x11data->colors[i].pixel = BlackPixelOfScreen(x11data->screen);
         }
     }
 }
@@ -156,22 +165,29 @@ static int x11_initgraphics(const Canvas *canvas, void *data,
 
     x11_initcmap(canvas, x11data);
     
-    XSetForeground(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), x11data->pixels[0]);
-    XSetFillStyle(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), FillSolid);
-    XFillRectangle(DisplayOfScreen(x11data->screen), x11data->pixmap, DefaultGCOfScreen(x11data->screen), 0, 0, pg->width, pg->height);
-    XSetForeground(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), x11data->pixels[1]);
+    XSetForeground(DisplayOfScreen(x11data->screen),
+        DefaultGCOfScreen(x11data->screen), x11data->colors[0].pixel);
+    XSetFillStyle(DisplayOfScreen(x11data->screen),
+        DefaultGCOfScreen(x11data->screen), FillSolid);
+    XFillRectangle(DisplayOfScreen(x11data->screen), x11data->pixmap,
+        DefaultGCOfScreen(x11data->screen), 0, 0, pg->width, pg->height);
+    XSetForeground(DisplayOfScreen(x11data->screen),
+        DefaultGCOfScreen(x11data->screen), x11data->colors[1].pixel);
     
     step = (double) (x11data->page_scale)/10;
     for (i = 0; i < pg->width/step; i++) {
         for (j = 0; j < pg->height/step; j++) {
             xp.x = rint(i*step);
             xp.y = pg->height - rint(j*step);
-            XDrawPoint(DisplayOfScreen(x11data->screen), x11data->pixmap, DefaultGCOfScreen(x11data->screen), xp.x, xp.y);
+            XDrawPoint(DisplayOfScreen(x11data->screen), x11data->pixmap,
+                DefaultGCOfScreen(x11data->screen), xp.x, xp.y);
         }
     }
     
-    XSetLineAttributes(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), 1, LineSolid, CapButt, JoinMiter);
-    XDrawRectangle(DisplayOfScreen(x11data->screen), x11data->pixmap, DefaultGCOfScreen(x11data->screen), 0, 0, pg->width - 1, pg->height - 1);
+    XSetLineAttributes(DisplayOfScreen(x11data->screen),
+        DefaultGCOfScreen(x11data->screen), 1, LineSolid, CapButt, JoinMiter);
+    XDrawRectangle(DisplayOfScreen(x11data->screen), x11data->pixmap,
+        DefaultGCOfScreen(x11data->screen), 0, 0, pg->width - 1, pg->height - 1);
     
     return RETURN_SUCCESS;
 }
@@ -199,14 +215,18 @@ static void x11_setpen(const Canvas *canvas, X11_data *x11data)
         return;
     } else if (p == 1) {
         /* To make X faster */
-        XSetForeground(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), x11data->pixels[fg]);
-        XSetBackground(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), x11data->pixels[bg]);
-        XSetFillStyle(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), FillSolid);
+        XSetForeground(DisplayOfScreen(x11data->screen),
+            DefaultGCOfScreen(x11data->screen), x11data->colors[fg].pixel);
+        XSetBackground(DisplayOfScreen(x11data->screen),
+            DefaultGCOfScreen(x11data->screen), x11data->colors[bg].pixel);
+        XSetFillStyle(DisplayOfScreen(x11data->screen),
+            DefaultGCOfScreen(x11data->screen), FillSolid);
     } else {
         Pattern *pat = canvas_get_pattern(canvas, p);
         Pixmap ptmp = XCreatePixmapFromBitmapData(DisplayOfScreen(x11data->screen), RootWindowOfScreen(x11data->screen),
             (char *) pat->bits, pat->width, pat->height,
-            x11data->pixels[fg], x11data->pixels[bg], PlanesOfScreen(x11data->screen));
+            x11data->colors[fg].pixel, x11data->colors[bg].pixel,
+                PlanesOfScreen(x11data->screen));
 /*
  *      XSetFillStyle(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), FillStippled);
  *      XSetStipple(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), curstipple);
@@ -462,7 +482,7 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
                 cindex = (unsigned char) (pm->bits)[k*pm->width+j];
                 for (l = 0; l < x11data->pixel_size; l++) {
                     pixmap_ptr[x11data->pixel_size*(k*pm->width+j) + l] =
-                        (char) (x11data->pixels[cindex] >> (8*l));
+                        (char) (x11data->colors[cindex].pixel >> (8*l));
                 }
             }
         }
@@ -508,7 +528,8 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
 
         fg = getcolor(canvas);
         if (fg != x11data->color) {
-            XSetForeground(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), x11data->pixels[fg]);
+            XSetForeground(DisplayOfScreen(x11data->screen),
+                DefaultGCOfScreen(x11data->screen), x11data->colors[fg].pixel);
             x11data->color = fg;
         }
         ximage = XCreateImage(DisplayOfScreen(x11data->screen),
