@@ -392,7 +392,7 @@ static void bugwarn(char *signame)
         if (interrupts > 10) {
             fprintf(stderr, "oh, no luck :-(\n");
             please_report_the_bug();
-            exit(RETURN_FAILURE);
+            abort();
         }
         return;
     } else {
@@ -412,7 +412,7 @@ static void bugwarn(char *signame)
             }
         }
         please_report_the_bug();
-        exit(RETURN_FAILURE);
+        abort();
     }
 }
 
@@ -446,10 +446,6 @@ static RETSIGTYPE actOnSignal(int signo)
 #ifdef SIGILL
     case SIGILL:
         strcpy(signame, "SIGILL");
-#endif
-#ifdef SIGABRT
-    case SIGABRT:
-        strcpy(signame, "SIGABRT");
 #endif
 #ifdef SIGFPE
     case SIGFPE:
@@ -486,9 +482,6 @@ void installSignal(void){
 #endif
 #ifdef SIGILL
     signal(SIGILL,  actOnSignal);   /* illegal instruction */
-#endif
-#ifdef SIGABRT
-    signal(SIGABRT, actOnSignal);   /* abort */
 #endif
 #ifdef SIGFPE
     signal(SIGFPE,  actOnSignal);   /* floating point exception */
