@@ -317,6 +317,18 @@ int main(int argc, char *argv[])
                         exit(1);
                     }
                 }
+	    } else if (argmatch(argv[i], "-hdevice-options", 12)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for hardcopy device options\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    if (parse_device_options(rt->canvas,
+                        rt->hdevice, argv[i]) != RETURN_SUCCESS) {
+                        errmsg("Failed parsing device options");
+                        exit(1);
+                    }
+                }
 	    } else if (argmatch(argv[i], "-printfile", 6)) {
 		i++;
 		if (i == argc) {
@@ -556,6 +568,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-hardcopy                             No interactive session, just print and\n");
     fprintf(stream, "                                        quit\n");
     fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device\n");
+    fprintf(stream, "-hdevice-options [option_string]      Set options for default hardcopy device\n");
 #ifndef NONE_GUI
     fprintf(stream, "-install                              Install private colormap\n");
 #endif
