@@ -3,7 +3,7 @@
 /* define the location  */
 
 curdir = Directory()
-curdir   = Strip(curdir, 'T', '\') /* handle worst case: root */
+curdir = Strip(curdir, 'T', '\') /* handle worst case: root */
 guess = Stream('..\src\xmgrace.exe', 'C', 'QUERY EXISTS')
 if guess ='' then
   do
@@ -98,11 +98,11 @@ ACEGR' -p altaxis.par test.dat -a xy'
 /* a graph with error bars */
 ACEGR' terr.d'
 
-/* another graph with error bars */
-ACEGR' terr2.d'
-
 /* a graph with XY RADIUS format */
 ACEGR' txyr.dat'
+
+/* string annotations */
+ACEGR' motif.agr'
 
 /* a graph with hilo data */
 ACEGR' hilo.dat'

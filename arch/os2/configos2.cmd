@@ -126,12 +126,16 @@ else
   Building dlopen.a
 */
 
+/*
 '@cd .\arch\os2'
 '@x11make.exe -f dlfcn.mak all'
 '@cd ..\..'
+*/
+call Execute "cd .\arch\os2 & x11make.exe -f dlfcn.mak all & @cd ..\.."
 
 
-/* Calling x11make.exe cause make.cmd won't work here */
+/* Calling x11make.exe cause make.cmd won't work here
+   due to the sh command embedded in the Makefiles*/
 say 'Start compiling ...'
 call Execute 'x11make'
 
@@ -145,23 +149,25 @@ exit
 /* ######################################################################## */
 
 Execute: procedure
-Parse Arg cmd
-Address CMD '@'cmd
+Parse Arg command
+Address CMD '@'command
 return
+
 
 FileCopy: procedure
 Parse Arg par1, par2
 call Execute '@copy 'par1' 'par2' >nul'
 return
 
+
 FileExists: procedure expose True False
 Parse Arg fe_file
-say "fe_file="fe_file
 rs = Stream(fe_file, 'C', 'QUERY EXISTS')
 if rs = '' then
   return False
 else
   return True
+
 
 ShowHelp:
 say 'Valid options for configos2.cmd:'

@@ -1,5 +1,5 @@
-                           (XM)GRACE for XFree86 OS/2
-                                   (19990602)
+                           GRACE for XFree86 OS/2
+                                (19990904)
 
 
                           Contents of this document:
@@ -37,7 +37,7 @@
   The first listed packages have be installed in any case:
 
   - EMX 0.9(d) development package
-      http://hobbes.nmsu.edu  and/or http://www.leo.org
+      http://hobbes.nmsu.edu, http://www.leo.org
 
   - XFree86 for OS/2, including its development package(s)
       http://borneo.gmd.de/~veit/os2/xf86os2.html
@@ -56,15 +56,14 @@
   See the FAQ where to find the sources for these.
 
     - libhelp and it's little application xmhelp
-      (used to display the online help written in HTML)
-    - libpng:  creating PNG files
-    - pdflib:  creating PDF files
-    - fftw library: fourier transformations
+                    display the online help written in HTML)
+    - libpng:       create PNG files
+    - pdflib:       create PDF files
+    - fftw library: Fast Fourier transformations
 
   By now the supplied configure script may not work under OS/2
-  (even using the existing Autoconf port). 
-  As a small replacement I offer a small REXX-script 'configos2.cmd' 
-  which should
+  (even using the existing Autoconf port). As a small replacement I offer
+  a small REXX-script 'configos2.cmd' which should
 
     - copy standard OS/2 configuration files (config.h and Make.conf)
       from .\arch\os2 to the toplevel source directory
@@ -93,16 +92,16 @@
   'xmgrace1.cmd' which sets up the necessary environment variable(s)
   so that xmgrace can run within this setup.
   
-  In future I plan to include some instructions how to access your installed
-  printers without manual processing the Postscript files. But this is
-  not only a problem of GRACE but of every non-PM application on OS/2. By now 
-  I'm using lpr and lpd to access my local Postscript printer (via a
-  loopback interface).
-  Check out the printing tools on LEO/Hobbes for useful utiities and/or
+  A major remaining problem is how to access installed printers without
+  manual processing the Postscript files. But this is not only tied to GRACE
+  but of every non-PM application on OS/2. I'm using lpr and lpd to access
+  my local Postscript printer (via a loopback interface).
+  Check out the printing tools on LEO/Hobbes for useful utiities or
   just print to a file and do the further processing (e.g. running 
   Ghostview/gvpm) manually.
-  
+
 
 ---
 Alexander Mai
 st002279@hrzpub.tu-darmstadt.de
+Alexander.Mai@physik.tu-darmstadt.de
