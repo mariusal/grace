@@ -533,7 +533,6 @@ int canvas_get_font_by_name(const Canvas *canvas, const char *fname);
 int select_device(Canvas *canvas, int dindex);
 
 Device_entry *get_device_props(const Canvas *canvas, int device);
-Device_entry *get_curdevice_props(const Canvas *canvas);
 
 char *get_device_name(const Canvas *canvas, int device);
 

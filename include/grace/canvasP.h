@@ -195,4 +195,6 @@ int init_t1(Canvas *canvas);
 void initialize_patterns(Canvas *canvas);
 void initialize_linestyles(Canvas *canvas);
 
+Device_entry *get_curdevice_props(const Canvas *canvas);
+
 #endif /* __CANVASP_H_ */
