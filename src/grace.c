@@ -507,3 +507,10 @@ void gui_set_page_free(GUI *gui, int onoff)
         gui->page_free = onoff;
     }
 }
+
+void gui_set_barebones(GUI *gui)
+{
+    gui->locbar    = FALSE;
+    gui->toolbar   = FALSE;
+    gui->statusbar = FALSE;
+}

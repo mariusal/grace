@@ -48,7 +48,6 @@
 #include "motifinc.h"
 #include "protos.h"
 
-extern Widget loclab;
 extern Widget drawing_window;
 
 /*
@@ -281,13 +280,13 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
     }
 
     if (!graph_is_active(cg)) {
-        SetLabel(loclab, "[No graphs]");
+        set_tracker_string("[No graphs]");
         return;
     }
     
     graph_get_viewport(cg, &v);
     if (!is_vpoint_inside(&v, &vp, 0.0)) {
-        SetLabel(loclab, "[Out of frame]");
+        set_tracker_string("[Out of frame]");
         return;
     }
     
@@ -349,7 +348,7 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
     strcpy(bufy, s);
     sprintf(buf, "%s: %s = [%s, %s]", QIDSTR(cg), typestr[locator->pt_type], bufx, bufy);
 
-    SetLabel(loclab, buf);
+    set_tracker_string(buf);
 }
 
 void switch_current_graph(Quark *gr)

@@ -73,20 +73,14 @@ Widget app_shell;
 Widget drawing_window;		/* container for drawing area */
 
 
-Widget loclab;			/* locator label */
-Widget statlab;			/* status line at the bottom */
-
 /* used locally */
-static Widget main_frame;
-static Widget menu_bar;
 static Widget frleft, frtop, frbot;
-static Widget form;
-
-static void MenuCB(Widget but, void *data);
-static Widget CreateMainMenuBar(Widget parent);
-
 static Widget windowbarw[3];
+static Widget loclab;		/* locator label */
+static Widget statlab;		/* status line at the bottom */
 
+static Widget CreateMainMenuBar(Widget parent);
+static void MenuCB(Widget but, void *data);
 static void graph_scroll_proc(Widget but, void *data);
 static void graph_zoom_proc(Widget but, void *data);
 static void load_example(Widget but, void *data);
@@ -153,8 +147,7 @@ typedef struct {
     Boolean statusbar;
     Boolean locatorbar;
     Boolean instantupdate;
-}
-ApplicationData, *ApplicationDataPtr;
+} ApplicationData, *ApplicationDataPtr;
 
 static XtResource resources[] =
 {
@@ -510,7 +503,7 @@ static void autoscale_proc(Widget but, void *data)
     }
 }
 
-void autoon_proc(Widget but, void *data)
+static void autoon_proc(Widget but, void *data)
 {
     set_action(0);
     set_action(AUTO_NEAREST);
@@ -519,7 +512,7 @@ void autoon_proc(Widget but, void *data)
 /*
  * service the autoticks button on the main panel
  */
-void autoticks_proc(Widget but, void *data)
+static void autoticks_proc(Widget but, void *data)
 {
     autotick_graph_axes(graph_get_current(grace->project), AXIS_MASK_XY);
     update_ticks(graph_get_current(grace->project));
@@ -544,10 +537,19 @@ void set_left_footer(char *s)
     XmUpdateDisplay(statlab);
 }
 
+void set_tracker_string(char *s)
+{
+    if (s == NULL) {
+        SetLabel(loclab, "[Out of frame]");
+    } else {
+        SetLabel(loclab, s);
+    }
+}
+
 /*
  * clear the locator reference point
  */
-void do_clear_point(Widget but, void *data)
+static void do_clear_point(Widget but, void *data)
 {
     GLocator *locator;
     
@@ -642,29 +644,22 @@ static void set_view_items(void)
 /*
  * service routines for the View pulldown
  */
-void set_statusbar(Widget but, int onoff, void *data)
+static void set_statusbar(Widget but, int onoff, void *data)
 {
     grace->gui->statusbar = onoff;
     set_view_items();
 }
 
-void set_toolbar(Widget but, int onoff, void *data)
+static void set_toolbar(Widget but, int onoff, void *data)
 {
     grace->gui->toolbar = onoff;
     set_view_items();
 }
 
-void set_locbar(Widget but, int onoff, void *data)
+static void set_locbar(Widget but, int onoff, void *data)
 {
     grace->gui->locbar = onoff;
     set_view_items();
-}
-
-void set_barebones()
-{
-    grace->gui->locbar    = FALSE;
-    grace->gui->toolbar   = FALSE;
-    grace->gui->statusbar = FALSE;
 }
 
 /*
@@ -872,7 +867,7 @@ static Widget CreateMainMenuBar(Widget parent)
 void startup_gui(Grace *grace)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
-    Widget bt, rcleft;
+    Widget main_frame, form, menu_bar, bt, rcleft;
     Pixmap icon, shape;
 
 /* 
@@ -911,10 +906,10 @@ void startup_gui(Grace *grace)
 				     NULL);
 
     frtop = CreateFrame(form, NULL);
-    loclab = CreateLabel(frtop, "");
+    loclab = CreateLabel(frtop, NULL);
     
     frbot = CreateFrame(form, NULL);
-    statlab = CreateLabel(frbot, "");
+    statlab = CreateLabel(frbot, NULL);
 
     if (!gui_is_page_free(grace->gui)) {
         drawing_window = XtVaCreateManagedWidget("drawing_window",
@@ -1048,7 +1043,7 @@ void startup_gui(Grace *grace)
  */
     set_view_items();
 
-    SetLabel(loclab, "G0:[X, Y] = ");
+    set_tracker_string(NULL);
     set_left_footer(NULL);
 
 /*

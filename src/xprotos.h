@@ -172,13 +172,9 @@ int init_option_menus(void);
 
 void set_title(const Quark *pr);
 void set_left_footer(char *s);
-
-int gui_is_page_free(const GUI *gui);
-void gui_set_page_free(GUI *gui, int onoff);
+void set_tracker_string(char *s);
 
 void sync_canvas_size(Grace *grace);
-
-void set_barebones(void);
 
 void installXErrorHandler(void);
 

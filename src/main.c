@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
 	    } else if (argmatch(argv[i], "-noinstall", 9)) {
 		gui->install_cmap = CMAP_INSTALL_NEVER;
 	    } else if (argmatch(argv[i], "-barebones", 9)) {
-		set_barebones();
+		gui_set_barebones(gui);
 #endif
 	    } else if (argmatch(argv[i], "-fixed", 5)) {
 		i++;

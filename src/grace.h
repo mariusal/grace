@@ -182,6 +182,10 @@ Grace *grace_from_quark(const Quark *q);
 RunTime *rt_from_quark(const Quark *q);
 GUI *gui_from_quark(const Quark *q);
 
+int gui_is_page_free(const GUI *gui);
+void gui_set_page_free(GUI *gui, int onoff);
+void gui_set_barebones(GUI *gui);
+
 int grace_set_project(Grace *grace, Quark *project);
 
 int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale);
