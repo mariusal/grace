@@ -67,47 +67,47 @@ int isactive_region(int regno)
 
 char *region_types(int it, int which)
 {
-    static char s[128];
+    char *s;
 
-    strcpy(s, "UNDEFINED");
+    s = "UNDEFINED";
     switch (it) {
     case REGION_TOLEFT:
-	strcpy(s, "REGION_TOLEFT");
+	s = "REGION_TOLEFT";
 	break;
     case REGION_TORIGHT:
-	strcpy(s, "REGION_TORIGHT");
+	s = "REGION_TORIGHT";
 	break;
     case REGION_ABOVE:
-	strcpy(s, "REGION_ABOVE");
+	s = "REGION_ABOVE";
 	break;
     case REGION_BELOW:
-	strcpy(s, "REGION_BELOW");
+	s = "REGION_BELOW";
 	break;
     case REGION_POLYI:
 	if (which) {
-	    strcpy(s, "REGION_POLYI");
+	    s = "REGION_POLYI";
 	} else {
-	    strcpy(s, "INSIDE POLY");
+	    s = "INSIDE POLY";
 	}
 	break;
     case REGION_POLYO:
 	if (which) {
-	    strcpy(s, "REGION_POLYO");
+	    s = "REGION_POLYO";
 	} else {
-	    strcpy(s, "OUTSIDE POLY");
+	    s = "OUTSIDE POLY";
 	}
 	break;
     case REGION_HORIZI:
-      strcpy(s,"REGION_HORIZI");
+      s ="REGION_HORIZI";
       break;
     case REGION_VERTI:
-      strcpy(s,"REGION_VERTI");
+      s ="REGION_VERTI";
       break;
     case REGION_HORIZO:
-       strcpy(s,"REGION_HORIZO");
+       s ="REGION_HORIZO";
       break;
     case REGION_VERTO:
-      strcpy(s,"REGION_VERTO");
+      s ="REGION_VERTO";
       break;
 
     }
@@ -185,8 +185,7 @@ void reporton_region(int gno, int rno, int type)
 	    }
 	}
     }
-    strcpy(buf, "\n");
-    stufftext(buf);
+    stufftext("\n");
 }
 
 void load_poly_region(int r, int n, WPoint *wps)
