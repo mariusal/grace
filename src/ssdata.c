@@ -60,6 +60,19 @@ double *copy_data_column(double *src, int nrows)
     return dest;
 }
 
+char **copy_string_column(char **src, int nrows)
+{
+    char **dest;
+    int i;
+
+    dest = xmalloc(nrows*sizeof(char *));
+    if (dest != NULL) {
+        for (i = 0; i < nrows; i++)
+            dest[i] =copy_string(NULL, src[i]);
+    }
+    return dest;
+}
+
 /* TODO: index_shift */
 double *allocate_index_data(int nrows)
 {
@@ -591,7 +604,8 @@ int create_set_fromblock(int gno, int setno,
             killsetdata(gno, setno);
             return RETURN_FAILURE;
         } else {
-            set_set_strings(gno, setno, blocklen, (char **) blockdata.data[scol]);
+            set_set_strings(gno, setno, blocklen,
+                copy_string_column((char **) blockdata.data[scol], blocklen));
         }
     }
 
