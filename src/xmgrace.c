@@ -663,8 +663,8 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuSeparator(menupane);
 
+    CreateMenuButton(menupane, "Print setup...", 't', create_printer_setup, &hdevice);
     CreateMenuButton(menupane, "Print", 'P', MenuCB, (void *) MENU_PRINT);
-    CreateMenuButton(menupane, "Device setup...", 't', create_printer_setup, NULL);
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Exit", 'x', MenuCB, (void *) MENU_EXIT);
 
@@ -762,6 +762,10 @@ static Widget CreateMainMenuBar(Widget parent)
     windowbarw[0] = CreateMenuToggle(menupane, "Show locator bar", 'L', set_locbar, NULL);
     windowbarw[1] = CreateMenuToggle(menupane, "Show status bar", 'S', set_statusbar, NULL);
     windowbarw[2] = CreateMenuToggle(menupane, "Show tool bar", 'T', set_toolbar, NULL);
+
+    CreateMenuSeparator(menupane);
+
+    CreateMenuButton(menupane, "Page setup...", 'P', create_printer_setup, &tdevice);
 
     CreateMenuSeparator(menupane);
 

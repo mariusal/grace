@@ -91,12 +91,18 @@ static void do_print_cb(void *data);
 
 void create_printer_setup(void *data)
 {
-    int i, ndev;
+    int i, device, ndev;
     Widget device_panel, rc, rc1, fr, wbut;
     Widget menubar, menupane;
     OptionItem *option_items;
     
     set_wait_cursor();
+    
+    if (data == NULL) {
+        device = hdevice;
+    } else {
+        device = *((int *) data);
+    }
     
     if (psetup_frame == NULL) {
 	psetup_frame = XmCreateDialogShell(app_shell, "Device", NULL, 0);
@@ -247,8 +253,9 @@ void create_printer_setup(void *data)
 	ManageChild(device_panel);
     }
     
+    update_printer_setup(device);
+    
     RaiseWindow(psetup_frame);
-    update_printer_setup(hdevice);
     unset_wait_cursor();
 }
 
