@@ -8,7 +8,7 @@
 
   <title>Grace User's Guide (for Grace-5.99.0)</title>
   <author><name>The Grace Team</name></author>
-  <date>30.09.2004</date>
+  <date>02.10.2004</date>
   <abstract>
     This document explains the usage of
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -48,7 +48,7 @@
      number 4.1.2. Paul still maintains and develops a non-public version of
      Xmgr for internal use.
 
-     As of now, most of the codebase has been re-written from scratch.
+     As of now, most of the Grace codebase has been re-written from scratch.
   </p>
 </sect1>
 
@@ -103,7 +103,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
        <hline>
      </tabular>
      <caption>
-       Licenses
+       Third-party license terms
      </caption>
    </table>
   </p>
@@ -206,12 +206,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                  to the default ld path. As well, all stuff would be put under
                  the /opt/grace directory and soft links made to
                  <tt>/usr/bin</tt>, <tt>/usr/lib</tt> and <tt>/usr/include</tt>.
-
-                 <bf>Note</bf>: If you change one of the
-                 <tt>--with-extra-incpath</tt> or
-                 <tt>--with-extra-ldpath</tt> options from one run of
-                 configure to another, remember to delete the
-                 <tt>config.cache</tt> file!!!
           </item>
         </itemize>
         </item>
@@ -274,7 +268,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <item> Load your data with Data/Import/ASCII. 'Load as': 'Single set' for
              two-column ASCII data, 'Block data' for multi-column ASCII data.
       </item>
-      <item> Fire up project explorer (Tools/Explorer).
+      <item> Fire up project explorer (Edit/Explorer).
       </item>
       <item> Click on the top-level node of the project tree and select/check
              the page size.
@@ -293,7 +287,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
              As you'll probably notice, Grace can do MUCH more than that.
              Explore at your leisure.
       </item>
-      <item> When you like your plot, select File/Print. That's it!
+      <item> When you like your plot, select 'File/Save'.
+      </item>
+      <item> Select 'File/Print setup' and then 'File/Print' to get a hardcopy.
+             That's it!
       </item>
     </enum>
   </p>
@@ -315,7 +312,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           coordinates in Grace: the <bf>viewport</bf>, the <bf>frame</bf>, and
           the <bf>world coordinates</bf>. A child position is <it>always</it>
           defined in the coordinate frame of its parent, so e.g.   points of
-          data sets are defined in the graph's world coordinates. The frame
+          data sets are defined in the graph's world coordinates.
+	</p>
+          
+	<p>
+          The frame
           coordinates go from 0 to 1 in both X and Y dimensions of a Frame. 
 	</p>
           
@@ -332,7 +333,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           thing about the viewport &rarr; device transformation is that it is
           homotetic, i.e. a square is guaranteed to remain a square, not a
           rectangle, a circle remains a circle (not an ellipse) etc.
+	</p>
           
+	<p>
           The transformation converting the world coordinates into the frame
           and further into the viewport ones is determined by both the graph
           type and the axis scaling.
@@ -348,7 +351,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           are more than one graph in a frame, such graphs are called
           <bf>overlaid</bf>), and optional annotating objects (texts, boxes,
           etc). As well, Frame is responsible for displaying legend box holding
-          legend entries for its all children graphs.
+          legend entries for all of its children graphs.
 	</p>
       </sect2>
 
@@ -464,13 +467,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           A project file contains all information necessary to restore a plot
           created by Grace. Each plot is represented on a single page (this may
           change in future), but may have an unlimited number of graphs.You
-          create a project file of your current graph with File/Save,Save as.
+          create a project file of your current plot with File/Save,Save as.
 	</p>
       </sect2>
 
       <sect2><heading>Datasets<label id="datasets"></heading>
 	<p>
-          A dataset is a collection of points with X and Y coordinates, up to
+          A dataset is an array of points with X and Y coordinates, up to
           four optional data values (which, depending on the set presentation
           type, can be displayed as error bars or like) and one optional
           character string.
@@ -494,8 +497,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 	<p>
           Real Time Input refers to the ability Grace has to be
           fed in real time by an external program. The Grace
-          process spawned by the driver program is a full featured
-          Grace process: the user can interact using the GUI at the
+          process spawned by the driver program is a full-featured
+          Grace instance: the user can interact using the GUI at the
           same time the program sends data and commands. The process
           will adapt itself to the incoming data rate.
 	</p>
@@ -520,7 +523,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <itemize>
             <item> X11
             </item>
-            <item> PostScript (level 1 and level 2)
+            <item> PostScript (level 1 and level 2), suitable for printing
             </item>
             <item> EPS (encapsulated PostScript)
             </item>
@@ -536,7 +539,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             <item> PDF (depends on extra libraries,
                    see <ref name="configuration" id="configuration">)
             </item>
-            <item> PNM (portable anymap file format)
+            <item> PNM (portable anymap file format, depends on extra
+                   libraries, see <ref name="configuration" id="configuration">)
             </item>
             <item> JPEG (depends on extra libraries,
                    see <ref name="configuration" id="configuration">)
@@ -849,7 +853,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       in or writing some data, a file selection dialog is popped up. In
       addition to the standard entries (the directory and file lists and the
       filter entry), there is a pulldown menu for quick directory change to
-      predefined locations (the current working directory, user's home
+      pre-defined locations (the current working directory, user's home
       directory and the file system root). Also, a "Set as cwd" button is
       there which allows to set any directory as you navigate through the
       directory tree as the current working directory (cwd). Once defined, it
@@ -1006,27 +1010,30 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
       <sect3><heading>Clicks and double clicks<label id="clicks"></heading>
         <p>
-          A single click inside a graph switches focus to that graph. This is the
-          default policy, but it can be changed from the "Edit/Preferences"
+          Mouse wheel (if you got one) scrolls the canvas vertically. With
+          &lt;Ctrl&gt; pressed, the scroll direction is horizontal.
+          Alternatively, simply drag the canvas with the mouse.
+        </p>
+
+        <p>
+          A single click inside a graph switches focus to that graph. This is
+          the default policy, but it can be changed from the "Edit/Preferences"
           popup.
         </p>
 
         <p>
-          Double clicking on parts of the canvas will invoke certain actions
-          or raise some popups:
+          Double clicking on an object will invoke Explorer with the relevant
+          Quark selected.
+       </p>
 
-          <itemize>
-            <item> on a focus marker: move selected viewport corner </item>
-            <item> on an axis:  "Plot/Axis properties" popup </item>
-            <item> on a set:    "Plot/Set appearance" popup </item>
-            <item> on a legend: "Plot/Graph appearance" popup </item>
-            <item> on a (sub)title: "Plot/Graph appearance" popup </item>
-            <item> on an object (box, line, ...): a popup for editing
-                   properties of that object </item>
-          </itemize>
+        <p>
+          Dragging an object with mouse is possible while &lt;Ctrl&gt; is
+          pressed.
+       </p>
 
-          The double clicking actions can be enabled/disabled from the
-          "Edit/Preferences" popup.
+        <p>
+          Pressing 3-rd mouse button on an object pops up a context-sensitive
+          menu.
        </p>
       </sect3>
     </sect2>
@@ -1035,8 +1042,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <p>
       Along the left-hand side of the canvas (if shown) is the ToolBar. It
       is armed with several buttons to provide quick and easy access to the
-      more commonly used Grace functions.
+      more commonly used Grace functions; most of them operate on the current
+      graph.
 
+      <!--
       <itemize> 
         <item> <tt>  Draw</tt>: This will redraw the canvas and sets.
 	  Useful if "Auto Redraw" has been deselected in the "Edit/Preferences"
@@ -1069,6 +1078,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <item> <tt>Exit</tt>: Pretty obvious, eh?
         </item>
       </itemize>
+      -->
       </p>
     </sect2>
    </sect1>
@@ -1315,7 +1325,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    <sect1><heading> Data menu <label id="data-menu"></heading>
       <sect2><heading> Data set operations <label id="data-set-operations"></heading>
       <p>
-       This popup gathers all operations that are related to the
+      This popup gathers all operations that are related to the
       ordering of data points inside a set or between sets. You can
       sort according to any coordinate (X, Y, DX, ...)
       in ascending or descending order, reverse the order of the
@@ -1400,10 +1410,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          data X is taken as the real part and Y as the imaginary part.
 
          If Grace was configured with the FFTW library (see <ref
-         name="configuration" id="configuration">), then the DFT and
-         FFT buttons really perform the same transform (so there is no
-         speed-up in using FFT in this case). If you want Grace can to
-         use FFTW <it>wisdom</it> files, you should set several <ref
+         name="configuration" id="configuration">), then you may want to
+         use FFTW <it>wisdom</it> files. Then, you should set several <ref
          name="environment variables" id="environment-variables"> to
          name them.
          </p>
@@ -2305,14 +2313,14 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
               <hline>
       Grace type | Description   @
               <hline>
-f&lowbar;of&lowbar;i    | a function of 1 <tt/int/ variable                                 @
-f&lowbar;of&lowbar;d    | a function of 1 <tt/double/ variable                              @
-f&lowbar;of&lowbar;nn   | a function of 2 <tt/int/ parameters                               @
-f&lowbar;of&lowbar;nd   | a function of 1 <tt/int/ parameter and 1 <tt/double/ variable     @
-f&lowbar;of&lowbar;dd   | a function of 2 <tt/double/ variables                             @
-f&lowbar;of&lowbar;nnd  | a function of 2 <tt/int/ parameters and 1 <tt/double/ variable    @
-f&lowbar;of&lowbar;ppd  | a function of 2 <tt/double/ parameters and 1 <tt/double/ variable @
-f&lowbar;of&lowbar;pppd | a function of 3 <tt/double/ parameters and 1 <tt/double/ variable @
+f&lowbar;of&lowbar;i    | a function of 1 <tt>int</tt> variable                                 @
+f&lowbar;of&lowbar;d    | a function of 1 <tt>double</tt> variable                              @
+f&lowbar;of&lowbar;nn   | a function of 2 <tt>int</tt> parameters                               @
+f&lowbar;of&lowbar;nd   | a function of 1 <tt>int</tt> parameter and 1 <tt>double</tt> variable     @
+f&lowbar;of&lowbar;dd   | a function of 2 <tt>double</tt> variables                             @
+f&lowbar;of&lowbar;nnd  | a function of 2 <tt>int</tt> parameters and 1 <tt>double</tt> variable    @
+f&lowbar;of&lowbar;ppd  | a function of 2 <tt>double</tt> parameters and 1 <tt>double</tt> variable @
+f&lowbar;of&lowbar;pppd | a function of 3 <tt>double</tt> parameters and 1 <tt>double</tt> variable @
               <hline>
       </tabular>
       <caption>
@@ -2343,7 +2351,7 @@ f&lowbar;of&lowbar;pppd | a function of 3 <tt/double/ parameters and 1 <tt/doubl
 
        <sect3><heading>Example 1</heading>
        <p>
-       Suppose I want to use function <tt/pow(x,y)/ from the Un*x math
+       Suppose I want to use function <tt>pow(x,y)</tt> from the Un*x math
        library (libm). Of course, you can use the "^" operator defined
        in the Grace language, but here, for the sake of example, we
        want to access the function directly.
@@ -2362,7 +2370,7 @@ f&lowbar;of&lowbar;pppd | a function of 3 <tt/double/ parameters and 1 <tt/doubl
        <sect3><heading>Example 2</heading>
        <p>
        Now, let us try to write a function ourselves. We will define
-       function <tt/my_function/ which simply returns its (second)
+       function <tt>my_function</tt> which simply returns its (second)
        argument multiplied by integer parameter transferred as the
        first argument.
 
@@ -2413,8 +2421,8 @@ f&lowbar;of&lowbar;pppd | a function of 3 <tt/double/ parameters and 1 <tt/doubl
 
        Suppose, the name of the library is "special_lib" and the
        function you are interested in is called "special_func" and
-       according to the library manual, should be accessed as <tt/void
-       special_func(double *input, double *output, int parameter)/.
+       according to the library manual, should be accessed as <tt>void
+       special_func(double *input, double *output, int parameter)</tt>.
        The wrapper would look like this:
 
        <tscreen><code>
@@ -2669,7 +2677,7 @@ C
       <p>
        NOTE:
        Characters from the upper half of the char table can be entered directly
-       from the keyboard, using appropriate <tt>xmodmap(1)</tt> settings, or
+       from the keyboard, using appropriate <tt>xmodmap/xkb</tt> settings, or
        with the help of the font tool ("Tools/Font tool").
       </p>
   </sect1>
@@ -2715,7 +2723,6 @@ C
     <p>
       Some of the output devices accept several configuration options.
       A few options can be passed in one command, separated by commas.
-      NIY!
     </p>
 
     <p>
@@ -2888,8 +2895,8 @@ C
       the 15th). The rules for leap years were also changed: three
       leap years are removed every four centuries. These years are
       those that are multiple of 100 but not multiple of 400: 1700,
-      1800, and 1900 were not leap years, but 1600 and 2000 were (will
-      be) leap years.
+      1800, and 1900 were not leap years, but 1600 and 2000 were leap
+      years.
       
       We still use Gregorian calendar today, but we now have several
       time scales for increased accuracy. The International Atomic
@@ -2952,7 +2959,7 @@ C
 
       You can also provide a hint about the format ("ISO8601",
       "european", "us") using the -datehint command line flag or the
-      ref name="Edit->Preferences" id="preferences"> popup of the GUI.
+      <ref name="Edit->Preferences" id="preferences"> popup of the GUI.
       The formats are tried in the following order: first the hint
       given by the user, then iso, european and us (there is no
       ambiguity between calendar formats and numerical formats and
@@ -3028,9 +3035,6 @@ C
              projects (saved with xmgr-4.0.*) are not automatically converted
              anymore. You can use the "grconvert" utility that comes with
              Grace to convert such files to Xmgr-4.1.2-style projects. 
-      </item>
- 
-      <item> Documentation on the script language is severely lacking still.
       </item>
  
       <item> Grace is WYSIWYG. Xmgr was not. Many changes required to achieve the
