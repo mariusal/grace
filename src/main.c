@@ -84,7 +84,6 @@ int main(int argc, char *argv[])
     view v;
     int cur_graph;	        /* default (current) graph */
     int loadlegend = FALSE;	/* legend on and load file names */
-    int gcols = 0, grows = 0;
     int gracebat;		/* if executed as 'gracebat' then TRUE */
     int cli = FALSE;            /* command line interface only */
     int remove_flag = FALSE;	/* remove file after read */
@@ -537,38 +536,6 @@ int main(int argc, char *argv[])
 			    usage(stderr, argv[0]);
 			}
 		    }
-		} else if (argmatch(argv[i], "-arrange", 7)) {
-		    if (i + 2 >= argc) {
-			fprintf(stderr, "Missing argument for graph arrangement\n");
-			usage(stderr, argv[0]);
-		    } else {
-			i++;
-			grows = atoi(argv[i]);
-			i++;
-			gcols = atoi(argv[i]);
-		    }
-		} else if (argmatch(argv[i], "-cols", 5)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for graph column arrangement\n");
-			usage(stderr, argv[0]);
-		    } else {
-			gcols = atoi(argv[i]);
-                        if (grows == 0) {
-                            grows = 1;
-                        }
-		    }
-		} else if (argmatch(argv[i], "-rows", 5)) {
-		    i++;
-		    if (i == argc) {
-			fprintf(stderr, "Missing argument for graph row arrangement\n");
-			usage(stderr, argv[0]);
-		    } else {
-			grows = atoi(argv[i]);
-                        if (gcols == 0) {
-                            gcols = 1;
-                        }
-		    }
 		} else if (argmatch(argv[i], "-legend", 4)) {
 		    i++;
 		    if (i == argc) {
@@ -713,13 +680,6 @@ int main(int argc, char *argv[])
     }
 
 /*
- * arrange graphs
- */
-    if (grows > 0 || gcols > 0) {
-        arrange_graphs_simple(grows, gcols);
-    }
-
-/*
  * if -hardcopy on command line or executed as gracebat,
  * just plot the graph and quit
  */
@@ -803,7 +763,6 @@ static void usage(FILE *stream, char *progname)
 
     fprintf(stream, "Usage of %s command line arguments: \n", progname);
 
-    fprintf(stream, "-arrange   [rows] [cols]              Arrange the graphs in a grid rows by cols\n");
     fprintf(stream, "-autoscale [x|y|xy|none]              Set autoscale type\n");
 #ifndef NONE_GUI
     fprintf(stream, "-barebones                            Turn off all toolbars\n");
@@ -813,7 +772,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-bxy       [x:y:etc.]                 Form a set from the current block data set\n");
     fprintf(stream, "                                        using the current set type from columns\n");
     fprintf(stream, "                                        given in the argument\n");
-    fprintf(stream, "-cols      [gcols]                    Arrange graphs in gcols columns\n");
     fprintf(stream, "-datehint  [iso|european|us\n");
     fprintf(stream, "            |days|seconds|nohint]     Set the hint for dates analysis\n");
     fprintf(stream, "                                        (it is only a hint for the parser)\n");
@@ -867,7 +825,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-remove                               Remove data file after read\n");
     fprintf(stream, "-results   [results_file]             Write results of some data manipulations\n");
     fprintf(stream, "                                        to results_file\n");
-    fprintf(stream, "-rows      [grows]                    Arrange graphs in grows rows \n");
     fprintf(stream, "-rvideo                               Exchange the color indices for black and\n");
     fprintf(stream, "                                        white\n");
     fprintf(stream, "-saveall   [save_file]                Save all to save_file\n");
