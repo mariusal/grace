@@ -52,6 +52,7 @@
  *  [ES] reading in block data no longer resets set column selectors
  *  [ES] implemented the color sync option in the "set app." dialog
  *  [EV] "-barebones" command line switch (switch all tool bars off)
+ *  [ES] annotated strings can be modified in the spreadsheet editor
 
 <H3>Drivers</H3>
  *  [LM] FrameMaker MIF driver added (rep. #590)
@@ -64,6 +65,7 @@
  *  [ES] PDF driver setup options: 1.2/1.3 compatibility and compression
          level
  *  [ES] use "thin" lines in X11 driver if the line width &lt;= 1 pixel
+ *  [ES] list fonts, colors and other resources in the metafile driver
 
 <H3>Documentation/Info</H3>
  *  [AM] omit a few GUI-specific flags/help strings when compiling a GUI-less
@@ -120,6 +122,11 @@
  *  [EV] feature extraction/FFT was incorrectly determining if the set length
          was a power of 2
  *  [ES] upon loading a project, set print file name automatically (rep. #641)
+ *  [ES] fixed a memory leak in set sort
+ *  [ES] fixed bugs in set and point operations with sets containing annotated
+         strings (including rep. #767)
+ *  [ES] in "Window/Results...", the vertical scrollbar was missing when
+         compiled with Motif-2.1
 
 
 <H2>5.0.5</H2>
