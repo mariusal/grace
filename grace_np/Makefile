@@ -55,11 +55,11 @@ links : $(LIB)
 	cd $(PREFIX)/include; $(RM) grace_np.h; $(LN_S) $(GRACE_HOME)/include/grace_np.h grace_np.h
 	
 clean :
-	$(RM) *.o sample.gr $(TESTS)
+	$(RM) *.o sample.agr $(TESTS)
 
 distclean :
-	$(RM) *.o sample.gr $(LIB) $(TESTS)
+	$(RM) *.o sample.agr $(LIB) $(TESTS)
 	
 devclean :
-	$(RM) *.o sample.gr $(LIB) $(TESTS)
+	$(RM) *.o sample.agr $(LIB) $(TESTS)
 

@@ -57,7 +57,7 @@ C                  for calculations. Your real application shouldn't wait
 C
 C          Tell Grace to save the data
 C
-           CALL GraceCommandf ('saveall "sample.gr"')
+           CALL GraceCommandf ('saveall "sample.agr"')
 C
 C          Flush the output buffer and close Grace
 C

@@ -51,13 +51,13 @@ main (int argc, char* argv[])
             GracePrintf ("redraw");
             /* Wait a second, just to simulate some time needed for
                calculations. Your real application shouldn't wait. */
-            sleep (1);
+            sleep (10);
         }
     }
 
     if (GraceIsOpen()) {
         /* Tell Grace to save the data */
-        GracePrintf ("saveall \"sample.gr\"");
+        GracePrintf ("saveall \"sample.agr\"");
 
         /* Flush the output buffer and close Grace */
         GraceClose();
