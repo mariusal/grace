@@ -551,6 +551,28 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
     return RETURN_SUCCESS;
 }
 
+/* replacement for fgets() to fix up reading DOS text files */
+char *grace_fgets(char *s, int size, FILE *stream) {
+    int  slen;
+    char *endptr;
+
+    s = fgets(s, size, stream);
+    if (!s) {
+        return NULL;
+    }
+
+    slen = strlen(s);
+    if (slen >= 2) {
+        endptr = s + slen - 2;
+        /* check for DOS ending "\r\n" */
+        if (*endptr == '\r') {
+            /* 'move' un*x string tail "\n\0" one char forward */
+            *endptr     = '\n';
+            *(endptr+1) = '\0';
+        }
+    }
+    return s;
+}
 
 /*
  * read a line increasing buffer as necessary
@@ -758,6 +780,41 @@ void grace_close(FILE *fp)
     }
 }
 
+int getparms(char *plfile)
+{
+    int linecount = 0, errcnt = 0;
+    char *linebuf=NULL;
+    int linelen=0;
+    FILE *pp;
+
+    if ((pp = grace_openr(plfile, SOURCE_DISK)) == NULL) {
+        return 0;
+    } else {
+        errcnt = 0;
+        while (read_long_line(pp, &linebuf, &linelen) == RETURN_SUCCESS) {
+            linecount++;
+            if (scanner(linebuf)) {
+                sprintf(linebuf, "Error at line %d", linecount);
+                errmsg(linebuf);
+                errcnt++;
+                if (errcnt > MAXERR) {
+                    if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
+                        grace_close(pp);
+		        xfree(linebuf);
+                        return 0;
+                    } else {
+                        errcnt = 0;
+                    }
+                }
+            }
+        }
+        if (pp != stdin) {
+            grace_close(pp);
+        }
+    }
+    xfree(linebuf);
+    return 1;
+}
 
 static int uniread(FILE *fp, int load_type, char *label)
 {
@@ -1467,26 +1524,3 @@ int write_netcdf(char *fname)
 }
 
 #endif				/* HAVE_NETCDF */
-
-/* replacement for fgets() to fix up reading DOS text files */
-char *grace_fgets(char *s, int size, FILE *stream) {
-    int  slen;
-    char *endptr;
-
-    s = fgets(s, size, stream);
-    if (!s) {
-        return NULL;
-    }
-
-    slen = strlen(s);
-    if (slen >= 2) {
-        endptr = s + slen - 2;
-        /* check for DOS ending "\r\n" */
-        if (*endptr == '\r') {
-            /* 'move' un*x string tail "\n\0" one char forward */
-            *endptr     = '\n';
-            *(endptr+1) = '\0';
-        }
-    }
-    return s;
-}
