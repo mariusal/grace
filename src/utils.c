@@ -313,7 +313,7 @@ double mytrunc(double a)
  */
 void bailout(void)
 {
-    if (!is_dirtystate() || yesno("Exit losing unsaved changes?", NULL, NULL, "file.html#exit")) {
+    if (!is_dirtystate() || yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
          if (resfp) {
              grace_close(resfp);
          }

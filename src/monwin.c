@@ -89,19 +89,19 @@ void create_monitor_frame(void *data)
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 	wbut = XtVaCreateManagedWidget("Save...", xmPushButtonWidgetClass, rc,
 				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) create_wmon_frame, (XtPointer) NULL);
+	XtAddCallback(wbut, XmNactivateCallback, create_wmon_frame, (XtPointer) NULL);
 	wbut = XtVaCreateManagedWidget("Clear", xmPushButtonWidgetClass, rc,
 				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) clear_results, (XtPointer) NULL);
+	XtAddCallback(wbut, XmNactivateCallback, clear_results, (XtPointer) NULL);
 	mon_log_item = XtVaCreateManagedWidget("Log", xmToggleButtonWidgetClass, rc,
 				       NULL);
-	XtAddCallback(mon_log_item, XmNvalueChangedCallback, (XtCallbackProc) log_resultsCB, (XtPointer) NULL);
+	XtAddCallback(mon_log_item, XmNvalueChangedCallback, log_resultsCB, (XtPointer) NULL);
 	wbut = XtVaCreateManagedWidget("Close", xmPushButtonWidgetClass, rc,
 				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) mon_frame);
+	XtAddCallback(wbut, XmNactivateCallback, destroy_dialog, (XtPointer) mon_frame);
 	wbut = XtVaCreateManagedWidget("Help", xmPushButtonWidgetClass, rc,
 				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) HelpCB, (XtPointer) "data.html#results");
+	AddButtonCB(wbut, HelpCB, NULL);
 
 	XtManageChild(rc);
 
@@ -193,9 +193,9 @@ static void create_wmon_frame(Widget w, XtPointer client_data, XtPointer call_da
 
 	CreateCommandButtons(wmon_panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
-		    (XtCallbackProc) wmon_apply_notify_proc, (XtPointer) 0);
+		    wmon_apply_notify_proc, (XtPointer) 0);
 	XtAddCallback(buts[1], XmNactivateCallback,
-		   (XtCallbackProc) destroy_dialog, (XtPointer) wmon_frame);
+		   destroy_dialog, (XtPointer) wmon_frame);
 
 	XtManageChild(wmon_panel);
     }
