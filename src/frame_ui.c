@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -91,23 +91,16 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->frame_framestyle_choice, oc_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->frame_color_choice = CreateColorChoice(rc2, "Color:");
-    AddOptionChoiceCB(ui->frame_color_choice, oc_explorer_cb, eui);
-    ui->frame_pattern_choice = CreatePatternChoice(rc2, "Pattern:");
-    AddOptionChoiceCB(ui->frame_pattern_choice, oc_explorer_cb, eui);
-
-    rc2 = CreateHContainer(rc);
     ui->frame_linew_choice = CreateLineWidthChoice(rc2, "Width:");
     AddSpinButtonCB(ui->frame_linew_choice, sp_explorer_cb, eui);
     ui->frame_lines_choice = CreateLineStyleChoice(rc2, "Style:");
     AddOptionChoiceCB(ui->frame_lines_choice, oc_explorer_cb, eui);
 
-    fr = CreateFrame(ui->main_tp, "Frame fill");
-    rc = CreateHContainer(fr);
-    ui->frame_fillcolor_choice = CreateColorChoice(rc, "Color:");
-    AddOptionChoiceCB(ui->frame_fillcolor_choice, oc_explorer_cb, eui);
-    ui->frame_fillpattern_choice = CreatePatternChoice(rc, "Pattern:");
-    AddOptionChoiceCB(ui->frame_fillpattern_choice, oc_explorer_cb, eui);
+    rc2 = CreateHContainer(rc);
+    ui->frame_pen = CreatePenChoice(rc2, "Outline pen:");
+    AddPenChoiceCB(ui->frame_pen, pen_explorer_cb, eui);
+    ui->frame_fillpen = CreatePenChoice(rc2, "Fill pen:");
+    AddPenChoiceCB(ui->frame_fillpen, pen_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Display options");
     rc = CreateHContainer(fr);
@@ -133,14 +126,8 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
         SPIN_TYPE_FLOAT, -1.0, 1.0, 0.01);
     AddSpinButtonCB(ui->legend_y, sp_explorer_cb, eui);
 
-    fr = CreateFrame(ui->legendbox_tp, "Frame line");
+    fr = CreateFrame(ui->legendbox_tp, "Frame box");
     rc = CreateVContainer(fr);
-
-    rc2 = CreateHContainer(rc);
-    ui->legend_boxcolor = CreateColorChoice(rc2, "Color:");
-    AddOptionChoiceCB(ui->legend_boxcolor, oc_explorer_cb, eui);
-    ui->legend_boxpattern = CreatePatternChoice(rc2, "Pattern:");
-    AddOptionChoiceCB(ui->legend_boxpattern, oc_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
     ui->legend_boxlinew = CreateLineWidthChoice(rc2, "Width:");
@@ -148,13 +135,11 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     ui->legend_boxlines = CreateLineStyleChoice(rc2, "Style:");
     AddOptionChoiceCB(ui->legend_boxlines, oc_explorer_cb, eui);
 
-    fr = CreateFrame(ui->legendbox_tp, "Frame fill");
-    rc = CreateHContainer(fr);
-    ui->legend_boxfillcolor = CreateColorChoice(rc, "Color:");
-    AddOptionChoiceCB(ui->legend_boxfillcolor, oc_explorer_cb, eui);
-    ui->legend_boxfillpat = CreatePatternChoice(rc, "Pattern:");
-    AddOptionChoiceCB(ui->legend_boxfillpat, oc_explorer_cb, eui);
-
+    rc2 = CreateHContainer(rc);
+    ui->legend_boxpen = CreatePenChoice(rc2, "Outline pen:");
+    AddPenChoiceCB(ui->legend_boxpen, pen_explorer_cb, eui);
+    ui->legend_boxfillpen = CreatePenChoice(rc2, "Fill pen:");
+    AddPenChoiceCB(ui->legend_boxfillpen, pen_explorer_cb, eui);
 
     /* ------------ Legends tab -------------- */
 
@@ -218,12 +203,10 @@ void update_frame_ui(FrameUI *ui, Quark *q)
 	xv_setstr(ui->view_yv2, buf);
 
 	SetOptionChoice(ui->frame_framestyle_choice, f->type);
-	SetOptionChoice(ui->frame_color_choice, f->outline.pen.color);
-	SetOptionChoice(ui->frame_pattern_choice, f->outline.pen.pattern);
+	SetPenChoice(ui->frame_pen, &f->outline.pen);
 	SetSpinChoice(ui->frame_linew_choice, f->outline.width);
 	SetOptionChoice(ui->frame_lines_choice, f->outline.style);
-	SetOptionChoice(ui->frame_fillcolor_choice, f->fillpen.color);
-	SetOptionChoice(ui->frame_fillpattern_choice, f->fillpen.pattern);
+	SetPenChoice(ui->frame_fillpen, &f->fillpen);
  
         SetCharSizeChoice(ui->legend_charsize, l->charsize);
 
@@ -241,12 +224,10 @@ void update_frame_ui(FrameUI *ui, Quark *q)
 
 	SetOptionChoice(ui->legend_font, l->font);
 	SetOptionChoice(ui->legend_color, l->color);
-	SetOptionChoice(ui->legend_boxfillcolor, l->boxfillpen.color);
-	SetOptionChoice(ui->legend_boxfillpat, l->boxfillpen.pattern);
-	SetOptionChoice(ui->legend_boxcolor, l->boxline.pen.color);
-	SetOptionChoice(ui->legend_boxpattern, l->boxline.pen.pattern);
 	SetSpinChoice(ui->legend_boxlinew, l->boxline.width);
 	SetOptionChoice(ui->legend_boxlines, l->boxline.style);
+	SetPenChoice(ui->legend_boxpen, &l->boxline.pen);
+	SetPenChoice(ui->legend_boxfillpen, &l->boxfillpen);
     }
 }
 
@@ -286,11 +267,8 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->frame_framestyle_choice) {
             f->type = GetOptionChoice(ui->frame_framestyle_choice);
         }
-        if (!caller || caller == ui->frame_color_choice) {
-            f->outline.pen.color = GetOptionChoice(ui->frame_color_choice);
-        }
-        if (!caller || caller == ui->frame_pattern_choice) {
-            f->outline.pen.pattern = GetOptionChoice(ui->frame_pattern_choice);
+        if (!caller || caller == ui->frame_pen) {
+            GetPenChoice(ui->frame_pen, &f->outline.pen);
         }
         if (!caller || caller == ui->frame_linew_choice) {
             f->outline.width = GetSpinChoice(ui->frame_linew_choice);
@@ -298,11 +276,8 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->frame_lines_choice) {
             f->outline.style = GetOptionChoice(ui->frame_lines_choice);
         }
-        if (!caller || caller == ui->frame_fillcolor_choice) {
-            f->fillpen.color = GetOptionChoice(ui->frame_fillcolor_choice);
-        }
-        if (!caller || caller == ui->frame_fillpattern_choice) {
-            f->fillpen.pattern = GetOptionChoice(ui->frame_fillpattern_choice);
+        if (!caller || caller == ui->frame_fillpen) {
+            GetPenChoice(ui->frame_fillpen, &f->fillpen);
         }
         if (!caller || caller == ui->legend_charsize) {
             l->charsize = GetCharSizeChoice(ui->legend_charsize);
@@ -340,23 +315,17 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->legend_color) {
             l->color = GetOptionChoice(ui->legend_color);
         }
-        if (!caller || caller == ui->legend_boxfillcolor) {
-            l->boxfillpen.color = GetOptionChoice(ui->legend_boxfillcolor);
-        }
-        if (!caller || caller == ui->legend_boxfillpat) {
-            l->boxfillpen.pattern = GetOptionChoice(ui->legend_boxfillpat);
-        }
-        if (!caller || caller == ui->legend_boxcolor) {
-            l->boxline.pen.color = GetOptionChoice(ui->legend_boxcolor);
-        }
-        if (!caller || caller == ui->legend_boxpattern) {
-            l->boxline.pen.pattern = GetOptionChoice(ui->legend_boxpattern);
+        if (!caller || caller == ui->legend_boxpen) {
+            GetPenChoice(ui->legend_boxpen, &l->boxline.pen);
         }
         if (!caller || caller == ui->legend_boxlinew) {
             l->boxline.width = GetSpinChoice(ui->legend_boxlinew);
         }
         if (!caller || caller == ui->legend_boxlines) {
             l->boxline.style = GetOptionChoice(ui->legend_boxlines);
+        }
+        if (!caller || caller == ui->legend_boxfillpen) {
+            GetPenChoice(ui->legend_boxfillpen, &l->boxfillpen);
         }
 
         quark_dirtystate_set(q, TRUE);

@@ -167,8 +167,8 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->symbols, oc_explorer_cb, eui);
     ui->symsize = CreateCharSizeChoice(rc, "Size");
     AddScaleCB(ui->symsize, scale_explorer_cb, eui);
-    ui->symcolor = CreateColorChoice(rc, "Color:");
-    AddOptionChoiceCB(ui->symcolor, oc_explorer_cb, eui);
+    ui->sympen = CreatePenChoice(rc, "Outline pen:");
+    AddPenChoiceCB(ui->sympen, pen_explorer_cb, eui);
     ui->symchar = CreateTextItem2(rc, 3, "Symbol char:");
     AddTextItemCB(ui->symchar, titem_explorer_cb, eui);
 
@@ -188,8 +188,8 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
     ui->width = CreateLineWidthChoice(rc, "Width:");
     AddSpinButtonCB(ui->width, sp_explorer_cb, eui); 
-    ui->color = CreateColorChoice(rc, "Color:");
-    AddOptionChoiceCB(ui->color, oc_explorer_cb, eui);
+    ui->pen = CreatePenChoice(rc, "Pen:");
+    AddPenChoiceCB(ui->pen, pen_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Legend");
     ui->legend_str = CreateCSText(fr, "String:");
@@ -215,15 +215,11 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->symlines, oc_explorer_cb, eui);
     ui->symlinew = CreateLineWidthChoice(rc2, "Width:");
     AddSpinButtonCB(ui->symlinew, sp_explorer_cb, eui);
-    ui->sympattern = CreatePatternChoice(rc, "Pattern:");
-    AddOptionChoiceCB(ui->sympattern, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->symbol_tp, "Symbol fill");
     rc = CreateHContainer(fr);
-    ui->symfillcolor = CreateColorChoice(rc, "Color:");
-    AddOptionChoiceCB(ui->symfillcolor, oc_explorer_cb, eui);
-    ui->symfillpattern = CreatePatternChoice(rc, "Pattern:");
-    AddOptionChoiceCB(ui->symfillpattern, oc_explorer_cb, eui);
+    ui->symfillpen = CreatePenChoice(rc, "Pen:");
+    AddPenChoiceCB(ui->symfillpen, pen_explorer_cb, eui);
 
     fr = CreateFrame(ui->symbol_tp, "Extra");
     rc = CreateVContainer(fr);
@@ -238,11 +234,9 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     ui->line_tp = CreateTabPage(tab, "Line");
 
-    fr = CreateFrame(ui->line_tp, "Line properties");
+    fr = CreateFrame(ui->line_tp, "Drop lines");
     rc = CreateHContainer(fr);
-    ui->pattern = CreatePatternChoice(rc, "Pattern:");
-    AddOptionChoiceCB(ui->pattern, oc_explorer_cb, eui);
-    ui->dropline = CreateToggleButton(rc, "Draw drop lines");
+    ui->dropline = CreateToggleButton(rc, "Enabled");
     AddToggleButtonCB(ui->dropline, tb_explorer_cb, eui);
 
     fr = CreateFrame(ui->line_tp, "Fill properties");
@@ -262,10 +256,8 @@ SetUI *create_set_ui(ExplorerUI *eui)
                                          NULL);
     AddOptionChoiceCB(ui->fillrule, oc_explorer_cb, eui); 
     rc2 = CreateHContainer(rc);
-    ui->fillpat = CreatePatternChoice(rc2, "Pattern:");
-    AddOptionChoiceCB(ui->fillpat, oc_explorer_cb, eui);
-    ui->fillcol = CreateColorChoice(rc2, "Color:");
-    AddOptionChoiceCB(ui->fillcol, oc_explorer_cb, eui);
+    ui->fillpen = CreatePenChoice(rc2, "Pen:");
+    AddPenChoiceCB(ui->fillpen, pen_explorer_cb, eui);
 
     fr = CreateFrame(ui->line_tp, "Base line");
     rc = CreateHContainer(fr);
@@ -356,10 +348,8 @@ SetUI *create_set_ui(ExplorerUI *eui)
                                          "Both",
                                          NULL);
     AddOptionChoiceCB(ui->errbar_ptype, oc_explorer_cb, eui); 
-    ui->errbar_color = CreateColorChoice(rc, "Color:");
-    AddOptionChoiceCB(ui->errbar_color, oc_explorer_cb, eui);
-    ui->errbar_pattern = CreatePatternChoice(rc, "Pattern:");
-    AddOptionChoiceCB(ui->errbar_pattern, oc_explorer_cb, eui);
+    ui->errbar_pen = CreatePenChoice(rc, "Pen:");
+    AddPenChoiceCB(ui->errbar_pen, pen_explorer_cb, eui);
 
     fr = CreateFrame(rc1, "Clipping");
     rc = CreateVContainer(fr);
@@ -420,25 +410,21 @@ void update_set_ui(SetUI *ui, Quark *q)
         xv_setstr(ui->symchar, val);
         SetOptionChoice(ui->symbols, p->sym.type);
         
-        SetOptionChoice(ui->symcolor, p->sym.line.pen.color);
-        SetOptionChoice(ui->sympattern, p->sym.line.pen.pattern);
-        SetOptionChoice(ui->symfillcolor, p->sym.fillpen.color);
-        SetOptionChoice(ui->symfillpattern, p->sym.fillpen.pattern);
+        SetPenChoice(ui->sympen, &p->sym.line.pen);
+        SetPenChoice(ui->symfillpen, &p->sym.fillpen);
         SetSpinChoice(ui->symlinew, p->sym.line.width);
         SetOptionChoice(ui->symlines, p->sym.line.style);
         
         SetOptionChoice(ui->char_font, p->sym.charfont);        
         
-        SetOptionChoice(ui->color, p->line.line.pen.color);
-        SetOptionChoice(ui->pattern, p->line.line.pen.pattern);
+        SetPenChoice(ui->pen, &p->line.line.pen);
         SetSpinChoice(ui->width, p->line.line.width);
         SetToggleButtonState(ui->dropline, p->line.droplines);
         SetOptionChoice(ui->lines, p->line.line.style);
         SetOptionChoice(ui->linet, p->line.type);
         SetOptionChoice(ui->filltype, p->line.filltype);
         SetOptionChoice(ui->fillrule, p->line.fillrule);
-        SetOptionChoice(ui->fillcol, p->line.fillpen.color);
-        SetOptionChoice(ui->fillpat, p->line.fillpen.pattern);
+        SetPenChoice(ui->fillpen, &p->line.fillpen);
         
         SetToggleButtonState(ui->baseline, p->line.baseline);
         SetOptionChoice(ui->baselinetype, p->line.baseline_type);
@@ -458,8 +444,7 @@ void update_set_ui(SetUI *ui, Quark *q)
             break;
         }
         SetOptionChoice(ui->errbar_ptype, p->errbar.ptype);
-        SetOptionChoice(ui->errbar_color, p->errbar.pen.color);
-        SetOptionChoice(ui->errbar_pattern, p->errbar.pen.pattern);
+        SetPenChoice(ui->errbar_pen, &p->errbar.pen);
         SetToggleButtonState(ui->errbar_aclip, p->errbar.arrow_clip);
         SetSpinChoice(ui->errbar_cliplen, p->errbar.cliplen);
         SetSpinChoice(ui->errbar_width, p->errbar.linew);
@@ -522,11 +507,8 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->fillrule) {
             p->line.fillrule = GetOptionChoice(ui->fillrule);
         }
-        if (!caller || caller == ui->fillpat) {
-            p->line.fillpen.pattern = GetOptionChoice(ui->fillpat);
-        }
-        if (!caller || caller == ui->fillcol) {
-            p->line.fillpen.color = GetOptionChoice(ui->fillcol);
+        if (!caller || caller == ui->fillpen) {
+            GetPenChoice(ui->fillpen, &p->line.fillpen);
         }
         if (!caller || caller == ui->legend_str) {
             xfree(p->legstr);
@@ -544,23 +526,14 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->width) {
             p->line.line.width = GetSpinChoice(ui->width);
         }
-        if (!caller || caller == ui->color) {
-            p->line.line.pen.color = GetOptionChoice(ui->color);
+        if (!caller || caller == ui->pen) {
+            GetPenChoice(ui->pen, &p->line.line.pen);
         }
-        if (!caller || caller == ui->pattern) {
-            p->line.line.pen.pattern = GetOptionChoice(ui->pattern);
+        if (!caller || caller == ui->sympen) {
+            GetPenChoice(ui->sympen, &p->sym.line.pen);
         }
-        if (!caller || caller == ui->symcolor) {
-            p->sym.line.pen.color = GetOptionChoice(ui->symcolor);
-        }
-        if (!caller || caller == ui->sympattern) {
-            p->sym.line.pen.pattern = GetOptionChoice(ui->sympattern);
-        }
-        if (!caller || caller == ui->symfillcolor) {
-            p->sym.fillpen.color = GetOptionChoice(ui->symfillcolor);
-        }
-        if (!caller || caller == ui->symfillpattern) {
-            p->sym.fillpen.pattern = GetOptionChoice(ui->symfillpattern);
+        if (!caller || caller == ui->symfillpen) {
+            GetPenChoice(ui->symfillpen, &p->sym.fillpen);
         }
         if (!caller || caller == ui->dropline) {
             p->line.droplines = GetToggleButtonState(ui->dropline);
@@ -595,11 +568,8 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->errbar_ptype) {
             p->errbar.ptype = GetOptionChoice(ui->errbar_ptype);
         }
-        if (!caller || caller == ui->errbar_color) {
-            p->errbar.pen.color = GetOptionChoice(ui->errbar_color);
-        }
-        if (!caller || caller == ui->errbar_pattern) {
-            p->errbar.pen.pattern = GetOptionChoice(ui->errbar_pattern);
+        if (!caller || caller == ui->errbar_pen) {
+            GetPenChoice(ui->errbar_pen, &p->errbar.pen);
         }
         if (!caller || caller == ui->errbar_aclip) {
             p->errbar.arrow_clip = GetToggleButtonState(ui->errbar_aclip);

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2003 Grace Development Team
+ * Copyright (c) 2003,2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -66,12 +66,10 @@ typedef struct {
     Widget          view_yv2;
 
     OptionStructure *frame_framestyle_choice;
-    OptionStructure *frame_color_choice;
-    OptionStructure *frame_pattern_choice;
+    Widget          frame_pen;
     OptionStructure *frame_lines_choice;
     SpinStructure   *frame_linew_choice;
-    OptionStructure *frame_fillcolor_choice;
-    OptionStructure *frame_fillpattern_choice;
+    Widget          frame_fillpen;
 
     OptionStructure *legend_acorner;
     SpinStructure   *legend_x;
@@ -85,12 +83,10 @@ typedef struct {
     OptionStructure *legend_font;
     Widget          legend_charsize;
     OptionStructure *legend_color;
-    OptionStructure *legend_boxfillcolor;
-    OptionStructure *legend_boxfillpat;
     SpinStructure   *legend_boxlinew;
     OptionStructure *legend_boxlines;
-    OptionStructure *legend_boxcolor;
-    OptionStructure *legend_boxpattern;
+    Widget          legend_boxpen;
+    Widget          legend_boxfillpen;
 } FrameUI;
 
 typedef struct {
@@ -143,25 +139,21 @@ typedef struct {
     OptionStructure *symbols;
     Widget          symsize;
     SpinStructure   *symskip;
-    OptionStructure *symcolor;
-    OptionStructure *sympattern;
-    OptionStructure *symfillcolor;
-    OptionStructure *symfillpattern;
+    Widget          sympen;
+    Widget          symfillpen;
     SpinStructure   *symlinew;
     OptionStructure *symlines;
     Widget          symchar;
     OptionStructure *char_font;
 
-    OptionStructure *color;
-    OptionStructure *pattern;
+    Widget          pen;
     SpinStructure   *width;
     Widget          dropline;
     OptionStructure *lines;
     OptionStructure *linet;
     OptionStructure *filltype;
     OptionStructure *fillrule;
-    OptionStructure *fillpat;
-    OptionStructure *fillcol;
+    Widget          fillpen;
     Widget          baseline;
     OptionStructure *baselinetype;
 
@@ -169,8 +161,7 @@ typedef struct {
 
     Widget          errbar_active;
     OptionStructure *errbar_ptype;
-    OptionStructure *errbar_color;
-    OptionStructure *errbar_pattern;
+    Widget          errbar_pen;
     Widget          errbar_size;
     SpinStructure   *errbar_width;
     OptionStructure *errbar_lines;
