@@ -62,7 +62,8 @@ static Widget eblock_panel;
 /*
  * Panel item declarations
  */
-static OptionStructure *eblock_choice_items[MAX_SET_COLS];
+static OptionStructure *eblock_nchoice_items[MAX_SET_COLS];
+static OptionStructure *eblock_schoice_item;
 static Widget eblock_ncols_item;
 static OptionStructure *eblock_type_choice_item;
 static ListStructure *eblock_graph_choice_item;
@@ -110,8 +111,11 @@ void create_eblock_frame(int gno)
 
 	for (i = 0; i < MAX_SET_COLS; i++) {
             sprintf(buf, "%s from column:", dataset_colname(i));
-            eblock_choice_items[i] = CreateOptionChoice(rc, buf, 3, 1, &blockitem);
+            eblock_nchoice_items[i] = CreateOptionChoice(rc,
+                buf, 3, 1, &blockitem);
         }
+        eblock_schoice_item = CreateOptionChoice(rc, "Strings from column:",
+            1, 1, &blockitem);
 
 	XtManageChild(rc);
 
@@ -139,10 +143,11 @@ void create_eblock_frame(int gno)
 
 static void update_eblock(int gno)
 {
-    static int blocklen, blockncols, old_blockncols = 0;
-    int i, ncols;
+    int blocklen, blockncols;
+    int *blockformats;
+    int i, ncols, nncols, nscols;
     char buf[16];
-    OptionItem *blockitems;
+    OptionItem *blockitems, *sblockitems;
     
     if (eblock_frame == NULL) {
 	return;
@@ -153,39 +158,57 @@ static void update_eblock(int gno)
 	return;
     }
     blocklen = get_blocknrows();
+    blockformats = get_blockformats();
     if (is_valid_gno(gno)) {
         SelectListChoice(eblock_graph_choice_item, gno);
     }
     sprintf(ncolsbuf, "%d column(s) of length %d", blockncols, blocklen);
     SetLabel(eblock_ncols_item, ncolsbuf);
-    if (blockncols != old_blockncols) {
-        blockitems = malloc((blockncols + 1)*sizeof(OptionItem));
-        for (i = 0; i < blockncols + 1; i++) {
-            blockitems[i].value = i;
-            if (i == 0) {
-                strcpy(buf, "Index");
+    
+    /* TODO: check if new data arrived */
+    if (1) {
+        blockitems  = malloc((blockncols + 1)*sizeof(OptionItem));
+        sblockitems = malloc((blockncols + 1)*sizeof(OptionItem));
+        blockitems[0].value = -1;
+        blockitems[0].label = copy_string(NULL, "Index");
+        sblockitems[0].value = -1;
+        sblockitems[0].label = copy_string(NULL, "None");
+        nncols = 0;
+        nscols = 0;
+        for (i = 0; i < blockncols; i++) {
+            sprintf(buf, "%d", i + 1);
+            if (blockformats[i] != FFORMAT_STRING) {
+                nncols++;
+                blockitems[nncols].value = i;
+                blockitems[nncols].label = copy_string(NULL, buf);
             } else {
-                sprintf(buf, "%d", i);
+                nscols++;
+                sblockitems[nscols].value = i;
+                sblockitems[nscols].label = copy_string(NULL, buf);
             }
-            blockitems[i].label = copy_string(NULL, buf);
         }
         for (i = 0; i < MAX_SET_COLS; i++) {
-            UpdateOptionChoice(eblock_choice_items[i],
-                blockncols + 1, blockitems);
+            UpdateOptionChoice(eblock_nchoice_items[i],
+                nncols + 1, blockitems);
             if (i < blockncols) {
-                SetOptionChoice(eblock_choice_items[i], i + 1);
+                SetOptionChoice(eblock_nchoice_items[i], i);
             }
         }
-        for (i = 0; i < blockncols + 1; i++) {
+        UpdateOptionChoice(eblock_schoice_item, nscols + 1, sblockitems);
+
+        for (i = 0; i < nncols + 1; i++) {
             free(blockitems[i].label);
         }
         free(blockitems);
-        old_blockncols = blockncols;
+        for (i = 0; i < nscols + 1; i++) {
+            free(sblockitems[i].label);
+        }
+        free(sblockitems);
     }
 
     ncols = settype_cols(block_curtype);
     for (i = 0; i < MAX_SET_COLS; i++) {
-        XtSetSensitive(eblock_choice_items[i]->menu, (i < ncols));
+        XtSetSensitive(eblock_nchoice_items[i]->menu, (i < ncols));
     }
 }
 
@@ -199,24 +222,21 @@ static void eblock_type_notify_proc(int value, void *data)
 static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int i, gno;
-    int cs[MAX_SET_COLS];
-    char blockcols[32];
+    int cs[MAX_SET_COLS], nncols, scol;
 
-    for (i = 0; i < settype_cols(block_curtype); i++) {
-        cs[i] = GetOptionChoice(eblock_choice_items[i]);
-        if (i == 0) {
-            sprintf(blockcols, "%d", cs[i]);
-        } else {
-            sprintf(blockcols, "%s:%d", blockcols, cs[i]);
-        }
-    }
-    
     if (GetSingleListChoice(eblock_graph_choice_item, &gno)
         != GRACE_EXIT_SUCCESS) {
         errmsg("Please select a single graph");
-    } else {
-        create_set_fromblock(gno, block_curtype, blockcols);
-        update_all();
-        drawgraph();
+        return;
     }
+    
+    nncols = settype_cols(block_curtype);
+    for (i = 0; i < nncols; i++) {
+        cs[i] = GetOptionChoice(eblock_nchoice_items[i]);
+    }
+    scol = GetOptionChoice(eblock_schoice_item);
+    
+    create_set_fromblock(gno, block_curtype, nncols, cs, scol);
+    update_all();
+    drawgraph();
 }
