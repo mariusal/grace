@@ -424,6 +424,8 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help);
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
 	Button_CBProc cb, void *data);
 Widget CreateMenuCloseButton(Widget parent, Widget shell);
+Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
+    Widget form, char *ha);
 Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 	TB_CBProc cb, void *data);
 Widget CreateMenuLabel(Widget parent, char *name);

@@ -3913,6 +3913,17 @@ Widget CreateMenuCloseButton(Widget parent, Widget form)
     return wbut;
 }
 
+Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
+    Widget form, char *ha)
+{
+    Widget wbut;
+    
+    wbut = CreateMenuButton(parent, label, mnemonic, HelpCB, ha);
+    AddHelpCB(form, ha);
+    
+    return wbut;
+}
+
 Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 	TB_CBProc cb, void *data)
 {
