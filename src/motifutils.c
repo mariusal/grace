@@ -1486,6 +1486,9 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
             err = TRUE;
         }
         break;
+    case SetMenuPackCB:
+        packsets(gno);
+        break;
     default:
         err = TRUE;
         break;
@@ -1592,6 +1595,11 @@ void editE_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_menu_cb((ListStructure *) client_data, SetMenuEditECB);
 }
 
+void pack_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    set_menu_cb((ListStructure *) client_data, SetMenuPackCB);
+}
+
 void update_set_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     ListStructure *listp = (ListStructure *) client_data;
@@ -1620,47 +1628,52 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
 
     CreateMenuSeparator(popup);
 
-    set_popup_menu->hide_item = CreateMenuButton(popup, "hide", "Hide", 'H',
+    set_popup_menu->hide_item = CreateMenuButton(popup, "hide", "Hide", '\0',
     	hide_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->show_item = CreateMenuButton(popup, "show", "Show", 'S',
+    set_popup_menu->show_item = CreateMenuButton(popup, "show", "Show", '\0',
     	show_set_proc, (XtPointer) listp, 0);
     set_popup_menu->bringf_item = CreateMenuButton(popup, "bringToFront", "Bring to front", '\0',
     	bringf_set_proc, (XtPointer) listp, 0);
     set_popup_menu->sendb_item = CreateMenuButton(popup, "sendToBack", "Send to back", '\0',
     	sendb_set_proc, (XtPointer) listp, 0);
     CreateMenuSeparator(popup);
-    set_popup_menu->duplicate_item = CreateMenuButton(popup, "duplicate", "Duplicate", 'D',
+    set_popup_menu->duplicate_item = CreateMenuButton(popup, "duplicate", "Duplicate", '\0',
     	duplicate_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->kill_item = CreateMenuButton(popup, "kill", "Kill", 'K',
+    set_popup_menu->kill_item = CreateMenuButton(popup, "kill", "Kill", '\0',
     	kill_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->killd_item = CreateMenuButton(popup, "killData", "Kill data", 'a',
+    set_popup_menu->killd_item = CreateMenuButton(popup, "killData", "Kill data", '\0',
     	killd_set_proc, (XtPointer) listp, 0);
     CreateMenuSeparator(popup);
-    set_popup_menu->copy12_item = CreateMenuButton(popup, "copy12", "Copy 1 to 2", 'C',
+    set_popup_menu->copy12_item = CreateMenuButton(popup, "copy12", "Copy 1 to 2", '\0',
     	copy12_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->copy21_item = CreateMenuButton(popup, "copy21", "Copy 2 to 1", 'C',
+    set_popup_menu->copy21_item = CreateMenuButton(popup, "copy21", "Copy 2 to 1", '\0',
     	copy21_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->move12_item = CreateMenuButton(popup, "move12", "Move 1 to 2", 'M',
+    set_popup_menu->move12_item = CreateMenuButton(popup, "move12", "Move 1 to 2", '\0',
     	move12_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->move21_item = CreateMenuButton(popup, "move21", "Move 2 to 1", 'M',
+    set_popup_menu->move21_item = CreateMenuButton(popup, "move21", "Move 2 to 1", '\0',
     	move21_set_proc, (XtPointer) listp, 0);
-    set_popup_menu->swap_item = CreateMenuButton(popup, "swap", "Swap", 'w',
+    set_popup_menu->swap_item = CreateMenuButton(popup, "swap", "Swap", '\0',
     	swap_set_proc, (XtPointer) listp, 0);
     CreateMenuSeparator(popup);
     set_popup_menu->edit_item = CreateMenu(popup, "edit", "Edit", 'E', NULL, NULL);
-    CreateMenuButton(set_popup_menu->edit_item, "inShpreadsheet", "In spreadsheet", 's',
+    CreateMenuButton(set_popup_menu->edit_item, "inShpreadsheet", "In spreadsheet", '\0',
     	editS_set_proc, (XtPointer) listp, 0);
-    CreateMenuButton(set_popup_menu->edit_item, "inEditor", "In text editor", 'e',
+    CreateMenuButton(set_popup_menu->edit_item, "inEditor", "In text editor", '\0',
     	editE_set_proc, (XtPointer) listp, 0);
-    submenupane = CreateMenu(popup, "createNew", "Create new", 'n', NULL, NULL);
-    CreateMenuButton(submenupane, "byFormula", "By formula", 'f',
+    submenupane = CreateMenu(popup, "createNew", "Create new", '\0', NULL, NULL);
+    CreateMenuButton(submenupane, "byFormula", "By formula", '\0',
     	newF_set_proc, (XtPointer) listp, 0);
-    CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
+    CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", '\0',
     	newS_set_proc, (XtPointer) listp, 0);
-    CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
+    CreateMenuButton(submenupane, "inEditor", "In text editor", '\0',
     	newE_set_proc, (XtPointer) listp, 0);
-    CreateMenuButton(submenupane, "fromBlockData", "From block data", 'b',
+    CreateMenuButton(submenupane, "fromBlockData", "From block data", '\0',
     	newB_set_proc, (XtPointer) listp, 0);
+
+    CreateMenuSeparator(popup);
+
+    CreateMenuButton(popup, "packAllSets", "Pack all sets", '\0',
+    	pack_set_proc, (XtPointer) listp, 0);
 
     CreateMenuSeparator(popup);
 

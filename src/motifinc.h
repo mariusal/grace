@@ -151,7 +151,8 @@ typedef enum {
     SetMenuNewECB,
     SetMenuNewBCB,
     SetMenuEditSCB,
-    SetMenuEditECB
+    SetMenuEditECB,
+    SetMenuPackCB
 } SetMenuCBtype;
 
 typedef struct {
