@@ -790,7 +790,7 @@ int save_graph_objects(XFile *xf, graph *g)
         return RETURN_FAILURE;
     }
     
-    storage_traverse(g->dobjects, object_save_hook, NULL);
+    storage_traverse(g->dobjects, object_save_hook, xf);
 
     return RETURN_SUCCESS;
 }
