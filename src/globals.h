@@ -69,8 +69,7 @@ int scrolling_islinked = FALSE;	/* linked scroll */
 double scrollper = 0.05;	/* scroll fraction */
 double shexper = 0.05;		/* expand/shrink fraction */
 
-int device;			/* graphics device */
-int tdevice;                    /* default device */
+int tdevice;                    /* terminal device */
 int hdevice;                    /* hardcopy device */
 
 int monomode = FALSE;		/* set mono mode */
@@ -211,7 +210,7 @@ extern int logwindow;		/* TRUE if results are displayed in the log window */
 
 extern FILE *resfp;
 
-extern int device, tdevice, hdevice;
+extern int tdevice, hdevice;
 
 extern int monomode;		/* set mono mode */
 extern int invert;		/* use GXxor or GXinvert for xor'ing */
