@@ -572,7 +572,7 @@ then
 fi
 
 dnl **** check for libxmi - needed for all raster drivers
-ACX_CHECK_XMI(1.2, , jpegdrv = false;pngdrv = false;
+ACX_CHECK_XMI(1.2, , jpegdrv=false;pngdrv=false;
     AC_MSG_RESULT(--> all raster drivers are disabled))
 
 dnl **** check for IJG's libjpeg - also, for PDF driver and XmHTML
