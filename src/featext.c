@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -195,6 +195,7 @@ void do_fext_proc( Widget w, XtPointer client_data, XtPointer call_data )
         GetSingleListChoice(ui->absic_graph, &abs_graph);
     }
     fext_routine( gto, feature, abs_src, abs_set, abs_graph ); 
+    update_set_lists(gto);
 }
 
 void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph )
