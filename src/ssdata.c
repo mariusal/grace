@@ -161,23 +161,25 @@ int realloc_ss_data(ss_data *ssd, int nrows)
 
 void free_ss_data(ss_data *ssd)
 {
-    int i, j;
-    char  **sp;
-    
-    for (i = 0; i < ssd->ncols; i++) {
-        if (ssd->formats[i] == FFORMAT_STRING) {
-            sp = (char **) ssd->data[i];
-            for (j = 0; j < ssd->nrows; j++) {
-                XCFREE(sp[j]);
+    if (ssd) {
+        int i, j;
+        char  **sp;
+
+        for (i = 0; i < ssd->ncols; i++) {
+            if (ssd->formats[i] == FFORMAT_STRING) {
+                sp = (char **) ssd->data[i];
+                for (j = 0; j < ssd->nrows; j++) {
+                    XCFREE(sp[j]);
+                }
             }
+            XCFREE(ssd->data[i]);
         }
-        XCFREE(ssd->data[i]);
+        XCFREE(ssd->data);
+        XCFREE(ssd->formats);
+        ssd->nrows = 0;
+        ssd->ncols = 0;
+        XCFREE(ssd->label);
     }
-    XCFREE(ssd->data);
-    XCFREE(ssd->formats);
-    ssd->nrows = 0;
-    ssd->ncols = 0;
-    XCFREE(ssd->label);
 }
 
 int init_ss_data(ss_data *ssd, int ncols, int *formats, const char *label)
@@ -188,7 +190,8 @@ int init_ss_data(ss_data *ssd, int ncols, int *formats, const char *label)
     for (i = 0; i < ncols; i++) {
         ssd->data[i] = NULL;
     }
-    ssd->formats = formats;
+    ssd->formats = xmalloc(ncols*SIZEOF_INT);
+    memcpy(ssd->formats, formats, ncols*SIZEOF_INT);
     ssd->ncols = ncols;
     ssd->nrows = 0;
     
@@ -451,6 +454,7 @@ int store_data(ss_data *ssd, int load_type)
         }
         
         XCFREE(ssd->data);
+        XCFREE(ssd->formats);
         XCFREE(ssd->label);
         break;
     case LOAD_NXY:
@@ -481,6 +485,7 @@ int store_data(ss_data *ssd, int load_type)
         }
     
         XCFREE(ssd->data);
+        XCFREE(ssd->formats);
         XCFREE(ssd->label);
         break;
     case LOAD_BLOCK:
@@ -575,7 +580,7 @@ int create_set_fromblock(Quark *pset,
 {
     int i, ncols, blockncols, blocklen, column;
     double *cdata;
-    char buf[256];
+    char buf[256], *s;
 
     blockncols = get_blockncols();
     if (blockncols <= 0) {
@@ -644,8 +649,9 @@ int create_set_fromblock(Quark *pset,
         }
     }
 
-    sprintf(buf, "%s, cols %s",
-        blockdata.label, cols_to_field_string(nc, coli, scol));
+    s = cols_to_field_string(nc, coli, scol);
+    sprintf(buf, "%s, cols %s", blockdata.label, s);
+    xfree(s);
     setcomment(pset, buf);
 
     autoscale_graph(pset->parent, autoscale);
