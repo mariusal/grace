@@ -257,7 +257,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 {
     int i, nold, ncols, nw;
-    XmString str;
+    Widget *wlist;
     
     nold = optp->nchoices;
 
@@ -274,8 +274,19 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
     
     XtVaSetValues(optp->pulldown, XmNnumColumns, ncols, NULL);
 
-    for (i = nchoices; i < nold; i++) {
-        XtDestroyWidget(optp->options[i].widget);
+    nw = nold - nchoices;
+    if (nw > 0) {
+        /* Unmanage extra items before destroying to speed the things up */
+        wlist = xmalloc(nw*sizeof(Widget));
+        for (i = nchoices; i < nold; i++) {
+            wlist[i - nchoices] = optp->options[i].widget;
+        }
+        XtUnmanageChildren(wlist, nw);
+        xfree(wlist);
+        
+        for (i = nchoices; i < nold; i++) {
+            XtDestroyWidget(optp->options[i].widget);
+        }
     }
 
     optp->options = xrealloc(optp->options, nchoices*sizeof(OptionWidgetItem));
@@ -285,18 +296,23 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
         optp->options[i].widget = 
                   XmCreatePushButton(optp->pulldown, "button", NULL, 0);
     }
+    
     for (i = 0; i < nchoices; i++) {
 	optp->options[i].value = items[i].value;
 	if (items[i].label != NULL) {
+            XmString str, ostr;
+            XtVaGetValues(optp->options[i].widget, XmNlabelString, &ostr, NULL);
             str = XmStringCreateLocalized(items[i].label);
-            XtVaSetValues(optp->options[i].widget, XmNlabelString, str, NULL);
+            if (XmStringCompare(str, ostr) != True) {
+                XtVaSetValues(optp->options[i].widget, XmNlabelString, str, NULL);
+            }
             XmStringFree(str);
         }
     }
     
     nw = nchoices - nold;
     if (nw > 0) {
-        Widget *wlist = xmalloc(nw*sizeof(Widget));
+        wlist = xmalloc(nw*sizeof(Widget));
         for (i = nold; i < nchoices; i++) {
             wlist[i - nold] = optp->options[i].widget;
         }
