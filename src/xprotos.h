@@ -110,12 +110,6 @@ void create_about_grtool(Widget but, void *data);
 
 void update_set_lists(Quark *gr);
 
-void updatesymbols(Quark *pset);
-void updatelegends(Quark *gr);
-void update_view(Quark *gr);
-
-void define_symbols_popup(Widget but, void *data);
-
 void update_ticks(Quark *gr);
 void create_axes_dialog(int axisno);
 void create_axes_dialog_cb(Widget but, void *data);

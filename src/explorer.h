@@ -128,6 +128,70 @@ typedef struct {
 } GraphUI;
 
 typedef struct {
+    Widget          top;
+    
+    Widget          main_tp;
+    Widget          symbol_tp;
+    Widget          line_tp;
+    Widget          errbar_tp;
+    Widget          avalue_tp;
+
+    OptionStructure *type;
+    OptionStructure *symbols;
+    Widget          symsize;
+    SpinStructure   *symskip;
+    OptionStructure *symcolor;
+    OptionStructure *sympattern;
+    OptionStructure *symfillcolor;
+    OptionStructure *symfillpattern;
+    SpinStructure   *symlinew;
+    OptionStructure *symlines;
+    Widget          symchar;
+    OptionStructure *char_font;
+
+    OptionStructure *color;
+    OptionStructure *pattern;
+    SpinStructure   *width;
+    Widget          dropline;
+    OptionStructure *lines;
+    OptionStructure *linet;
+    OptionStructure *filltype;
+    OptionStructure *fillrule;
+    OptionStructure *fillpat;
+    OptionStructure *fillcol;
+    Widget          baseline;
+    OptionStructure *baselinetype;
+
+    TextStructure   *legend_str;
+
+    Widget          errbar_active;
+    OptionStructure *errbar_ptype;
+    OptionStructure *errbar_color;
+    OptionStructure *errbar_pattern;
+    Widget          errbar_size;
+    SpinStructure   *errbar_width;
+    OptionStructure *errbar_lines;
+    SpinStructure   *errbar_riserlinew;
+    OptionStructure *errbar_riserlines;
+    Widget          errbar_aclip;
+    SpinStructure   *errbar_cliplen;
+
+    Widget          avalue_active;
+    OptionStructure *avalue_type;
+    OptionStructure *avalue_font;
+    OptionStructure *avalue_color;
+    Widget          avalue_charsize ;
+    Widget          avalue_angle;
+    OptionStructure *avalue_format;
+    OptionStructure *avalue_precision;
+    Widget          avalue_offsetx;
+    Widget          avalue_offsety;
+    Widget          avalue_prestr;
+    Widget          avalue_appstr;
+} SetUI;
+
+
+typedef struct {
     Widget top;
     
     SpinStructure   *length;
@@ -208,9 +272,12 @@ typedef struct {
     Widget       scrolled_window;
     ListTreeItem *project;
     
+    Widget       editmenu;
+    
     ProjectUI    *project_ui;
     FrameUI      *frame_ui;
     GraphUI      *graph_ui;
+    SetUI        *set_ui;
     ObjectUI     *object_ui;
 } ExplorerUI;
 
@@ -232,6 +299,10 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller);
 GraphUI *create_graph_ui(ExplorerUI *eui);
 void update_graph_ui(GraphUI *ui, Quark *q);
 int set_graph_data(GraphUI *ui, Quark *q, void *caller);
+
+SetUI *create_set_ui(ExplorerUI *eui);
+void update_set_ui(SetUI *ui, Quark *q);
+int set_set_data(SetUI *ui, Quark *q, void *caller);
 
 ObjectUI *create_object_ui(ExplorerUI *eui);
 void update_object_ui(ObjectUI *ui, Quark *q);
