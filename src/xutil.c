@@ -817,7 +817,8 @@ Pixmap char_to_pixmap(Widget w, int font, char c, int csize)
     int height, width, hshift, vshift;
     float fsize = 0.8*(float)csize;
     
-    pm = canvas_raster_char(font, c, fsize, &vshift, &hshift);
+    pm = canvas_raster_char(grace->rt->canvas,
+        font, c, fsize, &vshift, &hshift);
        
     if (pm != NULL && pm->bits != NULL) {
         long bg, fg;
