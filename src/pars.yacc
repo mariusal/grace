@@ -2964,8 +2964,7 @@ actions:
 	    }
         }
 	| INTERPOLATE '(' selectset ',' array ',' interpmethod ',' onoff ')' {
-            int igno = get_cg(), iset = nextset(igno);
-            do_interp($3->gno, $3->setno, igno, iset,
+            do_interp($3->gno, $3->setno, get_cg(), SET_SELECT_NEXT,
                 $5->data, $5->length, $7, $9);
 	}
 	| HISTOGRAM '(' selectset ',' array ',' onoff ',' onoff ')' {
