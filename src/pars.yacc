@@ -2782,28 +2782,28 @@ tickattr:
 	    curtm->mprops.size = $3;
 	}
 	| color_select {
-	    curtm->props.color = curtm->mprops.color = $1;
+	    curtm->props.line.pen.color = curtm->mprops.line.pen.color = $1;
 	}
 	| MAJOR color_select {
-	    curtm->props.color = $2;
+	    curtm->props.line.pen.color = $2;
 	}
 	| MINOR color_select {
-	    curtm->mprops.color = $2;
+	    curtm->mprops.line.pen.color = $2;
 	}
 	| linew_select {
-	    curtm->props.linew = curtm->mprops.linew = $1;
+	    curtm->props.line.width = curtm->mprops.line.width = $1;
 	}
 	| MAJOR linew_select {
-	    curtm->props.linew = $2;
+	    curtm->props.line.width = $2;
 	}
 	| MINOR linew_select {
-	    curtm->mprops.linew = $2;
+	    curtm->mprops.line.width = $2;
 	}
 	| MAJOR lines_select {
-	    curtm->props.lines = $2;
+	    curtm->props.line.style = $2;
 	}
 	| MINOR lines_select {
-	    curtm->mprops.lines = $2;
+	    curtm->mprops.line.style = $2;
 	}
 	| MAJOR GRID onoff {
 	    curtm->props.gridflag = $3;
@@ -2997,13 +2997,13 @@ axisbardesc:
             axis_enable_bar(oppaxis, $1);
 	}
 	| color_select {
-	    curtm->t_drawbarcolor = $1;
+	    curtm->bar.pen.color = $1;
 	}
 	| lines_select {
-	    curtm->t_drawbarlines = $1;
+	    curtm->bar.style = $1;
 	}
 	| linew_select {
-	    curtm->t_drawbarlinew = $1;
+	    curtm->bar.width = $1;
 	}
 	;
 

@@ -238,18 +238,18 @@ typedef struct {
     Widget          tround;
     Widget          tgrid;
     OptionStructure *tinout;
-    OptionStructure *tgridcol;
+    Widget          tgridpen;
     SpinStructure   *tgridlinew;
     OptionStructure *tgridlines;
     Widget          tmgrid;
     OptionStructure *tminout;
-    OptionStructure *tmgridcol;
+    Widget          tmgridpen;
     SpinStructure   *tmgridlinew;
     OptionStructure *tmgridlines;
     SpinStructure   *tlen;
     SpinStructure   *tmlen;
     Widget          baronoff;
-    OptionStructure *barcolor;
+    Widget          barpen;
     SpinStructure   *barlinew;
     OptionStructure *barlines;
 

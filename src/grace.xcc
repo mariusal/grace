@@ -1242,9 +1242,7 @@ char *utf2iso(const char *s)
         <child name="#EStrAxisbar">
             tickmarks *t = axisgrid_get_data($$);
             if (t) {
-                t->t_drawbarcolor = $?->line.pen.color;
-                t->t_drawbarlines = $?->line.style;
-                t->t_drawbarlinew = $?->line.width;
+                t->bar = $?->line;
             }
             xfree($?);
         </child>
@@ -1364,9 +1362,7 @@ char *utf2iso(const char *s)
         
         <!-- Child elements -->
         <child name="#EStrLineSpec">
-            $$->color = $?->pen.color;
-            $$->linew = $?->width;
-            $$->lines = $?->style;
+            $$->line = *$?;
             xfree($?);
         </child>
     </element>
@@ -1384,9 +1380,7 @@ char *utf2iso(const char *s)
         
         <!-- Child elements -->
         <child name="#EStrLineSpec">
-            $$->color = $?->pen.color;
-            $$->linew = $?->width;
-            $$->lines = $?->style;
+            $$->line = *$?;
             xfree($?);
         </child>
     </element>

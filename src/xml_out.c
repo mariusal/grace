@@ -171,14 +171,14 @@ static void xmlio_write_fill_spec(XFile *xf, Attributes *attrs, Pen *pen)
 }
 
 static void xmlio_write_line_spec(XFile *xf, Attributes *attrs,
-    Pen *pen, double linew, int lines)
+    const Line *line)
 {
     attributes_reset(attrs);
 
-    xmlio_set_color_ref(attrs, pen->color);
-    xmlio_set_pattern_ref(attrs, pen->pattern);
-    attributes_set_ival(attrs, AStrStyleId, lines);
-    attributes_set_dval(attrs, AStrWidth, linew);
+    xmlio_set_color_ref(attrs, line->pen.color);
+    xmlio_set_pattern_ref(attrs, line->pen.pattern);
+    attributes_set_ival(attrs, AStrStyleId, line->style);
+    attributes_set_dval(attrs, AStrWidth, line->width);
     xfile_empty_element(xf, EStrLineSpec, attrs);
 }
 
@@ -291,11 +291,7 @@ int save_axisgrid_properties(XFile *xf, Quark *q)
     attributes_reset(attrs);
     xfile_begin_element(xf, EStrAxisbar, attrs);
     {
-        Pen pen;
-        pen.pattern = 1;
-        pen.color = t->t_drawbarcolor;
-        xmlio_write_line_spec(xf, attrs,
-            &pen, t->t_drawbarlinew, t->t_drawbarlines);
+        xmlio_write_line_spec(xf, attrs, &t->bar);
     }
     xfile_end_element(xf, EStrAxisbar);
 
@@ -336,18 +332,13 @@ int save_axisgrid_properties(XFile *xf, Quark *q)
         attributes_reset(attrs);
         xfile_begin_element(xf, EStrTickmarks, attrs);
         {
-            Pen pen;
-            
             attributes_reset(attrs);
             attributes_set_dval(attrs, AStrSize, t->props.size);
             xmlio_set_inout_placement(rt_from_quark(q), attrs, t->props.inout);
             attributes_set_bval(attrs, AStrGridLines, t->props.gridflag);
             xfile_begin_element(xf, EStrMajor, attrs);
             {
-                pen.color = t->props.color;
-                pen.pattern = 1;
-                xmlio_write_line_spec(xf, attrs,
-                    &pen, t->props.linew, t->props.lines);
+                xmlio_write_line_spec(xf, attrs, &t->props.line);
             }
             xfile_end_element(xf, EStrMajor);
 
@@ -357,10 +348,7 @@ int save_axisgrid_properties(XFile *xf, Quark *q)
             xmlio_set_inout_placement(rt_from_quark(q), attrs, t->mprops.inout);
             xfile_begin_element(xf, EStrMinor, attrs);
             {
-                pen.color = t->mprops.color;
-                pen.pattern = 1;
-                xmlio_write_line_spec(xf, attrs,
-                    &pen, t->mprops.linew, t->mprops.lines);
+                xmlio_write_line_spec(xf, attrs, &t->mprops.line);
             }
             xfile_end_element(xf, EStrMinor);
         }
@@ -415,8 +403,7 @@ int save_frame_properties(XFile *xf, frame *f)
 
     /* Frame */
     attributes_reset(attrs);
-    xmlio_write_line_spec(xf, attrs,
-        &f->outline.pen, f->outline.width, f->outline.style);
+    xmlio_write_line_spec(xf, attrs, &f->outline);
     xmlio_write_fill_spec(xf, attrs, &f->fillpen);
     
     /* Viewport */
@@ -445,8 +432,7 @@ int save_frame_properties(XFile *xf, frame *f)
         attributes_set_ival(attrs, AStrJustification, f->l.just); /* FIXME: textual */
         xfile_begin_element(xf, EStrLegframe, attrs);
         {
-            xmlio_write_line_spec(xf, attrs,
-                &(f->l.boxline.pen), f->l.boxline.width, f->l.boxline.style);
+            xmlio_write_line_spec(xf, attrs, &f->l.boxline);
             xmlio_write_fill_spec(xf, attrs, &(f->l.boxfillpen));
         }
         xfile_end_element(xf, EStrLegframe);
@@ -545,8 +531,7 @@ int save_set_properties(XFile *xf, Quark *pset)
     xmlio_set_font_ref(attrs, p->sym.charfont);
     xfile_begin_element(xf, EStrSymbol, attrs);
     {
-        xmlio_write_line_spec(xf, attrs,
-            &(p->sym.line.pen), p->sym.line.width, p->sym.line.style);
+        xmlio_write_line_spec(xf, attrs, &p->sym.line);
         xmlio_write_fill_spec(xf, attrs, &(p->sym.fillpen));
     }
     xfile_end_element(xf, EStrSymbol);
@@ -561,9 +546,8 @@ int save_set_properties(XFile *xf, Quark *pset)
     attributes_set_bval(attrs, AStrDrawDroplines, p->line.droplines);
     xfile_begin_element(xf, EStrLine, attrs);
     {
-        xmlio_write_line_spec(xf, attrs,
-            &(p->line.line.pen), p->line.line.width, p->line.line.style);
-        xmlio_write_fill_spec(xf, attrs, &(p->line.fillpen));
+        xmlio_write_line_spec(xf, attrs, &p->line.line);
+        xmlio_write_fill_spec(xf, attrs, &p->line.fillpen);
     }
     xfile_end_element(xf, EStrLine);
 
@@ -590,8 +574,11 @@ int save_set_properties(XFile *xf, Quark *pset)
         attributes_set_dval(attrs, AStrSize, p->errbar.barsize);
         xfile_begin_element(xf, EStrBarline, attrs);
         {
-            xmlio_write_line_spec(xf, attrs,
-                &(p->errbar.pen), p->errbar.linew, p->errbar.lines);
+            Line line;
+            line.pen   = p->errbar.pen;
+            line.width = p->errbar.linew;
+            line.style = p->errbar.lines;
+            xmlio_write_line_spec(xf, attrs, &line);
         }
         xfile_end_element(xf, EStrBarline);
         
@@ -600,8 +587,11 @@ int save_set_properties(XFile *xf, Quark *pset)
         attributes_set_dval(attrs, AStrClipLength, p->errbar.cliplen);
         xfile_begin_element(xf, EStrRiserline, attrs);
         {
-            xmlio_write_line_spec(xf, attrs,
-                &(p->errbar.pen), p->errbar.riser_linew, p->errbar.riser_lines);
+            Line line;
+            line.pen   = p->errbar.pen;
+            line.width = p->errbar.riser_linew;
+            line.style = p->errbar.riser_lines;
+            xmlio_write_line_spec(xf, attrs, &line);
         }
         xfile_end_element(xf, EStrRiserline);
     }
@@ -846,9 +836,8 @@ static int project_save_hook(Quark *q,
         {
             char buf[32];
             xmlio_write_location(q, xf, attrs, &o->ap);
-            xmlio_write_line_spec(xf, attrs,
-                &(o->line.pen), o->line.width, o->line.style);
-            xmlio_write_fill_spec(xf, attrs, &(o->fillpen));
+            xmlio_write_line_spec(xf, attrs, &o->line);
+            xmlio_write_fill_spec(xf, attrs, &o->fillpen);
             attributes_reset(attrs);
             switch (o->type) {
             case DO_LINE:
@@ -913,8 +902,7 @@ static int project_save_hook(Quark *q,
             attributes_set_dval(attrs, AStrOffset, at->frame_offset);
             xfile_begin_element(xf, EStrTextFrame, attrs);
             {
-                xmlio_write_line_spec(xf, attrs,
-                    &at->line.pen, at->line.width, at->line.style);
+                xmlio_write_line_spec(xf, attrs, &at->line);
                 xmlio_write_fill_spec(xf, attrs, &at->fillpen);
             }
             xfile_end_element(xf, EStrTextFrame);

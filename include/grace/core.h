@@ -445,9 +445,7 @@ typedef struct {
 typedef struct {
     int inout;                /* inward, outward or both */
     double size;              /* length of tickmarks */
-    int color;                /* color of tickmarks */
-    double linew;             /* linewidth of tickmarks */
-    int lines;                /* linestyle of tickmarks */
+    Line line;                /* line props of tickmarks */
     int gridflag;             /* grid lines at tick marks */
 } tickprops;
 
@@ -476,12 +474,10 @@ typedef struct {
     int nticks;                 /* total number of ticks */
     tickloc tloc[MAX_TICKS];    /* locations of ticks */
 
-    int t_drawbarcolor;         /* color of bar */
-    int t_drawbarlines;         /* linestyle of bar */
-    double t_drawbarlinew;      /* line width of bar */
+    Line bar;                   /* axis bar props */
 
-    tickprops props;
-    tickprops mprops;
+    tickprops props;            /* major tick properties */
+    tickprops mprops;           /* minor tick properties */
 
     TextProps tl_tprops;        /* tick label text properties */
 

@@ -88,13 +88,13 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
 
     rc2 = CreateHContainer(rc);
-    ui->barcolor = CreateColorChoice(rc2, "Color:");
-    AddOptionChoiceCB(ui->barcolor, oc_explorer_cb, eui);
-    ui->barlinew = CreateLineWidthChoice(rc2, "Width:");
-    AddSpinChoiceCB(ui->barlinew, sp_explorer_cb, eui);
-
-    ui->barlines = CreateLineStyleChoice(rc, "Line style:");
+    ui->barpen = CreatePenChoice(rc2, "Pen:");
+    AddPenChoiceCB(ui->barpen, pen_explorer_cb, eui);
+    ui->barlines = CreateLineStyleChoice(rc2, "Line style:");
     AddOptionChoiceCB(ui->barlines, oc_explorer_cb, eui);
+
+    ui->barlinew = CreateLineWidthChoice(rc, "Width:");
+    AddSpinChoiceCB(ui->barlinew, sp_explorer_cb, eui);
 
 
     ui->tickmark_tp = CreateTabPage(tab, "Tick marks");
@@ -115,8 +115,8 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     ui->tlen = CreateSpinChoice(rc, "Tick length",
         4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
     AddSpinChoiceCB(ui->tlen, sp_explorer_cb, eui);
-    ui->tgridcol = CreateColorChoice(rc, "Color:");
-    AddOptionChoiceCB(ui->tgridcol, oc_explorer_cb, eui);
+    ui->tgridpen = CreatePenChoice(rc, "Pen:");
+    AddPenChoiceCB(ui->tgridpen, pen_explorer_cb, eui);
     ui->tgridlinew = CreateLineWidthChoice(rc, "Line width:");
     AddSpinChoiceCB(ui->tgridlinew, sp_explorer_cb, eui);
     ui->tgridlines = CreateLineStyleChoice(rc, "Line style:");
@@ -135,8 +135,8 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     ui->tmlen = CreateSpinChoice(rc, "Tick length",
         4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
     AddSpinChoiceCB(ui->tmlen, sp_explorer_cb, eui);
-    ui->tmgridcol = CreateColorChoice(rc, "Color:");
-    AddOptionChoiceCB(ui->tmgridcol, oc_explorer_cb, eui);
+    ui->tmgridpen = CreatePenChoice(rc, "Pen:");
+    AddPenChoiceCB(ui->tmgridpen, pen_explorer_cb, eui);
     ui->tmgridlinew = CreateLineWidthChoice(rc, "Line width:");
     AddSpinChoiceCB(ui->tmgridlinew, sp_explorer_cb, eui);
     ui->tmgridlines = CreateLineStyleChoice(rc, "Line style:");
@@ -338,20 +338,20 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
         SetToggleButtonState(ui->tgrid, t->props.gridflag);
         SetOptionChoice(ui->tinout, t->props.inout);
         SetSpinChoice(ui->tlen, t->props.size);
-        SetOptionChoice(ui->tgridcol, t->props.color);
-        SetSpinChoice(ui->tgridlinew, t->props.linew);
-        SetOptionChoice(ui->tgridlines, t->props.lines);
+        SetPenChoice(ui->tgridpen, &t->props.line.pen);
+        SetSpinChoice(ui->tgridlinew, t->props.line.width);
+        SetOptionChoice(ui->tgridlines, t->props.line.style);
         
         SetToggleButtonState(ui->tmgrid, t->mprops.gridflag);
         SetOptionChoice(ui->tminout, t->mprops.inout);
-        SetOptionChoice(ui->tmgridcol, t->mprops.color);
-        SetSpinChoice(ui->tmgridlinew, t->mprops.linew);
-        SetOptionChoice(ui->tmgridlines, t->mprops.lines);
+        SetPenChoice(ui->tmgridpen, &t->mprops.line.pen);
+        SetSpinChoice(ui->tmgridlinew, t->mprops.line.width);
+        SetOptionChoice(ui->tmgridlines, t->mprops.line.style);
         SetSpinChoice(ui->tmlen, t->mprops.size);
 
-        SetOptionChoice(ui->barcolor, t->t_drawbarcolor);
-        SetSpinChoice(ui->barlinew, t->t_drawbarlinew);
-        SetOptionChoice(ui->barlines, t->t_drawbarlines);
+        SetPenChoice(ui->barpen, &t->bar.pen);
+        SetSpinChoice(ui->barlinew, t->bar.width);
+        SetOptionChoice(ui->barlines, t->bar.style);
 
         SetOptionChoice(ui->specticks, t->t_spec);
         SetSpinChoice(ui->nspec, t->nticks);
@@ -409,14 +409,14 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->tlcolor) {
             t->tl_tprops.color = GetOptionChoice(ui->tlcolor);
         }
-        if (!caller || caller == ui->barcolor) {
-            t->t_drawbarcolor = GetOptionChoice(ui->barcolor);
+        if (!caller || caller == ui->barpen) {
+            GetPenChoice(ui->barpen, &t->bar.pen);
         }
         if (!caller || caller == ui->barlinew) {
-            t->t_drawbarlinew = GetSpinChoice(ui->barlinew);
+            t->bar.width = GetSpinChoice(ui->barlinew);
         }
         if (!caller || caller == ui->barlines) {
-            t->t_drawbarlines = GetOptionChoice(ui->barlines);
+            t->bar.style = GetOptionChoice(ui->barlines);
         }
         if (!caller || caller == ui->tlcharsize) {
             t->tl_tprops.charsize = GetSpinChoice(ui->tlcharsize);
@@ -492,14 +492,14 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->tlen) {
             t->props.size = GetSpinChoice(ui->tlen);
         }
-        if (!caller || caller == ui->tgridcol) {
-            t->props.color = GetOptionChoice(ui->tgridcol);
+        if (!caller || caller == ui->tgridpen) {
+            GetPenChoice(ui->tgridpen, &t->props.line.pen);
         }
         if (!caller || caller == ui->tgridlinew) {
-            t->props.linew = GetSpinChoice(ui->tgridlinew);
+            t->props.line.width = GetSpinChoice(ui->tgridlinew);
         }
         if (!caller || caller == ui->tgridlines) {
-            t->props.lines = GetOptionChoice(ui->tgridlines);
+            t->props.line.style = GetOptionChoice(ui->tgridlines);
         }
         if (!caller || caller == ui->tmgrid) {
             t->mprops.gridflag = GetToggleButtonState(ui->tmgrid);
@@ -510,14 +510,14 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->tmlen) {
             t->mprops.size = GetSpinChoice(ui->tmlen);
         }
-        if (!caller || caller == ui->tmgridcol) {
-            t->mprops.color = GetOptionChoice(ui->tmgridcol);
+        if (!caller || caller == ui->tmgridpen) {
+            GetPenChoice(ui->tmgridpen, &t->mprops.line.pen);
         }
         if (!caller || caller == ui->tmgridlinew) {
-            t->mprops.linew = GetSpinChoice(ui->tmgridlinew);
+            t->mprops.line.width = GetSpinChoice(ui->tmgridlinew);
         }
         if (!caller || caller == ui->tmgridlines) {
-            t->mprops.lines = GetOptionChoice(ui->tmgridlines);
+            t->mprops.line.style = GetOptionChoice(ui->tmgridlines);
         }
         if (!caller ||
             caller == ui->specticks || caller == ui->nspec || caller == ui->specloc) {

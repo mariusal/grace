@@ -66,9 +66,6 @@ static void drawgrid(Canvas *canvas, Quark *q)
     
     setclipping(canvas, TRUE);
     
-    /* TODO: add Pen to ticks and remove the following */
-    setpattern(canvas, 1);
-    
     graph_get_viewport(gr, &v);
     graph_get_world(gr, &w);
     
@@ -100,9 +97,7 @@ static void drawgrid(Canvas *canvas, Quark *q)
 	    continue;
 	}
 
-        setcolor(canvas, tprops.color);
-	setlinewidth(canvas, tprops.linew);
-	setlinestyle(canvas, tprops.lines);
+        setline(canvas, &tprops.line);
 
 	for (itick = 0; itick < t->nticks; itick++) {
 	    if (t->tloc[itick].type != ttype) {
@@ -188,9 +183,6 @@ void draw_axis(Canvas *canvas, Quark *qa)
     }
     
     setclipping(canvas, FALSE);
-
-    /* TODO: add Pen to ticks and remove the following */
-    setpattern(canvas, 1);
 
     gr = get_parent_graph(qa);
     
@@ -346,9 +338,7 @@ void draw_axis(Canvas *canvas, Quark *qa)
 
     /* Begin axis bar stuff */
     if (axis_bar_enabled(qa)) {
-	setcolor(canvas, t->t_drawbarcolor);
-	setlinewidth(canvas, t->t_drawbarlinew);
-	setlinestyle(canvas, t->t_drawbarlines);
+	setline(canvas, &t->bar);
 
         if (axisgrid_is_x(ag) && graph_get_type(gr) == GRAPH_POLAR) {
             xy2polar(vp1_start.x - vpc.x, vp1_start.y - vpc.y,
@@ -415,9 +405,7 @@ void draw_axis(Canvas *canvas, Quark *qa)
 	        return;
 	    }
 
-            setcolor(canvas, tprops.color);
-            setlinewidth(canvas, tprops.linew);
-	    setlinestyle(canvas, tprops.lines);
+            setline(canvas, &tprops.line);
 
 	    itcur = 0;
             for (itick = 0; itick < t->nticks; itick++) {
