@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -227,12 +227,45 @@ typedef struct {
     Widget negate;
 } RestrictionStructure;
 
-typedef struct {
+typedef struct _TransformStructure TransformStructure;
+
+typedef void* (*TDBuild_CBProc)(
+    TransformStructure *tdialog
+);
+
+typedef void* (*TDGet_CBProc)(
+    void *gui           /* specific GUI structure */
+);
+
+typedef void (*TDFree_CBProc)(
+    void *tddata        /* data */
+);
+
+typedef int (*TDRun_CBProc)(
+    Quark *psrc,
+    Quark *pdest,
+    void *tddata        /* data */
+);
+
+struct _TransformStructure {
     Widget form;
     Widget menubar;
+    Widget frame;
     SrcDestStructure *srcdest;
-} TransformStructure;
+    int exclusive;
+    TDBuild_CBProc build_cb;
+    TDGet_CBProc   get_cb;
+    TDFree_CBProc  free_cb;
+    TDRun_CBProc   run_cb;
+    void *gui;
+};
 
+typedef struct {
+    TDBuild_CBProc build_cb;
+    TDGet_CBProc   get_cb;
+    TDFree_CBProc  free_cb;
+    TDRun_CBProc   run_cb;
+} TD_CBProcs;
 
 /* OptionChoice CB procedure */
 typedef void (*OC_CBProc)(
@@ -492,9 +525,10 @@ Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
 Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);
 
 TransformStructure *CreateTransformDialogForm(Widget parent,
-    const char *s, int sel_type);
-int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
+    const char *s, int sel_type, int exclusive, const TD_CBProcs *cbs);
+int GetTransformDialogSettings(TransformStructure *tdialog,
     int *nssrc, Quark ***srcsets, Quark ***destsets);
+void RaiseTransformationDialog(TransformStructure *tdialog);
 
 void SetLabel(Widget w, char *s);
 void AlignLabel(Widget w, int alignment);

@@ -3220,31 +3220,99 @@ void CreateAACDialog(Widget form,
     XtManageChild(form);
 }
 
+int td_cb(void *data)
+{
+    int res, i, nssrc, error;
+    Quark **srcsets, **destsets;
+    TransformStructure *tdialog = (TransformStructure *) data;
+    void *tddata;
+
+    res = GetTransformDialogSettings(tdialog, &nssrc, &srcsets, &destsets);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
+    tddata = tdialog->get_cb(tdialog->gui);
+    if (!tddata) {
+        return RETURN_FAILURE;
+    }
+    
+    error = FALSE;
+    
+    for (i = 0; i < nssrc; i++) {
+	Quark *psrc, *pdest;
+        psrc  = srcsets[i];
+	pdest = destsets[i];
+
+        res = tdialog->run_cb(psrc, pdest, tddata);
+	if (res != RETURN_SUCCESS) {
+	    error = TRUE;
+	    break;
+	}
+    }
+    
+    if (nssrc > 0) {
+        xfree(srcsets);
+        xfree(destsets);
+    }
+    
+    tdialog->free_cb(tddata);
+    UpdateSrcDestSelector(tdialog->srcdest);
+    
+    xdrawgraph();
+    
+    if (error == FALSE) {
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+
 TransformStructure *CreateTransformDialogForm(Widget parent,
-    const char *s, int sel_type)
+    const char *s, int sel_type, int exclusive, const TD_CBProcs *cbs)
 {
     TransformStructure *retval;
+
+    set_wait_cursor();
     
     retval = xmalloc(sizeof(TransformStructure));
+    memset(retval, 0, sizeof(TransformStructure));
+    
+    retval->exclusive = exclusive;
+    
+    retval->build_cb = cbs->build_cb;
+    retval->get_cb   = cbs->get_cb;
+    retval->run_cb   = cbs->run_cb;
+    retval->free_cb  = cbs->free_cb;
     
     retval->form = CreateDialogForm(parent, s);
 
     retval->menubar = CreateMenuBar(retval->form);
-
     AddDialogFormChild(retval->form, retval->menubar);
     
     retval->srcdest = CreateSrcDestSelector(retval->form, sel_type);
     AddDialogFormChild(retval->form, retval->srcdest->form);
+
+    retval->frame = CreateFrame(retval->form, NULL);
+    retval->gui = retval->build_cb(retval);
 
 /*
  *     retval->restr = CreateRestrictionChoice(retval->form, "Source data filtering");
  *     AddDialogFormChild(retval->form, retval->restr->frame);
  */
     
+    CreateAACDialog(retval->form, retval->frame, td_cb, retval);
+    
+    /* FixateDialogFormChild(retval->frame); */
+    
+    unset_wait_cursor();
+
     return retval;
 }
 
-int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
+int GetTransformDialogSettings(TransformStructure *tdialog,
         int *nssrc, Quark ***srcsets, Quark ***destsets)
 {
     int i, nsdest;
@@ -3264,7 +3332,7 @@ int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
     }
     
     /* check for mutually exclusive selections */
-    if (exclusive && nsdest != 0) {
+    if (tdialog->exclusive && nsdest != 0) {
         for (i = 0; i < *nssrc; i++) {
             if ((*srcsets)[i] == (*destsets)[i]) {
                 xfree(*srcsets);
@@ -3293,6 +3361,11 @@ int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
     }
     
     return RETURN_SUCCESS;
+}
+
+void RaiseTransformationDialog(TransformStructure *tdialog)
+{
+    RaiseWindow(GetParent(tdialog->form));
 }
 
 Widget CreateVContainer(Widget parent)
