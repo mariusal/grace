@@ -947,23 +947,6 @@ char *concat_strings(char *dest, const char *src)
     return(dest);
 }
 
-void reverse_string(char *s)
-{
-    char cbuf;
-    int i, len;
-    
-    if (s == NULL) {
-        return;
-    }
-    
-    len = strlen(s);
-    for (i = 0; i < len/2; i++) {
-        cbuf = s[i];
-        s[i] = s[len - i - 1];
-        s[len - i - 1] = cbuf;
-    }
-}
-
 int compare_strings(const char *s1, const char *s2)
 {
     if (s1 == NULL && s2 == NULL) {

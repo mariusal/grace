@@ -398,6 +398,22 @@ static void tm_slant(TextMatrix *tm, double slant)
     }
 }
 
+static void reverse_string(char *s, int len)
+{
+    char cbuf;
+    int i;
+    
+    if (s == NULL) {
+        return;
+    }
+    
+    for (i = 0; i < len/2; i++) {
+        cbuf = s[i];
+        s[i] = s[len - i - 1];
+        s[len - i - 1] = cbuf;
+    }
+}
+
 GLYPH *GetGlyphString(CompositeString *cs)
 {
     int i, j, k, l, m, none_found;
@@ -834,7 +850,7 @@ CompositeString *String2Composite(char *string)
                 setmark = MARK_NONE;
 	        csbuf[nss].gotomark = gotomark;
 	        if (direction == STRING_DIRECTION_RL) {
-                    reverse_string(ss);
+                    reverse_string(ss, isub);
                 }
 
 	        csbuf[nss].s = xmalloc((isub + 1)*SIZEOF_CHAR);

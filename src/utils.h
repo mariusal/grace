@@ -82,7 +82,6 @@ unsigned char reversebits(unsigned char inword);
 char *copy_string(char *dest, const char *src);
 char *concat_strings(char *dest, const char *src);
 int compare_strings(const char *s1, const char *s2);
-void reverse_string(char *s);
 
 char *get_grace_home(void);
 void set_grace_home(const char *dir);
