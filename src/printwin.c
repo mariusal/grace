@@ -114,7 +114,7 @@ void create_printer_setup(Widget but, void *data)
     }
     
     if (pui == NULL) {
-        int i, ndev;
+        int i, j, ndev;
         Widget rc, rc1, fr, wbut;
         Widget menubar, menupane;
         OptionItem *options;
@@ -149,12 +149,15 @@ void create_printer_setup(Widget but, void *data)
 
 	ndev = number_of_devices(canvas);
         options = xmalloc(ndev*sizeof(OptionItem));
-        for (i = 0; i < ndev; i++) {
-            options[i].value = i;
-            options[i].label = get_device_name(canvas, i);
+        for (i = 0, j = 0; i < ndev; i++) {
+            if (!device_is_aux(canvas, i)) {
+                options[j].value = i;
+                options[j].label = get_device_name(canvas, i);
+                j++;
+            }
         }
         pui->devices =
-            CreateOptionChoice(pui->pdev_rc, "Device: ", 1, ndev, options);
+            CreateOptionChoice(pui->pdev_rc, "Device: ", 1, j, options);
 	AddOptionChoiceCB(pui->devices, do_device_toggle, pui);
         xfree(options);
         
