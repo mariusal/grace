@@ -674,7 +674,7 @@ int arrange_graphs(int *graphs, int ngraphs,
 }
 
 int arrange_graphs_simple(int nrows, int ncols,
-    int order, double offset, double gap)
+    int order, double offset, double hgap, double vgap)
 {
     int *graphs, i, ngraphs, retval;
     
@@ -693,7 +693,7 @@ int arrange_graphs_simple(int nrows, int ncols,
     }
     
     retval = arrange_graphs(graphs, ngraphs, nrows, ncols, order,
-        offset, offset, offset, offset, gap, gap, FALSE, FALSE);
+        offset, offset, offset, offset, vgap, hgap, FALSE, FALSE);
     
     xfree(graphs);
     
