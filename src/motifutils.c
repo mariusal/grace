@@ -41,6 +41,7 @@
 
 #include <X11/X.h>
 #include <X11/Xatom.h>
+#include <X11/cursorfont.h>
 
 #include <Xm/Xm.h>
 #include <Xm/Protocols.h>
@@ -3956,7 +3957,7 @@ void AddHelpCB(Widget w, char *ha)
 {
     if (XtHasCallbacks(w, XmNhelpCallback) == XtCallbackHasSome) {
         /* allow only one help callback */
-        XtRemoveAllCallbacks(w, XmNhelpCallback, NULL);
+        XtRemoveAllCallbacks(w, XmNhelpCallback);
     }
     
     XtAddCallback(w, XmNhelpCallback, help_int_cb, (XtPointer) ha);
@@ -3980,7 +3981,7 @@ void ContextHelpCB(void *data)
         }
     }
     if (!ok) {
-        HelpCB(NO_HELP);
+        HelpCB(NULL);
     }
     XFreeCursor(disp, cursor);
 }

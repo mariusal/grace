@@ -36,8 +36,6 @@
 #include "files.h"
 #include "protos.h"
 
-#include <X11/cursorfont.h>
-
 #include "motifinc.h"
 
 #define NO_HELP "doc/nohelp.html"
