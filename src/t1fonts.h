@@ -69,6 +69,7 @@
 
 typedef struct {
     char *s;
+    int len;
     double scale;
     double hshift;
     double vshift;
@@ -110,7 +111,7 @@ int map_font_by_name(char *fname, int mapped_id);
 void map_fonts(int map);
 
 GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
-                                                            char *theString);
+    char *theString, int len);
 GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph,
                     int x_off, int y_off, int advancing);
 void FreeCompositeString(CompositeString *cs);

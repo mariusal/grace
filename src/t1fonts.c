@@ -347,9 +347,9 @@ char *get_encodingscheme(int font)
 static T1_TMATRIX UNITY_MATRIX = {1.0, 0.0, 0.0, 1.0};
 
 GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag, 
-                                                            char *theString)
+    char *theString, int len)
 {
-    int len, i, j, k, l, m, none_found;
+    int i, j, k, l, m, none_found;
     
 /*
  *     int Kerning = 0;
@@ -373,7 +373,7 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
     
     Device_entry dev;
 
-    if (strcmp(theString, "") == 0) {
+    if (len == 0) {
         return NULL;
     }
 
@@ -383,7 +383,6 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
     }
 
     /* Now comes the ligatur handling */
-    len = strlen(theString);
     ligtheString = (char *) xmalloc((len + 1)*sizeof(char));
     if (LigDetect){
       	for (j = 0, m = 0; j < len; j++, m++) { /* Loop through the characters */
@@ -411,7 +410,7 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
       	}
       	ligtheString[m] = 0;
     } else {
-        strcpy(ligtheString, theString);
+        memcpy(ligtheString, theString, len);
     }
     
     if (Angle == 0.0){
@@ -467,10 +466,10 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
     			   aacolors[3],
     			   aacolors[4]);
 
-    	glyph = T1_AASetString(FontID, ligtheString, 0,
+    	glyph = T1_AASetString(FontID, ligtheString, len,
     				   Space, modflag, (float) Size, matrixP);
     } else {
-    	glyph = T1_SetString(FontID, ligtheString, 0,
+    	glyph = T1_SetString(FontID, ligtheString, len,
     				   Space, modflag, (float) Size, matrixP);
     }
  
@@ -494,10 +493,12 @@ CompositeString *String2Composite(char *string)
 {
     CompositeString *csbuf = NULL;
 
-    char *ss, *buf;
+    char *ss, *buf, *acc_buf;
+    int i, isub, j;
+    int acc_len;
     int slen;
     int nss;
-    int i, isub, j;
+    char ccode;
     
     int upperset = FALSE;
     int underline = FALSE, overline = FALSE;
@@ -528,9 +529,11 @@ CompositeString *String2Composite(char *string)
     
     ss = xmalloc(slen + 1);
     buf = xmalloc(slen + 1);
-    if (ss == NULL || buf == NULL) {
-        xfree(ss);
+    acc_buf = xmalloc(slen + 1);
+    if (ss == NULL || buf == NULL || acc_buf == NULL) {
+        xfree(acc_buf);
         xfree(buf);
+        xfree(ss);
         return NULL;
     }
      
@@ -540,12 +543,11 @@ CompositeString *String2Composite(char *string)
     ss[isub] = 0;
     
     for (i = 0; i <= slen; i++) {
-/*
- * 	if (string[i] < 32) {
- * 	    continue;
- * 	}
- */
-	if (string[i] == '\\' && isdigit(string[i + 1])) {
+	acc_len = 0;
+        if (string[i] < 32 && string[i] > 0) {
+	    /* skip control codes */
+            continue;
+	} else if (string[i] == '\\' && isdigit(string[i + 1])) {
 	    new_font = get_mapped_font(string[i + 1] - '0');
 	    i++;
 	    continue;
@@ -571,9 +573,10 @@ CompositeString *String2Composite(char *string)
             i += 2;
             continue;
         } else if (string[i] == '\\' && 
-                            isoneof(string[i + 1], "cCsSNBxuUoO+-fhvzZmM")) {
+                            isoneof(string[i + 1], "cCsSNBxuUoO+-fhvzZmM#")) {
 	    i++;
-	    switch (string[i]) {
+	    ccode = string[i];
+            switch (ccode) {
 	    case 'f':
 	    case 'h':
 	    case 'v':
@@ -581,6 +584,7 @@ CompositeString *String2Composite(char *string)
 	    case 'Z':
 	    case 'm':
 	    case 'M':
+	    case '#':
 		if (string[i + 1] == '{') {
                     j = 0;
                     while (string[i + 2 + j] != '}' &&
@@ -590,7 +594,7 @@ CompositeString *String2Composite(char *string)
                     }
                     if (string[i + 2 + j] == '}') {
                         buf[j] = '\0';
-                        switch (string[i]) {
+                        switch (ccode) {
 	                case 'f':
                             if (j == 0) {
                                 new_font = getfont();
@@ -627,6 +631,19 @@ CompositeString *String2Composite(char *string)
                             new_gotomark = atoi(buf);
 		            new_vshift = 0.0;
 		            new_hshift = 0.0;
+                            break;
+	                case '#':
+                            if (j % 2 == 0) {
+                                int k;
+                                char hex[3];
+                                hex[2] = '\0';
+                                for (k = 0; k < j; k += 2) {
+                                    hex[0] = buf[k];
+                                    hex[1] = buf[k + 1];
+                                    acc_buf[acc_len] = strtol(hex, NULL, 16);
+	                            acc_len++;
+                                }
+                            }
                             break;
                         }
                         i += (j + 2);
@@ -676,9 +693,16 @@ CompositeString *String2Composite(char *string)
 		new_scale *= ENLARGE_SCALE;
 		break;
 	    }
-	    continue;
-	}
-	if ((new_font  != font          ) ||
+	    
+            if (ccode != '#') {
+                continue;
+            }
+	} else {
+            acc_buf[0] = (string[i] + (upperset*0x80)) & 0xff;
+            acc_len = 1;
+        }
+	
+        if ((new_font  != font          ) ||
 	    (new_scale != scale         ) ||
 	    (new_hshift != 0.0          ) ||
 	    (new_vshift != vshift       ) ||
@@ -692,8 +716,6 @@ CompositeString *String2Composite(char *string)
 	    
 	    
             if (isub != 0) {	/* non-empty substring */
-                ss[isub] = '\0';
-	        isub = 0;
 	
 	        csbuf = xrealloc(csbuf, (nss + 1)*sizeof(CompositeString));
 	        csbuf[nss].font = font;
@@ -709,7 +731,11 @@ CompositeString *String2Composite(char *string)
 	        if (direction == STRING_DIRECTION_RL) {
                     reverse_string(ss);
                 }
-	        csbuf[nss].s = copy_string(NULL, ss);
+
+	        csbuf[nss].s = xmalloc(isub*SIZEOF_CHAR);
+	        memcpy(csbuf[nss].s, ss, isub);
+	        csbuf[nss].len = isub;
+	        isub = 0;
 	
                 nss++;
             }
@@ -736,14 +762,16 @@ CompositeString *String2Composite(char *string)
                 new_gotomark = MARK_NONE;
             }
 	} 
-	ss[isub] = (string[i] + (upperset*0x80)) & 0xff;
-	isub++;
+	memcpy(&ss[isub], acc_buf, acc_len*SIZEOF_CHAR);
+	isub += acc_len;
     }
     csbuf = xrealloc(csbuf, (nss + 1)*sizeof(CompositeString));
     csbuf[nss].s = NULL;
     
+    xfree(acc_buf);
     xfree(buf);
     xfree(ss);
+
     return (csbuf);
 }
 
@@ -867,7 +895,8 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         text_advancing = cstring[iglyph].advancing;
         modflag = T1_UNDERLINE * cstring[iglyph].underline |
                   T1_OVERLINE  * cstring[iglyph].overline;
-	glyph = GetGlyphString(FontID, Size, Angle, modflag, cstring[iglyph].s);
+	glyph = GetGlyphString(FontID, Size, Angle, modflag, cstring[iglyph].s,
+            cstring[iglyph].len);
 
         gotomark = cstring[iglyph].gotomark;
         if (CSglyph != NULL && gotomark >= 0 && gotomark < MAX_MARKS) {
