@@ -139,12 +139,12 @@
         <face-spec font-id="0" color-id="1" char-size="1.5"/>
       </text-properties>
       <text><![CDATA[Title]]></text>
-      <text-frame type="0" offset="0">
+      <text-frame type="0" offset="0.005">
         <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         <fill-spec color-id="0" pattern-id="0"/>
       </text-frame>
       <pointer active="no">
-        <arrow type="0" length="0" dl-ff="0" ll-ff="0"/>
+        <arrow type="0" length="1" dl-ff="1" ll-ff="0"/>
       </pointer>
     </atext>
     <atext id="subtitle" active="no" offset="(0, 0.02)">
@@ -153,12 +153,12 @@
         <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <text><![CDATA[Subtitle]]></text>
-      <text-frame type="0" offset="0">
+      <text-frame type="0" offset="0.005">
         <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         <fill-spec color-id="0" pattern-id="0"/>
       </text-frame>
       <pointer active="no">
-        <arrow type="0" length="0" dl-ff="0" ll-ff="0"/>
+        <arrow type="0" length="1" dl-ff="1" ll-ff="0"/>
       </pointer>
     </atext>
   </frame>
