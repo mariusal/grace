@@ -58,7 +58,7 @@ TUTDATA  = 2.1.dat 3.dat 7.1.2.agr 7.1.3.agr 8.2.dat \
 
 GRACEMAN = grace.1
 MANLINKS = xmgrace.1 gracebat.1
-MANPAGES = $(GRACEMAN) grconvert.1
+MANPAGES = $(GRACEMAN) grconvert.1 convcal.1
 
 all : html dvi
 
