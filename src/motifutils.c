@@ -3665,10 +3665,15 @@ void SetFixedFont(Widget w)
     XFontStruct *f;
     XmFontList xmf;
 
-    f = (XFontStruct *) XLoadQueryFont(disp, "fixed");
+    f = XLoadQueryFont(disp, "fixed");
     xmf = XmFontListCreate(f, charset);
-    XtVaSetValues(w, XmNfontList, xmf, NULL);
-    XmFontListFree(xmf);
+    if (xmf == NULL) {
+        errmsg("Can't load font \"fixed\"");
+        return;
+    } else {
+        XtVaSetValues(w, XmNfontList, xmf, NULL);
+        XmFontListFree(xmf);
+    }
 }
 
 char *GetStringSimple(XmString xms)
