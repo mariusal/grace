@@ -114,6 +114,9 @@ GUI_LIBS=@X_LIBS@ @GUI_LIBS@
 # Command used to print
 PRINT_CMD=@PRINT_CMD@
 
+# Editor
+GRACE_EDITOR=@GRACE_EDITOR@
+
 # HTML help viewer command
 HELPVIEWER=@HELPVIEWER@
 

@@ -34,6 +34,7 @@ AC_SUBST(MISSING_O)
 AC_SUBST(GD_LIB)
 AC_SUBST(RSTDRV_O)
 AC_SUBST(TERMDRV_O)
+AC_SUBST(GRACE_EDITOR)
 AC_SUBST(HELPVIEWER)
 AC_SUBST(SUBDIRS)
 
@@ -64,7 +65,7 @@ then
     i?86-*-cygwin32) CONF_FILE="ix86-cygwin32";;
     alpha*-dec-osf4.*) CONF_FILE="alpha-osf4";;
     hppa*-hp-hpux*) CONF_FILE="hppa-hpux";;
-    mips-sgi-irix6.4*) CONF_FILE="mips-irix6.4";;
+    mips-sgi-irix6.[4-9]*) CONF_FILE="mips-irix6.4";;
     mips-sgi-irix*) CONF_FILE="mips-irix";;
     rs6000-ibm-aix3*) CONF_FILE="rs6000-aix3";;
     rs6000-ibm-aix4*) CONF_FILE="rs6000-aix4";;
@@ -701,7 +702,7 @@ fi
 
 if test "${GUI}" != "NONE_GUI"; then
 
-dnl **** use libhelp
+  dnl **** use libhelp
   AC_ARG_ENABLE(libhelp,
   [  --enable-libhelp        use libhelp (default = no)],
   [case "${enableval}" in
@@ -714,8 +715,15 @@ dnl **** use libhelp
     true) AC_CHECK_LIB(hlpclient,get_help,GUI_LIBS="-lhlpclient $GUI_LIBS"; AC_DEFINE(WITH_LIBHELP),,$X_LIBS $GUI_LIBS);;
     *)  ;;
   esac
+
+  dnl **** define editor
+  GRACE_EDITOR="'xterm -e vi'"
+  AC_ARG_ENABLE(editor,
+  [  --enable-editor=COMMAND 
+                          define editor (default = \"xterm -e vi\")],
+  [GRACE_EDITOR="'${enableval}'"])
   
-dnl **** define help viewer
+  dnl **** define help viewer
   AC_ARG_ENABLE(helpviewer,
   [  --enable-helpviewer=COMMAND 
                           define (alternative) help viewer command],
