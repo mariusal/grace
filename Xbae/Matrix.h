@@ -23,7 +23,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Matrix.h,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Matrix.h,v 1.2 1999-06-04 21:50:09 fnevgeny Exp $
  */
 
 #ifndef _Xbae_Matrix_h
@@ -214,7 +214,9 @@ extern "C" {
 #define XmNselectedForeground		"selectedForeground"
 #define XmNselectScrollVisible		"selectScrollVisible"
 #define XmNtextBackground		"textBackground"
+#ifndef XmNtextField
 #define XmNtextField			"textField"
+#endif
 #define XmNtopRow			"topRow"
 #define XmNtrailingFixedColumns		"trailingFixedColumns"
 #define XmNtrailingFixedRows		"trailingFixedRows"
@@ -258,7 +260,9 @@ extern "C" {
 #define XmCSelectScrollVisible		"SelectScrollVisible"
 #define XmCShadowTypes			"ShadowTypes"
 #define XmCTextBackground		"TextBackground"
+#ifndef XmCTextField
 #define XmCTextField			"TextField"
+#endif
 #define XmCTextShadowThickness		"TextShadowThickness"
 #define XmCTraverseFixedCells		"TraverseFixedCells"
 #define XmCTopRow			"TopRow"
