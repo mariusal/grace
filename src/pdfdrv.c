@@ -207,6 +207,18 @@ void pdf_setpen(const Pen *pen)
     
     if (pen->color != pdf_color || pen->pattern != pdf_pattern) {
         frgb = get_frgb(pen->color);
+
+#if 10000*PDFLIB_MAJORVERSION + 100*PDFLIB_MINORVERSION + PDFLIB_REVISION < 40004
+        /* PDFlib-4.0.3 and below can't properly handle switch from
+           patterned colorspace to the same solid color. Let's hope
+           4.0.4 fixes this ;-) */
+        if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern &&
+            pen->color == pdf_color  && pen->pattern == 1) {
+            PDF_setcolor(phandle, "both", "rgb",
+                frgb->red ? 0.0:1.0, 0.0, 0.0, 0.0);     
+        }
+#endif
+
         PDF_setcolor(phandle, "both", "rgb",
             (float) frgb->red, (float) frgb->green,(float) frgb->blue, 0.0);     
 
