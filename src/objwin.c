@@ -115,6 +115,8 @@ typedef struct {
     BoxUI    *box_ui;
     ArcUI    *arc_ui;
     StringUI *string_ui;
+    
+    DObject *dobject;
 } ObjectUI;
 
 static void changegraphCB(int n, int *values, void *data)
@@ -321,6 +323,8 @@ static void selectobjectCB(int n, void **values, void *data)
         
         o = (DObject *) values[0];
         
+        ui->dobject = o;
+        
         SetOptionChoice(ui->loctype, o->loctype);
         if (o->loctype == COORD_VIEW) {
             format = "%.4f";
@@ -383,6 +387,8 @@ static void selectobjectCB(int n, void **values, void *data)
         }
     } else 
     if (n == 0) {
+        ui->dobject = NULL;
+        
         UnmanageChild(ui->line_ui->top);
         UnmanageChild(ui->box_ui->top);
         UnmanageChild(ui->arc_ui->top);
@@ -436,7 +442,6 @@ static int objects_aac(void *data)
         }
     }
 
-    
     xdrawgraph();
     set_dirtystate();
     
@@ -452,6 +457,53 @@ static char *dobject_labeling(unsigned int step, void *data)
         o->active ? '+':'-', step, object_types(o->type));
     
     return copy_string(NULL, buf);
+}
+
+static void loctype_cb(int value, void *data)
+{
+    ObjectUI *ui = (ObjectUI *) data;
+    double x, y;
+    VPoint vp;
+    WPoint wp;
+    char *format, buf[32];
+    
+    /* FIXME: check that there is a selection at all */
+    if (!ui->dobject) {
+        return;
+    }
+    
+    if (value == COORD_VIEW) {
+        format = "%.4f";
+    } else {
+        format = "%.8g";
+    }
+    
+    x = ui->dobject->ap.x;
+    y = ui->dobject->ap.y;
+    
+    if (value != ui->dobject->loctype) {
+        if (value == COORD_VIEW) {
+            wp.x = x;
+            wp.y = y;
+
+            vp = Wpoint2Vpoint(wp);
+            x = vp.x;
+            y = vp.y;
+        } else {
+            vp.x = x;
+            vp.y = y;
+
+            view2world(vp.x, vp.y, &wp.x, &wp.y);
+            x = wp.x;
+            y = wp.y;
+        }
+    }
+    
+    sprintf(buf, format, x);
+    SetTextString(ui->x, buf);
+
+    sprintf(buf, format, y);
+    SetTextString(ui->y, buf);
 }
 
 static ObjectUI *oui = NULL;
@@ -502,6 +554,7 @@ void define_objects_popup(void *data)
         fr = CreateFrame(main_tab, "Anchor point");
         rc = CreateHContainer(fr);
         oui->loctype = CreateOptionChoice(rc, "Type:", 1, 2, opitems);
+        AddOptionChoiceCB(oui->loctype, loctype_cb, oui);
         oui->x = CreateTextInput(rc, "X:");
         XtVaSetValues(oui->x->text, XmNcolumns, 10, NULL);
         oui->y = CreateTextInput(rc, "Y:");
