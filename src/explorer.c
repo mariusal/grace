@@ -151,13 +151,14 @@ ListTreeItem *CreateQuarkTree(Widget tree, ListTreeItem *parent,
         s = data->labeling_proc(q);
     }
     
-    if (parent) {
-        parent->open = True;
-    }
     item = ListTreeAdd(tree, parent, s);
     xfree(s);
     item->user_data = data;
 
+    if (quark_is_active(q) && quark_count_children(q) > 0) {
+        item->open = True;
+    }
+    
     if (quark_is_active(q)) {
         ListTreeSetItemPixmaps(tree, item, gui->eui->a_icon, gui->eui->a_icon);
     } else {
