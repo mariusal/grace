@@ -503,7 +503,7 @@ int main(int argc, char *argv[])
             monitor_input(grace, ib_tbl, ib_tblsize, 0);
         }
 	if (!noprint) {
-	    do_hardcopy(grace);
+	    do_hardcopy(grace->project);
 	}
         
 	bailout(grace);

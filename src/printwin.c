@@ -456,7 +456,7 @@ static int set_printer_proc(void *data)
     }
     
     if (do_redraw) {
-        drawgraph(grace);
+        drawgraph(grace->project);
     }
     
     return RETURN_SUCCESS;
@@ -691,6 +691,6 @@ static void do_units_toggle(OptionStructure *opt, int value, void *data)
 static void do_print_cb(Widget but, void *data)
 {
     set_wait_cursor();
-    do_hardcopy(grace);
+    do_hardcopy(grace->project);
     unset_wait_cursor();
 }

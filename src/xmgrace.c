@@ -444,7 +444,7 @@ int initialize_gui(int *argc, char **argv)
 
 static void do_drawgraph(Widget but, void *data)
 {
-    drawgraph(grace);
+    drawgraph(grace->project);
 }
 
 
@@ -492,7 +492,7 @@ static void MenuCB(Widget but, void *data)
 	break;
     case MENU_PRINT:
 	set_wait_cursor();
-	do_hardcopy(grace);
+	do_hardcopy(grace->project);
 	unset_wait_cursor();
 	break;
     default:

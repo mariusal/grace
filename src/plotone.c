@@ -136,25 +136,28 @@ static void dproc(Canvas *canvas, void *data)
 /*
  * draw all active graphs
  */
-void drawgraph(Grace *grace)
+void drawgraph(const Quark *project)
 {
-    Canvas *canvas = grace->rt->canvas;
-    Project *pr = project_get_data(grace->project);
+    Project *pr = project_get_data(project);
+    RunTime *rt = rt_from_quark(project);
 
-    canvas_set_docname(canvas, get_docname(grace->project));
-    canvas_set_username(canvas, get_username(grace));
-    canvas_set_pagefill(canvas, pr->bgfill);
-    setbgcolor(canvas, pr->bgcolor);
-    
-    canvas_draw(canvas, dproc, grace->project);
+    if (pr && rt) {
+        canvas_set_docname(rt->canvas, get_docname(project));
+        canvas_set_pagefill(rt->canvas, pr->bgfill);
+        setbgcolor(rt->canvas, pr->bgcolor);
+
+        canvas_draw(rt->canvas, dproc, (void *) project);
+    }
 }
 
 /*
  * If writing to a file, check to see if it exists
  */
-void do_hardcopy(Grace *grace)
+void do_hardcopy(const Quark *project)
 {
-    Canvas *canvas = grace->rt->canvas;
+    Grace *grace = grace_from_quark(project);
+    RunTime *rt;
+    Canvas *canvas;
     char tbuf[128], *s;
     char fname[GR_MAXPATHLEN];
     view v;
@@ -162,13 +165,20 @@ void do_hardcopy(Grace *grace)
     int truncated_out;
     FILE *prstream;
     
+    if (!grace) {
+        return;
+    }
+    
+    rt = grace->rt;
+    canvas = rt->canvas;
+    
     if (get_ptofile(grace)) {
-        if (is_empty_string(grace->rt->print_file)) {
-            Device_entry *dev = get_device_props(canvas, grace->rt->hdevice);
-            sprintf(grace->rt->print_file, "%s.%s",
-                get_docbname(grace->project), dev->fext);
+        if (is_empty_string(rt->print_file)) {
+            Device_entry *dev = get_device_props(canvas, rt->hdevice);
+            sprintf(rt->print_file, "%s.%s",
+                get_docbname(project), dev->fext);
         }
-        strcpy(fname, grace->rt->print_file);
+        strcpy(fname, rt->print_file);
     } else {
         s = get_print_cmd(grace);
         if (is_empty_string(s)) {
@@ -187,9 +197,9 @@ void do_hardcopy(Grace *grace)
     
     canvas_set_prstream(canvas, prstream); 
     
-    select_device(canvas, grace->rt->hdevice);
+    select_device(canvas, rt->hdevice);
     
-    drawgraph(grace);
+    drawgraph(project);
     
     grace_close(prstream);
     
@@ -216,7 +226,7 @@ void do_hardcopy(Grace *grace)
         }
     }
     
-    select_device(canvas, grace->rt->tdevice);
+    select_device(canvas, rt->tdevice);
 }
 
 

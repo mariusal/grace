@@ -2698,7 +2698,7 @@ parmset:
 
 actions:
 	REDRAW {
-	    drawgraph(grace);
+	    drawgraph(grace->project);
 	}
 	| CD CHRSTR {
 	    set_workingdir(grace, $2);
@@ -2726,7 +2726,7 @@ actions:
 	    exit($3);
 	}
 	| PRINT {
-	    do_hardcopy(grace);
+	    do_hardcopy(grace->project);
 	}
 	| PRINT TO DEVICE {
             set_ptofile(grace, FALSE);

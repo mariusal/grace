@@ -49,8 +49,8 @@ typedef struct {
     int first_pass, last_pass;
 } plot_rt_t;
 
-void drawgraph(Grace *grace);
-void do_hardcopy(Grace *grace);
+void drawgraph(const Quark *project);
+void do_hardcopy(const Quark *project);
 
 int draw_graph(Quark *gr, plot_rt_t *plot_rt);
 void draw_set(Quark *pset, plot_rt_t *plot_rt);

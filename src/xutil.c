@@ -367,7 +367,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 	}
 
         update_all();
-        drawgraph(grace);
+        drawgraph(grace->project);
 
         return;
     }
@@ -383,7 +383,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
     if (get_pagelayout() == PAGE_FREE) {
         unsigned int w, h;
         sync_canvas_size(&w, &h, TRUE);
-        drawgraph(grace);
+        drawgraph(grace->project);
     }
 }
 
@@ -394,7 +394,7 @@ void xdrawgraph(void)
 {
     if (grace->gui->inwin && (grace->gui->auto_redraw)) {
 	set_wait_cursor();
-	drawgraph(grace);
+	drawgraph(grace->project);
 	unset_wait_cursor();
     }
 }

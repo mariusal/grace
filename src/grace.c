@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001,2002 Grace Development Team
+ * Copyright (c) 2001-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -237,6 +237,7 @@ RunTime *runtime_new(Grace *grace)
         }
     }
     rt->username = copy_string(NULL, s);
+    canvas_set_username(rt->canvas, rt->username);
 
     /* userhome */
     if ((s = getenv("HOME")) == NULL) {
