@@ -181,10 +181,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             }
             break;
 	case Button4:
-            scroll(drawing_window, TRUE, xbe->state & Mod1Mask);
+            scroll(drawing_window, TRUE, xbe->state & ControlMask);
             break;
 	case Button5:
-            scroll(drawing_window, FALSE, xbe->state & Mod1Mask);
+            scroll(drawing_window, FALSE, xbe->state & ControlMask);
             break;
 	default:
             break;
