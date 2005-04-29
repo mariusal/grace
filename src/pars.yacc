@@ -60,6 +60,7 @@
 #include "core_utils.h"
 #include "dlmodule.h"
 #include "ssdata.h"
+#include "numerics.h"
 #include "protos.h"
 #include "parser.h"
 #include "mathstuff.h"

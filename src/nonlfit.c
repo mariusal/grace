@@ -37,7 +37,7 @@
 #include "core_utils.h"
 #include "utils.h"
 #include "parser.h"
-#include "protos.h"
+#include "numerics.h"
 
 /* Needed only for `integer' and `doublereal' definitions */
 #include "f2c.h"
