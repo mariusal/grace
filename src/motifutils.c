@@ -839,6 +839,14 @@ int GetSingleListChoice(ListStructure *listp, int *value)
     return retval;
 }
 
+int GetListSelectedCount(ListStructure *listp)
+{
+    int count;
+    XtVaGetValues(listp->list, XmNselectedItemCount, &count, NULL);
+    return count;
+}
+
+
 typedef struct {
     ListStructure *listp;
     List_CBProc cbproc;

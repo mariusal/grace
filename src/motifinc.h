@@ -450,6 +450,7 @@ void SelectListChoices(ListStructure *listp, int nchoices, int *choices);
 void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items);
 int GetListChoices(ListStructure *listp, int **values);
 int GetSingleListChoice(ListStructure *listp, int *value);
+int GetListSelectedCount(ListStructure *listp);
 void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata);
 
 void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
