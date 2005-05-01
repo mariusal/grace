@@ -65,9 +65,13 @@ typedef struct {
     Widget          top;
 
     Widget          main_tp;
+    Widget          column_tp;
     Widget          hotlink_tp;
 
     Widget          mw;
+    
+    ListStructure   *col_sel;
+    TextStructure   *col_label;
 
     Widget          hotlink;
     OptionStructure *hotsrc;

@@ -305,6 +305,20 @@ static void col_delete_cb(Widget but, void *udata)
     SSDataUI *ui = (SSDataUI *) udata;
 }
 
+static void col_cb(ListStructure *sel, int n, int *values, void *data)
+{
+    SSDataUI *ui = (SSDataUI *) data;
+    Quark *ssd = (Quark *) sel->anydata;
+    
+    if (ssd && n == 1) {
+        int col = values[0];
+        SetSensitive(ui->col_label->text, TRUE);
+        SetTextString(ui->col_label, ssd_get_col_label(ssd, col));
+    } else {
+        SetSensitive(ui->col_label->text, FALSE);
+    }
+}
+
 static char tfield_translations[] = "#override\n\
 <Key>osfCancel			:	CancelEdit(True)\n\
 <Key>osfActivate		:	EditCell(Down)\n\
@@ -394,6 +408,16 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
 
     ui->popup = XmCreatePopupMenu(ui->mw, "popupMenu", NULL, 0);
     CreateMenuButton(ui->popup, "Delete column(s)", '\0', col_delete_cb, ui);
+
+
+    /* ------------ Column props -------------- */
+    ui->column_tp = CreateTabPage(tab, "Columns");
+    ui->col_sel = CreateColChoice(ui->column_tp, "Column:", LIST_TYPE_SINGLE);
+    AddListChoiceCB(ui->col_sel, col_cb, ui);
+
+    ui->col_label = CreateCSText(ui->column_tp, "Label:");
+    SetSensitive(ui->col_label->text, FALSE);
+    AddTextInputCB(ui->col_label, text_explorer_cb, eui);
 
     
     /* ------------ Hotlink tab -------------- */
@@ -522,6 +546,8 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
 	    xfree(collabels[i]);
         }
         xfree(collabels);
+        
+        UpdateColChoice(ui->col_sel, q);
     }
 }
 
@@ -533,6 +559,18 @@ int set_ssd_data(SSDataUI *ui, Quark *q, void *caller)
         if (!caller) {
             /* commit the last entered cell changes */
             XbaeMatrixCommitEdit(ui->mw, False);
+        }
+        
+        if (!caller || caller == ui->col_label) {
+            int col;
+            if (GetSingleListChoice(ui->col_sel, &col) == RETURN_SUCCESS) {
+                char *s = GetTextString(ui->col_label);
+                ssd_set_col_label(q, col, s);
+                xfree(s);
+                
+                /* FIXME: this is an overkill */
+                update_ssd_ui(ui, q);
+            }
         }
     }
     
