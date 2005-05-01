@@ -2116,57 +2116,61 @@ int featext(Quark **sets, int nsets, Quark *pdest,
     return RETURN_SUCCESS;
 }
 
-/* cumulaive properties (only avg right now) */
-int cumulative(Quark **sets, int nsrc, Quark *pdest)
+/* cumulative properties */
+int num_cumulative(DArray *src_arrays, unsigned int nsrc,
+    DArray *dst_array, int type)
 {
-    int is, j, k, maxlen, maxncols, settype;
+    int i, is, k, maxlen, maxncols, settype;
+    DArray *slice;
+    double *y = dst_array->x;
 
     maxlen = 0; maxncols = 0; settype = SET_XY;
     for (is = 0; is < nsrc; is++) {
-        Quark *pset = sets[is];
-        int len   = set_get_length(pset);
-        int ncols = set_get_ncols(pset);
+        unsigned int len = src_arrays[is].size;
         if (maxlen < len) {
             maxlen = len;
         }
-        if (maxncols < ncols) {
-            maxncols = ncols;
-            settype  = set_get_type(pset);
-        }
     }
     
-    if (maxlen == 0 || maxncols < 2) {
+    if (maxlen > dst_array->size) {
         return RETURN_FAILURE;
     }
     
-    if (set_get_ncols(pdest) != maxncols) {
-        set_set_type(pdest, settype);
-    }
-    
-    if (set_set_length(pdest, maxlen) != RETURN_SUCCESS) {
+    slice = darray_new(nsrc);
+    if (!slice) {
         return RETURN_FAILURE;
     }
     
     for (k = 0; k < maxlen; k++) {
-        for (j = 0; j < maxncols; j++) {
-            double *y = set_get_col(pdest, j);
-            int nvar = 0;
-            double var = 0.0;
-            for (is = 0; is < nsrc; is++) {
-                Quark *pset = sets[is];
-                int len    = set_get_length(pset);
-                double *x = set_get_col(pset, j);
-                if (x && k < len) {
-                    var += x[k];
-                    nvar++;
-                }
+        double val;
+        for (is = 0, i = 0; is < nsrc; is++) {
+            DArray *da = &src_arrays[is];
+            if (k < da->size) {
+                slice->x[i++] = da->x[k];
             }
-            y[k] = var/nvar;
         }
+        slice->size = i;
+        switch (type) {
+        case RUN_AVG:
+            darray_avg(slice, &val);
+            break;
+        case RUN_STD:
+            darray_std(slice, &val);
+            break;
+        case RUN_MIN:
+            darray_min(slice, &val);
+            break;
+        case RUN_MAX:
+            darray_max(slice, &val);
+            break;
+        default:
+            errmsg("Wrong type in num_cumulative()");
+            break;
+        }
+        y[k] = val;
     }
 
-    /* set comment */
-    set_set_comment(pdest, "Cumulative average");
+    darray_free(slice);
     
     return RETURN_SUCCESS;
 } 

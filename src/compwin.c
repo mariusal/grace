@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -40,6 +40,7 @@
 #include "core_utils.h"
 #include "utils.h"
 #include "ssdata.h"
+#include "numerics.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -1478,58 +1479,101 @@ void create_featext_frame(Widget but, void *data)
     unset_wait_cursor();
 }
 
+
 typedef struct _Cumulative_ui {
     Widget top;
-    GraphSetStructure *src;
-    GraphSetStructure *dest;
+    SSDColStructure *src;
+    SSDColStructure *dst;
+    OptionStructure *type;
 } Cumulative_ui;
+
+
+static int fill_darray_from_column(const Quark *ssd, unsigned int ncol,
+    DArray *darray)
+{
+    ss_column *col = ssd_get_col(ssd, ncol);
+    if (!col || col->format != FFORMAT_NUMBER) {
+        return RETURN_FAILURE;
+    } else {
+        darray->allocated = FALSE;
+        darray->size = ssd_get_nrows(ssd);
+        darray->x = col->data;
+        return RETURN_SUCCESS;
+    }
+}
 
 static int do_cumulative_proc(void *data)
 {
     Cumulative_ui *ui = (Cumulative_ui *) data;
-    int nsrc, ndest;
-    Quark **srcsets, **destsets, *pdest;
+    int nsrc, ndst;
+    Quark *src_ssd, *dst_ssd;
+    int *src_cols, *dst_cols;
+    unsigned int i, nrows, ncols, dst_col = COL_NONE;
+    DArray *src_arrays, dst_array;
+    int type;
 
-    nsrc = GetStorageChoices(ui->src->set_sel, &srcsets);
+    nsrc = GetSSDColChoices(ui->src, &src_ssd, &src_cols);
     if (nsrc < 1) {
-        errmsg("No source sets selected");
+        errmsg("No source columns selected");
         return RETURN_FAILURE;
     }
 
-    ndest = GetStorageChoices(ui->dest->set_sel, &destsets);
-    if (ndest == 0) {
-        Quark *destgr;
-        if (GetSingleStorageChoice(ui->dest->graph_sel, &destgr)
-            != RETURN_SUCCESS) {
-            xfree(srcsets);
-            errmsg("No destination graph selected");
-	    return RETURN_FAILURE;
-        }
-        
-        pdest = grace_set_new(destgr);
-        
-        update_set_selectors(destgr);
-        SelectStorageChoice(ui->dest->set_sel, pdest);
-    } else if (ndest == 1) {
-        pdest = destsets[0];
-        xfree(destsets);
-    } else {
-        errmsg("Please select a single or none destination set");
-        if (ndest > 0) {
-            xfree(destsets);
-        }
-        xfree(srcsets);
+    ndst = GetSSDColChoices(ui->dst, &dst_ssd, &dst_cols);
+    if (ndst < 0) {
+        errmsg("No destination SSD selected");
+        xfree(src_cols);
+        return RETURN_FAILURE;
+    } else
+    if (ndst > 1) {
+        xfree(src_cols);
+        xfree(dst_cols);
+        errmsg("Please select a single or none destination column");
         return RETURN_FAILURE;
     }
-
-    cumulative(srcsets, nsrc, pdest); 
-
-    if (nsrc > 0) {
-        xfree(srcsets);
+    
+    type = GetOptionChoice(ui->type);
+    
+    nrows = ssd_get_nrows(src_ssd);
+    ncols = ssd_get_ncols(dst_ssd);
+    if (ncols && nrows != ssd_get_nrows(dst_ssd)) {
+        /* there is a data in dst_ssd which will be reallocated */
+        if (yesno("Destination data will be resized to new length. Are you sure?",
+                NULL, NULL, NULL)) {
+            ssd_set_nrows(dst_ssd, nrows);
+        } else {
+            xfree(src_cols);
+            xfree(dst_cols);
+            return RETURN_FAILURE;
+        }
     }
     
-    update_set_lists(get_parent_graph(pdest));
+    if (ndst == 0) {
+        ssd_add_col(dst_ssd, FFORMAT_NUMBER);
+        dst_col = ncols;
+        
+        UpdateStorageChoice(ui->dst->ssd_sel);
+        SelectListChoice(ui->dst->col_sel, dst_col);
+    } else if (ndst == 1) {
+        dst_col = dst_cols[0];
+        xfree(dst_cols);
+    }
     
+    src_arrays = xmalloc(sizeof(DArray)*nsrc);
+    for (i = 0; i < nsrc; i++) {
+        fill_darray_from_column(src_ssd, src_cols[i], &src_arrays[i]);
+    }
+    xfree(src_cols);
+
+    fill_darray_from_column(dst_ssd, dst_col, &dst_array);
+
+    num_cumulative(src_arrays, nsrc, &dst_array, type);
+    
+    quark_dirtystate_set(dst_ssd, TRUE);
+    
+    xfree(src_arrays);
+
+    snapshot_and_update(dst_ssd, TRUE);
+  
     return RETURN_SUCCESS;
 }
 
@@ -1540,7 +1584,7 @@ void create_cumulative_frame(Widget but, void *data)
     set_wait_cursor();
     
     if (!ui) {
-        Widget grid;
+        Widget grid, rc;
 
         ui = xmalloc(sizeof(Cumulative_ui));
         if (!ui) {
@@ -1550,14 +1594,22 @@ void create_cumulative_frame(Widget but, void *data)
         
         ui->top = CreateDialogForm(app_shell, "Cumulative properties");
         grid = CreateGrid(ui->top, 2, 1);
-	ui->src = CreateGraphSetSelector(grid,
-            "Source group:", LIST_TYPE_MULTIPLE);
-	ui->dest = CreateGraphSetSelector(grid,
-            "Destination:", LIST_TYPE_SINGLE);
+        AddDialogFormChild(ui->top, grid);
+	ui->src = CreateSSDColSelector(grid,
+            "Source group", LIST_TYPE_MULTIPLE);
+	ui->dst = CreateSSDColSelector(grid,
+            "Destination", LIST_TYPE_SINGLE);
         PlaceGridChild(grid, ui->src->frame, 0, 0);
-        PlaceGridChild(grid, ui->dest->frame, 1, 0);
+        PlaceGridChild(grid, ui->dst->frame, 1, 0);
+        rc = CreateHContainer(ui->top);
+        ui->type = CreateOptionChoiceVA(rc, "Property type:",
+            "Average", RUN_AVG,
+            "Std.dev", RUN_STD,
+            "Minimum", RUN_MIN,
+            "Maximum", RUN_MAX,
+            NULL);
 
-	CreateAACDialog(ui->top, grid, do_cumulative_proc, (void *) ui);
+	CreateAACDialog(ui->top, rc, do_cumulative_proc, (void *) ui);
     }
     
     RaiseWindow(GetParent(ui->top));

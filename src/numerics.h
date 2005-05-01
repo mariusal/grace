@@ -100,7 +100,8 @@ int do_interp(Quark *psrc, Quark *pdest,
     double *mesh, int meshlen, int method, int strict);
 int featext(Quark **sets, int nsets, Quark *pdest,
     char *formula);
-int cumulative(Quark **sets, int nsets, Quark *pdest);
+int num_cumulative(DArray *src_arrays, unsigned int nsrc,
+    DArray *dst_array, int type);
 
 /* fourier.c */
 int fourier(double *jr, double *ji, int n, int iflag);
