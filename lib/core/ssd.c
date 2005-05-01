@@ -177,6 +177,20 @@ char *ssd_get_col_label(const Quark *q, int col)
     }
 }
 
+int ssd_set_col_label(const Quark *q, int col, const char *s)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd && col >= 0 && col < ssd->ncols) {
+        ssd->cols[col].label = amem_strcpy(q->amem, ssd->cols[col].label, s);
+        
+        quark_dirtystate_set(q, TRUE);
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 int ssd_set_nrows(Quark *q, unsigned int nrows)
 {
     unsigned int i, j;
