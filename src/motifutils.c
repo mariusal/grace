@@ -3059,7 +3059,7 @@ GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
 
 
 
-static ListStructure *CreateColChoice(Widget parent, char *labelstr, int type)
+ListStructure *CreateColChoice(Widget parent, char *labelstr, int type)
 {
     int nvisible;
     ListStructure *retval;
@@ -3071,14 +3071,12 @@ static ListStructure *CreateColChoice(Widget parent, char *labelstr, int type)
     return retval;
 }
 
-static void update_ssd_cb(StorageStructure *ss, int n, Quark **values, void *data)
+void UpdateColChoice(ListStructure *sel, const Quark *ssd)
 {
-    SSDColStructure *gs = (SSDColStructure *) data;
     unsigned int i, ncols;
     OptionItem *items;
-    
-    if (n == 1) {
-        Quark *ssd = values[0];
+
+    if (ssd) {
         ncols = ssd_get_ncols(ssd);
         items = xmalloc(ncols*sizeof(OptionItem));
         for (i = 0; i < ncols; i++) {
@@ -3097,12 +3095,28 @@ static void update_ssd_cb(StorageStructure *ss, int n, Quark **values, void *dat
         ncols = 0;
         items = NULL;
     }
-    UpdateListChoice(gs->col_sel, ncols, items);
+    UpdateListChoice(sel, ncols, items);
     
     for (i = 0; i < ncols; i++) {
         xfree(items[i].label);
     }
     xfree(items);
+    
+    sel->anydata = (void *) ssd;
+}
+
+static void update_ssd_cb(StorageStructure *ss, int n, Quark **values, void *data)
+{
+    SSDColStructure *gs = (SSDColStructure *) data;
+    Quark *ssd;
+    
+    if (n == 1) {
+        ssd = values[0];
+    } else {
+        ssd = NULL;
+    }
+    
+    UpdateColChoice(gs->col_sel, ssd);
 }
 
 SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)

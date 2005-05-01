@@ -535,6 +535,9 @@ Quark *get_set_choice_gr(StorageStructure *ss);
 GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type);
 SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type);
 
+ListStructure *CreateColChoice(Widget parent, char *labelstr, int type);
+void UpdateColChoice(ListStructure *sel, const Quark *ssd);
+
 SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type);
 int GetSSDColChoices(SSDColStructure *sc, Quark **ssd, int **cols);
 
