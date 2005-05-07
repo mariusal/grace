@@ -39,6 +39,7 @@
 
 #include "core_utils.h"
 #include "utils.h"
+#include "numerics.h"
 #include "protos.h"
 
 /*
