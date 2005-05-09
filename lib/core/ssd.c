@@ -177,7 +177,7 @@ char *ssd_get_col_label(const Quark *q, int col)
     }
 }
 
-int ssd_set_col_label(const Quark *q, int col, const char *s)
+int ssd_set_col_label(Quark *q, int col, const char *s)
 {
     ss_data *ssd = ssd_get_data(q);
     if (ssd && col >= 0 && col < ssd->ncols) {
@@ -334,6 +334,55 @@ int ssd_set_string(Quark *q, int row, int column, const char *s)
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
+    }
+}
+
+int ssd_set_index(Quark *q, int column)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd) {
+        ss_column *col = ssd_get_col(q, column);
+        if (col && col->format != FFORMAT_STRING) {
+            if (column > 0) {
+                ss_column tmpcol = *col;
+                memmove(&ssd->cols[1], ssd->cols, column*sizeof(ss_column));
+                ssd->cols[0] = tmpcol;
+            }
+            
+            ssd->indexed = TRUE;
+            quark_dirtystate_set(q, TRUE);
+
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int ssd_set_indexed(Quark *q, int onoff)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd) {
+        if (ssd->indexed != onoff) {
+            ssd->indexed = onoff;
+            quark_dirtystate_set(q, TRUE);
+        }
+
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int ssd_is_indexed(const Quark *q)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd && ssd->indexed) {
+        return TRUE;
+    } else {
+        return FALSE;
     }
 }
 
