@@ -140,6 +140,7 @@
 #define AStrHgap                "hgap"
 #define AStrHotfile             "hotfile"
 #define AStrId                  "id"
+#define AStrIndexed             "indexed"
 #define AStrInoutPlacement      "inout-placement"
 #define AStrInvert              "invert"
 #define AStrJustification       "justification"

@@ -774,6 +774,7 @@ static int project_save_hook(Quark *q,
             attributes_set_sval(attrs, AStrId, QIDSTR(q));
             xmlio_set_active(attrs, quark_is_active(q));
             attributes_set_ival(attrs, AStrRows, ssd_get_nrows(q));
+            attributes_set_bval(attrs, AStrIndexed, ssd_is_indexed(q));
 
             xfile_begin_element(xf, EStrSSD, attrs);
             {

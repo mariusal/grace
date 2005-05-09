@@ -1692,6 +1692,9 @@ char *utf2iso(const char *s)
         <attribute name="#AStrRows" type="ival">
             ssd_set_nrows($$, $?);
         </attribute>
+        <attribute name="#AStrIndexed" type="bval">
+            ssd_set_indexed($$, $?);
+        </attribute>
         <!-- Child elements -->
         <child name="#EStrDcolumn">
         </child>

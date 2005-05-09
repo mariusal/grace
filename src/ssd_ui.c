@@ -283,6 +283,11 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
     if (xbe->button == Button3) {
         int nrows, ncolumns;
         Boolean **selectedCells;
+
+        if (!cbs->row_label) {
+            ui->cb_column = cbs->column;
+        }
+
         XtVaGetValues(ui->mw, XmNrows, &nrows, XmNcolumns, &ncolumns,
             XmNselectedCells, &selectedCells, NULL);
         if (selectedCells) {
@@ -303,6 +308,22 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
 static void col_delete_cb(Widget but, void *udata)
 {
     SSDataUI *ui = (SSDataUI *) udata;
+}
+
+static void index_cb(Widget but, void *udata)
+{
+    SSDataUI *ui = (SSDataUI *) udata;
+    if (ssd_set_index(ui->q, ui->cb_column) == RETURN_SUCCESS) {
+        snapshot_and_update(ui->q, TRUE);
+    }
+}
+
+static void unindex_cb(Widget but, void *udata)
+{
+    SSDataUI *ui = (SSDataUI *) udata;
+    if (ssd_set_indexed(ui->q, FALSE) == RETURN_SUCCESS) {
+        snapshot_and_update(ui->q, TRUE);
+    }
 }
 
 static void col_cb(ListStructure *sel, int n, int *values, void *data)
@@ -392,6 +413,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
         XmNcellShadowThickness, 1,
         XmNaltRowCount, 0,
         XmNcalcCursorPosition, True,
+        XmNtraverseFixedCells, True,
         NULL);
 
     tfield = XtNameToWidget(ui->mw, "textField");
@@ -408,6 +430,8 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
 
     ui->popup = XmCreatePopupMenu(ui->mw, "popupMenu", NULL, 0);
     CreateMenuButton(ui->popup, "Delete column(s)", '\0', col_delete_cb, ui);
+    CreateMenuButton(ui->popup, "Set as index", '\0', index_cb, ui);
+    CreateMenuButton(ui->popup, "Unset index", '\0', unindex_cb, ui);
 
 
     /* ------------ Column props -------------- */
@@ -442,7 +466,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
 void update_ssd_ui(SSDataUI *ui, Quark *q)
 {
     if (ui && q) {
-        int i, nc, nr, new_nc, new_nr, ncols, nrows;
+        int i, nc, nr, new_nc, new_nr, ncols, nrows, nfixed_cols;
         int delta_nc, delta_nr;
         short rlab_width;
         short *widths;
@@ -462,6 +486,12 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         
         new_nc = ncols + EXTRA_SS_COLS;
         new_nr = nrows + EXTRA_SS_ROWS;
+        
+        if (ssd_is_indexed(q)) {
+            nfixed_cols = 1;
+        } else {
+            nfixed_cols = 0;
+        }
 
         XtVaGetValues(ui->mw, XmNrows, &nr, XmNcolumns, &nc, NULL);
 
@@ -525,6 +555,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             XmNcolumnMaxLengths, maxlengths,
             XmNcolumnLabels, collabels,
             XmNcolumnLabelAlignments, clab_alignments,
+            XmNfixedColumns, nfixed_cols,
 	    NULL);
 
         if (delta_nc != 0) {
@@ -532,7 +563,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         }
 
 #if XbaeVersion < 45102
-        /* A bug in Xbae - the cell with focus on is NOT updated, so we do it*/
+        /* A bug in Xbae - the cell with focus on is NOT updated, so we do it */
         /* Fixed in 4.51.02 */
         XbaeMatrixGetCurrentCell(ui->mw, &cur_row, &cur_col);
         XbaeMatrixSetCell(ui->mw, cur_row, cur_col,
