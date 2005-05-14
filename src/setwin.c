@@ -220,10 +220,10 @@ static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 typedef enum {
     DATASETOP_SORT,
     DATASETOP_REVERSE,
-    DATASETOP_JOIN,
+    DATASETOP_COALESCE,
     DATASETOP_SPLIT,
     DATASETOP_DROP
-}dataSetOpType;
+} dataSetOpType;
 
 typedef struct _Datasetop_ui {
     Widget top;
@@ -270,19 +270,20 @@ void create_datasetop_popup(Widget but, void *data)
 
 	datasetopui.optype_item =
             CreateOptionChoiceVA(dialog, "Operation type:",
-            "Reverse",   DATASETOP_REVERSE, 
+            "Reverse",   DATASETOP_REVERSE,
+            "Coalesce",  DATASETOP_COALESCE,
 #if 0
-            "Sort",      DATASETOP_SORT,    
-            "Join",      DATASETOP_JOIN,    
-            "Split",     DATASETOP_SPLIT,   
+            "Sort",      DATASETOP_SORT,
+            "Split",     DATASETOP_SPLIT,
 #endif
-            "Drop rows", DATASETOP_DROP,    
+            "Drop rows", DATASETOP_DROP,
             NULL);
    	AddOptionChoiceCB(datasetopui.optype_item, datasetoptypeCB, NULL);
 
 	rc = CreateHContainer(dialog);
         XtVaSetValues(rc, XmNrecomputeSize, True, NULL);
 	
+	/* Sort */
 	datasetopui.up_down_item = CreateOptionChoiceVA(rc, "Order:",
             "Ascending", FALSE,
             "Descending", TRUE,
@@ -294,7 +295,7 @@ void create_datasetop_popup(Widget but, void *data)
         CreateSeparator(rc);
         datasettype_controls[1] = rc;
 
-	/* Join */
+	/* Coalesce */
 	rc = CreateVContainer(dialog);
         CreateSeparator(rc);
         datasettype_controls[2] = rc;
@@ -304,14 +305,14 @@ void create_datasetop_popup(Widget but, void *data)
         datasetopui.length_item = CreateTextItem(rc, 6, "Length:");
         datasettype_controls[3] = rc;
 
-	/* Drop points */
+	/* Drop rows */
 	rc = CreateHContainer(dialog);
         datasetopui.start_item = CreateTextItem(rc, 6, "Start at:");
         datasetopui.stop_item  = CreateTextItem(rc, 6, "Stop at:");
         datasettype_controls[4] = rc;
 
-	ManageChild(datasettype_controls[0]);
-	UnmanageChild(datasettype_controls[1]);
+	UnmanageChild(datasettype_controls[0]);
+	ManageChild(datasettype_controls[1]);
 	UnmanageChild(datasettype_controls[2]);
 	UnmanageChild(datasettype_controls[3]);
 	UnmanageChild(datasettype_controls[4]);
@@ -360,6 +361,18 @@ static int datasetop_aac_cb(void *data)
             for (i = 0; i < n; i++) {
                 ss = selssd[i];
 	        ssd_reverse(ss);
+            }
+            break;
+        case DATASETOP_COALESCE:
+            if (n > 1) {
+                Quark *ss0 = selssd[0];
+                for (i = 1; i < n; i++) {
+                    ss = selssd[i];
+	            if (ssd_coalesce(ss0, ss) != RETURN_SUCCESS) {
+                        errmsg("Coalescing failed");
+                        break;
+                    }
+                }
             }
             break;
 #if 0
