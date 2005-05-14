@@ -179,6 +179,10 @@ void SelectQuarkTreeItem(Widget w, ListTreeItem *parent, Quark *q)
     
     ListTreeGetHighlighted(w, &ret);
     XtCallCallbacks(w, XtNhighlightCallback, (XtPointer) &ret);
+
+    if (ret.count > 0) {
+        ListTreeSetPos(w, ret.items[0]);
+    }
 }
 
 static int explorer_apply(ExplorerUI *ui, void *caller);
