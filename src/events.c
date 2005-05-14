@@ -627,7 +627,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         CreateMenuSeparator(popup);
 
                         CreateMenuButton(popup,
-                            "Properties", '\0', edit_cb, &ct);
+                            "Properties...", '\0', edit_cb, &ct);
                         
                         CreateMenuSeparator(popup);
                         
