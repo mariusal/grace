@@ -853,6 +853,7 @@ int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats);
 ss_column *ssd_add_col(Quark *q, int format);
 int ssd_delete_rows(Quark *q, unsigned int startno, unsigned int endno);
 int ssd_reverse(Quark *q);
+int ssd_coalesce(Quark *toq, Quark *fromq);
 
 int ssd_set_value(Quark *q, int row, int column, double value);
 int ssd_set_string(Quark *q, int row, int column, const char *s);

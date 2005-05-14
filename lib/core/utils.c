@@ -217,8 +217,9 @@ char **copy_string_column(AMem *amem, char **src, int nrows)
     
     dest = amem_malloc(amem, nrows*sizeof(char *));
     if (dest != NULL) {
-        for (i = 0; i < nrows; i++)
+        for (i = 0; i < nrows; i++) {
             dest[i] = amem_strdup(amem, src[i]);
+        }
     }
     return dest;
 }
@@ -300,6 +301,86 @@ int ssd_reverse(Quark *q)
         }
     }
     quark_dirtystate_set(q, TRUE);
+    
+    return RETURN_SUCCESS;
+}
+
+
+typedef struct {
+    unsigned int nshift;
+    Quark *toq;
+} coalesce_hook_t;
+
+static int coalesce_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    coalesce_hook_t *p = (coalesce_hook_t *) udata;
+    
+    if (quark_fid_get(q) == QFlavorSet) {
+        Dataset *dsp = set_get_dataset(q);
+        unsigned int k;
+        for (k = 0; k < MAX_SET_COLS; k++) {
+            if (dsp->cols[k] != COL_NONE) {
+                dsp->cols[k] += p->nshift;
+            }
+        }
+        if (dsp->scol != COL_NONE) {
+            dsp->scol += p->nshift;
+        }
+    }
+    if (closure->depth == 1) {
+        quark_reparent(q, p->toq);
+    }
+    
+    return TRUE;
+}
+
+/* 
+ * Coalesce two SSDs. fromq will be deleted, preceded by transferring of all
+ * its children to toq
+ */
+int ssd_coalesce(Quark *toq, Quark *fromq)
+{
+    unsigned int nrows, ncols, i, j;
+    ss_data *ssd;
+    AMem *amem  = toq->amem;
+    coalesce_hook_t p;
+       
+    nrows = ssd_get_nrows(fromq);
+    if (nrows > ssd_get_nrows(toq)) {
+        if (ssd_set_nrows(toq, nrows) != RETURN_SUCCESS) {
+	    return RETURN_FAILURE;
+        }
+    }
+
+    /* original number of columns */
+    ncols = ssd_get_ncols(toq);
+    
+    ssd = ssd_get_data(fromq);
+    for (i = 0; i < ssd->ncols; i++) {
+        ss_column *col = &ssd->cols[i];
+        
+        ss_column *col_new = ssd_add_col(toq, col->format);
+        if (!col_new) {
+	    return RETURN_FAILURE;
+        }
+        
+        col_new->label = amem_strdup(amem, col->label);
+        
+        if (col->format == FFORMAT_STRING) {
+            for (j = 0; j < nrows; j++) {
+                ((char **) col_new->data)[j] =
+                    amem_strdup(amem, ((char **) col->data)[j]);
+            }
+        } else {
+            memcpy(col_new->data, col->data, nrows*SIZEOF_DOUBLE);
+        }
+    }
+    
+    p.toq = toq;
+    p.nshift = ncols;
+    quark_traverse(fromq, coalesce_hook, &p);
+    
+    quark_free(fromq);
     
     return RETURN_SUCCESS;
 }
