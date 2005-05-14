@@ -152,6 +152,8 @@ void ListTreeGetHighlighted(Widget w,ListTreeMultiReturnStruct *ret);
 void ListTreeSetHighlighted(Widget w,ListTreeItem **items,
 			    int count,Boolean clear);
 
+void ListTreeSetPos(Widget w, ListTreeItem *item);
+
 Widget XmCreateScrolledListTree (Widget parent, char *name, Arg *args, Cardinal count);
 
 #ifdef __cplusplus

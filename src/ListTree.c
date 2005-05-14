@@ -2415,6 +2415,15 @@ DropProc(Widget aw, XtPointer client_data, XtPointer call_data)
   XmDropTransferStart(cbs->dragContext, args, n);
 }
 
+void ListTreeSetPos(Widget aw, ListTreeItem *item)
+{
+  ListTreeWidget w = (ListTreeWidget) aw;
+  w->list.topItemPos=item->count;
+  GotoPosition(w);
+  DrawAll(w);
+  SetScrollbars(w);
+}
+
 Widget
 XmCreateScrolledListTree(Widget parent, char *name, Arg *args, Cardinal count)
 {
