@@ -1099,6 +1099,11 @@ static void ss_update_cb(Widget but, void *udata)
     UpdateStorageChoice(ss);
 }
 
+static void s_dc_cb(StorageStructure *ss, Quark *q, void *data)
+{
+    raise_explorer(grace->gui, q);
+}
+
 static void CreateStorageChoicePopup(StorageStructure *ss)
 {
     Widget popup, submenupane;
@@ -1142,6 +1147,8 @@ static void CreateStorageChoicePopup(StorageStructure *ss)
     CreateMenuSeparator(submenupane);
 
     CreateMenuButton(submenupane, "Update list", '\0', ss_update_cb, ss);
+
+    AddStorageChoiceDblClickCB(ss, s_dc_cb, NULL);
 }
 
 StorageStructure *CreateStorageChoice(Widget parent,
@@ -2770,11 +2777,6 @@ static void g_new_cb(Widget but, void *udata)
     snapshot_and_update(grace->project, TRUE);
 }
 
-static void g_dc_cb(StorageStructure *ss, Quark *gr, void *data)
-{
-    switch_current_graph(gr);
-}
-
 static char *graph_labeling(Quark *q, unsigned int *rid)
 {
     char buf[128];
@@ -2803,7 +2805,6 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, graph_labeling);
     SetStorageChoiceQuark(ss, grace->project);
-    AddStorageChoiceDblClickCB(ss, g_dc_cb, NULL);
     AddHelpCB(ss->rc, "doc/UsersGuide.html#graph-selector");
 
     ngraph_selectors++;
