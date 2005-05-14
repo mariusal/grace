@@ -149,6 +149,8 @@ struct _StorageStructure {
     Widget popup_move_up_bt;
     Widget popup_move_down_bt;
 
+    Widget popup_properties_bt;
+
     Widget popup_select_all_bt;
     Widget popup_unselect_all_bt;
     Widget popup_invert_selection_bt;
@@ -453,6 +455,7 @@ int GetSingleListChoice(ListStructure *listp, int *value);
 int GetListSelectedCount(ListStructure *listp);
 void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata);
 
+void list_activate_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 void list_invertselection_action(Widget w, XEvent *e, String *par,

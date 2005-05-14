@@ -609,6 +609,7 @@ typedef struct {
 
 
 static char list_translation_table[] = "\
+    Ctrl<Key>E: list_activate_action()\n\
     Ctrl<Key>A: list_selectall_action()\n\
     Ctrl<Key>U: list_unselectall_action()\n\
     Ctrl<Key>I: list_invertselection_action()";
@@ -659,6 +660,11 @@ static int list_get_selected_count(Widget list)
     XtVaGetValues(list, XmNselectedPositionCount, &n, NULL);
 #endif    
     return n;
+}
+
+void list_activate_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+    XtCallActionProc(w, "ListKbdActivate", NULL, NULL, 0);
 }
 
 void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
@@ -972,6 +978,8 @@ static void storage_popup(Widget parent,
     SetSensitive(ss->popup_send_to_back_bt, selected);
     SetSensitive(ss->popup_move_up_bt, selected);
     SetSensitive(ss->popup_move_down_bt, selected);
+
+    SetSensitive(ss->popup_properties_bt, n == 1);
     
     if (ss->popup_cb) {
         ss->popup_cb(ss, n);
@@ -1077,6 +1085,16 @@ static void ss_move_down_cb(Widget but, void *udata)
     ss_any_cb((StorageStructure *) udata, SS_MOVE_DOWN_CB);
 }
 
+static void ss_properties_cb(Widget but, void *udata)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+    Quark *q;
+    
+    if (GetSingleStorageChoice(ss, &q) == RETURN_SUCCESS) {
+        raise_explorer(grace->gui, q);
+    }
+}
+
 static void ss_select_all_cb(Widget but, void *udata)
 {
     list_selectall(((StorageStructure *) udata)->list);
@@ -1111,6 +1129,11 @@ static void CreateStorageChoicePopup(StorageStructure *ss)
     popup = XmCreatePopupMenu(ss->list, "popupMenu", NULL, 0);
     ss->popup = popup;
     XtVaSetValues(popup, XmNpopupEnabled, XmPOPUP_DISABLED, NULL);
+
+    ss->popup_properties_bt =
+        CreateMenuButton(popup, "Properties...", '\0', ss_properties_cb, ss);
+
+    CreateMenuSeparator(popup);
 
     ss->popup_hide_bt = CreateMenuButton(popup, "Hide", '\0', ss_hide_cb, ss);
     ss->popup_show_bt = CreateMenuButton(popup, "Show", '\0', ss_show_cb, ss);

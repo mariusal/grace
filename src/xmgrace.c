@@ -96,6 +96,7 @@ static XtActionsRec canvas_actions[] = {
 };
 
 static XtActionsRec list_select_actions[] = {
+    {"list_activate_action",        list_activate_action       },
     {"list_selectall_action",       list_selectall_action      },
     {"list_unselectall_action",     list_unselectall_action    },
     {"list_invertselection_action", list_invertselection_action}
