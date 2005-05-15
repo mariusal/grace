@@ -791,7 +791,7 @@ void grace_close(FILE *fp)
 
 static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
 {
-    int nrows, ncols, nncols, nscols, nncols_req;
+    int nrows, nrows_allocated, ncols, nncols, nscols, nncols_req;
     int *formats = NULL;
     int breakon, readerror;
     Quark *q;
@@ -803,6 +803,7 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
     linecount = 0;
     readerror = 0;
     nrows = 0;
+    nrows_allocated = 0;
     
     breakon = TRUE;
     
@@ -842,6 +843,7 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
 
                 /* reset state registers */
                 nrows = 0;
+                nrows_allocated = 0;
                 readerror = 0;
                 breakon = TRUE;
             }
@@ -885,13 +887,18 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
                 
                 breakon = FALSE;
 	    }
-	    if (nrows % BUFSIZE == 0) {
-		if (ssd_set_nrows(q, nrows + BUFSIZE) != RETURN_SUCCESS) {
+	    if (nrows >= nrows_allocated) {
+		if (!nrows_allocated) {
+                    nrows_allocated = BUFSIZE;
+                } else {
+                    nrows_allocated *= 2;
+                }
+                if (ssd_set_nrows(q, nrows_allocated) != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
                     quark_free(q);
 		    xfree(linebuf);
 		    return RETURN_FAILURE;
-		}
+                }
 	    }
 
             if (insert_data_row(q, nrows, s) != RETURN_SUCCESS) {
