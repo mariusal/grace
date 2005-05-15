@@ -665,9 +665,13 @@ static int save_dataset(XFile *xf, Quark *pset)
 
     attributes_reset(attrs);
     for (nc = 0; nc < ncols; nc++) {
-        attributes_set_ival(attrs, dataset_colname(nc), data->cols[nc]);
+        if (data->cols[nc] != COL_NONE) {
+            attributes_set_ival(attrs, dataset_colname(nc), data->cols[nc]);
+        }
     }
-    attributes_set_ival(attrs, "s", data->scol);
+    if (data->scol != COL_NONE) {
+        attributes_set_ival(attrs, "s", data->scol);
+    }
     
     attributes_set_sval(attrs, AStrComment, data->comment);
     xfile_empty_element(xf, EStrDataset, attrs);
@@ -824,8 +828,8 @@ static int project_save_hook(Quark *q,
         attributes_set_dval(attrs, AStrSkipMinDist, p->symskipmindist);
         xfile_begin_element(xf, EStrSet, attrs);
         {
-            save_set_properties(xf, q);
             save_dataset(xf, q);
+            save_set_properties(xf, q);
         }
         xfile_end_element(xf, EStrSet);
         
