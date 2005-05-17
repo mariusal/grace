@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001 Grace Development Team
+ * Copyright (c) 2001-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -130,6 +130,84 @@ int grace_rt_init_dicts(RunTime *rt)
             {REGION_FORMULA, VStrFormula, "Formula"}
         };
 
+    const DictEntry arrow_type_defaults =
+        {ARROW_TYPE_LINE, VStrLine, "Line"};
+    const DictEntry arrow_type_entries[] = 
+        {
+            {ARROW_TYPE_LINE,   VStrLine,   "Line"},
+            {ARROW_TYPE_FILLED, VStrFilled, "Filled"},
+            {ARROW_TYPE_CIRCLE, VStrCircle, "Circle"}
+        };
+
+    const DictEntry glocator_type_defaults =
+        {GLOCATOR_TYPE_NONE, VStrNone, "None"};
+    const DictEntry glocator_type_entries[] = 
+        {
+            {GLOCATOR_TYPE_NONE,  VStrNone,  "None" },
+            {GLOCATOR_TYPE_XY,    VStrXY,    "XY"   },
+            {GLOCATOR_TYPE_POLAR, VStrPolar, "Polar"}
+        };
+
+    const DictEntry sym_type_defaults =
+        {SYM_NONE, VStrNone, "None"};
+    const DictEntry sym_type_entries[] = 
+        {
+            {SYM_NONE,    VStrNone,          "None"          },
+            {SYM_CIRCLE,  VStrCircle,        "Circle"        },
+            {SYM_SQUARE,  VStrSquare,        "Square"        },
+            {SYM_DIAMOND, VStrDiamond,       "Diamond"       },
+            {SYM_TRIANG1, VStrTriangleUp,    "Triangle up"   },
+            {SYM_TRIANG2, VStrTriangleLeft,  "Triangle left" },
+            {SYM_TRIANG3, VStrTriangleDown,  "Triangle down" },
+            {SYM_TRIANG4, VStrTriangleRight, "Triangle right"},
+            {SYM_PLUS,    VStrPlus,          "Plus"          },
+            {SYM_X,       VStrX,             "X"             },
+            {SYM_SPLAT,   VStrSplat,         "Splat"         },
+            {SYM_CHAR,    VStrChar,          "Character"     }
+        };
+
+    const DictEntry line_type_defaults =
+        {LINE_TYPE_NONE, VStrNone, "None"};
+    const DictEntry line_type_entries[] = 
+        {
+            {LINE_TYPE_NONE,       VStrNone,        "None"        },
+            {LINE_TYPE_STRAIGHT,   VStrStraight,    "Straight"    },
+            {LINE_TYPE_LEFTSTAIR,  VStrLeftStairs,  "Left stairs" },
+            {LINE_TYPE_RIGHTSTAIR, VStrRightStairs, "Right stairs"},
+            {LINE_TYPE_SEGMENT2,   VStrSegment,     "Segment"     }, 
+            {LINE_TYPE_SEGMENT3,   VStrSegment3,    "3-Segment"   }
+        };
+
+    const DictEntry setfill_type_defaults =
+        {SETFILL_NONE, VStrNone, "None"};
+    const DictEntry setfill_type_entries[] = 
+        {
+            {SETFILL_NONE,     VStrNone,     "None"       },
+            {SETFILL_POLYGON,  VStrPolygon,  "As polygon" },
+            {SETFILL_BASELINE, VStrBaseline, "To baseline"}
+        };
+
+    const DictEntry baseline_type_defaults =
+        {BASELINE_TYPE_0, VStrZero, "Zero"};
+    const DictEntry baseline_type_entries[] = 
+        {
+            {BASELINE_TYPE_0,    VStrZero,     "Zero"     },
+            {BASELINE_TYPE_SMIN, VStrSetMin,   "Set min"  },
+            {BASELINE_TYPE_SMAX, VStrSetMax,   "Set max"  },
+            {BASELINE_TYPE_GMIN, VStrGraphMin, "Graph min"},
+            {BASELINE_TYPE_GMAX, VStrGraphMax, "Graph max"}
+        };
+
+    const DictEntry framedecor_type_defaults =
+        {FRAME_DECOR_NONE, VStrNone, "None"};
+    const DictEntry framedecor_type_entries[] = 
+        {
+            {FRAME_DECOR_NONE, VStrNone,      "None"},
+            {FRAME_DECOR_LINE, VStrLine,      "Underline"},
+            {FRAME_DECOR_RECT, VStrRectangle, "Rectangle"},
+            {FRAME_DECOR_OVAL, VStrOval,      "Oval"}
+        };
+
     if (!(rt->graph_type_dict =
         DICT_NEW_STATIC(graph_type_entries, &graph_type_defaults))) {
         return RETURN_FAILURE;
@@ -163,6 +241,35 @@ int grace_rt_init_dicts(RunTime *rt)
         return RETURN_FAILURE;
     }
     
+    if (!(rt->arrow_type_dict =
+        DICT_NEW_STATIC(arrow_type_entries, &arrow_type_defaults))) {
+        return RETURN_FAILURE;
+    }
+    if (!(rt->glocator_type_dict =
+        DICT_NEW_STATIC(glocator_type_entries, &glocator_type_defaults))) {
+        return RETURN_FAILURE;
+    }
+    if (!(rt->sym_type_dict =
+        DICT_NEW_STATIC(sym_type_entries, &sym_type_defaults))) {
+        return RETURN_FAILURE;
+    }
+    if (!(rt->line_type_dict =
+        DICT_NEW_STATIC(line_type_entries, &line_type_defaults))) {
+        return RETURN_FAILURE;
+    }
+    if (!(rt->setfill_type_dict =
+        DICT_NEW_STATIC(setfill_type_entries, &setfill_type_defaults))) {
+        return RETURN_FAILURE;
+    }
+    if (!(rt->baseline_type_dict =
+        DICT_NEW_STATIC(baseline_type_entries, &baseline_type_defaults))) {
+        return RETURN_FAILURE;
+    }
+    if (!(rt->framedecor_type_dict =
+        DICT_NEW_STATIC(framedecor_type_entries, &framedecor_type_defaults))) {
+        return RETURN_FAILURE;
+    }
+
     return RETURN_SUCCESS;
 }
 
@@ -176,6 +283,13 @@ void grace_rt_free_dicts(RunTime *rt)
     dict_free(rt->axis_position_dict);
     dict_free(rt->spec_ticks_dict);
     dict_free(rt->region_type_dict);
+    dict_free(rt->arrow_type_dict);
+    dict_free(rt->glocator_type_dict);
+    dict_free(rt->sym_type_dict);
+    dict_free(rt->line_type_dict);
+    dict_free(rt->setfill_type_dict);
+    dict_free(rt->baseline_type_dict);
+    dict_free(rt->framedecor_type_dict);
 }
 
 char *graph_types(RunTime *rt, GraphType it)
@@ -347,6 +461,132 @@ int get_axis_position_by_name(RunTime *rt, const char *name)
     int retval;
     
     dict_get_key_by_name(rt->axis_position_dict, name, &retval);
+    
+    return retval;
+}
+
+char *arrow_type_name(RunTime *rt, int it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->arrow_type_dict, it, &s);
+    
+    return s;
+}
+
+int get_arrow_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->arrow_type_dict, name, &retval);
+    
+    return retval;
+}
+
+char *glocator_type_name(RunTime *rt, int it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->glocator_type_dict, it, &s);
+    
+    return s;
+}
+
+int get_glocator_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->glocator_type_dict, name, &retval);
+    
+    return retval;
+}
+
+char *sym_type_name(RunTime *rt, int it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->sym_type_dict, it, &s);
+    
+    return s;
+}
+
+int get_sym_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->sym_type_dict, name, &retval);
+    
+    return retval;
+}
+
+char *line_type_name(RunTime *rt, int it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->line_type_dict, it, &s);
+    
+    return s;
+}
+
+int get_line_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->line_type_dict, name, &retval);
+    
+    return retval;
+}
+
+char *setfill_type_name(RunTime *rt, int it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->setfill_type_dict, it, &s);
+    
+    return s;
+}
+
+int get_setfill_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->setfill_type_dict, name, &retval);
+    
+    return retval;
+}
+
+char *baseline_type_name(RunTime *rt, int it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->baseline_type_dict, it, &s);
+    
+    return s;
+}
+
+int get_baseline_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->baseline_type_dict, name, &retval);
+    
+    return retval;
+}
+
+char *framedecor_type_name(RunTime *rt, int it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->framedecor_type_dict, it, &s);
+    
+    return s;
+}
+
+int get_framedecor_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->framedecor_type_dict, name, &retval);
     
     return retval;
 }

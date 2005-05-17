@@ -192,6 +192,13 @@ typedef struct _RunTime {
     Dictionary *spec_ticks_dict;
     Dictionary *region_type_dict;
     Dictionary *axis_position_dict;
+    Dictionary *arrow_type_dict;
+    Dictionary *glocator_type_dict;
+    Dictionary *sym_type_dict;
+    Dictionary *line_type_dict;
+    Dictionary *setfill_type_dict;
+    Dictionary *baseline_type_dict;
+    Dictionary *framedecor_type_dict;
     
     /* color index for autocolorization of new sets */
     unsigned int setcolor;
