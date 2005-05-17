@@ -891,6 +891,7 @@ Pixmap char_to_pixmap(Widget w, int font, char c, int csize)
             csize, csize, xstuff->depth);
         
         XtVaGetValues(w, XmNbackground, &bg, XmNforeground, &fg, NULL);
+        XSetFillStyle(xstuff->disp, xstuff->gc, FillSolid);
         XSetForeground(xstuff->disp, xstuff->gc, bg);
         XFillRectangle(xstuff->disp, pixmap, xstuff->gc, 0, 0, csize, csize);
         
