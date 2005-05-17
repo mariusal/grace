@@ -489,8 +489,6 @@ int save_graph_properties(XFile *xf, Quark *gr)
     }
     xfile_end_element(xf, EStrLocator);
 
-    /* FIXME: world stack */
-    
     attributes_free(attrs);
     
     return RETURN_SUCCESS;
