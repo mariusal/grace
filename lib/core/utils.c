@@ -251,16 +251,16 @@ int ssd_delete_rows(Quark *q, unsigned int startno, unsigned int endno)
     
     for (j = 0; j < ssd->ncols; j++) {
         ss_column *col = &ssd->cols[j];
-	if (col->format == FFORMAT_STRING) {
+        if (col->format == FFORMAT_STRING) {
             char **s = col->data;
-	    for (i = startno; i <= endno; i++) {
-	        amem_free(q->amem, s[i]);
-	    }
-	    memmove(s + startno, s + endno + 1,
+            for (i = startno; i <= endno; i++) {
+                amem_free(q->amem, s[i]);
+            }
+            memmove(s + startno, s + endno + 1,
                 (ssd->nrows - endno - 1)*SIZEOF_VOID_P);
         } else {
             double *x = col->data;
-	    memmove(x + startno, x + endno + 1,
+            memmove(x + startno, x + endno + 1,
                 (ssd->nrows - endno - 1)*SIZEOF_DOUBLE);
         }
     }
@@ -278,7 +278,7 @@ int ssd_reverse(Quark *q)
     int nrows, ncols, i, j, k;
 
     if (!ssd) {
-	return RETURN_FAILURE;
+        return RETURN_FAILURE;
     }
     
     nrows = ssd_get_nrows(q);
@@ -286,18 +286,18 @@ int ssd_reverse(Quark *q)
 
     for (k = 0; k < ncols; k++) {
         ss_column *col = &ssd->cols[k];
-	if (col->format == FFORMAT_STRING) {
+        if (col->format == FFORMAT_STRING) {
             char **s = col->data;
-	    for (i = 0; i < nrows/2; i++) {
-	        j = (nrows - 1) - i;
-	        sswap(&s[i], &s[j]);
-	    }
+            for (i = 0; i < nrows/2; i++) {
+                j = (nrows - 1) - i;
+                sswap(&s[i], &s[j]);
+            }
         } else {
             double *x = col->data;
-	    for (i = 0; i < nrows/2; i++) {
-	        j = (nrows - 1) - i;
-	        fswap(&x[i], &x[j]);
-	    }
+            for (i = 0; i < nrows/2; i++) {
+                j = (nrows - 1) - i;
+                fswap(&x[i], &x[j]);
+            }
         }
     }
     quark_dirtystate_set(q, TRUE);
