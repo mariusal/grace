@@ -289,6 +289,16 @@ TLabels *tlabels_new()
     return retval;
 }
 
+void tlabels_free(TLabels *tl)
+{
+    if (tl) {
+        xfree(tl->transform);
+        xfree(tl->prepend);
+        xfree(tl->append);
+        xfree(tl);
+    }
+}
+
 typedef struct {
     int type;                   /* type of user ticks */
     int nticks;                 /* total number of ticks */
@@ -1311,9 +1321,7 @@ char *utf2iso(const char *s)
             t->tl_stop      = $?->stop;
             t->tl_prestr    = amem_strdup(amem, $?->prepend);
             t->tl_appstr    = amem_strdup(amem, $?->append);
-            xfree($?->prepend);
-            xfree($?->append);
-            xfree($?);
+            tlabels_free($?);
         </child>
         <child name="#EStrAxis">
         </child>
