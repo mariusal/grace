@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2004 Grace Development Team
+ * Copyright (c) 2001-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -61,5 +61,20 @@ int get_regiontype_by_name(RunTime *rt, const char *name);
 
 char *axis_position_name(RunTime *rt, int it);
 int get_axis_position_by_name(RunTime *rt, const char *name);
+
+char *arrow_type_name(RunTime *rt, int it);
+int get_arrow_type_by_name(RunTime *rt, const char *name);
+char *glocator_type_name(RunTime *rt, int it);
+int get_glocator_type_by_name(RunTime *rt, const char *name);
+char *sym_type_name(RunTime *rt, int it);
+int get_sym_type_by_name(RunTime *rt, const char *name);
+char *line_type_name(RunTime *rt, int it);
+int get_line_type_by_name(RunTime *rt, const char *name);
+char *setfill_type_name(RunTime *rt, int it);
+int get_setfill_type_by_name(RunTime *rt, const char *name);
+char *baseline_type_name(RunTime *rt, int it);
+int get_baseline_type_by_name(RunTime *rt, const char *name);
+char *framedecor_type_name(RunTime *rt, int it);
+int get_framedecor_type_by_name(RunTime *rt, const char *name);
 
 #endif /* __DICTS_H_ */

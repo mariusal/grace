@@ -1161,8 +1161,10 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrLocator" type="glocator">
         <!-- Attributes -->
-        <attribute name="#AStrType" type="ival">
-            $$->type = $?;
+        <attribute name="#AStrType" type="sval">
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->type = get_glocator_type_by_name(rt, $?);
+            xfree($?);
         </attribute>
         <!-- Child elements -->
         <child name="#EStrFixedpoint">
@@ -1636,8 +1638,10 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrTextFrame" type="textframe">
         <!-- Attributes -->
-        <attribute name="#AStrType" type="ival">
-            $$->decor = $?;
+        <attribute name="#AStrType" type="sval">
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->decor = get_framedecor_type_by_name(rt, $?);
+            xfree($?);
         </attribute>
         <attribute name="#AStrOffset" type="dval">
             $$->offset = $?;
@@ -1667,8 +1671,10 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrArrow" type="arrow">
         <!-- Attributes -->
-        <attribute name="#AStrType" type="ival">
-            $$->type = $?;
+        <attribute name="#AStrType" type="sval">
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->type = get_arrow_type_by_name(rt, $?);
+            xfree($?);
         </attribute>
         <attribute name="#AStrLength" type="dval">
             $$->length = $?;
@@ -1790,8 +1796,10 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrSymbol" type="symbol">
         <!-- Attributes -->
-        <attribute name="#AStrType" type="ival">
-            $$->type = $?;
+        <attribute name="#AStrType" type="sval">
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->type = get_sym_type_by_name(rt, $?);
+            xfree($?);
         </attribute>
         <attribute name="#AStrSize" type="dval">
             $$->size = $?;
@@ -1815,17 +1823,23 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrLine" type="setline">
         <!-- Attributes -->
-        <attribute name="#AStrType" type="ival">
-            $$->type = $?;
+        <attribute name="#AStrType" type="sval">
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->type = get_line_type_by_name(rt, $?);
+            xfree($?);
         </attribute>
-        <attribute name="#AStrFillType" type="ival">
-            $$->filltype = $?;
+        <attribute name="#AStrFillType" type="sval">
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->filltype = get_setfill_type_by_name(rt, $?);
+            xfree($?);
         </attribute>
         <attribute name="#AStrFillRule" type="fillrule">
             $$->fillrule = $?;
         </attribute>
-        <attribute name="#AStrBaselineType" type="ival">
-            $$->baseline_type = $?;
+        <attribute name="#AStrBaselineType" type="sval">
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->baseline_type = get_baseline_type_by_name(rt, $?);
+            xfree($?);
         </attribute>
         <attribute name="#AStrDrawBaseline" type="bval">
             $$->baseline = $?;
