@@ -1307,7 +1307,7 @@ char *utf2iso(const char *s)
         <child name="#EStrTicklabels">
             AMem *amem = quark_get_amem($$);
             tickmarks *t = axisgrid_get_data($$);
-            t->tl_formula   = $?->transform;
+            t->tl_formula   = amem_strdup(amem, $?->transform);
             t->tl_tprops    = $?->tprops;
             t->tl_skip      = $?->skip;
             t->tl_staggered = $?->stagger;
