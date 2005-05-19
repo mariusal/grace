@@ -256,6 +256,13 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
             drawsetbars(pset, plot_rt);
             drawsetavalues(pset, plot_rt);
             break;
+        case SET_BARDY:
+        case SET_BARDYDY:
+            drawsetline(pset, plot_rt);
+            drawsetbars(pset, plot_rt);
+            drawseterrbars(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
         case SET_XYDX:
         case SET_XYDY:
         case SET_XYDXDX:
