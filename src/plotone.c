@@ -455,6 +455,13 @@ void xyplot(int gno)
                     drawsetbars(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
+                case SET_BARDY:
+                case SET_BARDYDY:
+                    drawsetline(gno, i, &p, refn, refx, refy, offset);
+                    drawsetbars(gno, i, &p, refn, refx, refy, offset);
+                    drawseterrbars(gno, i, &p, refn, refx, refy, offset);
+                    drawsetavalues(gno, i, &p, refn, refx, refy, offset);
+                    break;
                 case SET_XYDX:
                 case SET_XYDY:
                 case SET_XYDXDX:

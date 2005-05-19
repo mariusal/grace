@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.18)</title>
+<title>Grace User's Guide (for Grace-5.1.19)</title>
 <author>by the Grace Team</author>
-<date>28.12.2004</date>
+<date>19.05.2005</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -400,8 +400,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             XYDXDY            |     +    |    -     |   +   |   -   |  -  @
             XYDXDXDYDY        |     +    |    -     |   +   |   -   |  -  @
             BAR               |     +    |    +     |   +   |   -   |  -  @
-            BARDY             |     -    |    +     |   -   |   -   |  -  @
-            BARDYDY           |     -    |    +     |   -   |   -   |  -  @
+            BARDY             |     +    |    +     |   -   |   -   |  -  @
+            BARDYDY           |     +    |    +     |   -   |   -   |  -  @
             XYHILO            |     +    |    -     |   -   |   -   |  -  @
             XYZ               |     +    |    -     |   +   |   +   |  -  @
             XYR               |     -    |    -     |   +   |   -   |  -  @
