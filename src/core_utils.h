@@ -103,9 +103,6 @@ int project_get_viewport(const Quark *project, double *vx, double *vy);
 void move_object(Quark *q, VVector shift);
 int object_place_at_vp(Quark *q, VPoint vp);
 
-char *scale_types(ScaleType it);
-ScaleType get_scale_type_by_name(const char *name);
-
 char *get_format_types(FormatType f);
 FormatType get_format_type_by_name(const char *name);
 

@@ -435,6 +435,7 @@ int save_graph_properties(XFile *xf, Quark *gr)
 {
     Attributes *attrs;
     graph *g;
+    RunTime *rt = rt_from_quark(gr);
     
     if (!gr) {
         return RETURN_FAILURE;
@@ -458,13 +459,13 @@ int save_graph_properties(XFile *xf, Quark *gr)
     attributes_reset(attrs);
     xmlio_set_world_value(gr, attrs, AStrMin, g->w.xg1);
     xmlio_set_world_value(gr, attrs, AStrMax, g->w.xg2);
-    attributes_set_sval(attrs, AStrType, scale_types(g->xscale));
+    attributes_set_sval(attrs, AStrType, scale_type_name(rt, g->xscale));
     attributes_set_bval(attrs, AStrInvert, g->xinvert);
     xfile_empty_element(xf, EStrXscale, attrs);
     attributes_reset(attrs);
     xmlio_set_world_value(gr, attrs, AStrMin, g->w.yg1);
     xmlio_set_world_value(gr, attrs, AStrMax, g->w.yg2);
-    attributes_set_sval(attrs, AStrType, scale_types(g->yscale));
+    attributes_set_sval(attrs, AStrType, scale_type_name(rt, g->yscale));
     attributes_set_bval(attrs, AStrInvert, g->yinvert);
     xfile_empty_element(xf, EStrYscale, attrs);
     attributes_reset(attrs);

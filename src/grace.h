@@ -199,6 +199,7 @@ typedef struct _RunTime {
     Dictionary *setfill_type_dict;
     Dictionary *baseline_type_dict;
     Dictionary *framedecor_type_dict;
+    Dictionary *scale_type_dict;
     
     /* color index for autocolorization of new sets */
     unsigned int setcolor;

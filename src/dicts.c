@@ -208,6 +208,17 @@ int grace_rt_init_dicts(RunTime *rt)
             {FRAME_DECOR_OVAL, VStrOval,      "Oval"}
         };
 
+    const DictEntry scale_type_defaults =
+        {SCALE_NORMAL, VStrNormal, "Normal"};
+    const DictEntry scale_type_entries[] = 
+        {
+            {SCALE_NORMAL, VStrNormal,      "Normal"     },
+            {SCALE_LOG,    VStrLogarithmic, "Logarithmic"},
+            {SCALE_REC,    VStrReciprocal,  "Reciprocal" },
+            {SCALE_LOGIT,  VStrLogit,       "Logit"      }
+        };
+
+
     if (!(rt->graph_type_dict =
         DICT_NEW_STATIC(graph_type_entries, &graph_type_defaults))) {
         return RETURN_FAILURE;
@@ -269,6 +280,10 @@ int grace_rt_init_dicts(RunTime *rt)
         DICT_NEW_STATIC(framedecor_type_entries, &framedecor_type_defaults))) {
         return RETURN_FAILURE;
     }
+    if (!(rt->scale_type_dict =
+        DICT_NEW_STATIC(scale_type_entries, &scale_type_defaults))) {
+        return RETURN_FAILURE;
+    }
 
     return RETURN_SUCCESS;
 }
@@ -290,6 +305,7 @@ void grace_rt_free_dicts(RunTime *rt)
     dict_free(rt->setfill_type_dict);
     dict_free(rt->baseline_type_dict);
     dict_free(rt->framedecor_type_dict);
+    dict_free(rt->scale_type_dict);
 }
 
 char *graph_types(RunTime *rt, GraphType it)
@@ -591,3 +607,20 @@ int get_framedecor_type_by_name(RunTime *rt, const char *name)
     return retval;
 }
 
+char *scale_type_name(RunTime *rt, ScaleType it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->scale_type_dict, it, &s);
+    
+    return s;
+}
+
+ScaleType get_scale_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->scale_type_dict, name, &retval);
+    
+    return retval;
+}

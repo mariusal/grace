@@ -1066,7 +1066,8 @@ char *utf2iso(const char *s)
             $$->max = $?;
         </attribute>
         <attribute name="#AStrType" type="sval">
-            $$->type = get_scale_type_by_name($?);
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->type = get_scale_type_by_name(rt, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrInvert" type="bval">
@@ -1082,7 +1083,8 @@ char *utf2iso(const char *s)
             $$->max = $?;
         </attribute>
         <attribute name="#AStrType" type="sval">
-            $$->type = get_scale_type_by_name($?);
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->type = get_scale_type_by_name(rt, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrInvert" type="bval">
