@@ -78,5 +78,7 @@ char *framedecor_type_name(RunTime *rt, int it);
 int get_framedecor_type_by_name(RunTime *rt, const char *name);
 char *scale_type_name(RunTime *rt, ScaleType it);
 ScaleType get_scale_type_by_name(RunTime *rt, const char *name);
+char *arrow_placement_name(RunTime *rt, int it);
+int get_arrow_placement_by_name(RunTime *rt, const char *name);
 
 #endif /* __DICTS_H_ */

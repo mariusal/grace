@@ -1590,8 +1590,10 @@ char *utf2iso(const char *s)
         <attribute name="#AStrY" type="dval">
             $$->vector.y = $?;
         </attribute>
-        <attribute name="#AStrArrowsAt" type="ival">
-            $$->arrow_end = $?;
+        <attribute name="#AStrArrowsAt" type="sval">
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->arrow_end = get_arrow_placement_by_name(rt, $?);
+            xfree($?);
         </attribute>
 
         <!-- Child elements -->
