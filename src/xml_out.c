@@ -861,21 +861,14 @@ static int project_save_hook(Quark *q,
         
         break;
     case QFlavorAxis:
-        if (!closure->post) {
-            attributes_set_sval(attrs, AStrId, QIDSTR(q));
-
-            xmlio_set_active(attrs, quark_is_active(q));
-            xmlio_set_axis_position(rt, attrs, axis_get_position(q));
-            attributes_set_dval(attrs, AStrOffset, axis_get_offset(q));
-            attributes_set_bval(attrs, AStrBar, axis_bar_enabled(q));
-            attributes_set_bval(attrs, AStrTicks, axis_ticks_enabled(q));
-            attributes_set_bval(attrs, AStrLabels, axis_labels_enabled(q));
-            xfile_begin_element(xf, EStrAxis, attrs);
-            
-            closure->post = TRUE;
-        } else {
-            xfile_end_element(xf, EStrAxis);
-        }
+        attributes_set_sval(attrs, AStrId, QIDSTR(q));
+        xmlio_set_active(attrs, quark_is_active(q));
+        xmlio_set_axis_position(rt, attrs, axis_get_position(q));
+        attributes_set_dval(attrs, AStrOffset, axis_get_offset(q));
+        attributes_set_bval(attrs, AStrBar, axis_bar_enabled(q));
+        attributes_set_bval(attrs, AStrTicks, axis_ticks_enabled(q));
+        attributes_set_bval(attrs, AStrLabels, axis_labels_enabled(q));
+        xfile_empty_element(xf, EStrAxis, attrs);
         
         break;
     case QFlavorDObject:
