@@ -76,17 +76,17 @@ void draw_object(Canvas *canvas, Quark *q)
             DrawLine(canvas, &anchor, &vp1);
 
             switch (l->arrow_end) {
-            case 0:
+            case ARROW_AT_NONE:
                 break;
-            case 1:
+            case ARROW_AT_BEGINNING:
                 draw_arrowhead(canvas, &vp1, &anchor, &l->arrow,
                     &o->line.pen, &o->fillpen);
                 break;
-            case 2:
+            case ARROW_AT_END:
                 draw_arrowhead(canvas, &anchor, &vp1, &l->arrow,
                     &o->line.pen, &o->fillpen);
                 break;
-            case 3:
+            case ARROW_AT_BOTH:
                 draw_arrowhead(canvas, &vp1, &anchor, &l->arrow,
                     &o->line.pen, &o->fillpen);
                 draw_arrowhead(canvas, &anchor, &vp1, &l->arrow,

@@ -121,6 +121,13 @@
 #define ARROW_TYPE_FILLED   1
 #define ARROW_TYPE_CIRCLE   2
 
+/* Arrow positions */
+#define ARROW_AT_NONE       0
+#define ARROW_AT_BEGINNING  1
+#define ARROW_AT_END        2
+#define ARROW_AT_BOTH       3
+
+/* Frame decors of AText */
 #define FRAME_DECOR_NONE    0
 #define FRAME_DECOR_LINE    1
 #define FRAME_DECOR_RECT    2
