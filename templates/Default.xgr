@@ -59,22 +59,22 @@
     <viewport xmin="0.15" xmax="1.25" ymin="0.15" ymax="0.85"/>
     <legend active="yes" length="0.04" vgap="0.01" hgap="0.01" single-symbol="no" invert="no">
       <face-spec font-id="0" color-id="1" char-size="1"/>
-      <legframe anchor="(1, 1)" justification="9" offset="(-0.05, -0.05)">
+      <legframe anchor="(1, 1)" offset="(-0.05, -0.05)" justification="9">
         <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         <fill-spec color-id="0" pattern-id="1"/>
       </legframe>
     </legend>
     <graph id="graph" active="yes">
       <presentation-spec type="xy" stacked="no" bargap="0"/>
-      <xscale min="0" max="1" type="Normal" invert="no"/>
-      <yscale min="0" max="1" type="Normal" invert="no"/>
+      <xscale min="0" max="1" type="normal" invert="no"/>
+      <yscale min="0" max="1" type="normal" invert="no"/>
       <zscale norm="1"/>
-      <locator type="1">
+      <locator type="xy">
         <fixedpoint active="no" x="0" y="0"/>
         <xformat format="general" prec="6"/>
         <yformat format="general" prec="6"/>
       </locator>
-      <agrid id="x_axisgrid" type="x" active="yes" major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
+      <agrid id="x_axisgrid" active="yes" type="x" major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
         <major-gridlines active="no">
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </major-gridlines>
@@ -104,19 +104,19 @@
               <face-spec font-id="0" color-id="1" char-size="1"/>
             </text-properties>
             <text><![CDATA[X label]]></text>
-            <text-frame type="0" offset="0.005">
+            <text-frame type="none" offset="0.005">
               <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
               <fill-spec color-id="0" pattern-id="0"/>
             </text-frame>
             <pointer active="no">
-              <arrow type="0" length="1" dl-ff="1" ll-ff="0"/>
+              <arrow type="line" length="1" dl-ff="1" ll-ff="0"/>
             </pointer>
           </atext>
         </axis>
         <axis id="opposite" active="yes" position="opposite" offset="0" bar="yes" ticks="yes" labels="no">
         </axis>
       </agrid>
-      <agrid id="y_axisgrid" type="y" active="yes" major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
+      <agrid id="y_axisgrid" active="yes" type="y" major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
         <major-gridlines active="no">
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </major-gridlines>
@@ -146,12 +146,12 @@
               <face-spec font-id="0" color-id="1" char-size="1"/>
             </text-properties>
             <text><![CDATA[Y label]]></text>
-            <text-frame type="0" offset="0.005">
+            <text-frame type="none" offset="0.005">
               <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
               <fill-spec color-id="0" pattern-id="0"/>
             </text-frame>
             <pointer active="no">
-              <arrow type="0" length="1" dl-ff="1" ll-ff="0"/>
+              <arrow type="line" length="1" dl-ff="1" ll-ff="0"/>
             </pointer>
           </atext>
         </axis>
@@ -165,12 +165,12 @@
         <face-spec font-id="0" color-id="1" char-size="1.5"/>
       </text-properties>
       <text><![CDATA[Title]]></text>
-      <text-frame type="0" offset="0.005">
+      <text-frame type="none" offset="0.005">
         <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         <fill-spec color-id="0" pattern-id="0"/>
       </text-frame>
       <pointer active="no">
-        <arrow type="0" length="1" dl-ff="1" ll-ff="0"/>
+        <arrow type="line" length="1" dl-ff="1" ll-ff="0"/>
       </pointer>
     </atext>
     <atext id="subtitle" active="no" offset="(0, 0.02)">
@@ -179,12 +179,12 @@
         <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <text><![CDATA[Subtitle]]></text>
-      <text-frame type="0" offset="0.005">
+      <text-frame type="none" offset="0.005">
         <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         <fill-spec color-id="0" pattern-id="0"/>
       </text-frame>
       <pointer active="no">
-        <arrow type="0" length="1" dl-ff="1" ll-ff="0"/>
+        <arrow type="line" length="1" dl-ff="1" ll-ff="0"/>
       </pointer>
     </atext>
   </frame>
@@ -194,12 +194,12 @@
       <face-spec font-id="0" color-id="1" char-size="1"/>
     </text-properties>
     <text><![CDATA[\${timestamp}]]></text>
-    <text-frame type="0" offset="0">
+    <text-frame type="none" offset="0">
       <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
       <fill-spec color-id="0" pattern-id="0"/>
     </text-frame>
     <pointer active="no">
-      <arrow type="0" length="0" dl-ff="0" ll-ff="0"/>
+      <arrow type="line" length="0" dl-ff="0" ll-ff="0"/>
     </pointer>
   </atext>
 </grace>
