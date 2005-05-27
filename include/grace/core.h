@@ -711,7 +711,8 @@ typedef struct _DOArcData {
     double angle1;
     double angle2;
     
-    int fillmode;
+    int closure_type;
+    int draw_closure;
 } DOArcData;
 
 typedef struct _AText {

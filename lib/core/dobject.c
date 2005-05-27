@@ -191,7 +191,7 @@ void *object_odata_new(AMem *amem, OType type)
             e->height = 0.0;
             e->angle1 =   0.0;
             e->angle2 = 360.0;
-            e->fillmode = ARCFILL_CHORD;
+            e->closure_type = ARCCLOSURE_CHORD;
         }
         break;
     case DO_NONE:
