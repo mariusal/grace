@@ -137,7 +137,7 @@ static void drawgrid(Canvas *canvas, Quark *q)
                     phi_stop += 2*M_PI;
                 } 
                 DrawArc(canvas, &vp1, &vp2, 180.0/M_PI*phi_start,
-                                  180.0/M_PI*(phi_stop - phi_start));
+                    180.0/M_PI*(phi_stop - phi_start), ARCCLOSURE_CHORD, FALSE);
             } else {
 		DrawLine(canvas, &vp_grid_start, &vp_grid_stop);
             }
@@ -349,7 +349,7 @@ void draw_axis(Canvas *canvas, Quark *qa)
                 phi_stop += 2*M_PI;
             } 
             DrawArc(canvas, &vp1, &vp2, 180.0/M_PI*phi_start,
-                              180.0/M_PI*(phi_stop - phi_start));
+                180.0/M_PI*(phi_stop - phi_start), ARCCLOSURE_CHORD, FALSE);
         } else {
 	    DrawLine(canvas, &vp1_start, &vp1_stop);
         }
