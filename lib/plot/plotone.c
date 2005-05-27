@@ -1632,7 +1632,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
     view v;
     world w;
     int sgn;
-    VPoint vpc, vp1, vp2, vps[3], vpa;
+    VPoint vpc, vp1, vp2, vpa;
     VVector offset;
     double r, start_angle, stop_angle;
     double e_max, norm;
@@ -1699,12 +1699,6 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
         stop_angle = start_angle + sgn*2*M_PI*x[i]/norm;
         offset.x = e[i]*r*cos((start_angle + stop_angle)/2.0);
         offset.y = e[i]*r*sin((start_angle + stop_angle)/2.0);
-        vps[0].x = vpc.x + r*cos(start_angle) + offset.x;
-        vps[0].y = vpc.y + r*sin(start_angle) + offset.y;
-        vps[1].x = vpc.x + offset.x;
-        vps[1].y = vpc.y + offset.y;
-        vps[2].x = vpc.x + r*cos(stop_angle) + offset.x;
-        vps[2].y = vpc.y + r*sin(stop_angle) + offset.y;
         vp1.x = vpc.x - r + offset.x;
         vp1.y = vpc.y - r + offset.y;
         vp2.x = vpc.x + r + offset.x;
@@ -1724,13 +1718,12 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
         DrawFilledArc(canvas, &vp1, &vp2,
             180.0/M_PI*start_angle,
             180.0/M_PI*(stop_angle - start_angle),
-            ARCFILL_PIESLICE);
+            ARCCLOSURE_PIESLICE);
 
         setline(canvas, &p->sym.line);
-        DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
         DrawArc(canvas, &vp1, &vp2,
             180.0/M_PI*start_angle,
-            180.0/M_PI*(stop_angle - start_angle));
+            180.0/M_PI*(stop_angle - start_angle), ARCCLOSURE_PIESLICE, TRUE);
 
         avalue = p->avalue;
 
