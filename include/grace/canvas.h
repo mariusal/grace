@@ -43,8 +43,8 @@
 #define FILLRULE_EVENODD    1
 
 /* arc fill modes */
-#define ARCFILL_CHORD       0
-#define ARCFILL_PIESLICE    1
+#define ARCCLOSURE_CHORD    0
+#define ARCCLOSURE_PIESLICE 1
 
 /* pixmap transparency types */
 #define PIXMAP_TRANSPARENT  0
@@ -459,7 +459,7 @@ void DrawPixel(Canvas *canvas, const VPoint *vp);
 void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode);
 void DrawPolygon(Canvas *canvas, const VPoint *vps, int n);
 void DrawArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
-    double angle1, double angle2);
+    double angle1, double angle2, int closure_type, int draw_closure);
 void DrawFilledArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
     double angle1, double angle2, int mode);
 void WriteString(Canvas *canvas,

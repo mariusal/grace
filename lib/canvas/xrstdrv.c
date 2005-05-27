@@ -476,7 +476,7 @@ void xrst_fillarc(const Canvas *canvas, void *data,
         
         if (ddata->arcfillmode != mode) {
             ddata->arcfillmode = mode;
-            if (mode == ARCFILL_CHORD) {
+            if (mode == ARCCLOSURE_CHORD) {
                 miSetGCAttrib(ddata->gc, MI_GC_ARC_MODE, MI_ARC_CHORD);
             } else {
                 miSetGCAttrib(ddata->gc, MI_GC_ARC_MODE, MI_ARC_PIE_SLICE);
