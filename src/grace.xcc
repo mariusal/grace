@@ -1578,8 +1578,13 @@ char *utf2iso(const char *s)
         <attribute name="#AStrExtentAngle" type="dval">
             $$->angle2 = $?;
         </attribute>
-        <attribute name="#AStrFillMode" type="ival">
-            $$->fillmode = $?;
+        <attribute name="#AStrClosureType" type="sval">
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->closure_type = get_arcclosure_type_by_name(rt, $?);
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrDrawClosure" type="bval">
+            $$->draw_closure = $?;
         </attribute>
     </element>
     <element name="#EStrLineData" type="do_line_data">

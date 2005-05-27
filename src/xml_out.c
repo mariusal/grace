@@ -917,7 +917,9 @@ static int project_save_hook(Quark *q,
                     attributes_set_dval(attrs, AStrHeight, a->height);
                     attributes_set_dval(attrs, AStrStartAngle, a->angle1);
                     attributes_set_dval(attrs, AStrExtentAngle, a->angle2);
-                    attributes_set_ival(attrs, AStrFillMode, a->fillmode); /* FIXME: textual */
+                    attributes_set_sval(attrs, AStrClosureType,
+                        arcclosure_type_name(rt, a->closure_type));
+                    attributes_set_bval(attrs, AStrDrawClosure, a->draw_closure);
                 }
                 break;
             case DO_NONE:

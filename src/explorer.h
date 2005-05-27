@@ -323,7 +323,8 @@ typedef struct {
     Widget          angle1;
     Widget          angle2;
     
-    OptionStructure *fillmode;
+    OptionStructure *closure_type;
+    Widget          draw_closure;
 } ArcUI;
 
 typedef struct {

@@ -238,7 +238,8 @@ static void update_arc_ui(ArcUI *ui, DOArcData *odata)
     SetAngleChoice(ui->angle1, (int) rint(odata->angle1));
     SetAngleChoice(ui->angle2, (int) rint(odata->angle2));
     
-    SetOptionChoice(ui->fillmode, odata->fillmode);
+    SetOptionChoice(ui->closure_type, odata->closure_type);
+    SetToggleButtonState(ui->draw_closure, odata->draw_closure);
 }
 
 static void set_arc_odata(ArcUI *ui, DOArcData *odata, void *caller)
@@ -256,8 +257,11 @@ static void set_arc_odata(ArcUI *ui, DOArcData *odata, void *caller)
         if (!caller || caller == ui->angle2) {
             odata->angle2 = GetAngleChoice(ui->angle2);
         }
-        if (!caller || caller == ui->fillmode) {
-            odata->fillmode = GetOptionChoice(ui->fillmode);
+        if (!caller || caller == ui->closure_type) {
+            odata->closure_type = GetOptionChoice(ui->closure_type);
+        }
+        if (!caller || caller == ui->draw_closure) {
+            odata->draw_closure = GetToggleButtonState(ui->draw_closure);
         }
     }
 }
@@ -265,10 +269,10 @@ static void set_arc_odata(ArcUI *ui, DOArcData *odata, void *caller)
 static ArcUI *create_arc_ui(Widget parent, ExplorerUI *eui)
 {
     ArcUI *ui;
-    Widget rc;
+    Widget rc, rc1;
     OptionItem opitems[] = {
-        {ARCFILL_CHORD,  "Cord"       },
-        {ARCFILL_PIESLICE, "Pie slice"}
+        {ARCCLOSURE_CHORD,    "Chord"    },
+        {ARCCLOSURE_PIESLICE, "Pie slice"}
     };
     
     ui = xmalloc(sizeof(ArcUI));
@@ -288,8 +292,11 @@ static ArcUI *create_arc_ui(Widget parent, ExplorerUI *eui)
     ui->angle2 = CreateAngleChoice(rc, "Extent angle");
     AddScaleCB(ui->angle2, scale_explorer_cb, eui);
     
-    ui->fillmode = CreateOptionChoice(rc, "Fill mode:", 1, 2, opitems);
-    AddOptionChoiceCB(ui->fillmode, oc_explorer_cb, eui);
+    rc1 = CreateHContainer(rc);
+    ui->closure_type = CreateOptionChoice(rc1, "Closure type:", 1, 2, opitems);
+    AddOptionChoiceCB(ui->closure_type, oc_explorer_cb, eui);
+    ui->draw_closure = CreateToggleButton(rc1, "Draw closure");
+    AddToggleButtonCB(ui->draw_closure, tb_explorer_cb, eui);
     
     return ui;
 }

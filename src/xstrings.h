@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000-2004 Grace Development Team
+ * Copyright (c) 2000-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -116,11 +116,13 @@
 #define AStrChar                "char"
 #define AStrCharSize            "char-size"
 #define AStrClipLength          "clip-length"
+#define AStrClosureType         "closure-type"
 #define AStrColorId             "color-id"
 #define AStrColumn              "column"
 #define AStrComment             "comment"
 #define AStrDataRef             "data-ref"
 #define AStrDlFf                "dl-ff"
+#define AStrDrawClosure         "draw-closure"
 #define AStrLlFf                "ll-ff"
 #define AStrDrawArrow           "draw-arrow"
 #define AStrDrawBaseline        "draw-baseline"
@@ -128,7 +130,6 @@
 #define AStrExtentAngle         "extent-angle"
 #define AStrFallback            "fallback"
 #define AStrFill                "fill"
-#define AStrFillMode            "fill-mode"
 #define AStrFillRule            "fill-rule"
 #define AStrFillType            "fill-type"
 #define AStrFontId              "font-id"
@@ -201,6 +202,7 @@
 #define VStrBoth                "both"
 #define VStrBox                 "box"
 #define VStrChar                "char"
+#define VStrChord               "chord"
 #define VStrCircle              "circle"
 #define VStrDiamond             "diamond"
 #define VStrEnd                 "end"
@@ -223,6 +225,7 @@
 #define VStrOval                "oval"
 #define VStrParallel            "parallel"
 #define VStrPerpendicular       "perpendicular"
+#define VStrPieSlice            "pie-slice"
 #define VStrPlus                "plus"
 #define VStrPolar               "polar"
 #define VStrPolygon             "polygon"

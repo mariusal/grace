@@ -228,6 +228,15 @@ int grace_rt_init_dicts(RunTime *rt)
             {ARROW_AT_BOTH,      VStrBoth,      "Both"     }
         };
 
+    const DictEntry arcclosure_type_defaults =
+        {ARCCLOSURE_CHORD, VStrChord, "Chord"};
+    const DictEntry arcclosure_type_entries[] = 
+        {
+            {ARCCLOSURE_CHORD,    VStrChord,    "Chord"    },
+            {ARCCLOSURE_PIESLICE, VStrPieSlice, "Pie slice"}
+        };
+
+
     if (!(rt->graph_type_dict =
         DICT_NEW_STATIC(graph_type_entries, &graph_type_defaults))) {
         return RETURN_FAILURE;
@@ -297,6 +306,10 @@ int grace_rt_init_dicts(RunTime *rt)
         DICT_NEW_STATIC(arrow_placement_entries, &arrow_placement_defaults))) {
         return RETURN_FAILURE;
     }
+    if (!(rt->arcclosure_type_dict =
+        DICT_NEW_STATIC(arcclosure_type_entries, &arcclosure_type_defaults))) {
+        return RETURN_FAILURE;
+    }
 
     return RETURN_SUCCESS;
 }
@@ -320,6 +333,7 @@ void grace_rt_free_dicts(RunTime *rt)
     dict_free(rt->framedecor_type_dict);
     dict_free(rt->scale_type_dict);
     dict_free(rt->arrow_placement_dict);
+    dict_free(rt->arcclosure_type_dict);
 }
 
 char *graph_types(RunTime *rt, GraphType it)
@@ -657,3 +671,20 @@ int get_arrow_placement_by_name(RunTime *rt, const char *name)
     return retval;
 }
 
+char *arcclosure_type_name(RunTime *rt, int it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->arcclosure_type_dict, it, &s);
+    
+    return s;
+}
+
+int get_arcclosure_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->arcclosure_type_dict, name, &retval);
+    
+    return retval;
+}
