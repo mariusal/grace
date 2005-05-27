@@ -1992,7 +1992,7 @@ parmset:
                 a->height = fabs($8 - $4);
                 a->angle1 =   0.0;
                 a->angle2 = 360.0;
-                a->fillmode = ARCFILL_CHORD;
+                a->closure_type = ARCCLOSURE_CHORD;
                 curobject->ap.x = ($6 + $2)/2;
                 curobject->ap.y = ($8 + $4)/2;
             }

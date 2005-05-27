@@ -681,7 +681,7 @@ void svg_fillarc(const Canvas *canvas, void *data,
         end.x   = center.x + rx*cos((M_PI/180.0)*a2);
         end.y   = center.y + ry*sin((M_PI/180.0)*a2);
 
-        if (mode == ARCFILL_CHORD) {
+        if (mode == ARCCLOSURE_CHORD) {
             fprintf(prstream,
                 "   <path d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4fz\"/>\n",
                 scaleval(data, start.x), scaleval(data, start.y),

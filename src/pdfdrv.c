@@ -592,7 +592,7 @@ void pdf_arc_path(const VPoint *vp1, const VPoint *vp2,
                                             (float) a1, (float) (a1 + a2));
     }
 
-    if (mode == ARCFILL_PIESLICE) {
+    if (mode == ARCCLOSURE_PIESLICE) {
         PDF_lineto(pdfdata->phandle, (float) vpc.x, (float) rx/ry*vpc.y);
     }
 }
@@ -608,7 +608,7 @@ void pdf_drawarc(const Canvas *canvas, void *data,
     
     pdf_setdrawbrush(canvas, pdfdata);
     PDF_save(pdfdata->phandle);
-    pdf_arc_path(vp1, vp2, a1, a2, ARCFILL_CHORD, pdfdata);
+    pdf_arc_path(vp1, vp2, a1, a2, ARCCLOSURE_CHORD, pdfdata);
     PDF_stroke(pdfdata->phandle);
     PDF_restore(pdfdata->phandle);
 }

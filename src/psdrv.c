@@ -953,7 +953,7 @@ void ps_fillarc(const Canvas *canvas, void *data,
     
     fprintf(prstream, "n\n");
     
-    if (mode == ARCFILL_PIESLICE) {
+    if (mode == ARCCLOSURE_PIESLICE) {
         fprintf(prstream, "%.4f %.4f m\n", vpc.x, vpc.y);
     }
     fprintf(prstream, "%.4f %.4f %.4f %.4f %.4f %.4f EARC c\n",

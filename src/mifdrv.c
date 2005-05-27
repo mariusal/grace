@@ -534,7 +534,7 @@ void mif_fillarc(const Canvas *canvas, void *data,
     a2 += a1;
     mif_arc(canvas, side, FALSE, TRUE, vp1, vp2, a1, a2);
 
-    if (mode == ARCFILL_CHORD) {
+    if (mode == ARCCLOSURE_CHORD) {
 
         /* compute the associated triangle */
         rx      = fabs(vp2->x - vp1->x)/2;

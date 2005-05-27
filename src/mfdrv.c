@@ -206,7 +206,7 @@ void mf_fillarc(const Canvas *canvas, void *data,
     mf_setpen(canvas);
     
     /* FIXME - mode */
-    if (mode == ARCFILL_CHORD) {
+    if (mode == ARCCLOSURE_CHORD) {
         name = "FillChord";
     } else {
         name = "FillPieSlice";
