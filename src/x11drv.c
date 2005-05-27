@@ -377,8 +377,10 @@ static void x11_drawarc(const Canvas *canvas, void *data,
     x11_setdrawbrush(canvas, x11data);
     
     if (x1 != x2 || y1 != y2) {
+        int a1_64 = (int) rint(64*a1), a2_64 = (int) rint(64*a2);
+        a1_64 %= 360*64;
         XDrawArc(DisplayOfScreen(x11data->screen), x11data->pixmap, DefaultGCOfScreen(x11data->screen), MIN2(x1, x2), MIN2(y1, y2),
-              abs(x2 - x1), abs(y2 - y1), (int) rint(64*a1), (int) rint(64*a2));
+              abs(x2 - x1), abs(y2 - y1), a1_64, a2_64);
     } else { /* zero radius */
         XDrawPoint(DisplayOfScreen(x11data->screen), x11data->pixmap, DefaultGCOfScreen(x11data->screen), x1, y1);
     }
@@ -403,16 +405,18 @@ static void x11_fillarc(const Canvas *canvas, void *data,
     
     x11_setpen(canvas, x11data);
     if (x1 != x2 || y1 != y2) {
+        int a1_64 = (int) rint(64*a1), a2_64 = (int) rint(64*a2);
+        a1_64 %= 360*64;
         if (x11data->arcfillmode != mode) {
             x11data->arcfillmode = mode;
-            if (mode == ARCFILL_CHORD) {
+            if (mode == ARCCLOSURE_CHORD) {
                 XSetArcMode(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), ArcChord);
             } else {
                 XSetArcMode(DisplayOfScreen(x11data->screen), DefaultGCOfScreen(x11data->screen), ArcPieSlice);
             }
         }
         XFillArc(DisplayOfScreen(x11data->screen), x11data->pixmap, DefaultGCOfScreen(x11data->screen), MIN2(x1, x2), MIN2(y1, y2),
-           abs(x2 - x1), abs(y2 - y1), (int) rint(64*a1), (int) rint(64*a2));
+           abs(x2 - x1), abs(y2 - y1), a1_64, a2_64);
     } else { /* zero radius */
         XDrawPoint(DisplayOfScreen(x11data->screen), x11data->pixmap, DefaultGCOfScreen(x11data->screen), x1, y1);
     }
