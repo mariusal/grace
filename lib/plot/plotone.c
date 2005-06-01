@@ -1108,18 +1108,18 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         case AVALUE_TYPE_NONE:
             break;
         case AVALUE_TYPE_X:
-            buf = create_fstring(pr, avalue.format, avalue.prec, wp.x, 
+            buf = create_fstring(pr, &avalue.format, wp.x, 
                                                  LFORMAT_TYPE_EXTENDED);
             break;
         case AVALUE_TYPE_Y:
-            buf = create_fstring(pr, avalue.format, avalue.prec, wp.y,
+            buf = create_fstring(pr, &avalue.format, wp.y,
                                                  LFORMAT_TYPE_EXTENDED);
             break;
         case AVALUE_TYPE_XY:
-            strcat(buf1, create_fstring(pr, avalue.format, avalue.prec, wp.x,
+            strcat(buf1, create_fstring(pr, &avalue.format, wp.x,
                                                  LFORMAT_TYPE_EXTENDED));
             strcat(buf1, ", ");
-            strcat(buf1, create_fstring(pr, avalue.format, avalue.prec, wp.y,
+            strcat(buf1, create_fstring(pr, &avalue.format, wp.y,
                                                  LFORMAT_TYPE_EXTENDED));
             buf = buf1;
             break;
@@ -1130,7 +1130,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
             break;
         case AVALUE_TYPE_Z:
             if (z != NULL) {
-                buf = create_fstring(pr, avalue.format, avalue.prec, z[i], 
+                buf = create_fstring(pr, &avalue.format, z[i], 
                                                  LFORMAT_TYPE_EXTENDED);
             }
             break;
@@ -1739,7 +1739,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
             buf = NULL;
             switch (avalue.type) {
             case AVALUE_TYPE_X:
-                buf = create_fstring(pr, avalue.format, avalue.prec, x[i], 
+                buf = create_fstring(pr, &avalue.format, x[i], 
                                                      LFORMAT_TYPE_EXTENDED);
                 break;
             case AVALUE_TYPE_STRING:

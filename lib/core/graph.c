@@ -62,10 +62,10 @@ static void set_default_graph(graph *g)
     g->locator.type = GLOCATOR_TYPE_XY;
     g->locator.origin.x = g->locator.origin.y = 0.0;
     g->locator.pointset = FALSE;
-    g->locator.fx = FORMAT_GENERAL;
-    g->locator.fy = FORMAT_GENERAL;
-    g->locator.px = 6;
-    g->locator.py = 6;
+    g->locator.fx.type = FORMAT_GENERAL;
+    g->locator.fy.type = FORMAT_GENERAL;
+    g->locator.fx.prec = 6;
+    g->locator.fy.prec = 6;
 
     memcpy(&g->w, &d_w, sizeof(world));
 }

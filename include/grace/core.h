@@ -291,13 +291,18 @@ typedef struct {
 #define GLOCATOR_TYPE_XY    1
 #define GLOCATOR_TYPE_POLAR 2
 
+/* Format */
+typedef struct {
+    int type;
+    int prec;
+} Format;
+
 /* Locator props */
 typedef struct {
     int type;                   /* type of locator display */
     int pointset;               /* if fixed point has been set */
     WPoint origin;              /* locator fixed point */
-    int fx, fy;                 /* locator format type */
-    int px, py;                 /* locator precision */
+    Format fx, fy;              /* locator x/y formats */
 } GLocator;
 
 /* Legend box */
@@ -494,8 +499,7 @@ typedef struct {
 
     TextProps tl_tprops;        /* tick label text properties */
 
-    int tl_format;              /* tickmark label format */
-    int tl_prec;                /* places to right of decimal point */
+    Format tl_format;           /* tick label format */
 
     char *tl_appstr;            /* append string to tick label */
     char *tl_prestr;            /* prepend string to tick label */
@@ -628,8 +632,7 @@ typedef struct {
     VVector   offset;           /* offset */
     
     int type;                   /* type */
-    int format;                 /* format */
-    int prec;                   /* precision */
+    Format format;              /* format */
 
     char *prestr;               /* prepend string */
     char *appstr;               /* append string */

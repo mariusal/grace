@@ -2388,13 +2388,13 @@ parmset:
         }
 	| selectgraph FIXEDPOINT FORMAT formatchoice formatchoice {
             GLocator *gloc = graph_get_locator($1);
-	    gloc->fx = $4;
-	    gloc->fy = $5;
+	    gloc->fx.type = $4;
+	    gloc->fy.type = $5;
 	}
 	| selectgraph FIXEDPOINT PREC expr ',' expr {
             GLocator *gloc = graph_get_locator($1);
-	    gloc->px = $4;
-	    gloc->py = $6;
+	    gloc->fx.prec = $4;
+	    gloc->fy.prec = $6;
 	}
 	| selectgraph FIXEDPOINT XY expr ',' expr {
             GLocator *gloc = graph_get_locator($1);
@@ -2641,12 +2641,12 @@ setprop:
 	| selectset AVALUE FORMAT formatchoice
         {
 	    set *p = set_get_data($1);
-	    p->avalue.format = $4;
+	    p->avalue.format.type = $4;
 	}
 	| selectset AVALUE PREC nexpr
         {
 	    set *p = set_get_data($1);
-	    p->avalue.prec = $4;
+	    p->avalue.format.prec = $4;
 	}
 	| selectset AVALUE OFFSET expr ',' expr {
 	    set *p = set_get_data($1);
@@ -2843,14 +2843,11 @@ ticklabelattr:
             axis_enable_labels(normaxis, $1);
             axis_enable_labels(oppaxis,  $1);
 	}
-	| PREC nexpr {
-	    curtm->tl_prec = $2;
-	}
 	| FORMAT formatchoice {
-	    curtm->tl_format = $2;
+	    curtm->tl_format.type = $2;
 	}
-	| FORMAT expr {
-	    curtm->tl_format = $2;
+	| PREC nexpr {
+	    curtm->tl_format.prec = $2;
 	}
 	| APPEND CHRSTR {
 	    AMem *amem = quark_get_amem(whichaxisgrid);
@@ -3825,6 +3822,9 @@ ticklabelattr_obs:
 	    if (curtm->t_spec == TICKS_SPEC_BOTH) {
                 curtm->t_spec = TICKS_SPEC_MARKS;
             }
+	}
+	| FORMAT expr {
+	    curtm->tl_format.type = $2;
 	}
 	| TYPE SPEC {
 	    curtm->t_spec = TICKS_SPEC_BOTH;

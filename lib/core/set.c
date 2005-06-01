@@ -169,8 +169,8 @@ static void set_default_set(Quark *pset)
     } else {
         p->avalue.tprops.just = JUST_CENTER|JUST_BOTTOM;
     }
-    p->avalue.format = FORMAT_GENERAL;            /* format */
-    p->avalue.prec = 3;                           /* precision */
+    p->avalue.format.type = FORMAT_GENERAL;       /* format type */
+    p->avalue.format.prec = 3;                    /* precision */
     p->avalue.prestr = NULL;
     p->avalue.appstr = NULL;
 

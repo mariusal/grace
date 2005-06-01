@@ -35,7 +35,7 @@
 
 int drawgraph(Canvas *canvas, const Quark *project);
 
-char *create_fstring(const Quark *q, int form, int prec, double loc, int type);
+char *create_fstring(const Quark *q, const Format *form, double loc, int type);
 
 void jdate_to_datetime(const Quark *q, double jday, int rounding,
                          int *y, int *m, int *d,

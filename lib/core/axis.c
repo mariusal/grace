@@ -55,8 +55,8 @@ static void set_default_ticks(Quark *q)
     t->tmajor = 0.5;
     t->nminor = 1;
     t->t_round = TRUE;
-    t->tl_format = FORMAT_GENERAL;
-    t->tl_prec = 5;
+    t->tl_format.type = FORMAT_GENERAL;
+    t->tl_format.prec = 5;
     t->tl_formula = NULL;
 
     set_default_textprops(&t->tl_tprops, &grdefaults);

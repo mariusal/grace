@@ -953,10 +953,10 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
             return;
         }
         s = create_fstring(get_parent_project(cg),
-            locator->fx, locator->px, xtmp, LFORMAT_TYPE_PLAIN);
+            &locator->fx, xtmp, LFORMAT_TYPE_PLAIN);
         strcpy(bufx, s);
         s = create_fstring(get_parent_project(cg),
-            locator->fy, locator->py, ytmp, LFORMAT_TYPE_PLAIN);
+            &locator->fy, ytmp, LFORMAT_TYPE_PLAIN);
         strcpy(bufy, s);
 
         sprintf(buf, "%s: %s%s, %s%s = (%s, %s)", QIDSTR(cg),

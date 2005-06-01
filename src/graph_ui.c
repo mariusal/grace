@@ -202,10 +202,10 @@ void update_graph_ui(GraphUI *ui, Quark *q)
 
 	SetToggleButtonState(ui->fixedp, locator->pointset);
 	SetOptionChoice(ui->loc_type, locator->type);
-	SetOptionChoice(ui->loc_formatx, locator->fx);
-	SetOptionChoice(ui->loc_formaty, locator->fy);
-	SetOptionChoice(ui->loc_precx, locator->px);
-	SetOptionChoice(ui->loc_precy, locator->py);
+	SetOptionChoice(ui->loc_formatx, locator->fx.type);
+	SetOptionChoice(ui->loc_formaty, locator->fy.type);
+	SetOptionChoice(ui->loc_precx, locator->fx.prec);
+	SetOptionChoice(ui->loc_precy, locator->fy.prec);
 	sprintf(buf, "%g", locator->origin.x);
 	xv_setstr(ui->locx, buf);
 	sprintf(buf, "%g", locator->origin.y);
@@ -296,16 +296,16 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
             locator->type = GetOptionChoice(ui->loc_type);
         }
         if (!caller || caller == ui->loc_formatx) {
-            locator->fx = GetOptionChoice(ui->loc_formatx);
+            locator->fx.type = GetOptionChoice(ui->loc_formatx);
         }
         if (!caller || caller == ui->loc_formaty) {
-            locator->fy = GetOptionChoice(ui->loc_formaty);
+            locator->fy.type = GetOptionChoice(ui->loc_formaty);
         }
         if (!caller || caller == ui->loc_precx) {
-            locator->px = GetOptionChoice(ui->loc_precx);
+            locator->fx.prec = GetOptionChoice(ui->loc_precx);
         }
         if (!caller || caller == ui->loc_precy) {
-            locator->py = GetOptionChoice(ui->loc_precy);
+            locator->fy.prec = GetOptionChoice(ui->loc_precy);
         }
         if (!caller || caller == ui->fixedp) {
             locator->pointset = GetToggleButtonState(ui->fixedp);

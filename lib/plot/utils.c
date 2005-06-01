@@ -90,7 +90,7 @@ static int dayofweek(double j)
 
 
 /* create format string */
-char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
+char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 {
     char format[64], eng_prefix[6];
     static char s[MAX_STRING_LENGTH];
@@ -112,24 +112,24 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
     set_locale_num(TRUE);
 
     strcpy(format, "%.*lf");
-    switch (form) {
+    switch (form->type) {
     case FORMAT_DECIMAL:
-	sprintf(s, format, prec, loc);
+	sprintf(s, format, form->prec, loc);
 	tmp = atof(s);		/* fix reverse axes problem when loc == -0.0 */
 	if (tmp == 0.0) {
 	    strcpy(format, "%.*lf");
 	    loc = 0.0;
-	    sprintf(s, format, prec, loc);
+	    sprintf(s, format, form->prec, loc);
 	}
 	break;
     case FORMAT_EXPONENTIAL:
 	strcpy(format, "%.*le");
-	sprintf(s, format, prec, loc);
+	sprintf(s, format, form->prec, loc);
 	tmp = atof(s);		/* fix reverse axes problem when loc == -0.0 */
 	if (tmp == 0.0) {
 	    strcpy(format, "%.*le");
 	    loc = 0.0;
-	    sprintf(s, format, prec, loc);
+	    sprintf(s, format, form->prec, loc);
 	}
 	break;
     case FORMAT_SCIENTIFIC:
@@ -141,10 +141,10 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
 	    } else {
 	        strcpy(format, "%.*fx10(%d)");
             }
-	    sprintf(s, format, prec, mantissa, exponent);
+	    sprintf(s, format, form->prec, mantissa, exponent);
         } else {
 	    strcpy(format, "%.*f");
-	    sprintf(s, format, prec, 0.0);
+	    sprintf(s, format, form->prec, 0.0);
         }
 	break;
     case FORMAT_ENGINEERING:
@@ -206,7 +206,7 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
             break;
         }
 	strcpy(format, "%.*f %s");
-	sprintf(s, format, prec, loc/(pow(10.0, exponent)), eng_prefix);
+	sprintf(s, format, form->prec, loc/(pow(10.0, exponent)), eng_prefix);
 	break;
     case FORMAT_POWER:
         if (loc < 0.0) {
@@ -217,7 +217,7 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
                 strcpy(format, "-10(%.*lf)\\N");
             }
         } else if (loc == 0.0) {
-            sprintf(format, "%.*f", prec, 0.0);
+            sprintf(format, "%.*f", form->prec, 0.0);
         } else {
             loc = log10(loc);
             if (type == LFORMAT_TYPE_EXTENDED) {
@@ -226,11 +226,11 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
                 strcpy(format, "10(%.*lf)\\N");
             }
         }
-        sprintf(s, format, prec, loc);
+        sprintf(s, format, form->prec, loc);
         break;
     case FORMAT_GENERAL:
 	strcpy(format, "%.*lg");
-	sprintf(s, format, prec, loc);
+	sprintf(s, format, form->prec, loc);
 	tmp = atof(s);
 	if (tmp == 0.0) {
 	    strcpy(format, "%lg");
@@ -351,7 +351,7 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
 	} else {
 	    strcpy(format, "0");
 	}
-	sprintf(s, format, prec, loc);
+	sprintf(s, format, form->prec, loc);
 	break;
     case FORMAT_DEGREESMMLON:
 	if (loc < 0.0) {
@@ -364,7 +364,7 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
 	}
 	y = loc;
 	arcmin = (loc - y) * 60.0;
-	sprintf(s, format, y, prec, arcmin);
+	sprintf(s, format, y, form->prec, arcmin);
 	break;
     case FORMAT_DEGREESMMSSLON:
 	if (loc < 0.0) {
@@ -379,7 +379,7 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
 	arcsec = (loc - y) * 3600.0;
 	m = arcsec / 60.0;
 	arcsec = (arcsec - m * 60);
-	sprintf(s, format, y, m, prec, arcsec);
+	sprintf(s, format, y, m, form->prec, arcsec);
 	break;
     case FORMAT_MMSSLON:
 	if (loc < 0.0) {
@@ -394,7 +394,7 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
 	arcsec = (loc - y) * 3600.0;
 	m = arcsec / 60.0;
 	arcsec = (arcsec - m * 60);
-	sprintf(s, format, m, prec, arcsec);
+	sprintf(s, format, m, form->prec, arcsec);
 	break;
     case FORMAT_DEGREESLAT:
 	if (loc < 0.0) {
@@ -405,7 +405,7 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
 	} else {
 	    strcpy(format, "0");
 	}
-	sprintf(s, format, prec, loc);
+	sprintf(s, format, form->prec, loc);
 	break;
     case FORMAT_DEGREESMMLAT:
 	if (loc < 0.0) {
@@ -418,7 +418,7 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
 	}
 	y = loc;
 	arcsec = (loc - y) * 60.0;
-	sprintf(s, format, y, prec, arcsec);
+	sprintf(s, format, y, form->prec, arcsec);
 	break;
     case FORMAT_DEGREESMMSSLAT:
 	if (loc < 0.0) {
@@ -433,7 +433,7 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
 	arcsec = (loc - y) * 3600.0;
 	m = arcsec / 60.0;
 	arcsec = (arcsec - m * 60);
-	sprintf(s, format, y, m, prec, arcsec);
+	sprintf(s, format, y, m, form->prec, arcsec);
 	break;
     case FORMAT_MMSSLAT:
 	if (loc < 0.0) {
@@ -448,10 +448,10 @@ char *create_fstring(const Quark *q, int form, int prec, double loc, int type)
 	arcsec = (loc - y) * 3600.0;
 	m = arcsec / 60.0;
 	arcsec = (arcsec - m * 60);
-	sprintf(s, format, m, prec, arcsec);
+	sprintf(s, format, m, form->prec, arcsec);
 	break;
     default:
-	sprintf(s, format, prec, loc);
+	sprintf(s, format, form->prec, loc);
 	break;
     }
 

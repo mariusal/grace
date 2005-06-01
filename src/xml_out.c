@@ -132,11 +132,11 @@ static void xmlio_write_location(Quark *q, XFile *xf, Attributes *attrs,
 }
 
 static void xmlio_write_format_spec(XFile *xf, Attributes *attrs,
-    char *name, int format, int prec)
+    char *name, const Format *format)
 {
     attributes_reset(attrs);
-    attributes_set_sval(attrs, AStrFormat, get_format_types(format));
-    attributes_set_ival(attrs, AStrPrec, prec);
+    attributes_set_sval(attrs, AStrFormat, get_format_types(format->type));
+    attributes_set_ival(attrs, AStrPrec, format->prec);
     xfile_empty_element(xf, name, attrs);
 }
 
@@ -367,8 +367,7 @@ int save_axisgrid_properties(XFile *xf, Quark *q)
     xfile_begin_element(xf, EStrTicklabels, attrs);
     {
         xmlio_write_text_props(xf, attrs, &t->tl_tprops);
-        xmlio_write_format_spec(xf, attrs,
-            EStrFormat, t->tl_format, t->tl_prec);
+        xmlio_write_format_spec(xf, attrs, EStrFormat, &t->tl_format);
     }
     xfile_end_element(xf, EStrTicklabels);
 
@@ -484,10 +483,8 @@ int save_graph_properties(XFile *xf, Quark *gr)
         xmlio_set_world_value(gr, attrs, AStrY, g->locator.origin.y);
         xfile_empty_element(xf, EStrFixedpoint, attrs);
         
-        xmlio_write_format_spec(xf, attrs,
-            EStrXformat, g->locator.fx, g->locator.px);
-        xmlio_write_format_spec(xf, attrs,
-            EStrYformat, g->locator.fy, g->locator.py);
+        xmlio_write_format_spec(xf, attrs, EStrXformat, &g->locator.fx);
+        xmlio_write_format_spec(xf, attrs, EStrYformat, &g->locator.fy);
     }
     xfile_end_element(xf, EStrLocator);
 
@@ -553,8 +550,7 @@ int save_set_properties(XFile *xf, Quark *pset)
     xfile_begin_element(xf, EStrAnnotation, attrs);
     {
         xmlio_write_text_props(xf, attrs, &p->avalue.tprops);
-        xmlio_write_format_spec(xf, attrs,
-            EStrFormat, p->avalue.format, p->avalue.prec);
+        xmlio_write_format_spec(xf, attrs, EStrFormat, &p->avalue.format);
     }
     xfile_end_element(xf, EStrAnnotation);
 

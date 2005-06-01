@@ -566,7 +566,8 @@ reenter:
                 wtmaj = ifscale(swc_start + itmaj*stmajor, scale);
             } else {
                 wtmaj = swc_start + itmaj*stmajor;
-                if (t->tl_format == FORMAT_GENERAL && fabs(wtmaj) < 1.0e-6*stmajor) {
+                if (t->tl_format.type == FORMAT_GENERAL &&
+                    fabs(wtmaj) < 1.0e-6*stmajor) {
                     wtmaj = 0.0;
                 }
             }
@@ -618,7 +619,7 @@ reenter:
 	            t->tloc[itick].label = amem_strcpy(amem,
                         t->tloc[itick].label, 
                         create_fstring(get_parent_project(q),
-                            t->tl_format, t->tl_prec,
+                            &t->tl_format,
                             tt[itmaj], LFORMAT_TYPE_EXTENDED));
                     itmaj++;
                 }
@@ -630,7 +631,7 @@ reenter:
 	            t->tloc[itick].label = amem_strcpy(amem,
                         t->tloc[itick].label, 
                         create_fstring(get_parent_project(q),
-                            t->tl_format, t->tl_prec,
+                            &t->tl_format,
                             t->tloc[itick].wtpos, LFORMAT_TYPE_EXTENDED));
                 }
             }

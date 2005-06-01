@@ -221,11 +221,6 @@ GLocator *glocator_new()
     return retval;
 }
 
-typedef struct {
-    int type;
-    int prec;
-} Format;
-
 Format *format_new()
 {
     Format *retval;
@@ -1186,13 +1181,11 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrXformat">
-            $$->fx = $?->type;
-            $$->px = $?->prec;
+            $$->fx = *$?;
             xfree($?);
         </child>
         <child name="#EStrYformat">
-            $$->fy = $?->type;
-            $$->py = $?->prec;
+            $$->fy = *$?;
             xfree($?);
         </child>
     </element>
@@ -1313,8 +1306,7 @@ char *utf2iso(const char *s)
             t->tl_tprops    = $?->tprops;
             t->tl_skip      = $?->skip;
             t->tl_staggered = $?->stagger;
-            t->tl_format    = $?->format.type;
-            t->tl_prec      = $?->format.prec;
+            t->tl_format    = $?->format;
             t->tl_gap.x     = $?->offset.x;
             t->tl_gap.y     = $?->offset.y;
             t->tl_starttype = $?->autostart ? TYPE_AUTO:TYPE_SPEC;
@@ -1900,8 +1892,7 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrFormat">
-            $$->format = $?->type;
-            $$->prec   = $?->prec;
+            $$->format = *$?;
             xfree($?);
         </child>
     </element>

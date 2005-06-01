@@ -536,8 +536,8 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetOptionChoice(ui->avalue_font, p->avalue.tprops.font);
         SetOptionChoice(ui->avalue_color, p->avalue.tprops.color);
         SetAngleChoice(ui->avalue_angle, p->avalue.tprops.angle);
-        SetOptionChoice(ui->avalue_format, p->avalue.format);
-        SetOptionChoice(ui->avalue_precision, p->avalue.prec);
+        SetOptionChoice(ui->avalue_format, p->avalue.format.type);
+        SetOptionChoice(ui->avalue_precision, p->avalue.format.prec);
         
         SetTextString(ui->avalue_prestr, p->avalue.prestr);
         SetTextString(ui->avalue_appstr, p->avalue.appstr);
@@ -686,10 +686,10 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->avalue.tprops.angle = GetAngleChoice(ui->avalue_angle);
         }
         if (!caller || caller == ui->avalue_format) {
-            p->avalue.format = GetOptionChoice(ui->avalue_format);
+            p->avalue.format.type = GetOptionChoice(ui->avalue_format);
         }
         if (!caller || caller == ui->avalue_precision) {
-            p->avalue.prec = GetOptionChoice(ui->avalue_precision);
+            p->avalue.format.prec = GetOptionChoice(ui->avalue_precision);
         }
         if (!caller || caller == ui->avalue_prestr) {
             char *s = GetTextString(ui->avalue_prestr);

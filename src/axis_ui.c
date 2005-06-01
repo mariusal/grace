@@ -348,9 +348,9 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
             sprintf(buf, "%f", t->tl_stop);
             xv_setstr(ui->tlstop, buf);
         }
-        SetOptionChoice(ui->tlform, t->tl_format);
+        SetOptionChoice(ui->tlform, t->tl_format.type);
+        SetOptionChoice(ui->tlprec, t->tl_format.prec);
         SetTextString(ui->tlformula, t->tl_formula);
-        SetOptionChoice(ui->tlprec, t->tl_prec);
 
         sprintf(buf, "%.2f", t->tl_gap.x);
         xv_setstr(ui->tlgap_para, buf);
@@ -437,10 +437,10 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->nminor = (int) GetSpinChoice(ui->nminor);
         }
         if (!caller || caller == ui->tlform) {
-            t->tl_format = GetOptionChoice(ui->tlform);
+            t->tl_format.type = GetOptionChoice(ui->tlform);
         }
         if (!caller || caller == ui->tlprec) {
-            t->tl_prec = GetOptionChoice(ui->tlprec);
+            t->tl_format.prec = GetOptionChoice(ui->tlprec);
         }
         if (!caller || caller == ui->tlfont) {
             t->tl_tprops.font = GetOptionChoice(ui->tlfont);
