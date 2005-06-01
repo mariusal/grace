@@ -374,11 +374,6 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     /* ------------ Main tab -------------- */
     ui->main_tp = CreateTabPage(tab, "Data");
 
-    for (i = 0; i < MAX_SET_COLS; i++) {
-        ui->cprec[i] = CELL_PREC;
-        ui->cformat[i] = CELL_FORMAT;
-    }
-
     for (i = 0; i < EXTRA_SS_ROWS; i++) {
     	char buf[32];
         sprintf(buf, "%d", i + 1);

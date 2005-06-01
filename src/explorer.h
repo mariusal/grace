@@ -79,9 +79,6 @@ typedef struct {
     
     Widget          popup;
 
-    int             cformat[MAX_SET_COLS];
-    int             cprec[MAX_SET_COLS];
-    
     int             cb_column;
 } SSDataUI;
 
