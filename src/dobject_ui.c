@@ -73,8 +73,8 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->offsetx, sp_explorer_cb, eui);
     ui->offsety = CreateViewCoordInput(rc1, "dY:");
     AddSpinChoiceCB(ui->offsety, sp_explorer_cb, eui);
-    ui->angle = CreateAngleChoice(rc, "Angle");
-    AddScaleCB(ui->angle, scale_explorer_cb, eui);
+    ui->angle = CreateAngleChoice(rc, "Angle:");
+    AddSpinChoiceCB(ui->angle, sp_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Drawing properties");
     rc = CreateVContainer(fr);
@@ -287,10 +287,10 @@ static ArcUI *create_arc_ui(Widget parent, ExplorerUI *eui)
         8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
     AddSpinChoiceCB(ui->height, sp_explorer_cb, eui);
     
-    ui->angle1 = CreateAngleChoice(rc, "Start angle");
-    AddScaleCB(ui->angle1, scale_explorer_cb, eui);
-    ui->angle2 = CreateAngleChoice(rc, "Extent angle");
-    AddScaleCB(ui->angle2, scale_explorer_cb, eui);
+    ui->angle1 = CreateAngleChoice(rc, "Start angle:");
+    AddSpinChoiceCB(ui->angle1, sp_explorer_cb, eui);
+    ui->angle2 = CreateAngleChoice(rc, "Extent angle:");
+    AddSpinChoiceCB(ui->angle2, sp_explorer_cb, eui);
     
     rc1 = CreateHContainer(rc);
     ui->closure_type = CreateOptionChoice(rc1, "Closure type:", 1, 2, opitems);

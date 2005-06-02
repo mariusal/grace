@@ -207,7 +207,7 @@ typedef struct {
     OptionStructure *avalue_font;
     OptionStructure *avalue_color;
     SpinStructure   *avalue_charsize;
-    Widget          avalue_angle;
+    SpinStructure   *avalue_angle;
     OptionStructure *avalue_format;
     OptionStructure *avalue_precision;
     Widget          avalue_offsetx;
@@ -265,7 +265,7 @@ typedef struct {
     Widget          tlstop;
     Widget          tlgap_para;
     Widget          tlgap_perp;
-    Widget          tlangle;
+    SpinStructure   *tlangle;
     OptionStructure *tlstagger;
     TextStructure   *tlformula;
     OptionStructure *autonum;
@@ -317,8 +317,8 @@ typedef struct {
     SpinStructure   *width;
     SpinStructure   *height;
     
-    Widget          angle1;
-    Widget          angle2;
+    SpinStructure   *angle1;
+    SpinStructure   *angle2;
     
     OptionStructure *closure_type;
     Widget          draw_closure;
@@ -335,7 +335,7 @@ typedef struct {
     
     SpinStructure   *offsetx;
     SpinStructure   *offsety;
-    Widget angle;
+    SpinStructure   *angle;
     
     SpinStructure   *linew;
     OptionStructure *lines;
@@ -364,7 +364,7 @@ typedef struct {
     SpinStructure   *size;
     OptionStructure *color;
     OptionStructure *just;
-    Widget          angle;
+    SpinStructure   *angle;
 
     OptionStructure *frame_decor;
     SpinStructure   *frame_offset;

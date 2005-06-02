@@ -415,9 +415,9 @@ void AddScaleCB(Widget w, Scale_CBProc cbproc, void *);
 
 SpinStructure *CreateCharSizeChoice(Widget parent, char *s);
 
-Widget CreateAngleChoice(Widget parent, char *s);
-int GetAngleChoice(Widget w);
-void SetAngleChoice(Widget w, int angle);
+SpinStructure *CreateAngleChoice(Widget parent, char *s);
+double GetAngleChoice(SpinStructure *sp);
+void SetAngleChoice(SpinStructure *sp, double angle);
 
 Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);

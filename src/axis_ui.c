@@ -191,15 +191,14 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     rc = CreateHContainer(rc2);
     ui->tlcharsize = CreateCharSizeChoice(rc, "Char size");
     AddSpinChoiceCB(ui->tlcharsize, sp_explorer_cb, eui);
+    ui->tlangle = CreateAngleChoice(rc, "Angle:");
+    AddSpinChoiceCB(ui->tlangle, sp_explorer_cb, eui);
 
     rc = CreateHContainer(rc2);
     ui->tlfont = CreateFontChoice(rc, "Font:");
     AddOptionChoiceCB(ui->tlfont, oc_explorer_cb, eui);
     ui->tlcolor = CreateColorChoice(rc, "Color:");
     AddOptionChoiceCB(ui->tlcolor, oc_explorer_cb, eui);
-
-    ui->tlangle = CreateAngleChoice(rc2, "Angle");
-    AddScaleCB(ui->tlangle, scale_explorer_cb, eui);
 
     rc = CreateHContainer(rc2);
     ui->tlform = CreateFormatChoice(rc, "Format:");

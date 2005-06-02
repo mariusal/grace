@@ -317,16 +317,17 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->avalue_tp, "Text properties");
     rc = CreateVContainer(fr);
 
-    ui->avalue_font = CreateFontChoice(rc, "Font:");
-    AddOptionChoiceCB(ui->avalue_font, oc_explorer_cb, eui);
     rc2 = CreateHContainer(rc);
-    ui->avalue_charsize = CreateCharSizeChoice(rc2, "Size:");
-    AddSpinChoiceCB(ui->avalue_charsize, sp_explorer_cb, eui);
+    ui->avalue_font = CreateFontChoice(rc2, "Font:");
+    AddOptionChoiceCB(ui->avalue_font, oc_explorer_cb, eui);
     ui->avalue_color = CreateColorChoice(rc2, "Color:");
     AddOptionChoiceCB(ui->avalue_color, oc_explorer_cb, eui);
 
-    ui->avalue_angle = CreateAngleChoice(rc, "Angle");
-    AddScaleCB(ui->avalue_angle, scale_explorer_cb, eui);
+    rc2 = CreateHContainer(rc);
+    ui->avalue_charsize = CreateCharSizeChoice(rc2, "Size:");
+    AddSpinChoiceCB(ui->avalue_charsize, sp_explorer_cb, eui);
+    ui->avalue_angle = CreateAngleChoice(rc2, "Angle:");
+    AddSpinChoiceCB(ui->avalue_angle, sp_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
     ui->avalue_prestr = CreateTextInput(rc2, "Prepend:");

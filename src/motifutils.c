@@ -3479,25 +3479,22 @@ void SetScaleWidth(Widget w, int width)
     XtVaSetValues(w, XmNscaleWidth, (Dimension) width, NULL);
 }
 
-Widget CreateAngleChoice(Widget parent, char *s)
+SpinStructure *CreateAngleChoice(Widget parent, char *s)
 {
-    return CreateScale(parent, s, 0, 360, 10);
+    return CreateSpinChoice(parent, s, 5, SPIN_TYPE_FLOAT, -360.0, 360.0, 10.0);
 }
 
-int GetAngleChoice(Widget w)
+double GetAngleChoice(SpinStructure *sp)
 {
-    return GetScaleValue(w);
+    return GetSpinChoice(sp);
 }
 
-void SetAngleChoice(Widget w, int angle)
+void SetAngleChoice(SpinStructure *sp, double angle)
 {
-    if (angle < 0 || angle > 360) {
-        angle %= 360;
+    if (angle < -360.0 || angle > 360.0) {
+        angle = fmod(angle, 360.0);
     }
-    if (angle < 0) {
-        angle += 360;
-    }
-    SetScaleValue(w, angle);
+    SetSpinChoice(sp, angle);
 }
 
 SpinStructure *CreateCharSizeChoice(Widget parent, char *s)

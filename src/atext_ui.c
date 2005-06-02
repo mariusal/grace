@@ -89,8 +89,8 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->offsetx, sp_explorer_cb, eui);
     ui->offsety = CreateViewCoordInput(rc1, "dY:");
     AddSpinChoiceCB(ui->offsety, sp_explorer_cb, eui);
-    ui->angle = CreateAngleChoice(rc, "Angle");
-    AddScaleCB(ui->angle, scale_explorer_cb, eui);
+    ui->angle = CreateAngleChoice(rc, "Angle:");
+    AddSpinChoiceCB(ui->angle, sp_explorer_cb, eui);
 
     /* ------------ Frame tab -------------- */
     ui->frame_tp = CreateTabPage(ui->top, "Frame & Pointer");
