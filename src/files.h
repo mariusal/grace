@@ -60,7 +60,6 @@ int load_project(Grace *grace, char *fn);
 int save_project(Quark *project, char *fn);
 
 int write_set(Quark *pset, FILE *cp, char *format);
-void outputset(Quark *pset, char *fname, char *dformat);
 
 void unregister_real_time_input(const char *name);
 int register_real_time_input(Grace *grace, int fd, const char *name, int reopen);

@@ -1006,18 +1006,6 @@ int update_set_from_file(Quark *pset)
 }
 #endif
 
-void outputset(Quark *pset, char *fname, char *dformat)
-{
-    FILE *cp;
-    
-    if ((cp = grace_openw(grace_from_quark(pset), fname)) == NULL) {
-	return;
-    } else {
-        write_set(pset, cp, dformat);
-	grace_close(cp);
-    }
-}
-
 /*
  * write out a set
  */
