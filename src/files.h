@@ -42,6 +42,14 @@
 #define LOAD_NXY    1
 #define LOAD_BLOCK  2
 
+Quark *load_agr_project(Grace *grace, char *fn);
+Quark *load_xgr_project(Grace *grace, char *fn);
+Quark *load_any_project(Grace *grace, char *fn);
+
+int new_project(Grace *grace, char *template);
+int load_project(Grace *grace, char *fn);
+int save_project(Quark *project, char *fn);
+
 int add_io_filter( int type, int method, char *id, char *comm );
 int add_input_filter( int method, char *id, char *comm );
 int add_output_filter( int method, char *id, char *comm );
@@ -51,15 +59,7 @@ FILE *filter_write(Grace *grace, char *fn);
 
 int getdata(Quark *pr, char *fn, int src, int type);
 
-int readblockdata(Quark *gr, char *fn, FILE * fp);
-
-Quark *load_any_project(Grace *grace, char *fn);
-
-int new_project(Grace *grace, char *template);
-int load_project(Grace *grace, char *fn);
-int save_project(Quark *project, char *fn);
-
-int write_set(Quark *pset, FILE *cp, char *format);
+int write_ssd(const Quark *ssd, unsigned int ncols, const int *cols, FILE *fp);
 
 void unregister_real_time_input(const char *name);
 int register_real_time_input(Grace *grace, int fd, const char *name, int reopen);

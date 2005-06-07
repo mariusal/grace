@@ -975,6 +975,48 @@ int getdata(Quark *pr, char *fn, int src, int load_type)
     return retval;
 }
 
+int write_ssd(const Quark *ssd, unsigned int ncols, const int *cols, FILE *fp)
+{
+    char *sep = "\t";
+    unsigned int nrows = ssd_get_nrows(ssd), i, j;
+
+    char *format = project_get_sformat(get_parent_project(ssd));
+
+    fputs("# ", fp);
+    for (j = 0; j < ncols; j++) {
+        char *lab = ssd_get_col_label(ssd, cols[j]);
+        if (j != 0) {
+            fputs(sep, fp);
+        }
+        fputs(lab ? lab:"?", fp);
+    }
+    fputs("\n", fp);
+
+    for (i = 0; i < nrows; i++) {
+        for (j = 0; j < ncols; j++) {
+            unsigned int col = cols[j];
+            ss_column *scol = ssd_get_col(ssd, col);
+            if (!scol) {
+                return RETURN_FAILURE;
+            }
+            
+            if (j != 0) {
+                fputs(sep, fp);
+            }
+            
+            if (scol->format == FFORMAT_STRING) {
+                char **s = ((char **) scol->data);
+                fprintf(fp, " \"%s\"", escapequotes(s[i]));
+            } else {
+                double *x = ((double *) scol->data);
+                fprintf(fp, format, x[i]);
+            }
+        }
+        fputs("\n", fp);
+    }
+    fputs("\n", fp);
+    return RETURN_SUCCESS;
+}
 
 #if 0
 /*
@@ -1005,51 +1047,6 @@ int update_set_from_file(Quark *pset)
     return retval;
 }
 #endif
-
-/*
- * write out a set
- */
-int write_set(Quark *pset, FILE *cp, char *format)
-{
-    int i, n, col, ncols;
-    double *x[MAX_SET_COLS];
-    char **s;
-
-    if (cp == NULL) {
-	return RETURN_FAILURE;
-    }
-    
-    if (set_is_dataless(pset) == FALSE) {
-        n = set_get_length(pset);
-        ncols = set_get_ncols(pset);
-        for (col = 0; col < ncols; col++) {
-            x[col] = set_get_col(pset, col);
-        }
-        s = set_get_strings(pset);
-
-        if (format == NULL) {
-            format = project_get_sformat(get_parent_project(pset));
-        }
-        
-        for (i = 0; i < n; i++) {
-            for (col = 0; col < ncols; col++) {
-                if (col != 0) {
-                    fputs(" ", cp);
-                }
-                fprintf(cp, format, x[col][i]);
-            }
-            if (s != NULL) {
-                fprintf(cp, " \"%s\"", escapequotes(s[i]));
-            }
-            fputs("\n", cp);
-        }
-        fprintf(cp, "\n");
-    }
-    
-    return RETURN_SUCCESS;
-}
-
-extern Quark *load_xgr_project(Grace *grace, const char *fn);
 
 Quark *load_agr_project(Grace *grace, char *fn)
 {

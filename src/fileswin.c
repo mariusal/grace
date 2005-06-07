@@ -63,7 +63,7 @@ static int save_proc(FSBStructure *fsb, char *filename, void *data);
 static int read_sets_proc(FSBStructure *fsb, char *filename, void *data);
 static void set_load_proc(OptionStructure *opt, int value, void *data);
 static void set_src_proc(OptionStructure *opt, int value, void *data);
-static int write_sets_proc(FSBStructure *fsb, char *filename, void *data);
+static int write_ssd_proc(FSBStructure *fsb, char *filename, void *data);
 
 void create_saveproject_popup(void)
 {
@@ -364,8 +364,7 @@ static void set_load_proc(OptionStructure *opt, int value, void *data)
 
 
 typedef struct {
-    GraphSetStructure *sel;
-    Widget format_item;
+    SSDColStructure *sel;
 } wdataGUI;
 
 void create_write_popup(Widget but, void *data)
@@ -375,19 +374,14 @@ void create_write_popup(Widget but, void *data)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        Widget fr, rc;
         wdataGUI *gui;
         
 	gui = xmalloc(sizeof(wdataGUI));
 	
-        fsb = CreateFileSelectionBox(app_shell, "Write sets");
-	AddFileSelectionBoxCB(fsb, write_sets_proc, (void *) gui);
+        fsb = CreateFileSelectionBox(app_shell, "Export data");
+	AddFileSelectionBoxCB(fsb, write_ssd_proc, (void *) gui);
 	
-	fr = CreateFrame(fsb->rc, NULL);
-	rc = CreateVContainer(fr);
-        gui->sel = CreateGraphSetSelector(rc, NULL, LIST_TYPE_MULTIPLE);
-	gui->format_item = CreateTextItem(rc, 15, "Format: ");
-        xv_setstr(gui->format_item, project_get_sformat(grace->project));
+	gui->sel = CreateSSDColSelector(fsb->rc, NULL, LIST_TYPE_MULTIPLE);
 
         ManageChild(fsb->FSB);
     }
@@ -397,36 +391,38 @@ void create_write_popup(Widget but, void *data)
 }
 
 /*
- *  write a set or sets to a file
+ *  write ssd columns to a file
  */
-static int write_sets_proc(FSBStructure *fsb, char *filename, void *data)
+static int write_ssd_proc(FSBStructure *fsb, char *filename, void *data)
 {
     wdataGUI *gui = (wdataGUI *) data;
-    int cd, i;
-    Quark *pset, **selset;
-    char format[32];
-    FILE *cp;
+    int ncols, res;
+    Quark *ssd;
+    int *cols;
+    FILE *fp;
     
-    cp = grace_openw(grace, filename);
-    if (cp == NULL) {
+    ncols = GetSSDColChoices(gui->sel, &ssd, &cols);
+    if (ncols < 1) {
+        errmsg("No columns selected");
+        return FALSE;
+    }
+    
+    fp = grace_openw(grace, filename);
+    if (fp == NULL) {
         return FALSE;
     }
 
-    cd = GetStorageChoices(gui->sel->set_sel, &selset);
-    if (cd < 1) {
-        errmsg("No set selected");
+    res = write_ssd(ssd, ncols, cols, fp);
+    
+    xfree(cols);
+    
+    grace_close(fp);
+    
+    if (res == RETURN_SUCCESS) {
+        return TRUE;
     } else {
-        strncpy(format, xv_getstr(gui->format_item), 31);
-        for (i = 0; i < cd; i++) {
-            pset = selset[i];
-            write_set(pset, cp, format);
-        }
-        xfree(selset);
+        return FALSE;
     }
-    grace_close(cp);
-
-    /* never close the popup */
-    return FALSE;
 }
 
 
