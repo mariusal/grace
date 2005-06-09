@@ -175,16 +175,6 @@ typedef struct {
     Pen fillpen;
 } Legframe;
 
-legend *legend_new()
-{
-    legend *l;
-    l = xmalloc(sizeof(legend));
-    if (l) {
-        memset(l, 0, sizeof(legend));
-    }
-    return l;
-}
-
 Legframe *legframe_new()
 {
     Legframe *lf;
@@ -620,12 +610,12 @@ char *utf2iso(const char *s)
         $$ = facespec_new();
     ]]></element-type>
     <element-type name="ssd" ctype="Quark *"><![CDATA[
-        $$ = ssd_new((Quark *)$P);
+        $$ = ssd_new($P);
         ((ParserData *) $U)->ss = $$;
         ((ParserData *) $U)->ncol = -1;
     ]]></element-type>
     <element-type name="graph" ctype="Quark *"><![CDATA[
-        $$ = graph_new((Quark *)$P);
+        $$ = graph_new($P);
     ]]></element-type>
     <element-type name="presentationspec" ctype="PresentationSpec *"><![CDATA[
         $$ = presentationspec_new();
@@ -640,7 +630,7 @@ char *utf2iso(const char *s)
         $$ = xcalloc(1, SIZEOF_DOUBLE);
     ]]></element-type>
     <element-type name="legend" ctype="legend *"><![CDATA[
-        $$ = legend_new();
+        $$ = frame_get_legend($P);
     ]]></element-type>
     <element-type name="legframe" ctype="Legframe *"><![CDATA[
         $$ = legframe_new();
@@ -655,16 +645,16 @@ char *utf2iso(const char *s)
         $$ = format_new();
     ]]></element-type>
     <element-type name="frame" ctype="Quark *"><![CDATA[
-        $$ = frame_new((Quark *)$P);
+        $$ = frame_new($P);
     ]]></element-type>
     <element-type name="textprops" ctype="TextProps *"><![CDATA[
         $$ = textprops_new();
     ]]></element-type>
     <element-type name="axisgrid" ctype="Quark *"><![CDATA[
-        $$ = axisgrid_new((Quark *)$P);
+        $$ = axisgrid_new($P);
     ]]></element-type>
     <element-type name="axis" ctype="Quark *"><![CDATA[
-        $$ = axis_new((Quark *)$P);
+        $$ = axis_new($P);
     ]]></element-type>
     <element-type name="axisbar" ctype="ABar *"><![CDATA[
         $$ = axisbar_new();
@@ -685,22 +675,22 @@ char *utf2iso(const char *s)
         $$ = tick_new();
     ]]></element-type>
     <element-type name="object" ctype="Quark *"><![CDATA[
-        $$ = object_new((Quark *)$P);
+        $$ = object_new($P);
     ]]></element-type>
     <element-type name="atext" ctype="Quark *"><![CDATA[
-        $$ = atext_new((Quark *)$P);
+        $$ = atext_new($P);
     ]]></element-type>
     <element-type name="location" ctype="Location *"><![CDATA[
         $$ = location_new();
     ]]></element-type>
     <element-type name="do_line_data" ctype="DOLineData *"><![CDATA[
-        $$ = object_odata_new(quark_get_amem((Quark *)$P), DO_LINE);
+        $$ = object_odata_new(quark_get_amem($P), DO_LINE);
     ]]></element-type>
     <element-type name="do_box_data" ctype="DOBoxData *"><![CDATA[
-        $$ = object_odata_new(quark_get_amem((Quark *)$P), DO_BOX);
+        $$ = object_odata_new(quark_get_amem($P), DO_BOX);
     ]]></element-type>
     <element-type name="do_arc_data" ctype="DOArcData *"><![CDATA[
-        $$ = object_odata_new(quark_get_amem((Quark *)$P), DO_ARC);
+        $$ = object_odata_new(quark_get_amem($P), DO_ARC);
     ]]></element-type>
     <element-type name="textframe" ctype="TextFrame *"><![CDATA[
         $$ = textframe_new();
@@ -712,7 +702,7 @@ char *utf2iso(const char *s)
         $$ = arrow_new();
     ]]></element-type>
     <element-type name="set" ctype="Quark *"><![CDATA[
-        $$ = grace_set_new((Quark *)$P);
+        $$ = grace_set_new($P);
     ]]></element-type>
     <element-type name="symbol" ctype="Symbol *"><![CDATA[
         $$ = symbol_new();
@@ -734,19 +724,19 @@ char *utf2iso(const char *s)
         $$ = riserline_new();
     ]]></element-type>
     <element-type name="dataset" ctype="Dataset *"><![CDATA[
-        $$ = dataset_new(quark_get_amem((Quark *)$P));
+        $$ = dataset_new(quark_get_amem($P));
     ]]></element-type>
     <element-type name="wpoint" ctype="WPoint *"><![CDATA[
         $$ = xmalloc(sizeof(WPoint));
         memset($$, 0, sizeof(WPoint));
     ]]></element-type>
     <element-type name="region" ctype="Quark *"><![CDATA[
-        $$ = region_new((Quark *)$P);
+        $$ = region_new($P);
     ]]></element-type>
     <element-type name="scolumn" ctype="ss_column *"><![CDATA[
         {
         ParserData *udata = (ParserData *) $U;
-        $$ = ssd_add_col((Quark *)$P, FFORMAT_STRING);
+        $$ = ssd_add_col($P, FFORMAT_STRING);
         udata->ncol++;
         udata->nrow = -1;
         }
@@ -754,7 +744,7 @@ char *utf2iso(const char *s)
     <element-type name="dcolumn" ctype="ss_column *"><![CDATA[
         {
         ParserData *udata = (ParserData *) $U;
-        $$ = ssd_add_col((Quark *)$P, FFORMAT_NUMBER);
+        $$ = ssd_add_col($P, FFORMAT_NUMBER);
         udata->ncol++;
         udata->nrow = -1;
         }
@@ -949,8 +939,6 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrLegend">
-            frame_set_legend($$, $?);
-            xfree($?);
         </child>
         <child name="#EStrLineSpec">
             frame_set_outline($$, $?);
