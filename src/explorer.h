@@ -165,7 +165,7 @@ typedef struct {
     OptionStructure *type;
     
     OptionStructure *cols[MAX_SET_COLS];
-    OptionStructure *scol;
+    OptionStructure *acol;
     
     OptionStructure *symbols;
     SpinStructure   *symsize;
@@ -203,7 +203,6 @@ typedef struct {
     SpinStructure   *errbar_cliplen;
 
     Widget          avalue_active;
-    OptionStructure *avalue_type;
     OptionStructure *avalue_font;
     OptionStructure *avalue_color;
     SpinStructure   *avalue_charsize;

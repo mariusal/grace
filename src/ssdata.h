@@ -48,7 +48,4 @@ int parse_ss_row(Quark *pr, const char *s, int *nncols, int *nscols, int **forma
 int insert_data_row(Quark *q, unsigned int row, char *s);
 int store_data(Quark *q, int load_type);
 
-int create_set_fromblock(Quark *pset, int type,
-    unsigned int nc, unsigned int *coli, int scol);
-
 #endif /* __SSDATA_H_ */

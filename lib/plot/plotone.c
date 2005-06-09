@@ -1052,11 +1052,18 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
     VPoint vp, vprev;
     int skip = p->symskip + 1;
     AValue avalue;
-    char **s, *str, *buf, buf1[MAX_STRING_LENGTH];
+    void *pdata;
+    int aformat;
+    char **s, *str, *buf;
     int stacked_chart;
 
     avalue = p->avalue;
     if (avalue.active != TRUE) {
+        return;
+    }
+
+    pdata = set_get_acol(pset, &aformat);
+    if (!pdata) {
         return;
     }
 
@@ -1068,14 +1075,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         setlen = set_get_length(pset);
     }
     y = set_get_col(pset, DATA_Y);
-    s = set_get_strings(pset);
-    
-    if (set_get_ncols(pset) > 2) {
-        z = set_get_col(pset, DATA_Y1);
-    } else {
-        z = NULL;
-    }
-    
+        
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
@@ -1099,44 +1099,25 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         vp.y += avalue.offset.y;
     	vp.x += plot_rt->offset;
         
-	if (i && hypot(vp.x - vprev.x, vp.y - vprev.y) < p->symskipmindist)
-	     continue;
-	vprev = vp;
+        if (i && hypot(vp.x - vprev.x, vp.y - vprev.y) < p->symskipmindist) {
+            continue;
+        }
+        vprev = vp;
             
         buf = NULL;
-        switch(avalue.type) {
-        case AVALUE_TYPE_NONE:
-            break;
-        case AVALUE_TYPE_X:
-            buf = create_fstring(pr, &avalue.format, wp.x, 
-                                                 LFORMAT_TYPE_EXTENDED);
-            break;
-        case AVALUE_TYPE_Y:
-            buf = create_fstring(pr, &avalue.format, wp.y,
-                                                 LFORMAT_TYPE_EXTENDED);
-            break;
-        case AVALUE_TYPE_XY:
-            strcat(buf1, create_fstring(pr, &avalue.format, wp.x,
-                                                 LFORMAT_TYPE_EXTENDED));
-            strcat(buf1, ", ");
-            strcat(buf1, create_fstring(pr, &avalue.format, wp.y,
-                                                 LFORMAT_TYPE_EXTENDED));
-            buf = buf1;
-            break;
-        case AVALUE_TYPE_STRING:
-            if (s != NULL && s[i] != NULL) {
+        
+        switch (aformat) {
+        case FFORMAT_STRING:
+            s = (char **) pdata;
+            if (s[i] != NULL) {
                 buf = s[i];
             }
             break;
-        case AVALUE_TYPE_Z:
-            if (z != NULL) {
-                buf = create_fstring(pr, &avalue.format, z[i], 
-                                                 LFORMAT_TYPE_EXTENDED);
-            }
-            break;
         default:
-            errmsg("Invalid type of ann. value");
-            return;
+            z = (double *) pdata;
+            buf = create_fstring(pr, &avalue.format, z[i], 
+                                                 LFORMAT_TYPE_EXTENDED);
+            break;
         }
         
         str = copy_string(NULL, avalue.prestr);
@@ -1638,6 +1619,8 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
     double e_max, norm;
     double *x, *c, *e, *pt;
     AValue avalue;
+    void *pdata;
+    int aformat;
     char *str, *buf;
     set *p;
     Quark *gr, *pr;
@@ -1692,6 +1675,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
     }
 
     stop_angle = w.xg1;
+    pdata = set_get_acol(pset, &aformat);
     for (i = 0; i < set_get_length(pset); i++) {
         Pen pen;
 
@@ -1727,9 +1711,10 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
 
         avalue = p->avalue;
 
-        if (avalue.active == TRUE) {
+        if (avalue.active == TRUE && pdata) {
             TextProps tprops = avalue.tprops;
-            char **s = set_get_strings(pset);
+            char **s;
+            double *z;
 
             vpa.x = vpc.x + ((1 + e[i])*r + avalue.offset.y)*
                 cos((start_angle + stop_angle)/2.0);
@@ -1737,18 +1722,18 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
                 sin((start_angle + stop_angle)/2.0);
 
             buf = NULL;
-            switch (avalue.type) {
-            case AVALUE_TYPE_X:
-                buf = create_fstring(pr, &avalue.format, x[i], 
-                                                     LFORMAT_TYPE_EXTENDED);
-                break;
-            case AVALUE_TYPE_STRING:
-                if (s != NULL && s[i] != NULL) {
+            switch (aformat) {
+            case FFORMAT_STRING:
+                s = (char **) pdata;
+                if (s[i] != NULL) {
                     buf = s[i];
                 }
                 break;
             default:
-                continue;
+                z = (double *) pdata;
+                buf = create_fstring(pr, &avalue.format, z[i], 
+                                                     LFORMAT_TYPE_EXTENDED);
+                break;
             }
 
             str = copy_string(NULL, avalue.prestr);

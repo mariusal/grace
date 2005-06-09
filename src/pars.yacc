@@ -2616,7 +2616,23 @@ setprop:
 	| selectset AVALUE TYPE nexpr
         {
 	    set *p = set_get_data($1);
-	    p->avalue.type = $4;
+	    switch ($4) {
+            case 1:
+                p->ds.acol = DATA_X;
+                break;
+            case 2:
+                p->ds.acol = DATA_Y;
+                break;
+            case 4:
+                p->ds.acol = set_get_ncols($1);
+                break;
+            case 5:
+                p->ds.acol = DATA_Y1;
+                break;
+            default:
+                p->ds.acol = COL_NONE;
+                break;
+            }
 	}
 	| selectset AVALUE CHAR SIZE expr
         {

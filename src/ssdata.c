@@ -334,6 +334,54 @@ static Quark *nextset(Quark *ss)
     return pset;
 }
 
+static int create_set_fromblock(Quark *pset, int type,
+    unsigned int nc, unsigned int *coli)
+{
+    Dataset *dsp = set_get_dataset(pset);
+    Quark *ss = get_parent_ssd(pset);
+    ss_data *blockdata = ssd_get_data(ss);
+    int i, ncols, blockncols, blocklen, column;
+
+    if (!blockdata || !dsp) {
+        return RETURN_FAILURE;
+    }
+
+    blockncols = ssd_get_ncols(ss);
+    blocklen = ssd_get_nrows(ss);
+    
+    ncols = settype_cols(type);
+    if (nc > ncols) {
+        errmsg("Too many columns scanned in column string");
+        return RETURN_FAILURE;
+    }
+    if (nc < ncols) {
+	errmsg("Too few columns scanned in column string");
+	return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < nc; i++) {
+	if (coli[i] >= blockncols) {
+	    errmsg("Column index out of range");
+	    return RETURN_FAILURE;
+	}
+    }
+    
+    set_set_type(pset, type);
+
+    for (i = 0; i < nc; i++) {
+        column = coli[i];
+        if (ssd_get_col_format(ss, column) != FFORMAT_STRING) {
+            dsp->cols[i] = column;
+        } else {
+            errmsg("Tried to read doubles from strings!");
+            killsetdata(pset);
+            return RETURN_FAILURE;
+        }
+    }
+
+    return RETURN_SUCCESS;
+}
+
 int store_data(Quark *q, int load_type)
 {
     int ncols, nncols, nncols_req, nscols, nrows;
@@ -399,7 +447,7 @@ int store_data(Quark *q, int load_type)
             }
         }
 
-        create_set_fromblock(pset, rt->curtype, nncols, coli, scol);
+        create_set_fromblock(pset, rt->curtype, nncols, coli);
         
         break;
     case LOAD_NXY:
@@ -416,7 +464,7 @@ int store_data(Quark *q, int load_type)
 
             coli[0] = 0;
             coli[1] = i + 1;
-            create_set_fromblock(pset, rt->curtype, 2, coli, -1);
+            create_set_fromblock(pset, rt->curtype, 2, coli);
         }
     
         break;
@@ -427,73 +475,6 @@ int store_data(Quark *q, int load_type)
         return RETURN_FAILURE;
     }
     
-    return RETURN_SUCCESS;
-}
-
-int create_set_fromblock(Quark *pset, int type,
-    unsigned int nc, unsigned int *coli, int scol)
-{
-    Dataset *dsp = set_get_dataset(pset);
-    Quark *ss = get_parent_ssd(pset);
-    ss_data *blockdata = ssd_get_data(ss);
-    int i, ncols, blockncols, blocklen, column;
-
-    if (!blockdata || !dsp) {
-        return RETURN_FAILURE;
-    }
-
-    blockncols = ssd_get_ncols(ss);
-    blocklen = ssd_get_nrows(ss);
-    
-    ncols = settype_cols(type);
-    if (nc > ncols) {
-        errmsg("Too many columns scanned in column string");
-        return RETURN_FAILURE;
-    }
-    if (nc < ncols) {
-	errmsg("Too few columns scanned in column string");
-	return RETURN_FAILURE;
-    }
-    
-    for (i = 0; i < nc; i++) {
-	if (coli[i] >= blockncols) {
-	    errmsg("Column index out of range");
-	    return RETURN_FAILURE;
-	}
-    }
-    
-    if (scol >= blockncols) {
-	errmsg("String column index out of range");
-	return RETURN_FAILURE;
-    }
-
-    /* clear data stored in the set, if any */
-    killsetdata(pset);
-    
-    set_set_type(pset, type);
-
-    for (i = 0; i < nc; i++) {
-        column = coli[i];
-        if (ssd_get_col_format(ss, column) != FFORMAT_STRING) {
-            dsp->cols[i] = column;
-        } else {
-            errmsg("Tried to read doubles from strings!");
-            killsetdata(pset);
-            return RETURN_FAILURE;
-        }
-    }
-
-    /* strings, if any */
-    if (scol >= 0) {
-        if (ssd_get_col_format(ss, scol) != FFORMAT_STRING) {
-            errmsg("Tried to read strings from doubles!");
-            killsetdata(pset);
-            return RETURN_FAILURE;
-        } else {
-            dsp->scol = scol;
-        }
-    }
-
     return RETURN_SUCCESS;
 }
 

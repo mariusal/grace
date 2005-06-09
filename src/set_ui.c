@@ -171,8 +171,8 @@ SetUI *create_set_ui(ExplorerUI *eui)
         ui->cols[i] = CreateOptionChoice(rc, buf, 0, 1, &blockitem);
         AddOptionChoiceCB(ui->cols[i], oc_explorer_cb, eui);
     }
-    ui->scol = CreateOptionChoice(rc, "Strings from column:", 0, 1, &blockitem);
-    AddOptionChoiceCB(ui->scol, oc_explorer_cb, eui);
+    ui->acol = CreateOptionChoice(rc, "Annotations from column:", 0, 1, &blockitem);
+    AddOptionChoiceCB(ui->acol, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Legend");
     ui->legend_str = CreateCSText(fr, "String:");
@@ -342,15 +342,6 @@ SetUI *create_set_ui(ExplorerUI *eui)
     rc2 = CreateHContainer(rc);
     ui->avalue_format = CreateFormatChoice(rc, "Format:");
     AddOptionChoiceCB(ui->avalue_format, oc_explorer_cb, eui);
-    ui->avalue_type = CreatePanelChoice(rc2, "Type:",
-                                         "None",
-                                         "X",
-                                         "Y",
-                                         "X, Y",
-                                         "String",
-                                         "Z",
-                                         NULL);
-    AddOptionChoiceCB(ui->avalue_type, oc_explorer_cb, eui); 
     ui->avalue_precision = CreatePrecisionChoice(rc2, "Precision:");
     AddOptionChoiceCB(ui->avalue_precision, oc_explorer_cb, eui);
 
@@ -424,7 +415,7 @@ void update_set_ui(SetUI *ui, Quark *q)
         char val[32];
         int blocklen, blockncols;
         OptionItem *blockitems, *sblockitems;
-        unsigned int nncols, nscols;
+        unsigned int nncols;
 
         SetOptionChoice(ui->type, p->type);
 
@@ -438,7 +429,6 @@ void update_set_ui(SetUI *ui, Quark *q)
         sblockitems[0].value = COL_NONE;
         sblockitems[0].label = copy_string(NULL, "None");
         nncols = 0;
-        nscols = 0;
         for (i = 0; i < blockncols; i++) {
             char buf[32], *s;
             int fformat = ssd_get_col_format(ss, i);
@@ -453,24 +443,19 @@ void update_set_ui(SetUI *ui, Quark *q)
                 nncols++;
                 blockitems[nncols].value = i;
                 blockitems[nncols].label = s;
-            } else {
-                nscols++;
-                sblockitems[nscols].value = i;
-                sblockitems[nscols].label = s;
             }
+            sblockitems[i + 1].value = i;
+            sblockitems[i + 1].label = s;
         }
         for (i = 0; i < MAX_SET_COLS; i++) {
             UpdateOptionChoice(ui->cols[i], nncols + 1, blockitems);
             SetOptionChoice(ui->cols[i], p->ds.cols[i]);
         }
-        UpdateOptionChoice(ui->scol, nscols + 1, sblockitems);
-        SetOptionChoice(ui->scol, p->ds.scol);
+        UpdateOptionChoice(ui->acol, blockncols + 1, sblockitems);
+        SetOptionChoice(ui->acol, p->ds.acol);
 
-        for (i = 0; i < nncols + 1; i++) {
-            xfree(blockitems[i].label);
-        }
         xfree(blockitems);
-        for (i = 0; i < nscols + 1; i++) {
+        for (i = 0; i < blockncols + 1; i++) {
             xfree(sblockitems[i].label);
         }
         xfree(sblockitems);
@@ -532,7 +517,6 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetSpinChoice(ui->errbar_size, p->errbar.barsize);
 
         SetToggleButtonState(ui->avalue_active, p->avalue.active);
-        SetOptionChoice(ui->avalue_type, p->avalue.type);
         SetSpinChoice(ui->avalue_charsize, p->avalue.tprops.charsize);
         SetOptionChoice(ui->avalue_font, p->avalue.tprops.font);
         SetOptionChoice(ui->avalue_color, p->avalue.tprops.color);
@@ -569,8 +553,8 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
                 p->ds.cols[i] = GetOptionChoice(ui->cols[i]);
             }
         }
-        if (!caller || caller == ui->scol) {
-            p->ds.scol = GetOptionChoice(ui->scol);
+        if (!caller || caller == ui->acol) {
+            p->ds.acol = GetOptionChoice(ui->acol);
         }
 
         if (!caller || caller == ui->symskip) {
@@ -670,9 +654,6 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->avalue_active) {
             p->avalue.active = GetToggleButtonState(ui->avalue_active);
-        }
-        if (!caller || caller == ui->avalue_type) {
-            p->avalue.type = GetOptionChoice(ui->avalue_type);
         }
         if (!caller || caller == ui->avalue_charsize) {
             p->avalue.tprops.charsize = GetSpinChoice(ui->avalue_charsize);

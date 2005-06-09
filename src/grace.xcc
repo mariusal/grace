@@ -1872,9 +1872,6 @@ char *utf2iso(const char *s)
         <attribute name="#AStrActive" type="bval">
             $$->active = $?;
         </attribute>
-        <attribute name="#AStrType" type="ival">
-            $$->type = $?;
-        </attribute>
         <attribute name="#AStrOffset" type="offset">
             $$->offset = *($?);
             xfree($?);
@@ -1994,7 +1991,7 @@ char *utf2iso(const char *s)
             $$->cols[DATA_Y4] = $?;
         </attribute>
         <attribute name="s" type="ival">
-            $$->scol = $?;
+            $$->acol = $?;
         </attribute>
         <attribute name="#AStrComment" type="sval">
             $$->comment = $?;

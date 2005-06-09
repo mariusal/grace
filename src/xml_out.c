@@ -542,7 +542,6 @@ int save_set_properties(XFile *xf, Quark *pset)
 
     attributes_reset(attrs);
     xmlio_set_active(attrs, p->avalue.active);
-    attributes_set_ival(attrs, AStrType, p->avalue.type); /* FIXME: textual */
     xmlio_set_offset(attrs, p->avalue.offset.x, p->avalue.offset.y);
 
     attributes_set_sval(attrs, AStrPrepend, p->avalue.prestr);
@@ -668,8 +667,8 @@ static int save_dataset(XFile *xf, Quark *pset)
             attributes_set_ival(attrs, dataset_colname(nc), data->cols[nc]);
         }
     }
-    if (data->scol != COL_NONE) {
-        attributes_set_ival(attrs, "s", data->scol);
+    if (data->acol != COL_NONE) {
+        attributes_set_ival(attrs, "s", data->acol);
     }
     
     attributes_set_sval(attrs, AStrComment, data->comment);

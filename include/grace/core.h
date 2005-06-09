@@ -108,14 +108,6 @@
 #define SETFILL_POLYGON         1
 #define SETFILL_BASELINE        2
 
-/* types of ann. values */
-#define AVALUE_TYPE_NONE        0
-#define AVALUE_TYPE_X           1
-#define AVALUE_TYPE_Y           2
-#define AVALUE_TYPE_XY          3
-#define AVALUE_TYPE_STRING      4
-#define AVALUE_TYPE_Z           5
-
 /* Arrow types */
 #define ARROW_TYPE_LINE     0
 #define ARROW_TYPE_FILLED   1
@@ -569,8 +561,8 @@ typedef enum {
 
 #define COL_NONE    -1
 typedef struct {
-    int cols[MAX_SET_COLS];     /* arrays of x, y, z, ... depending on type */
-    int scol;                   /* pointer to string column */
+    int cols[MAX_SET_COLS];     /* column # of x, y, z, ... depending on type */
+    int acol;                   /* column # of ann. column                    */
 
     char *comment;              /* how this dataset originated & alike */
 } Dataset;
@@ -631,7 +623,6 @@ typedef struct {
     TextProps tprops;
     VVector   offset;           /* offset */
     
-    int type;                   /* type */
     Format format;              /* format */
 
     char *prestr;               /* prepend string */
@@ -1003,7 +994,7 @@ int set_set_comment(Quark *p, char *s);
 int set_get_ncols(const Quark *pset);
 
 double *set_get_col(Quark *p, unsigned int col);
-char **set_get_strings(Quark *p);
+void *set_get_acol(Quark *pset, int *format);
 
 int quark_get_number_of_descendant_sets(Quark *q);
 int quark_get_descendant_sets(Quark *q, Quark ***sets);

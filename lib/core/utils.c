@@ -323,8 +323,8 @@ static int coalesce_hook(Quark *q, void *udata, QTraverseClosure *closure)
                 dsp->cols[k] += p->nshift;
             }
         }
-        if (dsp->scol != COL_NONE) {
-            dsp->scol += p->nshift;
+        if (dsp->acol != COL_NONE) {
+            dsp->acol += p->nshift;
         }
     }
     if (closure->depth == 1) {

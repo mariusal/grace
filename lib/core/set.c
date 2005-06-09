@@ -49,7 +49,7 @@ Dataset *dataset_new(AMem *amem)
     for (k = 0; k < MAX_SET_COLS; k++) {
         dsp->cols[k] = COL_NONE;
     }
-    dsp->scol = COL_NONE;
+    dsp->acol = COL_NONE;
     
     dsp->comment = NULL;
     
@@ -70,7 +70,7 @@ int dataset_empty(Dataset *dsp)
             dsp->cols[k] = COL_NONE;
         }
 
-        dsp->scol = COL_NONE;
+        dsp->acol = COL_NONE;
 
         return RETURN_SUCCESS;
     } else {
@@ -160,7 +160,6 @@ static void set_default_set(Quark *pset)
     p->sym.charfont = grdefs.font;
 
     p->avalue.active = FALSE;                    /* active or not */
-    p->avalue.type = AVALUE_TYPE_Y;              /* type */
 
     set_default_textprops(&p->avalue.tprops, &grdefs);
     
@@ -492,14 +491,15 @@ double *set_get_col(Quark *pset, unsigned int col)
     }
 }
 
-char **set_get_strings(Quark *pset)
+void *set_get_acol(Quark *pset, int *format)
 {
     Quark *ss = get_parent_ssd(pset);
     set *p = set_get_data(pset);
     if (p && ss) {
-        ss_column *pcol = ssd_get_col(ss, p->ds.scol);
-        if (pcol && pcol->format == FFORMAT_STRING) {
-            return (char **) pcol->data;
+        ss_column *pcol = ssd_get_col(ss, p->ds.acol);
+        if (pcol) {
+            *format = pcol->format;
+            return pcol->data;
         } else {
             return NULL;
         }
