@@ -1134,8 +1134,36 @@ char *utf2iso(const char *s)
             $$->anchor = *($?);
             xfree($?);
         </attribute>
-        <attribute name="#AStrJustification" type="ival">
-            $$->just = $?;
+        <attribute name="#AStrHJust" type="sval">
+            int hjust = JUST_LEFT;
+            if (!strcmp($?, VStrLeft)) {
+                hjust = JUST_LEFT;
+            } else
+            if (!strcmp($?, VStrRight)) {
+                hjust = JUST_RIGHT;
+            } else
+            if (!strcmp($?, VStrCenter)) {
+                hjust = JUST_CENTER;
+            }
+            $$->just |= hjust;
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrVJust" type="sval">
+            int vjust = JUST_BOTTOM;
+            if (!strcmp($?, VStrBottom)) {
+                vjust = JUST_BOTTOM;
+            } else
+            if (!strcmp($?, VStrTop)) {
+                vjust = JUST_TOP;
+            } else
+            if (!strcmp($?, VStrMiddle)) {
+                vjust = JUST_MIDDLE;
+            } else
+            if (!strcmp($?, VStrBaseline)) {
+                vjust = JUST_BLINE;
+            }
+            $$->just |= vjust;
+            xfree($?);
         </attribute>
         <attribute name="#AStrOffset" type="offset">
             $$->offset = *($?);
@@ -1898,8 +1926,36 @@ char *utf2iso(const char *s)
         <attribute name="#AStrAngle" type="dval">
             $$->angle = $?;
         </attribute>
-        <attribute name="#AStrJustification" type="ival">
-            $$->just = $?;
+        <attribute name="#AStrHJust" type="sval">
+            int hjust = JUST_LEFT;
+            if (!strcmp($?, VStrLeft)) {
+                hjust = JUST_LEFT;
+            } else
+            if (!strcmp($?, VStrRight)) {
+                hjust = JUST_RIGHT;
+            } else
+            if (!strcmp($?, VStrCenter)) {
+                hjust = JUST_CENTER;
+            }
+            $$->just |= hjust;
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrVJust" type="sval">
+            int vjust = JUST_BOTTOM;
+            if (!strcmp($?, VStrBottom)) {
+                vjust = JUST_BOTTOM;
+            } else
+            if (!strcmp($?, VStrTop)) {
+                vjust = JUST_TOP;
+            } else
+            if (!strcmp($?, VStrMiddle)) {
+                vjust = JUST_MIDDLE;
+            } else
+            if (!strcmp($?, VStrBaseline)) {
+                vjust = JUST_BLINE;
+            }
+            $$->just |= vjust;
+            xfree($?);
         </attribute>
         
         <!-- Child elements -->

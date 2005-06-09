@@ -192,13 +192,58 @@ static void xmlio_write_arrow(RunTime *rt, XFile *xf, Attributes *attrs, Arrow *
     xfile_empty_element(xf, EStrArrow, attrs);
 }
 
+static void xmlio_set_just(Attributes *attrs, int just)
+{
+    int hjust, vjust;
+    char *s;
+    
+    hjust = just & 0x3;
+    switch (hjust) {
+    case JUST_LEFT:
+        s = VStrLeft;
+        break;
+    case JUST_RIGHT:
+        s = VStrRight;
+        break;
+    case JUST_CENTER:
+        s = VStrCenter;
+        break;
+    default:
+        return;
+        break;
+    }
+
+    attributes_set_sval(attrs, AStrHJust, s);
+
+    vjust = just & 0xc;
+    switch (vjust) {
+    case JUST_BLINE:
+        s = VStrBaseline;
+        break;
+    case JUST_BOTTOM:
+        s = VStrBottom;
+        break;
+    case JUST_TOP:
+        s = VStrTop;
+        break;
+    case JUST_MIDDLE:
+        s = VStrMiddle;
+        break;
+    default:
+        return;
+        break;
+    }
+
+    attributes_set_sval(attrs, AStrVJust, s);
+}
+
 static void xmlio_write_text_props(XFile *xf, Attributes *attrs,
     const TextProps *tprops)
 {
     attributes_reset(attrs);
 
     xmlio_set_angle(attrs, tprops->angle);
-    attributes_set_ival(attrs, AStrJustification, tprops->just); /* FIXME: textual */
+    xmlio_set_just(attrs, tprops->just);
     xfile_begin_element(xf, EStrTextProperties, attrs);
     {
         xmlio_write_face_spec(xf, attrs,
@@ -417,7 +462,7 @@ int save_frame_properties(XFile *xf, frame *f)
         attributes_reset(attrs);
         xmlio_set_fpoint(attrs, AStrAnchor, &f->l.anchor);
         xmlio_set_offset(attrs, f->l.offset.x, f->l.offset.y);
-        attributes_set_ival(attrs, AStrJustification, f->l.just); /* FIXME: textual */
+        xmlio_set_just(attrs, f->l.just);
         xfile_begin_element(xf, EStrLegframe, attrs);
         {
             xmlio_write_line_spec(xf, attrs, &f->l.boxline);
@@ -1010,6 +1055,10 @@ int save_project(Quark *project, char *fn)
     int noask_save;
     static int save_unsupported = FALSE;
 
+    if (!project || !fn) {
+        return RETURN_FAILURE;
+    }
+    
     if (fn && strstr(fn, ".agr")) {
         errmsg("Cowardly refusing to overwrite an agr file");
         return RETURN_FAILURE;
