@@ -68,7 +68,6 @@ int main(int argc, char *argv[])
     char *s;
     int i;
     int fd;
-    Quark *cur_graph;	        /* default (current) graph */
     int gracebat;		/* if executed as 'gracebat' then TRUE */
     int cli = FALSE;            /* command line interface only */
     int noprint = FALSE;	/* if gracebat, then don't print if true */
@@ -186,11 +185,6 @@ int main(int argc, char *argv[])
     set_locale_num(FALSE);
     
     /* TODO: load prefs */
-
-    /* load default template */
-    new_project(grace, NULL);
-    
-    cur_graph = graph_get_current(grace->project);
 
     for (i = 1; i < argc; i++) {
 	if (argv[i][0] == '-' && argv[i][1] != '\0') {
@@ -365,7 +359,10 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing filename for block data\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    getdata(grace->project, argv[i], rt->cursource, LOAD_BLOCK);
+		    if (!grace->project) {
+                        new_project(grace, NULL);
+                    }
+                    getdata(grace->project, argv[i], rt->cursource, LOAD_BLOCK);
 		}
 	    } else if (argmatch(argv[i], "-nxy", 4)) {
 		i++;
@@ -373,6 +370,9 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing filename for nxy data\n");
 		    usage(stderr, argv[0]);
 		} else {
+		    if (!grace->project) {
+                        new_project(grace, NULL);
+                    }
 		    getdata(grace->project, argv[i], rt->cursource, LOAD_NXY);
 		}
 	    } else if (argmatch(argv[i], "-type", 2) ||
@@ -450,10 +450,17 @@ int main(int argc, char *argv[])
 	    if (strstr(argv[i], ".xgr") || strstr(argv[i], ".agr")) {
                 load_project(grace, argv[i]);
             } else {
+		if (!grace->project) {
+                    new_project(grace, NULL);
+                }
                 getdata(grace->project, argv[i], rt->cursource, LOAD_SINGLE);
             }
 	} /* end else */
     } /* end for */
+
+    if (!grace->project) {
+        new_project(grace, NULL);
+    }
     
     /*
      * Process events.
