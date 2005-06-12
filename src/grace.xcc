@@ -484,20 +484,6 @@ char *utf2iso(const char *s)
             $$ = LAYOUT_PERPENDICULAR;
         }
     ]]></attribute-type>
-    <attribute-type name="sideplacement" ctype="int"><![CDATA[
-        if (!strcmp($?, VStrNormal)) {
-            $$ = PLACEMENT_NORMAL;
-        } else
-        if (!strcmp($?, VStrOpposite)) {
-            $$ = PLACEMENT_OPPOSITE;
-        } else
-        if (!strcmp($?, VStrBoth)) {
-            $$ = PLACEMENT_BOTH;
-        } else {
-            $$ = PLACEMENT_NORMAL;
-            errmsg("Wrong sideplacement");
-        }
-    ]]></attribute-type>
     <attribute-type name="inoutplacement" ctype="int"><![CDATA[
         if (!strcmp($?, VStrIn)) {
             $$ = TICKS_IN;
@@ -1958,9 +1944,6 @@ char *utf2iso(const char *s)
         <!-- Attributes -->
         <attribute name="#AStrActive" type="bval">
             $$->active = $?;
-        </attribute>
-        <attribute name="#AStrSidePlacement" type="sideplacement">
-            $$->ptype = $?;
         </attribute>
 
         <!-- Child elements -->

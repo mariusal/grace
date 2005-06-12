@@ -3387,15 +3387,6 @@ OptionStructure *CreatePrecisionChoice(Widget parent, char *s)
         NULL);
 }
 
-OptionStructure *CreatePlacementChoice(Widget parent, char *s)
-{
-    return CreateOptionChoiceVA(parent, s,
-        "Normal",   PLACEMENT_NORMAL,
-        "Opposite", PLACEMENT_OPPOSITE,
-        "Both",     PLACEMENT_BOTH,
-        NULL);
-}
-
 OptionStructure *CreatePaperOrientationChoice(Widget parent, char *s)
 {
     return CreateOptionChoiceVA(parent, s,

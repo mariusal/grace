@@ -166,7 +166,6 @@
 #define AStrRoundedPosition     "rounded-position"
 #define AStrRow                 "row"
 #define AStrRows                "rows"
-#define AStrSidePlacement       "side-placement"
 #define AStrSingleSymbol        "single-symbol"
 #define AStrSize                "size"
 #define AStrSkip                "skip"

@@ -429,8 +429,8 @@ int store_data(Quark *q, int load_type)
 
         nncols_req = settype_cols(rt->curtype);
         if (nncols_req != nncols) {
-	    errmsg("Column count incorrect");
-	    return RETURN_FAILURE;
+	    // errmsg("Column count incorrect");
+	    // return RETURN_FAILURE;
         }
 
         pset = nextset(q);

@@ -185,7 +185,6 @@ static void set_default_set(Quark *pset)
     p->line.fillpen = grdefs.fillpen;
 
     p->errbar.active = TRUE;                      /* on by default */
-    p->errbar.ptype = PLACEMENT_BOTH;             /* error bar placement */
     p->errbar.pen = grdefs.line.pen;
     p->errbar.lines = grdefs.line.style;          /* error bar line width */
     p->errbar.linew = grdefs.line.width;          /* error bar line style */
@@ -235,23 +234,14 @@ int settype_cols(int type)
     int ncols;
     
     switch (type) {
-    case SET_XY:
     case SET_BAR:
-	ncols = 2;
+	ncols = 4;
 	break;
-    case SET_XYDX:
-    case SET_XYDY:
-    case SET_XYZ:
-    case SET_BARDY:
     case SET_XYR:
     case SET_XYCOLOR:
     case SET_XYSIZE:
 	ncols = 3;
 	break;
-    case SET_XYDXDX:
-    case SET_XYDYDY:
-    case SET_XYDXDY:
-    case SET_BARDYDY:
     case SET_XYCOLPAT:
     case SET_XYVMAP:
 	ncols = 4;
@@ -259,7 +249,7 @@ int settype_cols(int type)
     case SET_XYHILO:
 	ncols = 5;
 	break;
-    case SET_XYDXDXDYDY:
+    case SET_XY:
     case SET_BOXPLOT:
 	ncols = 6;
 	break;

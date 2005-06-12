@@ -62,15 +62,6 @@ static void xmlio_set_inout_placement(RunTime *rt, Attributes *attrs, int inout)
     attributes_set_sval(attrs, AStrInoutPlacement, s);
 }
 
-static void xmlio_set_side_placement(RunTime *rt, Attributes *attrs, PlacementType placement)
-{
-    char *s;
-    
-    s = side_placement_name(rt, placement);
-
-    attributes_set_sval(attrs, AStrSidePlacement, s);
-}
-
 static void xmlio_set_axis_position(RunTime *rt, Attributes *attrs, int position)
 {
     char *s;
@@ -600,7 +591,6 @@ int save_set_properties(XFile *xf, Quark *pset)
 
     attributes_reset(attrs);
     xmlio_set_active(attrs, p->errbar.active);
-    xmlio_set_side_placement(rt, attrs, p->errbar.ptype);
     xfile_begin_element(xf, EStrErrorbar, attrs);
     {
         attributes_reset(attrs);

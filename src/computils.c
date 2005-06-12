@@ -1647,7 +1647,7 @@ int do_fourier(Quark *psrc, Quark *pdest,
     case FFT_OUTPUT_REIM:
     case FFT_OUTPUT_APHI:
         ncols = 3;
-        settype = SET_XYZ;
+        // settype = SET_XYZ;
         break;
     default:
         ncols = 2;

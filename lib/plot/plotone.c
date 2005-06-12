@@ -244,9 +244,13 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
     case GRAPH_XY:
         switch (set_get_type(pset)) {
         case SET_XY:
+            drawsetline(pset, plot_rt);
+            drawseterrbars(pset, plot_rt);
+            drawsetsyms(pset, plot_rt);
+            drawsetavalues(pset, plot_rt);
+            break;
         case SET_XYSIZE:
         case SET_XYCOLOR:
-        case SET_XYZ:
             drawsetline(pset, plot_rt);
             drawsetsyms(pset, plot_rt);
             drawsetavalues(pset, plot_rt);
@@ -254,24 +258,7 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
         case SET_BAR:
             drawsetline(pset, plot_rt);
             drawsetbars(pset, plot_rt);
-            drawsetavalues(pset, plot_rt);
-            break;
-        case SET_BARDY:
-        case SET_BARDYDY:
-            drawsetline(pset, plot_rt);
-            drawsetbars(pset, plot_rt);
             drawseterrbars(pset, plot_rt);
-            drawsetavalues(pset, plot_rt);
-            break;
-        case SET_XYDX:
-        case SET_XYDY:
-        case SET_XYDXDX:
-        case SET_XYDYDY:
-        case SET_XYDXDY:
-        case SET_XYDXDXDYDY:
-            drawsetline(pset, plot_rt);
-            drawseterrbars(pset, plot_rt);
-            drawsetsyms(pset, plot_rt);
             drawsetavalues(pset, plot_rt);
             break;
         case SET_XYHILO:
@@ -297,21 +284,14 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
     case GRAPH_FIXED:
         switch (set_get_type(pset)) {
         case SET_XY:
-        case SET_XYSIZE:
-        case SET_XYCOLOR:
-        case SET_XYZ:
             drawsetline(pset, plot_rt);
+            drawseterrbars(pset, plot_rt);
             drawsetsyms(pset, plot_rt);
             drawsetavalues(pset, plot_rt);
             break;
-        case SET_XYDX:
-        case SET_XYDY:
-        case SET_XYDXDX:
-        case SET_XYDYDY:
-        case SET_XYDXDY:
-        case SET_XYDXDXDYDY:
+        case SET_XYSIZE:
+        case SET_XYCOLOR:
             drawsetline(pset, plot_rt);
-            drawseterrbars(pset, plot_rt);
             drawsetsyms(pset, plot_rt);
             drawsetavalues(pset, plot_rt);
             break;
@@ -336,7 +316,6 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
         case SET_XY:
         case SET_XYSIZE:
         case SET_XYCOLOR:
-        case SET_XYZ:
             drawsetline(pset, plot_rt);
             drawsetsyms(pset, plot_rt);
             drawsetavalues(pset, plot_rt);
@@ -382,7 +361,6 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
         }
 
         switch (set_get_type(pset)) {
-        case SET_XY:
         case SET_XYSIZE:
         case SET_XYCOLOR:
             if (plot_rt->first_pass) {
@@ -399,22 +377,11 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
                 drawsetbars(pset, plot_rt);
             }
             if (plot_rt->last_pass) {
-                drawsetavalues(pset, plot_rt);
-            }
-            break;
-        case SET_BARDY:
-        case SET_BARDYDY:
-            if (plot_rt->first_pass) {
-                drawsetline(pset, plot_rt);
-                drawsetbars(pset, plot_rt);
-            }
-            if (plot_rt->last_pass) {
                 drawseterrbars(pset, plot_rt);
                 drawsetavalues(pset, plot_rt);
             }
             break;
-        case SET_XYDY:
-        case SET_XYDYDY:
+        case SET_XY:
             if (plot_rt->first_pass) {
                 drawsetline(pset, plot_rt);
             }
@@ -734,6 +701,10 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
     }
     y = set_get_col(pset, DATA_Y);
     
+    if (!x || !y) {
+        return;
+    }
+    
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
@@ -960,7 +931,11 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
         setlen = set_get_length(pset);
     }
     y = set_get_col(pset, DATA_Y);
-    
+
+    if (!x || !y) {
+        return;
+    }
+        
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
@@ -1076,6 +1051,10 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
     }
     y = set_get_col(pset, DATA_Y);
         
+    if (!x || !y) {
+        return;
+    }
+    
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
@@ -1137,8 +1116,7 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
     set *p = set_get_data(pset);
     int i, n;
     double *x, *y;
-    double *dx_plus, *dx_minus, *dy_plus, *dy_minus, *dtmp;
-    PlacementType ptype = p->errbar.ptype;
+    double *dx_plus, *dx_minus, *dy_plus, *dy_minus;
     WPoint wp1, wp2;
     VPoint vp1, vp2, vprev;
     int stacked_chart;
@@ -1157,6 +1135,10 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
     }
     y = set_get_col(pset, DATA_Y);
     
+    if (!x || !y) {
+        return;
+    }
+    
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
@@ -1168,27 +1150,11 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
     dy_plus  = NULL;
     dy_minus = NULL;
     switch (p->type) {
-    case SET_XYDX:
-        dx_plus = set_get_col(pset, DATA_Y1);
-        break;
-    case SET_XYDY:
-    case SET_BARDY:
-        dy_plus = set_get_col(pset, DATA_Y1);
-        break;
-    case SET_XYDXDX:
-        dx_plus  = set_get_col(pset, DATA_Y1);
-        dx_minus = set_get_col(pset, DATA_Y2);
-        break;
-    case SET_XYDYDY:
-    case SET_BARDYDY:
+    case SET_BAR:
         dy_plus  = set_get_col(pset, DATA_Y1);
         dy_minus = set_get_col(pset, DATA_Y2);
         break;
-    case SET_XYDXDY:
-        dx_plus = set_get_col(pset, DATA_Y1);
-        dy_plus = set_get_col(pset, DATA_Y2);
-        break;
-    case SET_XYDXDXDYDY:
+    case SET_XY:
         dx_plus  = set_get_col(pset, DATA_Y1);
         dx_minus = set_get_col(pset, DATA_Y2);
         dy_plus  = set_get_col(pset, DATA_Y3);
@@ -1196,25 +1162,6 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
         break;
     default:
         return;
-    }
-    
-    switch (ptype) {
-    case PLACEMENT_OPPOSITE:
-        dtmp     = dx_minus;
-        dx_minus = dx_plus;
-        dx_plus  = dtmp;
-        dtmp     = dy_minus;
-        dy_minus = dy_plus;
-        dy_plus  = dtmp;
-        break;
-    case PLACEMENT_BOTH:
-        if (dx_minus == NULL && dy_minus == NULL) {
-            dx_minus = dx_plus;
-            dy_minus = dy_plus;
-        }
-        break;
-    default:
-        break;
     }
     
     setclipping(canvas, TRUE);
@@ -1337,14 +1284,16 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
     }
     y = set_get_col(pset, DATA_Y);
     
+    if (!x || !y) {
+        return;
+    }
+    
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
     }
 
-
-    
     if (stacked_chart == TRUE) {
         ybase = 0.0;
     } else {
@@ -1458,6 +1407,10 @@ void drawcirclexy(Quark *pset, plot_rt_t *plot_rt)
     y = set_get_col(pset, DATA_Y);
     r = set_get_col(pset, DATA_Y1);
 
+    if (!x || !y || !r) {
+        return;
+    }
+    
     setfillrule(canvas, p->line.fillrule);
     setline(canvas, &p->line.line);
 
@@ -1516,6 +1469,10 @@ void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
     vx = set_get_col(pset, DATA_Y1);
     vy = set_get_col(pset, DATA_Y2);
 
+    if (!x || !y || !vx || !vy) {
+        return;
+    }
+    
     arrow.length = 2*eb.barsize;
 
     setpen(canvas, &p->errbar.pen);
@@ -1561,6 +1518,10 @@ void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt)
     lw = set_get_col(pset, DATA_Y3);
     uw = set_get_col(pset, DATA_Y4);
 
+    if (!x || !md || !lb || !ub || !lw || !uw) {
+        return;
+    }
+    
     setclipping(canvas, TRUE);
 
     for (i = 0; i < set_get_length(pset); i += skip) {
@@ -1653,6 +1614,10 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
     /* patterns */
     pt = set_get_col(pset, DATA_Y2);
 
+    if (!x || !e) {
+        return;
+    }
+    
     /* get max explode factor */
     e_max = 0.0;
     for (i = 0; i < set_get_length(pset); i++) {
@@ -2146,8 +2111,7 @@ void draw_legend_syms(Quark *pset,
 
         setline(canvas, &p->sym.line);
         if (!singlesym) {
-            if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
-                p->type == SET_BARDY || p->type == SET_BARDYDY) {
+            if (p->type == SET_BAR || p->type == SET_BOXPLOT) {
 
                 drawlegbarsym(canvas, &vp1, 0.02*p->sym.size, 0.02*l->charsize,
                     &p->sym.line.pen, &p->sym.fillpen);
@@ -2162,8 +2126,7 @@ void draw_legend_syms(Quark *pset,
             vptmp.x = vp->x;
             vptmp.y = vp->y + symvshift;
 
-            if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
-                p->type == SET_BARDY || p->type == SET_BARDYDY) {
+            if (p->type == SET_BAR || p->type == SET_BOXPLOT) {
                 drawlegbarsym(canvas, &vptmp, 0.02*p->sym.size, 0.02*l->charsize,
                     &p->sym.line.pen, &p->sym.fillpen);
             } else {

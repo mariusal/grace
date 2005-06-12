@@ -366,8 +366,6 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     fr = CreateFrame(rc1, "Common");
     rc = CreateVContainer(fr);
-    ui->errbar_ptype = CreatePlacementChoice(rc, "Placement:");
-    AddOptionChoiceCB(ui->errbar_ptype, oc_explorer_cb, eui); 
     ui->errbar_pen = CreatePenChoice(rc, "Pen:");
     AddPenChoiceCB(ui->errbar_pen, pen_explorer_cb, eui);
 
@@ -496,17 +494,6 @@ void update_set_ui(SetUI *ui, Quark *q)
         
         SetToggleButtonState(ui->errbar_active, p->errbar.active);
         
-        switch (p->type) {
-        case SET_XYDXDX:
-        case SET_XYDYDY:
-        case SET_XYDXDXDYDY:
-            SetSensitive(ui->errbar_ptype->options[2].widget, FALSE);
-            break;
-        default:
-            SetSensitive(ui->errbar_ptype->options[2].widget, TRUE);
-            break;
-        }
-        SetOptionChoice(ui->errbar_ptype, p->errbar.ptype);
         SetPenChoice(ui->errbar_pen, &p->errbar.pen);
         SetToggleButtonState(ui->errbar_aclip, p->errbar.arrow_clip);
         SetSpinChoice(ui->errbar_cliplen, p->errbar.cliplen);
@@ -639,9 +626,6 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->errbar_riserlines) {
             p->errbar.riser_lines = GetOptionChoice(ui->errbar_riserlines);
-        }
-        if (!caller || caller == ui->errbar_ptype) {
-            p->errbar.ptype = GetOptionChoice(ui->errbar_ptype);
         }
         if (!caller || caller == ui->errbar_pen) {
             GetPenChoice(ui->errbar_pen, &p->errbar.pen);

@@ -52,8 +52,6 @@ OType get_objecttype_by_name(RunTime *rt, const char *name);
 
 char *inout_placement_name(RunTime *rt, int inout);
 int get_inout_placement_by_name(RunTime *rt, const char *name);
-char *side_placement_name(RunTime *rt, int inout);
-int get_side_placement_by_name(RunTime *rt, const char *name);
 char *spec_tick_name(RunTime *rt, int it);
 int get_spec_tick_by_name(RunTime *rt, const char *name);
 char *region_types(RunTime *rt, int it);

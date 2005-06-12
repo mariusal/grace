@@ -870,9 +870,9 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
                         /* X from index, OK */
                         ;
                     } else {
-		        errmsg("Column count incorrect");
-		        xfree(linebuf);
-		        return RETURN_FAILURE;
+		        // errmsg("Column count incorrect");
+		        // xfree(linebuf);
+		        // return RETURN_FAILURE;
                     }
                 }
 

@@ -2419,7 +2419,6 @@ parmset:
         }
         
 	| TYPE xytype {
-	    grace->rt->curtype = $2;
 	}
 
 /* I/O filters */
@@ -2467,7 +2466,100 @@ setprop:
 	    quark_set_active($1, $2);
 	}
 	| selectset TYPE xytype {
-	    set_set_type($1, $3);
+	    SetType stype;
+            Dataset *dsp = set_get_dataset($1);
+            dsp->cols[DATA_X] = 0;
+            dsp->cols[DATA_Y] = 1;
+            stype = SET_XY;
+            switch ($3) {
+	    case XY:
+                stype = SET_XY;
+                break;
+	    case BAR:
+                stype = SET_BAR;
+                break;
+	    case BARDY:
+                stype = SET_BAR;
+                dsp->cols[DATA_Y1] = 2;
+                break;
+	    case BARDYDY:
+                stype = SET_BAR;
+                dsp->cols[DATA_Y1] = 2;
+                dsp->cols[DATA_Y2] = 3;
+                break;
+	    case XYZ:
+                stype = SET_XY;
+                dsp->acol = 2;
+                break;
+	    case XYDX:
+                stype = SET_XY;
+                dsp->cols[DATA_Y1] = 2;
+                break;
+	    case XYDY:
+                stype = SET_XY;
+                dsp->cols[DATA_Y3] = 2;
+                break;
+	    case XYDXDX:
+                stype = SET_XY;
+                dsp->cols[DATA_Y1] = 2;
+                dsp->cols[DATA_Y2] = 3;
+                break;
+	    case XYDYDY:
+                stype = SET_XY;
+                break;
+	    case XYDXDY:
+                stype = SET_XY;
+                dsp->cols[DATA_Y1] = 2;
+                dsp->cols[DATA_Y3] = 3;
+                break;
+	    case XYDXDXDYDY:
+                stype = SET_XY;
+                dsp->cols[DATA_Y1] = 2;
+                dsp->cols[DATA_Y2] = 3;
+                dsp->cols[DATA_Y3] = 4;
+                dsp->cols[DATA_Y4] = 5;
+                break;
+	    case XYHILO:
+                stype = SET_XYHILO;
+                dsp->cols[DATA_Y1] = 2;
+                dsp->cols[DATA_Y2] = 3;
+                dsp->cols[DATA_Y3] = 4;
+                break;
+	    case XYR:
+                stype = SET_XYR;
+                dsp->cols[DATA_Y1] = 2;
+                break;
+	    case XYSIZE:
+                stype = SET_XYSIZE;
+                dsp->cols[DATA_Y1] = 2;
+                break;
+	    case XYCOLOR:
+                stype = SET_XYCOLOR;
+                dsp->cols[DATA_Y1] = 2;
+                break;
+	    case XYCOLPAT:
+                stype = SET_XYCOLPAT;
+                dsp->cols[DATA_Y1] = 2;
+                dsp->cols[DATA_Y2] = 3;
+                break;
+	    case XYVMAP:
+                stype = SET_XYVMAP;
+                dsp->cols[DATA_Y1] = 2;
+                dsp->cols[DATA_Y2] = 3;
+                break;
+	    case XYBOXPLOT:
+                stype = SET_BOXPLOT;
+                dsp->cols[DATA_Y1] = 2;
+                dsp->cols[DATA_Y2] = 3;
+                dsp->cols[DATA_Y3] = 4;
+                dsp->cols[DATA_Y4] = 5;
+                break;
+	    case XYSTRING:
+                stype = SET_XY;
+                break;
+            }
+
+            set_set_type($1, stype);
 	}
 
 	| selectset SYMBOL nexpr {
@@ -2689,8 +2781,17 @@ setprop:
 	    p->errbar.active = $3;
 	}
 	| selectset ERRORBAR opchoice_sel {
-	    set *p = set_get_data($1);
-	    p->errbar.ptype = $3;
+            Dataset *dsp = set_get_dataset($1);
+	    switch ($3) {
+            case NORMAL:
+                break;
+            case OPPOSITE:
+                iswap(&dsp->cols[DATA_Y1], &dsp->cols[DATA_Y2]);
+                iswap(&dsp->cols[DATA_Y3], &dsp->cols[DATA_Y4]);
+                break;
+            case BOTH:
+                break;
+            }
 	}
 	| selectset ERRORBAR color_select {
 	    set *p = set_get_data($1);
@@ -2829,11 +2930,11 @@ tickattr:
 	    curtm->mgprops.onoff = $3;
 	}
 	| opchoice_sel {
-	    if ($1 == PLACEMENT_OPPOSITE) {
+	    if ($1 == OPPOSITE) {
                 axis_enable_ticks(normaxis, FALSE);
                 axis_enable_bar(normaxis, FALSE);
             }
-	    if ($1 == PLACEMENT_NORMAL) {
+	    if ($1 == NORMAL) {
                 axis_enable_ticks(oppaxis, FALSE);
                 axis_enable_bar(oppaxis, FALSE);
             }
@@ -2885,10 +2986,10 @@ ticklabelattr:
 	    curtm->tl_staggered = $2;
 	}
 	| opchoice_sel {
-	    if ($1 == PLACEMENT_OPPOSITE) {
+	    if ($1 == OPPOSITE) {
                 axis_enable_labels(normaxis, FALSE);
             }
-	    if ($1 == PLACEMENT_NORMAL) {
+	    if ($1 == NORMAL) {
                 axis_enable_labels(oppaxis, FALSE);
             }
 	}
@@ -2991,12 +3092,12 @@ axislabeldesc:
 	    atext_set_color(opplabel,  $1);
 	}
 	| opchoice_sel {
-	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
+	    if ($1 == NORMAL || $1 == BOTH) {
                 quark_set_active(normlabel, TRUE);
             } else {
                 quark_set_active(normlabel, FALSE);
             }
-	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
+	    if ($1 == OPPOSITE || $1 == BOTH) {
                 quark_set_active(opplabel, TRUE);
             } else {
                 quark_set_active(opplabel, FALSE);
@@ -3304,25 +3405,25 @@ filtermethod:
 	;
 	
 xytype:
-	XY { $$ = SET_XY; }
-	| BAR { $$ = SET_BAR; }
-	| BARDY { $$ = SET_BARDY; }
-	| BARDYDY { $$ = SET_BARDYDY; }
-	| XYZ { $$ = SET_XYZ; }
-	| XYDX { $$ = SET_XYDX; }
-	| XYDY { $$ = SET_XYDY; }
-	| XYDXDX { $$ = SET_XYDXDX; }
-	| XYDYDY { $$ = SET_XYDYDY; }
-	| XYDXDY { $$ = SET_XYDXDY; }
-	| XYDXDXDYDY { $$ = SET_XYDXDXDYDY; }
-	| XYHILO { $$ = SET_XYHILO; }
-	| XYR { $$ = SET_XYR; }
-	| XYSIZE { $$ = SET_XYSIZE; }
-	| XYCOLOR { $$ = SET_XYCOLOR; }
-	| XYCOLPAT { $$ = SET_XYCOLPAT; }
-	| XYVMAP { $$ = SET_XYVMAP; }
-	| XYBOXPLOT { $$ = SET_BOXPLOT; }
-	| XYSTRING { $$ = SET_XY; }
+	XY
+	| BAR
+	| BARDY
+	| BARDYDY
+	| XYZ
+	| XYDX
+	| XYDY
+	| XYDXDX
+	| XYDYDY
+	| XYDXDY
+	| XYDXDXDYDY
+	| XYHILO
+	| XYR
+	| XYSIZE
+	| XYCOLOR
+	| XYCOLPAT
+	| XYVMAP
+	| XYBOXPLOT
+	| XYSTRING
 	;
 
 graphtype:
@@ -3527,9 +3628,9 @@ opchoice_sel: PLACE opchoice
         }
         ;
 
-opchoice: NORMAL { $$ = PLACEMENT_NORMAL; }
-	| OPPOSITE { $$ = PLACEMENT_OPPOSITE; }
-	| BOTH { $$ = PLACEMENT_BOTH; }
+opchoice: NORMAL
+	| OPPOSITE
+	| BOTH
 	;
 
 
@@ -3697,12 +3798,12 @@ parmset_obs:
 axislabeldesc_obs:
 	linew_select { }
 	| opchoice_sel_obs {
-	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
+	    if ($1 == NORMAL || $1 == BOTH) {
                 quark_set_active(normlabel, TRUE);
             } else {
                 quark_set_active(normlabel, FALSE);
             }
-	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
+	    if ($1 == OPPOSITE || $1 == BOTH) {
                 quark_set_active(opplabel, TRUE);
             } else {
                 quark_set_active(opplabel, FALSE);
@@ -3756,8 +3857,17 @@ setprop_obs:
             }
 	}
 	| selectset ERRORBAR TYPE opchoice_obs {
-	    set *p = set_get_data($1);
-	    p->errbar.ptype = $4;
+            Dataset *dsp = set_get_dataset($1);
+	    switch ($4) {
+            case NORMAL:
+                break;
+            case OPPOSITE:
+                iswap(&dsp->cols[DATA_Y1], &dsp->cols[DATA_Y2]);
+                iswap(&dsp->cols[DATA_Y3], &dsp->cols[DATA_Y4]);
+                break;
+            case BOTH:
+                break;
+            }
 	}
 /*
  * 	| selectset SYMBOL COLOR '-' N_NUMBER {
@@ -3821,11 +3931,11 @@ tickattr_obs:
 	    curtm->tloc[$1].type = TICK_TYPE_MAJOR;
 	}
 	| opchoice_sel_obs {
-	    if ($1 == PLACEMENT_OPPOSITE) {
+	    if ($1 == OPPOSITE) {
                 axis_enable_ticks(normaxis, FALSE);
                 axis_enable_bar(normaxis, FALSE);
             }
-	    if ($1 == PLACEMENT_NORMAL) {
+	    if ($1 == NORMAL) {
                 axis_enable_ticks(oppaxis, FALSE);
                 axis_enable_bar(oppaxis, FALSE);
             }
@@ -3856,10 +3966,10 @@ ticklabelattr_obs:
 	| PLACE ON TICKSP { }
 	| PLACE BETWEEN TICKSP { }
 	| opchoice_sel_obs {
-	    if ($1 == PLACEMENT_OPPOSITE) {
+	    if ($1 == OPPOSITE) {
                 axis_enable_labels(normaxis, FALSE);
             }
-	    if ($1 == PLACEMENT_NORMAL) {
+	    if ($1 == NORMAL) {
                 axis_enable_labels(oppaxis, FALSE);
             }
 	}
@@ -3893,11 +4003,11 @@ opchoice_sel_obs: OP opchoice_obs
         }
         ;
 
-opchoice_obs: TOP { $$ = PLACEMENT_OPPOSITE; }
-	| BOTTOM { $$ = PLACEMENT_NORMAL; }
-	| LEFT { $$ = PLACEMENT_NORMAL; }
-	| RIGHT { $$ = PLACEMENT_OPPOSITE; }
-	| BOTH { $$ = PLACEMENT_BOTH; }
+opchoice_obs: TOP { $$ = OPPOSITE; }
+	| BOTTOM  { $$ = NORMAL; }
+	| LEFT    { $$ = NORMAL; }
+	| RIGHT   { $$ = OPPOSITE; }
+	| BOTH    { $$ = BOTH; }
 	;
 
 %%

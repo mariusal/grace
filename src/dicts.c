@@ -56,24 +56,15 @@ int grace_rt_init_dicts(RunTime *rt)
         {SET_BAD, "unknown", "Unknown"};
     const DictEntry set_type_entries[] = 
         {
-            {SET_XY,         "xy",         "XY"        },
-            {SET_XYDX,       "xydx",       "XYdX"      },
-            {SET_XYDY,       "xydy",       "XYdY"      },
-            {SET_XYDXDX,     "xydxdx",     "XYdXdX"    },
-            {SET_XYDYDY,     "xydydy",     "XYdYdY"    },
-            {SET_XYDXDY,     "xydxdy",     "XYdXdY"    },
-            {SET_XYDXDXDYDY, "xydxdxdydy", "XYdXdXdYdY"},
-            {SET_BAR,        "bar",        "Bar"       },
-            {SET_BARDY,      "bardy",      "BardY"     },
-            {SET_BARDYDY,    "bardydy",    "BardYdY"   },
-            {SET_XYHILO,     "xyhilo",     "XYHiLo"    },
-            {SET_XYZ,        "xyz",        "XYZ"       },
-            {SET_XYR,        "xyr",        "XYR"       },
-            {SET_XYSIZE,     "xysize",     "XYSize"    },
-            {SET_XYCOLOR,    "xycolor",    "XYColor"   },
-            {SET_XYCOLPAT,   "xycolpat",   "XYColPat"  },
-            {SET_XYVMAP,     "xyvmap",     "XYVMap"    },
-            {SET_BOXPLOT,    "boxplot",    "BoxPlot"   }
+            {SET_XY,         "xy",         "XY"      },
+            {SET_BAR,        "bar",        "Bar"     },
+            {SET_XYHILO,     "xyhilo",     "XYHiLo"  },
+            {SET_XYR,        "xyr",        "XYR"     },
+            {SET_XYSIZE,     "xysize",     "XYSize"  },
+            {SET_XYCOLOR,    "xycolor",    "XYColor" },
+            {SET_XYCOLPAT,   "xycolpat",   "XYColPat"},
+            {SET_XYVMAP,     "xyvmap",     "XYVMap"  },
+            {SET_BOXPLOT,    "boxplot",    "BoxPlot" }
         };
 
     const DictEntry object_type_defaults =
@@ -92,15 +83,6 @@ int grace_rt_init_dicts(RunTime *rt)
             {TICKS_IN,   VStrIn,   "In"  },
             {TICKS_OUT,  VStrOut,  "Out" },
             {TICKS_BOTH, VStrBoth, "Both"}
-        };
-
-    const DictEntry side_placement_defaults =
-        {PLACEMENT_NORMAL, VStrNormal, "Normal"};
-    const DictEntry side_placement_entries[] = 
-        {
-            {PLACEMENT_NORMAL,   VStrNormal,   "Normal"  },
-            {PLACEMENT_OPPOSITE, VStrOpposite, "Opposite"},
-            {PLACEMENT_BOTH,     VStrBoth,     "Both"    }
         };
 
     const DictEntry axis_position_defaults =
@@ -253,10 +235,6 @@ int grace_rt_init_dicts(RunTime *rt)
         DICT_NEW_STATIC(inout_placement_entries, &inout_placement_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->side_placement_dict =
-        DICT_NEW_STATIC(side_placement_entries, &side_placement_defaults))) {
-        return RETURN_FAILURE;
-    }
     if (!(rt->axis_position_dict =
         DICT_NEW_STATIC(axis_position_entries, &axis_position_defaults))) {
         return RETURN_FAILURE;
@@ -320,7 +298,6 @@ void grace_rt_free_dicts(RunTime *rt)
     dict_free(rt->set_type_dict);
     dict_free(rt->object_type_dict);
     dict_free(rt->inout_placement_dict);
-    dict_free(rt->side_placement_dict);
     dict_free(rt->axis_position_dict);
     dict_free(rt->spec_ticks_dict);
     dict_free(rt->region_type_dict);
@@ -432,24 +409,6 @@ int get_inout_placement_by_name(RunTime *rt, const char *name)
     int retval;
     
     dict_get_key_by_name(rt->inout_placement_dict, name, &retval);
-    
-    return retval;
-}
-
-char *side_placement_name(RunTime *rt, int it)
-{
-    char *s;
-    
-    dict_get_name_by_key(rt->side_placement_dict, it, &s);
-    
-    return s;
-}
-
-int get_side_placement_by_name(RunTime *rt, const char *name)
-{
-    int retval;
-    
-    dict_get_key_by_name(rt->side_placement_dict, name, &retval);
     
     return retval;
 }

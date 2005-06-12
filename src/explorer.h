@@ -192,7 +192,6 @@ typedef struct {
     TextStructure   *legend_str;
 
     Widget          errbar_active;
-    OptionStructure *errbar_ptype;
     Widget          errbar_pen;
     SpinStructure   *errbar_size;
     SpinStructure   *errbar_width;

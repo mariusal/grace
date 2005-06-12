@@ -366,23 +366,9 @@ static int project_postprocess_hook(Quark *q,
             s->errbar.active = TRUE;
             s->errbar.pen.color = s->sym.line.pen.color;
             s->errbar.pen.pattern = 1;
-            switch (s->errbar.ptype) {
-            case PLACEMENT_NORMAL:
-                s->errbar.ptype = PLACEMENT_OPPOSITE;
-                break;
-            case PLACEMENT_OPPOSITE:
-                s->errbar.ptype = PLACEMENT_NORMAL;
-                break;
-            case PLACEMENT_BOTH:
-                switch (s->type) {
-                case SET_XYDXDX:
-                case SET_XYDYDY:
-                case SET_BARDYDY:
-                    s->errbar.ptype = PLACEMENT_NORMAL;
-                    break;
-                }
-                break;
-            }
+            
+            iswap(&s->ds.cols[DATA_Y1], &s->ds.cols[DATA_Y2]);
+            iswap(&s->ds.cols[DATA_Y3], &s->ds.cols[DATA_Y4]);
         }
         if (version_id < 50002) {
             s->errbar.barsize *= 2;
@@ -392,8 +378,6 @@ static int project_postprocess_hook(Quark *q,
             /* Starting with 5.1.7, symskip is honored for all set types */
             switch (s->type) {
             case SET_BAR:
-            case SET_BARDY:
-            case SET_BARDYDY:
             case SET_XYHILO:
             case SET_XYR:
             case SET_XYVMAP:

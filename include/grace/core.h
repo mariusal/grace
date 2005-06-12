@@ -432,13 +432,6 @@ typedef struct {
 } graph;
 
 
-/* Placement (error bars) */
-typedef enum {
-    PLACEMENT_NORMAL,
-    PLACEMENT_OPPOSITE,
-    PLACEMENT_BOTH
-} PlacementType;
-
 typedef struct {
     int type;
     double wtpos;
@@ -525,24 +518,15 @@ typedef struct {
 
 /* Set types */
 typedef enum {
-    SET_XY        ,
-    SET_XYDX      ,
-    SET_XYDY      ,
-    SET_XYDXDX    ,
-    SET_XYDYDY    ,
-    SET_XYDXDY    ,
-    SET_XYDXDXDYDY,
-    SET_BAR       ,
-    SET_BARDY     ,
-    SET_BARDYDY   ,
-    SET_XYHILO    ,
-    SET_XYZ       ,
-    SET_XYR       ,
-    SET_XYSIZE    ,
-    SET_XYCOLOR   ,
-    SET_XYCOLPAT  ,
-    SET_XYVMAP    ,
-    SET_BOXPLOT   ,
+    SET_XY      ,
+    SET_BAR     ,
+    SET_XYHILO  ,
+    SET_XYR     ,
+    SET_XYSIZE  ,
+    SET_XYCOLOR ,
+    SET_XYCOLPAT,
+    SET_XYVMAP  ,
+    SET_BOXPLOT ,
     SET_BAD
 } SetType;
 #define NUMBER_OF_SETTYPES  SET_BAD
@@ -605,7 +589,6 @@ typedef struct {
 
 typedef struct {
     int active;          /* on/off */
-    PlacementType ptype; /* placement type */
     Pen pen;             /* pen */
     double linew;        /* error bar line width */
     int lines;           /* error bar line style */
