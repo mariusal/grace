@@ -482,7 +482,11 @@ int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
     } else {
         int wpp_old, hpp_old;
         Project *pr = project_get_data(grace->project);
-	wpp_old = pr->page_wpp;
+	if (!pr) {
+            return RETURN_FAILURE;
+        }
+        
+        wpp_old = pr->page_wpp;
 	hpp_old = pr->page_hpp;
         
         pr->page_wpp = wpp;
