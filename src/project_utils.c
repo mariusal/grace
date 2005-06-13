@@ -231,7 +231,7 @@ static int project_postprocess_hook(Quark *q,
         }
 
         if (version_id < 40005) {
-            set_page_dimensions(grace_from_quark(q), 792, 612, FALSE);
+            project_set_page_dimensions(q, 792, 612);
         }
 
         if (version_id < 50002) {
