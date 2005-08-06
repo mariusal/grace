@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<parser ns="#GRACE_NS_URI">
+<parser ns="#GRACE_NS_URI" prefix="xgr">
     <!-- Preamble -->
     <preamble><![CDATA[
 #include <stdio.h>
@@ -2058,6 +2058,32 @@ char *utf2iso(const char *s)
 
     <!-- Postamble -->
     <postamble><![CDATA[
+
+static int exception_handler(int ierrno,
+    const char *entity, const char *context, void *udata)
+{
+    int handled = 0;
+    
+    switch (ierrno) {
+    case XCC_ECNTX:
+        xcc_error("unexpected \"%s\" in the context of \"%s\"", entity, context ? context:"xml");
+        break;
+    case XCC_EATTR:
+        handled = 1;
+        xcc_error("unknown attribute \"%s\" of element \"%s\"", entity, context);
+        break;
+    case XCC_EELEM:
+        xcc_error("unknown element \"%s\" appeared in context of \"%s\"", entity, context);
+        break;
+    case XCC_EINTR:
+        xcc_error("internal error");
+        break;
+    }
+    
+    return handled;
+}
+
+
 Quark *load_xgr_project(Grace *grace, char *fn)
 {
     ParserData udata;
@@ -2076,7 +2102,7 @@ Quark *load_xgr_project(Grace *grace, char *fn)
     udata.nrow  = -1;
     udata.ncol  = -1;
     
-    ret = xcc_parse(fp, &udata, &p, xcc_start_handler, xcc_end_handler);
+    ret = xgr_parse(fp, &p, &udata, exception_handler);
     project = p;
 
     grace_close(fp);
