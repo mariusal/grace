@@ -1067,11 +1067,16 @@ int save_project(Quark *project, char *fn)
     }
     
     fp = grace_openw(grace_from_quark(project), fn);
+    if (!fp) {
+        return RETURN_FAILURE;
+    }
+    
     gui->noask = noask_save;
     xf = xfile_new(fp);
     attrs = attributes_new();
     
     if (xf == NULL || attrs == NULL) {
+        grace_close(fp);
         return RETURN_FAILURE;
     }
     
@@ -1092,5 +1097,6 @@ int save_project(Quark *project, char *fn)
 
     quark_dirtystate_set(project, FALSE);
     
+    grace_close(fp);
     return RETURN_SUCCESS;
 }

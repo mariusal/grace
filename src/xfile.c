@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000-2002 Grace Development Team
+ * Copyright (c) 2000-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -35,9 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "defines.h"
 #include "utils.h"
-#include "files.h"
 #include "xfile.h"
 
 
@@ -290,9 +288,6 @@ void xfile_free(XFile *xf)
     if (xf) {
         xstack_free(xf->tree);
         xfree(xf->indstr);
-        if (xf->fp) {
-            grace_close(xf->fp);
-        }
         xfree(xf);
     }
 }
