@@ -753,8 +753,7 @@ char *utf2iso(const char *s)
             project_set_description($$, $?->s);
             xcc_string_free($?);
         </child>
-        <child name="#EStrDefinitions">
-        </child>
+        <child name="#EStrDefinitions"/>
         <child name="#EStrPage">
             Project *pr  = project_get_data($$);
             pr->page_wpp = $?->width;
@@ -763,23 +762,16 @@ char *utf2iso(const char *s)
             pr->bgcolor  = $?->bgcolor;
             xfree($?);
         </child>
-        <child name="#EStrDataFormats">
-        </child>
-        <child name="#EStrFrame">
-        </child>
-        <child name="#EStrObject">
-        </child>
-        <child name="#EStrAText">
-        </child>
+        <child name="#EStrDataFormats"/>
+        <child name="#EStrFrame"/>
+        <child name="#EStrObject"/>
+        <child name="#EStrAText"/>
     </element>
     <element name="#EStrDefinitions" type="dummy">
         <!-- Child elements -->
-        <child name="#EStrColormap">
-        </child>
-        <child name="#EStrFontmap">
-        </child>
-        <child name="#EStrScales">
-        </child>
+        <child name="#EStrColormap"/>
+        <child name="#EStrFontmap"/>
+        <child name="#EStrScales"/>
     </element>
     <element name="#EStrColormap" type="dummy">
         <!-- Child elements -->
@@ -853,10 +845,8 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrDataFormats" type="dummy">
         <!-- Child elements -->
-        <child name="#EStrDates">
-        </child>
-        <child name="#EStrWorld">
-        </child>
+        <child name="#EStrDates"/>
+        <child name="#EStrWorld"/>
     </element>
     <element name="#EStrFaceSpec" type="facespec">
         <!-- Attributes -->
@@ -924,8 +914,7 @@ char *utf2iso(const char *s)
             frame_set_view($$, $?);
             xfree($?);
         </child>
-        <child name="#EStrLegend">
-        </child>
+        <child name="#EStrLegend"/>
         <child name="#EStrLineSpec">
             frame_set_outline($$, $?);
             xfree($?);
@@ -934,12 +923,9 @@ char *utf2iso(const char *s)
             frame_set_fillpen($$, $?);
             xfree($?);
         </child>
-        <child name="#EStrGraph">
-        </child>
-        <child name="#EStrObject">
-        </child>
-        <child name="#EStrAText">
-        </child>
+        <child name="#EStrGraph"/>
+        <child name="#EStrObject"/>
+        <child name="#EStrAText"/>
     </element>
     <element name="#EStrGraph" type="graph">
         <!-- Attributes -->
@@ -986,16 +972,11 @@ char *utf2iso(const char *s)
             graph_set_locator($$, $?);
             xfree($?);
         </child>
-        <child name="#EStrSSD">
-        </child>
-        <child name="#EStrAGrid">
-        </child>
-        <child name="#EStrObject">
-        </child>
-        <child name="#EStrAText">
-        </child>
-        <child name="#EStrRegion">
-        </child>
+        <child name="#EStrSSD"/>
+        <child name="#EStrAGrid"/>
+        <child name="#EStrObject"/>
+        <child name="#EStrAText"/>
+        <child name="#EStrRegion"/>
     </element>
     <element name="#EStrPresentationSpec" type="presentationspec">
         <!-- Attributes -->
@@ -1319,8 +1300,7 @@ char *utf2iso(const char *s)
             t->tl_appstr    = amem_strdup(amem, $?->append);
             tlabels_free($?);
         </child>
-        <child name="#EStrAxis">
-        </child>
+        <child name="#EStrAxis"/>
     </element>
     <element name="#EStrMajorGridlines" type="gridprops">
         <!-- Attributes -->
@@ -1476,8 +1456,7 @@ char *utf2iso(const char *s)
             axis_enable_labels($$, $?);
         </attribute>
         <!-- Child elements -->
-        <child name="#EStrAText">
-        </child>
+        <child name="#EStrAText"/>
     </element>
     <element name="#EStrFormat" type="format">
         <!-- Attributes -->
@@ -1713,12 +1692,9 @@ char *utf2iso(const char *s)
             ssd_set_indexed($$, $?);
         </attribute>
         <!-- Child elements -->
-        <child name="#EStrDcolumn">
-        </child>
-        <child name="#EStrScolumn">
-        </child>
-        <child name="#EStrSet">
-        </child>
+        <child name="#EStrDcolumn"/>
+        <child name="#EStrScolumn"/>
+        <child name="#EStrSet"/>
     </element>
     <element name="#EStrScolumn" type="scolumn">
         <!-- Attributes -->
