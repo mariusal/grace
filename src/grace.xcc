@@ -570,8 +570,8 @@ char *utf2iso(const char *s)
     <element-type name="page" ctype="Page *"><![CDATA[
         $$ = page_new();
     ]]></element-type>
-    <element-type name="string" ctype="XCCString *"><![CDATA[
-        $$ = xcc_string_new();
+    <element-type name="string" ctype="char **"><![CDATA[
+        $$ = xmalloc(sizeof(char *));
     ]]></element-type>
     <element-type name="pen" ctype="Pen *"><![CDATA[
         $$ = xmalloc(sizeof(Pen));
@@ -750,8 +750,9 @@ char *utf2iso(const char *s)
 
         <!-- Child elements -->
         <child name="#EStrDescription">
-            project_set_description($$, $?->s);
-            xcc_string_free($?);
+            project_set_description($$, *$?);
+            xfree(*$?);
+            xfree($?);
         </child>
         <child name="#EStrDefinitions"/>
         <child name="#EStrPage">
@@ -839,8 +840,8 @@ char *utf2iso(const char *s)
     <element name="#EStrDescription" type="string">
         <!-- Child elements -->
         <child name="#EStrText">
-            xcc_string_set($$, $?->s);
-            xcc_string_free($?);
+            *$$ = *$?;
+            xfree($?);
         </child>
     </element>
     <element name="#EStrDataFormats" type="dummy">
@@ -882,10 +883,7 @@ char *utf2iso(const char *s)
     <element name="#EStrText" type="string">
         <!-- Character data -->
         <data>
-            char *s;
-            s = utf2iso($?);
-            xcc_string_set($$, s);
-            xfree(s);
+            *$$ = utf2iso($?);
         </data>
     </element>
     <element name="#EStrFillSpec" type="pen">
@@ -1600,8 +1598,9 @@ char *utf2iso(const char *s)
             xfree($?);
         ]]></child>
         <child name="#EStrText">
-            atext_set_string($$, $?->s);
-            xcc_string_free($?);
+            atext_set_string($$, *$?);
+            xfree(*$?);
+            xfree($?);
         </child>
         <child name="#EStrTextProperties">
             atext_set_tprops($$, $?);
@@ -1773,8 +1772,9 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrLegendEntry">
-            set_set_legstr($$, $?->s);
-            xcc_string_free($?);
+            set_set_legstr($$, *$?);
+            xfree(*$?);
+            xfree($?);
         </child>
         <child name="#EStrDataset">
             set_set_dataset($$, $?);
@@ -1969,8 +1969,8 @@ char *utf2iso(const char *s)
     <element name="#EStrLegendEntry" type="string">
         <!-- Child elements -->
         <child name="#EStrText">
-            xcc_string_set($$, $?->s);
-            xcc_string_free($?);
+            *$$ = *$?;
+            xfree($?);
         </child>
     </element>
     <element name="#EStrDataset" type="dataset">
