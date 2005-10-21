@@ -390,7 +390,7 @@ void errmsg(const char *buf)
 #ifdef NONE_GUI
     fprintf(stderr, "%s\n", buf);
 #else
-    if (grace->gui->inwin) {
+    if (grace && grace->gui && grace->gui->inwin) {
         errwin(buf);
     } else {
         fprintf(stderr, "%s\n", buf);
