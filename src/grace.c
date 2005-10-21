@@ -292,6 +292,10 @@ void runtime_free(RunTime *rt)
 {
     int i;
     
+    if (!rt) {
+        return;
+    }
+    
     for (i = 0; i < rt->num_print_dests; i++) {
         PrintDest *pd = &rt->print_dests[i];
         int j;
@@ -596,11 +600,16 @@ int grace_init_print(RunTime *rt)
     cups_dest_t *dests;
     
     rt->print_dest = 0;
-    rt->num_print_dests = cupsGetDests(&dests);
-    rt->print_dests = xcalloc(rt->num_print_dests, sizeof(PrintDest));
     
-    if (rt->print_dests == NULL) {
-        return RETURN_FAILURE;
+    rt->num_print_dests = cupsGetDests(&dests);
+    if (!rt->num_print_dests) {
+        /* no CUPS printers defined or CUPS not running */
+        rt->use_cups = FALSE;
+    } else {
+        rt->print_dests = xcalloc(rt->num_print_dests, sizeof(PrintDest));
+        if (rt->print_dests == NULL) {
+            return RETURN_FAILURE;
+        }
     }
     
     for (i = 0; i < rt->num_print_dests; i++) {
