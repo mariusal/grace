@@ -125,7 +125,7 @@ void create_fonttool(Widget cstext)
     if (fonttool_frame == NULL) {
 	fonttool_frame = XmCreateDialogShell(app_shell, "Font tool", NULL, 0);
 	handle_close(fonttool_frame);
-        fonttool_panel = XtVaCreateWidget("fonttool_panel", xmFormWidgetClass, 
+        fonttool_panel = XtCreateWidget("fonttool_panel", xmFormWidgetClass, 
                                         fonttool_frame, NULL, 0);
 
         font_select_item = CreateFontChoice(fonttool_panel, "Font:");
