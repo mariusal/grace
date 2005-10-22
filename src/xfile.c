@@ -72,6 +72,7 @@ void xstack_free(XStack *xs)
             xfree(xs->entries[xs->depth].name);
         }
         
+        xfree(xs->entries);
         xfree(xs);
     }
 }
@@ -288,6 +289,8 @@ void xfile_free(XFile *xf)
     if (xf) {
         xstack_free(xf->tree);
         xfree(xf->indstr);
+        xfree(xf->ns_prefix);
+        xfree(xf->ns_uri);
         xfree(xf);
     }
 }
