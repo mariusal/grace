@@ -1228,6 +1228,10 @@ void drawsethilo(Quark *pset, plot_rt_t *plot_rt)
     int skip = p->symskip + 1;
     WPoint wp;
     VPoint vp1, vp2, vprev;
+    
+    if (!x || !y1 || !y2 || !y3 || !y4) {
+        return;
+    }
 
     if (p->sym.line.style != 0) {
         setline(canvas, &p->sym.line);
