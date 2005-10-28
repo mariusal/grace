@@ -84,7 +84,7 @@ void drawgrid(int gno)
     world w;
     view v;
     double wtpos;
-    WPoint wp_grid_start, wp_grid_stop;
+    WPoint wp_grid_start = {0.0, 0.0}, wp_grid_stop = {0.0, 0.0};
     VPoint vp_grid_start, vp_grid_stop;
     VPoint vpc, vp1, vp2;
     double phi_start, phi_stop, rho;
