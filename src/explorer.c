@@ -725,7 +725,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             qnew = graph_new(q);
             break;
         case ADD_SSD_CB:
-            qnew = ssd_new(q);
+            qnew = grace_ssd_new(q);
             break;
         case ADD_SET_CB:
             qnew = grace_set_new(q);

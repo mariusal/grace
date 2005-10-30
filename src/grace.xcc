@@ -596,7 +596,7 @@ char *utf2iso(const char *s)
         $$ = facespec_new();
     ]]></element-type>
     <element-type name="ssd" ctype="Quark *"><![CDATA[
-        $$ = ssd_new($P);
+        $$ = grace_ssd_new($P);
         ((ParserData *) $U)->ss = $$;
         ((ParserData *) $U)->ncol = -1;
     ]]></element-type>

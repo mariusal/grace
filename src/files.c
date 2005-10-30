@@ -807,7 +807,7 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
     
     breakon = TRUE;
     
-    q = ssd_new(pr);
+    q = grace_ssd_new(pr);
     if (!q) {
         return RETURN_FAILURE;
     }
@@ -838,7 +838,7 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
                     return RETURN_FAILURE;
                 }
                 
-                q = ssd_new(pr);
+                q = grace_ssd_new(pr);
                 quark_idstr_set(q, label);
 
                 /* reset state registers */

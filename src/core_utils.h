@@ -97,6 +97,8 @@ Quark *grace_set_new(Quark *gr);
 
 int copysetdata(Quark *psrc, Quark *pdest);
 
+Quark *grace_ssd_new(Quark *parent);
+
 void project_postprocess(Quark *pr);
 int project_get_viewport(const Quark *project, double *vx, double *vy);
 
