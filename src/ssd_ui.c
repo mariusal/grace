@@ -50,7 +50,7 @@
 #define EXTRA_SS_ROWS      20
 #define EXTRA_SS_COLS       3
 
-#define VISIBLE_SS_ROWS  15
+#define VISIBLE_SS_ROWS  18
 #define VISIBLE_SS_COLS   3
 
 static int do_hotlinkfile_proc(FSBStructure *fsb, char *filename, void *data)
@@ -406,6 +406,9 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
         XmNgridType, XmGRID_CELL_SHADOW,
         XmNcellShadowType, XmSHADOW_ETCHED_OUT,
         XmNcellShadowThickness, 1,
+        XmNcellMarginHeight, 1,
+        XmNcellMarginWidth, 1,
+        XmNshadowThickness, 1,
         XmNaltRowCount, 0,
         XmNcalcCursorPosition, True,
         XmNtraverseFixedCells, True,
