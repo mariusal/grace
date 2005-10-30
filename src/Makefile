@@ -15,6 +15,8 @@ GRACEGUI=xmgrace$(PROG_SUFFIX)$(EXE)
 GRACECLI=grace$(PROG_SUFFIX)$(EXE)
 GRACEBAT=gracebat$(PROG_SUFFIX)$(EXE)
 
+SCHEMA=grace.xsd
+
 CEPHES_LIB=$(TOP)/cephes/libcephes.a
 
 CFLAGS=$(CFLAGS0) -I$(TOP)/include -I$(TOP)/cephes -I. \
@@ -32,7 +34,7 @@ PREFS=-DMAJOR_REV=$(MAJOR_REV) -DMINOR_REV=$(MINOR_REV) \
 	-DGRACE_EDITOR=\"$(GRACE_EDITOR)\" $(HELPVIEWER) \
 	-DCCOMPILER=\"'$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS)'\" 
 
-all : $(GRACE)
+all : $(GRACE) $(SCHEMA)
 
 
 include Make.common
@@ -73,6 +75,9 @@ $(PARS_C) : $(PARS_Y)
 xml_in.c : grace.xcc
 	$(RM) t.c
 	$(XCC) -b -i $? -o t.c && mv t.c $@
+
+$(SCHEMA) : grace.xcc xstrings.h
+	$(XCC) -s -i $? | cpp -P -nostdinc -imacros xstrings.h > $@
 
 install : $(GRACE)
 	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/bin
