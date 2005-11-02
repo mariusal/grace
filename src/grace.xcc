@@ -912,7 +912,6 @@ char *utf2iso(const char *s)
             frame_set_view($$, $?);
             xfree($?);
         </child>
-        <child name="#EStrLegend" minOccurs="1" maxOccurs="1"/>
         <child name="#EStrLineSpec" minOccurs="1" maxOccurs="1">
             frame_set_outline($$, $?);
             xfree($?);
@@ -921,6 +920,7 @@ char *utf2iso(const char *s)
             frame_set_fillpen($$, $?);
             xfree($?);
         </child>
+        <child name="#EStrLegend" minOccurs="1" maxOccurs="1"/>
         <child name="#EStrGraph" minOccurs="0" maxOccurs="unbounded"/>
         <child name="#EStrObject" minOccurs="0" maxOccurs="unbounded"/>
         <child name="#EStrAText" minOccurs="0" maxOccurs="unbounded"/>
@@ -1237,13 +1237,6 @@ char *utf2iso(const char *s)
         </attribute>
 
         <!-- Child elements -->
-        <child name="#EStrAxisbar" minOccurs="1" maxOccurs="1">
-            tickmarks *t = axisgrid_get_data($$);
-            if (t) {
-                t->bar = $?->line;
-            }
-            xfree($?);
-        </child>
         <child name="#EStrMajorGridlines" minOccurs="1" maxOccurs="1">
             tickmarks *t = axisgrid_get_data($$);
             if (t) {
@@ -1270,6 +1263,13 @@ char *utf2iso(const char *s)
             }
             xfree($?);
         ]]></child>
+        <child name="#EStrAxisbar" minOccurs="1" maxOccurs="1">
+            tickmarks *t = axisgrid_get_data($$);
+            if (t) {
+                t->bar = $?->line;
+            }
+            xfree($?);
+        </child>
         <child name="#EStrMajorTickmarks" minOccurs="1" maxOccurs="1">
             tickmarks *t = axisgrid_get_data($$);
             t->props = *($?);
@@ -1597,13 +1597,13 @@ char *utf2iso(const char *s)
             atext_set_ap($$, &($?->ap));
             xfree($?);
         ]]></child>
+        <child name="#EStrTextProperties" minOccurs="1" maxOccurs="1">
+            atext_set_tprops($$, $?);
+            xfree($?);
+        </child>
         <child name="#EStrText" minOccurs="1" maxOccurs="1">
             atext_set_string($$, *$?);
             xfree(*$?);
-            xfree($?);
-        </child>
-        <child name="#EStrTextProperties" minOccurs="1" maxOccurs="1">
-            atext_set_tprops($$, $?);
             xfree($?);
         </child>
         <child name="#EStrTextFrame" minOccurs="1" maxOccurs="1"><![CDATA[
@@ -1755,6 +1755,10 @@ char *utf2iso(const char *s)
         </attribute>
         
         <!-- Child elements -->
+        <child name="#EStrDataset" minOccurs="1" maxOccurs="1">
+            set_set_dataset($$, $?);
+            dataset_free(quark_get_amem($$), $?);
+        </child>
         <child name="#EStrSymbol" minOccurs="1" maxOccurs="1">
             set_set_symbol($$, $?);
             xfree($?);
@@ -1775,10 +1779,6 @@ char *utf2iso(const char *s)
             set_set_legstr($$, *$?);
             xfree(*$?);
             xfree($?);
-        </child>
-        <child name="#EStrDataset" minOccurs="1" maxOccurs="1">
-            set_set_dataset($$, $?);
-            dataset_free(quark_get_amem($$), $?);
         </child>
     </element>
     <element name="#EStrSymbol" type="symbol">

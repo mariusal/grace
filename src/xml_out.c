@@ -332,13 +332,6 @@ int save_axisgrid_properties(XFile *xf, Quark *q)
     }
     xfile_end_element(xf, EStrMinorGridlines);
 
-    attributes_reset(attrs);
-    xfile_begin_element(xf, EStrAxisbar, attrs);
-    {
-        xmlio_write_line_spec(xf, attrs, &t->bar);
-    }
-    xfile_end_element(xf, EStrAxisbar);
-
     s = spec_tick_name(rt, t->t_spec);
 
     attributes_reset(attrs);
@@ -363,6 +356,13 @@ int save_axisgrid_properties(XFile *xf, Quark *q)
         }
         xfile_end_element(xf, EStrUserticks);
     }
+
+    attributes_reset(attrs);
+    xfile_begin_element(xf, EStrAxisbar, attrs);
+    {
+        xmlio_write_line_spec(xf, attrs, &t->bar);
+    }
+    xfile_end_element(xf, EStrAxisbar);
 
     attributes_reset(attrs);
     attributes_set_dval(attrs, AStrSize, t->props.size);
@@ -425,11 +425,6 @@ int save_frame_properties(XFile *xf, frame *f)
         return RETURN_FAILURE;
     }
 
-    /* Frame */
-    attributes_reset(attrs);
-    xmlio_write_line_spec(xf, attrs, &f->outline);
-    xmlio_write_fill_spec(xf, attrs, &f->fillpen);
-    
     /* Viewport */
     attributes_reset(attrs);
     attributes_set_dval(attrs, AStrXmin, f->v.xv1);
@@ -438,6 +433,11 @@ int save_frame_properties(XFile *xf, frame *f)
     attributes_set_dval(attrs, AStrYmax, f->v.yv2);
     xfile_empty_element(xf, EStrViewport, attrs);
 
+    /* Frame outline */
+    attributes_reset(attrs);
+    xmlio_write_line_spec(xf, attrs, &f->outline);
+    xmlio_write_fill_spec(xf, attrs, &f->fillpen);
+    
     /* Legend */
     attributes_reset(attrs);
     xmlio_set_active(attrs, f->l.active);
