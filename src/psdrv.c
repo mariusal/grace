@@ -399,7 +399,12 @@ static int ps_initgraphics(int format)
             fprintf(prstream, "%%%%EndFeature\n");
         }
     }
-    
+    fprintf(prstream, "%%%%EndSetup\n");
+
+    if (curformat == PS_FORMAT) {
+        fprintf(prstream, "%%%%Page: 1 1\n");
+    }
+
     /* compensate for printer page offsets */
     if (curformat == PS_FORMAT) {
         fprintf(prstream, "PAGE_OFFSET_X PAGE_OFFSET_Y translate\n");
@@ -410,12 +415,6 @@ static int ps_initgraphics(int format)
         fprintf(prstream, "90 rotate\n");
         fprintf(prstream, "0.0 -1.0 translate\n");
     }
-    fprintf(prstream, "%%%%EndSetup\n");
-
-    if (curformat == PS_FORMAT) {
-        fprintf(prstream, "%%%%Page: 1 1\n");
-    }
-
     return RETURN_SUCCESS;
 }
 
