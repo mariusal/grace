@@ -83,14 +83,14 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
     dlflag = 1;
 #  endif
     
-    handle = (void *) dlopen (fname, dlflag);
+    handle = dlopen(fname, dlflag);
     if (!handle) {
-        errmsg ((char *) dlerror());
+        errmsg(dlerror());
         return RETURN_FAILURE;
     }
     
     newkey.data = dlsym(handle, dl_function);
-    if ((error = (char *) dlerror()) != NULL) {
+    if (!newkey.data && (error = dlerror()) != NULL) {
         errmsg(error);
         dlclose(handle);
         return RETURN_FAILURE;
