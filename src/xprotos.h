@@ -177,7 +177,7 @@ void set_title(char *ts);
 void set_pagelayout(int layout);
 int get_pagelayout(void);
 
-void errwin(char *s);
+void errwin(const char *s);
 
 void create_datasetprop_popup(void *data);
 void create_datasetop_popup(void *data);

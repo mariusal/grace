@@ -99,7 +99,7 @@ void set_docname(const char *s);
 char *get_docname(void);
 char *get_docbname(void);
 
-void errmsg(char *msg);
+void errmsg(const char *msg);
 void echomsg(char *msg);
 void stufftext(char *msg);
 

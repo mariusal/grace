@@ -1053,7 +1053,7 @@ void set_docname(const char *s)
 }
 
 
-void errmsg(char *buf)
+void errmsg(const char *buf)
 {
 #ifdef NONE_GUI
     fprintf(stderr, "%s\n", buf);
