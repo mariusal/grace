@@ -63,7 +63,7 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
 
     int dlflag;
     void *handle;
-    char *error;
+    const char *error;
     symtab_entry newkey;
     int retval;
     
