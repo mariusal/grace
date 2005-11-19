@@ -598,11 +598,11 @@ void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
     
 /*
  *  in most real cases, all points of a set are inside the viewport;
- *  so we check it prior to going into compilated clipping mode
+ *  so we check it prior to going into complicated clipping mode
  */
     if (canvas->clipflag && !all_points_inside(&canvas->clipview, vps, n)) {
         
-        vpsc = (VPoint *) xmalloc((nmax)*sizeof(VPoint));
+        vpsc = xmalloc((nmax)*sizeof(VPoint));
         if (vpsc == NULL) {
             errmsg("xmalloc() failed in DrawPolyline()");
             return;
@@ -1222,12 +1222,14 @@ static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
     double eps;
     VPoint vptmp;
     
-    if (n <= *np) {
-        memmove(pvps, vps, n*sizeof(VPoint));
-    }
-    
     if (*np <= 0) {
         *np = 0;
+        return;
+    }
+    
+    if (n <= *np) {
+        memmove(pvps, vps, n*sizeof(VPoint));
+        *np = n;
         return;
     }
     
@@ -1238,7 +1240,7 @@ static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
     while (ok == FALSE) {
         j = 0;
         vptmp = vps[0];
-        for (i = 0; i < n - 1; i++) {
+        for (i = 1; i < n; i++) {
             if (fabs(vps[i].x - vptmp.x) > eps ||
                 fabs(vps[i].y - vptmp.y) > eps) {
                 vptmp = vps[i];
@@ -1256,18 +1258,17 @@ static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
         iter++;
     }
 
-    /* actually fill the purged array */
+    /* actually fill in the purged array */
     pvps[0] = vps[0];
     j = 0;
-    for (i = 0; i < n - 1; i++) {
+    for (i = 1; i < n; i++) {
         if (fabs(vps[i].x - pvps[j].x) > eps ||
             fabs(vps[i].y - pvps[j].y) > eps) {
             pvps[++j] = vps[i];
         }
     }
-    pvps[j++] = vps[n - 1];
     
-    *np = j;
+    *np = j + 1;
 #if 0
     printf("Purging %d points to %d in %d iteration(s)\n", n, *np, iter);
 #endif
