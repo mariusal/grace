@@ -2249,6 +2249,7 @@ void draw_legends(Quark *q, plot_rt_t *plot_rt)
     set_draw_mode(canvas, TRUE);
 
     if (!nleg_entries) {
+        xfree(leg_entries);
         return;
     }
     
