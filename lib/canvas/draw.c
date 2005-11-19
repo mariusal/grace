@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -1213,6 +1213,7 @@ int clip_line(const Canvas *canvas,
 
 #define PURGE_INIT_FACTOR   1.0
 #define PURGE_ITER_FACTOR   M_SQRT2
+#define PURGE_EPS_WORST     0.01
 
 /* Note: vps and pvps may be the same array! */
 static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
@@ -1256,6 +1257,10 @@ static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
             eps *= PURGE_ITER_FACTOR;
         }
         iter++;
+    }
+    
+    if (eps > PURGE_EPS_WORST) {
+        errmsg("Purging failed. Increase 'Max drawing path length' in prefs.");
     }
 
     /* actually fill in the purged array */
