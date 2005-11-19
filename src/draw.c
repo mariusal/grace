@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -388,11 +388,11 @@ void DrawPolyline(VPoint *vps, int n, int mode)
     
 /*
  *  in most real cases, all points of a set are inside the viewport;
- *  so we check it prior to going into compilated clipping mode
+ *  so we check it prior to going into complicated clipping mode
  */
     if (doclipping() && !all_points_inside(vps, n)) {
         
-        vpsc = (VPoint *) xmalloc((nmax)*sizeof(VPoint));
+        vpsc = xmalloc((nmax)*sizeof(VPoint));
         if (vpsc == NULL) {
             errmsg ("xmalloc() failed in DrawPolyline()");
             return;
@@ -1946,6 +1946,7 @@ int get_max_path_limit(void)
 
 #define PURGE_INIT_FACTOR   1.0
 #define PURGE_ITER_FACTOR   M_SQRT2
+#define PURGE_EPS_WORST     0.01
 
 /* Note: vps and pvps may be the same array! */
 static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
@@ -1955,12 +1956,14 @@ static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
     double eps;
     VPoint vptmp;
     
-    if (n <= *np) {
-        memmove(pvps, vps, n*sizeof(VPoint));
-    }
-    
     if (*np <= 0) {
         *np = 0;
+        return;
+    }
+    
+    if (n <= *np) {
+        memmove(pvps, vps, n*sizeof(VPoint));
+        *np = n;
         return;
     }
     
@@ -1971,7 +1974,7 @@ static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
     while (ok == FALSE) {
         j = 0;
         vptmp = vps[0];
-        for (i = 0; i < n - 1; i++) {
+        for (i = 1; i < n; i++) {
             if (fabs(vps[i].x - vptmp.x) > eps ||
                 fabs(vps[i].y - vptmp.y) > eps) {
                 vptmp = vps[i];
@@ -1989,18 +1992,21 @@ static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
         iter++;
     }
 
-    /* actually fill the purged array */
+    if (eps > PURGE_EPS_WORST) {
+        errmsg("Purging failed. Increase 'Max drawing path length' in prefs.");
+    }
+
+    /* actually fill in the purged array */
     pvps[0] = vps[0];
     j = 0;
-    for (i = 0; i < n - 1; i++) {
+    for (i = 1; i < n; i++) {
         if (fabs(vps[i].x - pvps[j].x) > eps ||
             fabs(vps[i].y - pvps[j].y) > eps) {
             pvps[++j] = vps[i];
         }
     }
-    pvps[j++] = vps[n - 1];
     
-    *np = j;
+    *np = j + 1;
 #ifdef DEBUG    
     if (get_debuglevel() == 6) {
         printf("Purging %d points to %d in %d iteration(s)\n", n, *np, iter);
