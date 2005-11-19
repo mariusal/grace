@@ -59,7 +59,7 @@
     <viewport xmin="0.15" xmax="1.25" ymin="0.15" ymax="0.85"/>
     <legend active="yes" length="0.04" vgap="0.01" hgap="0.01" single-symbol="no" invert="no">
       <face-spec font-id="0" color-id="1" char-size="1"/>
-      <legframe anchor="(1, 1)" offset="(-0.05, -0.05)" justification="9">
+      <legframe anchor="(1, 1)" offset="(-0.05, -0.05)" hjust="right" vjust="top">
         <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         <fill-spec color-id="0" pattern-id="1"/>
       </legframe>
@@ -92,7 +92,7 @@
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </minor-tickmarks>
         <ticklabels transform="" prepend="" append="" offset="(0, 0.01)" skip="0" stagger="0" start="auto" stop="auto">
-          <text-properties angle="0" justification="0">
+          <text-properties angle="0" hjust="left" vjust="baseline">
             <face-spec font-id="0" color-id="1" char-size="1"/>
           </text-properties>
           <format format="general" prec="5"/>
@@ -100,7 +100,7 @@
         <axis id="normal" active="yes" position="normal" offset="0" bar="yes" ticks="yes" labels="yes">
           <atext id="label" active="no" offset="(0, -0.01)">
             <location x="0.5" y="0"/>
-            <text-properties angle="0" justification="10">
+            <text-properties angle="0" hjust="left" vjust="baseline">
               <face-spec font-id="0" color-id="1" char-size="1"/>
             </text-properties>
             <text><![CDATA[X label]]></text>
@@ -134,7 +134,7 @@
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </minor-tickmarks>
         <ticklabels transform="" prepend="" append="" offset="(0, 0.01)" skip="0" stagger="0" start="auto" stop="auto">
-          <text-properties angle="0" justification="0">
+          <text-properties angle="0" hjust="left" vjust="baseline">
             <face-spec font-id="0" color-id="1" char-size="1"/>
           </text-properties>
           <format format="general" prec="5"/>
@@ -142,7 +142,7 @@
         <axis id="normal" active="yes" position="normal" offset="0" bar="yes" ticks="yes" labels="yes">
           <atext id="label" active="no" offset="(-0.01, 0)">
             <location x="0" y="0.5"/>
-            <text-properties angle="90" justification="13">
+            <text-properties angle="90" hjust="left" vjust="baseline">
               <face-spec font-id="0" color-id="1" char-size="1"/>
             </text-properties>
             <text><![CDATA[Y label]]></text>
@@ -161,7 +161,7 @@
     </graph>
     <atext id="title" active="no" offset="(0, 0.06)">
       <location x="0.5" y="1"/>
-      <text-properties angle="0" justification="6">
+      <text-properties angle="0" hjust="left" vjust="baseline">
         <face-spec font-id="0" color-id="1" char-size="1.5"/>
       </text-properties>
       <text><![CDATA[Title]]></text>
@@ -175,7 +175,7 @@
     </atext>
     <atext id="subtitle" active="no" offset="(0, 0.02)">
       <location x="0.5" y="1"/>
-      <text-properties angle="0" justification="6">
+      <text-properties angle="0" hjust="left" vjust="baseline">
         <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <text><![CDATA[Subtitle]]></text>
@@ -190,7 +190,7 @@
   </frame>
   <atext id="timestamp" active="no" offset="(0, 0)">
     <location x="0.03" y="0.03"/>
-    <text-properties angle="0" justification="0">
+    <text-properties angle="0" hjust="left" vjust="baseline">
       <face-spec font-id="0" color-id="1" char-size="1"/>
     </text-properties>
     <text><![CDATA[\${timestamp}]]></text>
