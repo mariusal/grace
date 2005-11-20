@@ -307,7 +307,7 @@ AC_DEFUN(ACX_CHECK_MOTIF,
 [
   AC_REQUIRE([AC_PATH_XTRA])
   AC_ARG_WITH(motif_library,
-  [  --with-motif-library=OBJ     use OBJ as Motif library [-lXm]],
+  [  --with-motif-library=OBJ     use OBJ as Motif library [[-lXm]]],
   motif_library="$withval")
   if test "x$motif_library" = "x"
   then
@@ -448,7 +448,7 @@ dnl --------------
 AC_DEFUN(ACX_CHECK_ZLIB,
 [
   AC_ARG_WITH(zlib_library,
-  [  --with-zlib-library=OBJ      use OBJ as ZLIB library [-lz]],
+  [  --with-zlib-library=OBJ      use OBJ as ZLIB library [[-lz]]],
   zlib_library="$withval")
   if test "x$zlib_library" = "x"
   then
@@ -497,7 +497,7 @@ dnl --------------
 AC_DEFUN(ACX_CHECK_JPEG,
 [
   AC_ARG_WITH(jpeg_library,
-  [  --with-jpeg-library=OBJ      use OBJ as JPEG library [-ljpeg]],
+  [  --with-jpeg-library=OBJ      use OBJ as JPEG library [[-ljpeg]]],
   jpeg_library="$withval")
   if test "x$jpeg_library" = "x"
   then
@@ -544,7 +544,7 @@ dnl --------------
 AC_DEFUN(ACX_CHECK_PNG,
 [
   AC_ARG_WITH(png_library,
-  [  --with-png-library=OBJ       use OBJ as PNG library [-lpng]],
+  [  --with-png-library=OBJ       use OBJ as PNG library [[-lpng]]],
   png_library="$withval")
   if test "x$png_library" = "x"
   then
@@ -593,7 +593,7 @@ dnl --------------
 AC_DEFUN(ACX_CHECK_PDFLIB,
 [
   AC_ARG_WITH(pdf_library,
-  [  --with-pdf-library=OBJ       use OBJ as PDFlib library [-lpdf]],
+  [  --with-pdf-library=OBJ       use OBJ as PDFlib library [[-lpdf]]],
   pdf_library="$withval")
   if test "x$pdf_library" = "x"
   then
@@ -643,7 +643,7 @@ dnl --------------
 AC_DEFUN(ACX_CHECK_NETCDF,
 [
   AC_ARG_WITH(netcdf_libraries,
-  [  --with-netcdf-libraries=OBJ  use OBJ as netCDF libraries [-lnetcdf]],
+  [  --with-netcdf-libraries=OBJ  use OBJ as netCDF libraries [[-lnetcdf]]],
   netcdf_libraries="$withval")
   if test "x$netcdf_libraries" = "x"
   then
@@ -690,7 +690,7 @@ dnl --------------
 AC_DEFUN(ACX_CHECK_FFTW,
 [
   AC_ARG_WITH(fftw_library,
-  [  --with-fftw-library=OBJ      use OBJ as FFTW library [-lfftw]],
+  [  --with-fftw-library=OBJ      use OBJ as FFTW library [[-lfftw]]],
   fftw_library="$withval")
   if test "x$fftw_library" = "x"
   then
@@ -736,7 +736,7 @@ dnl --------------
 AC_DEFUN(ACX_CHECK_XMHTML,
 [
   AC_ARG_WITH(xmhtml_library,
-  [  --with-xmhtml-library=OBJ    use OBJ as XmHTML library [-lXmHTML]],
+  [  --with-xmhtml-library=OBJ    use OBJ as XmHTML library [[-lXmHTML]]],
   xmhtml_library="$withval")
   if test "x$xmhtml_library" = "x"
   then
