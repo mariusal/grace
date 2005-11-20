@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -681,7 +681,12 @@ int ps_initgraphics(const Canvas *canvas, void *data,
             fprintf(prstream, "%%%%EndFeature\n");
         }
     }
-    
+    fprintf(prstream, "%%%%EndSetup\n");
+
+    if (psdata->format == PS_FORMAT) {
+        fprintf(prstream, "%%%%Page: 1 1\n");
+    }
+
     /* compensate for printer page offsets */
     if (psdata->format == PS_FORMAT) {
         fprintf(prstream, "PAGE_OFFSET_X PAGE_OFFSET_Y translate\n");
@@ -691,11 +696,6 @@ int ps_initgraphics(const Canvas *canvas, void *data,
     if (psdata->page_orientation == PAGE_ORIENT_LANDSCAPE) {
         fprintf(prstream, "90 rotate\n");
         fprintf(prstream, "0.0 -1.0 translate\n");
-    }
-    fprintf(prstream, "%%%%EndSetup\n");
-
-    if (psdata->format == PS_FORMAT) {
-        fprintf(prstream, "%%%%Page: 1 1\n");
     }
 
     /* clip by the page dimensions */
