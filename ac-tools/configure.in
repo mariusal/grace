@@ -31,11 +31,11 @@ AC_SUBST(Z_LIB)
 AC_SUBST(JPEG_LIB)
 AC_SUBST(PNG_LIB)
 AC_SUBST(PDF_LIB)
-AC_SUBST(GRACE_EDITOR)
 AC_SUBST(XBAE_INC)
-AC_SUBST(HELPVIEWER)
 AC_SUBST(SUBDIRS)
 
+AC_SUBST(GRACE_EDITOR)
+AC_SUBST(GRACE_HELPVIEWER)
 AC_SUBST(PRINT_CMD)
 
 dnl **** Those are for T1lib
@@ -199,9 +199,10 @@ AC_ARG_WITH(editor,
 [GRACE_EDITOR="'${withval}'"])
 
 dnl **** define help viewer
+GRACE_HELPVIEWER="'mozilla %s'"
 AC_ARG_WITH(helpviewer,
 [  --with-helpviewer=COMMAND    define (alternative) help viewer command],
-[HELPVIEWER="-DGRACE_HELPVIEWER=${withval}"])
+[GRACE_HELPVIEWER="'${withval}'"])
 
 dnl **** define print command
 AC_ARG_WITH(printcmd,
