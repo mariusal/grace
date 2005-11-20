@@ -36,15 +36,15 @@ AC_SUBST(JPEG_LIB)
 AC_SUBST(PNG_LIB)
 AC_SUBST(PDF_LIB)
 AC_SUBST(UNDO_LIB)
-AC_SUBST(GRACE_EDITOR)
 AC_SUBST(XBAE_INC)
-AC_SUBST(HELPVIEWER)
 AC_SUBST(CUPS_LIBS)
 AC_SUBST(CUPS_CFLAGS)
 AC_SUBST(SUBDIRS)
 
 AC_SUBST(PAPERSIZE)
 
+AC_SUBST(GRACE_EDITOR)
+AC_SUBST(GRACE_HELPVIEWER)
 AC_SUBST(PRINT_CMD)
 
 AC_SUBST(MAJOR_REV)
@@ -219,13 +219,14 @@ esac],[xmhtml=true])
 dnl **** define editor
 GRACE_EDITOR="'xterm -e vi'"
 AC_ARG_WITH(editor,
-[  --with-editor=COMMAND        define editor [[\"xterm -e vi\"]]],
+[  --with-editor=COMMAND        define editor [["xterm -e vi"]]],
 [GRACE_EDITOR="'${withval}'"])
 
 dnl **** define help viewer
+GRACE_HELPVIEWER="'mozilla %s'"
 AC_ARG_WITH(helpviewer,
-[  --with-helpviewer=COMMAND    define (alternative) help viewer command],
-[HELPVIEWER="-DGRACE_HELPVIEWER=${withval}"])
+[  --with-helpviewer=COMMAND    define help viewer command [["mozilla %s"]]],
+[GRACE_HELPVIEWER="'${withval}'"])
 
 dnl **** use CUPS
 AC_ARG_ENABLE(cups,

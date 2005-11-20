@@ -145,7 +145,7 @@ PRINT_CMD=@PRINT_CMD@
 GRACE_EDITOR=@GRACE_EDITOR@
 
 # HTML help viewer command
-HELPVIEWER=@HELPVIEWER@
+GRACE_HELPVIEWER=@GRACE_HELPVIEWER@
 
 # Grace libraries
 GRACE_BASE_LIB=$(TOP)/lib/base/libgrace-base.a
