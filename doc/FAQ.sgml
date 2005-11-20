@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.17)
+  <title>Grace FAQ (for Grace-5.1.19)
   <author>by the Grace Team
-  <date>12.08.2004
+  <date>20.11.2005
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -662,9 +662,9 @@ XMgrace*XmMessageBox.translations: #override\n\
 
         Are you using OpenMotif 2.2 (see Help/About)? It's known to behave
         wrongly with several locale settings. Try setting the shell variable
-        LANG to a safe value, e.g. "C". The proper solution, though, is to
-        either downgrade to OpenMotif 2.1.30 or use LessTif instead
-        (see <ref id="motif" name="M*tif">).
+        LANG to a safe value, e.g. "C". The bug is known and fixed
+        (<url url="http://bugs.motifzone.net/show_bug.cgi?id=1257"
+        name="bug #1257">). Nag your vendor to apply the patch.
 
 
     <sect1>File selection dialogs are unusable.

@@ -15,8 +15,15 @@
 
 <H3>Bug fixes</H3>
  *  [RL] loading a DL module could fail with an irrelevant error message 
+         (rep. #2071)
  *  [ES] a bug in the PS driver caused CUPS to output empty page if printing
          accounting was enabled in foomatic
+ *  [ES] automatic data point purging (enabled when set length exceed "Max
+	 drawing path length" in Edit/Preferences) could fail silently
+         (rep. #2069)
+ *  [ES] the point purging could result in wrong set filling when fill to
+         the baseline was selected
+ *  [ES] configure's option --with-helpviewer was broken (rep. #1414)
 
 
 <H2>5.1.18</H2>
