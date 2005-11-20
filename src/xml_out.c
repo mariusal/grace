@@ -642,7 +642,6 @@ static int save_ssd(XFile *xf, Quark *q)
     }
 
 #if 0
-    attributes_set_sval(attrs, AStrComment, data->comment);
     if (data->hotlink) {
         attributes_set_sval(attrs, AStrHotfile, data->hotfile);
         /* FIXME: hotsrc */
@@ -706,7 +705,6 @@ static int save_dataset(XFile *xf, Quark *pset)
         attributes_set_ival(attrs, "s", data->acol);
     }
     
-    attributes_set_sval(attrs, AStrComment, data->comment);
     xfile_empty_element(xf, EStrDataset, attrs);
 
     attributes_free(attrs);

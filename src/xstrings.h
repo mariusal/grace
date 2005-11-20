@@ -119,7 +119,6 @@
 #define AStrClosureType         "closure-type"
 #define AStrColorId             "color-id"
 #define AStrColumn              "column"
-#define AStrComment             "comment"
 #define AStrDataRef             "data-ref"
 #define AStrDlFf                "dl-ff"
 #define AStrDrawClosure         "draw-closure"

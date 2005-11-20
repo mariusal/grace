@@ -1098,7 +1098,7 @@ int do_differ(Quark *psrc, Quark *pdest,
     }
     sprintf(buf, "%s %s%s of set %s", stype, pbuf,
        derivative ? "derivative":"difference", QIDSTR(psrc));
-    set_set_comment(pdest, buf);
+    // set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1174,7 +1174,7 @@ int do_linearc(Quark *psrc, Quark *pdest,
     
     sprintf(buf, "Linear convolution of set %s with set %s",
         QIDSTR(psrc), QIDSTR(pconv));
-    set_set_comment(pdest, buf);
+    // set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1376,7 +1376,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
             "Cross-%s of sets %s and %s at maximum lag %d",
             fname, QIDSTR(psrc), QIDSTR(pcor), maxlag);
     }
-    set_set_comment(pdest, buf);
+    // set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1414,7 +1414,7 @@ int do_int(Quark *psrc, Quark *pdest,
         } else {
 	    *sum = trapint(x, y, getx(pdest), gety(pdest), len);
 	    sprintf(buf, "Integral of set %s", QIDSTR(psrc));
-	    set_set_comment(pdest, buf);
+	    // set_set_comment(pdest, buf);
 	}
     } else {
 	*sum = trapint(x, y, NULL, NULL, len);
@@ -1510,7 +1510,7 @@ int do_runavg(Quark *psrc, Quark *pdest,
     }
     
     sprintf(buf, "%d-pt. running %s on %s", runlen, formula, QIDSTR(psrc));
-    set_set_comment(pdest, buf);
+    // set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1715,7 +1715,7 @@ int do_fourier(Quark *psrc, Quark *pdest,
     xfree(buf_im);
     
     sprintf(buf, "FFT of set %s", QIDSTR(psrc));
-    set_set_comment(pdest, buf);
+    // set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1789,7 +1789,7 @@ int do_histo(Quark *psrc, Quark *pdest,
     p->line.line.style = 1;
     p->sym.line.style = 1;
     sprintf(buf, "Histogram from %s", QIDSTR(psrc));
-    set_set_comment(pdest, buf);
+    // set_set_comment(pdest, buf);
 
     return RETURN_SUCCESS;
 }
@@ -1860,7 +1860,7 @@ int do_sample(Quark *psrc, Quark *pdest, char *formula)
     xfree(result);
     
     sprintf(buf, "Sample from %s, using '%s'", QIDSTR(psrc), formula);
-    set_set_comment(pdest, buf);
+    // set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1967,7 +1967,7 @@ int do_prune(Quark *psrc, Quark *pdest,
         interp ? "interpolation":"plain",
         elliptic ? "elliptic":"rectangular",
         dx, dy);
-    set_set_comment(pdest, buf);
+    // set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -2041,7 +2041,7 @@ int do_interp(Quark *psrc, Quark *pdest,
         break;
     }
     sprintf(buf, "Interpolated from %s using %s", QIDSTR(psrc), s);
-    set_set_comment(pdest, buf);
+    // set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -2110,7 +2110,7 @@ int featext(Quark **sets, int nsets, Quark *pdest,
     /* set comment */
     tbuf = copy_string(NULL, "Feature extraction by formula ");
     tbuf = concat_strings(tbuf, formula);
-    set_set_comment(pdest, tbuf);
+    // set_set_comment(pdest, tbuf);
     xfree(tbuf);
     
     return RETURN_SUCCESS;

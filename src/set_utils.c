@@ -249,11 +249,6 @@ void del_point(Quark *pset, int pt)
     ssd_delete_rows(get_parent_ssd(pset), pt, pt);
 }
 
-int load_comments_to_legend(Quark *pset)
-{
-    return set_set_legstr(pset, set_get_comment(pset));
-}
-
 int set_set_colors(Quark *pset, unsigned int color)
 {
     set *p = set_get_data(pset);

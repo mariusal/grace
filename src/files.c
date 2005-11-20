@@ -1439,7 +1439,7 @@ int readnetcdf(Quark *pset,
     xfree(y);
 
     sprintf(buf, "File %s x = %s y = %s", netcdfname, xvar == NULL ? "Index" : xvar, yvar);
-    set_set_comment(pset, buf);
+    // set_set_comment(pset, buf);
     
     autoscale_graph(gr, rt->autoscale_onread);
     
@@ -1475,10 +1475,6 @@ int write_netcdf(Quark *pr, char *fname)
 		Quark *pset = psets[j];
                 if (!set_is_dataless(pset)) {
 		    char s[64];
-
-		    sprintf(buf, "comment");
-		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR,
-		    strlen(set_get_comment(pset)), (void *) set_get_comment(pset));
 
 		    sprintf(buf, "type");
 		    strcpy(s, set_types(rt, set_get_type(pset)));

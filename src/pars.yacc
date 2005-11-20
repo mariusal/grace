@@ -2831,7 +2831,7 @@ setprop:
 	}
 
 	| selectset COMMENT CHRSTR {
-	    set_set_comment($1, $3);
+	    // set_set_comment($1, $3);
 	    xfree($3);
 	}
         

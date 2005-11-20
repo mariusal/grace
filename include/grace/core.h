@@ -547,8 +547,6 @@ typedef enum {
 typedef struct {
     int cols[MAX_SET_COLS];     /* column # of x, y, z, ... depending on type */
     int acol;                   /* column # of ann. column                    */
-
-    char *comment;              /* how this dataset originated & alike */
 } Dataset;
 
 typedef struct {
@@ -970,9 +968,6 @@ int set_set_errbar(Quark *pset, const Errbar *ebar);
 
 int set_set_length(Quark *p, unsigned int length);
 int set_get_length(Quark *p);
-
-char *set_get_comment(Quark *p);
-int set_set_comment(Quark *p, char *s);
 
 int set_get_ncols(const Quark *pset);
 

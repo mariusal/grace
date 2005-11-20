@@ -51,8 +51,6 @@ Dataset *dataset_new(AMem *amem)
     }
     dsp->acol = COL_NONE;
     
-    dsp->comment = NULL;
-    
     return dsp;
 }
 
@@ -81,7 +79,6 @@ int dataset_empty(Dataset *dsp)
 void dataset_free(AMem *amem, Dataset *dsp)
 {
     if (dsp) {
-        amem_free(amem, dsp->comment);
         amem_free(amem, dsp);
     }
 }
@@ -125,9 +122,6 @@ set *set_data_copy(AMem *amem, set *p)
     
     memcpy(p_new, p, sizeof(set));
     
-    /* allocatables */
-    p_new->ds.comment = amem_strdup(amem, p->ds.comment);
-
     p->legstr  = amem_strdup(amem, p->legstr);
     p->avalue.prestr = amem_strdup(amem, p->avalue.prestr);
     p->avalue.appstr = amem_strdup(amem, p->avalue.appstr);
@@ -265,9 +259,7 @@ int set_set_dataset(Quark *q, const Dataset *dsp)
 {
     set *pset = set_get_data(q);
     if (pset) {
-        AMem *amem = quark_get_amem(q);
         memcpy(&pset->ds, dsp, sizeof(Dataset));
-        pset->ds.comment = amem_strcpy(amem, pset->ds.comment, dsp->comment);
 
         quark_dirtystate_set(q, TRUE);
     
@@ -415,32 +407,6 @@ int set_set_length(Quark *pset, unsigned int len)
     Quark *ss = get_parent_ssd(pset);
 
     return ssd_set_nrows(ss, len);
-}
-
-int set_set_comment(Quark *pset, char *s)
-{ 
-    Dataset *dsp;
-    
-    dsp = set_get_dataset(pset);
-    if (dsp) {
-        dsp->comment = amem_strcpy(pset->amem, dsp->comment, s);
-        quark_dirtystate_set(pset, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-char *set_get_comment(Quark *pset)
-{ 
-    Dataset *dsp;
-    
-    dsp = set_get_dataset(pset);
-    if (dsp) {
-        return dsp->comment;
-    } else {
-        return NULL;
-    }
 }
 
 int set_set_type(Quark *pset, int type)

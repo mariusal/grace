@@ -1996,9 +1996,6 @@ char *utf2iso(const char *s)
         <attribute name="s" type="ival">
             $$->acol = $?;
         </attribute>
-        <attribute name="#AStrComment" type="sval">
-            $$->comment = $?;
-        </attribute>
     </element>
     <element name="#EStrRow" type="wpoint">
         <!-- Attributes -->

@@ -81,8 +81,6 @@ int number_of_frames(Quark *project);
 int number_of_graphs(Quark *project);
 int select_graph(Quark *g);
 
-int load_comments_to_legend(Quark *p);
-
 char *dataset_colname(int col);
 
 int set_refpoint(Quark *gr, const WPoint *wp);

@@ -627,7 +627,7 @@ static int leval_aac_cb(void *data)
     XCFREE(t->data);
     t->length = 0;
 
-    set_set_comment(pset, "Formula");
+    // set_set_comment(pset, "Formula");
     
     update_set_lists(gr);
     
