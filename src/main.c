@@ -529,6 +529,8 @@ int main(int argc, char *argv[])
 			    set_graph_type(cur_graph, GRAPH_SMITH);
 			} else if (!strcmp("fixed", argv[i])) {
 			    set_graph_type(cur_graph, GRAPH_FIXED);
+			} else if (!strcmp("pie", argv[i])) {
+			    set_graph_type(cur_graph, GRAPH_PIE);
 			} else {
 			    fprintf(stderr, "%s: Improper argument for -graphtype\n", argv[0]);
 			    usage(stderr, argv[0]);
