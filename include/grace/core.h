@@ -950,13 +950,13 @@ Quark *set_new(Quark *gr);
 
 set *set_get_data(const Quark *q);
 
-Dataset *set_get_dataset(Quark *pset);
+Dataset *set_get_dataset(const Quark *pset);
 int set_set_dataset(Quark *q, const Dataset *dsp);
 
 int set_get_type(const Quark *p);
 int set_set_type(Quark *p, int stype);
 
-char *set_get_legstr(Quark *pset);
+char *set_get_legstr(const Quark *pset);
 int set_set_legstr(Quark *pset, const char *s);
 
 int set_set_symskip(Quark *pset, int symskip);
