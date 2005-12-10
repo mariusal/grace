@@ -354,10 +354,6 @@ static int create_set_fromblock(Quark *pset, int type,
         errmsg("Too many columns scanned in column string");
         return RETURN_FAILURE;
     }
-    if (nc < ncols) {
-	errmsg("Too few columns scanned in column string");
-	return RETURN_FAILURE;
-    }
     
     for (i = 0; i < nc; i++) {
 	if (coli[i] >= blockncols) {
@@ -382,7 +378,7 @@ static int create_set_fromblock(Quark *pset, int type,
     return RETURN_SUCCESS;
 }
 
-int store_data(Quark *q, int load_type)
+int store_data(Quark *q, int settype, int load_type)
 {
     int ncols, nncols, nncols_req, nscols, nrows;
     int i, j;
@@ -427,7 +423,7 @@ int store_data(Quark *q, int load_type)
             return RETURN_FAILURE;
         }
 
-        nncols_req = settype_cols(rt->curtype);
+        nncols_req = settype_cols(settype);
         if (nncols_req != nncols) {
 	    // errmsg("Column count incorrect");
 	    // return RETURN_FAILURE;
@@ -447,7 +443,7 @@ int store_data(Quark *q, int load_type)
             }
         }
 
-        create_set_fromblock(pset, rt->curtype, nncols, coli);
+        create_set_fromblock(pset, settype, nncols, coli);
         
         break;
     case LOAD_NXY:
@@ -464,7 +460,7 @@ int store_data(Quark *q, int load_type)
 
             coli[0] = 0;
             coli[1] = i + 1;
-            create_set_fromblock(pset, rt->curtype, 2, coli);
+            create_set_fromblock(pset, settype, 2, coli);
         }
     
         break;

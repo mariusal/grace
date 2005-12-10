@@ -480,7 +480,6 @@ void create_leval_frame(Widget but, void *data)
         char *rowlabels[MAX_SET_COLS];
         short column_widths[1] = {50};
         int column_maxlengths[1] = {256};
-        RunTime *rt = rt_from_quark(gr);
 
 	levalui.top = CreateDialogForm(app_shell, "Load & evaluate");
 
@@ -495,7 +494,7 @@ void create_leval_frame(Widget but, void *data)
         AddDialogFormChild(levalui.top, levalui.set_type->menu);
         AddOptionChoiceCB(levalui.set_type, set_type_cb, (void *) &levalui);
 	
-        nscols = settype_cols(rt->curtype);
+        nscols = 2;
 	for (i = 0; i < nscols; i++) {
             rowlabels[i] = copy_string(NULL, dataset_colname(i));
             rowlabels[i] = concat_strings(rowlabels[i], " = ");

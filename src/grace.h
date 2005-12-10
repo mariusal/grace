@@ -133,9 +133,7 @@ typedef struct _RunTime {
     int timer_delay;
     /* autoscale after reading in data sets */
     int autoscale_onread;
-    /* used in the parser */
-    int curtype;
-    int cursource;
+
     /* file for results */
     FILE *resfp;
     

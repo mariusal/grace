@@ -269,10 +269,6 @@ RunTime *runtime_new(Grace *grace)
 
     rt->autoscale_onread = AUTOSCALE_XY;
 
-    /* FIXME curstuff */
-    rt->curtype   = SET_XY;
-    rt->cursource = SOURCE_DISK;
-
     rt->scrollper = 0.05;
     rt->shexper = 0.05;
     

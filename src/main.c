@@ -72,6 +72,8 @@ int main(int argc, char *argv[])
     int cli = FALSE;            /* command line interface only */
     int noprint = FALSE;	/* if gracebat, then don't print if true */
     int sigcatch = TRUE;	/* we handle signals ourselves */
+    
+    int curtype = SET_XY;
 
     char fd_name[GR_MAXPATHLEN];
 
@@ -362,7 +364,7 @@ int main(int argc, char *argv[])
 		    if (!grace->project) {
                         new_project(grace, NULL);
                     }
-                    getdata(grace->project, argv[i], rt->cursource, LOAD_BLOCK);
+                    getdata(grace->project, argv[i], curtype, LOAD_BLOCK);
 		}
 	    } else if (argmatch(argv[i], "-nxy", 4)) {
 		i++;
@@ -373,14 +375,14 @@ int main(int argc, char *argv[])
 		    if (!grace->project) {
                         new_project(grace, NULL);
                     }
-		    getdata(grace->project, argv[i], rt->cursource, LOAD_NXY);
+		    getdata(grace->project, argv[i], curtype, LOAD_NXY);
 		}
 	    } else if (argmatch(argv[i], "-type", 2) ||
                        argmatch(argv[i], "-settype", 8)) {
 		/* set types */
 		i++;
-                rt->curtype = get_settype_by_name(rt, argv[i]);
-                if (rt->curtype == -1) {
+                curtype = get_settype_by_name(rt, argv[i]);
+                if (curtype == -1) {
 		    fprintf(stderr, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
 		    usage(stderr, argv[0]);
 		}
@@ -415,17 +417,6 @@ int main(int argc, char *argv[])
 			exit(1);
 		    }
 		}
-	    } else if (argmatch(argv[i], "-source", 2)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for data source parameter\n");
-		    usage(stderr, argv[0]);
-		}
-		if (argmatch(argv[i], "pipe", 4)) {
-		    rt->cursource = SOURCE_PIPE;
-		} else if (argmatch(argv[i], "disk", 4)) {
-		    rt->cursource = SOURCE_DISK;
-		}
 	    } else if (argmatch(argv[i], "-seed", 5)) {
 		i++;
 		if (i == argc) {
@@ -453,7 +444,7 @@ int main(int argc, char *argv[])
 		if (!grace->project) {
                     new_project(grace, NULL);
                 }
-                getdata(grace->project, argv[i], rt->cursource, LOAD_SINGLE);
+                getdata(grace->project, argv[i], curtype, LOAD_SINGLE);
             }
 	} /* end else */
     } /* end for */
@@ -579,7 +570,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-safe                                 Safe mode (default)\n");
     fprintf(stream, "-saveall   [save_file]                Save all to save_file\n");
     fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator\n");
-    fprintf(stream, "-source    [disk|pipe]                Source type of next data file\n");
     fprintf(stream, "-timer     [delay]                    Set allowed time slice for real time\n");
     fprintf(stream, "                                        inputs to delay ms\n");
     fprintf(stream, "-settype   [xy|xydx|...]              Set the type of the next data file\n");

@@ -98,7 +98,7 @@ static int process_complete_lines(Input_buffer *ib);
 
 static int read_long_line(FILE *fp, char **linebuf, int *buflen);
 
-static int uniread(Quark *pr, FILE *fp, int load_type, char *label);
+static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label);
 
 /*
  * part of the time sliced already spent in milliseconds
@@ -789,7 +789,7 @@ void grace_close(FILE *fp)
     }
 }
 
-static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
+static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label)
 {
     int nrows, nrows_allocated, ncols, nncols, nscols, nncols_req;
     int *formats = NULL;
@@ -832,7 +832,7 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
                 ssd_set_nrows(q, nrows);
 
                 /* store accumulated data in set(s) */
-                if (store_data(q, load_type) != RETURN_SUCCESS) {
+                if (store_data(q, settype, load_type) != RETURN_SUCCESS) {
 		    quark_free(q);
                     xfree(linebuf);
                     return RETURN_FAILURE;
@@ -862,8 +862,7 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
                 }
                 
                 if (load_type == LOAD_SINGLE) {
-                    RunTime *rt = rt_from_quark(pr);
-                    nncols_req = settype_cols(rt->curtype);
+                    nncols_req = settype_cols(settype);
                     if (nncols_req <= nncols) {
                         nncols = nncols_req;
                     } else if (nncols_req == nncols + 1) {
@@ -925,7 +924,7 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
         ssd_set_nrows(q, nrows);
 
         /* store accumulated data in set(s) */
-        if (store_data(q, load_type) != RETURN_SUCCESS) {
+        if (store_data(q, settype, load_type) != RETURN_SUCCESS) {
             quark_free(q);
 	    xfree(linebuf);
 	    return RETURN_FAILURE;
@@ -941,14 +940,14 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
 }
 
 
-int getdata(Quark *pr, char *fn, int src, int load_type)
+int getdata(Quark *pr, char *fn, int settype, int load_type)
 {
     FILE *fp;
     int retval;
     int save_version, cur_version;
     Grace *grace = grace_from_quark(pr);
 
-    fp = grace_openr(grace, fn, src);
+    fp = grace_openr(grace, fn, SOURCE_DISK);
     if (fp == NULL) {
 	return RETURN_FAILURE;
     }
@@ -958,7 +957,7 @@ int getdata(Quark *pr, char *fn, int src, int load_type)
 
     parser_state_reset(pr);
     
-    retval = uniread(pr, fp, load_type, fn);
+    retval = uniread(pr, fp, settype, load_type, fn);
 
     grace_close(fp);
     
@@ -1053,7 +1052,6 @@ Quark *load_agr_project(Grace *grace, char *fn)
     Quark *project = grace_project_new(grace, AMEM_MODEL_LIBUNDO);
 
     grace->rt->print_file[0] = '\0';
-    grace->rt->curtype = SET_XY;
 
     if (getdata(project, fn, SOURCE_DISK, LOAD_SINGLE) == RETURN_SUCCESS) {
         return project;

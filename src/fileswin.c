@@ -330,14 +330,17 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
     if (GetSingleStorageChoice(gui->graph_item, &gr) != RETURN_SUCCESS) {
         errmsg("Please select a single graph");
     } else {
+        int settype;
         if (load == LOAD_SINGLE) {
-            grace->rt->curtype = GetOptionChoice(gui->ftype_item);
+            settype = GetOptionChoice(gui->ftype_item);
+        } else {
+            settype = SET_XY;
         }
 
         grace->rt->autoscale_onread = GetOptionChoice(gui->auto_item);
         set_date_hint(GetOptionChoice(gui->datehint));
         
-        getdata(grace->project, filename, grace->rt->cursource, load);
+        getdata(grace->project, filename, settype, load);
 
         snapshot_and_update(gr, TRUE);
     }
@@ -347,7 +350,6 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
 
 static void set_src_proc(OptionStructure *opt, int value, void *data)
 {
-    grace->rt->cursource = value;
 }
 
 static void set_load_proc(OptionStructure *opt, int value, void *data)
