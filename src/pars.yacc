@@ -2490,6 +2490,7 @@ setprop:
 	    case XYZ:
                 stype = SET_XY;
                 dsp->acol = 2;
+                dsp->cols[DATA_Y1] = COL_NONE;
                 break;
 	    case XYDX:
                 stype = SET_XY;
@@ -2786,10 +2787,16 @@ setprop:
             case NORMAL:
                 break;
             case OPPOSITE:
-                iswap(&dsp->cols[DATA_Y1], &dsp->cols[DATA_Y2]);
-                iswap(&dsp->cols[DATA_Y3], &dsp->cols[DATA_Y4]);
+                if (set_get_type($1) == SET_XY || set_get_type($1) == SET_BAR) {
+                    iswap(&dsp->cols[DATA_Y1], &dsp->cols[DATA_Y2]);
+                    iswap(&dsp->cols[DATA_Y3], &dsp->cols[DATA_Y4]);
+                }
                 break;
             case BOTH:
+                if (set_get_type($1) == SET_XY || set_get_type($1) == SET_BAR) {
+                    dsp->cols[DATA_Y2] = dsp->cols[DATA_Y1];
+                    dsp->cols[DATA_Y4] = dsp->cols[DATA_Y3];
+                }
                 break;
             }
 	}
@@ -3862,8 +3869,10 @@ setprop_obs:
             case NORMAL:
                 break;
             case OPPOSITE:
-                iswap(&dsp->cols[DATA_Y1], &dsp->cols[DATA_Y2]);
-                iswap(&dsp->cols[DATA_Y3], &dsp->cols[DATA_Y4]);
+                if (set_get_type($1) == SET_XY || set_get_type($1) == SET_BAR) {
+                    iswap(&dsp->cols[DATA_Y1], &dsp->cols[DATA_Y2]);
+                    iswap(&dsp->cols[DATA_Y3], &dsp->cols[DATA_Y4]);
+                }
                 break;
             case BOTH:
                 break;

@@ -378,12 +378,11 @@ static int create_set_fromblock(Quark *pset, int type,
     return RETURN_SUCCESS;
 }
 
-int store_data(Quark *q, int settype, int load_type)
+int store_data(Quark *q, int load_type)
 {
-    int ncols, nncols, nncols_req, nscols, nrows;
+    int ncols, nncols, nscols, nrows;
     int i, j;
     unsigned int coli[MAX_SET_COLS];
-    int scol;
     Quark *gr, *pset;
     Quark *pr = get_parent_project(q); 
     RunTime *rt = rt_from_quark(pr);
@@ -423,28 +422,8 @@ int store_data(Quark *q, int settype, int load_type)
             return RETURN_FAILURE;
         }
 
-        nncols_req = settype_cols(settype);
-        if (nncols_req != nncols) {
-	    // errmsg("Column count incorrect");
-	    // return RETURN_FAILURE;
-        }
-
         pset = nextset(q);
-        
-        nncols = 0;
-        scol = -1;
-        for (j = 0; j < ncols; j++) {
-            ss_column *pcol = ssd_get_col(q, j);
-            if (pcol->format == FFORMAT_STRING) {
-                scol = j;
-            } else {
-                coli[nncols] = j;
-                nncols++;
-            }
-        }
 
-        create_set_fromblock(pset, settype, nncols, coli);
-        
         break;
     case LOAD_NXY:
         if (nscols != 0) {
@@ -460,7 +439,7 @@ int store_data(Quark *q, int settype, int load_type)
 
             coli[0] = 0;
             coli[1] = i + 1;
-            create_set_fromblock(pset, settype, 2, coli);
+            create_set_fromblock(pset, SET_XY, 2, coli);
         }
     
         break;

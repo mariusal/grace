@@ -832,7 +832,7 @@ static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label)
                 ssd_set_nrows(q, nrows);
 
                 /* store accumulated data in set(s) */
-                if (store_data(q, settype, load_type) != RETURN_SUCCESS) {
+                if (store_data(q, load_type) != RETURN_SUCCESS) {
 		    quark_free(q);
                     xfree(linebuf);
                     return RETURN_FAILURE;
@@ -865,13 +865,6 @@ static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label)
                     nncols_req = settype_cols(settype);
                     if (nncols_req <= nncols) {
                         nncols = nncols_req;
-                    } else if (nncols_req == nncols + 1) {
-                        /* X from index, OK */
-                        ;
-                    } else {
-		        // errmsg("Column count incorrect");
-		        // xfree(linebuf);
-		        // return RETURN_FAILURE;
                     }
                 }
 
@@ -924,7 +917,7 @@ static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label)
         ssd_set_nrows(q, nrows);
 
         /* store accumulated data in set(s) */
-        if (store_data(q, settype, load_type) != RETURN_SUCCESS) {
+        if (store_data(q, load_type) != RETURN_SUCCESS) {
             quark_free(q);
 	    xfree(linebuf);
 	    return RETURN_FAILURE;

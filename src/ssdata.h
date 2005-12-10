@@ -46,6 +46,6 @@ int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol);
 
 int parse_ss_row(Quark *pr, const char *s, int *nncols, int *nscols, int **formats);
 int insert_data_row(Quark *q, unsigned int row, char *s);
-int store_data(Quark *q, int settype, int load_type);
+int store_data(Quark *q, int load_type);
 
 #endif /* __SSDATA_H_ */

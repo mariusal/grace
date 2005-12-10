@@ -367,8 +367,10 @@ static int project_postprocess_hook(Quark *q,
             s->errbar.pen.color = s->sym.line.pen.color;
             s->errbar.pen.pattern = 1;
             
-            iswap(&s->ds.cols[DATA_Y1], &s->ds.cols[DATA_Y2]);
-            iswap(&s->ds.cols[DATA_Y3], &s->ds.cols[DATA_Y4]);
+            if (s->type == SET_XY || s->type == SET_BAR) {
+                iswap(&s->ds.cols[DATA_Y1], &s->ds.cols[DATA_Y2]);
+                iswap(&s->ds.cols[DATA_Y3], &s->ds.cols[DATA_Y4]);
+            }
         }
         if (version_id < 50002) {
             s->errbar.barsize *= 2;
