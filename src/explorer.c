@@ -181,7 +181,20 @@ void SelectQuarkTreeItem(Widget w, ListTreeItem *parent, Quark *q)
     XtCallCallbacks(w, XtNhighlightCallback, (XtPointer) &ret);
 
     if (ret.count > 0) {
-        ListTreeSetPos(w, ret.items[0]);
+        ListTreeItem *item = ret.items[0];
+        int top, visible;
+
+        XtVaGetValues(w,
+            XtNtopItemPosition, &top,
+            XtNvisibleItemCount, &visible,
+            NULL);
+
+        if (item->count < top) {
+            ListTreeSetPos(w, item);
+        } else
+        if (item->count >= top + visible) {
+            ListTreeSetBottomPos(w, item);
+        }
     }
 }
 
