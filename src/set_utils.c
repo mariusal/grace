@@ -51,22 +51,22 @@ char *dataset_colname(int col)
 
     switch (col) {
     case 0:
-	s = "X";
+	s = "x";
 	break;
     case 1:
-	s = "Y";
+	s = "y";
 	break;
     case 2:
-	s = "Y1";
+	s = "y1";
 	break;
     case 3:
-	s = "Y2";
+	s = "y2";
 	break;
     case 4:
-	s = "Y3";
+	s = "y3";
 	break;
     case 5:
-	s = "Y4";
+	s = "y4";
 	break;
     default:
 	s = "?";

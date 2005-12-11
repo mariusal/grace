@@ -1975,22 +1975,22 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrDataset" type="dataset">
         <!-- Attributes -->
-        <attribute name="X" type="ival">
+        <attribute name="x" type="ival">
             $$->cols[DATA_X] = $?;
         </attribute>
-        <attribute name="Y" type="ival">
+        <attribute name="y" type="ival">
             $$->cols[DATA_Y] = $?;
         </attribute>
-        <attribute name="Y1" type="ival">
+        <attribute name="y1" type="ival">
             $$->cols[DATA_Y1] = $?;
         </attribute>
-        <attribute name="Y2" type="ival">
+        <attribute name="y2" type="ival">
             $$->cols[DATA_Y2] = $?;
         </attribute>
-        <attribute name="Y3" type="ival">
+        <attribute name="y3" type="ival">
             $$->cols[DATA_Y3] = $?;
         </attribute>
-        <attribute name="Y4" type="ival">
+        <attribute name="y4" type="ival">
             $$->cols[DATA_Y4] = $?;
         </attribute>
         <attribute name="s" type="ival">
