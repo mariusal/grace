@@ -104,6 +104,10 @@ static XtResource resources[] =
     offset(VSpacing), XtRImmediate, (XtPointer) 0},
   {XtNlineWidth, XtCMargin, XtRDimension, sizeof(Dimension),
     offset(LineWidth), XtRImmediate, (XtPointer) 0},
+  {XtNtopItemPosition, XtCPosition, XtRPosition, sizeof(XtRPosition),
+    offset(topItemPos), XtRImmediate, (XtPointer) 1},
+  {XtNvisibleItemCount, XtCPosition, XtRPosition, sizeof(XtRPosition),
+    offset(visibleCount), XtRImmediate, (XtPointer) 0},
   {XtNfont, XtCFont, XtRFontStruct, sizeof(XFontStruct *),
     offset(font), XtRString, XtDefaultFont},
   {XtNhighlightPath, XtCBoolean, XtRBoolean, sizeof(Boolean),
@@ -2418,7 +2422,16 @@ DropProc(Widget aw, XtPointer client_data, XtPointer call_data)
 void ListTreeSetPos(Widget aw, ListTreeItem *item)
 {
   ListTreeWidget w = (ListTreeWidget) aw;
-  w->list.topItemPos=item->count;
+  w->list.topItemPos = item->count;
+  GotoPosition(w);
+  DrawAll(w);
+  SetScrollbars(w);
+}
+
+void ListTreeSetBottomPos(Widget aw, ListTreeItem *item)
+{
+  ListTreeWidget w = (ListTreeWidget) aw;
+  w->list.topItemPos = item->count - w->list.visibleCount + 1;
   GotoPosition(w);
   DrawAll(w);
   SetScrollbars(w);

@@ -38,6 +38,8 @@
 #define XtNhorizontalSpacing	"horizontalSpacing"
 #define XtNverticalSpacing	"verticalSpacing"
 #define XtNlineWidth		"lineWidth"
+#define XtNtopItemPosition      "topItemPosition"
+#define XtNvisibleItemCount     "visibleItemCount"
 #define XtNhighlightPath	"highlightPath"
 #define XtNclickPixmapToOpen	"clickPixmapToOpen"
 #define XtNdoIncrementalHighlightCallback	"incCallback"
@@ -153,6 +155,7 @@ void ListTreeSetHighlighted(Widget w,ListTreeItem **items,
 			    int count,Boolean clear);
 
 void ListTreeSetPos(Widget w, ListTreeItem *item);
+void ListTreeSetBottomPos(Widget aw, ListTreeItem *item);
 
 Widget XmCreateScrolledListTree (Widget parent, char *name, Arg *args, Cardinal count);
 
