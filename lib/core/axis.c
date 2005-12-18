@@ -56,7 +56,8 @@ static void set_default_ticks(Quark *q)
     t->nminor = 1;
     t->t_round = TRUE;
     t->tl_format.type = FORMAT_GENERAL;
-    t->tl_format.prec = 5;
+    t->tl_format.prec1 = 5;
+    t->tl_format.fstring = NULL;
     t->tl_formula = NULL;
 
     set_default_textprops(&t->tl_tprops, &grdefaults);
@@ -126,6 +127,7 @@ tickmarks *axisgrid_data_copy(AMem *amem, tickmarks *t)
 	    retval->tl_formula = amem_strdup(amem, t->tl_formula);
 	    retval->tl_prestr = amem_strdup(amem, t->tl_prestr);
 	    retval->tl_appstr = amem_strdup(amem, t->tl_appstr);
+	    retval->tl_format.fstring = amem_strdup(amem, t->tl_format.fstring);
             for (i = 0; i < MAX_TICKS; i++) {
                 retval->tloc[i].label = amem_strdup(amem, t->tloc[i].label);
             }
@@ -142,6 +144,7 @@ void axisgrid_data_free(AMem *amem, tickmarks *t)
         amem_free(amem, t->tl_formula);
         amem_free(amem, t->tl_prestr);
         amem_free(amem, t->tl_appstr);
+        amem_free(amem, t->tl_format.fstring);
         
         for (i = 0; i < MAX_TICKS; i++) {
             amem_free(amem, t->tloc[i].label);

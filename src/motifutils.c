@@ -2164,6 +2164,7 @@ void AlignLabel(Widget w, int alignment)
 }
 
 static OptionItem *settype_option_items;
+static OptionItem *fmt_option_items;
 static BitmapOptionItem *pattern_option_items;
 static BitmapOptionItem *lines_option_items;
 
@@ -2262,6 +2263,17 @@ int init_option_menus(void) {
         settype_option_items[i].value = i;
         settype_option_items[i].label = copy_string(NULL,
             set_type_descr(grace->rt, i));
+    }
+
+    fmt_option_items = xmalloc(NUMBER_OF_FORMATTYPES*sizeof(OptionItem));
+    if (fmt_option_items == NULL) {
+        errmsg("Malloc error in init_option_menus()");
+        return RETURN_FAILURE;
+    }
+    for (i = 0; i < NUMBER_OF_FORMATTYPES; i++) {
+        fmt_option_items[i].value = i;
+        fmt_option_items[i].label = copy_string(NULL,
+            format_type_descr(grace->rt, i));
     }
 
     return RETURN_SUCCESS;
@@ -3308,49 +3320,89 @@ OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, ...)
     return retval;
 }
 
-static OptionItem fmt_option_items[31] =
+static void format_call_cb(FormatStructure *fstr)
 {
-    {FORMAT_DECIMAL,        "Decimal"             },
-    {FORMAT_EXPONENTIAL,    "Exponential"         },
-    {FORMAT_GENERAL,        "General"             },
-    {FORMAT_POWER,          "Power"               },
-    {FORMAT_SCIENTIFIC,     "Scientific"          },
-    {FORMAT_ENGINEERING,    "Engineering"         },
-    {FORMAT_DDMMYY,         "DD-MM-YY"            },
-    {FORMAT_MMDDYY,         "MM-DD-YY"            },
-    {FORMAT_YYMMDD,         "YY-MM-DD"            },
-    {FORMAT_MMYY,           "MM-YY"               },
-    {FORMAT_MMDD,           "MM-DD"               },
-    {FORMAT_MONTHDAY,       "Month-DD"            },
-    {FORMAT_DAYMONTH,       "DD-Month"            },
-    {FORMAT_MONTHS,         "Month (abrev.)"      },
-    {FORMAT_MONTHSY,        "Month (abrev.)-YY"   },
-    {FORMAT_MONTHL,         "Month"               },
-    {FORMAT_DAYOFWEEKS,     "Day of week (abrev.)"},
-    {FORMAT_DAYOFWEEKL,     "Day of week"         },
-    {FORMAT_DAYOFYEAR,      "Day of year"         },
-    {FORMAT_HMS,            "HH:MM:SS"            },
-    {FORMAT_MMDDHMS,        "MM-DD HH:MM:SS"      },
-    {FORMAT_MMDDYYHMS,      "MM-DD-YY HH:MM:SS"   },
-    {FORMAT_YYMMDDHMS,      "YY-MM-DD HH:MM:SS"   },
-    {FORMAT_DEGREESLON,     "Degrees (lon)"       },
-    {FORMAT_DEGREESMMLON,   "DD MM' (lon)"        },
-    {FORMAT_DEGREESMMSSLON, "DD MM' SS.s\" (lon)" },
-    {FORMAT_MMSSLON,        "MM' SS.s\" (lon)"    },
-    {FORMAT_DEGREESLAT,     "Degrees (lat)"       },
-    {FORMAT_DEGREESMMLAT,   "DD MM' (lat)"        },
-    {FORMAT_DEGREESMMSSLAT, "DD MM' SS.s\" (lat)" },
-    {FORMAT_MMSSLAT,        "MM' SS.s\" (lat)"    }
-};
-
-OptionStructure *CreateFormatChoice(Widget parent, char *s)
-{
-    OptionStructure *retval;
-    
-    retval = CreateOptionChoice(parent, s, 4, 31, fmt_option_items);
-    
-    return(retval);
+    if (fstr->cb_proc) {
+        Format format;
+        format.type    = GetOptionChoice(fstr->type);
+        format.prec1   = GetOptionChoice(fstr->prec);
+        format.fstring = GetTextString(fstr->fstring);
+        
+        fstr->cb_proc(fstr, &format, fstr->cb_data);
+        
+        xfree(format.fstring);
+    }
 }
+
+static void format_oc_cb(OptionStructure *opt, int a, void *data)
+{
+    FormatStructure *fstr = (FormatStructure *) data;
+    if (!fstr) {
+        return;
+    }
+    
+    if (opt == fstr->type) {
+        SetSensitive(fstr->fstring->form, a == FORMAT_DATETIME);
+    }
+    
+    format_call_cb(fstr);
+}
+
+static void format_text_cb(TextStructure *cst, char *s, void *data)
+{
+    FormatStructure *fstr = (FormatStructure *) data;
+    if (!fstr) {
+        return;
+    }
+    
+    format_call_cb(fstr);
+}
+
+FormatStructure *CreateFormatChoice(Widget parent)
+{
+    FormatStructure *retval;
+    Widget rc, rc1;
+    
+    retval = xmalloc(sizeof(FormatStructure));
+    
+    rc = CreateVContainer(parent);
+    rc1 = CreateHContainer(rc);
+    retval->type = CreateOptionChoice(rc1, "Format", 1, 15, fmt_option_items);
+    AddOptionChoiceCB(retval->type, format_oc_cb, retval);
+    retval->prec = CreatePrecisionChoice(rc1, "Precision:");
+    AddOptionChoiceCB(retval->prec, format_oc_cb, retval);
+    retval->fstring = CreateTextInput(rc, "Format string:");
+    AddTextInputCB(retval->fstring, format_text_cb, retval);
+    
+    return retval;
+}
+
+void SetFormatChoice(FormatStructure *fstr, const Format *format)
+{
+    SetOptionChoice(fstr->type, format->type);
+    SetOptionChoice(fstr->prec, format->prec1);
+    SetTextString(fstr->fstring, format->fstring);
+    SetSensitive(fstr->fstring->form, format->type == FORMAT_DATETIME);
+}
+
+Format *GetFormatChoice(FormatStructure *fstr)
+{
+    Format *format = format_new();
+    if (format) {
+        format->type    = GetOptionChoice(fstr->type);
+        format->prec1   = GetOptionChoice(fstr->prec);
+        format->fstring = GetTextString(fstr->fstring);
+    }
+    
+    return format;
+}
+
+void AddFormatChoiceCB(FormatStructure *fstr, Format_CBProc cbproc, void *data)
+{
+    fstr->cb_proc = cbproc;
+    fstr->cb_data = data;
+}
+
 
 static OptionItem as_option_items[4] = 
 {

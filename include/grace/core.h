@@ -278,16 +278,38 @@ typedef struct {
     double y;
 } APoint;
 
+/* Tick label/display formats */
+typedef enum {
+    FORMAT_DECIMAL,
+    FORMAT_EXPONENTIAL,
+    FORMAT_GENERAL,
+    FORMAT_POWER,
+    FORMAT_SCIENTIFIC,
+    FORMAT_ENGINEERING,
+    FORMAT_DATETIME,
+    FORMAT_DEGREESLON,
+    FORMAT_DEGREESMMLON,
+    FORMAT_DEGREESMMSSLON,
+    FORMAT_MMSSLON,
+    FORMAT_DEGREESLAT,
+    FORMAT_DEGREESMMLAT,
+    FORMAT_DEGREESMMSSLAT,
+    FORMAT_MMSSLAT,
+    FORMAT_BAD
+} FormatType;
+
+#define NUMBER_OF_FORMATTYPES   FORMAT_BAD
+
+/* Format */
+typedef struct {
+    FormatType type;
+    int prec1;
+    char *fstring;
+} Format;
 
 #define GLOCATOR_TYPE_NONE  0
 #define GLOCATOR_TYPE_XY    1
 #define GLOCATOR_TYPE_POLAR 2
-
-/* Format */
-typedef struct {
-    int type;
-    int prec;
-} Format;
 
 /* Locator props */
 typedef struct {
@@ -360,44 +382,6 @@ typedef enum {
 typedef struct {
     double xg1, xg2, yg1, yg2;  /* window into world coords */
 } world;
-
-/* Tick label/display formats */
-typedef enum {
-    FORMAT_DECIMAL,
-    FORMAT_EXPONENTIAL,
-    FORMAT_GENERAL,
-    FORMAT_POWER,
-    FORMAT_SCIENTIFIC,
-    FORMAT_ENGINEERING,
-    FORMAT_DDMMYY,
-    FORMAT_MMDDYY,
-    FORMAT_YYMMDD,
-    FORMAT_MMYY,
-    FORMAT_MMDD,
-    FORMAT_MONTHDAY,
-    FORMAT_DAYMONTH,
-    FORMAT_MONTHS,
-    FORMAT_MONTHSY,
-    FORMAT_MONTHL,
-    FORMAT_DAYOFWEEKS,
-    FORMAT_DAYOFWEEKL,
-    FORMAT_DAYOFYEAR,
-    FORMAT_HMS,
-    FORMAT_MMDDHMS,
-    FORMAT_MMDDYYHMS,
-    FORMAT_YYMMDDHMS,
-    FORMAT_DEGREESLON,
-    FORMAT_DEGREESMMLON,
-    FORMAT_DEGREESMMSSLON,
-    FORMAT_MMSSLON,
-    FORMAT_DEGREESLAT,
-    FORMAT_DEGREESMMLAT,
-    FORMAT_DEGREESMMSSLAT,
-    FORMAT_MMSSLAT,
-    FORMAT_BAD
-} FormatType;
-
-#define NUMBER_OF_FORMATTYPES   FORMAT_BAD
 
 typedef struct {
     double xv_med;

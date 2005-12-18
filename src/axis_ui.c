@@ -201,10 +201,8 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->tlcolor, oc_explorer_cb, eui);
 
     rc = CreateHContainer(rc2);
-    ui->tlform = CreateFormatChoice(rc, "Format:");
-    AddOptionChoiceCB(ui->tlform , oc_explorer_cb, eui);
-    ui->tlprec = CreatePrecisionChoice(rc, "Precision:");
-    AddOptionChoiceCB(ui->tlprec, oc_explorer_cb, eui);
+    ui->tlform = CreateFormatChoice(rc);
+    AddFormatChoiceCB(ui->tlform , format_explorer_cb, eui);
 
 
     fr = CreateFrame(ui->ticklabel_tp, "Placement");
@@ -347,8 +345,7 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
             sprintf(buf, "%f", t->tl_stop);
             xv_setstr(ui->tlstop, buf);
         }
-        SetOptionChoice(ui->tlform, t->tl_format.type);
-        SetOptionChoice(ui->tlprec, t->tl_format.prec);
+        SetFormatChoice(ui->tlform, &t->tl_format);
         SetTextString(ui->tlformula, t->tl_formula);
 
         sprintf(buf, "%.2f", t->tl_gap.x);
@@ -436,10 +433,12 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->nminor = (int) GetSpinChoice(ui->nminor);
         }
         if (!caller || caller == ui->tlform) {
-            t->tl_format.type = GetOptionChoice(ui->tlform);
-        }
-        if (!caller || caller == ui->tlprec) {
-            t->tl_format.prec = GetOptionChoice(ui->tlprec);
+            Format *format = GetFormatChoice(ui->tlform);
+            AMem *amem = quark_get_amem(q);
+            amem_free(amem, t->tl_format.fstring);
+            t->tl_format = *format;
+            t->tl_format.fstring = amem_strdup(amem, format->fstring);
+            format_free(format);
         }
         if (!caller || caller == ui->tlfont) {
             t->tl_tprops.font = GetOptionChoice(ui->tlfont);

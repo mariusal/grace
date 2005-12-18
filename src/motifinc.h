@@ -372,6 +372,24 @@ typedef void (*Pen_CBProc )(
     void *              /* data the application registered */
 );
 
+typedef struct _FormatStructure FormatStructure;
+
+/* FormatChoice input CB procedure */
+typedef void (*Format_CBProc )(
+    FormatStructure *,
+    const Format*,
+    void *              /* data the application registered */
+);
+
+struct _FormatStructure {
+    OptionStructure *type;
+    OptionStructure *prec;
+    TextStructure   *fstring;
+
+    Format_CBProc cb_proc;
+    void *cb_data;
+};
+
 
 void ManageChild(Widget w);
 void UnmanageChild(Widget w);
@@ -508,7 +526,6 @@ OptionStructure *CreatePatternChoice(Widget parent, char *s);
 OptionStructure *CreateLineStyleChoice(Widget parent, char *s);
 OptionStructure *CreateSetTypeChoice(Widget parent, char *s);
 OptionStructure *CreateColorChoice(Widget parent, char *s);
-OptionStructure *CreateFormatChoice(Widget parent, char *s);
 OptionStructure *CreateASChoice(Widget parent, char *s);
 OptionStructure *CreateTextJustChoice(Widget parent, char *s);
 OptionStructure *CreateJustChoice(Widget parent, char *s);
@@ -520,6 +537,11 @@ Widget CreatePenChoice(Widget parent, char *s);
 void SetPenChoice(Widget button, Pen *pen);
 int GetPenChoice(Widget pen_button, Pen *pen);
 void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata);
+
+FormatStructure *CreateFormatChoice(Widget parent);
+void SetFormatChoice(FormatStructure *fstr, const Format *format);
+Format *GetFormatChoice(FormatStructure *fstr);
+void AddFormatChoiceCB(FormatStructure *fstr, Format_CBProc cbproc, void *data);
 
 SpinStructure *CreateViewCoordInput(Widget parent, char *s);
 

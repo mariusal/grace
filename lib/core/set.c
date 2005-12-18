@@ -103,6 +103,7 @@ void set_data_free(AMem *amem, set *p)
         amem_free(amem, p->legstr);
         amem_free(amem, p->avalue.prestr);
         amem_free(amem, p->avalue.appstr);
+        amem_free(amem, p->avalue.format.fstring);
         amem_free(amem, p);
     }
 }
@@ -122,9 +123,10 @@ set *set_data_copy(AMem *amem, set *p)
     
     memcpy(p_new, p, sizeof(set));
     
-    p->legstr  = amem_strdup(amem, p->legstr);
-    p->avalue.prestr = amem_strdup(amem, p->avalue.prestr);
-    p->avalue.appstr = amem_strdup(amem, p->avalue.appstr);
+    p_new->legstr  = amem_strdup(amem, p->legstr);
+    p_new->avalue.prestr = amem_strdup(amem, p->avalue.prestr);
+    p_new->avalue.appstr = amem_strdup(amem, p->avalue.appstr);
+    p_new->avalue.format.fstring = amem_strdup(amem, p->avalue.format.fstring);
 
     return p_new;
 }
@@ -163,7 +165,8 @@ static void set_default_set(Quark *pset)
         p->avalue.tprops.just = JUST_CENTER|JUST_BOTTOM;
     }
     p->avalue.format.type = FORMAT_GENERAL;       /* format type */
-    p->avalue.format.prec = 3;                    /* precision */
+    p->avalue.format.prec1 = 3;                    /* precision */
+    p->avalue.format.fstring = NULL;
     p->avalue.prestr = NULL;
     p->avalue.appstr = NULL;
 
@@ -368,9 +371,11 @@ int set_set_avalue(Quark *pset, const AValue *av)
     
     AMEM_CFREE(pset->amem, p->avalue.prestr);
     AMEM_CFREE(pset->amem, p->avalue.appstr);
+    AMEM_CFREE(pset->amem, p->avalue.format.fstring);
     p->avalue = *av;
     p->avalue.prestr = amem_strdup(pset->amem, av->prestr);
     p->avalue.appstr = amem_strdup(pset->amem, av->appstr);
+    p->avalue.format.fstring = amem_strdup(pset->amem, av->format.fstring);
     
     quark_dirtystate_set(pset, TRUE);
     return RETURN_SUCCESS;

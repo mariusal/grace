@@ -340,10 +340,8 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->avalue_tp, "Format options");
     rc = CreateVContainer(fr);
     rc2 = CreateHContainer(rc);
-    ui->avalue_format = CreateFormatChoice(rc, "Format:");
-    AddOptionChoiceCB(ui->avalue_format, oc_explorer_cb, eui);
-    ui->avalue_precision = CreatePrecisionChoice(rc2, "Precision:");
-    AddOptionChoiceCB(ui->avalue_precision, oc_explorer_cb, eui);
+    ui->avalue_format = CreateFormatChoice(rc);
+    AddFormatChoiceCB(ui->avalue_format, format_explorer_cb, eui);
 
     fr = CreateFrame(ui->avalue_tp, "Placement");
     rc = CreateVContainer(fr);
@@ -508,8 +506,7 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetOptionChoice(ui->avalue_font, p->avalue.tprops.font);
         SetOptionChoice(ui->avalue_color, p->avalue.tprops.color);
         SetAngleChoice(ui->avalue_angle, p->avalue.tprops.angle);
-        SetOptionChoice(ui->avalue_format, p->avalue.format.type);
-        SetOptionChoice(ui->avalue_precision, p->avalue.format.prec);
+        SetFormatChoice(ui->avalue_format, &p->avalue.format);
         
         SetTextString(ui->avalue_prestr, p->avalue.prestr);
         SetTextString(ui->avalue_appstr, p->avalue.appstr);
@@ -652,10 +649,12 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->avalue.tprops.angle = GetAngleChoice(ui->avalue_angle);
         }
         if (!caller || caller == ui->avalue_format) {
-            p->avalue.format.type = GetOptionChoice(ui->avalue_format);
-        }
-        if (!caller || caller == ui->avalue_precision) {
-            p->avalue.format.prec = GetOptionChoice(ui->avalue_precision);
+            Format *format = GetFormatChoice(ui->avalue_format);
+            AMem *amem = quark_get_amem(q);
+            amem_free(amem, p->avalue.format.fstring);
+            p->avalue.format = *format;
+            p->avalue.format.fstring = amem_strdup(amem, format->fstring);
+            format_free(format);
         }
         if (!caller || caller == ui->avalue_prestr) {
             char *s = GetTextString(ui->avalue_prestr);

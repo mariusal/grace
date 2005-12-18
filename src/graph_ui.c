@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -135,18 +135,12 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->loc_type, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->locator_tp, "X properties");
-    rc = CreateVContainer(fr);
-    ui->loc_formatx = CreateFormatChoice(rc, "Format:");
-    AddOptionChoiceCB(ui->loc_formatx, oc_explorer_cb, eui);
-    ui->loc_precx = CreatePrecisionChoice(rc, "Precision:");
-    AddOptionChoiceCB(ui->loc_precx, oc_explorer_cb, eui);
-
+    ui->loc_fx = CreateFormatChoice(fr);
+    AddFormatChoiceCB(ui->loc_fx, format_explorer_cb, eui);
+    
     fr = CreateFrame(ui->locator_tp, "Y properties");
-    rc = CreateVContainer(fr);
-    ui->loc_formaty = CreateFormatChoice(rc, "Format:");
-    AddOptionChoiceCB(ui->loc_formaty, oc_explorer_cb, eui);
-    ui->loc_precy = CreatePrecisionChoice(rc, "Precision:");
-    AddOptionChoiceCB(ui->loc_precy, oc_explorer_cb, eui);
+    ui->loc_fy = CreateFormatChoice(fr);
+    AddFormatChoiceCB(ui->loc_fy, format_explorer_cb, eui);
 
     fr = CreateFrame(ui->locator_tp, "Fixed point");
     rc = CreateVContainer(fr);
@@ -202,10 +196,8 @@ void update_graph_ui(GraphUI *ui, Quark *q)
 
 	SetToggleButtonState(ui->fixedp, locator->pointset);
 	SetOptionChoice(ui->loc_type, locator->type);
-	SetOptionChoice(ui->loc_formatx, locator->fx.type);
-	SetOptionChoice(ui->loc_formaty, locator->fy.type);
-	SetOptionChoice(ui->loc_precx, locator->fx.prec);
-	SetOptionChoice(ui->loc_precy, locator->fy.prec);
+        SetFormatChoice(ui->loc_fx, &locator->fx);
+        SetFormatChoice(ui->loc_fy, &locator->fy);
 	sprintf(buf, "%g", locator->origin.x);
 	xv_setstr(ui->locx, buf);
 	sprintf(buf, "%g", locator->origin.y);
@@ -294,27 +286,37 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
 
         if (!caller || caller == ui->loc_type) {
             locator->type = GetOptionChoice(ui->loc_type);
+            quark_dirtystate_set(q, TRUE);
         }
-        if (!caller || caller == ui->loc_formatx) {
-            locator->fx.type = GetOptionChoice(ui->loc_formatx);
+        if (!caller || caller == ui->loc_fx) {
+            Format *format = GetFormatChoice(ui->loc_fx);
+            AMem *amem = quark_get_amem(q);
+            amem_free(amem, locator->fx.fstring);
+            locator->fx = *format;
+            locator->fx.fstring = amem_strdup(amem, format->fstring);
+            format_free(format);
+            quark_dirtystate_set(q, TRUE);
         }
-        if (!caller || caller == ui->loc_formaty) {
-            locator->fy.type = GetOptionChoice(ui->loc_formaty);
-        }
-        if (!caller || caller == ui->loc_precx) {
-            locator->fx.prec = GetOptionChoice(ui->loc_precx);
-        }
-        if (!caller || caller == ui->loc_precy) {
-            locator->fy.prec = GetOptionChoice(ui->loc_precy);
+        if (!caller || caller == ui->loc_fy) {
+            Format *format = GetFormatChoice(ui->loc_fy);
+            AMem *amem = quark_get_amem(q);
+            amem_free(amem, locator->fy.fstring);
+            locator->fy = *format;
+            locator->fy.fstring = amem_strdup(amem, format->fstring);
+            format_free(format);
+            quark_dirtystate_set(q, TRUE);
         }
         if (!caller || caller == ui->fixedp) {
             locator->pointset = GetToggleButtonState(ui->fixedp);
+            quark_dirtystate_set(q, TRUE);
         }
         if (!caller || caller == ui->locx) {
             xv_evalexpr(ui->locx, &locator->origin.x); 
+            quark_dirtystate_set(q, TRUE);
         }
         if (!caller || caller == ui->locy) {
             xv_evalexpr(ui->locy, &locator->origin.y); 
+            quark_dirtystate_set(q, TRUE);
         }
 
         return RETURN_SUCCESS;

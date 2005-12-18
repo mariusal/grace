@@ -81,4 +81,8 @@ int get_arrow_placement_by_name(RunTime *rt, const char *name);
 char *arcclosure_type_name(RunTime *rt, int it);
 int get_arcclosure_type_by_name(RunTime *rt, const char *name);
 
+char *format_type_name(RunTime *rt, FormatType it);
+FormatType get_format_type_by_name(RunTime *rt, const char *name);
+char *format_type_descr(RunTime *rt, FormatType it);
+
 #endif /* __DICTS_H_ */

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -56,12 +56,14 @@
 #define GA_GAP_DEFAULT       0.2
 
 
-Symbol *symbol_new();
+Symbol *symbol_new(void);
 void symbol_free(Symbol *sym);
-SetLine *setline_new();
+SetLine *setline_new(void);
 void setline_free(SetLine *sl);
 BarLine *barline_new(void);
 RiserLine *riserline_new(void);
+Format *format_new(void);
+void format_free(Format *f);
 
 Quark *graph_next(Quark *project);
 
@@ -102,9 +104,6 @@ int project_get_viewport(const Quark *project, double *vx, double *vy);
 
 void move_object(Quark *q, VVector shift);
 int object_place_at_vp(Quark *q, VPoint vp);
-
-char *get_format_types(FormatType f);
-FormatType get_format_type_by_name(const char *name);
 
 int graph_scroll(Quark *gr, int type);
 int graph_zoom(Quark *gr, int type);

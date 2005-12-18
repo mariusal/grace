@@ -33,6 +33,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "grace/plotP.h"
 
@@ -76,18 +77,11 @@ void jdate_to_datetime(const Quark *q, double jday, int rounding,
     }
 }
 
-static char *dayofweekstrs[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-static char *dayofweekstrl[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-static char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-static char *monthl[] = {"January", "February", "March", "April", "May", "June",
-"July", "August", "September", "October", "November", "December"};
-
 static int dayofweek(double j)
 {
     int i = (int) floor(j + 1.5);
     return (i <= 0) ? 6 - (6 - i)%7 : i%7;
 }
-
 
 /* create format string */
 char *create_fstring(const Quark *q, const Format *form, double loc, int type)
@@ -101,7 +95,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
     double mantissa;
     int yprec;
     Project *pr = project_get_data(q);
-    
+       
     if (pr->two_digits_years) {
         yprec = 2;
     } else {
@@ -114,22 +108,22 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
     strcpy(format, "%.*lf");
     switch (form->type) {
     case FORMAT_DECIMAL:
-	sprintf(s, format, form->prec, loc);
+	sprintf(s, format, form->prec1, loc);
 	tmp = atof(s);		/* fix reverse axes problem when loc == -0.0 */
 	if (tmp == 0.0) {
 	    strcpy(format, "%.*lf");
 	    loc = 0.0;
-	    sprintf(s, format, form->prec, loc);
+	    sprintf(s, format, form->prec1, loc);
 	}
 	break;
     case FORMAT_EXPONENTIAL:
 	strcpy(format, "%.*le");
-	sprintf(s, format, form->prec, loc);
+	sprintf(s, format, form->prec1, loc);
 	tmp = atof(s);		/* fix reverse axes problem when loc == -0.0 */
 	if (tmp == 0.0) {
 	    strcpy(format, "%.*le");
 	    loc = 0.0;
-	    sprintf(s, format, form->prec, loc);
+	    sprintf(s, format, form->prec1, loc);
 	}
 	break;
     case FORMAT_SCIENTIFIC:
@@ -141,10 +135,10 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 	    } else {
 	        strcpy(format, "%.*fx10(%d)");
             }
-	    sprintf(s, format, form->prec, mantissa, exponent);
+	    sprintf(s, format, form->prec1, mantissa, exponent);
         } else {
 	    strcpy(format, "%.*f");
-	    sprintf(s, format, form->prec, 0.0);
+	    sprintf(s, format, form->prec1, 0.0);
         }
 	break;
     case FORMAT_ENGINEERING:
@@ -206,7 +200,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
             break;
         }
 	strcpy(format, "%.*f %s");
-	sprintf(s, format, form->prec, loc/(pow(10.0, exponent)), eng_prefix);
+	sprintf(s, format, form->prec1, loc/(pow(10.0, exponent)), eng_prefix);
 	break;
     case FORMAT_POWER:
         if (loc < 0.0) {
@@ -217,7 +211,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
                 strcpy(format, "-10(%.*lf)\\N");
             }
         } else if (loc == 0.0) {
-            sprintf(format, "%.*f", form->prec, 0.0);
+            sprintf(format, "%.*f", form->prec1, 0.0);
         } else {
             loc = log10(loc);
             if (type == LFORMAT_TYPE_EXTENDED) {
@@ -226,11 +220,11 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
                 strcpy(format, "10(%.*lf)\\N");
             }
         }
-        sprintf(s, format, form->prec, loc);
+        sprintf(s, format, form->prec1, loc);
         break;
     case FORMAT_GENERAL:
 	strcpy(format, "%.*lg");
-	sprintf(s, format, form->prec, loc);
+	sprintf(s, format, form->prec1, loc);
 	tmp = atof(s);
 	if (tmp == 0.0) {
 	    strcpy(format, "%lg");
@@ -238,110 +232,31 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 	    sprintf(s, format, loc);
 	}
 	break;
-    case FORMAT_DDMMYY:
-	strcpy(format, "%02d-%02d-%0*d");
-	jdate_to_datetime(q, loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, d, m, yprec, y);
-	break;
-    case FORMAT_MMDDYY:
-	strcpy(format, "%02d-%02d-%0*d");
-	jdate_to_datetime(q, loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d, yprec, y);
-	break;
-    case FORMAT_YYMMDD:
-	strcpy(format, "%0*d-%02d-%02d");
-	jdate_to_datetime(q, loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, yprec, y, m, d);
-	break;
-    case FORMAT_MMYY:
-	strcpy(format, "%02d-%0*d");
-	jdate_to_datetime(q, loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, yprec, y);
-	break;
-    case FORMAT_MMDD:
-	strcpy(format, "%02d-%02d");
-	jdate_to_datetime(q, loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d);
-	break;
-    case FORMAT_MONTHDAY:
-	strcpy(format, "%s-%02d");
-	jdate_to_datetime(q, loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	if (m - 1 < 0 || m - 1 > 11) {
-	    sprintf(s, format, "???");
-	} else {
-	    sprintf(s, format, months[m - 1], d);
-	}
-	break;
-    case FORMAT_DAYMONTH:
-	strcpy(format, "%02d-%s");
-	jdate_to_datetime(q, loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	if (m - 1 < 0 || m - 1 > 11) {
-	    sprintf(s, format, "???");
-	} else {
-	    sprintf(s, format, d, months[m - 1]);
-	}
-	break;
-    case FORMAT_MONTHS:
-	strcpy(format, "%s");
-	jdate_to_datetime(q, loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
-	if (m - 1 < 0 || m - 1 > 11) {
-	    sprintf(s, format, "???");
-	} else {
-	    sprintf(s, format, months[m - 1]);
-	}
-	break;
-    case FORMAT_MONTHSY:
-	strcpy(format, "%s-%0*d");
-	jdate_to_datetime(q, loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
-	if (m - 1 < 0 || m - 1 > 11) {
-	    sprintf(s, format, "???");
-	} else {
-	    sprintf(s, format, months[m - 1], yprec, y);
-	}
-	break;
-    case FORMAT_MONTHL:
-	strcpy(format, "%s");
-	jdate_to_datetime(q, loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
-	if (m - 1 < 0 || m - 1 > 11) {
-	    sprintf(s, format, "???");
-	} else {
-	    sprintf(s, format, monthl[m - 1]);
-	}
-	break;
-    case FORMAT_DAYOFWEEKS:
-	strcpy(format, "%s");
-	sprintf(s, format, dayofweekstrs[dayofweek(loc + pr->ref_date)]);
-	break;
-    case FORMAT_DAYOFWEEKL:
-	strcpy(format, "%s");
-	sprintf(s, format, dayofweekstrl[dayofweek(loc + pr->ref_date)]);
-	break;
-    case FORMAT_DAYOFYEAR:
-	strcpy(format, "%d");
-        jdate_to_datetime(q, loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format,
-                1 + (int) (cal_to_jul(y, m, d) - cal_to_jul(y, 1, 1)));
-	break;
-    case FORMAT_HMS:
-	strcpy(format, "%02d:%02d:%02d");
-	jdate_to_datetime(q, loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, h, mm, sec);
-	break;
-    case FORMAT_MMDDHMS:
-	strcpy(format, "%02d-%02d %02d:%02d:%02d");
-	jdate_to_datetime(q, loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d, h, mm, sec);
-	break;
-    case FORMAT_MMDDYYHMS:
-	strcpy(format, "%02d-%02d-%d %02d:%02d:%02d");
-	jdate_to_datetime(q, loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d, y, h, mm, sec);
-	break;
-    case FORMAT_YYMMDDHMS:
-	strcpy(format, "%0*d-%02d-%02d %02d:%02d:%02d");
-	jdate_to_datetime(q, loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, yprec, y, m, d, h, mm, sec);
-	break;
+    case FORMAT_DATETIME:
+        if (!string_is_empty(form->fstring)) {
+            struct tm datetime_tm;
+            
+            jdate_to_datetime(q, loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+	    
+            memset(&datetime_tm, 0, sizeof(datetime_tm));
+            datetime_tm.tm_year = y - 1900;
+            datetime_tm.tm_mon  = m - 1;
+            datetime_tm.tm_mday = d;
+            datetime_tm.tm_hour = h;
+            datetime_tm.tm_min  = mm;
+            datetime_tm.tm_sec  = sec;
+            datetime_tm.tm_wday = dayofweek(loc + pr->ref_date);
+            datetime_tm.tm_yday = (int) (cal_to_jul(y, m, d) -
+                                         cal_to_jul(y, 1, 1));
+	    
+            if (strftime(s,
+                MAX_STRING_LENGTH - 1, form->fstring, &datetime_tm) <= 0) {
+                s[0] = '\0';
+            }
+        } else {
+            s[0] = '\0';
+        }
+        break;
     case FORMAT_DEGREESLON:
 	if (loc < 0.0) {
 	    loc *= -1.0;
@@ -351,7 +266,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 	} else {
 	    strcpy(format, "0");
 	}
-	sprintf(s, format, form->prec, loc);
+	sprintf(s, format, form->prec1, loc);
 	break;
     case FORMAT_DEGREESMMLON:
 	if (loc < 0.0) {
@@ -364,7 +279,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 	}
 	y = loc;
 	arcmin = (loc - y) * 60.0;
-	sprintf(s, format, y, form->prec, arcmin);
+	sprintf(s, format, y, form->prec1, arcmin);
 	break;
     case FORMAT_DEGREESMMSSLON:
 	if (loc < 0.0) {
@@ -379,7 +294,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 	arcsec = (loc - y) * 3600.0;
 	m = arcsec / 60.0;
 	arcsec = (arcsec - m * 60);
-	sprintf(s, format, y, m, form->prec, arcsec);
+	sprintf(s, format, y, m, form->prec1, arcsec);
 	break;
     case FORMAT_MMSSLON:
 	if (loc < 0.0) {
@@ -394,7 +309,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 	arcsec = (loc - y) * 3600.0;
 	m = arcsec / 60.0;
 	arcsec = (arcsec - m * 60);
-	sprintf(s, format, m, form->prec, arcsec);
+	sprintf(s, format, m, form->prec1, arcsec);
 	break;
     case FORMAT_DEGREESLAT:
 	if (loc < 0.0) {
@@ -405,7 +320,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 	} else {
 	    strcpy(format, "0");
 	}
-	sprintf(s, format, form->prec, loc);
+	sprintf(s, format, form->prec1, loc);
 	break;
     case FORMAT_DEGREESMMLAT:
 	if (loc < 0.0) {
@@ -418,7 +333,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 	}
 	y = loc;
 	arcsec = (loc - y) * 60.0;
-	sprintf(s, format, y, form->prec, arcsec);
+	sprintf(s, format, y, form->prec1, arcsec);
 	break;
     case FORMAT_DEGREESMMSSLAT:
 	if (loc < 0.0) {
@@ -433,7 +348,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 	arcsec = (loc - y) * 3600.0;
 	m = arcsec / 60.0;
 	arcsec = (arcsec - m * 60);
-	sprintf(s, format, y, m, form->prec, arcsec);
+	sprintf(s, format, y, m, form->prec1, arcsec);
 	break;
     case FORMAT_MMSSLAT:
 	if (loc < 0.0) {
@@ -448,10 +363,10 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 	arcsec = (loc - y) * 3600.0;
 	m = arcsec / 60.0;
 	arcsec = (arcsec - m * 60);
-	sprintf(s, format, m, form->prec, arcsec);
+	sprintf(s, format, m, form->prec1, arcsec);
 	break;
     default:
-	sprintf(s, format, form->prec, loc);
+	sprintf(s, format, form->prec1, loc);
 	break;
     }
 

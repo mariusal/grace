@@ -218,6 +218,27 @@ int grace_rt_init_dicts(RunTime *rt)
             {ARCCLOSURE_PIESLICE, VStrPieSlice, "Pie slice"}
         };
 
+    const DictEntry format_type_defaults =
+        {FORMAT_GENERAL, VStrGeneral, "General"};
+    const DictEntry format_type_entries[] = 
+        {
+            {FORMAT_DECIMAL,        VStrDecimal,        "Decimal"            },
+            {FORMAT_EXPONENTIAL,    VStrExponential,    "Exponential"        },
+            {FORMAT_GENERAL,        VStrGeneral,        "General"            },
+            {FORMAT_POWER,          VStrPower,          "Power"              },
+            {FORMAT_SCIENTIFIC,     VStrScientific,     "Scientific"         },
+            {FORMAT_ENGINEERING,    VStrEngineering,    "Engineering"        },
+            {FORMAT_DATETIME,       VStrDateTime,       "DateTime"           },
+            {FORMAT_DEGREESLON,     VStrDegreeslon,     "Degrees (lon)"      },
+            {FORMAT_DEGREESMMLON,   VStrDegreesmmlon,   "DD MM' (lon)"       },
+            {FORMAT_DEGREESMMSSLON, VStrDegreesmmsslon, "DD MM' SS.s\" (lon)"},
+            {FORMAT_MMSSLON,        VStrmmsslon,        "MM' SS.s\" (lon)"   },
+            {FORMAT_DEGREESLAT,     VStrDegreeslat,     "Degrees (lat)"      },
+            {FORMAT_DEGREESMMLAT,   VStrDegreesmmlat,   "DD MM' (lat)"       },
+            {FORMAT_DEGREESMMSSLAT, VStrDegreesmmsslat, "DD MM' SS.s\" (lat)"},
+            {FORMAT_MMSSLAT,        VStrmmsslat,        "MM' SS.s\" (lat)"   }
+        };
+
 
     if (!(rt->graph_type_dict =
         DICT_NEW_STATIC(graph_type_entries, &graph_type_defaults))) {
@@ -288,6 +309,10 @@ int grace_rt_init_dicts(RunTime *rt)
         DICT_NEW_STATIC(arcclosure_type_entries, &arcclosure_type_defaults))) {
         return RETURN_FAILURE;
     }
+    if (!(rt->format_type_dict =
+        DICT_NEW_STATIC(format_type_entries, &format_type_defaults))) {
+        return RETURN_FAILURE;
+    }
 
     return RETURN_SUCCESS;
 }
@@ -311,6 +336,7 @@ void grace_rt_free_dicts(RunTime *rt)
     dict_free(rt->scale_type_dict);
     dict_free(rt->arrow_placement_dict);
     dict_free(rt->arcclosure_type_dict);
+    dict_free(rt->format_type_dict);
 }
 
 char *graph_types(RunTime *rt, GraphType it)
@@ -646,4 +672,31 @@ int get_arcclosure_type_by_name(RunTime *rt, const char *name)
     dict_get_key_by_name(rt->arcclosure_type_dict, name, &retval);
     
     return retval;
+}
+
+char *format_type_name(RunTime *rt, FormatType it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->format_type_dict, it, &s);
+    
+    return s;
+}
+
+FormatType get_format_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->format_type_dict, name, &retval);
+    
+    return retval;
+}
+
+char *format_type_descr(RunTime *rt, FormatType it)
+{
+    char *s;
+    
+    dict_get_descr_by_key(rt->format_type_dict, it, &s);
+    
+    return s;
 }

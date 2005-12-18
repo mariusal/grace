@@ -143,10 +143,8 @@ typedef struct {
     Widget          znorm;
 
     OptionStructure *loc_type;
-    OptionStructure *loc_formatx;
-    OptionStructure *loc_formaty;
-    OptionStructure *loc_precx;
-    OptionStructure *loc_precy;
+    FormatStructure *loc_fx;
+    FormatStructure *loc_fy;
     Widget          locx;
     Widget          locy;
     Widget          fixedp;
@@ -206,8 +204,7 @@ typedef struct {
     OptionStructure *avalue_color;
     SpinStructure   *avalue_charsize;
     SpinStructure   *avalue_angle;
-    OptionStructure *avalue_format;
-    OptionStructure *avalue_precision;
+    FormatStructure *avalue_format;
     Widget          avalue_offsetx;
     Widget          avalue_offsety;
     OptionStructure *avalue_just;
@@ -249,8 +246,7 @@ typedef struct {
     SpinStructure   *tmgridlinew;
     OptionStructure *tmgridlines;
 
-    OptionStructure *tlform;
-    OptionStructure *tlprec;
+    FormatStructure *tlform;
     OptionStructure *tlfont;
     SpinStructure   *tlcharsize;
     OptionStructure *tlcolor;
@@ -447,6 +443,7 @@ void sp_explorer_cb(SpinStructure *spinp, double a, void *data);
 void text_explorer_cb(TextStructure *cst, char *s, void *data);
 void titem_explorer_cb(Widget w, char *s, void *data);
 void pen_explorer_cb(Widget but, const Pen *pen, void *data);
+void format_explorer_cb(FormatStructure *fstr, const Format *format, void *data);
 
 ProjectUI *create_project_ui(ExplorerUI *eui);
 void update_project_ui(ProjectUI *ui, Quark *q);

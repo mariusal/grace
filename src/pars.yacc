@@ -145,6 +145,8 @@ static Quark *allocate_graph(Quark *project, int gno);
 static Quark *allocate_set(Quark *gr, int setno);
 static Quark *allocate_region(Quark *gr, int rn);
 
+static char *datetime_fstring;
+
 /* Total (intrinsic + user-defined) list of functions and keywords */
 symtab_entry *key;
 
@@ -2388,13 +2390,16 @@ parmset:
         }
 	| selectgraph FIXEDPOINT FORMAT formatchoice formatchoice {
             GLocator *gloc = graph_get_locator($1);
+	    AMem *amem = quark_get_amem($1);
 	    gloc->fx.type = $4;
+            gloc->fx.fstring = amem_strdup(amem, datetime_fstring);
 	    gloc->fy.type = $5;
+            gloc->fy.fstring = amem_strdup(amem, datetime_fstring);
 	}
 	| selectgraph FIXEDPOINT PREC expr ',' expr {
             GLocator *gloc = graph_get_locator($1);
-	    gloc->fx.prec = $4;
-	    gloc->fy.prec = $6;
+	    gloc->fx.prec1 = $4;
+	    gloc->fy.prec1 = $6;
 	}
 	| selectgraph FIXEDPOINT XY expr ',' expr {
             GLocator *gloc = graph_get_locator($1);
@@ -2750,12 +2755,14 @@ setprop:
 	| selectset AVALUE FORMAT formatchoice
         {
 	    set *p = set_get_data($1);
+	    AMem *amem = quark_get_amem($1);
 	    p->avalue.format.type = $4;
+	    p->avalue.format.fstring = amem_strdup(amem, datetime_fstring);
 	}
 	| selectset AVALUE PREC nexpr
         {
 	    set *p = set_get_data($1);
-	    p->avalue.format.prec = $4;
+	    p->avalue.format.prec1 = $4;
 	}
 	| selectset AVALUE OFFSET expr ',' expr {
 	    set *p = set_get_data($1);
@@ -2968,10 +2975,12 @@ ticklabelattr:
             axis_enable_labels(oppaxis,  $1);
 	}
 	| FORMAT formatchoice {
+	    AMem *amem = quark_get_amem(whichaxisgrid);
 	    curtm->tl_format.type = $2;
+	    curtm->tl_format.fstring = amem_strdup(amem, datetime_fstring);
 	}
 	| PREC nexpr {
-	    curtm->tl_format.prec = $2;
+	    curtm->tl_format.prec1 = $2;
 	}
 	| APPEND CHRSTR {
 	    AMem *amem = quark_get_amem(whichaxisgrid);
@@ -3509,23 +3518,23 @@ formatchoice: DECIMAL { $$ = FORMAT_DECIMAL; }
 	| SCIENTIFIC { $$ = FORMAT_SCIENTIFIC; }
 	| ENGINEERING { $$ = FORMAT_ENGINEERING; }
 	| POWER { $$ = FORMAT_POWER; }
-	| DDMMYY { $$ = FORMAT_DDMMYY; }
-	| MMDDYY { $$ = FORMAT_MMDDYY; }
-	| YYMMDD { $$ = FORMAT_YYMMDD; }
-	| MMYY { $$ = FORMAT_MMYY; }
-	| MMDD { $$ = FORMAT_MMDD; }
-	| MONTHDAY { $$ = FORMAT_MONTHDAY; }
-	| DAYMONTH { $$ = FORMAT_DAYMONTH; }
-	| MONTHS { $$ = FORMAT_MONTHS; }
-	| MONTHSY { $$ = FORMAT_MONTHSY; }
-	| MONTHL { $$ = FORMAT_MONTHL; }
-	| DAYOFWEEKS { $$ = FORMAT_DAYOFWEEKS; }
-	| DAYOFWEEKL { $$ = FORMAT_DAYOFWEEKL; }
-	| DAYOFYEAR { $$ = FORMAT_DAYOFYEAR; }
-	| HMS { $$ = FORMAT_HMS; }
-	| MMDDHMS { $$ = FORMAT_MMDDHMS; }
-	| MMDDYYHMS { $$ = FORMAT_MMDDYYHMS; }
-	| YYMMDDHMS { $$ = FORMAT_YYMMDDHMS; }
+	| DDMMYY { $$ = FORMAT_DATETIME; datetime_fstring = "%d-%m-%Y"; }
+	| MMDDYY { $$ = FORMAT_DATETIME; datetime_fstring = "%m-%d-%Y"; }
+	| YYMMDD { $$ = FORMAT_DATETIME; datetime_fstring = "%Y-%m-%d"; }
+	| MMYY { $$ = FORMAT_DATETIME; datetime_fstring = "%m-%Y"; }
+	| MMDD { $$ = FORMAT_DATETIME; datetime_fstring = "%m-%d"; }
+	| MONTHDAY { $$ = FORMAT_DATETIME; datetime_fstring = "%b-%d"; }
+	| DAYMONTH { $$ = FORMAT_DATETIME; datetime_fstring = "%d-%b"; }
+	| MONTHS { $$ = FORMAT_DATETIME; datetime_fstring = "%b"; }
+	| MONTHSY { $$ = FORMAT_DATETIME; datetime_fstring = "%b-%Y"; }
+	| MONTHL { $$ = FORMAT_DATETIME; datetime_fstring = "%B"; }
+	| DAYOFWEEKS { $$ = FORMAT_DATETIME; datetime_fstring = "%a"; }
+	| DAYOFWEEKL { $$ = FORMAT_DATETIME; datetime_fstring = "%A"; }
+	| DAYOFYEAR { $$ = FORMAT_DATETIME; datetime_fstring = "%j"; }
+	| HMS { $$ = FORMAT_DATETIME; datetime_fstring = "%H:%M:%S"; }
+	| MMDDHMS { $$ = FORMAT_DATETIME; datetime_fstring = "%m-%d %H:%M:%S"; }
+	| MMDDYYHMS { $$ = FORMAT_DATETIME; datetime_fstring = "%m-%d-%Y %H:%M:%S"; }
+	| YYMMDDHMS { $$ = FORMAT_DATETIME; datetime_fstring = "%Y-%m-%d %H:%M:%S"; }
 	| DEGREESLON { $$ = FORMAT_DEGREESLON; }
 	| DEGREESMMLON { $$ = FORMAT_DEGREESMMLON; }
 	| DEGREESMMSSLON { $$ = FORMAT_DEGREESMMSSLON; }

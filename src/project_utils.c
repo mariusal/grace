@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2004 Grace Development Team
+ * Copyright (c) 2001-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -503,5 +503,23 @@ int project_get_viewport(const Quark *project, double *vx, double *vy)
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
+    }
+}
+
+Format *format_new(void)
+{
+    Format *retval;
+    retval = xmalloc(sizeof(Format));
+    if (retval) {
+        memset(retval, 0, sizeof(Format));
+    }
+    return retval;
+}
+
+void format_free(Format *f)
+{
+    if (f) {
+        xfree(f->fstring);
+        xfree(f);
     }
 }

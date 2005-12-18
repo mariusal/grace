@@ -1136,3 +1136,8 @@ void pen_explorer_cb(Widget but, const Pen *pen, void *data)
     ExplorerUI *eui = (ExplorerUI *) data;
     explorer_apply(eui, but);
 }
+void format_explorer_cb(FormatStructure *fstr, const Format *format, void *data)
+{
+    ExplorerUI *eui = (ExplorerUI *) data;
+    explorer_apply(eui, fstr);
+}

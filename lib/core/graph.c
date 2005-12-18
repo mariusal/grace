@@ -63,9 +63,9 @@ static void set_default_graph(graph *g)
     g->locator.origin.x = g->locator.origin.y = 0.0;
     g->locator.pointset = FALSE;
     g->locator.fx.type = FORMAT_GENERAL;
-    g->locator.fy.type = FORMAT_GENERAL;
-    g->locator.fx.prec = 6;
-    g->locator.fy.prec = 6;
+    g->locator.fx.prec1 = 6;
+    g->locator.fx.fstring = NULL;
+    g->locator.fy = g->locator.fx;
 
     memcpy(&g->w, &d_w, sizeof(world));
 }
@@ -84,13 +84,17 @@ graph *graph_data_new(AMem *amem)
 
 void graph_data_free(AMem *amem, graph *g)
 {
+    if (g) {
+        amem_free(amem, g->locator.fx.fstring);
+        amem_free(amem, g->locator.fy.fstring);
+    }
     amem_free(amem, g);
 }
 
 graph *graph_data_copy(AMem *amem, graph *g)
 {
     graph *g_new;
-    
+     
     if (!g) {
         return NULL;
     }
@@ -99,8 +103,10 @@ graph *graph_data_copy(AMem *amem, graph *g)
     if (!g_new) {
         return NULL;
     }
-    
+
     memcpy(g_new, g, sizeof(graph));
+    g_new->locator.fx.fstring = amem_strdup(amem, g->locator.fx.fstring);
+    g_new->locator.fy.fstring = amem_strdup(amem, g->locator.fy.fstring);
     
     return g_new;
 }
@@ -264,8 +270,15 @@ int graph_set_locator(Quark *gr, const GLocator *locator)
 {
     graph *g = graph_get_data(gr);
     if (g) {
-
+        AMem *amem = gr->amem;
+        
+        AMEM_CFREE(amem, g->locator.fx.fstring);
+        AMEM_CFREE(amem, g->locator.fy.fstring);
+        
         memcpy(&g->locator, locator, sizeof(GLocator));
+        g->locator.fx.fstring = amem_strdup(amem, locator->fx.fstring);
+        g->locator.fy.fstring = amem_strdup(amem, locator->fy.fstring);
+        
         quark_dirtystate_set(gr, TRUE);
         return RETURN_SUCCESS;
     } else {

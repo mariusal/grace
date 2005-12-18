@@ -211,16 +211,6 @@ GLocator *glocator_new()
     return retval;
 }
 
-Format *format_new()
-{
-    Format *retval;
-    retval = xmalloc(sizeof(Format));
-    if (retval) {
-        memset(retval, 0, sizeof(Format));
-    }
-    return retval;
-}
-
 TextProps *textprops_new(void)
 {
     TextProps *retval;
@@ -461,8 +451,9 @@ char *utf2iso(const char *s)
         sscanf($?, "#%02x%02x%02x", &r, &g, &b);
         $$->red = r; $$->green = g; $$->blue = b;
     ]]></attribute-type>
-    <attribute-type name="ftype" ctype="int"><![CDATA[
-        $$ = get_format_type_by_name($?);
+    <attribute-type name="ftype" ctype="FormatType"><![CDATA[
+        RunTime *rt = ((ParserData *)$U)->grace->rt;
+        $$ = get_format_type_by_name(rt, $?);
     ]]></attribute-type>
     <attribute-type name="fontid" ctype="int"><![CDATA[
         $$ = atoi($?);
@@ -1162,12 +1153,16 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrXformat" minOccurs="1" maxOccurs="1">
+            AMem *amem = quark_get_amem($0);
             $$->fx = *$?;
-            xfree($?);
+            $$->fx.fstring = amem_strdup(amem, $?->fstring);
+            format_free($?);
         </child>
         <child name="#EStrYformat" minOccurs="1" maxOccurs="1">
+            AMem *amem = quark_get_amem($0);
             $$->fy = *$?;
-            xfree($?);
+            $$->fy.fstring = amem_strdup(amem, $?->fstring);
+            format_free($?);
         </child>
     </element>
     <element name="#EStrFixedpoint" type="fixedpoint">
@@ -1188,7 +1183,10 @@ char *utf2iso(const char *s)
             $$->type = $?;
         </attribute>
         <attribute name="#AStrPrec" type="ival">
-            $$->prec = $?;
+            $$->prec1 = $?;
+        </attribute>
+        <attribute name="#AStrFormatString" type="sval">
+            $$->fstring = $?;
         </attribute>
     </element>
     <element name="#EStrYformat" type="format">
@@ -1197,7 +1195,10 @@ char *utf2iso(const char *s)
             $$->type = $?;
         </attribute>
         <attribute name="#AStrPrec" type="ival">
-            $$->prec = $?;
+            $$->prec1 = $?;
+        </attribute>
+        <attribute name="#AStrFormatString" type="sval">
+            $$->fstring = $?;
         </attribute>
     </element>
     <element name="#EStrAGrid" type="axisgrid">
@@ -1409,8 +1410,10 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrFormat" minOccurs="1" maxOccurs="1">
+            AMem *amem = quark_get_amem($0);
             $$->format = *($?);
-            xfree($?);
+            $$->format.fstring = amem_strdup(amem, $?->fstring);
+            format_free($?);
         </child>
     </element>
     <element name="#EStrTick" type="tick">
@@ -1462,7 +1465,10 @@ char *utf2iso(const char *s)
             $$->type = $?;
         </attribute>
         <attribute name="#AStrPrec" type="ival">
-            $$->prec = $?;
+            $$->prec1 = $?;
+        </attribute>
+        <attribute name="#AStrFormatString" type="sval">
+            $$->fstring = $?;
         </attribute>
     </element>
     <element name="#EStrObject" type="object">
@@ -1867,8 +1873,10 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrFormat" minOccurs="1" maxOccurs="1">
+            AMem *amem = quark_get_amem($0);
             $$->format = *$?;
-            xfree($?);
+            $$->format.fstring = amem_strdup(amem, $?->fstring);
+            format_free($?);
         </child>
     </element>
     <element name="#EStrTextProperties" type="textprops">

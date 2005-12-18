@@ -288,7 +288,7 @@ Quark *grace_set_new(Quark *gr)
     return pset;
 }
 
-Symbol *symbol_new()
+Symbol *symbol_new(void)
 {
     Symbol *retval;
     retval = xmalloc(sizeof(Symbol));
@@ -303,7 +303,7 @@ void symbol_free(Symbol *sym)
     xfree(sym);
 }
 
-SetLine *setline_new()
+SetLine *setline_new(void)
 {
     SetLine *retval;
     retval = xmalloc(sizeof(SetLine));
