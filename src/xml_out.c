@@ -126,7 +126,7 @@ static void xmlio_write_format_spec(RunTime *rt, XFile *xf, Attributes *attrs,
     char *name, const Format *format)
 {
     attributes_reset(attrs);
-    attributes_set_sval(attrs, AStrFormat, format_type_name(rt, format->type));
+    attributes_set_sval(attrs, AStrType, format_type_name(rt, format->type));
     attributes_set_ival(attrs, AStrPrec, format->prec1);
     attributes_set_sval(attrs, AStrFormatString, format->fstring);
     xfile_empty_element(xf, name, attrs);

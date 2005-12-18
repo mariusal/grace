@@ -1179,7 +1179,7 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrXformat" type="format">
         <!-- Attributes -->
-        <attribute name="#AStrFormat" type="ftype">
+        <attribute name="#AStrType" type="ftype">
             $$->type = $?;
         </attribute>
         <attribute name="#AStrPrec" type="ival">
@@ -1191,7 +1191,7 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrYformat" type="format">
         <!-- Attributes -->
-        <attribute name="#AStrFormat" type="ftype">
+        <attribute name="#AStrType" type="ftype">
             $$->type = $?;
         </attribute>
         <attribute name="#AStrPrec" type="ival">
@@ -1461,7 +1461,7 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrFormat" type="format">
         <!-- Attributes -->
-        <attribute name="#AStrFormat" type="ftype">
+        <attribute name="#AStrType" type="ftype">
             $$->type = $?;
         </attribute>
         <attribute name="#AStrPrec" type="ival">
