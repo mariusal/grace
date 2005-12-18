@@ -3367,7 +3367,7 @@ FormatStructure *CreateFormatChoice(Widget parent)
     
     rc = CreateVContainer(parent);
     rc1 = CreateHContainer(rc);
-    retval->type = CreateOptionChoice(rc1, "Format", 1, 15, fmt_option_items);
+    retval->type = CreateOptionChoice(rc1, "Type:", 1, 15, fmt_option_items);
     AddOptionChoiceCB(retval->type, format_oc_cb, retval);
     retval->prec = CreatePrecisionChoice(rc1, "Precision:");
     AddOptionChoiceCB(retval->prec, format_oc_cb, retval);

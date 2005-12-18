@@ -134,11 +134,11 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
 	NULL);
     AddOptionChoiceCB(ui->loc_type, oc_explorer_cb, eui);
 
-    fr = CreateFrame(ui->locator_tp, "X properties");
+    fr = CreateFrame(ui->locator_tp, "X format");
     ui->loc_fx = CreateFormatChoice(fr);
     AddFormatChoiceCB(ui->loc_fx, format_explorer_cb, eui);
     
-    fr = CreateFrame(ui->locator_tp, "Y properties");
+    fr = CreateFrame(ui->locator_tp, "Y format");
     ui->loc_fy = CreateFormatChoice(fr);
     AddFormatChoiceCB(ui->loc_fy, format_explorer_cb, eui);
 
