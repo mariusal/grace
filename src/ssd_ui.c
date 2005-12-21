@@ -73,7 +73,7 @@ static void create_hotfiles_popup(Widget but, void *data)
 
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell, "Hotlinked file");
-	AddFileSelectionBoxCB(fsb, do_hotlinkfile_proc, data);
+        AddFileSelectionBoxCB(fsb, do_hotlinkfile_proc, data);
         ManageChild(fsb->FSB);
     }
     
@@ -129,7 +129,7 @@ static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     SSDataUI *ui = (SSDataUI *) client_data;
     XbaeMatrixDrawCellCallbackStruct *cs =
-    	    (XbaeMatrixDrawCellCallbackStruct *) call_data;
+        (XbaeMatrixDrawCellCallbackStruct *) call_data;
     int format;
     
     cs->type = XbaeString;
@@ -155,7 +155,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     SSDataUI *ui = (SSDataUI *) client_data;
     XbaeMatrixLeaveCellCallbackStruct *cs =
-    	    (XbaeMatrixLeaveCellCallbackStruct *) call_data;
+        (XbaeMatrixLeaveCellCallbackStruct *) call_data;
 
     int nrows = ssd_get_nrows(ui->q);
     int ncols = ssd_get_ncols(ui->q);
@@ -190,7 +190,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     if (cs->column < ncols) {
         char *old_value = get_cell_content(ui, cs->row, cs->column, &format);
         if (!strings_are_equal(old_value, cs->value)) {
-	    switch (format) {
+            switch (format) {
             case FFORMAT_STRING:
                 if (ssd_set_string(ui->q, cs->row, cs->column, cs->value) ==
                     RETURN_SUCCESS) {
@@ -222,7 +222,7 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     SSDataUI *ui = (SSDataUI *) client_data;
     XbaeMatrixLabelActivateCallbackStruct *cbs =
-	(XbaeMatrixLabelActivateCallbackStruct *) call_data;
+        (XbaeMatrixLabelActivateCallbackStruct *) call_data;
     XEvent *e = cbs->event;
     XButtonEvent *xbe;
     static int last_row, last_column;
@@ -240,43 +240,43 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
         if (cbs->row_label) {
             if (xbe->state & ControlMask) {
                 if (XbaeMatrixIsRowSelected(ui->mw, cbs->row)) {
-	            XbaeMatrixDeselectRow(ui->mw, cbs->row);
-	        } else {
-	            XbaeMatrixSelectRow(ui->mw, cbs->row);
+                    XbaeMatrixDeselectRow(ui->mw, cbs->row);
+                } else {
+                    XbaeMatrixSelectRow(ui->mw, cbs->row);
                 }
-	        last_row = cbs->row;
+                last_row = cbs->row;
             } else
             if ((xbe->state & ShiftMask) && last_row >= 0) {
                 for (i = MIN2(last_row, cbs->row); i <= MAX2(last_row, cbs->row); i++) {
-	            XbaeMatrixSelectRow(ui->mw, i);
+                    XbaeMatrixSelectRow(ui->mw, i);
                 }
             } else {
                 XbaeMatrixDeselectAll(ui->mw);
-	        XbaeMatrixSelectRow(ui->mw, cbs->row);
-	        last_row = cbs->row;
+                XbaeMatrixSelectRow(ui->mw, cbs->row);
+                last_row = cbs->row;
             }
 
-	    last_column = -1;
+            last_column = -1;
         } else {
-	    if (xbe->state & ControlMask) {
-	        if (XbaeMatrixIsColumnSelected(ui->mw, cbs->column)) {
-	            XbaeMatrixDeselectColumn(ui->mw, cbs->column);
-	        } else {
-	            XbaeMatrixSelectColumn(ui->mw, cbs->column);
+            if (xbe->state & ControlMask) {
+                if (XbaeMatrixIsColumnSelected(ui->mw, cbs->column)) {
+                    XbaeMatrixDeselectColumn(ui->mw, cbs->column);
+                } else {
+                    XbaeMatrixSelectColumn(ui->mw, cbs->column);
                 }
-	        last_column = cbs->column;
+                last_column = cbs->column;
             } else
             if ((xbe->state & ShiftMask) && last_column >= 0) {
                 for (i = MIN2(last_column, cbs->column); i <= MAX2(last_column, cbs->column); i++) {
-	            XbaeMatrixSelectColumn(ui->mw, i);
+                    XbaeMatrixSelectColumn(ui->mw, i);
                 }
             } else {
                 XbaeMatrixDeselectAll(ui->mw);
-	        XbaeMatrixSelectColumn(ui->mw, cbs->column);
-	        last_column = cbs->column;
+                XbaeMatrixSelectColumn(ui->mw, cbs->column);
+                last_column = cbs->column;
             }
 
-	    last_row = -1;
+            last_row = -1;
         }
     }
 
@@ -341,11 +341,11 @@ static void col_cb(ListStructure *sel, int n, int *values, void *data)
 }
 
 static char tfield_translations[] = "#override\n\
-<Key>osfCancel			:	CancelEdit(True)\n\
-<Key>osfActivate		:	EditCell(Down)\n\
-<Key>osfUp			:	EditCell(Up)\n\
-<Key>osfDown			:	EditCell(Down)\n\
-~Shift ~Meta ~Alt <Key>Return	:   	EditCell(Down)";
+<Key>osfCancel                : CancelEdit(True)\n\
+<Key>osfActivate              : EditCell(Down)\n\
+<Key>osfUp                    : EditCell(Up)\n\
+<Key>osfDown                  : EditCell(Down)\n\
+~Shift ~Meta ~Alt <Key>Return : EditCell(Down)";
 
 SSDataUI *create_ssd_ui(ExplorerUI *eui)
 {
@@ -375,12 +375,12 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     ui->main_tp = CreateTabPage(tab, "Data");
 
     for (i = 0; i < EXTRA_SS_ROWS; i++) {
-    	char buf[32];
+        char buf[32];
         sprintf(buf, "%d", i + 1);
-    	rowlabels[i] = copy_string(NULL, buf);
+        rowlabels[i] = copy_string(NULL, buf);
     }
     for (i = 0; i < EXTRA_SS_COLS; i++) {
-    	collabels[i] = "";
+        collabels[i] = "";
         clab_alignments[i] = XmALIGNMENT_CENTER;
     }
     for (i = 0; i < EXTRA_SS_COLS; i++) {
@@ -418,10 +418,10 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
 
     for (i = 0; i < EXTRA_SS_ROWS; i++) {
-	xfree(rowlabels[i]);
+        xfree(rowlabels[i]);
     }
 
-    XtAddCallback(ui->mw, XmNdrawCellCallback, drawcellCB, ui);	
+    XtAddCallback(ui->mw, XmNdrawCellCallback, drawcellCB, ui); 
     XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
     XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
     XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
@@ -466,7 +466,6 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
     if (ui && q) {
         int i, nc, nr, new_nc, new_nr, ncols, nrows, nfixed_cols;
         int delta_nc, delta_nr;
-        short rlab_width;
         short *widths;
         int *maxlengths;
         char **collabels;
@@ -499,13 +498,13 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         if (delta_nr > 0) {
             char **rowlabels = xmalloc(delta_nr*sizeof(char *));
             for (i = 0; i < delta_nr; i++) {
-    	        char buf[32];
+                char buf[32];
                 sprintf(buf, "%d", nr + i + 1);
-    	        rowlabels[i] = copy_string(NULL, buf);
+                rowlabels[i] = copy_string(NULL, buf);
             }
             XbaeMatrixAddRows(ui->mw, nr, NULL, rowlabels, NULL, delta_nr);
             for (i = 0; i < delta_nr; i++) {
-	        xfree(rowlabels[i]);
+                xfree(rowlabels[i]);
             }
             xfree(rowlabels);
         } else if (delta_nr < 0) {
@@ -530,8 +529,16 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             if (col && !string_is_empty(col->label)) {
                 collabels[i] = copy_string(NULL, col->label);
             } else {
+                unsigned int coli;
                 char buf[32];
-                sprintf(buf, "%c", i + 'A');
+                
+                coli = i;
+                sprintf(buf, "%c", coli%26 + 'A');
+                while ((coli /= 26)) {
+                    memmove(&buf[1], buf, strlen(buf) + 1);
+                    buf[0] = coli%26 + 'A' - 1;
+                }
+                
                 collabels[i] = copy_string(NULL, buf);
             }
             clab_alignments[i] = XmALIGNMENT_CENTER;
@@ -545,16 +552,13 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         }
 
 
-        /* Adjust row label width */
-        rlab_width = (short) ceil(log10(new_nr)) + 1;
-
         XtVaSetValues(ui->mw,
-	    XmNrowLabelWidth, rlab_width,
+            XmNrowLabelWidth, 0, /* -> autoadjust row label widths */
             XmNcolumnMaxLengths, maxlengths,
             XmNcolumnLabels, collabels,
             XmNcolumnLabelAlignments, clab_alignments,
             XmNfixedColumns, nfixed_cols,
-	    NULL);
+            NULL);
 
         if (delta_nc != 0) {
             XtVaSetValues(ui->mw, XmNcolumnWidths, widths, NULL);
@@ -572,7 +576,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         xfree(maxlengths);
         xfree(clab_alignments);
         for (i = 0; i < new_nc; i++) {
-	    xfree(collabels[i]);
+            xfree(collabels[i]);
         }
         xfree(collabels);
         
