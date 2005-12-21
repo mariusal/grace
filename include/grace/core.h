@@ -821,6 +821,7 @@ ss_column *ssd_add_col(Quark *q, int format);
 int ssd_delete_rows(Quark *q, unsigned int startno, unsigned int endno);
 int ssd_reverse(Quark *q);
 int ssd_coalesce(Quark *toq, Quark *fromq);
+int ssd_transpose(Quark *q);
 
 int ssd_set_value(Quark *q, int row, int column, double value);
 int ssd_set_string(Quark *q, int row, int column, const char *s);
@@ -828,6 +829,8 @@ int ssd_set_string(Quark *q, int row, int column, const char *s);
 int ssd_set_index(Quark *q, int column);
 int ssd_set_indexed(Quark *q, int onoff);
 int ssd_is_indexed(const Quark *q);
+
+int ssd_is_numeric(const Quark *q);
 
 int ssd_set_hotlink(Quark *q, int onoroff, const char *fname, int src);
 int ssd_is_hotlinked(const Quark *q);

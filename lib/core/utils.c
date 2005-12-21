@@ -306,6 +306,61 @@ int ssd_reverse(Quark *q)
     return RETURN_SUCCESS;
 }
 
+int ssd_is_numeric(const Quark *q)
+{
+    unsigned int i, ncols = ssd_get_ncols(q);
+    for (i = 0; i < ncols; i++) {
+        int fformat = ssd_get_col_format(q, i);
+        if (fformat == FFORMAT_STRING || fformat == FFORMAT_UNKNOWN) {
+            return FALSE;
+        }
+    }
+    
+    return TRUE;
+}
+
+int ssd_transpose(Quark *q)
+{
+    ss_data *ssd_new, *ssd_old;
+    unsigned int ncols, nrows, i, j;
+    
+    if (!ssd_is_numeric(q)) {
+        return RETURN_FAILURE;
+    }
+    
+    ncols = ssd_get_ncols(q);
+    nrows = ssd_get_nrows(q);
+    if (!ncols || !nrows) {
+        return RETURN_FAILURE;
+    }
+    
+    ssd_new = ssd_data_new(q->amem);
+    if (!ssd_new) {
+        return RETURN_FAILURE;
+    }
+    
+    /* swap the data */
+    ssd_old = q->data;
+    q->data = ssd_new;
+    
+    if (ssd_set_ncols(q, nrows, NULL) != RETURN_SUCCESS ||
+        ssd_set_nrows(q, ncols)       != RETURN_SUCCESS) {
+        
+        ssd_data_free(q->amem, ssd_new);
+        q->data = ssd_old;
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < ncols; i++) {
+        for (j = 0; j < nrows; j++) {
+            ssd_set_value(q, i, j, ((double *)ssd_old->cols[i].data)[j]);
+        }
+    }
+    
+    ssd_data_free(q->amem, ssd_old);
+    
+    return RETURN_SUCCESS;
+}
 
 typedef struct {
     unsigned int nshift;

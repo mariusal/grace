@@ -250,7 +250,11 @@ int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats)
     
     for (i = 0; i < ncols; i++) {
         ss_column *col = &ssd->cols[i];
-        col->format = formats[i];
+        if (formats) {
+            col->format = formats[i];
+        } else {
+            col->format = FFORMAT_NUMBER;
+        }
     }
 
     ssd->ncols = ncols;
