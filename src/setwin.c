@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -82,16 +82,16 @@ void create_datasetprop_popup(Widget but, void *data)
         unsigned char column_alignments[DATA_STAT_COLS];
         unsigned char column_label_alignments[DATA_STAT_COLS];
 
-	tui.top = CreateDialogForm(app_shell, "Data set statistics");
+        tui.top = CreateDialogForm(app_shell, "Data set statistics");
 
         menubar = CreateMenuBar(tui.top);
         ManageChild(menubar);
         AddDialogFormChild(tui.top, menubar);
 
-	tui.sel = CreateGraphSetSelector(tui.top,
+        tui.sel = CreateGraphSetSelector(tui.top,
             "Data sets:", LIST_TYPE_SINGLE);
         AddDialogFormChild(tui.top, tui.sel->frame);
-	AddStorageChoiceCB(tui.sel->set_sel, changetypeCB, tui.sel);
+        AddStorageChoiceCB(tui.sel->set_sel, changetypeCB, tui.sel);
 
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
@@ -113,7 +113,7 @@ void create_datasetprop_popup(Widget but, void *data)
             }
         }
 
-	fr = CreateFrame(tui.top, "Statistics");
+        fr = CreateFrame(tui.top, "Statistics");
         tui.mw = XtVaCreateManagedWidget("mw",
             xbaeMatrixWidgetClass, fr,
             XmNrows, MAX_SET_COLS,
@@ -125,7 +125,7 @@ void create_datasetprop_popup(Widget but, void *data)
             XmNcolumnAlignments, column_alignments,
             XmNcolumnLabelAlignments, column_label_alignments,
             XmNrowLabels, rowlabels,
-	    XmNrowLabelWidth, 3,
+            XmNrowLabelWidth, 3,
             XmNrowLabelAlignment, XmALIGNMENT_CENTER,
             XmNshowArrows, True,
             XmNallowColumnResize, True,
@@ -136,7 +136,7 @@ void create_datasetprop_popup(Widget but, void *data)
             XmNtraversalOn, False,
             NULL);
 
-        XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);	
+        XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);     
 
         AddDialogFormChild(tui.top, fr);
         XtManageChild(tui.top);
@@ -163,15 +163,15 @@ static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data
     }
     
     if (n == 1) {
-	pset = values[0];
+        pset = values[0];
     } else {
-	pset = NULL;
+        pset = NULL;
     }
     for (i = 0; i < MAX_SET_COLS; i++) {
         datap = set_get_col(pset, i);
-	if (datap) {
+        if (datap) {
             minmax(datap, set_get_length(pset), &dmin, &dmax, &imin, &imax);
-	    stasum(datap, set_get_length(pset), &dmean, &dsd);
+            stasum(datap, set_get_length(pset), &dmean, &dsd);
             for (j = 0; j < DATA_STAT_COLS; j++) {
                 switch (j) {
                 case 0:
@@ -220,6 +220,7 @@ static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 typedef enum {
     DATASETOP_SORT,
     DATASETOP_REVERSE,
+    DATASETOP_TRANSPOSE,
     DATASETOP_COALESCE,
     DATASETOP_SPLIT,
     DATASETOP_DROP
@@ -237,7 +238,7 @@ typedef struct _Datasetop_ui {
 
 static Datasetop_ui datasetopui;
 
-static Widget datasettype_controls[5];
+static Widget datasettype_controls[6];
 
 void create_datasetop_popup(Widget but, void *data)
 {
@@ -246,18 +247,18 @@ void create_datasetop_popup(Widget but, void *data)
     set_wait_cursor();
     if (datasetopui.top == NULL) {
         
-	datasetopui.top = CreateDialogForm(app_shell, "Data set operations");
+        datasetopui.top = CreateDialogForm(app_shell, "Data set operations");
         SetDialogFormResizable(datasetopui.top, TRUE);
 
         menubar = CreateMenuBar(datasetopui.top);
         ManageChild(menubar);
         AddDialogFormChild(datasetopui.top, menubar);
-        
 
-	dialog = CreateVContainer(datasetopui.top);
+
+        dialog = CreateVContainer(datasetopui.top);
         XtVaSetValues(dialog, XmNrecomputeSize, True, NULL);
 
-	datasetopui.sel = CreateSSDChoice(dialog,
+        datasetopui.sel = CreateSSDChoice(dialog,
             "Data sets:", LIST_TYPE_MULTIPLE);
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
@@ -268,9 +269,10 @@ void create_datasetop_popup(Widget but, void *data)
         CreateMenuHelpButton(menupane, "On dataset operations", 's',
             datasetopui.top, "doc/UsersGuide.html#data-set-operations");
 
-	datasetopui.optype_item =
+        datasetopui.optype_item =
             CreateOptionChoiceVA(dialog, "Operation type:",
             "Reverse",   DATASETOP_REVERSE,
+            "Transpose", DATASETOP_TRANSPOSE,
             "Coalesce",  DATASETOP_COALESCE,
 #if 0
             "Sort",      DATASETOP_SORT,
@@ -278,44 +280,50 @@ void create_datasetop_popup(Widget but, void *data)
 #endif
             "Drop rows", DATASETOP_DROP,
             NULL);
-   	AddOptionChoiceCB(datasetopui.optype_item, datasetoptypeCB, NULL);
+        AddOptionChoiceCB(datasetopui.optype_item, datasetoptypeCB, NULL);
 
-	rc = CreateHContainer(dialog);
+        rc = CreateHContainer(dialog);
         XtVaSetValues(rc, XmNrecomputeSize, True, NULL);
-	
-	/* Sort */
-	datasetopui.up_down_item = CreateOptionChoiceVA(rc, "Order:",
+
+        /* Sort */
+        datasetopui.up_down_item = CreateOptionChoiceVA(rc, "Order:",
             "Ascending", FALSE,
             "Descending", TRUE,
             NULL);
         datasettype_controls[0] = rc;
 
-	/* Reverse */
+        /* Reverse */
         rc = CreateVContainer(dialog);
         CreateSeparator(rc);
         datasettype_controls[1] = rc;
 
-	/* Coalesce */
-	rc = CreateVContainer(dialog);
+        /* Transpose */
+        rc = CreateVContainer(dialog);
         CreateSeparator(rc);
         datasettype_controls[2] = rc;
 
-	/* Split */
-	rc = CreateVContainer(dialog);
-        datasetopui.length_item = CreateTextItem(rc, 6, "Length:");
+        /* Coalesce */
+        rc = CreateVContainer(dialog);
+        CreateSeparator(rc);
         datasettype_controls[3] = rc;
 
-	/* Drop rows */
-	rc = CreateHContainer(dialog);
-        datasetopui.start_item = CreateTextItem(rc, 6, "Start at:");
-        datasetopui.stop_item  = CreateTextItem(rc, 6, "Stop at:");
+        /* Split */
+        rc = CreateVContainer(dialog);
+        datasetopui.length_item = CreateTextItem(rc, 6, "Length:");
         datasettype_controls[4] = rc;
 
-	UnmanageChild(datasettype_controls[0]);
-	ManageChild(datasettype_controls[1]);
-	UnmanageChild(datasettype_controls[2]);
-	UnmanageChild(datasettype_controls[3]);
-	UnmanageChild(datasettype_controls[4]);
+        /* Drop rows */
+        rc = CreateHContainer(dialog);
+        datasetopui.start_item = CreateTextItem(rc, 6, "Start at:");
+        datasetopui.stop_item  = CreateTextItem(rc, 6, "Stop at:");
+        datasettype_controls[5] = rc;
+
+        UnmanageChild(datasettype_controls[0]);
+        ManageChild(datasettype_controls[1]);
+        UnmanageChild(datasettype_controls[2]);
+        UnmanageChild(datasettype_controls[3]);
+        UnmanageChild(datasettype_controls[4]);
+        UnmanageChild(datasettype_controls[5]);
 
         CreateAACDialog(datasetopui.top, dialog, datasetop_aac_cb,
             &datasetopui);
@@ -360,7 +368,16 @@ static int datasetop_aac_cb(void *data)
         case DATASETOP_REVERSE:
             for (i = 0; i < n; i++) {
                 ss = selssd[i];
-	        ssd_reverse(ss);
+                ssd_reverse(ss);
+            }
+            break;
+        case DATASETOP_TRANSPOSE:
+            for (i = 0; i < n; i++) {
+                ss = selssd[i];
+                if (ssd_transpose(ss) != RETURN_SUCCESS) {
+                    errmsg("Transpose failed");
+                    break;
+                }
             }
             break;
         case DATASETOP_COALESCE:
@@ -368,7 +385,7 @@ static int datasetop_aac_cb(void *data)
                 Quark *ss0 = selssd[0];
                 for (i = 1; i < n; i++) {
                     ss = selssd[i];
-	            if (ssd_coalesce(ss0, ss) != RETURN_SUCCESS) {
+                    if (ssd_coalesce(ss0, ss) != RETURN_SUCCESS) {
                         errmsg("Coalescing failed");
                         break;
                     }
@@ -381,7 +398,7 @@ static int datasetop_aac_cb(void *data)
 
             for (i = 0; i < n; i++) {
                 ss = selssd[i];
-	        ssd_sort(ss, stype);
+                ssd_sort(ss, stype);
             }
             break;
         case DATASETOP_JOIN:
@@ -400,7 +417,7 @@ static int datasetop_aac_cb(void *data)
             xv_evalexpri(datasetopui.stop_item, &endno);
             for (i = 0; i < n; i++) {
                 ss = selssd[i];
-		ssd_delete_rows(ss, startno, endno);
+                ssd_delete_rows(ss, startno, endno);
             }
             break;
         default:
@@ -439,7 +456,7 @@ void set_type_cb(OptionStructure *opt, int type, void *data)
     if (nmrows > nscols) {
         XbaeMatrixDeleteRows(ui->mw, nscols, nmrows - nscols);
     } else if (nmrows < nscols) {
-	for (i = nmrows; i < nscols; i++) {
+        for (i = nmrows; i < nscols; i++) {
             rowlabels[i - nmrows] = copy_string(NULL, dataset_colname(i));
             rowlabels[i - nmrows] = concat_strings(rowlabels[i - nmrows], " = ");
         }
@@ -454,7 +471,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     Leval_ui *ui = (Leval_ui *) client_data;
     
     XbaeMatrixLeaveCellCallbackStruct *cs =
-    	    (XbaeMatrixLeaveCellCallbackStruct *) call_data;
+            (XbaeMatrixLeaveCellCallbackStruct *) call_data;
 
     XbaeMatrixSetCell(ui->mw, cs->row, cs->column, cs->value);
 }
@@ -481,21 +498,21 @@ void create_leval_frame(Widget but, void *data)
         short column_widths[1] = {50};
         int column_maxlengths[1] = {256};
 
-	levalui.top = CreateDialogForm(app_shell, "Load & evaluate");
+        levalui.top = CreateDialogForm(app_shell, "Load & evaluate");
 
-	fr = CreateFrame(levalui.top, "Parameter mesh ($t)");
+        fr = CreateFrame(levalui.top, "Parameter mesh ($t)");
         AddDialogFormChild(levalui.top, fr);
         rc1 = CreateHContainer(fr);
-	levalui.start = CreateTextItem(rc1, 10, "Start at:");
-	levalui.stop = CreateTextItem(rc1, 10, "Stop at:");
-	levalui.npts = CreateTextItem(rc1, 6, "Length:");
+        levalui.start = CreateTextItem(rc1, 10, "Start at:");
+        levalui.stop = CreateTextItem(rc1, 10, "Stop at:");
+        levalui.npts = CreateTextItem(rc1, 6, "Length:");
 
-	levalui.set_type = CreateSetTypeChoice(levalui.top, "Set type:");
+        levalui.set_type = CreateSetTypeChoice(levalui.top, "Set type:");
         AddDialogFormChild(levalui.top, levalui.set_type->menu);
         AddOptionChoiceCB(levalui.set_type, set_type_cb, (void *) &levalui);
-	
+        
         nscols = 2;
-	for (i = 0; i < nscols; i++) {
+        for (i = 0; i < nscols; i++) {
             rowlabels[i] = copy_string(NULL, dataset_colname(i));
             rowlabels[i] = concat_strings(rowlabels[i], " = ");
             if (i == 0) {
@@ -515,7 +532,7 @@ void create_leval_frame(Widget but, void *data)
             XmNcolumnWidths, column_widths,
             XmNcolumnMaxLengths, column_maxlengths,
             XmNrowLabels, rowlabels,
-	    XmNrowLabelWidth, 6,
+            XmNrowLabelWidth, 6,
             XmNrowLabelAlignment, XmALIGNMENT_CENTER,
             XmNcells, cells,
             XmNgridType, XmGRID_CELL_SHADOW,
@@ -525,7 +542,7 @@ void create_leval_frame(Widget but, void *data)
             XmNallowColumnResize, True,
             NULL);
 
-        XtAddCallback(levalui.mw, XmNleaveCellCallback, leaveCB, &levalui);
+        // XtAddCallback(levalui.mw, XmNleaveCellCallback, leaveCB, &levalui);
         
         CreateAACDialog(levalui.top, levalui.mw, leval_aac_cb, &levalui);
     }
@@ -549,17 +566,17 @@ static int leval_aac_cb(void *data)
     nscols = settype_cols(type);
 
     if (xv_evalexpr(ui->start, &start) != RETURN_SUCCESS) {
-	errmsg("Start item undefined");
+        errmsg("Start item undefined");
         return RETURN_FAILURE;
     }
 
     if (xv_evalexpr(ui->stop, &stop) != RETURN_SUCCESS) {
-	errmsg("Stop item undefined");
+        errmsg("Stop item undefined");
         return RETURN_FAILURE;
     }
 
     if (xv_evalexpri(ui->npts, &npts) != RETURN_SUCCESS) {
-	errmsg("Number of points undefined");
+        errmsg("Number of points undefined");
         return RETURN_FAILURE;
     }
 
@@ -572,7 +589,7 @@ static int leval_aac_cb(void *data)
     if (t == NULL) {
         t = define_parser_arr("$t");
         if (t == NULL) {
-	    errmsg("Internal error");
+            errmsg("Internal error");
             return RETURN_FAILURE;
         }
     }
