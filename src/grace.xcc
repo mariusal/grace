@@ -433,18 +433,18 @@ char *utf2iso(const char *s)
     ]]></preamble>
 
     <!-- Attribute types -->
-    <attribute-type name="ival" ctype="int"><![CDATA[
+    <attribute-type name="ival" ctype="int">
         $$ = atoi($?);
-    ]]></attribute-type>
-    <attribute-type name="dval" ctype="double"><![CDATA[
+    </attribute-type>
+    <attribute-type name="dval" ctype="double">
         $$ = atof($?);
-    ]]></attribute-type>
-    <attribute-type name="sval" ctype="char *"><![CDATA[
+    </attribute-type>
+    <attribute-type name="sval" ctype="char *">
         $$ = utf2iso($?);
-    ]]></attribute-type>
-    <attribute-type name="bval" ctype="int"><![CDATA[
+    </attribute-type>
+    <attribute-type name="bval" ctype="int">
         $$ = strings_are_equal($?, "yes");
-    ]]></attribute-type>
+    </attribute-type>
     <attribute-type name="rgb" ctype="RGB *"><![CDATA[
         unsigned int r, g, b;
         $$ = xmalloc(sizeof(RGB));
@@ -455,9 +455,9 @@ char *utf2iso(const char *s)
         RunTime *rt = ((ParserData *)$U)->grace->rt;
         $$ = get_format_type_by_name(rt, $?);
     ]]></attribute-type>
-    <attribute-type name="fontid" ctype="int"><![CDATA[
+    <attribute-type name="fontid" ctype="int">
         $$ = atoi($?);
-    ]]></attribute-type>
+    </attribute-type>
     <attribute-type name="offset" ctype="VVector *"><![CDATA[
         $$ = xmalloc(sizeof(VVector));
         if (sscanf($?, "(%lg, %lg)", &($$->x), &($$->y)) != 2) {
@@ -468,14 +468,14 @@ char *utf2iso(const char *s)
         $$ = xmalloc(sizeof(FPoint));
         sscanf($?, "(%lg, %lg)", &($$->x), &($$->y));
     ]]></attribute-type>
-    <attribute-type name="axislayout" ctype="int"><![CDATA[
+    <attribute-type name="axislayout" ctype="int">
         if (!strcmp($?, VStrParallel)) {
             $$ = LAYOUT_PARALLEL;
         } else {
             $$ = LAYOUT_PERPENDICULAR;
         }
-    ]]></attribute-type>
-    <attribute-type name="inoutplacement" ctype="int"><![CDATA[
+    </attribute-type>
+    <attribute-type name="inoutplacement" ctype="int">
         if (!strcmp($?, VStrIn)) {
             $$ = TICKS_IN;
         } else
@@ -488,8 +488,8 @@ char *utf2iso(const char *s)
             $$ = TICKS_IN;
             errmsg("Wrong inoutplacement");
         }
-    ]]></attribute-type>
-    <attribute-type name="uticktype" ctype="int"><![CDATA[
+    </attribute-type>
+    <attribute-type name="uticktype" ctype="int">
         if (!strcmp($?, VStrNone)) {
             $$ = TICKS_SPEC_NONE;
         } else
@@ -502,8 +502,8 @@ char *utf2iso(const char *s)
             $$ = TICKS_SPEC_BOTH;
             errmsg("Wrong uticktype");
         }
-    ]]></attribute-type>
-    <attribute-type name="ticktype" ctype="int"><![CDATA[
+    </attribute-type>
+    <attribute-type name="ticktype" ctype="int">
         if (!strcmp($?, VStrMajor)) {
             $$ = TICK_TYPE_MAJOR;
         } else
@@ -513,25 +513,25 @@ char *utf2iso(const char *s)
             $$ = TICK_TYPE_MINOR;
             errmsg("Wrong ticktype");
         }
-    ]]></attribute-type>
-    <attribute-type name="loctype" ctype="int"><![CDATA[
+    </attribute-type>
+    <attribute-type name="loctype" ctype="int">
         if (!strcmp($?, VStrWorld)) {
             $$ = COORD_WORLD;
         } else {
             $$ = COORD_VIEW;
         }
-    ]]></attribute-type>
+    </attribute-type>
     <attribute-type name="settype" ctype="SetType"><![CDATA[
         RunTime *rt = ((ParserData *)$U)->grace->rt;
         $$ = get_settype_by_name(rt, $?);
     ]]></attribute-type>
-    <attribute-type name="fillrule" ctype="int"><![CDATA[
+    <attribute-type name="fillrule" ctype="int">
         if (!strcmp($?, VStrWinding)) {
             $$ = FILLRULE_WINDING;
         } else {
             $$ = FILLRULE_EVENODD;
         }
-    ]]></attribute-type>
+    </attribute-type>
     <attribute-type name="regiontype" ctype="int"><![CDATA[
         RunTime *rt = ((ParserData *)$U)->grace->rt;
         $$ = get_regiontype_by_name(rt, $?);
@@ -558,12 +558,12 @@ char *utf2iso(const char *s)
     <element-type name="project" ctype="Quark *"><![CDATA[
         $$ = grace_project_new(((ParserData *) $U)->grace, AMEM_MODEL_LIBUNDO);
     ]]></element-type>
-    <element-type name="page" ctype="Page *"><![CDATA[
+    <element-type name="page" ctype="Page *">
         $$ = page_new();
-    ]]></element-type>
-    <element-type name="string" ctype="char **"><![CDATA[
+    </element-type>
+    <element-type name="string" ctype="char **">
         $$ = xmalloc(sizeof(char *));
-    ]]></element-type>
+    </element-type>
     <element-type name="pen" ctype="Pen *"><![CDATA[
         $$ = xmalloc(sizeof(Pen));
         $$->color = $$->pattern = 1;
@@ -574,142 +574,142 @@ char *utf2iso(const char *s)
         $$->width = 1.0;
         $$->style = 1;
     ]]></element-type>
-    <element-type name="dummy" ctype="void *"><![CDATA[
+    <element-type name="dummy" ctype="void *">
         $$ = NULL;
-    ]]></element-type>
-    <element-type name="colordef" ctype="Colordef *"><![CDATA[
+    </element-type>
+    <element-type name="colordef" ctype="Colordef *">
         $$ = colordef_new();
-    ]]></element-type>
-    <element-type name="fontdef" ctype="Fontdef *"><![CDATA[
+    </element-type>
+    <element-type name="fontdef" ctype="Fontdef *">
         $$ = fontdef_new();
-    ]]></element-type>
-    <element-type name="facespec" ctype="FaceSpec *"><![CDATA[
+    </element-type>
+    <element-type name="facespec" ctype="FaceSpec *">
         $$ = facespec_new();
-    ]]></element-type>
+    </element-type>
     <element-type name="ssd" ctype="Quark *"><![CDATA[
         $$ = grace_ssd_new($P);
         ((ParserData *) $U)->ss = $$;
         ((ParserData *) $U)->ncol = -1;
     ]]></element-type>
-    <element-type name="graph" ctype="Quark *"><![CDATA[
+    <element-type name="graph" ctype="Quark *">
         $$ = graph_new($P);
-    ]]></element-type>
-    <element-type name="presentationspec" ctype="PresentationSpec *"><![CDATA[
+    </element-type>
+    <element-type name="presentationspec" ctype="PresentationSpec *">
         $$ = presentationspec_new();
-    ]]></element-type>
-    <element-type name="view" ctype="view *"><![CDATA[
+    </element-type>
+    <element-type name="view" ctype="view *">
         $$ = view_new();
-    ]]></element-type>
-    <element-type name="scale" ctype="Scale *"><![CDATA[
+    </element-type>
+    <element-type name="scale" ctype="Scale *">
         $$ = scale_new();
-    ]]></element-type>
-    <element-type name="dptr" ctype="double *"><![CDATA[
+    </element-type>
+    <element-type name="dptr" ctype="double *">
         $$ = xcalloc(1, SIZEOF_DOUBLE);
-    ]]></element-type>
-    <element-type name="legend" ctype="legend *"><![CDATA[
+    </element-type>
+    <element-type name="legend" ctype="legend *">
         $$ = frame_get_legend($P);
-    ]]></element-type>
-    <element-type name="legframe" ctype="Legframe *"><![CDATA[
+    </element-type>
+    <element-type name="legframe" ctype="Legframe *">
         $$ = legframe_new();
-    ]]></element-type>
-    <element-type name="glocator" ctype="GLocator *"><![CDATA[
+    </element-type>
+    <element-type name="glocator" ctype="GLocator *">
         $$ = glocator_new();
-    ]]></element-type>
-    <element-type name="fixedpoint" ctype="Fixedpoint *"><![CDATA[
+    </element-type>
+    <element-type name="fixedpoint" ctype="Fixedpoint *">
         $$ = fixedpoint_new();
-    ]]></element-type>
-    <element-type name="format" ctype="Format *"><![CDATA[
+    </element-type>
+    <element-type name="format" ctype="Format *">
         $$ = format_new();
-    ]]></element-type>
-    <element-type name="frame" ctype="Quark *"><![CDATA[
+    </element-type>
+    <element-type name="frame" ctype="Quark *">
         $$ = frame_new($P);
-    ]]></element-type>
-    <element-type name="textprops" ctype="TextProps *"><![CDATA[
+    </element-type>
+    <element-type name="textprops" ctype="TextProps *">
         $$ = textprops_new();
-    ]]></element-type>
-    <element-type name="axisgrid" ctype="Quark *"><![CDATA[
+    </element-type>
+    <element-type name="axisgrid" ctype="Quark *">
         $$ = axisgrid_new($P);
-    ]]></element-type>
-    <element-type name="axis" ctype="Quark *"><![CDATA[
+    </element-type>
+    <element-type name="axis" ctype="Quark *">
         $$ = axis_new($P);
-    ]]></element-type>
-    <element-type name="axisbar" ctype="ABar *"><![CDATA[
+    </element-type>
+    <element-type name="axisbar" ctype="ABar *">
         $$ = axisbar_new();
-    ]]></element-type>
-    <element-type name="gridprops" ctype="gridprops *"><![CDATA[
+    </element-type>
+    <element-type name="gridprops" ctype="gridprops *">
         $$ = gridprops_new();
-    ]]></element-type>
-    <element-type name="tickprops" ctype="tickprops *"><![CDATA[
+    </element-type>
+    <element-type name="tickprops" ctype="tickprops *">
         $$ = tickprops_new();
-    ]]></element-type>
-    <element-type name="tlabels" ctype="TLabels *"><![CDATA[
+    </element-type>
+    <element-type name="tlabels" ctype="TLabels *">
         $$ = tlabels_new();
-    ]]></element-type>
-    <element-type name="uticks" ctype="UTicks *"><![CDATA[
+    </element-type>
+    <element-type name="uticks" ctype="UTicks *">
         $$ = uticks_new();
-    ]]></element-type>
-    <element-type name="tick" ctype="tickloc *"><![CDATA[
+    </element-type>
+    <element-type name="tick" ctype="tickloc *">
         $$ = tick_new();
-    ]]></element-type>
-    <element-type name="object" ctype="Quark *"><![CDATA[
+    </element-type>
+    <element-type name="object" ctype="Quark *">
         $$ = object_new($P);
-    ]]></element-type>
-    <element-type name="atext" ctype="Quark *"><![CDATA[
+    </element-type>
+    <element-type name="atext" ctype="Quark *">
         $$ = atext_new($P);
-    ]]></element-type>
-    <element-type name="location" ctype="Location *"><![CDATA[
+    </element-type>
+    <element-type name="location" ctype="Location *">
         $$ = location_new();
-    ]]></element-type>
-    <element-type name="do_line_data" ctype="DOLineData *"><![CDATA[
+    </element-type>
+    <element-type name="do_line_data" ctype="DOLineData *">
         $$ = object_odata_new(quark_get_amem($P), DO_LINE);
-    ]]></element-type>
-    <element-type name="do_box_data" ctype="DOBoxData *"><![CDATA[
+    </element-type>
+    <element-type name="do_box_data" ctype="DOBoxData *">
         $$ = object_odata_new(quark_get_amem($P), DO_BOX);
-    ]]></element-type>
-    <element-type name="do_arc_data" ctype="DOArcData *"><![CDATA[
+    </element-type>
+    <element-type name="do_arc_data" ctype="DOArcData *">
         $$ = object_odata_new(quark_get_amem($P), DO_ARC);
-    ]]></element-type>
-    <element-type name="textframe" ctype="TextFrame *"><![CDATA[
+    </element-type>
+    <element-type name="textframe" ctype="TextFrame *">
         $$ = textframe_new();
-    ]]></element-type>
-    <element-type name="textpointer" ctype="TextPointer *"><![CDATA[
+    </element-type>
+    <element-type name="textpointer" ctype="TextPointer *">
         $$ = textpointer_new();
-    ]]></element-type>
-    <element-type name="arrow" ctype="Arrow *"><![CDATA[
+    </element-type>
+    <element-type name="arrow" ctype="Arrow *">
         $$ = arrow_new();
-    ]]></element-type>
-    <element-type name="set" ctype="Quark *"><![CDATA[
+    </element-type>
+    <element-type name="set" ctype="Quark *">
         $$ = grace_set_new($P);
-    ]]></element-type>
-    <element-type name="symbol" ctype="Symbol *"><![CDATA[
+    </element-type>
+    <element-type name="symbol" ctype="Symbol *">
         $$ = symbol_new();
-    ]]></element-type>
-    <element-type name="setline" ctype="SetLine *"><![CDATA[
+    </element-type>
+    <element-type name="setline" ctype="SetLine *">
         $$ = setline_new();
-    ]]></element-type>
-    <element-type name="annotation" ctype="AValue *"><![CDATA[
+    </element-type>
+    <element-type name="annotation" ctype="AValue *">
         $$ = avalue_new();
-    ]]></element-type>
-    <element-type name="errorbar" ctype="Errbar *"><![CDATA[
+    </element-type>
+    <element-type name="errorbar" ctype="Errbar *">
         $$ = xmalloc(sizeof(Errbar));
         memset($$, 0, sizeof(Errbar));
-    ]]></element-type>
-    <element-type name="barline" ctype="BarLine *"><![CDATA[
+    </element-type>
+    <element-type name="barline" ctype="BarLine *">
         $$ = barline_new();
-    ]]></element-type>
-    <element-type name="riserline" ctype="RiserLine *"><![CDATA[
+    </element-type>
+    <element-type name="riserline" ctype="RiserLine *">
         $$ = riserline_new();
-    ]]></element-type>
-    <element-type name="dataset" ctype="Dataset *"><![CDATA[
+    </element-type>
+    <element-type name="dataset" ctype="Dataset *">
         $$ = dataset_new(quark_get_amem($P));
-    ]]></element-type>
-    <element-type name="wpoint" ctype="WPoint *"><![CDATA[
+    </element-type>
+    <element-type name="wpoint" ctype="WPoint *">
         $$ = xmalloc(sizeof(WPoint));
         memset($$, 0, sizeof(WPoint));
-    ]]></element-type>
-    <element-type name="region" ctype="Quark *"><![CDATA[
+    </element-type>
+    <element-type name="region" ctype="Quark *">
         $$ = region_new($P);
-    ]]></element-type>
+    </element-type>
     <element-type name="scolumn" ctype="ss_column *"><![CDATA[
         {
         ParserData *udata = (ParserData *) $U;
@@ -767,25 +767,25 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrColormap" type="dummy">
         <!-- Child elements -->
-        <child name="#EStrColorDef" minOccurs="2" maxOccurs="unbounded"><![CDATA[
+        <child name="#EStrColorDef" minOccurs="2" maxOccurs="unbounded">
             project_add_color($0, $?);
             colordef_free($?);
-        ]]></child>
+        </child>
     </element>
     <element name="#EStrFontmap" type="dummy">
         <!-- Child elements -->
-        <child name="#EStrFontDef" minOccurs="2" maxOccurs="unbounded"><![CDATA[
-	    project_add_font($0, $?);
+        <child name="#EStrFontDef" minOccurs="1" maxOccurs="unbounded">
+            project_add_font($0, $?);
             fontdef_free($?);
-        ]]></child>
+        </child>
     </element>
     <element name="#EStrScales" type="dummy">
         <!-- Attributes -->
         <attribute name="#AStrFontSize" type="dval">
-	    project_set_fontsize_scale($0, $?);
+            project_set_fontsize_scale($0, $?);
         </attribute>
         <attribute name="#AStrLineWidth" type="dval">
-	    project_set_linewidth_scale($0, $?);
+            project_set_linewidth_scale($0, $?);
         </attribute>
     </element>
     <element name="#EStrColorDef" type="colordef">
@@ -2007,10 +2007,10 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrRow" type="wpoint">
         <!-- Attributes -->
-        <attribute name="X" type="dateordval">
+        <attribute name="x" type="dateordval">
             $$->x = $?;
         </attribute>
-        <attribute name="Y" type="dateordval">
+        <attribute name="y" type="dateordval">
             $$->y = $?;
         </attribute>
     </element>
@@ -2031,10 +2031,10 @@ char *utf2iso(const char *s)
         </attribute>
         
         <!-- Child elements -->
-        <child name="#EStrRow" minOccurs="2" maxOccurs="unbounded"><![CDATA[
+        <child name="#EStrRow" minOccurs="2" maxOccurs="unbounded">
             region_add_point($$, $?);
             xfree($?);
-        ]]></child>
+        </child>
     </element>
 
     <!-- Postamble -->
@@ -2084,7 +2084,7 @@ Quark *load_xgr_project(Grace *grace, char *fn)
 
     fp = grace_openr(grace, fn, SOURCE_DISK);
     if (fp == NULL) {
-	return NULL;
+        return NULL;
     }
 
     udata.grace = grace;
