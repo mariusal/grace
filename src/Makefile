@@ -78,7 +78,7 @@ xml_in.c : grace.xcc
 	$(XCC) -b -i $? -o t.c && mv t.c $@
 
 $(SCHEMA) : grace.xcc xstrings.h
-	$(XCC) -s -i $? | cpp -P -nostdinc -imacros xstrings.h > $@
+	$(XCC) -s -i grace.xcc | cpp -P -nostdinc -imacros xstrings.h > $@
 
 install : $(GRACE)
 	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/bin
