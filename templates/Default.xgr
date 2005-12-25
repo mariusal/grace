@@ -71,8 +71,8 @@
       <zscale norm="1"/>
       <locator type="xy">
         <fixedpoint active="no" x="0" y="0"/>
-        <xformat format="general" prec="6"/>
-        <yformat format="general" prec="6"/>
+        <xformat type="general" prec="6"/>
+        <yformat type="general" prec="6"/>
       </locator>
       <agrid id="x_axisgrid" active="yes" type="x" major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
         <major-gridlines active="no">
@@ -95,7 +95,7 @@
           <text-properties angle="0" hjust="left" vjust="baseline">
             <face-spec font-id="0" color-id="1" char-size="1"/>
           </text-properties>
-          <format format="general" prec="5"/>
+          <format type="general" prec="5"/>
         </ticklabels>
         <axis id="normal" active="yes" position="normal" offset="0" bar="yes" ticks="yes" labels="yes">
           <atext id="label" active="no" offset="(0, -0.01)">
@@ -137,7 +137,7 @@
           <text-properties angle="0" hjust="left" vjust="baseline">
             <face-spec font-id="0" color-id="1" char-size="1"/>
           </text-properties>
-          <format format="general" prec="5"/>
+          <format type="general" prec="5"/>
         </ticklabels>
         <axis id="normal" active="yes" position="normal" offset="0" bar="yes" ticks="yes" labels="yes">
           <atext id="label" active="no" offset="(-0.01, 0)">
