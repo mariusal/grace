@@ -229,14 +229,7 @@ int grace_rt_init_dicts(RunTime *rt)
             {FORMAT_SCIENTIFIC,     VStrScientific,     "Scientific"         },
             {FORMAT_ENGINEERING,    VStrEngineering,    "Engineering"        },
             {FORMAT_DATETIME,       VStrDateTime,       "DateTime"           },
-            {FORMAT_DEGREESLON,     VStrDegreeslon,     "Degrees (lon)"      },
-            {FORMAT_DEGREESMMLON,   VStrDegreesmmlon,   "DD MM' (lon)"       },
-            {FORMAT_DEGREESMMSSLON, VStrDegreesmmsslon, "DD MM' SS.s\" (lon)"},
-            {FORMAT_MMSSLON,        VStrmmsslon,        "MM' SS.s\" (lon)"   },
-            {FORMAT_DEGREESLAT,     VStrDegreeslat,     "Degrees (lat)"      },
-            {FORMAT_DEGREESMMLAT,   VStrDegreesmmlat,   "DD MM' (lat)"       },
-            {FORMAT_DEGREESMMSSLAT, VStrDegreesmmsslat, "DD MM' SS.s\" (lat)"},
-            {FORMAT_MMSSLAT,        VStrmmsslat,        "MM' SS.s\" (lat)"   }
+            {FORMAT_GEOGRAPHIC,     VStrGeographic,     "Geographic"         }
         };
 
 

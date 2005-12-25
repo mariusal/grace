@@ -37,6 +37,105 @@
 
 #include "grace/plotP.h"
 
+#define RES_NONE    0
+#define RES_DEG     1
+#define RES_MIN     2
+#define RES_SEC     3
+
+/* FIXME: check for max size indeed! */
+size_t strfgeo(char *str, size_t max, const char *format, double value, int prec)
+{
+    char *s = str, *fmt = (char *) format;
+    size_t out_size = 0;
+    int min_resolution = RES_NONE, sgn, np;
+    double deg_value, min_value, sec_value;
+
+    while (*fmt) {
+        if (*fmt == '%') {
+            fmt++;
+            switch(*fmt) {
+            case 'D':
+                min_resolution = RES_DEG;
+                break;
+            case 'M':
+                min_resolution = RES_MIN;
+                break;
+            case 'S':
+                min_resolution = RES_SEC;
+                break;
+            }
+        }
+        fmt++;
+    }
+    
+    sgn = sign(value);
+    value = fabs(value);
+    
+    fmt = (char *) format;
+    while (*fmt && out_size < max) {
+        if (*fmt == '%') {
+            fmt++;
+            switch(*fmt) {
+            case 'D':
+                if (min_resolution == RES_DEG) {
+                    deg_value = value;
+                    np = sprintf(s, "%.*f", prec, deg_value);
+                } else {
+                    deg_value = floor(value);
+                    np = sprintf(s, "%d", (int) deg_value);
+                }
+                break;
+            case 'M':
+                deg_value = floor(value);
+                if (min_resolution == RES_MIN) {
+                    min_value = (value - deg_value)*60.0;
+                    np = sprintf(s, "%.*f", prec, min_value);
+                } else {
+                    min_value = floor(value - deg_value);
+                    np = sprintf(s, "%d", (int) min_value);
+                }
+                break;
+            case 'S':
+                min_value = (value - floor(value))*60.0;
+                sec_value = (min_value - floor(min_value))*60.0;
+                np = sprintf(s, "%.*f", prec, sec_value);
+                break;
+            case 'X':
+                if (sgn < 0) {
+                    np = sprintf(s, "%c", 'W');
+                } else
+                if (sgn > 0) {
+                    np = sprintf(s, "%c", 'E');
+                } else {
+                    np = 0;
+                }
+                break;
+            case 'Y':
+                if (sgn < 0) {
+                    np = sprintf(s, "%c", 'S');
+                } else
+                if (sgn > 0) {
+                    np = sprintf(s, "%c", 'N');
+                } else {
+                    np = 0;
+                }
+                break;
+            default:
+                np = 0;
+                break;
+            }
+            out_size += np;
+            s += np;
+        } else {
+            *s = *fmt;
+            out_size++;
+            s++;
+        }
+        fmt++;
+    }
+    return out_size;
+}
+
 /*
  * reduce years according to the following rules :
  * [ wrap_year ; 100*(1 + wrap_year/100) - 1 ] -> [wy ; 99]
@@ -90,7 +189,6 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
     static char s[MAX_STRING_LENGTH];
     double tmp;
     int m, d, y, h, mm, sec;
-    double arcmin, arcsec;
     int exponent;
     double mantissa;
     int yprec;
@@ -257,114 +355,16 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
             s[0] = '\0';
         }
         break;
-    case FORMAT_DEGREESLON:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%.*lfW");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%.*lfE");
-	} else {
-	    strcpy(format, "0");
-	}
-	sprintf(s, format, form->prec1, loc);
-	break;
-    case FORMAT_DEGREESMMLON:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d %.*lf' W");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d %.*lf' E");
-	} else {
-	    strcpy(format, "0 0'");
-	}
-	y = loc;
-	arcmin = (loc - y) * 60.0;
-	sprintf(s, format, y, form->prec1, arcmin);
-	break;
-    case FORMAT_DEGREESMMSSLON:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d %d' %.*lf\" W");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d %d' %.*lf\" E");
-	} else {
-	    strcpy(format, "0 0' 0\"");
-	}
-	y = loc;
-	arcsec = (loc - y) * 3600.0;
-	m = arcsec / 60.0;
-	arcsec = (arcsec - m * 60);
-	sprintf(s, format, y, m, form->prec1, arcsec);
-	break;
-    case FORMAT_MMSSLON:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d' %.*lf\" W");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d' %.*lf\" E");
-	} else {
-	    strcpy(format, "0 0' 0\"");
-	}
-	y = loc;
-	arcsec = (loc - y) * 3600.0;
-	m = arcsec / 60.0;
-	arcsec = (arcsec - m * 60);
-	sprintf(s, format, m, form->prec1, arcsec);
-	break;
-    case FORMAT_DEGREESLAT:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%.*lfS");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%.*lfN");
-	} else {
-	    strcpy(format, "0");
-	}
-	sprintf(s, format, form->prec1, loc);
-	break;
-    case FORMAT_DEGREESMMLAT:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d %.*lf' S");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d %.*lf' N");
-	} else {
-	    strcpy(format, "0 0'");
-	}
-	y = loc;
-	arcsec = (loc - y) * 60.0;
-	sprintf(s, format, y, form->prec1, arcsec);
-	break;
-    case FORMAT_DEGREESMMSSLAT:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d %d' %.*lf\" S");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d %d' %.*lf\" N");
-	} else {
-	    strcpy(format, "0 0' 0\"");
-	}
-	y = loc;
-	arcsec = (loc - y) * 3600.0;
-	m = arcsec / 60.0;
-	arcsec = (arcsec - m * 60);
-	sprintf(s, format, y, m, form->prec1, arcsec);
-	break;
-    case FORMAT_MMSSLAT:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d' %.*lf\" S");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d' %.*lf\" N");
-	} else {
-	    strcpy(format, "0 0' 0\"");
-	}
-	y = loc;
-	arcsec = (loc - y) * 3600.0;
-	m = arcsec / 60.0;
-	arcsec = (arcsec - m * 60);
-	sprintf(s, format, m, form->prec1, arcsec);
-	break;
+    case FORMAT_GEOGRAPHIC:
+        if (!string_is_empty(form->fstring)) {
+            if (strfgeo(s, MAX_STRING_LENGTH - 1, form->fstring, loc,
+                form->prec1) <= 0) {
+                s[0] = '\0';
+            }
+        } else {
+            s[0] = '\0';
+        }
+        break;
     default:
 	sprintf(s, format, form->prec1, loc);
 	break;

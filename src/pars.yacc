@@ -5,7 +5,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -145,8 +145,6 @@ static Quark *allocate_graph(Quark *project, int gno);
 static Quark *allocate_set(Quark *gr, int setno);
 static Quark *allocate_region(Quark *gr, int rn);
 
-static char *datetime_fstring;
-
 /* Total (intrinsic + user-defined) list of functions and keywords */
 symtab_entry *key;
 
@@ -161,6 +159,7 @@ static void yyerror(char *s);
     double  dval;
     char   *sval;
     double *dptr;
+    Format *fmt;
     Quark  *quark;
     grarr  *vrbl;
 }
@@ -477,7 +476,7 @@ static void yyerror(char *s);
 
 %type <ival> colpat_obs
 
-%type <ival> formatchoice
+%type <fmt>  formatchoice
 %type <ival> inoutchoice
 %type <ival> justchoice
 
@@ -2391,10 +2390,12 @@ parmset:
 	| selectgraph FIXEDPOINT FORMAT formatchoice formatchoice {
             GLocator *gloc = graph_get_locator($1);
 	    AMem *amem = quark_get_amem($1);
-	    gloc->fx.type = $4;
-            gloc->fx.fstring = amem_strdup(amem, datetime_fstring);
-	    gloc->fy.type = $5;
-            gloc->fy.fstring = amem_strdup(amem, datetime_fstring);
+	    gloc->fx.type = $4->type;
+            gloc->fx.fstring = amem_strdup(amem, $4->fstring);
+	    gloc->fy.type = $5->type;
+            gloc->fy.fstring = amem_strdup(amem, $5->fstring);
+            xfree($4);
+            xfree($5);
 	}
 	| selectgraph FIXEDPOINT PREC expr ',' expr {
             GLocator *gloc = graph_get_locator($1);
@@ -2756,8 +2757,9 @@ setprop:
         {
 	    set *p = set_get_data($1);
 	    AMem *amem = quark_get_amem($1);
-	    p->avalue.format.type = $4;
-	    p->avalue.format.fstring = amem_strdup(amem, datetime_fstring);
+	    p->avalue.format.type = $4->type;
+	    p->avalue.format.fstring = amem_strdup(amem, $4->fstring);
+            xfree($4);
 	}
 	| selectset AVALUE PREC nexpr
         {
@@ -2976,8 +2978,9 @@ ticklabelattr:
 	}
 	| FORMAT formatchoice {
 	    AMem *amem = quark_get_amem(whichaxisgrid);
-	    curtm->tl_format.type = $2;
-	    curtm->tl_format.fstring = amem_strdup(amem, datetime_fstring);
+	    curtm->tl_format.type = $2->type;
+	    curtm->tl_format.fstring = amem_strdup(amem, $2->fstring);
+            xfree($2);
 	}
 	| PREC nexpr {
 	    curtm->tl_format.prec1 = $2;
@@ -3512,37 +3515,37 @@ inoutchoice: IN { $$ = TICKS_IN; }
 	| BOTH { $$ = TICKS_BOTH; }
 	;
 
-formatchoice: DECIMAL { $$ = FORMAT_DECIMAL; }
-	| EXPONENTIAL { $$ = FORMAT_EXPONENTIAL; }
-	| GENERAL { $$ = FORMAT_GENERAL; }
-	| SCIENTIFIC { $$ = FORMAT_SCIENTIFIC; }
-	| ENGINEERING { $$ = FORMAT_ENGINEERING; }
-	| POWER { $$ = FORMAT_POWER; }
-	| DDMMYY { $$ = FORMAT_DATETIME; datetime_fstring = "%d-%m-%Y"; }
-	| MMDDYY { $$ = FORMAT_DATETIME; datetime_fstring = "%m-%d-%Y"; }
-	| YYMMDD { $$ = FORMAT_DATETIME; datetime_fstring = "%Y-%m-%d"; }
-	| MMYY { $$ = FORMAT_DATETIME; datetime_fstring = "%m-%Y"; }
-	| MMDD { $$ = FORMAT_DATETIME; datetime_fstring = "%m-%d"; }
-	| MONTHDAY { $$ = FORMAT_DATETIME; datetime_fstring = "%b-%d"; }
-	| DAYMONTH { $$ = FORMAT_DATETIME; datetime_fstring = "%d-%b"; }
-	| MONTHS { $$ = FORMAT_DATETIME; datetime_fstring = "%b"; }
-	| MONTHSY { $$ = FORMAT_DATETIME; datetime_fstring = "%b-%Y"; }
-	| MONTHL { $$ = FORMAT_DATETIME; datetime_fstring = "%B"; }
-	| DAYOFWEEKS { $$ = FORMAT_DATETIME; datetime_fstring = "%a"; }
-	| DAYOFWEEKL { $$ = FORMAT_DATETIME; datetime_fstring = "%A"; }
-	| DAYOFYEAR { $$ = FORMAT_DATETIME; datetime_fstring = "%j"; }
-	| HMS { $$ = FORMAT_DATETIME; datetime_fstring = "%H:%M:%S"; }
-	| MMDDHMS { $$ = FORMAT_DATETIME; datetime_fstring = "%m-%d %H:%M:%S"; }
-	| MMDDYYHMS { $$ = FORMAT_DATETIME; datetime_fstring = "%m-%d-%Y %H:%M:%S"; }
-	| YYMMDDHMS { $$ = FORMAT_DATETIME; datetime_fstring = "%Y-%m-%d %H:%M:%S"; }
-	| DEGREESLON { $$ = FORMAT_DEGREESLON; }
-	| DEGREESMMLON { $$ = FORMAT_DEGREESMMLON; }
-	| DEGREESMMSSLON { $$ = FORMAT_DEGREESMMSSLON; }
-	| MMSSLON { $$ = FORMAT_MMSSLON; }
-	| DEGREESLAT { $$ = FORMAT_DEGREESLAT; }
-	| DEGREESMMLAT { $$ = FORMAT_DEGREESMMLAT; }
-	| DEGREESMMSSLAT { $$ = FORMAT_DEGREESMMSSLAT; }
-	| MMSSLAT { $$ = FORMAT_MMSSLAT; }
+formatchoice: DECIMAL { $$ = format_new(); $$->type = FORMAT_DECIMAL; }
+	| EXPONENTIAL { $$ = format_new(); $$->type = FORMAT_EXPONENTIAL; }
+	| GENERAL { $$ = format_new(); $$->type = FORMAT_GENERAL; }
+	| SCIENTIFIC { $$ = format_new(); $$->type = FORMAT_SCIENTIFIC; }
+	| ENGINEERING { $$ = format_new(); $$->type = FORMAT_ENGINEERING; }
+	| POWER { $$ = format_new(); $$->type = FORMAT_POWER; }
+	| DDMMYY { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%d-%m-%Y"; }
+	| MMDDYY { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%m-%d-%Y"; }
+	| YYMMDD { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%Y-%m-%d"; }
+	| MMYY { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%m-%Y"; }
+	| MMDD { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%m-%d"; }
+	| MONTHDAY { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%b-%d"; }
+	| DAYMONTH { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%d-%b"; }
+	| MONTHS { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%b"; }
+	| MONTHSY { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%b-%Y"; }
+	| MONTHL { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%B"; }
+	| DAYOFWEEKS { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%a"; }
+	| DAYOFWEEKL { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%A"; }
+	| DAYOFYEAR { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%j"; }
+	| HMS { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%H:%M:%S"; }
+	| MMDDHMS { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%m-%d %H:%M:%S"; }
+	| MMDDYYHMS { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%m-%d-%Y %H:%M:%S"; }
+	| YYMMDDHMS { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%Y-%m-%d %H:%M:%S"; }
+	| DEGREESLON { $$ = format_new(); $$->type = FORMAT_GEOGRAPHIC; $$->fstring = "%D%X"; }
+	| DEGREESMMLON { $$ = format_new(); $$->type = FORMAT_GEOGRAPHIC; $$->fstring = "%D %M' %X"; }
+	| DEGREESMMSSLON { $$ = format_new(); $$->type = FORMAT_GEOGRAPHIC; $$->fstring = "%D %M' %S\" %X"; }
+	| MMSSLON { $$ = format_new(); $$->type = FORMAT_GEOGRAPHIC; $$->fstring = "%M' %S\" %X"; }
+	| DEGREESLAT { $$ = format_new(); $$->type = FORMAT_GEOGRAPHIC; $$->fstring = "%D%Y"; }
+	| DEGREESMMLAT { $$ = format_new(); $$->type = FORMAT_GEOGRAPHIC; $$->fstring = "%D %M' %Y"; }
+	| DEGREESMMSSLAT { $$ = format_new(); $$->type = FORMAT_GEOGRAPHIC; $$->fstring = "%D %M' %S\" %Y"; }
+	| MMSSLAT { $$ = format_new(); $$->type = FORMAT_GEOGRAPHIC; $$->fstring = "%M' %S\" %Y"; }
 	;
 
 signchoice: NORMAL { $$ = SIGN_NORMAL; }

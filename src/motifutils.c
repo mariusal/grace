@@ -3342,7 +3342,8 @@ static void format_oc_cb(OptionStructure *opt, int a, void *data)
     }
     
     if (opt == fstr->type) {
-        SetSensitive(fstr->fstring->form, a == FORMAT_DATETIME);
+        SetSensitive(fstr->fstring->form,
+            a == FORMAT_DATETIME || a == FORMAT_GEOGRAPHIC);
     }
     
     format_call_cb(fstr);
@@ -3383,7 +3384,8 @@ void SetFormatChoice(FormatStructure *fstr, const Format *format)
     SetOptionChoice(fstr->type, format->type);
     SetOptionChoice(fstr->prec, format->prec1);
     SetTextString(fstr->fstring, format->fstring);
-    SetSensitive(fstr->fstring->form, format->type == FORMAT_DATETIME);
+    SetSensitive(fstr->fstring->form,
+        format->type == FORMAT_DATETIME || format->type == FORMAT_GEOGRAPHIC);
 }
 
 Format *GetFormatChoice(FormatStructure *fstr)
