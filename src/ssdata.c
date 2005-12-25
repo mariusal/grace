@@ -314,7 +314,7 @@ int insert_data_row(Quark *q, unsigned int row, char *s)
 static Quark *nextset(Quark *ss)
 {
     Quark *pset, *gr, **sets;
-    int nsets;
+    int nsets = 0;
     
     pset = get_target_set();
     
@@ -330,6 +330,10 @@ static Quark *nextset(Quark *ss)
         }
     }
     quark_reparent(pset, ss);
+    
+    if (nsets) {
+        xfree(sets);
+    }
     
     return pset;
 }

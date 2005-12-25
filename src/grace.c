@@ -85,7 +85,10 @@ GUI *gui_new(Grace *grace)
 
 void gui_free(GUI *gui)
 {
-    xfree(gui);
+    if (gui) {
+        xfree(gui->xstuff);
+        xfree(gui);
+    }
 }
 
 
