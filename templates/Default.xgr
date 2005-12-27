@@ -50,8 +50,8 @@
   <page width="842" height="595" fill="yes" color-id="0"/>
   <!-- Data formats -->
   <data-formats>
+    <world prec="8"/>
     <dates reference="0" wrap="no" wrap-year="1950"/>
-    <world format="%.8g"/>
   </data-formats>
   <frame id="frame" active="yes" type="0">
     <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
