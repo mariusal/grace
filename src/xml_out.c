@@ -49,8 +49,9 @@ static void xmlio_set_active(Attributes *attrs, int active)
 
 static void xmlio_set_world_value(Quark *q, Attributes *attrs, char *name, double value)
 {
-    attributes_set_dval_formatted(attrs, name, value,
-        project_get_sformat(get_parent_project(q)));
+    char sformat[32];
+    sprintf(sformat, "%%.%dg", project_get_prec(get_parent_project(q)));
+    attributes_set_dval_formatted(attrs, name, value, sformat);
 }
 
 static void xmlio_set_inout_placement(RunTime *rt, Attributes *attrs, int inout)
@@ -634,7 +635,7 @@ static int save_ssd(XFile *xf, Quark *q)
 {
     Attributes *attrs;
     unsigned int i, j, ncols, nrows;
-    char *sformat;
+    unsigned int prec;
 
     attrs = attributes_new();
     
@@ -651,7 +652,7 @@ static int save_ssd(XFile *xf, Quark *q)
 
     ncols = ssd_get_ncols(q);
     nrows = ssd_get_nrows(q);
-    sformat = project_get_sformat(get_parent_project(q));
+    prec = project_get_prec(get_parent_project(q));
     for (i = 0; i < ncols; i++) {
         ss_column *col = ssd_get_col(q, i);
         char *ename;
@@ -666,7 +667,7 @@ static int save_ssd(XFile *xf, Quark *q)
             if (col->format == FFORMAT_STRING) {
                 s = ((char **) col->data)[j];
             } else {
-                sprintf(buf, sformat, ((double *) col->data)[j]);
+                sprintf(buf, "%.*g", prec, ((double *) col->data)[j]);
                 s = buf;
             }
 
@@ -793,14 +794,14 @@ static int project_save_hook(Quark *q,
         xfile_begin_element(xf, EStrDataFormats, NULL);
         {
             attributes_reset(attrs);
+            attributes_set_ival(attrs, AStrPrec, pr->prec);
+            xfile_empty_element(xf, EStrWorld, attrs);
+
+            attributes_reset(attrs);
             xmlio_set_world_value(q, attrs, AStrReference, pr->ref_date);
             attributes_set_bval(attrs, AStrWrap, pr->two_digits_years);
             attributes_set_ival(attrs, AStrWrapYear, pr->wrap_year);
             xfile_empty_element(xf, EStrDates, attrs);
-
-            attributes_reset(attrs);
-            attributes_set_sval(attrs, AStrFormat, pr->sformat);
-            xfile_empty_element(xf, EStrWorld, attrs);
         }
         xfile_end_element(xf, EStrDataFormats);
 

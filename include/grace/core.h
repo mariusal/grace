@@ -143,6 +143,9 @@
 #define COORD_FRAME     1
 #define COORD_WORLD     2
 
+/* Data precision limits */
+#define DATA_PREC_MIN   4
+#define DATA_PREC_MAX   16
 
 typedef struct _QuarkFactory QuarkFactory;
 typedef struct _Quark Quark;
@@ -245,8 +248,8 @@ typedef struct _Project {
     /* line width scale */
     double lscale;
 
-    /* format for saving data sets */
-    char *sformat;
+    /* data precision for saving data sets etc */
+    unsigned int prec;
 
     /* dates */
     double ref_date;
@@ -747,8 +750,8 @@ int project_get_version_id(const Quark *q);
 int project_set_version_id(Quark *q, int version_id);
 char *project_get_description(const Quark *q);
 int project_set_description(Quark *q, char *descr);
-char *project_get_sformat(const Quark *q);
-int project_set_sformat(Quark *q, const char *s);
+unsigned int project_get_prec(const Quark *q);
+int project_set_prec(Quark *q, unsigned int prec);
 char *project_get_docname(const Quark *q);
 int project_set_docname(Quark *q, char *s);
 

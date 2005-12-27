@@ -56,7 +56,7 @@ Project *project_data_new(AMem *amem)
     
     pr->description = NULL;
     
-    pr->sformat = amem_strdup(amem, "%.8g");
+    pr->prec = 8;
 
     pr->timestamp = amem_strdup(amem, "");
 
@@ -89,7 +89,6 @@ void project_data_free(AMem *amem, Project *pr)
     
     amem_free(amem, pr->description);
     
-    amem_free(amem, pr->sformat);
     amem_free(amem, pr->docname);
     
     amem_free(amem, pr->timestamp);
@@ -197,21 +196,21 @@ int project_set_description(Quark *q, char *descr)
     }
 }
 
-char *project_get_sformat(const Quark *q)
+unsigned int project_get_prec(const Quark *q)
 {
     Project *pr = project_get_data(q);
     if (pr) {
-        return pr->sformat;
+        return pr->prec;
     } else {
-        return NULL;
+        return 0;
     }
 }
 
-int project_set_sformat(Quark *q, const char *s)
+int project_set_prec(Quark *q, unsigned int prec)
 {
     Project *pr = project_get_data(q);
-    if (pr) {
-        pr->sformat = amem_strcpy(q->amem, pr->sformat, s);;
+    if (pr && prec >= DATA_PREC_MIN && prec <= DATA_PREC_MAX) {
+        pr->prec = prec;
         quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {

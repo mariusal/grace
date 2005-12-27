@@ -837,8 +837,8 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrDataFormats" type="dummy">
         <!-- Child elements -->
-        <child name="#EStrDates" minOccurs="1" maxOccurs="1"/>
         <child name="#EStrWorld" minOccurs="1" maxOccurs="1"/>
+        <child name="#EStrDates" minOccurs="1" maxOccurs="1"/>
     </element>
     <element name="#EStrFaceSpec" type="facespec">
         <!-- Attributes -->
@@ -866,9 +866,8 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrWorld" type="dummy">
         <!-- Attributes -->
-        <attribute name="#AStrFormat" type="sval">
-            project_set_sformat($0, $?);
-            xfree($?);
+        <attribute name="#AStrPrec" type="ival">
+            project_set_prec($0, $?);
         </attribute>
     </element>
     <element name="#EStrText" type="string">

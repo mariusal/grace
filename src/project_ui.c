@@ -237,8 +237,9 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
 
     fr = CreateFrame(form, "Data & Dates");
     rc1 = CreateVContainer(fr);
-    ui->sformat = CreateTextInput(rc1, "Data format:");
-    AddTextInputCB(ui->sformat, text_explorer_cb, eui);
+    ui->prec = CreateSpinChoice(rc1, "Data precision:", 3,
+        SPIN_TYPE_INT, DATA_PREC_MIN, DATA_PREC_MAX, 1);
+    AddSpinChoiceCB(ui->prec, sp_explorer_cb, eui);
     ui->refdate = CreateTextItem(rc1, 20, "Reference date:");
     AddTextItemCB(ui->refdate, titem_explorer_cb, eui);
     rc = CreateHContainer(rc1);
@@ -262,7 +263,7 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         double factor;
         int format;
 
-        SetTextString(ui->sformat, project_get_sformat(q));
+        SetSpinChoice(ui->prec, project_get_prec(q));
         SetTextString(ui->description, project_get_description(q));
 
         switch (GetOptionChoice(ui->page_size_unit)) {
@@ -333,10 +334,8 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
     if (ui && pr) {
         double jul;
     
-        if (!caller || caller == ui->sformat) {
-            char *s = GetTextString(ui->sformat);
-            project_set_sformat(q, s);
-            xfree(s);
+        if (!caller || caller == ui->prec) {
+            project_set_prec(q, GetSpinChoice(ui->prec));
         }
         if (!caller || caller == ui->description) {
             char *s = GetTextString(ui->description);

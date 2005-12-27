@@ -98,15 +98,15 @@ static char *get_cell_content(SSDataUI *ui, int row, int column, int *format)
     char *s;
 
     if (col && row >= 0 && row < nrows) {
-        char *sformat;
+        unsigned int prec;
         *format = col->format;
         switch (col->format) {
         case FFORMAT_STRING:
             s = ((char **) col->data)[row];
             break;
         default:
-            sformat = project_get_sformat(get_parent_project(ui->q));
-            sprintf(buf[stackp], sformat, ((double *) col->data)[row]);
+            prec = project_get_prec(get_parent_project(ui->q));
+            sprintf(buf[stackp], "%.*g", prec, ((double *) col->data)[row]);
             s = buf[stackp];
             stackp++;
             stackp %= STACKLEN;

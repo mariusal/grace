@@ -2097,7 +2097,10 @@ parmset:
 	| DEFAULT SYMBOL SIZE expr {
 	}
 	| DEFAULT SFORMAT CHRSTR {
-	    project_set_sformat(project, $3);
+	    unsigned int prec;
+            if (sscanf($3, "%u", &prec) == 1) {
+                project_set_prec(project, prec);
+            }
 	    xfree($3);
 	}
 	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {

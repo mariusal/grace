@@ -972,7 +972,7 @@ int write_ssd(const Quark *ssd, unsigned int ncols, const int *cols, FILE *fp)
     char *sep = "\t";
     unsigned int nrows = ssd_get_nrows(ssd), i, j;
 
-    char *format = project_get_sformat(get_parent_project(ssd));
+    unsigned int prec = project_get_prec(get_parent_project(ssd));
 
     fputs("# ", fp);
     for (j = 0; j < ncols; j++) {
@@ -1001,7 +1001,7 @@ int write_ssd(const Quark *ssd, unsigned int ncols, const int *cols, FILE *fp)
                 fprintf(fp, " \"%s\"", escapequotes(s[i]));
             } else {
                 double *x = ((double *) scol->data);
-                fprintf(fp, format, x[i]);
+                fprintf(fp, "%.*g", prec, x[i]);
             }
         }
         fputs("\n", fp);
