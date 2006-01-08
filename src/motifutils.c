@@ -1128,7 +1128,11 @@ static void CreateStorageChoicePopup(StorageStructure *ss)
     
     popup = XmCreatePopupMenu(ss->list, "popupMenu", NULL, 0);
     ss->popup = popup;
+#if XmVersion >= 2000    
     XtVaSetValues(popup, XmNpopupEnabled, XmPOPUP_DISABLED, NULL);
+#else
+    XtVaSetValues(popup, XmNpopupEnabled, False, NULL);
+#endif
 
     ss->popup_properties_bt =
         CreateMenuButton(popup, "Properties...", '\0', ss_properties_cb, ss);
