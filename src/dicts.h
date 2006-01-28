@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2005 Grace Development Team
+ * Copyright (c) 2001-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -84,5 +84,9 @@ int get_arcclosure_type_by_name(RunTime *rt, const char *name);
 char *format_type_name(RunTime *rt, FormatType it);
 FormatType get_format_type_by_name(RunTime *rt, const char *name);
 char *format_type_descr(RunTime *rt, FormatType it);
+
+char *frame_type_name(RunTime *rt, FrameType it);
+FrameType get_frame_type_by_name(RunTime *rt, const char *name);
+char *frame_type_descr(RunTime *rt, FrameType it);
 
 #endif /* __DICTS_H_ */

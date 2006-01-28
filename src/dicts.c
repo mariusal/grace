@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2005 Grace Development Team
+ * Copyright (c) 2001-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -232,6 +232,18 @@ int grace_rt_init_dicts(RunTime *rt)
             {FORMAT_GEOGRAPHIC,     VStrGeographic,     "Geographic"         }
         };
 
+    const DictEntry frame_type_defaults =
+        {FRAME_TYPE_CLOSED, VStrClosed, "Closed"};
+    const DictEntry frame_type_entries[] = 
+        {
+            {FRAME_TYPE_CLOSED,      VStrClosed,      "Closed"      },
+            {FRAME_TYPE_HALFOPEN,    VStrHalfOpen,    "Half open"   },
+            {FRAME_TYPE_BREAKTOP,    VStrBreakTop,    "Break top"   },
+            {FRAME_TYPE_BREAKBOTTOM, VStrBreakBottom, "Break bottom"},
+            {FRAME_TYPE_BREAKLEFT,   VStrBreakLeft,   "Break left"  },
+            {FRAME_TYPE_BREAKRIGHT,  VStrBreakRight,  "Break right" }
+        };
+
 
     if (!(rt->graph_type_dict =
         DICT_NEW_STATIC(graph_type_entries, &graph_type_defaults))) {
@@ -306,6 +318,10 @@ int grace_rt_init_dicts(RunTime *rt)
         DICT_NEW_STATIC(format_type_entries, &format_type_defaults))) {
         return RETURN_FAILURE;
     }
+    if (!(rt->frame_type_dict =
+        DICT_NEW_STATIC(frame_type_entries, &frame_type_defaults))) {
+        return RETURN_FAILURE;
+    }
 
     return RETURN_SUCCESS;
 }
@@ -330,6 +346,7 @@ void grace_rt_free_dicts(RunTime *rt)
     dict_free(rt->arrow_placement_dict);
     dict_free(rt->arcclosure_type_dict);
     dict_free(rt->format_type_dict);
+    dict_free(rt->frame_type_dict);
 }
 
 char *graph_types(RunTime *rt, GraphType it)
@@ -690,6 +707,33 @@ char *format_type_descr(RunTime *rt, FormatType it)
     char *s;
     
     dict_get_descr_by_key(rt->format_type_dict, it, &s);
+    
+    return s;
+}
+
+char *frame_type_name(RunTime *rt, FrameType it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->frame_type_dict, it, &s);
+    
+    return s;
+}
+
+FrameType get_frame_type_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->frame_type_dict, name, &retval);
+    
+    return retval;
+}
+
+char *frame_type_descr(RunTime *rt, FrameType it)
+{
+    char *s;
+    
+    dict_get_descr_by_key(rt->frame_type_dict, it, &s);
     
     return s;
 }

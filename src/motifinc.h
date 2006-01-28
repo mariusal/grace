@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -529,6 +529,7 @@ OptionStructure *CreateColorChoice(Widget parent, char *s);
 OptionStructure *CreateASChoice(Widget parent, char *s);
 OptionStructure *CreateTextJustChoice(Widget parent, char *s);
 OptionStructure *CreateJustChoice(Widget parent, char *s);
+OptionStructure *CreateFrameTypeChoice(Widget parent, char *s);
 
 OptionStructure *CreateCharOptionChoice(Widget parent, char *s);
 void UpdateCharOptionChoice(OptionStructure *opt, int font);

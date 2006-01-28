@@ -894,8 +894,10 @@ char *utf2iso(const char *s)
         <attribute name="#AStrActive" type="bval">
             quark_set_active($$, $?);
         </attribute>
-        <attribute name="#AStrType" type="ival">
-            frame_set_type($$, $?);
+        <attribute name="#AStrType" type="sval">
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            frame_set_type($$, get_frame_type_by_name(rt, $?));
+            xfree($?);
         </attribute>
         <!-- Child elements -->
         <child name="#EStrViewport" minOccurs="1" maxOccurs="1">

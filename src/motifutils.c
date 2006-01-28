@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -2169,6 +2169,7 @@ void AlignLabel(Widget w, int alignment)
 
 static OptionItem *settype_option_items;
 static OptionItem *fmt_option_items;
+static OptionItem *frametype_option_items;
 static BitmapOptionItem *pattern_option_items;
 static BitmapOptionItem *lines_option_items;
 
@@ -2280,6 +2281,17 @@ int init_option_menus(void) {
             format_type_descr(grace->rt, i));
     }
 
+    frametype_option_items = xmalloc(NUMBER_OF_FRAMETYPES*sizeof(OptionItem));
+    if (frametype_option_items == NULL) {
+        errmsg("Malloc error in init_option_menus()");
+        return RETURN_FAILURE;
+    }
+    for (i = 0; i < NUMBER_OF_FRAMETYPES; i++) {
+        frametype_option_items[i].value = i;
+        frametype_option_items[i].label = copy_string(NULL,
+            frame_type_descr(grace->rt, i));
+    }
+
     return RETURN_SUCCESS;
 }
 
@@ -2345,6 +2357,12 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 {
     return (CreateOptionChoice(parent,
         s, 0, NUMBER_OF_SETTYPES, settype_option_items));
+}
+
+OptionStructure *CreateFrameTypeChoice(Widget parent, char *s)
+{
+    return (CreateOptionChoice(parent,
+        s, 0, NUMBER_OF_FRAMETYPES, frametype_option_items));
 }
 
 static BitmapOptionItem text_just_option_items[12] =
