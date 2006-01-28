@@ -170,41 +170,41 @@ static int intersect_to_left(const WPoint *wp,
 
     /* ignore horizontal lines */
     if (wp1->y == wp2->y) {
-	return 0;
+        return 0;
     }
     /* not contained vertically */
     if (((wp->y < wp1->y) && (wp->y < wp2->y)) ||
         ((wp->y > wp1->y) && (wp->y > wp2->y))) {
-	return 0;
+        return 0;
     }
     /* none of the above, compute the intersection */
     if ((xtmp = wp2->x - wp1->x) != 0.0) {
-	m = (wp2->y - wp1->y) / xtmp;
-	b = wp1->y - m * wp1->x;
-	xtmp = (wp->y - b) / m;
+        m = (wp2->y - wp1->y) / xtmp;
+        b = wp1->y - m * wp1->x;
+        xtmp = (wp->y - b) / m;
     } else {
-	xtmp = wp1->x;
+        xtmp = wp1->x;
     }
     if (xtmp <= wp->x) {
-	/* check for intersections at a vertex */
-	/* if this is the max ordinate then accept */
-	if (wp->y == wp1->y) {
-	    if (wp1->y > wp2->y) {
-		return 1;
-	    } else {
-		return 0;
-	    }
-	}
-	/* check for intersections at a vertex */
-	if (wp->y == wp2->y) {
-	    if (wp2->y > wp1->y) {
-		return 1;
-	    } else {
-		return 0;
-	    }
-	}
-	/* no vertices intersected */
-	return 1;
+        /* check for intersections at a vertex */
+        /* if this is the max ordinate then accept */
+        if (wp->y == wp1->y) {
+            if (wp1->y > wp2->y) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+        /* check for intersections at a vertex */
+        if (wp->y == wp2->y) {
+            if (wp2->y > wp1->y) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+        /* no vertices intersected */
+        return 1;
     }
     return 0;
 }
@@ -217,7 +217,7 @@ static int inbound(const WPoint *wp, const WPoint *wps, int n)
     int i, l = 0;
 
     for (i = 0; i < n; i++) {
-	l += intersect_to_left(wp, &wps[i], &wps[(i + 1) % n]);
+        l += intersect_to_left(wp, &wps[i], &wps[(i + 1) % n]);
     }
     return l % 2;
 }
@@ -257,19 +257,19 @@ int region_contains(const Quark *q, const WPoint *wp)
         
     switch (r->type) {
     case REGION_POLYGON:
-	if (r->n > 2) {
+        if (r->n > 2) {
             return inbound(wp, r->wps, r->n);
         } else
-	if (r->n == 2) {
+        if (r->n == 2) {
             return isleft(wp, &r->wps[0], &r->wps[1]);
         } else {
             return FALSE;
         }
-	break;
+        break;
     case REGION_BAND:
-	if (r->n == 2) {
-	    return inband(wp, &r->wps[0], &r->wps[1]);
-	} else {
+        if (r->n == 2) {
+            return inband(wp, &r->wps[0], &r->wps[1]);
+        } else {
             return FALSE;
         }
         break;

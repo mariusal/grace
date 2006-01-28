@@ -915,7 +915,7 @@ void vpswap(VPoint *vp1, VPoint *vp2)
 int isvalid_viewport(const view *v)
 {
     if ((v->xv2 <= v->xv1) || (v->yv2 <= v->yv1)) {
-	return FALSE;
+        return FALSE;
     } else {
         return TRUE;
     }
@@ -1705,15 +1705,15 @@ int make_color_scale(Canvas *canvas,
     delta_frgb.blue  = (fg_frgb.blue  - bg_frgb.blue) /(ncolors - 1);
     colors[0] = bg;
     for (i = 1; i < ncolors - 1; i++) {
-    	fRGB frgb;
+        fRGB frgb;
         RGB rgb;
         int c;
         
         frgb.red   = bg_frgb.red   + i*delta_frgb.red;
-    	frgb.green = bg_frgb.green + i*delta_frgb.green;
-    	frgb.blue  = bg_frgb.blue  + i*delta_frgb.blue;
-    	fRGB2RGB(&frgb, &rgb);
-    	c = add_color(canvas, &rgb, COLOR_AUX);
+        frgb.green = bg_frgb.green + i*delta_frgb.green;
+        frgb.blue  = bg_frgb.blue  + i*delta_frgb.blue;
+        fRGB2RGB(&frgb, &rgb);
+        c = add_color(canvas, &rgb, COLOR_AUX);
         colors[i] = (c == BAD_COLOR) ? 0:c;
     }
     colors[ncolors - 1] = fg;

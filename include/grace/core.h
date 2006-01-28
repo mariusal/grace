@@ -260,7 +260,7 @@ typedef struct _Project {
     defaults grdefaults;
     
     /* project file name */
-    char *docname;	
+    char *docname;      
 } Project;
 
 /* A point in world coordinates */
@@ -492,7 +492,7 @@ typedef struct {
     double tl_stop;             /* value of x to end tick labels and major ticks */
 
     VVector tl_gap;             /* tick label to tickmark distance
-				   (parallel and perpendicular to axis) */
+                                   (parallel and perpendicular to axis) */
 } tickmarks;
 
 /* Axis instance */

@@ -196,7 +196,7 @@ double xy_xconv(const Quark *q, double wx)
     if ((cd.xscale == SCALE_LOG && wx <= 0.0) ||
         (cd.xscale == SCALE_REC && wx == 0.0) ||
         (cd.xscale == SCALE_LOGIT && wx <= 0.0) ||
-	(cd.xscale == SCALE_LOGIT && wx >= 1.0)){
+        (cd.xscale == SCALE_LOGIT && wx >= 1.0)){
         return 0.0;
     } else {
         return (cd.xv_med + cd.xv_rc*(fscale(wx, cd.xscale) - cd.fxg_med));
@@ -213,7 +213,7 @@ double xy_yconv(const Quark *q, double wy)
     if ((cd.yscale == SCALE_LOG && wy <= 0.0) ||
         (cd.yscale == SCALE_REC && wy == 0.0) ||
         (cd.yscale == SCALE_LOGIT && wy <= 0.0) ||
-	(cd.yscale == SCALE_LOGIT && wy >= 1.0)) {
+        (cd.yscale == SCALE_LOGIT && wy >= 1.0)) {
         return 0.0;
     } else {
         return (cd.yv_med + cd.yv_rc*(fscale(wy, cd.yscale) - cd.fyg_med));

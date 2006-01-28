@@ -138,16 +138,16 @@ double nicenum(double x, int nrange, int round)
         y = (int) floor(f);
     } else if ((round == NICE_FLOOR && xsign == -1) ||
                (round == NICE_CEIL  && xsign == +1)) {
-	y = (int) ceil(f);
+        y = (int) ceil(f);
     } else {    /* round == NICE_ROUND */
-	if (f < 1.5)
-	    y = 1;
-	else if (f < 3.)
-	    y = 2;
-	else if (f < 7.)
-	    y = 5;
-	else
-	    y = 10;
+        if (f < 1.5)
+            y = 1;
+        else if (f < 3.)
+            y = 2;
+        else if (f < 7.)
+            y = 5;
+        else
+            y = 10;
     }
     
     sx = rx + (double) y/10.0;
@@ -224,14 +224,14 @@ void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax)
     *xmax = x[0];
     
     for (i = 1; i < n; i++) {
-	if (x[i] < *xmin) {
-	    *xmin = x[i];
-	    *imin = i;
-	}
-	if (x[i] > *xmax) {
-	    *xmax = x[i];
-	    *imax = i;
-	}
+        if (x[i] < *xmin) {
+            *xmin = x[i];
+            *imin = i;
+        }
+        if (x[i] > *xmax) {
+            *xmax = x[i];
+            *imax = i;
+        }
     }
 }
 

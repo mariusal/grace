@@ -31,12 +31,12 @@
 #include "grace/base.h"
 
 /* bpp that Grace uses internally ( = 256 colors) */
-#define GRACE_BPP	8
-#define MAXCOLORS	(0x01 << GRACE_BPP)
+#define GRACE_BPP       8
+#define MAXCOLORS       (0x01 << GRACE_BPP)
 
 /* polyline drawing modes */
-#define POLYLINE_OPEN	    0
-#define POLYLINE_CLOSED	    1
+#define POLYLINE_OPEN       0
+#define POLYLINE_CLOSED     1
 
 /* polygon fill type */
 #define FILLRULE_WINDING    0
@@ -48,7 +48,7 @@
 
 /* pixmap transparency types */
 #define PIXMAP_TRANSPARENT  0
-#define PIXMAP_OPAQUE	    1
+#define PIXMAP_OPAQUE       1
 
 /* line cap parameter */
 #define LINECAP_BUTT        0
@@ -87,15 +87,15 @@
 
 #define UNIT_TM {1.0, 0.0, 0.0, 1.0}
 
-#define MM_PER_INCH	25.4
-#define CM_PER_INCH	(MM_PER_INCH/10)
+#define MM_PER_INCH     25.4
+#define CM_PER_INCH     (MM_PER_INCH/10)
 
 /* hardcopy or terminal device */
 /* device output can be redirected to file/printer(both) */
-#define DEVICE_TERM	0
-#define DEVICE_FILE	1
-#define DEVICE_PRINT	2
-#define DEVICE_AUX	3
+#define DEVICE_TERM     0
+#define DEVICE_FILE     1
+#define DEVICE_PRINT    2
+#define DEVICE_AUX      3
 
 /* Page orientation */
 #define PAGE_ORIENT_LANDSCAPE  0
@@ -110,10 +110,10 @@
 #define COLOR_TRANS_REVERSE     4
 #define COLOR_TRANS_SRGB        5
 
-#define BAD_COLOR	-1
+#define BAD_COLOR       -1
 
-#define BBOX_TYPE_GLOB	0
-#define BBOX_TYPE_TEMP	1
+#define BBOX_TYPE_GLOB  0
+#define BBOX_TYPE_TEMP  1
 
 /* The default max drawing path limit */
 #define MAX_DRAWING_PATH  20000
@@ -342,8 +342,8 @@ typedef struct {
 
 typedef struct {
     int type;
-    char *name;		                   /* name of device */
-    char *fext;		                   /* filename extension */
+    char *name;                            /* name of device */
+    char *fext;                            /* filename extension */
     FontRaster fontrast;                   /* font rasterizing */
     Page_geometry pg;                      /* device defaults */
     

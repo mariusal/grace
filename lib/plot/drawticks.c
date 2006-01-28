@@ -71,54 +71,54 @@ static void drawgrid(Canvas *canvas, Quark *q)
     vpc.y = (v.yv1 + v.yv2)/2.0;
     
     if (axisgrid_is_x(q)) { /* an X-axis */
-	wc_start = w.xg1;
-	wc_stop = w.xg2;
+        wc_start = w.xg1;
+        wc_stop = w.xg2;
         wp_grid_start.y = w.yg1;
         wp_grid_stop.y = w.yg2;
     } else {              /* a Y-axis */
-	wc_start = w.yg1;
-	wc_stop = w.yg2;
+        wc_start = w.yg1;
+        wc_stop = w.yg2;
         wp_grid_start.x = w.xg1;
         wp_grid_stop.x = w.xg2;
     }
 
     for (ittype_loop = 0; ittype_loop < 2; ittype_loop++) {
-	if (ittype_loop == 0) { /* minor ticks */
+        if (ittype_loop == 0) { /* minor ticks */
             ttype = TICK_TYPE_MINOR;
             tprops = t->mprops;
             gprops = t->mgprops;
-	} else {	  /* major ticks */
+        } else {          /* major ticks */
             ttype = TICK_TYPE_MAJOR;
             tprops = t->props;
             gprops = t->gprops;
-	}
+        }
         if (!gprops.onoff) {
-	    continue;
-	}
+            continue;
+        }
 
         setline(canvas, &gprops.line);
 
-	for (itick = 0; itick < t->nticks; itick++) {
-	    if (t->tloc[itick].type != ttype) {
-	    	continue;
-	    }
+        for (itick = 0; itick < t->nticks; itick++) {
+            if (t->tloc[itick].type != ttype) {
+                continue;
+            }
 
             wtpos = t->tloc[itick].wtpos;
 
-	    if ((wtpos < wc_start) || (wtpos > wc_stop)) {
-	    	continue;
-	    }
+            if ((wtpos < wc_start) || (wtpos > wc_stop)) {
+                continue;
+            }
 
-	    if (axisgrid_is_x(q)) { /* an X-axis */
+            if (axisgrid_is_x(q)) { /* an X-axis */
                 wp_grid_start.x = wtpos;
                 wp_grid_stop.x = wtpos;
-	    } else {              /* a Y-axis */
+            } else {              /* a Y-axis */
                 wp_grid_start.y = wtpos;
                 wp_grid_stop.y = wtpos;
-	    }
+            }
 
-	    Wpoint2Vpoint(gr, &wp_grid_start, &vp_grid_start);
-	    Wpoint2Vpoint(gr, &wp_grid_stop, &vp_grid_stop);
+            Wpoint2Vpoint(gr, &wp_grid_start, &vp_grid_start);
+            Wpoint2Vpoint(gr, &wp_grid_stop, &vp_grid_stop);
 
 
             if (!axisgrid_is_x(q) && graph_get_type(gr) == GRAPH_POLAR) {
@@ -139,9 +139,9 @@ static void drawgrid(Canvas *canvas, Quark *q)
                 DrawArc(canvas, &vp1, &vp2, 180.0/M_PI*phi_start,
                     180.0/M_PI*(phi_stop - phi_start), ARCCLOSURE_CHORD, FALSE);
             } else {
-		DrawLine(canvas, &vp_grid_start, &vp_grid_stop);
+                DrawLine(canvas, &vp_grid_start, &vp_grid_stop);
             }
-	}
+        }
     }
 }
 
@@ -200,42 +200,42 @@ void draw_axis(Canvas *canvas, Quark *qa)
     }
 
     if (axisgrid_is_x(ag)) { /* an X-axis */
-	ort_para.x = 1.0;
-	ort_para.y = 0.0;
-	ort_perp.x = 0.0;
-	ort_perp.y = 1.0;
+        ort_para.x = 1.0;
+        ort_para.y = 0.0;
+        ort_perp.x = 0.0;
+        ort_perp.y = 1.0;
 
-	coord_conv = xy_xconv;
+        coord_conv = xy_xconv;
 
-	wc_start = w.xg1;
-	wc_stop  = w.xg2;
+        wc_start = w.xg1;
+        wc_stop  = w.xg2;
 
         wp1_start.x = w.xg1;
-	wp1_stop.x  = w.xg2;
+        wp1_stop.x  = w.xg2;
 
-	switch (axis_get_position(qa)) {
+        switch (axis_get_position(qa)) {
         case AXIS_POS_NORMAL:
             if (!graph_is_yinvert(gr)) {
-	        wp1_start.y = w.yg1;
-	        wp1_stop.y  = w.yg1;
+                wp1_start.y = w.yg1;
+                wp1_stop.y  = w.yg1;
             } else {
-	        wp1_start.y = w.yg2;
-	        wp1_stop.y  = w.yg2;
+                wp1_start.y = w.yg2;
+                wp1_stop.y  = w.yg2;
             }
             break;
         case AXIS_POS_OPPOSITE:
             if (!graph_is_yinvert(gr)) {
-	        wp1_start.y = w.yg2;
-	        wp1_stop.y  = w.yg2;
+                wp1_start.y = w.yg2;
+                wp1_stop.y  = w.yg2;
             } else {
-	        wp1_start.y = w.yg1;
-	        wp1_stop.y  = w.yg1;
+                wp1_start.y = w.yg1;
+                wp1_stop.y  = w.yg1;
             }
             break;
         case AXIS_POS_ZERO:
             if (w.yg1 <= 0.0 && w.yg2 >= 0.0) {
-	        wp1_start.y = 0.0;
-	        wp1_stop.y  = 0.0;
+                wp1_start.y = 0.0;
+                wp1_stop.y  = 0.0;
             } else {
                 return;
             }
@@ -251,51 +251,51 @@ void draw_axis(Canvas *canvas, Quark *qa)
              vp1_stop.y  -= tick_dir_sign*axis_get_offset(qa);
         }
 
-	vbase1 = vp1_start.y;
+        vbase1 = vp1_start.y;
 
         if (axis_get_position(qa) == AXIS_POS_OPPOSITE) {
-	    tlabel1_just = JUST_CENTER|JUST_BOTTOM;
+            tlabel1_just = JUST_CENTER|JUST_BOTTOM;
         } else {
-	    tlabel1_just = JUST_CENTER|JUST_TOP;
+            tlabel1_just = JUST_CENTER|JUST_TOP;
         }
 
     } else {              /* a Y-axis */
-	ort_para.x = 0.0;
-	ort_para.y = 1.0;
-	ort_perp.x = 1.0;
-	ort_perp.y = 0.0;
+        ort_para.x = 0.0;
+        ort_para.y = 1.0;
+        ort_perp.x = 1.0;
+        ort_perp.y = 0.0;
 
-	coord_conv = xy_yconv;
+        coord_conv = xy_yconv;
 
-	wc_start = w.yg1;
-	wc_stop  = w.yg2;
+        wc_start = w.yg1;
+        wc_stop  = w.yg2;
 
-	wp1_start.y = w.yg1;
-	wp1_stop.y  = w.yg2;
+        wp1_start.y = w.yg1;
+        wp1_stop.y  = w.yg2;
 
-	switch (axis_get_position(qa)) {
+        switch (axis_get_position(qa)) {
         case AXIS_POS_NORMAL:
             if (!graph_is_xinvert(gr)) {
-	        wp1_start.x = w.xg1;
-	        wp1_stop.x  = w.xg1;
+                wp1_start.x = w.xg1;
+                wp1_stop.x  = w.xg1;
             } else {
-	        wp1_start.x = w.xg2;
-	        wp1_stop.x  = w.xg2;
+                wp1_start.x = w.xg2;
+                wp1_stop.x  = w.xg2;
             }
             break;
         case AXIS_POS_OPPOSITE:
             if (!graph_is_xinvert(gr)) {
-	        wp1_start.x = w.xg2;
-	        wp1_stop.x  = w.xg2;
+                wp1_start.x = w.xg2;
+                wp1_stop.x  = w.xg2;
             } else {
-	        wp1_start.x = w.xg1;
-	        wp1_stop.x  = w.xg1;
+                wp1_start.x = w.xg1;
+                wp1_stop.x  = w.xg1;
             }
             break;
         case AXIS_POS_ZERO:
             if (w.xg1 <= 0.0 && w.xg2 >= 0.0) {
-	        wp1_start.x = 0.0;
-	        wp1_stop.x  = 0.0;
+                wp1_start.x = 0.0;
+                wp1_stop.x  = 0.0;
             } else {
                 return;
             }
@@ -310,12 +310,12 @@ void draw_axis(Canvas *canvas, Quark *qa)
             vp1_stop.x  -= tick_dir_sign*axis_get_offset(qa);
         }
 
-	vbase1 = vp1_start.x;
+        vbase1 = vp1_start.x;
 
         if (axis_get_position(qa) == AXIS_POS_OPPOSITE) {
-	    tlabel1_just = JUST_LEFT|JUST_MIDDLE;
+            tlabel1_just = JUST_LEFT|JUST_MIDDLE;
         } else {
-	    tlabel1_just = JUST_RIGHT|JUST_MIDDLE;
+            tlabel1_just = JUST_RIGHT|JUST_MIDDLE;
         }
     }
 
@@ -331,7 +331,7 @@ void draw_axis(Canvas *canvas, Quark *qa)
 
     /* Begin axis bar stuff */
     if (axis_bar_enabled(qa)) {
-	setline(canvas, &t->bar);
+        setline(canvas, &t->bar);
 
         if (axisgrid_is_x(ag) && graph_get_type(gr) == GRAPH_POLAR) {
             xy2polar(vp1_start.x - vpc.x, vp1_start.y - vpc.y,
@@ -351,7 +351,7 @@ void draw_axis(Canvas *canvas, Quark *qa)
             DrawArc(canvas, &vp1, &vp2, 180.0/M_PI*phi_start,
                 180.0/M_PI*(phi_stop - phi_start), ARCCLOSURE_CHORD, FALSE);
         } else {
-	    DrawLine(canvas, &vp1_start, &vp1_stop);
+            DrawLine(canvas, &vp1_start, &vp1_stop);
         }
     }
     /* End axis bar stuff*/
@@ -366,61 +366,61 @@ void draw_axis(Canvas *canvas, Quark *qa)
 
     /* Begin axis tick stuff */
     if (axis_ticks_enabled(qa)) {
-	for (ittype_loop = 0; ittype_loop < 2; ittype_loop++) {
+        for (ittype_loop = 0; ittype_loop < 2; ittype_loop++) {
 
-	    if (ittype_loop == 0) { /* minor ticks */
+            if (ittype_loop == 0) { /* minor ticks */
                 ttype = TICK_TYPE_MINOR;
                 tprops = t->mprops;
-	    } else {      /* major ticks */
+            } else {      /* major ticks */
                 ttype = TICK_TYPE_MAJOR;
                 tprops = t->props;
-	    }
-	    tsize = 0.02 * tprops.size;
+            }
+            tsize = 0.02 * tprops.size;
 
-	    switch (tprops.inout) {
-	    case TICKS_IN:
-	        vbase1_start = vbase1;
-	        vbase1_stop  = vbase1 + tick_dir_sign*tsize;
+            switch (tprops.inout) {
+            case TICKS_IN:
+                vbase1_start = vbase1;
+                vbase1_stop  = vbase1 + tick_dir_sign*tsize;
                 vbase_tlabel1 = vbase1 - tick_dir_sign*tl_offset;
-	        break;
-	    case TICKS_OUT:
-	        vbase1_start = vbase1;
-	        vbase1_stop  = vbase1 - tick_dir_sign*tsize;
+                break;
+            case TICKS_OUT:
+                vbase1_start = vbase1;
+                vbase1_stop  = vbase1 - tick_dir_sign*tsize;
                 vbase_tlabel1 = vbase1 - tick_dir_sign*(tsize + tl_offset);
-	        break;
-	    case TICKS_BOTH:
-	        vbase1_start = vbase1 - tsize;
-	        vbase1_stop  = vbase1 + tsize;
+                break;
+            case TICKS_BOTH:
+                vbase1_start = vbase1 - tsize;
+                vbase1_stop  = vbase1 + tsize;
                 vbase_tlabel1 = vbase1 - tick_dir_sign*(tsize + tl_offset);
- 	        break;
-	    default:
-	        errmsg("Internal error in drawaxis()");
-	        return;
-	    }
+                break;
+            default:
+                errmsg("Internal error in drawaxis()");
+                return;
+            }
 
             setline(canvas, &tprops.line);
 
-	    itcur = 0;
+            itcur = 0;
             for (itick = 0; itick < t->nticks; itick++) {
-	        if (t->tloc[itick].type != ttype) {
-	            continue;
-	        }
+                if (t->tloc[itick].type != ttype) {
+                    continue;
+                }
 
                 wtpos = t->tloc[itick].wtpos;
 
-	        if ((wtpos < wc_start) || (wtpos > wc_stop)) {
-	            continue;
-	        }
+                if ((wtpos < wc_start) || (wtpos > wc_stop)) {
+                    continue;
+                }
 
-	        vtpos = coord_conv(gr, wtpos);
-	        vp_tick1_start.x = vtpos*ort_para.x + vbase1_start*ort_perp.x;
-	        vp_tick1_start.y = vtpos*ort_para.y + vbase1_start*ort_perp.y;
-	        vp_tick1_stop.x  = vtpos*ort_para.x + vbase1_stop*ort_perp.x;
-	        vp_tick1_stop.y  = vtpos*ort_para.y + vbase1_stop*ort_perp.y;
-	        DrawLine(canvas, &vp_tick1_start, &vp_tick1_stop);
+                vtpos = coord_conv(gr, wtpos);
+                vp_tick1_start.x = vtpos*ort_para.x + vbase1_start*ort_perp.x;
+                vp_tick1_start.y = vtpos*ort_para.y + vbase1_start*ort_perp.y;
+                vp_tick1_stop.x  = vtpos*ort_para.x + vbase1_stop*ort_perp.x;
+                vp_tick1_stop.y  = vtpos*ort_para.y + vbase1_stop*ort_perp.y;
+                DrawLine(canvas, &vp_tick1_start, &vp_tick1_stop);
                 itcur++;
-	    }
-	}
+            }
+        }
     }
     /* End axis ticks stuff */
 
@@ -428,52 +428,52 @@ void draw_axis(Canvas *canvas, Quark *qa)
     /* Begin tick label stuff */
 
     if (axis_labels_enabled(qa)) {
-	if (t->tl_starttype == TYPE_SPEC) {
-	    wc_start_labels = t->tl_start;
+        if (t->tl_starttype == TYPE_SPEC) {
+            wc_start_labels = t->tl_start;
         } else {
-	    wc_start_labels = wc_start;
-	}
+            wc_start_labels = wc_start;
+        }
 
-	if (t->tl_stoptype == TYPE_SPEC) {
-	    wc_stop_labels = t->tl_stop;
+        if (t->tl_stoptype == TYPE_SPEC) {
+            wc_stop_labels = t->tl_stop;
         } else {
-	    wc_stop_labels = wc_stop;
-	}
+            wc_stop_labels = wc_stop;
+        }
 
-	tlsize = 0.02*t->tl_tprops.charsize;
+        tlsize = 0.02*t->tl_tprops.charsize;
 
-	itcur = 0;
+        itcur = 0;
         for (itick = 0; itick < t->nticks; itick++) {
-	    if (t->tloc[itick].type != TICK_TYPE_MAJOR) {
-	        continue;
-	    }
+            if (t->tloc[itick].type != TICK_TYPE_MAJOR) {
+                continue;
+            }
 
             wtpos = t->tloc[itick].wtpos;
 
-	    if ((wtpos < wc_start_labels) || (wtpos > wc_stop_labels)) {
-	        continue;
-	    }
+            if ((wtpos < wc_start_labels) || (wtpos > wc_stop_labels)) {
+                continue;
+            }
 
-	    tlabel = copy_string(tlabel, t->tl_prestr);
-	    tlabel = concat_strings(tlabel, t->tloc[itick].label);
-	    tlabel = concat_strings(tlabel, t->tl_appstr);
+            tlabel = copy_string(tlabel, t->tl_prestr);
+            tlabel = concat_strings(tlabel, t->tloc[itick].label);
+            tlabel = concat_strings(tlabel, t->tl_appstr);
 
-	    vtpos = coord_conv(gr, wtpos);
+            vtpos = coord_conv(gr, wtpos);
 
-	    if (itcur % (t->tl_skip + 1) == 0) {
-	        TextProps tprops = t->tl_tprops;
+            if (itcur % (t->tl_skip + 1) == 0) {
+                TextProps tprops = t->tl_tprops;
 
-	        vbase_tlabel = vbase_tlabel1 - (tl_offset + tlsize)*
-	                                (itcur % (t->tl_staggered + 1));
-	        vp_tlabel.x = (vtpos + tl_trans)*ort_para.x +
+                vbase_tlabel = vbase_tlabel1 - (tl_offset + tlsize)*
+                                        (itcur % (t->tl_staggered + 1));
+                vp_tlabel.x = (vtpos + tl_trans)*ort_para.x +
                                                vbase_tlabel*ort_perp.x;
-	        vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
+                vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
                                                vbase_tlabel*ort_perp.y;
                 tprops.just = tlabel1_just;
                 drawtext(canvas, &vp_tlabel, &tprops, tlabel); 
-	    }
+            }
             itcur++;
-	}
+        }
     }
     
     xfree(tlabel);
@@ -541,10 +541,10 @@ reenter:
         }
 
         if (stmajor <= 0.0) {
-	    errmsg("Invalid major tick spacing, autoticking");
-	    axisgrid_autotick(q);
+            errmsg("Invalid major tick spacing, autoticking");
+            axisgrid_autotick(q);
             goto reenter;
-	}
+        }
 
         if (t->t_round == TRUE) {
             swc_start = floor(swc_start/stmajor)*stmajor;
@@ -554,10 +554,10 @@ reenter:
         t->nticks = (nmajor - 1)*(t->nminor + 1) + 1;
 
         if (t->nticks > MAX_TICKS) {
-	    errmsg("Too many ticks ( > MAX_TICKS ), autoticking");
-	    axisgrid_autotick(q);
+            errmsg("Too many ticks ( > MAX_TICKS ), autoticking");
+            axisgrid_autotick(q);
             goto reenter;
-	}
+        }
 
         itick = 0;
         itmaj = 0;
@@ -582,7 +582,7 @@ reenter:
                     t->tloc[itick].wtpos = wtmaj + (imtick + 1)*stmajor/(t->nminor + 1);
                 }
                 t->tloc[itick].type = TICK_TYPE_MINOR;
-	        AMEM_CFREE(amem, t->tloc[itick].label);
+                AMEM_CFREE(amem, t->tloc[itick].label);
                 itick++;
             }
             itmaj++;
@@ -590,13 +590,13 @@ reenter:
     }
 
     if (t->t_spec != TICKS_SPEC_BOTH) {
-	nmajor = 0;
+        nmajor = 0;
         for (itick = 0; itick < t->nticks; itick++) {
             if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
                 nmajor++;
             }
         }
-	if (!string_is_empty(t->tl_formula)) {
+        if (!string_is_empty(t->tl_formula)) {
             double *tt = xmalloc(nmajor*SIZEOF_DOUBLE);
 
             itmaj = 0;
@@ -616,7 +616,7 @@ reenter:
             itmaj = 0;
             for (itick = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
-	            t->tloc[itick].label = amem_strcpy(amem,
+                    t->tloc[itick].label = amem_strcpy(amem,
                         t->tloc[itick].label, 
                         create_fstring(get_parent_project(q),
                             &t->tl_format,
@@ -625,10 +625,10 @@ reenter:
                 }
             }
             xfree(tt);
-	} else {
+        } else {
             for (itick = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
-	            t->tloc[itick].label = amem_strcpy(amem,
+                    t->tloc[itick].label = amem_strcpy(amem,
                         t->tloc[itick].label, 
                         create_fstring(get_parent_project(q),
                             &t->tl_format,

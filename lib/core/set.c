@@ -232,24 +232,24 @@ int settype_cols(int type)
     
     switch (type) {
     case SET_BAR:
-	ncols = 4;
-	break;
+        ncols = 4;
+        break;
     case SET_XYR:
     case SET_XYCOLOR:
     case SET_XYSIZE:
-	ncols = 3;
-	break;
+        ncols = 3;
+        break;
     case SET_XYCOLPAT:
     case SET_XYVMAP:
-	ncols = 4;
-	break;
+        ncols = 4;
+        break;
     case SET_XYHILO:
-	ncols = 5;
-	break;
+        ncols = 5;
+        break;
     case SET_XY:
     case SET_BOXPLOT:
-	ncols = 6;
-	break;
+        ncols = 6;
+        break;
     default:
         ncols = 0;
         break;

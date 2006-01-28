@@ -404,7 +404,7 @@ int ssd_coalesce(Quark *toq, Quark *fromq)
     nrows = ssd_get_nrows(fromq);
     if (nrows > ssd_get_nrows(toq)) {
         if (ssd_set_nrows(toq, nrows) != RETURN_SUCCESS) {
-	    return RETURN_FAILURE;
+            return RETURN_FAILURE;
         }
     }
 
@@ -417,7 +417,7 @@ int ssd_coalesce(Quark *toq, Quark *fromq)
         
         ss_column *col_new = ssd_add_col(toq, col->format);
         if (!col_new) {
-	    return RETURN_FAILURE;
+            return RETURN_FAILURE;
         }
         
         col_new->label = amem_strdup(amem, col->label);

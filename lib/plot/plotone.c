@@ -596,14 +596,14 @@ void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
                 wptmp.y += plot_rt->refy[i];
             }
             Wpoint2Vpoint(gr, &wptmp, &vps[i]);
-    	    vps[i].x += plot_rt->offset;
+            vps[i].x += plot_rt->offset;
         }
         if (stacked_chart == TRUE && p->line.filltype == SETFILL_BASELINE) {
             for (i = 0; i < setlen; i++) {
                 wptmp.x = x[setlen - i - 1];
                 wptmp.y = plot_rt->refy[setlen - i - 1];
                 Wpoint2Vpoint(gr, &wptmp, &vps[setlen + i]);
-    	        vps[setlen + i].x += plot_rt->offset;
+                vps[setlen + i].x += plot_rt->offset;
             }
         }
         break;
@@ -623,7 +623,7 @@ void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
                 wptmp.y += plot_rt->refy[i];
             }
             Wpoint2Vpoint(gr, &wptmp, &vps[2*i]);
-    	    vps[2*i].x += plot_rt->offset;
+            vps[2*i].x += plot_rt->offset;
         }
         for (i = 1; i < len; i += 2) {
             if (line_type == LINE_TYPE_LEFTSTAIR) {
@@ -653,11 +653,11 @@ void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
             wptmp.x = MIN2(xmax, w.xg2);
             wptmp.y = ybase;
             Wpoint2Vpoint(gr, &wptmp, &vps[len]);
-    	    vps[len].x += plot_rt->offset;
+            vps[len].x += plot_rt->offset;
             wptmp.x = MAX2(xmin, w.xg1);
             wptmp.y = ybase;
             Wpoint2Vpoint(gr, &wptmp, &vps[len + 1]);
-    	    vps[len + 1].x += plot_rt->offset;
+            vps[len + 1].x += plot_rt->offset;
         }
         break;
     default:
@@ -748,7 +748,7 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
                     wp.y += plot_rt->refy[i];
                 }
                 Wpoint2Vpoint(gr, &wp, &vpstmp[i]);
-    	        vpstmp[i].x += plot_rt->offset;
+                vpstmp[i].x += plot_rt->offset;
                 
                 vpstmp[i].y -= lw/2.0;
             }
@@ -763,14 +763,14 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
                     wp.y += plot_rt->refy[i];
                 }
                 Wpoint2Vpoint(gr, &wp, &vps[0]);
-    	        vps[0].x += plot_rt->offset;
+                vps[0].x += plot_rt->offset;
                 wp.x = x[i + 1];
                 wp.y = y[i + 1];
                 if (stacked_chart == TRUE) {
                     wp.y += plot_rt->refy[i + 1];
                 }
                 Wpoint2Vpoint(gr, &wp, &vps[1]);
-    	        vps[1].x += plot_rt->offset;
+                vps[1].x += plot_rt->offset;
                 
                 vps[0].y -= lw/2.0;
                 vps[1].y -= lw/2.0;
@@ -786,21 +786,21 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
                     wp.y += plot_rt->refy[i];
                 }
                 Wpoint2Vpoint(gr, &wp, &vps[0]);
-    	        vps[0].x += plot_rt->offset;
+                vps[0].x += plot_rt->offset;
                 wp.x = x[i + 1];
                 wp.y = y[i + 1];
                 if (stacked_chart == TRUE) {
                     wp.y += plot_rt->refy[i + 1];
                 }
                 Wpoint2Vpoint(gr, &wp, &vps[1]);
-    	        vps[1].x += plot_rt->offset;
+                vps[1].x += plot_rt->offset;
                 wp.x = x[i + 2];
                 wp.y = y[i + 2];
                 if (stacked_chart == TRUE) {
                     wp.y += plot_rt->refy[i + 2];
                 }
                 Wpoint2Vpoint(gr, &wp, &vps[2]);
-    	        vps[2].x += plot_rt->offset;
+                vps[2].x += plot_rt->offset;
                 DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
                 
                 vps[0].y -= lw/2.0;
@@ -814,14 +814,14 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
                     wp.y += plot_rt->refy[i];
                 }
                 Wpoint2Vpoint(gr, &wp, &vps[0]);
-    	        vps[0].x += plot_rt->offset;
+                vps[0].x += plot_rt->offset;
                 wp.x = x[i + 1];
                 wp.y = y[i + 1];
                 if (stacked_chart == TRUE) {
                     wp.y += plot_rt->refy[i + 1];
                 }
                 Wpoint2Vpoint(gr, &wp, &vps[1]);
-    	        vps[1].x += plot_rt->offset;
+                vps[1].x += plot_rt->offset;
                 
                 vps[0].y -= lw/2.0;
                 vps[1].y -= lw/2.0;
@@ -844,7 +844,7 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
                     wp.y += plot_rt->refy[i];
                 }
                 Wpoint2Vpoint(gr, &wp, &vpstmp[2*i]);
-    	        vpstmp[2*i].x += plot_rt->offset;
+                vpstmp[2*i].x += plot_rt->offset;
             }
             for (i = 1; i < len; i += 2) {
                 if (line_type == LINE_TYPE_LEFTSTAIR) {
@@ -873,21 +873,21 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
                 wp.y = ybase;
             }
             Wpoint2Vpoint(gr, &wp, &vps[0]);
-    	    vps[0].x += plot_rt->offset;
+            vps[0].x += plot_rt->offset;
             wp.x = x[i];
             wp.y = y[i];
             if (stacked_chart == TRUE) {
                 wp.y += plot_rt->refy[i];
             }
             Wpoint2Vpoint(gr, &wp, &vps[1]);
-    	    vps[1].x += plot_rt->offset;
+            vps[1].x += plot_rt->offset;
             
             vps[1].y -= lw/2.0;
  
-	    if (i && 
-		hypot(vps[1].x-vprev.x, vps[1].y-vprev.y) < p->symskipmindist)
-		 continue;
-	    vprev = vps[1];
+            if (i && 
+                hypot(vps[1].x-vprev.x, vps[1].y-vprev.y) < p->symskipmindist)
+                 continue;
+            vprev = vps[1];
             
             DrawLine(canvas, &vps[0], &vps[1]);
         }
@@ -899,10 +899,10 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
         wp.x = xmin;
         wp.y = ybase;
         Wpoint2Vpoint(gr, &wp, &vps[0]);
-    	vps[0].x += plot_rt->offset;
+        vps[0].x += plot_rt->offset;
         wp.x = xmax;
         Wpoint2Vpoint(gr, &wp, &vps[1]);
-    	vps[1].x += plot_rt->offset;
+        vps[1].x += plot_rt->offset;
  
         DrawLine(canvas, &vps[0], &vps[1]);
     }
@@ -978,11 +978,11 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
             }
         
             Wpoint2Vpoint(gr, &wp, &vp);
-    	    vp.x += plot_rt->offset;
+            vp.x += plot_rt->offset;
 
-	    if (i && hypot(vp.x - vprev.x, vp.y - vprev.y) < p->symskipmindist)
-		 continue;
-	    vprev = vp;
+            if (i && hypot(vp.x - vprev.x, vp.y - vprev.y) < p->symskipmindist)
+                 continue;
+            vprev = vp;
             
             if (z) {
                 sym.size = z[i]/znorm;
@@ -1076,7 +1076,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         
         vp.x += avalue.offset.x;
         vp.y += avalue.offset.y;
-    	vp.x += plot_rt->offset;
+        vp.x += plot_rt->offset;
         
         if (i && hypot(vp.x - vprev.x, vp.y - vprev.y) < p->symskipmindist) {
             continue;
@@ -1179,9 +1179,9 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
         Wpoint2Vpoint(gr, &wp1, &vp1);
         vp1.x += plot_rt->offset;
 
-	if (i && hypot(vp1.x - vprev.x, vp1.y - vprev.y) < p->symskipmindist)
-	     continue;
-	vprev = vp1;
+        if (i && hypot(vp1.x - vprev.x, vp1.y - vprev.y) < p->symskipmindist)
+             continue;
+        vprev = vp1;
             
         if (dx_plus != NULL) {
             wp2 = wp1;
@@ -1237,11 +1237,11 @@ void drawsethilo(Quark *pset, plot_rt_t *plot_rt)
         setline(canvas, &p->sym.line);
         for (i = 0; i < set_get_length(pset); i += skip) {
             wp.x = x[i];
-	    wp.y = (y1[i] + y2[i] + y3[i] + y4[i]) * 0.25;
-	    Wpoint2Vpoint(pset, &wp, &vp1);
-	    if (i && hypot(vp1.x-vprev.x, vp1.y-vprev.y) < p->symskipmindist)
-		 continue;
-	    vprev = vp1;
+            wp.y = (y1[i] + y2[i] + y3[i] + y4[i]) * 0.25;
+            Wpoint2Vpoint(pset, &wp, &vp1);
+            if (i && hypot(vp1.x-vprev.x, vp1.y-vprev.y) < p->symskipmindist)
+                 continue;
+            vprev = vp1;
 
             wp.y = y1[i];
             Wpoint2Vpoint(pset, &wp, &vp1);
@@ -1313,7 +1313,7 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
     }
 
     if (p->sym.fillpen.pattern != 0) {
-	setpen(canvas, &p->sym.fillpen);
+        setpen(canvas, &p->sym.fillpen);
         for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
@@ -1321,18 +1321,18 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
             } else {
                 wp.y = ybase;
             }
-    	    Wpoint2Vpoint(gr, &wp, &vp1);
+            Wpoint2Vpoint(gr, &wp, &vp1);
             vp1.x -= bw;
-    	    vp1.x += plot_rt->offset;
+            vp1.x += plot_rt->offset;
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y += y[i];
             } else {
                 wp.y = y[i];
             }
-    	    Wpoint2Vpoint(gr, &wp, &vp2);
+            Wpoint2Vpoint(gr, &wp, &vp2);
             vp2.x += bw;
-    	    vp2.x += plot_rt->offset;
+            vp2.x += plot_rt->offset;
             
             vp1.x += lw/2.0;
             vp2.x -= lw/2.0;
@@ -1344,10 +1344,10 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
                 vp2.y += lw/2.0;
             }
             
-	    if (i &&
-		hypot(vp2.x - vprev.x, vp2.y - vprev.y) < p->symskipmindist)
-		 continue;
-	    vprev = vp2;
+            if (i &&
+                hypot(vp2.x - vprev.x, vp2.y - vprev.y) < p->symskipmindist)
+                 continue;
+            vprev = vp2;
             
             FillRect(canvas, &vp1, &vp2);
         }
@@ -1361,18 +1361,18 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
             } else {
                 wp.y = ybase;
             }
-    	    Wpoint2Vpoint(gr, &wp, &vp1);
+            Wpoint2Vpoint(gr, &wp, &vp1);
             vp1.x -= bw;
-    	    vp1.x += plot_rt->offset;
+            vp1.x += plot_rt->offset;
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y += y[i];
             } else {
                 wp.y = y[i];
             }
-    	    Wpoint2Vpoint(gr, &wp, &vp2);
+            Wpoint2Vpoint(gr, &wp, &vp2);
             vp2.x += bw;
-    	    vp2.x += plot_rt->offset;
+            vp2.x += plot_rt->offset;
 
             vp1.x += lw/2.0;
             vp2.x -= lw/2.0;
@@ -1384,12 +1384,12 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
                 vp2.y += lw/2.0;
             }
 
-	    if (i &&
-		hypot(vp2.x - vprev.x, vp2.y - vprev.y) < p->symskipmindist)
-		 continue;
-	    vprev = vp2;
+            if (i &&
+                hypot(vp2.x - vprev.x, vp2.y - vprev.y) < p->symskipmindist)
+                 continue;
+            vprev = vp2;
             
-    	    DrawRect(canvas, &vp1, &vp2);
+            DrawRect(canvas, &vp1, &vp2);
         }
     }
 }
@@ -1431,11 +1431,11 @@ void drawcirclexy(Quark *pset, plot_rt_t *plot_rt)
         wp.x = x[i] + r[i];
         wp.y = y[i] + r[i];
         Wpoint2Vpoint(pset, &wp, &vp2);
-	if (i && hypot((vp1.x+vp2.x)*0.5 - vprev.x,
-		       (vp1.y+vp2.y)*0.5 - vprev.y) < p->symskipmindist)
-	     continue;
-	vprev.x = (vp1.x+vp2.x)*0.5;
-	vprev.y = (vp1.y+vp2.y)*0.5;
+        if (i && hypot((vp1.x+vp2.x)*0.5 - vprev.x,
+                       (vp1.y+vp2.y)*0.5 - vprev.y) < p->symskipmindist)
+             continue;
+        vprev.x = (vp1.x+vp2.x)*0.5;
+        vprev.y = (vp1.y+vp2.y)*0.5;
         if (p->line.filltype != SETFILL_NONE) {
             setpen(canvas, &p->line.fillpen);
             DrawFilledEllipse(canvas, &vp1, &vp2);
@@ -1488,10 +1488,10 @@ void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
             continue;
         }
         Wpoint2Vpoint(gr, &wp, &vp1);
-	if (i && hypot(vp1.x - vprev.x, vp1.y - vprev.y) < p->symskipmindist)
-	     continue;
-	vprev = vp1;
-	vp2.x = vp1.x + vx[i]/znorm;
+        if (i && hypot(vp1.x - vprev.x, vp1.y - vprev.y) < p->symskipmindist)
+             continue;
+        vprev = vp1;
+        vp2.x = vp1.x + vx[i]/znorm;
         vp2.y = vp1.y + vy[i]/znorm;
 
         setlinewidth(canvas, eb.riser_linew);
@@ -1533,9 +1533,9 @@ void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt)
 
         wp.y = md[i]; /* use median-line y for symskipmindist */
         Wpoint2Vpoint(pset, &wp, &vp1);
-	if (i && hypot(vp1.x - vprev.x, vp1.y - vprev.y) < p->symskipmindist)
-	     continue;
-	vprev = vp1;
+        if (i && hypot(vp1.x - vprev.x, vp1.y - vprev.y) < p->symskipmindist)
+             continue;
+        vprev = vp1;
 
         wp.y = lb[i];
         Wpoint2Vpoint(pset, &wp, &vp1);
@@ -2368,8 +2368,8 @@ static int number_of_active_sets(Quark *gr)
     for (i = 0; i < nsets; i++) {
         Quark *pset = psets[i];
         if (set_is_drawable(pset) == TRUE) {
-	    na++;
-	}
+            na++;
+        }
     }
     xfree(psets);
     return na;

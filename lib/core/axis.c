@@ -124,10 +124,10 @@ tickmarks *axisgrid_data_copy(AMem *amem, tickmarks *t)
         retval = axisgrid_data_new(amem);
         if (retval != NULL) {
             memcpy(retval, t, sizeof(tickmarks));
-	    retval->tl_formula = amem_strdup(amem, t->tl_formula);
-	    retval->tl_prestr = amem_strdup(amem, t->tl_prestr);
-	    retval->tl_appstr = amem_strdup(amem, t->tl_appstr);
-	    retval->tl_format.fstring = amem_strdup(amem, t->tl_format.fstring);
+            retval->tl_formula = amem_strdup(amem, t->tl_formula);
+            retval->tl_prestr = amem_strdup(amem, t->tl_prestr);
+            retval->tl_appstr = amem_strdup(amem, t->tl_appstr);
+            retval->tl_format.fstring = amem_strdup(amem, t->tl_format.fstring);
             for (i = 0; i < MAX_TICKS; i++) {
                 retval->tloc[i].label = amem_strdup(amem, t->tloc[i].label);
             }
@@ -227,39 +227,39 @@ void axisgrid_autotick(Quark *q)
     }
 
     if (axis_scale == SCALE_LOG) {
-	if (t->tmajor <= 1.0) {
+        if (t->tmajor <= 1.0) {
             t->tmajor = 10.0;
         }
         tmpmax = log10(tmpmax)/log10(t->tmajor);
-	tmpmin = log10(tmpmin)/log10(t->tmajor);
+        tmpmin = log10(tmpmin)/log10(t->tmajor);
     } else if (axis_scale == SCALE_LOGIT) {
-    	if (t->tmajor >= 0.5) {
+        if (t->tmajor >= 0.5) {
             t->tmajor = 0.4;
         }
         tmpmax = log(tmpmax/(1-tmpmax))/log(t->tmajor/(1-t->tmajor));
-	tmpmin = log(tmpmin/(1-tmpmin))/log(t->tmajor/(1-t->tmajor)); 
+        tmpmin = log(tmpmin/(1-tmpmin))/log(t->tmajor/(1-t->tmajor)); 
     } else if (t->tmajor <= 0.0) {
         t->tmajor = 1.0;
     }
     
     range = tmpmax - tmpmin;
     if (axis_scale == SCALE_LOG) {
-	d = ceil(range/(t->t_autonum - 1));
-	t->tmajor = pow(t->tmajor, d);
+        d = ceil(range/(t->t_autonum - 1));
+        t->tmajor = pow(t->tmajor, d);
     } 
     else if (axis_scale == SCALE_LOGIT ){
         d = ceil(range/(t->t_autonum - 1));
-	t->tmajor = exp(d)/(1.0 + exp(d));
+        t->tmajor = exp(d)/(1.0 + exp(d));
     } 
     else {
-	d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
-	t->tmajor = d;
+        d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
+        t->tmajor = d;
     }
 
     /* alter # of minor ticks only if the current value is anomalous */
     if (t->nminor < 0 || t->nminor > 10) {
         if (axis_scale != SCALE_LOG) {
-	    t->nminor = 1;
+            t->nminor = 1;
         } else {
             t->nminor = 8;
         }

@@ -410,8 +410,8 @@ int ssd_set_hotlink(Quark *q, int onoroff, const char *fname, int src)
     ss_data *ssd = ssd_get_data(q);
     if (ssd) {
         ssd->hotlink = onoroff;
-	ssd->hotfile = amem_strcpy(q->amem, ssd->hotfile, fname);
-	ssd->hotsrc = src;
+        ssd->hotfile = amem_strcpy(q->amem, ssd->hotfile, fname);
+        ssd->hotsrc = src;
         
         quark_dirtystate_set(q, TRUE);
     

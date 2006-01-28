@@ -355,12 +355,12 @@ static void set_aa_gray_values(Canvas *canvas,
 
         if (t1aa == T1_AA_LOW) {
             T1_AASetGrayValues(colors[0],
-    			       colors[1],
-    			       colors[2],
-    			       colors[3],
-    			       colors[4]);
+                               colors[1],
+                               colors[2],
+                               colors[3],
+                               colors[4]);
         } else {
-    	    T1_AAHSetGrayValues(colors);
+            T1_AAHSetGrayValues(colors);
         }
         
         *colors_ok = TRUE;
@@ -454,11 +454,11 @@ static GLYPH *GetGlyphString(Canvas *canvas,
     if (mono != TRUE) {
         set_aa_gray_values(canvas, fg, bg, t1aa);
         
-    	glyph = T1_AASetString(FontID, cs->s, len,
-    				   Space, modflag, Size, matrixP);
+        glyph = T1_AASetString(FontID, cs->s, len,
+                                   Space, modflag, Size, matrixP);
     } else {
-    	glyph = T1_SetString(FontID, cs->s, len,
-    				   Space, modflag, Size, matrixP);
+        glyph = T1_SetString(FontID, cs->s, len,
+                                   Space, modflag, Size, matrixP);
     }
  
     return glyph;
@@ -481,9 +481,9 @@ static void cstring_free(CompositeString *cs)
     unsigned int i = 0;
     
     for (i = 0; i < cs->nsegs; i++) {
-	CStringSegment *seg = &cs->segs[i];
+        CStringSegment *seg = &cs->segs[i];
         xfree(seg->s);
-	if (cs->cglyphs) {
+        if (cs->cglyphs) {
             CSGlyphCache *cglyph = &cs->cglyphs[i];
             if (cglyph->glyph != NULL) {
                 T1_FreeGlyph(cglyph->glyph);
@@ -629,8 +629,8 @@ static int postprocess_cs(Canvas *canvas,
     for (iss = 0; iss < cstring->nsegs; iss++) {
         GLYPH *glyph;
         VPoint vptmp;
-	CStringSegment *cs = &cstring->segs[iss];
-	CSGlyphCache *cglyph = &cstring->cglyphs[iss];
+        CStringSegment *cs = &cstring->segs[iss];
+        CSGlyphCache *cglyph = &cstring->cglyphs[iss];
         
         /* Post-process the CS */
         if (cs->font == BAD_FONT_ID) {
@@ -778,7 +778,7 @@ static int justify_cs(CompositeString *cstring, int just,
     
     /* justification corrections */
     for (iss = 0; iss < cstring->nsegs; iss++) {
-	CSGlyphCache *cglyph = &cstring->cglyphs[iss];
+        CSGlyphCache *cglyph = &cstring->cglyphs[iss];
         if (cglyph->glyph == NULL) {
             continue;
         }
@@ -809,7 +809,7 @@ CompositeString *rasterize_string(Canvas *canvas,
     bbox->yv1 = bbox->yv2 = vp->y;
     
     if (string_is_empty(s)) {
-	return NULL;
+        return NULL;
     }
     
     cstring = String2Composite(canvas, s);
@@ -864,7 +864,7 @@ void WriteString(Canvas *canvas,
     for (iss = 0; iss < cstring->nsegs; iss++) {
         int pheight, pwidth;
         CStringSegment *cs = &cstring->segs[iss];
-	CSGlyphCache *cglyph = &cstring->cglyphs[iss];
+        CSGlyphCache *cglyph = &cstring->cglyphs[iss];
         GLYPH *glyph = cglyph->glyph;
     
         if (glyph == NULL) {
@@ -933,7 +933,7 @@ int get_string_bbox(Canvas *canvas,
         
         return RETURN_SUCCESS;
     } else {
-	return RETURN_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 

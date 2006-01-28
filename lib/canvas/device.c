@@ -141,9 +141,9 @@ int device_set_fontrast(Device_entry *d, FontRaster fontrast)
 int is_valid_page_geometry(const Page_geometry *pg)
 {
     if (pg->width  > 0 &&
-	pg->height > 0 &&
+        pg->height > 0 &&
         pg->dpi > 0.0) {
-	return TRUE;
+        return TRUE;
     } else {
         return FALSE;
     }
@@ -153,7 +153,7 @@ int set_page_geometry(Canvas *canvas, const Page_geometry *pg)
 {
     if (is_valid_page_geometry(pg) == TRUE) {
         canvas->curdevice->pg = *pg;
-	return RETURN_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
@@ -174,8 +174,8 @@ int get_device_page_dimensions(const Canvas *canvas,
     if (dindex >= canvas->ndevices) {
         return RETURN_FAILURE;
     } else {
-	*wpp = canvas->device_table[dindex]->pg.width*72/canvas->device_table[dindex]->pg.dpi;
-	*hpp = canvas->device_table[dindex]->pg.height*72/canvas->device_table[dindex]->pg.dpi;
+        *wpp = canvas->device_table[dindex]->pg.width*72/canvas->device_table[dindex]->pg.dpi;
+        *hpp = canvas->device_table[dindex]->pg.height*72/canvas->device_table[dindex]->pg.dpi;
         return RETURN_SUCCESS;
     }
 }
@@ -200,7 +200,7 @@ int select_device(Canvas *canvas, unsigned int dindex)
         return RETURN_FAILURE;
     } else {
         canvas->curdevice = canvas->device_table[dindex];
-	return RETURN_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -219,7 +219,7 @@ int get_device_by_name(const Canvas *canvas, const char *dname)
     if (i >= canvas->ndevices) {
         return -1;
     } else {
-	return i;
+        return i;
     }
 }
 
@@ -258,7 +258,7 @@ int parse_device_options(Canvas *canvas, unsigned int dindex, char *options)
         Device_entry *dev = canvas->device_table[dindex];
         oldp = options;
         while ((p = strchr(oldp, ',')) != NULL) {
-	    n = MIN2((p - oldp), 64 - 1);
+            n = MIN2((p - oldp), 64 - 1);
             strncpy(opstring, oldp, n);
             opstring[n] = '\0';
             if (dev->parser(canvas, dev->data, opstring) !=

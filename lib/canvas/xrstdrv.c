@@ -499,7 +499,7 @@ void xrst_putpixmap(const Canvas *canvas, void *data,
     int cindex, bg;
     int color;
     
-    int	i, k, j;
+    int i, k, j;
     long paddedW;
     
     miPoint mp;

@@ -206,41 +206,41 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
     strcpy(format, "%.*lf");
     switch (form->type) {
     case FORMAT_DECIMAL:
-	sprintf(s, format, form->prec1, loc);
-	tmp = atof(s);		/* fix reverse axes problem when loc == -0.0 */
-	if (tmp == 0.0) {
-	    strcpy(format, "%.*lf");
-	    loc = 0.0;
-	    sprintf(s, format, form->prec1, loc);
-	}
-	break;
+        sprintf(s, format, form->prec1, loc);
+        tmp = atof(s);          /* fix reverse axes problem when loc == -0.0 */
+        if (tmp == 0.0) {
+            strcpy(format, "%.*lf");
+            loc = 0.0;
+            sprintf(s, format, form->prec1, loc);
+        }
+        break;
     case FORMAT_EXPONENTIAL:
-	strcpy(format, "%.*le");
-	sprintf(s, format, form->prec1, loc);
-	tmp = atof(s);		/* fix reverse axes problem when loc == -0.0 */
-	if (tmp == 0.0) {
-	    strcpy(format, "%.*le");
-	    loc = 0.0;
-	    sprintf(s, format, form->prec1, loc);
-	}
-	break;
+        strcpy(format, "%.*le");
+        sprintf(s, format, form->prec1, loc);
+        tmp = atof(s);          /* fix reverse axes problem when loc == -0.0 */
+        if (tmp == 0.0) {
+            strcpy(format, "%.*le");
+            loc = 0.0;
+            sprintf(s, format, form->prec1, loc);
+        }
+        break;
     case FORMAT_SCIENTIFIC:
-	if (loc != 0.0) {
+        if (loc != 0.0) {
             exponent = (int) floor(log10(fabs(loc)));
             mantissa = loc/pow(10.0, (double) exponent);
             if (type == LFORMAT_TYPE_EXTENDED) {
-	        strcpy(format, "%.*f\\x\\c4\\C\\f{}10\\S%d\\N");
-	    } else {
-	        strcpy(format, "%.*fx10(%d)");
+                strcpy(format, "%.*f\\x\\c4\\C\\f{}10\\S%d\\N");
+            } else {
+                strcpy(format, "%.*fx10(%d)");
             }
-	    sprintf(s, format, form->prec1, mantissa, exponent);
+            sprintf(s, format, form->prec1, mantissa, exponent);
         } else {
-	    strcpy(format, "%.*f");
-	    sprintf(s, format, form->prec1, 0.0);
+            strcpy(format, "%.*f");
+            sprintf(s, format, form->prec1, 0.0);
         }
-	break;
+        break;
     case FORMAT_ENGINEERING:
-	if (loc != 0.0) {
+        if (loc != 0.0) {
             exponent = (int) floor(log10(fabs(loc)));
             if (exponent < -18) {
                 exponent = -18;
@@ -297,9 +297,9 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
             strcpy(eng_prefix, "");
             break;
         }
-	strcpy(format, "%.*f %s");
-	sprintf(s, format, form->prec1, loc/(pow(10.0, exponent)), eng_prefix);
-	break;
+        strcpy(format, "%.*f %s");
+        sprintf(s, format, form->prec1, loc/(pow(10.0, exponent)), eng_prefix);
+        break;
     case FORMAT_POWER:
         if (loc < 0.0) {
             loc = log10(-loc);
@@ -321,21 +321,21 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
         sprintf(s, format, form->prec1, loc);
         break;
     case FORMAT_GENERAL:
-	strcpy(format, "%.*lg");
-	sprintf(s, format, form->prec1, loc);
-	tmp = atof(s);
-	if (tmp == 0.0) {
-	    strcpy(format, "%lg");
-	    loc = 0.0;
-	    sprintf(s, format, loc);
-	}
-	break;
+        strcpy(format, "%.*lg");
+        sprintf(s, format, form->prec1, loc);
+        tmp = atof(s);
+        if (tmp == 0.0) {
+            strcpy(format, "%lg");
+            loc = 0.0;
+            sprintf(s, format, loc);
+        }
+        break;
     case FORMAT_DATETIME:
         if (!string_is_empty(form->fstring)) {
             struct tm datetime_tm;
             
             jdate_to_datetime(q, loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	    
+            
             memset(&datetime_tm, 0, sizeof(datetime_tm));
             datetime_tm.tm_year = y - 1900;
             datetime_tm.tm_mon  = m - 1;
@@ -346,7 +346,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
             datetime_tm.tm_wday = dayofweek(loc + pr->ref_date);
             datetime_tm.tm_yday = (int) (cal_to_jul(y, m, d) -
                                          cal_to_jul(y, 1, 1));
-	    
+            
             if (strftime(s,
                 MAX_STRING_LENGTH - 1, form->fstring, &datetime_tm) <= 0) {
                 s[0] = '\0';
@@ -366,8 +366,8 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
         }
         break;
     default:
-	sprintf(s, format, form->prec1, loc);
-	break;
+        sprintf(s, format, form->prec1, loc);
+        break;
     }
 
     /* revert to POSIX */

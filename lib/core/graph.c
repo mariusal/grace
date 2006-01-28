@@ -220,16 +220,16 @@ int graph_set_type(Quark *gr, int gtype)
             g->xscale = SCALE_NORMAL;
             g->yscale = SCALE_NORMAL;
             g->yinvert = FALSE;
-	    g->w.xg1 = 0.0;
-	    g->w.xg2 = 2*M_PI;
-	    g->w.yg1 = 0.0;
-	    g->w.yg2 = 1.0;
+            g->w.xg1 = 0.0;
+            g->w.xg2 = 2*M_PI;
+            g->w.yg1 = 0.0;
+            g->w.yg2 = 1.0;
             break;
         case GRAPH_SMITH:
-	    g->w.xg1 = -1.0;
-	    g->w.xg2 =  1.0;
-	    g->w.yg1 = -1.0;
-	    g->w.yg2 =  1.0;
+            g->w.xg1 = -1.0;
+            g->w.xg2 =  1.0;
+            g->w.yg1 = -1.0;
+            g->w.yg2 =  1.0;
             break;
         default:
             errmsg("Internal error in graph_set_type()");
@@ -489,7 +489,7 @@ int graph_set_xscale(Quark *gr, int scale)
                     errmsg("World X-max >= 1.0");
                     return RETURN_FAILURE;
                 }
-	    }    
+            }    
 
             if (scale == SCALE_LOG && g->w.xg1 <= 0.0) {
                 g->w.xg1 = g->w.xg2/1.0e3;
@@ -541,7 +541,7 @@ int graph_set_yscale(Quark *gr, int scale)
                     errmsg("World Y-max >= 1.0");
                     return RETURN_FAILURE;
                 }
-	    }    
+            }    
 
             if (scale == SCALE_LOG && g->w.yg1 <= 0.0) {
                 g->w.yg1 = g->w.yg2/1.0e3;
