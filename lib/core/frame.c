@@ -76,7 +76,7 @@ static void set_default_frame(Quark *q)
     pr = project_get_data(get_parent_project(q));
     grdefaults = pr->grdefaults;
     
-    f->type = 0;                /* frame type */
+    f->type = FRAME_TYPE_CLOSED;
     f->outline = grdefaults.line;
     f->fillpen = grdefaults.fillpen;
 

@@ -296,6 +296,19 @@ typedef enum {
 
 #define NUMBER_OF_FORMATTYPES   FORMAT_BAD
 
+/* Frame types */
+typedef enum {
+    FRAME_TYPE_CLOSED,
+    FRAME_TYPE_HALFOPEN,
+    FRAME_TYPE_BREAKTOP,
+    FRAME_TYPE_BREAKBOTTOM,
+    FRAME_TYPE_BREAKLEFT,
+    FRAME_TYPE_BREAKRIGHT,
+    FRAME_TYPE_BAD
+} FrameType;
+
+#define NUMBER_OF_FRAMETYPES   FRAME_TYPE_BAD
+
 /* Format */
 typedef struct {
     FormatType type;
