@@ -937,7 +937,6 @@ int getdata(Quark *pr, char *fn, int settype, int load_type)
 {
     FILE *fp;
     int retval;
-    int save_version, cur_version;
     Grace *grace = grace_from_quark(pr);
 
     fp = grace_openr(grace, fn, SOURCE_DISK);
@@ -945,24 +944,14 @@ int getdata(Quark *pr, char *fn, int settype, int load_type)
 	return RETURN_FAILURE;
     }
     
-    save_version = project_get_version_id(pr);
-    project_set_version_id(pr, 0);
-
-    parser_state_reset(pr);
-    
     retval = uniread(pr, fp, settype, load_type, fn);
 
     grace_close(fp);
     
-    cur_version = project_get_version_id(pr);
-    if (cur_version != 0) {
-        /* a complete project */
-        project_postprocess(pr);
-    } else if (load_type != LOAD_BLOCK) {
+    if (load_type != LOAD_BLOCK) {
         /* just a few sets */
         autoscale_graph(graph_get_current(pr), grace->rt->autoscale_onread);
     }
-    project_set_version_id(pr, save_version);
 
     return retval;
 }
@@ -1042,11 +1031,24 @@ int update_set_from_file(Quark *pset)
 
 Quark *load_agr_project(Grace *grace, char *fn)
 {
-    Quark *project = grace_project_new(grace, AMEM_MODEL_LIBUNDO);
+    Quark *project;
+    FILE *fp;
+    int retval;
 
-    grace->rt->print_file[0] = '\0';
+    fp = grace_openr(grace, fn, SOURCE_DISK);
+    if (fp == NULL) {
+	return NULL;
+    }
+    
+    project = grace_project_new(grace, AMEM_MODEL_LIBUNDO);
 
-    if (getdata(project, fn, SOURCE_DISK, LOAD_SINGLE) == RETURN_SUCCESS) {
+    parser_state_reset(project);
+    
+    retval = uniread(project, fp, SET_XY, LOAD_SINGLE, fn);
+
+    grace_close(fp);
+
+    if (retval == RETURN_SUCCESS) {
         return project;
     } else {
         parser_state_reset(grace->project);
@@ -1090,6 +1092,10 @@ static int load_project_file(Grace *grace, char *fn, int as_template)
         static char buf[GR_MAXPATHLEN];
         char *bufp;
         AMem *amem;
+
+        grace->rt->print_file[0] = '\0';
+
+        project_postprocess(project);
 
         grace_set_project(grace, project);
         
