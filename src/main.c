@@ -364,7 +364,7 @@ int main(int argc, char *argv[])
 		    if (!grace->project) {
                         new_project(grace, NULL);
                     }
-                    getdata(grace->project, argv[i], curtype, LOAD_BLOCK);
+                    getdata(graph_get_current(grace->project), argv[i], curtype, LOAD_BLOCK);
 		}
 	    } else if (argmatch(argv[i], "-nxy", 4)) {
 		i++;
@@ -375,7 +375,7 @@ int main(int argc, char *argv[])
 		    if (!grace->project) {
                         new_project(grace, NULL);
                     }
-		    getdata(grace->project, argv[i], curtype, LOAD_NXY);
+		    getdata(graph_get_current(grace->project), argv[i], curtype, LOAD_NXY);
 		}
 	    } else if (argmatch(argv[i], "-type", 2) ||
                        argmatch(argv[i], "-settype", 8)) {
@@ -444,7 +444,7 @@ int main(int argc, char *argv[])
 		if (!grace->project) {
                     new_project(grace, NULL);
                 }
-                getdata(grace->project, argv[i], curtype, LOAD_SINGLE);
+                getdata(graph_get_current(grace->project), argv[i], curtype, LOAD_SINGLE);
             }
 	} /* end else */
     } /* end for */

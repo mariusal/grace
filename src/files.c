@@ -933,24 +933,24 @@ static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label)
 }
 
 
-int getdata(Quark *pr, char *fn, int settype, int load_type)
+int getdata(Quark *gr, char *fn, int settype, int load_type)
 {
     FILE *fp;
     int retval;
-    Grace *grace = grace_from_quark(pr);
+    Grace *grace = grace_from_quark(gr);
 
     fp = grace_openr(grace, fn, SOURCE_DISK);
     if (fp == NULL) {
 	return RETURN_FAILURE;
     }
     
-    retval = uniread(pr, fp, settype, load_type, fn);
+    retval = uniread(get_parent_project(gr), fp, settype, load_type, fn);
 
     grace_close(fp);
     
     if (load_type != LOAD_BLOCK) {
         /* just a few sets */
-        autoscale_graph(graph_get_current(pr), grace->rt->autoscale_onread);
+        autoscale_graph(gr, grace->rt->autoscale_onread);
     }
 
     return retval;

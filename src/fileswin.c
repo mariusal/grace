@@ -340,7 +340,7 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
         grace->rt->autoscale_onread = GetOptionChoice(gui->auto_item);
         set_date_hint(GetOptionChoice(gui->datehint));
         
-        getdata(grace->project, filename, settype, load);
+        getdata(gr, filename, settype, load);
 
         snapshot_and_update(gr, TRUE);
     }
