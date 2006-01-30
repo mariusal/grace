@@ -1069,6 +1069,10 @@ Quark *load_any_project(Grace *grace, char *fn)
         project = load_agr_project(grace, fn);
     }
     
+    if (project) {
+        project_postprocess(project);
+    }
+
     return project;
 }
 
@@ -1080,7 +1084,7 @@ static int load_project_file(Grace *grace, char *fn, int as_template)
     if (grace->project &&
         quark_dirtystate_get(grace->project) &&
         !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
-	return RETURN_FAILURE;
+        return RETURN_FAILURE;
     }
     
     project = load_any_project(grace, fn);
@@ -1094,8 +1098,6 @@ static int load_project_file(Grace *grace, char *fn, int as_template)
         AMem *amem;
 
         grace->rt->print_file[0] = '\0';
-
-        project_postprocess(project);
 
         grace_set_project(grace, project);
         
