@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -98,7 +98,7 @@ static int process_complete_lines(Input_buffer *ib);
 
 static int read_long_line(FILE *fp, char **linebuf, int *buflen);
 
-static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label);
+static int uniread(Quark *pr, FILE *fp, int load_type, char *label);
 
 /*
  * part of the time sliced already spent in milliseconds
@@ -789,15 +789,13 @@ void grace_close(FILE *fp)
     }
 }
 
-static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label)
+static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
 {
-    int nrows, nrows_allocated, ncols, nncols, nscols, nncols_req;
-    int *formats = NULL;
-    int breakon, readerror;
-    Quark *q;
-    char *s, tbuf[128];
-    char *linebuf=NULL;
-    int linelen=0;   /* a misleading name ... */
+    int nrows, nrows_allocated;
+    int ok, readerror;
+    Quark *q = NULL;
+    char *linebuf = NULL;
+    int linebuflen = 0;
     int linecount;
 
     linecount = 0;
@@ -805,80 +803,69 @@ static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label)
     nrows = 0;
     nrows_allocated = 0;
     
-    breakon = TRUE;
-    
-    q = grace_ssd_new(pr);
-    if (!q) {
-        return RETURN_FAILURE;
-    }
+    ok = TRUE;
+    while (ok) {
+        char *s;
+	int maybe_data;
+        int ncols, nncols, nscols;
+        int *formats;
+        
+        if (read_long_line(fp, &linebuf, &linebuflen) == RETURN_SUCCESS) {
+            linecount++;
+            s = linebuf;
 
-    quark_idstr_set(q, label);
-    
-    while (read_long_line(fp, &linebuf, &linelen) == RETURN_SUCCESS) {
-	linecount++;
-        s = linebuf;
-        while (*s == ' ' || *s == '\t' || *s == '\n') {
-            s++;
-        }
-	/* skip comments */
-        if (*s == '#') {
-            continue;
-        }
-        /*   command     end-of-set      EOL   */
-        if (*s == '@' || *s == '&' || *s == '\0') {
-	    /* a data break line */
-            if (breakon != TRUE) {
-		/* free excessive storage */
-                ssd_set_nrows(q, nrows);
+	    /* skip leading whitespaces */
+            while (*s == ' ' || *s == '\t') {
+                s++;
+            }
 
-                /* store accumulated data in set(s) */
-                if (store_data(q, load_type) != RETURN_SUCCESS) {
-		    quark_free(q);
-                    xfree(linebuf);
-                    return RETURN_FAILURE;
+	    /* skip comments */
+            if (*s == '#') {
+                continue;
+            }
+
+            /*     EOL           EOD    */
+            if (*s == '\n' || *s == '\0') {
+                maybe_data = FALSE;
+            } else
+            if (*s == '@' || *s == '&') {
+                maybe_data = FALSE;
+	        if (*s == '@') {
+                    scanner(s + 1);
                 }
-                
-                q = grace_ssd_new(pr);
-                quark_idstr_set(q, label);
-
-                /* reset state registers */
-                nrows = 0;
-                nrows_allocated = 0;
-                readerror = 0;
-                breakon = TRUE;
+            } else {
+                maybe_data = TRUE;
             }
-	    if (*s == '@') {
-                scanner(s + 1);
-	        continue;
-            }
-	} else {
-	    if (breakon) {
+        } else {
+            ok = FALSE;
+            maybe_data = FALSE;
+        }
+        
+        if (maybe_data) {
+	    if (!nrows) {
 		/* parse the data line */
-                XCFREE(formats);
                 if (parse_ss_row(pr, s, &nncols, &nscols, &formats) != RETURN_SUCCESS) {
 		    errmsg("Can't parse data");
 		    xfree(linebuf);
 		    return RETURN_FAILURE;
                 }
-                
-                if (load_type == LOAD_SINGLE) {
-                    nncols_req = settype_cols(settype);
-                    if (nncols_req <= nncols) {
-                        nncols = nncols_req;
-                    }
-                }
-
                 ncols = nncols + nscols;
 
-                /* init the data storage */
-                if (ssd_set_ncols(q, ncols, formats) != RETURN_SUCCESS) {
+                /* init the SSD */
+                q = grace_ssd_new(pr);
+                if (!q || ssd_set_ncols(q, ncols, formats) != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
+		    quark_free(q);
+                    xfree(formats);
 		    xfree(linebuf);
-		    return RETURN_FAILURE;
+                    return RETURN_FAILURE;
                 }
-                
-                breakon = FALSE;
+                xfree(formats);
+
+                /* label the SSD */
+                quark_idstr_set(q, label);
 	    }
+            
 	    if (nrows >= nrows_allocated) {
 		if (!nrows_allocated) {
                     nrows_allocated = BUFSIZE;
@@ -894,6 +881,8 @@ static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label)
 	    }
 
             if (insert_data_row(q, nrows, s) != RETURN_SUCCESS) {
+                char tbuf[128];
+                
                 sprintf(tbuf, "Error parsing line %d, skipped", linecount);
                 errmsg(tbuf);
                 readerror++;
@@ -909,30 +898,32 @@ static int uniread(Quark *pr, FILE *fp, int settype, int load_type, char *label)
             } else {
 	        nrows++;
             }
-	}
-    }
+	} else
+        if (nrows) {
+            /* free excessive storage */
+            ssd_set_nrows(q, nrows);
 
-    if (nrows > 0) {
-        /* free excessive storage */
-        ssd_set_nrows(q, nrows);
+            /* store accumulated data in set(s) */
+            if (store_data(q, load_type) != RETURN_SUCCESS) {
+		quark_free(q);
+                xfree(linebuf);
+                return RETURN_FAILURE;
+            }
 
-        /* store accumulated data in set(s) */
-        if (store_data(q, load_type) != RETURN_SUCCESS) {
-            quark_free(q);
-	    xfree(linebuf);
-	    return RETURN_FAILURE;
+            /* reset state registers */
+            nrows = 0;
+            nrows_allocated = 0;
+            readerror = 0;
         }
-    } else {
-        /* empty */
-        quark_free(q);
     }
 
     xfree(linebuf);
-    xfree(formats);
+    
     return RETURN_SUCCESS;
 }
 
 
+/* FIXME: settype */
 int getdata(Quark *gr, char *fn, int settype, int load_type)
 {
     FILE *fp;
@@ -944,7 +935,7 @@ int getdata(Quark *gr, char *fn, int settype, int load_type)
 	return RETURN_FAILURE;
     }
     
-    retval = uniread(get_parent_project(gr), fp, settype, load_type, fn);
+    retval = uniread(get_parent_project(gr), fp, load_type, fn);
 
     grace_close(fp);
     
@@ -1044,7 +1035,7 @@ Quark *load_agr_project(Grace *grace, char *fn)
 
     parser_state_reset(project);
     
-    retval = uniread(project, fp, SET_XY, LOAD_SINGLE, fn);
+    retval = uniread(project, fp, LOAD_SINGLE, fn);
 
     grace_close(fp);
 
