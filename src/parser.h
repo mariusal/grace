@@ -61,9 +61,9 @@ void set_target_set(Quark *pset);
 
 void parser_state_reset(Quark *pr);
 
-int   scanner(char *s);
-int s_scanner(char *s, double *res);
-int v_scanner(char *s, int *reslen, double **vres);
+int   scanner(const char *s);
+int s_scanner(const char *s, double *res);
+int v_scanner(const char *s, int *reslen, double **vres);
 
 int v_evaluate(char * const formula, char * const varname,
     double *x, unsigned int len);

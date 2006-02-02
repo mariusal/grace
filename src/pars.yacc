@@ -4471,7 +4471,7 @@ void realloc_vrbl(grarr *vrbl, int len)
 #define PARSER_TYPE_EXPR    1
 #define PARSER_TYPE_VEXPR   2
 
-static int parser(char *s, int type)
+static int parser(const char *s, int type)
 {
     char *seekpos;
     int i;
@@ -4535,14 +4535,14 @@ static int parser(char *s, int type)
     }
 }
 
-int s_scanner(char *s, double *res)
+int s_scanner(const char *s, double *res)
 {
     int retval = parser(s, PARSER_TYPE_EXPR);
     *res = s_result;
     return retval;
 }
 
-int v_scanner(char *s, int *reslen, double **vres)
+int v_scanner(const char *s, int *reslen, double **vres)
 {
     int retval = parser(s, PARSER_TYPE_VEXPR);
     if (retval != RETURN_SUCCESS) {
@@ -4560,7 +4560,7 @@ int v_scanner(char *s, int *reslen, double **vres)
     }
 }
 
-int scanner(char *s)
+int scanner(const char *s)
 {
     int retval = parser(s, PARSER_TYPE_VOID);
     if (retval != RETURN_SUCCESS) {
