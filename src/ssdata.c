@@ -306,45 +306,22 @@ int insert_data_row(Quark *q, unsigned int row, char *s)
     return RETURN_SUCCESS;
 }
 
-/*
- * return the next available set in graph gr
- * If target is allocated but with no data, choose it (used for loading sets
- * from project files when sets aren't packed)
- */
-static Quark *nextset(Quark *ss)
+static int create_set_fromblock(Quark *ss, int type,
+    unsigned int nc, const unsigned int *coli, int acol)
 {
-    Quark *pset, *gr, **sets;
-    int nsets = 0;
-    
-    pset = get_target_set();
-    
-    if (pset) {
-        set_target_set(NULL);
-    } else {
-        gr = get_parent_graph(ss);
-        nsets = quark_get_descendant_sets(gr, &sets);
-        if (nsets) {
-            pset = sets[0];
-        } else {
-            pset = grace_set_new(ss);
-        }
-    }
-    quark_reparent(pset, ss);
-    
-    if (nsets) {
-        xfree(sets);
-    }
-    
-    return pset;
-}
-
-static int create_set_fromblock(Quark *pset, int type,
-    unsigned int nc, unsigned int *coli)
-{
-    Dataset *dsp = set_get_dataset(pset);
-    Quark *ss = get_parent_ssd(pset);
-    ss_data *blockdata = ssd_get_data(ss);
     int i, ncols, blockncols, blocklen, column;
+    Quark *pset;
+    Dataset *dsp;
+    ss_data *blockdata = ssd_get_data(ss);
+
+    ncols = settype_cols(type);
+    if (nc > ncols) {
+        errmsg("Too many columns scanned in column string");
+        return RETURN_FAILURE;
+    }
+    
+    pset = grace_set_new(ss);
+    dsp = set_get_dataset(pset);
 
     if (!blockdata || !dsp) {
         return RETURN_FAILURE;
@@ -353,97 +330,70 @@ static int create_set_fromblock(Quark *pset, int type,
     blockncols = ssd_get_ncols(ss);
     blocklen = ssd_get_nrows(ss);
     
-    ncols = settype_cols(type);
-    if (nc > ncols) {
-        errmsg("Too many columns scanned in column string");
-        return RETURN_FAILURE;
-    }
-    
-    for (i = 0; i < nc; i++) {
-	if (coli[i] >= blockncols) {
-	    errmsg("Column index out of range");
-	    return RETURN_FAILURE;
-	}
-    }
-    
     set_set_type(pset, type);
 
+    dsp->acol = acol;
     for (i = 0; i < nc; i++) {
         column = coli[i];
-        if (ssd_get_col_format(ss, column) != FFORMAT_STRING) {
-            dsp->cols[i] = column;
-        } else {
-            errmsg("Tried to read doubles from strings!");
-            killsetdata(pset);
-            return RETURN_FAILURE;
+        if (column < blockncols) {
+            if (ssd_get_col_format(ss, column) != FFORMAT_STRING) {
+                dsp->cols[i] = column;
+            } else {
+                errmsg("Tried to read doubles from strings!");
+                quark_free(pset);
+                return RETURN_FAILURE;
+            }
         }
     }
 
     return RETURN_SUCCESS;
 }
 
-int store_data(Quark *q, int load_type)
+int store_data(Quark *q, int load_type, int settype)
 {
     int ncols, nncols, nscols, nrows;
-    int i, j;
+    int i, j, acol;
     unsigned int coli[MAX_SET_COLS];
-    Quark *gr, *pset;
-    Quark *pr = get_parent_project(q); 
-    RunTime *rt = rt_from_quark(pr);
-    ss_data *ssd = ssd_get_data(q);
     
-    if (ssd == NULL || rt == NULL) {
-        return RETURN_FAILURE;
-    }
     ncols = ssd_get_ncols(q);
     nrows = ssd_get_nrows(q);
     if (ncols <= 0 || nrows <= 0) {
         return RETURN_FAILURE;
     }
 
+    acol = COL_NONE;
     nncols = 0;
     for (j = 0; j < ncols; j++) {
         ss_column *pcol = ssd_get_col(q, j);
         if (pcol->format != FFORMAT_STRING) {
+            coli[nncols] = j;
             nncols++;
+        } else {
+            acol = j;
         }
     }
     nscols = ncols - nncols;
     
-    gr = get_parser_gno();
-    if (!gr) {
-        return RETURN_FAILURE;
-    }
-    
-    if (quark_reparent(q, gr) != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-    
     switch (load_type) {
     case LOAD_SINGLE:
         if (nscols > 1) {
-            errmsg("Can not use more than one column of strings per set");
+            errmsg("Can not use more than one string column per set");
             return RETURN_FAILURE;
         }
 
-        pset = nextset(q);
+        create_set_fromblock(q, settype, nncols, coli, acol);
 
         break;
     case LOAD_NXY:
         if (nscols != 0) {
-            errmsg("Can not yet use strings when reading in data as NXY");
+            errmsg("Can not use strings when reading in data as NXY");
             return RETURN_FAILURE;
         }
         
         for (i = 0; i < ncols - 1; i++) {
-            pset = grace_set_new(q);
-            if (!pset) {
-                return RETURN_FAILURE;
-            }
-
             coli[0] = 0;
             coli[1] = i + 1;
-            create_set_fromblock(pset, SET_XY, 2, coli);
+            create_set_fromblock(q, SET_XY, 2, coli, COL_NONE);
         }
     
         break;

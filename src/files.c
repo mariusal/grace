@@ -98,8 +98,6 @@ static int process_complete_lines(Input_buffer *ib);
 
 static int read_long_line(FILE *fp, char **linebuf, int *buflen);
 
-static int uniread(Quark *pr, FILE *fp, int load_type, char *label);
-
 /*
  * part of the time sliced already spent in milliseconds
  */
@@ -789,7 +787,18 @@ void grace_close(FILE *fp)
     }
 }
 
-static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
+typedef int (*DataParser) (
+    const char *s,
+    void *udata
+);
+
+typedef int (*DataStore) (
+    Quark *q,
+    void *udata
+);
+
+static int uniread(Quark *pr, FILE *fp,
+    DataParser parse_cb, DataStore store_cb, void *udata)
 {
     int nrows, nrows_allocated;
     int ok, readerror;
@@ -828,11 +837,8 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
             if (*s == '\n' || *s == '\0') {
                 maybe_data = FALSE;
             } else
-            if (*s == '@' || *s == '&') {
+            if (parse_cb && parse_cb(s, udata) == RETURN_SUCCESS) {
                 maybe_data = FALSE;
-	        if (*s == '@') {
-                    scanner(s + 1);
-                }
             } else {
                 maybe_data = TRUE;
             }
@@ -861,9 +867,6 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
                     return RETURN_FAILURE;
                 }
                 xfree(formats);
-
-                /* label the SSD */
-                quark_idstr_set(q, label);
 	    }
             
 	    if (nrows >= nrows_allocated) {
@@ -903,8 +906,8 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
             /* free excessive storage */
             ssd_set_nrows(q, nrows);
 
-            /* store accumulated data in set(s) */
-            if (store_data(q, load_type) != RETURN_SUCCESS) {
+            /* store accumulated data */
+            if (store_cb && store_cb(q, udata) != RETURN_SUCCESS) {
 		quark_free(q);
                 xfree(linebuf);
                 return RETURN_FAILURE;
@@ -923,29 +926,49 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
 }
 
 
-/* FIXME: settype */
+typedef struct {
+    char *label;
+    int load_type;
+    int settype;
+} ascii_data;
+
+static int store_cb(Quark *q, void *udata)
+{
+    ascii_data *adata = (ascii_data *) udata;
+
+    /* label the SSD */
+    quark_idstr_set(q, adata->label);
+
+    return store_data(q, adata->load_type, adata->settype);
+}
+
 int getdata(Quark *gr, char *fn, int settype, int load_type)
 {
     FILE *fp;
     int retval;
     Grace *grace = grace_from_quark(gr);
-
+    ascii_data adata;
+    
     fp = grace_openr(grace, fn, SOURCE_DISK);
     if (fp == NULL) {
 	return RETURN_FAILURE;
     }
+
+    adata.label = fn;
+    adata.load_type = load_type;
+    adata.settype = settype;
     
-    retval = uniread(get_parent_project(gr), fp, load_type, fn);
+    retval = uniread(gr, fp, NULL, store_cb, &adata);
 
     grace_close(fp);
     
     if (load_type != LOAD_BLOCK) {
-        /* just a few sets */
         autoscale_graph(gr, grace->rt->autoscale_onread);
     }
 
     return retval;
 }
+
 
 int write_ssd(const Quark *ssd, unsigned int ncols, const int *cols, FILE *fp)
 {
@@ -1020,6 +1043,63 @@ int update_set_from_file(Quark *pset)
 }
 #endif
 
+
+static Quark *nextset(Quark *ss)
+{
+    Quark *pset, *gr, **sets;
+    int nsets = 0;
+    
+    pset = get_target_set();
+    
+    if (pset) {
+        set_target_set(NULL);
+    } else {
+        gr = get_parent_graph(ss);
+        nsets = quark_get_descendant_sets(gr, &sets);
+        if (nsets) {
+            pset = sets[0];
+        } else {
+            pset = grace_set_new(ss);
+        }
+    }
+    
+    if (nsets) {
+        xfree(sets);
+    }
+    
+    return pset;
+}
+
+static int agr_parse_cb(const char *s, void *udata)
+{
+    if (*s == '@') {
+        return scanner(s + 1);
+    } else
+    if (*s == '&') {
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+static int agr_store_cb(Quark *q, void *udata)
+{
+    Quark *gr, *pset;
+
+    gr = get_parser_gno();
+    if (!gr) {
+        return RETURN_FAILURE;
+    }
+    
+    if (quark_reparent(q, gr) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
+    pset = nextset(q);
+    
+    return quark_reparent(pset, q);
+}
+
 Quark *load_agr_project(Grace *grace, char *fn)
 {
     Quark *project;
@@ -1035,7 +1115,7 @@ Quark *load_agr_project(Grace *grace, char *fn)
 
     parser_state_reset(project);
     
-    retval = uniread(project, fp, LOAD_SINGLE, fn);
+    retval = uniread(project, fp, agr_parse_cb, agr_store_cb, NULL);
 
     grace_close(fp);
 
