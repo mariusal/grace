@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000-2005 Grace Development Team
+ * Copyright (c) 2000-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -315,6 +315,16 @@ XFile *xfile_new(FILE *fp)
     }
     
     return xf;
+}
+
+int xfile_set_indstr(XFile *xf, const char *indstr)
+{
+    if (xf && indstr) {
+        xf->indstr = copy_string(xf->indstr, indstr);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
 
 static void xfile_convert(XFile *xf, int flag)
