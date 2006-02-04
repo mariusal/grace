@@ -1073,6 +1073,8 @@ int save_project(Quark *project, char *fn)
     
     gui->noask = noask_save;
     xf = xfile_new(fp);
+    xfile_set_indstr(xf, " ");
+    
     attrs = attributes_new();
     
     if (xf == NULL || attrs == NULL) {
