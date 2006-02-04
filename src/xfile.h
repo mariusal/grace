@@ -96,8 +96,7 @@ int xfile_set_indstr(XFile *xf, const char *indstr);
 
 int xfile_set_ns(XFile *xf, const char *ns, const char *uri, int force);
 
-int xfile_begin(XFile *xf, int standalone,
-    char *dtd_name, char *dtd_uri, char *root, Attributes *root_attrs);
+int xfile_begin(XFile *xf, char *root, Attributes *root_attrs);
 int xfile_end(XFile *xf);
 
 int xfile_begin_element(XFile *xf, char *name, Attributes *attrs);

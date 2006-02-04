@@ -560,8 +560,7 @@ int xfile_set_ns(XFile *xf, const char *ns, const char *uri, int force)
     return RETURN_SUCCESS;
 }
 
-int xfile_begin(XFile *xf, int standalone,
-    char *dtd_name, char *dtd_uri, char *root, Attributes *root_attrs)
+int xfile_begin(XFile *xf, char *root, Attributes *root_attrs)
 {
     Attributes *attrs;
     
@@ -572,28 +571,9 @@ int xfile_begin(XFile *xf, int standalone,
     
     attributes_set_sval(attrs, "version", "1.0");
 
-    attributes_set_bval(attrs, "standalone", standalone);
-    
     xfile_processing_instruction(xf, attrs);
     
     attributes_free(attrs);
-    
-    if (!standalone) {
-        xfile_output(xf, "<!DOCTYPE ");
-        xfile_output(xf, root);
-        xfile_output(xf, " ");
-        xfile_output(xf, dtd_name ? "PUBLIC":"SYSTEM");
-        xfile_output(xf, " ");
-        if (dtd_name) {
-            xfile_output(xf, "\"");
-            xfile_output(xf, dtd_name);
-            xfile_output(xf, "\" ");
-        }
-        xfile_output(xf, "\"");
-        xfile_output(xf, dtd_uri);
-        xfile_output(xf, "\">");
-        xfile_crlf(xf);
-    }
     
     attributes_set_ns(root_attrs, xf->ns_prefix, xf->ns_uri);
     xfile_begin_element(xf, root, root_attrs);
