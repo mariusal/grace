@@ -1459,6 +1459,7 @@ char *utf2iso(const char *s)
         </attribute>
         <!-- Child elements -->
         <child name="#EStrAText" minOccurs="0" maxOccurs="unbounded"/>
+        <child name="#EStrObject" minOccurs="0" maxOccurs="unbounded"/>
     </element>
     <element name="#EStrFormat" type="format">
         <!-- Attributes -->
