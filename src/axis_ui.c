@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -79,13 +79,6 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
         "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", NULL);
     AddOptionChoiceCB(ui->autonum, oc_explorer_cb, eui);
 
-
-
-
-
-
-
-
     rc2 = CreateHContainer(ui->main_tp);
 
     /* major grid lines */
@@ -111,20 +104,6 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->tmgridlinew, sp_explorer_cb, eui);
     ui->tmgridlines = CreateLineStyleChoice(rc, "Line style:");
     AddOptionChoiceCB(ui->tmgridlines, oc_explorer_cb, eui);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     ui->label_tp = CreateTabPage(tab, "Axis bar");
@@ -269,10 +248,10 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     CreateLabel(ui->special_tp, "Tick location - Label:");
 
     ui->sw = XtVaCreateManagedWidget("ui->sw",
-                                 xmScrolledWindowWidgetClass, ui->special_tp,
-				 XmNheight, 320,
-                                 XmNscrollingPolicy, XmAUTOMATIC,
-                                 NULL);
+        xmScrolledWindowWidgetClass, ui->special_tp,
+        XmNheight, 320,
+        XmNscrollingPolicy, XmAUTOMATIC,
+        NULL);
     rc = CreateVContainer(ui->sw);
 
     for (i = 0; i < MAX_TICKS; i++) {
@@ -553,7 +532,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->tlen) {
             t->props.size = GetSpinChoice(ui->tlen);
         }
-        if (!caller || caller == ui->tgridpen) {
+        if (!caller || caller == ui->tpen) {
             GetPenChoice(ui->tpen, &t->props.line.pen);
         }
         if (!caller || caller == ui->tgridlinew) {
@@ -568,7 +547,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->tmlen) {
             t->mprops.size = GetSpinChoice(ui->tmlen);
         }
-        if (!caller || caller == ui->tmgridpen) {
+        if (!caller || caller == ui->tmpen) {
             GetPenChoice(ui->tmpen, &t->mprops.line.pen);
         }
         if (!caller || caller == ui->tmgridlinew) {
