@@ -16,11 +16,10 @@ GRSRCS =  main.c grace.c project_utils.c \
 	graph_utils.c set_utils.c \
 	dobject_utils.c \
 	darray.c computils.c \
-	dlmodule.c \
 	iofilters.c dates.c \
 	dummydrv.c mfdrv.c mifdrv.c psdrv.c pdfdrv.c svgdrv.c \
 	pnmdrv.c jpgdrv.c pngdrv.c \
-	dicts.c mathstuff.c bi.c
+	dicts.c bi.c
 
 
 GROBJS =  main$(O) grace$(O) project_utils$(O) \
@@ -30,11 +29,11 @@ GROBJS =  main$(O) grace$(O) project_utils$(O) \
 	graph_utils$(O) set_utils$(O) \
 	dobject_utils$(O) \
 	darray$(O) computils$(O) \
-	dlmodule$(O) $(PARS_O) \
+	$(PARS_O) \
 	iofilters$(O) dates$(O) \
 	dummydrv$(O) mfdrv$(O) mifdrv$(O) psdrv$(O) pdfdrv$(O) svgdrv$(O) \
 	pnmdrv$(O) jpgdrv$(O) pngdrv$(O) \
-	dicts$(O) mathstuff$(O) bi$(O)
+	dicts$(O) bi$(O)
 
 # The following are for a GUI
 #

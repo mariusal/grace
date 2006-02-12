@@ -587,7 +587,7 @@ static int leval_aac_cb(void *data)
     
     t = get_parser_arr_by_name("$t");
     if (t == NULL) {
-        t = define_parser_arr("$t");
+        // t = define_parser_arr("$t");
         if (t == NULL) {
             errmsg("Internal error");
             return RETURN_FAILURE;

@@ -5,7 +5,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -63,7 +63,6 @@
 #include "numerics.h"
 #include "protos.h"
 #include "parser.h"
-#include "mathstuff.h"
 
 
 #define MAX_PARS_STRING_LENGTH  4096
@@ -114,27 +113,15 @@ static char f_string[MAX_PARS_STRING_LENGTH]; /* buffer for string to parse */
 static unsigned int pos;
 
 
-/* the graph and set of the left part of a vector assignment */
-static Quark *vasgn_pset;
-
-static int alias_force = FALSE; /* controls whether aliases can override
-                                                       existing keywords */
-
-extern char *close_input;
-
 static int filltype_obs;
 
 static int leg_loctype_obs;
 static double leg_x1_obs;
 
-static int index_shift = 0;     /* 0 for C, 1 for F77 index notation */
-
 static void free_tmpvrbl(grarr *vrbl);
-static void copy_vrbl(grarr *dest, grarr *src);
 
 static int getcharstr(void);
 static void ungetchstr(void);
-static int follow(int expect, int ifyes, int ifno);
 
 static int findf(symtab_entry *keytable, char *s);
 
@@ -144,9 +131,6 @@ static void add_xmgr_colors(Quark *project);
 static Quark *allocate_graph(Quark *project, int gno);
 static Quark *allocate_set(Quark *gr, int setno);
 static Quark *allocate_region(Quark *gr, int rn);
-
-/* Total (intrinsic + user-defined) list of functions and keywords */
-symtab_entry *key;
 
 static int yylex(void);
 static int yyparse(void);
@@ -164,39 +148,10 @@ static void yyerror(char *s);
     grarr  *vrbl;
 }
 
-%token KEY_VAR       
-%token KEY_VEC       
-
-%token KEY_CONST     
-%token KEY_UNIT      
-%token KEY_FUNC_I    
-%token KEY_FUNC_D    
-%token KEY_FUNC_NN   
-%token KEY_FUNC_ND   
-%token KEY_FUNC_DD   
-%token KEY_FUNC_NND  
-%token KEY_FUNC_PPD  
-%token KEY_FUNC_PPPD 
-
 %token <ival> DATE
-
-%token <dptr> VAR_D	 /* a (pointer to) double variable                                     */
-%token <vrbl> VEC_D	 /* a (pointer to) double array variable                                     */
-
-%token <ival> CONSTANT	 /* a (double) constant                                     */
-%token <ival> UCONSTANT	 /* a (double) unit constant                                */
-%token <ival> FUNC_I	 /* a function of 1 int variable                            */
-%token <ival> FUNC_D	 /* a function of 1 double variable                         */
-%token <ival> FUNC_NN    /* a function of 2 int parameters                          */
-%token <ival> FUNC_ND    /* a function of 1 int parameter and 1 double variable     */
-%token <ival> FUNC_DD    /* a function of 2 double variables                        */
-%token <ival> FUNC_NND   /* a function of 2 int parameters and 1 double variable    */
-%token <ival> FUNC_PPD   /* a function of 2 double parameters and 1 double variable */
-%token <ival> FUNC_PPPD  /* a function of 3 double parameters and 1 double variable */
 
 %token <ival> ABOVE
 %token <ival> ABSOLUTE
-%token <ival> ALIAS
 %token <ival> ALT
 %token <ival> ALTXAXIS
 %token <ival> ALTYAXIS
@@ -222,8 +177,6 @@ static void yyerror(char *s);
 %token <ival> CHAR
 %token <ival> CHART
 %token <sval> CHRSTR
-%token <ival> CLEAR
-%token <ival> CLICK
 %token <ival> CLIP
 %token <ival> COLOR
 %token <ival> COMMENT
@@ -235,19 +188,16 @@ static void yyerror(char *s);
 %token <ival> DECIMAL
 %token <ival> DEF
 %token <ival> DEFAULT
-%token <ival> DEFINE
 %token <ival> DEGREESLAT
 %token <ival> DEGREESLON
 %token <ival> DEGREESMMLAT
 %token <ival> DEGREESMMLON
 %token <ival> DEGREESMMSSLAT
 %token <ival> DEGREESMMSSLON
-%token <ival> DESCENDING
 %token <ival> DESCRIPTION
 %token <ival> DEVICE
 %token <ival> DISK
 %token <ival> DROPLINE
-%token <ival> ECHO
 %token <ival> ELLIPSE
 %token <ival> ENGINEERING
 %token <ival> ERRORBAR
@@ -260,7 +210,6 @@ static void yyerror(char *s);
 %token <ival> FORMULA
 %token <ival> FRAMEP
 %token <ival> FREE
-%token <ival> FROM
 %token <ival> GENERAL
 %token <ival> GRAPH
 %token <ival> GRAPHNO
@@ -273,13 +222,11 @@ static void yyerror(char *s);
 %token <ival> HORIZI
 %token <ival> HORIZONTAL
 %token <ival> HORIZO
-%token <ival> IFILTER
 %token <ival> IN
 %token <ival> INCREMENT
 %token <ival> INOUT
 %token <ival> INVERT
 %token <ival> JUST
-%token <ival> KILL
 %token <ival> LABEL
 %token <ival> LANDSCAPE
 %token <ival> LAYOUT
@@ -298,11 +245,9 @@ static void yyerror(char *s);
 %token <ival> LOGX
 %token <ival> LOGXY
 %token <ival> LOGY
-%token <ival> MAGIC
 %token <ival> MAJOR
 %token <ival> MAP
 %token <ival> MAXP
-%token <ival> MESH
 %token <ival> MINP
 %token <ival> MINOR
 %token <ival> MMDD
@@ -323,7 +268,6 @@ static void yyerror(char *s);
 %token <ival> OFFSET
 %token <ival> OFFSETX
 %token <ival> OFFSETY
-%token <ival> OFILTER
 %token <ival> ON
 %token <ival> OP
 %token <ival> OPPOSITE
@@ -343,7 +287,6 @@ static void yyerror(char *s);
 %token <ival> PREC
 %token <ival> PREPEND
 %token <ival> PS
-%token <ival> RAND
 %token <ival> RECIPROCAL
 %token <ival> REFERENCE
 %token <ival> REGNUM
@@ -385,28 +328,15 @@ static void yyerror(char *s);
 %token <ival> TOP
 %token <ival> TYPE
 %token <ival> UP
-%token <ival> USE
 %token <ival> VERSION
 %token <ival> VERTI
 %token <ival> VERTICAL
 %token <ival> VERTO
 %token <ival> VGAP
 %token <ival> VIEW
-%token <ival> VX1
-%token <ival> VX2
-%token <ival> VXMAX
-%token <ival> VY1
-%token <ival> VY2
-%token <ival> VYMAX
 %token <ival> WITH
 %token <ival> WORLD
 %token <ival> WRAP
-%token <ival> WX1
-%token <ival> WX2
-%token <ival> WY1
-%token <ival> WY2
-%token <ival> X_TOK
-%token <ival> X0
 %token <ival> X1
 %token <ival> XAXES
 %token <ival> XAXIS
@@ -428,12 +358,7 @@ static void yyerror(char *s);
 %token <ival> XYSTRING
 %token <ival> XYVMAP
 %token <ival> XYZ
-%token <ival> Y_TOK
-%token <ival> Y0
 %token <ival> Y1
-%token <ival> Y2
-%token <ival> Y3
-%token <ival> Y4
 %token <ival> YAXES
 %token <ival> YAXIS
 %token <ival> YEAR
@@ -445,8 +370,6 @@ static void yyerror(char *s);
 %token <ival> ZNORM
 
 %token <dval> NUMBER
-
-%token <sval> NEW_TOKEN
 
 %type <ival> onoff
 
@@ -487,63 +410,17 @@ static void yyerror(char *s);
 
 %type <ival> worldview
 
-%type <ival> filtermethod
-%type <ival> filtertype
-
 %type <ival> tickspectype
 
 %type <ival> sourcetype
 
 %type <ival> objecttype
 
-%type <ival> stattype
-
-%type <ival> datacolumn
-
-%type <ival> proctype
-
-%type <ival> indx
+%type <dval> expr
 %type <ival> iexpr
 %type <ival> nexpr
-%type <dval> jdate
-%type <dval> jrawdate
-%type <dval> expr
-
-%type <vrbl> array
-%type <vrbl> lside_array
-
-%type <vrbl> vexpr
-
-/* Precedence */
-%nonassoc '?' ':'
-%left OR
-%left AND
-%nonassoc GT LT LE GE EQ NE
-%right UCONSTANT
-%left '+' '-'
-%left '*' '/' '%'
-%nonassoc UMINUS NOT	/* negation--unary minus */
-%right '^'		/* exponentiation        */
-
 
 %%
-
-full_list:
-        multi_list
-        | expr {
-            expr_parsed = TRUE;
-            s_result = $1;
-        }
-        | vexpr {
-            vexpr_parsed = TRUE;
-            v_result = $1;
-        }
-        ;
-
-multi_list:
-        list
-        | multi_list ';' list
-        ;
 
 list:
 	parmset {}
@@ -553,233 +430,18 @@ list:
 	| set_setprop {}
 	| actions {}
 	| options {}
-	| asgn {}
-	| vasgn {}
-	| defines {}
 	| error {
 	    return 1;
 	}
 	;
 
 
-
 expr:	NUMBER {
-	    $$ = $1;
-	}
-	|  VAR_D {
-	    $$ = *($1);
-	}
-	|  array indx {
-            if ($2 >= $1->length) {
-                errmsg("Access beyond array bounds");
-                return 1;
-            }
-            $$ = $1->data[$2];
-	}
-	| stattype '(' vexpr ')' {
-	    double dummy;
-            int length = $3->length;
-	    if ($3->data == NULL) {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	    switch ($1) {
-	    case MINP:
-		$$ = vmin($3->data, length);
-		break;
-	    case MAXP:
-		$$ = vmax($3->data, length);
-		break;
-            case AVG:
-		stasum($3->data, length, &$$, &dummy);
-                break;
-            case SD:
-		stasum($3->data, length, &dummy, &$$);
-                break;
-	    }
-	}
-	| VEC_D '.' LENGTH {
-	    $$ = $1->length;
-	}
-	| selectset '.' LENGTH {
-	    $$ = set_get_length($1);
-	}
-	| CONSTANT
-	{
-            $$ = ((ParserFnc) (key[$1].data)) ();
-	}
-	| expr UCONSTANT
-	{
-	    $$ = $1 * ((ParserFnc) (key[$2].data)) ();
-	}
-	| RAND
-	{
-	    $$ = drand48();
-	}
-	| FUNC_I '(' iexpr ')'
-	{
-	    $$ = ((ParserFnc) (key[$1].data)) ($3);
-	}
-	| FUNC_D '(' expr ')'
-	{
-	    $$ = ((ParserFnc) (key[$1].data)) ($3);
-	}
-	| FUNC_ND '(' iexpr ',' expr ')'
-	{
-	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5);
-	}
-	| FUNC_NN '(' iexpr ',' iexpr ')'
-	{
-	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5);
-	}
-	| FUNC_DD '(' expr ',' expr ')'
-	{
-	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5);
-	}
-	| FUNC_NND '(' iexpr ',' iexpr ',' expr ')'
-	{
-	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5, $7);
-	}
-	| FUNC_PPD '(' expr ',' expr ',' expr ')'
-	{
-	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5, $7);
-	}
-	| FUNC_PPPD '(' expr ',' expr ',' expr ',' expr ')'
-	{
-	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5, $7, $9);
-	}
-	| DATE '(' jdate ')' {
-            $$ = $3;
-	}
-	| DATE '(' iexpr ',' nexpr ',' nexpr ')' { /* yr, mo, day */
-	    $$ = cal_and_time_to_jul($3, $5, $7, 12, 0, 0.0);
-	}
-	| DATE '(' iexpr ',' nexpr ',' nexpr ',' nexpr ',' nexpr ',' expr ')' 
-	{ /* yr, mo, day, hr, min, sec */
-	    $$ = cal_and_time_to_jul($3, $5, $7, $9, $11, $13);
-	}
-	| VXMAX {
-	    double vx, vy;
-            project_get_viewport(project, &vx, &vy);
-            $$ = vx;
-	}
-	| VYMAX {
-	    double vx, vy;
-            project_get_viewport(project, &vx, &vy);
-            $$ = vy;
-	}
-	| '(' expr ')' {
-	    $$ = $2;
-	}
-	| expr '+' expr {
-	    $$ = $1 + $3;
-	}
-	| expr '-' expr {
-	    $$ = $1 - $3;
-	}
-	| '-' expr %prec UMINUS {
-	    $$ = -$2;
-	}
-	| '+' expr %prec UMINUS {
-	    $$ = $2;
-	}
-	| expr '*' expr {
-	    $$ = $1 * $3;
-	}
-	| expr '/' expr
-	{
-	    if ($3 != 0.0) {
-		$$ = $1 / $3;
-	    } else {
-		yyerror("Divide by zero");
-		return 1;
-	    }
-	}
-	| expr '%' expr {
-	    if ($3 != 0.0) {
-		$$ = fmod($1, $3);
-	    } else {
-		yyerror("Divide by zero");
-		return 1;
-	    }
-	}
-	| expr '^' expr {
-	    if ($1 < 0 && rint($3) != $3) {
-		yyerror("Negative value raised to non-integer power");
-		return 1;
-            } else if ($1 == 0.0 && $3 <= 0.0) {
-		yyerror("Zero raised to non-positive power");
-		return 1;
-            } else {
-                $$ = pow($1, $3);
-            }
-	}
-	| expr '?' expr ':' expr {
-	    $$ = $1 ? $3 : $5;
-	}
-	| expr GT expr {
-	   $$ = ($1 > $3);
-	}
-	| expr LT expr  {
-	   $$ = ($1 < $3);
-	}
-	| expr LE expr {
-	   $$ = ($1 <= $3);
-	}
-	| expr GE expr {
-	   $$ = ($1 >= $3);
-	}
-	| expr EQ expr {
-	   $$ = ($1 == $3);
-	}
-	| expr NE expr {
-	    $$ = ($1 != $3);
-	}
-	| expr AND expr {
-	    $$ = $1 && $3;
-	}
-	| expr OR expr {
-	    $$ = $1 || $3;
-	}
-	| NOT expr {
-	    $$ = !($2);
-	}
-	;
-
-jdate:  expr {
             $$ = $1;
-        }
-        | CHRSTR {
-            double jul;
-            Dates_format dummy;
-            if (parse_date(project, $1, get_date_hint(), FALSE, &jul, &dummy)
-                == RETURN_SUCCESS) {
-                xfree($1);
-                $$ = jul;
-            } else {
-                xfree($1);
-		yyerror("Invalid date");
-		return 1;
-            }
-        }
-        ;
-
-jrawdate:  expr {
-            $$ = $1;
-        }
-        | CHRSTR {
-            double jul;
-            Dates_format dummy;
-            if (parse_date(project, $1, get_date_hint(), TRUE, &jul, &dummy)
-                == RETURN_SUCCESS) {
-                xfree($1);
-                $$ = jul;
-            } else {
-                xfree($1);
-		yyerror("Invalid date");
-		return 1;
-            }
-        }
+	}
+        | '-' NUMBER {
+            $$ = -$2;
+	}
         ;
 
 iexpr:  expr {
@@ -798,943 +460,6 @@ nexpr:	iexpr {
 		return 1;
             }
             $$ = $1;
-	}
-        ;
-
-indx:	'[' iexpr ']' {
-	    int itmp = $2 - index_shift;
-            if (itmp < 0) {
-		yyerror("Negative index");
-		return 1;
-            }
-            $$ = itmp;
-	}
-        ;
-
-array:
-	VEC_D
-	{
-            $$ = $1;
-	}
-        | datacolumn
-	{
-	    double *ptr = set_get_col(vasgn_pset, $1);
-            $$ = &freelist[fcnt++];
-            $$->type = GRARR_SET;
-            $$->data = ptr;
-            if (ptr == NULL) {
-                errmsg("NULL variable - check set type");
-                return 1;
-            } else {
-                $$->length = set_get_length(vasgn_pset);
-            }
-	}
-	| selectset '.' datacolumn
-	{
-	    double *ptr = set_get_col($1, $3);
-            $$ = &freelist[fcnt++];
-            $$->type = GRARR_SET;
-            $$->data = ptr;
-            if (ptr == NULL) {
-                errmsg("NULL variable - check set type");
-                return 1;
-            } else {
-                $$->length = set_get_length($1);
-            }
-	}
-        ;
-        
-vexpr:
-	array
-	{
-            $$ = $1;
-	}
-	| MESH '(' nexpr ')'
-	{
-            int len = $3;
-            if (len < 1) {
-                yyerror("npoints must be > 0");
-            } else {
-                double *ptr = allocate_index_data(len);
-                if (ptr == NULL) {
-                    errmsg("Malloc failed");
-                    return 1;
-                } else {
-                    $$ = &freelist[fcnt++];
-                    $$->type = GRARR_TMP;
-                    $$->data = ptr;
-                    $$->length = len;
-                }
-            }
-	}
-	| MESH '(' expr ',' expr ',' nexpr ')'
-	{
-            int len = $7;
-            if (len < 2) {
-                yyerror("npoints must be > 1");
-            } else {
-                double *ptr = allocate_mesh($3, $5, len);
-                if (ptr == NULL) {
-                    errmsg("Malloc failed");
-                    return 1;
-                } else {
-                    $$ = &freelist[fcnt++];
-                    $$->type = GRARR_TMP;
-                    $$->data = ptr;
-                    $$->length = len;
-                }
-            }
-	}
-	| RAND '(' nexpr ')'
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    $$->data = xmalloc($3*SIZEOF_DOUBLE);
-            if ($$->data == NULL) {
-                errmsg("Not enough memory");
-                return 1;
-            } else {
-                $$->length = $3;
-                $$->type = GRARR_TMP;
-            }
-            for (i = 0; i < $$->length; i++) {
-		$$->data[i] = drand48();
-	    }
-	}
-	| FUNC_I '(' vexpr ')'
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ((ParserFnc) (key[$1].data)) ((int) ($3->data[i]));
-	    }
-	}
-	| FUNC_D '(' vexpr ')'
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ((ParserFnc) (key[$1].data)) (($3->data[i]));
-	    }
-	}
-	| FUNC_DD '(' vexpr ',' vexpr ')'
-	{
-	    int i;
-	    if ($3->length != $5->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-            
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3->data[i], $5->data[i]);
-	    }
-	}
-	| FUNC_DD '(' expr ',' vexpr ')'
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $5);
-            $$->type = GRARR_TMP;
-            
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5->data[i]);
-	    }
-	}
-	| FUNC_DD '(' vexpr ',' expr ')'
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-            
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3->data[i], $5);
-	    }
-	}
-	| FUNC_ND '(' iexpr ',' vexpr ')'
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $5);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5->data[i]);
-	    }
-	}
-	| FUNC_NND '(' iexpr ',' iexpr ',' vexpr ')'
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $7);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5, $7->data[i]);
-	    }
-	}
-	| FUNC_PPD '(' expr ',' expr ',' vexpr ')'
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $7);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5, $7->data[i]);
-	    }
-	}
-	| FUNC_PPPD '(' expr ',' expr ',' expr ',' vexpr ')'
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $9);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5, $7, $9->data[i]);
-	    }
-	}
-	| vexpr '+' vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] + $3->data[i];
-	    }
-	}
-	| vexpr '+' expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] + $3;
-	    }
-	}
-	| expr '+' vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1 + $3->data[i];
-	    }
-	}
-	| vexpr '-' vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] - $3->data[i];
-	    }
-	}
-	| vexpr '-' expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] - $3;
-	    }
-	}
-	| expr '-' vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1 - $3->data[i];
-	    }
-	}
-	| vexpr '*' vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] * $3->data[i];
-	    }
-	}
-	| vexpr '*' expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] * $3;
-	    }
-	}
-	| expr '*' vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1 * $3->data[i];
-	    }
-	}
-	| vexpr '/' vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		if ($3->data[i] == 0.0) {
-                    errmsg("Divide by zero");
-                    return 1;
-                }
-                $$->data[i] = $1->data[i] / $3->data[i];
-	    }
-	}
-	| vexpr '/' expr
-	{
-	    int i;
-	    if ($3 == 0.0) {
-                errmsg("Divide by zero");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] / $3;
-	    }
-	}
-	| expr '/' vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		if ($3->data[i] == 0.0) {
-                    errmsg("Divide by zero");
-                    return 1;
-                }
-		$$->data[i] = $1 / $3->data[i];
-	    }
-	}
-	| vexpr '%' vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		if ($3->data[i] == 0.0) {
-                    errmsg("Divide by zero");
-                    return 1;
-                } else {
-                    $$->data[i] = fmod($1->data[i], $3->data[i]);
-                }
-	    }
-	}
-	| vexpr '%' expr
-	{
-	    int i;
-	    if ($3 == 0.0) {
-                errmsg("Divide by zero");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = fmod($1->data[i], $3);
-	    }
-	}
-	| expr '%' vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		if ($3->data[i] == 0.0) {
-                    errmsg("Divide by zero");
-                    return 1;
-                } else {
-		    $$->data[i] = fmod($1, $3->data[i]);
-                }
-	    }
-	}
-	| vexpr '^' vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-	        if ($1->data[i] < 0 && rint($3->data[i]) != $3->data[i]) {
-	            yyerror("Negative value raised to non-integer power");
-	            return 1;
-                } else if ($1->data[i] == 0.0 && $3->data[i] <= 0.0) {
-	            yyerror("Zero raised to non-positive power");
-	            return 1;
-                } else {
-                    $$->data[i] = pow($1->data[i], $3->data[i]);
-                }
-	    }
-	}
-	| vexpr '^' expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-	        if ($1->data[i] < 0 && rint($3) != $3) {
-	            yyerror("Negative value raised to non-integer power");
-	            return 1;
-                } else if ($1->data[i] == 0.0 && $3 <= 0.0) {
-	            yyerror("Zero raised to non-positive power");
-	            return 1;
-                } else {
-                    $$->data[i] = pow($1->data[i], $3);
-                }
-	    }
-	}
-	| expr '^' vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-	        if ($1 < 0 && rint($3->data[i]) != $3->data[i]) {
-	            yyerror("Negative value raised to non-integer power");
-	            return 1;
-                } else if ($1 == 0.0 && $3->data[i] <= 0.0) {
-	            yyerror("Zero raised to non-positive power");
-	            return 1;
-                } else {
-                    $$->data[i] = pow($1, $3->data[i]);
-                }
-	    }
-	}
-	| vexpr UCONSTANT
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] * ((ParserFnc) (key[$2].data)) ();
-	    }
-	}
-	| vexpr '?' expr ':' expr {
-            int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-            for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = CAST_DBL_TO_BOOL($1->data[i]) ? $3 : $5;
-            }
-	}
-	| vexpr '?' expr ':' vexpr {
-            int i;
-	    if ($1->length != $5->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-            for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = CAST_DBL_TO_BOOL($1->data[i]) ? $3 : $5->data[i];
-            }
-	}
-	| vexpr '?' vexpr ':' expr {
-            int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-            for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = CAST_DBL_TO_BOOL($1->data[i]) ? $3->data[i] : $5;
-            }
-	}
-	| vexpr '?' vexpr ':' vexpr {
-            int i;
-	    if ($1->length != $5->length || $1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-            for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = CAST_DBL_TO_BOOL($1->data[i]) ? $3->data[i] : $5->data[i];
-            }
-	}
-	| vexpr OR vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] || $3->data[i];
-	    }
-	}
-	| vexpr OR expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] || $3;
-	    }
-	}
-	| expr OR vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1 || $3->data[i];
-	    }
-	}
-	| vexpr AND vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] && $3->data[i];
-	    }
-	}
-	| vexpr AND expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] && $3;
-	    }
-	}
-	| expr AND vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1 && $3->data[i];
-	    }
-	}
-	| vexpr GT vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] > $3->data[i]);
-	    }
-	}
-	| vexpr GT expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] > $3);
-	    }
-	}
-	| expr GT vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1 > $3->data[i]);
-	    }
-	}
-	| vexpr LT vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] < $3->data[i]);
-	    }
-	}
-	| vexpr LT expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] < $3);
-	    }
-	}
-	| expr LT vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1 < $3->data[i]);
-	    }
-	}
-	| vexpr GE vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] >= $3->data[i]);
-	    }
-	}
-	| vexpr GE expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] >= $3);
-	    }
-	}
-	| expr GE vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1 >= $3->data[i]);
-	    }
-	}
-	| vexpr LE vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] <= $3->data[i]);
-	    }
-	}
-	| vexpr LE expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] <= $3);
-	    }
-	}
-	| expr LE vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1 <= $3->data[i]);
-	    }
-	}
-	| vexpr EQ vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] == $3->data[i]);
-	    }
-	}
-	| vexpr EQ expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] == $3);
-	    }
-	}
-	| expr EQ vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1 == $3->data[i]);
-	    }
-	}
-	| vexpr NE vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
-                return 1;
-            }
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] != $3->data[i]);
-	    }
-	}
-	| vexpr NE expr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $1);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1->data[i] != $3);
-	    }
-	}
-	| expr NE vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $3);
-            $$->type = GRARR_TMP;
-
-	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = ($1 != $3->data[i]);
-	    }
-	}
-	| NOT vexpr
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $2);
-            $$->type = GRARR_TMP;
-            for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = !$2->data[i];
-            }
-	}
-	| '(' vexpr ')'
-	{
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $2);
-            $$->type = GRARR_TMP;
-            for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = $2->data[i];
-            }
-	}
-	| '-' vexpr %prec UMINUS {
-	    int i;
-            $$ = &freelist[fcnt++];
-	    copy_vrbl($$, $2);
-            $$->type = GRARR_TMP;
-            for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = - $2->data[i];
-            }
-	}
-	;
-
-
-asgn:
-	VAR_D '=' expr
-	{
-	    *($1) = $3;
-	}
-	| array indx '=' expr
-	{
-	    if ($2 >= $1->length) {
-		yyerror("Access beyond array bounds");
-		return 1;
-            }
-            $1->data[$2] = $4;
-	}
-	;
-
-lside_array:
-        array
-        {
-            switch ($1->type) {
-            case GRARR_SET:
-#if 0
-                if (find_set_bydata($1->data, &vasgn_pset) != RETURN_SUCCESS) {
-                    errmsg("Internal error");
-		    return 1;
-                }
-#endif
-                break;
-            case GRARR_VEC:
-                vasgn_pset = NULL;
-                break;
-            default:
-                /* It can NOT be a tmp array on the left side! */
-                errmsg("Internal error");
-	        return 1;
-            }
-            $$ = $1;
-        }
-        ;
-
-vasgn:
-	lside_array '=' vexpr
-	{
-	    int i;
-	    if ($1->length != $3->length) {
-                errmsg("Left and right vectors are of different lengths");
-                return 1;
-            }
-	    for (i = 0; i < $1->length; i++) {
-	        $1->data[i] = $3->data[i];
-	    }
-	}
-	| lside_array '=' expr
-	{
-	    int i;
-	    for (i = 0; i < $1->length; i++) {
-	        $1->data[i] = $3;
-	    }
-	}
-        ;
-
-defines:
-	USE CHRSTR TYPE proctype FROM CHRSTR {
-	    if (load_module($6, $2, $2, $4) != 0) {
-	        yyerror("DL module load failed");
-	    }
-	    xfree($2);
-	    xfree($6);
-	}
-	| USE CHRSTR TYPE proctype FROM CHRSTR ALIAS CHRSTR {
-	    if (load_module($6, $2, $8, $4) != 0) {
-	        yyerror("DL module load failed");
-	    }
-	    xfree($2);
-	    xfree($6);
-	    xfree($8);
 	}
         ;
 
@@ -1789,7 +514,7 @@ parmset:
         | PAGE SIZE nexpr ',' nexpr {
             project_set_page_dimensions(project, $3, $5);
         }
-        | REFERENCE DATE jrawdate {
+        | REFERENCE DATE expr {
             project_set_ref_date(project, $3);
 	}
         | DATE WRAP onoff {
@@ -2429,28 +1154,10 @@ parmset:
         
 	| TYPE xytype {
 	}
-
-/* I/O filters */
-	| DEFINE filtertype CHRSTR filtermethod CHRSTR {
-	    if (add_io_filter($2, $4, $5, $3) != 0) {
-	        yyerror("Failed adding i/o filter");
-	    }
-	    xfree($3);
-	    xfree($5);
-	}
 	;
 
 actions:
-	ECHO CHRSTR {
-	    echomsg($2);
-	    xfree($2);
-	}
-	| ECHO expr {
-	    char buf[32];
-            sprintf(buf, "%g", $2);
-            echomsg(buf);
-	}
-	| selectset HIDDEN onoff {
+	selectset HIDDEN onoff {
 	    quark_set_active($1, !$3);
 	}
         ;
@@ -3397,35 +2104,12 @@ selectregion:
         }
         ;
 
-proctype:
-        KEY_CONST        { $$ = CONSTANT; }
-        | KEY_UNIT      { $$ = UCONSTANT; }
-        | KEY_FUNC_I       { $$ = FUNC_I; }
-	| KEY_FUNC_D       { $$ = FUNC_D; }
-	| KEY_FUNC_ND     { $$ = FUNC_ND; }
-	| KEY_FUNC_NN     { $$ = FUNC_NN; }
-	| KEY_FUNC_DD     { $$ = FUNC_DD; }
-	| KEY_FUNC_NND   { $$ = FUNC_NND; }
-	| KEY_FUNC_PPD   { $$ = FUNC_PPD; }
-	| KEY_FUNC_PPPD { $$ = FUNC_PPPD; }
-	;
-
 tickspectype:
 	NONE { $$ =  TICKS_SPEC_NONE; }
 	| TICKSP { $$ = TICKS_SPEC_MARKS; }
 	| BOTH { $$ = TICKS_SPEC_BOTH; }
 	;
 
-filtertype:
-        IFILTER       { $$ = FILTER_INPUT; }
-	| OFILTER    { $$ = FILTER_OUTPUT; }
-	;
-	
-filtermethod:
-        MAGIC         { $$ = FILTER_MAGIC; }
-	| PATTERN   { $$ = FILTER_PATTERN; }
-	;
-	
 xytype:
 	XY
 	| BAR
@@ -3558,22 +2242,6 @@ signchoice: NORMAL { $$ = SIGN_NORMAL; }
 
 worldview: WORLD { $$ = COORD_WORLD; }
 	| VIEW { $$ = COORD_VIEW; }
-	;
-
-datacolumn: X_TOK { $$ = DATA_X; }
-	| Y_TOK { $$ = DATA_Y; }
-	| X0 { $$ = DATA_X; }
-	| Y0 { $$ = DATA_Y; }
-	| Y1 { $$ = DATA_Y1; }
-	| Y2 { $$ = DATA_Y2; }
-	| Y3 { $$ = DATA_Y3; }
-	| Y4 { $$ = DATA_Y4; }
-	;
-
-stattype: MINP { $$ = MINP; }
-	| MAXP { $$ = MAXP; }
-        | AVG { $$ = AVG; }
-	| SD { $$ = SD; }
 	;
 
 font_select:
@@ -4037,26 +2705,15 @@ opchoice_obs: TOP { $$ = OPPOSITE; }
 %%
 
 /* list of intrinsic functions and keywords */
-symtab_entry ikey[] = {
+symtab_entry key[] = {
 	{"ABOVE", ABOVE, NULL},
-	{"ABS", FUNC_D, (void *) fabs},
 	{"ABSOLUTE", ABSOLUTE, NULL},
-	{"ACOS", FUNC_D, (void *) acos},
-	{"ACOSH", FUNC_D, (void *) acosh},
-	{"AI", FUNC_D, (void *) ai_wrap},
-	{"ALIAS", ALIAS, NULL},
 	{"ALT", ALT, NULL},
 	{"ALTXAXIS", ALTXAXIS, NULL},
 	{"ALTYAXIS", ALTYAXIS, NULL},
-	{"AND", AND, NULL},
 	{"ANGLE", ANGLE, NULL},
 	{"APPEND", APPEND, NULL},
 	{"ARROW", ARROW, NULL},
-	{"ASIN", FUNC_D, (void *) asin},
-	{"ASINH", FUNC_D, (void *) asinh},
-	{"ATAN", FUNC_D, (void *) atan},
-	{"ATAN2", FUNC_DD, (void *) atan2},
-	{"ATANH", FUNC_D, (void *) atanh},
 	{"AUTO", AUTO, NULL},
 	{"AUTOSCALE", AUTOSCALE, NULL},
 	{"AVALUE", AVALUE, NULL},
@@ -4068,32 +2725,18 @@ symtab_entry ikey[] = {
 	{"BASELINE", BASELINE, NULL},
         {"BEGIN", BEGIN, NULL},
 	{"BELOW", BELOW, NULL},
-	{"BETA", FUNC_DD, (void *) beta},
 	{"BETWEEN", BETWEEN, NULL},
-	{"BI", FUNC_D, (void *) bi_wrap},
 	{"BOTH", BOTH, NULL},
 	{"BOTTOM", BOTTOM, NULL},
 	{"BOX", BOX, NULL},
-	{"CEIL", FUNC_D, (void *) ceil},
 	{"CENTER", CENTER, NULL},
 	{"CHAR", CHAR, NULL},
 	{"CHART", CHART, NULL},
-	{"CHDTR", FUNC_DD, (void *) chdtr},
-	{"CHDTRC", FUNC_DD, (void *) chdtrc},
-	{"CHDTRI", FUNC_DD, (void *) chdtri},
-	{"CHI", FUNC_D, (void *) chi_wrap},
 	{"CHRSTR", CHRSTR, NULL},
-	{"CI", FUNC_D, (void *) ci_wrap},
-	{"CLEAR", CLEAR, NULL},
-	{"CLICK", CLICK, NULL},
 	{"CLIP", CLIP, NULL},
 	{"COLOR", COLOR, NULL},
 	{"COMMENT", COMMENT, NULL},
-	{"CONST", KEY_CONST, NULL},
-	{"COS", FUNC_D, (void *) cos},
-	{"COSH", FUNC_D, (void *) cosh},
 	{"DATE", DATE, NULL},
-	{"DAWSN", FUNC_D, (void *) dawsn},
 	{"DAYMONTH", DAYMONTH, NULL},
 	{"DAYOFWEEKL", DAYOFWEEKL, NULL},
 	{"DAYOFWEEKS", DAYOFWEEKS, NULL},
@@ -4102,67 +2745,33 @@ symtab_entry ikey[] = {
 	{"DECIMAL", DECIMAL, NULL},
 	{"DEF", DEF, NULL},
 	{"DEFAULT", DEFAULT, NULL},
-	{"DEFINE", DEFINE, NULL},
-	{"DEG", UCONSTANT, (void *) deg_uconst},
 	{"DEGREESLAT", DEGREESLAT, NULL},
 	{"DEGREESLON", DEGREESLON, NULL},
 	{"DEGREESMMLAT", DEGREESMMLAT, NULL},
 	{"DEGREESMMLON", DEGREESMMLON, NULL},
 	{"DEGREESMMSSLAT", DEGREESMMSSLAT, NULL},
 	{"DEGREESMMSSLON", DEGREESMMSSLON, NULL},
-	{"DESCENDING", DESCENDING, NULL},
 	{"DESCRIPTION", DESCRIPTION, NULL},
 	{"DEVICE", DEVICE, NULL},
 	{"DISK", DISK, NULL},
 	{"DROPLINE", DROPLINE, NULL},
-	{"ECHO", ECHO, NULL},
-	{"ELLIE", FUNC_DD, (void *) ellie},
-	{"ELLIK", FUNC_DD, (void *) ellik},
 	{"ELLIPSE", ELLIPSE, NULL},
-	{"ELLPE", FUNC_D, (void *) ellpe},
-	{"ELLPK", FUNC_D, (void *) ellpk},
 	{"ENGINEERING", ENGINEERING, NULL},
-	{"EQ", EQ, NULL},
 	{"ER", ERRORBAR, NULL},
-	{"ERF", FUNC_D, (void *) erf},
-	{"ERFC", FUNC_D, (void *) erfc},
 	{"ERRORBAR", ERRORBAR, NULL},
-	{"EXP", FUNC_D, (void *) exp},
-	{"EXPN", FUNC_ND, (void *) expn},
 	{"EXPONENTIAL", EXPONENTIAL, NULL},
-	{"FAC", FUNC_I, (void *) fac},
 	{"FALSE", OFF, NULL},
-	{"FDTR", FUNC_NND, (void *) fdtr},
-	{"FDTRC", FUNC_NND, (void *) fdtrc},
-	{"FDTRI", FUNC_NND, (void *) fdtri},
 	{"FILL", FILL, NULL},
 	{"FIXED", FIXED, NULL},
 	{"FIXEDPOINT", FIXEDPOINT, NULL},
-	{"FLOOR", FUNC_D, (void *) floor},
 	{"FONT", FONTP, NULL},
 	{"FORMAT", FORMAT, NULL},
 	{"FORMULA", FORMULA, NULL},
 	{"FRAME", FRAMEP, NULL},
 	{"FREE", FREE, NULL},
-	{"FRESNLC", FUNC_D, (void *) fresnlc_wrap},
-	{"FRESNLS", FUNC_D, (void *) fresnls_wrap},
-	{"FROM", FROM, NULL},
-	{"F_OF_D", KEY_FUNC_D, NULL},
-	{"F_OF_DD", KEY_FUNC_DD, NULL},
-        {"F_OF_I", KEY_FUNC_I, NULL},
-	{"F_OF_ND", KEY_FUNC_ND, NULL},
-	{"F_OF_NN", KEY_FUNC_NN, NULL},
-	{"F_OF_NND", KEY_FUNC_NND, NULL},
-	{"F_OF_PPD", KEY_FUNC_PPD, NULL},
-	{"F_OF_PPPD", KEY_FUNC_PPPD, NULL},
-	{"GAMMA", FUNC_D, (void *) true_gamma},
-	{"GDTR", FUNC_PPD, (void *) gdtr},
-	{"GDTRC", FUNC_PPD, (void *) gdtrc},
-	{"GE", GE, NULL},
 	{"GENERAL", GENERAL, NULL},
 	{"GRAPH", GRAPH, NULL},
 	{"GRID", GRID, NULL},
-	{"GT", GT, NULL},
 	{"HARDCOPY", HARDCOPY, NULL},
 	{"HBAR", HBAR, NULL},
 	{"HGAP", HGAP, NULL},
@@ -4171,62 +2780,33 @@ symtab_entry ikey[] = {
 	{"HORIZI", HORIZI, NULL},
 	{"HORIZO", HORIZO, NULL},
 	{"HORIZONTAL", HORIZONTAL, NULL},
-	{"HYP2F1", FUNC_PPPD, (void *) hyp2f1},
-	{"HYPERG", FUNC_PPD, (void *) hyperg},
-	{"HYPOT", FUNC_DD, (void *) hypot},
-	{"I0E", FUNC_D, (void *) i0e},
-	{"I1E", FUNC_D, (void *) i1e},
-	{"IFILTER", IFILTER, NULL},
-	{"IGAM", FUNC_DD, (void *) igam},
-	{"IGAMC", FUNC_DD, (void *) igamc},
-	{"IGAMI", FUNC_DD, (void *) igami},
 	{"IN", IN, NULL},
-	{"INCBET", FUNC_PPD, (void *) incbet},
-	{"INCBI", FUNC_PPD, (void *) incbi},
 	{"INCREMENT", INCREMENT, NULL},
 	{"INOUT", INOUT, NULL},
 	{"INVERT", INVERT, NULL},
-	{"IRAND", FUNC_I, (void *) irand_wrap},
-	{"IV", FUNC_DD, (void *) iv_wrap},
 	{"JUST", JUST, NULL},
-	{"JV", FUNC_DD, (void *) jv_wrap},
-	{"K0E", FUNC_D, (void *) k0e},
-	{"K1E", FUNC_D, (void *) k1e},
-	{"KILL", KILL, NULL},
-	{"KN", FUNC_ND, (void *) kn_wrap},
 	{"LABEL", LABEL, NULL},
 	{"LANDSCAPE", LANDSCAPE, NULL},
 	{"LAYOUT", LAYOUT, NULL},
-	{"LBETA", FUNC_DD, (void *) lbeta},
-	{"LE", LE, NULL},
 	{"LEFT", LEFT, NULL},
 	{"LEGEND", LEGEND, NULL},
 	{"LENGTH", LENGTH, NULL},
-	{"LGAMMA", FUNC_D, (void *) lgamma},
 	{"LINE", LINE, NULL},
 	{"LINEAR", LINEAR, NULL},
 	{"LINESTYLE", LINESTYLE, NULL},
 	{"LINEWIDTH", LINEWIDTH, NULL},
 	{"LINK", LINK, NULL},
-	{"LN", FUNC_D, (void *) log},
 	{"LOCTYPE", LOCTYPE, NULL},
 	{"LOG", LOG, NULL},
-	{"LOG10", FUNC_D, (void *) log10},
-	{"LOG2", FUNC_D, (void *) log2},
 	{"LOGARITHMIC", LOGARITHMIC, NULL},
 	{"LOGX", LOGX, NULL},
 	{"LOGXY", LOGXY, NULL},
 	{"LOGY", LOGY, NULL},
 	{"LOGIT", LOGIT, NULL},
-	{"LT", LT, NULL},
-	{"MAGIC", MAGIC, NULL},
 	{"MAJOR", MAJOR, NULL},
 	{"MAP", MAP, NULL},
 	{"MAX", MAXP, NULL},
-	{"MAXOF", FUNC_DD, (void *) max_wrap},
-	{"MESH", MESH, NULL},
 	{"MIN", MINP, NULL},
-	{"MINOF", FUNC_DD, (void *) min_wrap},
 	{"MINOR", MINOR, NULL},
 	{"MMDD", MMDD, NULL},
 	{"MMDDHMS", MMDDHMS, NULL},
@@ -4235,37 +2815,25 @@ symtab_entry ikey[] = {
 	{"MMSSLAT", MMSSLAT, NULL},
 	{"MMSSLON", MMSSLON, NULL},
 	{"MMYY", MMYY, NULL},
-	{"MOD", FUNC_DD, (void *) fmod},
 	{"MONTHDAY", MONTHDAY, NULL},
 	{"MONTHL", MONTHL, NULL},
 	{"MONTHS", MONTHS, NULL},
 	{"MONTHSY", MONTHSY, NULL},
-	{"NDTR", FUNC_D, (void *) ndtr},
-	{"NDTRI", FUNC_D, (void *) ndtri},
-	{"NE", NE, NULL},
 	{"NEGATE", NEGATE, NULL},
 	{"NONE", NONE, NULL},
-	{"NORM", FUNC_D, (void *) fx},
 	{"NORMAL", NORMAL, NULL},
-	{"NOT", NOT, NULL},
 	{"OFF", OFF, NULL},
 	{"OFFSET", OFFSET, NULL},
 	{"OFFSETX", OFFSETX, NULL},
 	{"OFFSETY", OFFSETY, NULL},
-	{"OFILTER", OFILTER, NULL},
 	{"ON", ON, NULL},
 	{"OP", OP, NULL},
 	{"OPPOSITE", OPPOSITE, NULL},
-	{"OR", OR, NULL},
 	{"OUT", OUT, NULL},
 	{"PAGE", PAGE, NULL},
 	{"PARA", PARA, NULL},
 	{"PATTERN", PATTERN, NULL},
-	{"PDTR", FUNC_ND, (void *) pdtr},
-	{"PDTRC", FUNC_ND, (void *) pdtrc},
-	{"PDTRI", FUNC_ND, (void *) pdtri},
 	{"PERP", PERP, NULL},
-	{"PI", CONSTANT, (void *) pi_const},
 	{"PIE", PIE, NULL},
 	{"PIPE", PIPE, NULL},
 	{"PLACE", PLACE, NULL},
@@ -4277,16 +2845,10 @@ symtab_entry ikey[] = {
 	{"PREC", PREC, NULL},
 	{"PREPEND", PREPEND, NULL},
 	{"PS", PS, NULL},
-	{"PSI", FUNC_D, (void *) psi},
-	{"RAD", UCONSTANT, (void *) rad_uconst},
-	{"RAND", RAND, NULL},
 	{"RECIPROCAL", RECIPROCAL, NULL},
 	{"REFERENCE", REFERENCE, NULL},
-	{"RGAMMA", FUNC_D, (void *) rgamma},
 	{"RIGHT", RIGHT, NULL},
-	{"RINT", FUNC_D, (void *) rint},
 	{"RISER", RISER, NULL},
-	{"RNORM", FUNC_DD, (void *) rnorm},
 	{"ROT", ROT, NULL},
 	{"ROUNDED", ROUNDED, NULL},
 	{"RULE", RULE, NULL},
@@ -4296,34 +2858,22 @@ symtab_entry ikey[] = {
 	{"SD", SD, NULL},
 	{"SET", SET, NULL},
 	{"SFORMAT", SFORMAT, NULL},
-	{"SHI", FUNC_D, (void *) shi_wrap},
-	{"SI", FUNC_D, (void *) si_wrap},
 	{"SIGN", SIGN, NULL},
-	{"SIN", FUNC_D, (void *) sin},
-	{"SINH", FUNC_D, (void *) sinh},
 	{"SIZE", SIZE, NULL},
 	{"SKIP", SKIP, NULL},
 	{"SMITH", SMITH, NULL},
 	{"SOURCE", SOURCE, NULL},
 	{"SPEC", SPEC, NULL},
-	{"SPENCE", FUNC_D, (void *) spence},
-	{"SQR", FUNC_D, (void *) sqr_wrap},
-	{"SQRT", FUNC_D, (void *) sqrt},
 	{"STACK", STACK, NULL},
 	{"STACKED", STACKED, NULL},
 	{"STACKEDBAR", STACKEDBAR, NULL},
 	{"STACKEDHBAR", STACKEDHBAR, NULL},
 	{"STAGGER", STAGGER, NULL},
 	{"START", START, NULL},
-	{"STDTR", FUNC_ND, (void *) stdtr},
-	{"STDTRI", FUNC_ND, (void *) stdtri},
 	{"STOP", STOP, NULL},
 	{"STRING", STRING, NULL},
-	{"STRUVE", FUNC_DD, (void *) struve},
 	{"SUBTITLE", SUBTITLE, NULL},
 	{"SYMBOL", SYMBOL, NULL},
-	{"TAN", FUNC_D, (void *) tan},
-	{"TANH", FUNC_D, (void *) tanh},
 	{"TARGET", TARGET, NULL},
 	{"TICK", TICKP, NULL},
 	{"TICKLABEL", TICKLABEL, NULL},
@@ -4334,30 +2884,16 @@ symtab_entry ikey[] = {
 	{"TOP", TOP, NULL},
 	{"TRUE", ON, NULL},
 	{"TYPE", TYPE, NULL},
-	{"UNIT", KEY_UNIT, NULL},
 	{"UP", UP, NULL},
-	{"USE", USE, NULL},
 	{"VERSION", VERSION, NULL},
 	{"VERTI", VERTI, NULL},
 	{"VERTICAL", VERTICAL, NULL},
 	{"VERTO", VERTO, NULL},
 	{"VGAP", VGAP, NULL},
 	{"VIEW", VIEW, NULL},
-	{"VX1", VX1, NULL},
-	{"VX2", VX2, NULL},
-	{"VXMAX", VXMAX, NULL},
-	{"VY1", VY1, NULL},
-	{"VY2", VY2, NULL},
-	{"VYMAX", VYMAX, NULL},
 	{"WITH", WITH, NULL},
 	{"WORLD", WORLD, NULL},
 	{"WRAP", WRAP, NULL},
-	{"WX1", WX1, NULL},
-	{"WX2", WX2, NULL},
-	{"WY1", WY1, NULL},
-	{"WY2", WY2, NULL},
-	{"X", X_TOK, NULL},
-	{"X0", X0, NULL},
 	{"X1", X1, NULL},
 	{"XAXES", XAXES, NULL},
 	{"XAXIS", XAXIS, NULL},
@@ -4379,29 +2915,21 @@ symtab_entry ikey[] = {
 	{"XYSTRING", XYSTRING, NULL},
 	{"XYVMAP", XYVMAP, NULL},
 	{"XYZ", XYZ, NULL},
-	{"Y", Y_TOK, NULL},
-	{"Y0", Y0, NULL},
 	{"Y1", Y1, NULL},
-	{"Y2", Y2, NULL},
-	{"Y3", Y3, NULL},
-	{"Y4", Y4, NULL},
 	{"YAXES", YAXES, NULL},
 	{"YAXIS", YAXIS, NULL},
 	{"YEAR", YEAR, NULL},
 	{"YMAX", YMAX, NULL},
 	{"YMIN", YMIN, NULL},
-	{"YV", FUNC_DD, (void *) yv_wrap},
 	{"YYMMDD", YYMMDD, NULL},
 	{"YYMMDDHMS", YYMMDDHMS, NULL},
 	{"ZERO", ZERO, NULL},
 	{"ZEROXAXIS", ALTXAXIS, NULL},
 	{"ZEROYAXIS", ALTYAXIS, NULL},
-	{"ZETA", FUNC_DD, (void *) zeta},
-	{"ZETAC", FUNC_D, (void *) zetac},
 	{"ZNORM", ZNORM, NULL}
 };
 
-static int maxfunc = sizeof(ikey) / sizeof(symtab_entry);
+static int maxfunc = sizeof(key) / sizeof(symtab_entry);
 
 Quark *get_parser_gno(void)
 {
@@ -4433,7 +2961,6 @@ int set_parser_setno(Quark *pset)
         whichset = pset;
         /* those will usually be overridden except when evaluating
            a _standalone_ vexpr */
-        vasgn_pset = pset;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -4573,40 +3100,7 @@ int scanner(const char *s)
 int v_evaluate(char * const formula, char * const varname,
     double *x, unsigned int len)
 {
-    int res, reslen;
-    double *vres;
-    grarr *tvar = get_parser_arr_by_name(varname);
-
-    if (!x || !len) {
-        return RETURN_FAILURE;
-    }
-    
-    if (tvar == NULL) {
-        tvar = define_parser_arr(varname);
-        if (tvar == NULL) {
-            return RETURN_FAILURE;
-        }
-    }
-
-    if (tvar->length != 0) {
-        xfree(tvar->data);
-        tvar->length = 0;
-    }
-    
-    tvar->data = x;
-    tvar->length = len;
-
-    res = v_scanner(formula, &reslen, &vres);
-    if (res != RETURN_SUCCESS || reslen != len) {
-        return RETURN_FAILURE;
-    } else {
-        memcpy(x, vres, len*SIZEOF_DOUBLE);
-        xfree(vres);
-        tvar->data = NULL;
-        tvar->length = 0;
-        
-        return RETURN_SUCCESS;
-    }
+    return RETURN_FAILURE;
 }
 
 static void free_tmpvrbl(grarr *vrbl)
@@ -4617,137 +3111,15 @@ static void free_tmpvrbl(grarr *vrbl)
     }
 }
 
-static void copy_vrbl(grarr *dest, grarr *src)
-{
-    dest->type = src->type;
-    dest->data = xmalloc(src->length*SIZEOF_DOUBLE);
-    if (dest->data == NULL) {
-        errmsg("Malloc failed in copy_vrbl()");
-    } else {
-        memcpy(dest->data, src->data, src->length*SIZEOF_DOUBLE);
-        dest->length = src->length;
-    }
-}
-
-void *get_parser_var_by_name(char * const name, int type)
-{
-    int position;
-    char *s;
-
-    s = copy_string(NULL, name);
-    lowtoupper(s);
-
-    position = findf(key, s);
-    xfree(s);
-
-    if (position >= 0 && key[position].type == type) {
-       return key[position].data;
-    }
-
-    return NULL;
-}
-
 grarr *get_parser_arr_by_name(char * const name)
 {
-    return (grarr *) get_parser_var_by_name(name, KEY_VEC);
+    return NULL;
 }
 
 double *get_parser_scalar_by_name(char * const name)
 {
-    return (double *) get_parser_var_by_name(name, KEY_VAR);
+    return NULL;
 }
-
-double *define_parser_scalar(char * const name)
-{
-    if (get_parser_var_by_name(name, KEY_VAR) == NULL) {
-        symtab_entry tmpkey;
-        double *var;
-
-        var = xmalloc(SIZEOF_DOUBLE);
-        *var = 0.0;
-
-        tmpkey.s = name;
-        tmpkey.type = KEY_VAR;
-        tmpkey.data = (void *) var;
-
-        if (addto_symtab(tmpkey) == RETURN_SUCCESS) {
-            return var;
-        } else {
-            return NULL;
-        }
-    } else {
-        return NULL;
-    }
-}
-
-grarr *define_parser_arr(char * const name)
-{
-     if (get_parser_var_by_name(name, KEY_VEC) == NULL) {
-	symtab_entry tmpkey;
-        grarr *var;
-        
-        var = xmalloc(sizeof(grarr));
-        var->type = GRARR_VEC;
-        var->length = 0;
-        var->data = NULL;
-        
-	tmpkey.s = name;
-	tmpkey.type = KEY_VEC;
-	tmpkey.data = (void *) var;
-	if (addto_symtab(tmpkey) == RETURN_SUCCESS) {
-	    return var;
-	} else {
-            return NULL;
-        }
-     } else {
-        return NULL;
-     }
-}
-
-int undefine_parser_var(void *ptr)
-{
-    int i;
-    
-    for (i = 0; i < maxfunc; i++) {
-	if (key[i].data == ptr) {
-            xfree(key[i].s);
-            maxfunc--;
-            if (i != maxfunc) {
-                memmove(&(key[i]), &(key[i + 1]), (maxfunc - i)*sizeof(symtab_entry));
-            }
-            key = xrealloc(key, maxfunc*sizeof(symtab_entry));
-            return RETURN_SUCCESS;
-        }
-    }
-    return RETURN_FAILURE;
-}
-
-#if 0
-static int find_set_bydata(double *data, Quark **pset)
-{
-    if (data == NULL) {
-        return RETURN_FAILURE;
-    } else {
-	int gno;
-        int ngraphs = number_of_graphs(project);
-        for (gno = 0; gno < ngraphs; gno++) {
-	    int setno;
-            int nsets = quark_get_number_of_descendant_sets(gno);
-	    for (setno = 0; setno < nsets; setno++) {
-                int ncol;
-                for (ncol = 0; ncol < MAX_SET_COLS; ncol++) {
-                    if (set_get_col(gno, setno, ncol) == data) {
-                        tgt->gno   = gno;
-                        tgt->setno = setno;
-                        return RETURN_SUCCESS;
-                    }
-                }
-	    }
-	}
-    }
-    return RETURN_FAILURE;
-}
-#endif
 
 static int findf(symtab_entry *keytable, char *s)
 {
@@ -4769,61 +3141,6 @@ static int findf(symtab_entry *keytable, char *s)
 	}
     }
     return (-1);
-}
-
-static int compare_keys (const void *a, const void *b)
-{
-    return (int) strcmp (((const symtab_entry*)a)->s,
-                         ((const symtab_entry*)b)->s);
-}
-
-/* add new entry to the symbol table */
-int addto_symtab(symtab_entry newkey)
-{
-    int position;
-    char *s;
-    
-    s = copy_string(NULL, newkey.s);
-    lowtoupper(s);
-    if ((position = findf(key, s)) < 0) {
-        if ((key = (symtab_entry *) xrealloc(key, (maxfunc + 1)*sizeof(symtab_entry))) != NULL) {
-	    key[maxfunc].type = newkey.type;
-	    key[maxfunc].data = newkey.data;
-	    key[maxfunc].s = s;
-	    maxfunc++;
-	    qsort(key, maxfunc, sizeof(symtab_entry), compare_keys);
-	    return RETURN_SUCCESS;
-	} else {
-	    xfree(s);
-	    return RETURN_FAILURE;
-	}
-    } else if (alias_force == TRUE) { /* already exists but alias_force enabled */
-        key[position].type = newkey.type;
-	key[position].data = newkey.data;
-	return RETURN_SUCCESS;
-    } else {
-	xfree(s);
-        return RETURN_FAILURE;
-    }
-}
-
-/* initialize symbol table */
-void init_symtab(void)
-{
-    int i;
-    
-    if ((key = (symtab_entry *) xmalloc(maxfunc*sizeof(symtab_entry))) != NULL) {
-    	memcpy (key, ikey, maxfunc*sizeof(symtab_entry));
-	for (i = 0; i < maxfunc; i++) {
-	    key[i].s = xmalloc(strlen(ikey[i].s) + 1);
-	    strcpy(key[i].s, ikey[i].s);
-	}
-	qsort(key, maxfunc, sizeof(symtab_entry), compare_keys);
-	return;
-    } else {
-	key = ikey;
-	return;
-    }
 }
 
 static int getcharstr(void)
@@ -4958,89 +3275,11 @@ static int yylex(void)
 	*p = '\0';
 	found = -1;
 	if ((found = findf(key, sbuf)) >= 0) {
-	    if (key[found].type == KEY_VAR) {
-		yylval.dptr = (double *) key[found].data;
-		return VAR_D;
-	    }
-	    else if (key[found].type == KEY_VEC) {
-		yylval.vrbl = (grarr *) key[found].data;
-		return VEC_D;
-	    }
-
-	    else if (key[found].type == FUNC_I) {
-		yylval.ival = found;
-		return FUNC_I;
-	    }
-	    else if (key[found].type == CONSTANT) {
-		yylval.ival = found;
-		return CONSTANT;
-	    }
-	    else if (key[found].type == UCONSTANT) {
-		yylval.ival = found;
-		return UCONSTANT;
-	    }
-	    else if (key[found].type == FUNC_D) {
-		yylval.ival = found;
-		return FUNC_D;
-	    }
-	    else if (key[found].type == FUNC_ND) {
-		yylval.ival = found;
-		return FUNC_ND;
-	    }
-	    else if (key[found].type == FUNC_DD) {
-		yylval.ival = found;
-		return FUNC_DD;
-	    }
-	    else if (key[found].type == FUNC_NND) {
-		yylval.ival = found;
-		return FUNC_NND;
-	    }
-	    else if (key[found].type == FUNC_PPD) {
-		yylval.ival = found;
-		return FUNC_PPD;
-	    }
-	    else if (key[found].type == FUNC_PPPD) {
-		yylval.ival = found;
-		return FUNC_PPPD;
-	    }
-	    else {
-	        yylval.ival = key[found].type;
-	        return key[found].type;
-	    }
-	} else {
-	    yylval.sval = copy_string(NULL, sbuf);
-	    return NEW_TOKEN;
+	    yylval.ival = key[found].type;
+	    return key[found].type;
 	}
     }
-    switch (c) {
-    case '>':
-	return follow('=', GE, GT);
-    case '<':
-	return follow('=', LE, LT);
-    case '=':
-	return follow('=', EQ, '=');
-    case '!':
-	return follow('=', NE, NOT);
-    case '|':
-	return follow('|', OR, '|');
-    case '&':
-	return follow('&', AND, '&');
-    case '\n':
-	return '\n';
-    default:
-	return c;
-    }
-}
-
-static int follow(int expect, int ifyes, int ifno)
-{
-    int c = getcharstr();
-
-    if (c == expect) {
-	return ifyes;
-    }
-    ungetchstr();
-    return ifno;
+    return c;
 }
 
 static void yyerror(char *s)

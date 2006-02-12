@@ -1461,7 +1461,7 @@ int do_runavg(Quark *psrc, Quark *pdest,
     
     t = get_parser_arr_by_name("$t");
     if (t == NULL) {
-        t = define_parser_arr("$t");
+        // t = define_parser_arr("$t");
         if (t == NULL) {
             errmsg("Internal error");
             return RETURN_FAILURE;

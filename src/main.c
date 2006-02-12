@@ -98,12 +98,6 @@ int main(int argc, char *argv[])
         exit(1);
     }
     
-    /* initialize the parser symbol table */
-    init_symtab();
-    
-    /* initialize the rng */
-    srand48(100L);
-    
     /*
      * if program name is gracebat* then don't initialize the X toolkit
      */
