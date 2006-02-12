@@ -5624,8 +5624,6 @@ symtab_entry ikey[] = {
 	{"YYMMDD", YYMMDD, NULL},
 	{"YYMMDDHMS", YYMMDDHMS, NULL},
 	{"ZERO", ZERO, NULL},
-	{"ZEROXAXIS", ALTXAXIS, NULL},
-	{"ZEROYAXIS", ALTYAXIS, NULL},
 	{"ZETA", FUNC_DD, (void *) zeta},
 	{"ZETAC", FUNC_D, (void *) zetac},
 	{"ZNORM", ZNORM, NULL}
