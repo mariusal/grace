@@ -2402,8 +2402,8 @@ parmset:
 	}
 	| selectgraph FIXEDPOINT PREC expr ',' expr {
             GLocator *gloc = graph_get_locator($1);
-	    gloc->fx.prec1 = $4;
-	    gloc->fy.prec1 = $6;
+	    gloc->fx.prec = $4;
+	    gloc->fy.prec = $6;
 	}
 	| selectgraph FIXEDPOINT XY expr ',' expr {
             GLocator *gloc = graph_get_locator($1);
@@ -2767,7 +2767,7 @@ setprop:
 	| selectset AVALUE PREC nexpr
         {
 	    set *p = set_get_data($1);
-	    p->avalue.format.prec1 = $4;
+	    p->avalue.format.prec = $4;
 	}
 	| selectset AVALUE OFFSET expr ',' expr {
 	    set *p = set_get_data($1);
@@ -2986,7 +2986,7 @@ ticklabelattr:
             xfree($2);
 	}
 	| PREC nexpr {
-	    curtm->tl_format.prec1 = $2;
+	    curtm->tl_format.prec = $2;
 	}
 	| APPEND CHRSTR {
 	    AMem *amem = quark_get_amem(whichaxisgrid);

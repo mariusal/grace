@@ -56,7 +56,7 @@ static void set_default_ticks(Quark *q)
     t->nminor = 1;
     t->t_round = TRUE;
     t->tl_format.type = FORMAT_GENERAL;
-    t->tl_format.prec1 = 5;
+    t->tl_format.prec = 5;
     t->tl_format.fstring = NULL;
     t->tl_formula = NULL;
 

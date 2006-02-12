@@ -3347,7 +3347,7 @@ static void format_call_cb(FormatStructure *fstr)
     if (fstr->cb_proc) {
         Format format;
         format.type    = GetOptionChoice(fstr->type);
-        format.prec1   = GetOptionChoice(fstr->prec);
+        format.prec   = GetOptionChoice(fstr->prec);
         format.fstring = GetTextString(fstr->fstring);
         
         fstr->cb_proc(fstr, &format, fstr->cb_data);
@@ -3404,7 +3404,7 @@ FormatStructure *CreateFormatChoice(Widget parent)
 void SetFormatChoice(FormatStructure *fstr, const Format *format)
 {
     SetOptionChoice(fstr->type, format->type);
-    SetOptionChoice(fstr->prec, format->prec1);
+    SetOptionChoice(fstr->prec, format->prec);
     SetTextString(fstr->fstring, format->fstring);
     SetSensitive(fstr->fstring->form,
         format->type == FORMAT_DATETIME || format->type == FORMAT_GEOGRAPHIC);
@@ -3415,7 +3415,7 @@ Format *GetFormatChoice(FormatStructure *fstr)
     Format *format = format_new();
     if (format) {
         format->type    = GetOptionChoice(fstr->type);
-        format->prec1   = GetOptionChoice(fstr->prec);
+        format->prec   = GetOptionChoice(fstr->prec);
         format->fstring = GetTextString(fstr->fstring);
     }
     

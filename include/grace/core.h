@@ -312,7 +312,7 @@ typedef enum {
 /* Format */
 typedef struct {
     FormatType type;
-    int prec1;
+    int prec;
     char *fstring;
 } Format;
 

@@ -206,22 +206,22 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
     strcpy(format, "%.*lf");
     switch (form->type) {
     case FORMAT_DECIMAL:
-        sprintf(s, format, form->prec1, loc);
+        sprintf(s, format, form->prec, loc);
         tmp = atof(s);          /* fix reverse axes problem when loc == -0.0 */
         if (tmp == 0.0) {
             strcpy(format, "%.*lf");
             loc = 0.0;
-            sprintf(s, format, form->prec1, loc);
+            sprintf(s, format, form->prec, loc);
         }
         break;
     case FORMAT_EXPONENTIAL:
         strcpy(format, "%.*le");
-        sprintf(s, format, form->prec1, loc);
+        sprintf(s, format, form->prec, loc);
         tmp = atof(s);          /* fix reverse axes problem when loc == -0.0 */
         if (tmp == 0.0) {
             strcpy(format, "%.*le");
             loc = 0.0;
-            sprintf(s, format, form->prec1, loc);
+            sprintf(s, format, form->prec, loc);
         }
         break;
     case FORMAT_SCIENTIFIC:
@@ -233,10 +233,10 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
             } else {
                 strcpy(format, "%.*fx10(%d)");
             }
-            sprintf(s, format, form->prec1, mantissa, exponent);
+            sprintf(s, format, form->prec, mantissa, exponent);
         } else {
             strcpy(format, "%.*f");
-            sprintf(s, format, form->prec1, 0.0);
+            sprintf(s, format, form->prec, 0.0);
         }
         break;
     case FORMAT_ENGINEERING:
@@ -298,7 +298,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
             break;
         }
         strcpy(format, "%.*f %s");
-        sprintf(s, format, form->prec1, loc/(pow(10.0, exponent)), eng_prefix);
+        sprintf(s, format, form->prec, loc/(pow(10.0, exponent)), eng_prefix);
         break;
     case FORMAT_POWER:
         if (loc < 0.0) {
@@ -309,7 +309,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
                 strcpy(format, "-10(%.*lf)\\N");
             }
         } else if (loc == 0.0) {
-            sprintf(format, "%.*f", form->prec1, 0.0);
+            sprintf(format, "%.*f", form->prec, 0.0);
         } else {
             loc = log10(loc);
             if (type == LFORMAT_TYPE_EXTENDED) {
@@ -318,11 +318,11 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
                 strcpy(format, "10(%.*lf)\\N");
             }
         }
-        sprintf(s, format, form->prec1, loc);
+        sprintf(s, format, form->prec, loc);
         break;
     case FORMAT_GENERAL:
         strcpy(format, "%.*lg");
-        sprintf(s, format, form->prec1, loc);
+        sprintf(s, format, form->prec, loc);
         tmp = atof(s);
         if (tmp == 0.0) {
             strcpy(format, "%lg");
@@ -358,7 +358,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
     case FORMAT_GEOGRAPHIC:
         if (!string_is_empty(form->fstring)) {
             if (strfgeo(s, MAX_STRING_LENGTH - 1, form->fstring, loc,
-                form->prec1) <= 0) {
+                form->prec) <= 0) {
                 s[0] = '\0';
             }
         } else {
@@ -366,7 +366,7 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
         }
         break;
     default:
-        sprintf(s, format, form->prec1, loc);
+        sprintf(s, format, form->prec, loc);
         break;
     }
 

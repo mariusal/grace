@@ -63,7 +63,7 @@ static void set_default_graph(graph *g)
     g->locator.origin.x = g->locator.origin.y = 0.0;
     g->locator.pointset = FALSE;
     g->locator.fx.type = FORMAT_GENERAL;
-    g->locator.fx.prec1 = 6;
+    g->locator.fx.prec = 6;
     g->locator.fx.fstring = NULL;
     g->locator.fy = g->locator.fx;
 
