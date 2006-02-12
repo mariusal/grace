@@ -267,6 +267,7 @@ void quark_dirtystate_set(Quark *q, int flag)
 {
     if (flag) {
         q->dirtystate++;
+        q->statestamp++;
         quark_call_cblist(q, QUARK_ETYPE_MODIFY);
         if (q->parent) {
             quark_dirtystate_set(q->parent, TRUE);
@@ -280,6 +281,11 @@ void quark_dirtystate_set(Quark *q, int flag)
 int quark_dirtystate_get(const Quark *q)
 {
     return q->dirtystate;
+}
+
+unsigned int quark_get_statestamp(const Quark *q)
+{
+    return q->statestamp;
 }
 
 int quark_set_active(Quark *q, int onoff)

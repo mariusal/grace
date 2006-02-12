@@ -54,19 +54,21 @@ struct _Quark {
     unsigned int fid;
     char *idstr;
     
-    int active;
+    int active;              /* on/off flag             */
     
     struct _Quark *parent;
     Storage *children;
-    unsigned int dirtystate;
     unsigned int refcount;
+
+    unsigned int dirtystate;
+    unsigned int statestamp;
     
-    void *data;
+    void *data;              /* the actual payload      */
     
-    unsigned int cbcount;
+    unsigned int cbcount;    /* user-supplied callbacks */
     QuarkCBEntry *cblist;
     
-    void *udata;
+    void *udata;             /* user data               */
 };
 
 Project *project_data_new(AMem *amem);

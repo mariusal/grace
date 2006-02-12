@@ -719,6 +719,8 @@ Quark *quark_parent_get(const Quark *q);
 void quark_dirtystate_set(Quark *q, int flag);
 int quark_dirtystate_get(const Quark *q);
 
+unsigned int quark_get_statestamp(const Quark *q);
+
 int quark_idstr_set(Quark *q, const char *s);
 char *quark_idstr_get(const Quark *q);
 int quark_fid_set(Quark *q, int fid);
