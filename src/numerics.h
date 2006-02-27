@@ -36,16 +36,6 @@
 
 #include "grace.h"
 
-typedef struct {
-    unsigned int size;
-    double *x;
-    int allocated;
-} DArray;
-
-/* darray.c */
-DArray *darray_new(unsigned int size);
-void darray_free(DArray *da);
-
 int darray_min(const DArray *da, double *val);
 int darray_max(const DArray *da, double *val);
 int darray_avg(const DArray *da, double *val);

@@ -33,32 +33,6 @@
  
 #include "numerics.h"
 
-DArray *darray_new(unsigned int size)
-{
-    DArray *da = xmalloc(sizeof(DArray));
-    if (da) {
-        da->x = xmalloc(size*SIZEOF_DOUBLE);
-        if (!da->x) {
-            XCFREE(da);
-        } else {
-            da->size = size;
-            da->allocated = TRUE;
-        }
-    }
-    
-    return da;
-}
-
-void darray_free(DArray *da)
-{
-    if (da) {
-        if (da->allocated) {
-            xfree(da->x);
-        }
-        xfree(da);
-    }
-}
-
 int darray_min(const DArray *da, double *val)
 {
     unsigned int i;

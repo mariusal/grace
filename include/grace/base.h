@@ -178,6 +178,17 @@ int dict_get_name_by_key(const Dictionary *dict, int key, char **name);
 int dict_get_descr_by_key(const Dictionary *dict, int key, char **descr);
 
 
+/* Double precision arrays */
+typedef struct {
+    unsigned int size;
+    double *x;
+    int allocated;
+} DArray;
+
+DArray *darray_new(unsigned int size);
+void darray_free(DArray *da);
+
+
 /*
  *
  * DLL (Double Linked List) data storage
