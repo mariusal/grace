@@ -6,11 +6,13 @@ include $(TOP)/Make.conf
 
 .SUFFIXES : .c $(O)
 
+all : library
+
 include Make.defs
 
 CFLAGS=$(CFLAGS0) -I$(TOP)/include $(CPPFLAGS) $(EXTRAFLAGS)
 
-all : $(LIB)
+library : $(LIB)
 
 $(OBJS) : $(TOP)/include/config.h
 include Make.dep
@@ -35,7 +37,7 @@ clean :
 	$(RM) $(LIB) $(OBJS)
 
 distclean : clean
-	$(RM) *.orig
+	$(RM) $(GSRCS) *.orig
 
 devclean : distclean
 	$(RM) Make.dep

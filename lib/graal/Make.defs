@@ -1,0 +1,25 @@
+##################################################
+#     System-independent Make.defs file for      #
+#             grace-graal library                #
+##################################################
+
+LIB  = $(GRACE_GRAAL_LIB)
+
+SCANNER_C = scanner.c
+PARSER_C = parser.c
+
+GSRCS = $(SCANNER_C) \
+	$(PARSER_C)
+
+SRCS = 	$(GSRCS) graal.c
+
+OBJS = 	scanner$(O) \
+	parser$(O) \
+	graal$(O)
+
+
+$(SCANNER_C) : graal.l
+	flex -o $@ --header-file=scanner.h $?
+
+$(PARSER_C) : graal.y
+	bison -y -d -o $@ $?
