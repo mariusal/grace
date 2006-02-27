@@ -181,12 +181,20 @@ int dict_get_descr_by_key(const Dictionary *dict, int key, char **descr);
 /* Double precision arrays */
 typedef struct {
     unsigned int size;
+    unsigned int asize; /* allocated size */
     double *x;
     int allocated;
 } DArray;
 
 DArray *darray_new(unsigned int size);
 void darray_free(DArray *da);
+
+int darray_set_val(DArray *da, unsigned int i, double val);
+int darray_append_val(DArray *da, double val);
+
+DArray *darray_copy(const DArray *da);
+int darray_add_val(DArray *da, double val);
+int darray_mul_val(DArray *da, double val);
 
 
 /*
