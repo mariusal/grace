@@ -9,6 +9,8 @@
 #define YYPARSE_PARAM scanner
 #define YYLEX_PARAM   scanner
 
+#define REGISTER_DARR(da)   graal_register_darr(yyget_extra(scanner), da)
+
 void yyerror(char *s)
 {
     errmsg(s);
@@ -42,8 +44,7 @@ void yyerror(char *s)
 
 %%
 input:	/* empty */
-	|   input line
-        |   array
+	|   input line { graal_free_darrs(yyget_extra(scanner)); }
 	;
 
 line:	'\n'
@@ -99,7 +100,10 @@ list:	    /* empty */ {
             }
 	|   expr {
                 $$ = darray_new(1);
-                darray_set_val($$, 0, $1);
+                if ($$) {
+                    REGISTER_DARR($$);
+                    darray_set_val($$, 0, $1);
+                }
             }
 	|   list ',' expr {
                 darray_append_val($1, $3);
@@ -115,12 +119,14 @@ vexpr:      array { $$ = $1; }
         |   vexpr '+' expr {
                 $$ = darray_copy($1);
                 if ($$) {
+                    REGISTER_DARR($$);
                     darray_add_val($$, $3);
                 }
             }
         |   vexpr '-' expr {
                 $$ = darray_copy($1);
                 if ($$) {
+                    REGISTER_DARR($$);
                     darray_add_val($$, -$3);
                 }
             }
@@ -133,12 +139,14 @@ vexpr:      array { $$ = $1; }
         |   expr '*' vexpr {
                 $$ = darray_copy($3);
                 if ($$) {
+                    REGISTER_DARR($$);
                     darray_mul_val($$, $1);
                 }
             }
         |   vexpr '/' expr {
                 $$ = darray_copy($1);
                 if ($$) {
+                    REGISTER_DARR($$);
                     if ($3 == 0.0) {
 	                yyerror("divide by zero");
                     } else {
@@ -150,6 +158,9 @@ vexpr:      array { $$ = $1; }
                 DArray *da;
                 gvar_get_arr($1, &da);
                 $$ = darray_copy(da);
+                if ($$) {
+                    REGISTER_DARR($$);
+                }
             }
         ;
 %%

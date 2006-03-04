@@ -17,6 +17,7 @@ void graal_free(Graal *g)
 {
     if (g) {
         graal_scanner_delete(g);
+        graal_free_darrs(g);
         xfree(g);
     }
 }
@@ -113,10 +114,36 @@ int gvar_set_arr(GVar *var, DArray *da)
     if (var && (var->type == GVarNil || var->type == GVarArr)) {
         var->type = GVarArr;
         darray_free(var->data.arr);
-        var->data.arr = da;
+        var->data.arr = darray_copy(da);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
 }
 
+int graal_register_darr(Graal *g, DArray *da)
+{
+    void *p;
+    p = xrealloc(g->darrs, (g->ndarrs + 1)*SIZEOF_VOID_P);
+    if (!p) {
+        darray_free(da);
+        
+        return RETURN_FAILURE;
+    } else {
+        g->darrs = p;
+        g->darrs[g->ndarrs] = da;
+        g->ndarrs++;
+        
+        return RETURN_SUCCESS;
+    }
+}
+
+void graal_free_darrs(Graal *g)
+{
+    while (g->ndarrs) {
+        g->ndarrs--;
+        darray_free(g->darrs[g->ndarrs]);
+    }
+    g->ndarrs = 0;
+    XCFREE(g->darrs);
+}

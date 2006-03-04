@@ -57,6 +57,9 @@ typedef struct {
 typedef struct {
     void *scanner;
     
+    DArray **darrs;
+    unsigned int ndarrs;
+    
     GVar **vars;
     unsigned int nvars;
     
@@ -71,6 +74,9 @@ Graal *graal_new(void);
 void graal_free(Graal *g);
 void graal_parse(Graal *g, const char *s);
 void graal_parse_line(Graal *g, const char *s);
+
+int graal_register_darr(Graal *g, DArray *da);
+void graal_free_darrs(Graal *g);
 
 GVar *graal_get_var(Graal *g, const char *name);
 
