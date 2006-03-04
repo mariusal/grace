@@ -70,6 +70,16 @@ int darray_set_val(DArray *da, unsigned int i, double val)
     }
 }
 
+int darray_get_val(const DArray *da, unsigned int i, double *val)
+{
+    if (da && i < da->size) {
+        *val = da->x[i];
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 int darray_append_val(DArray *da, double val)
 {
     if (!da || !da->allocated) {

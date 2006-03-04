@@ -191,6 +191,7 @@ void darray_free(DArray *da);
 
 int darray_set_val(DArray *da, unsigned int i, double val);
 int darray_append_val(DArray *da, double val);
+int darray_get_val(const DArray *da, unsigned int i, double *val);
 
 DArray *darray_copy(const DArray *da);
 int darray_add_val(DArray *da, double val);
