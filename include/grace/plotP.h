@@ -35,6 +35,7 @@
 
 typedef struct {
     Canvas *canvas;
+    Graal  *graal;
 
     int refn;
     double *refx, *refy;
@@ -77,7 +78,7 @@ void drawerrorbar(Canvas *canvas,
 
 void draw_region(Canvas *canvas, Quark *q);
 
-void draw_axisgrid(Canvas *canvas, Quark *q);
+void draw_axisgrid(Quark *q, plot_rt_t *plot_rt);
 void draw_axis(Canvas *canvas, Quark *q);
 void draw_object(Canvas *canvas, Quark *q);
 void draw_atext(Canvas *canvas, Quark *q);

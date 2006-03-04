@@ -29,11 +29,12 @@
 #define __PLOT_H_
 
 #include "grace/core.h"
+#include "grace/graal.h"
 
 #define LFORMAT_TYPE_PLAIN      0
 #define LFORMAT_TYPE_EXTENDED   1
 
-int drawgraph(Canvas *canvas, const Quark *project);
+int drawgraph(Canvas *canvas, Graal *g, const Quark *project);
 
 char *create_fstring(const Quark *q, const Format *form, double loc, int type);
 

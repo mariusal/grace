@@ -99,7 +99,7 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
         draw_set(q, plot_rt);
         break;
     case QFlavorAGrid:
-        draw_axisgrid(canvas, q);
+        draw_axisgrid(q, plot_rt);
         break;
     case QFlavorAxis:
         draw_axis(canvas, q);
@@ -118,25 +118,33 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
+typedef struct {
+    Quark *project;
+    Graal *graal;
+} plot_data;
+
 static void dproc(Canvas *canvas, void *data)
 {
-    Quark *project = (Quark *) data;
+    plot_data *pdata = (plot_data *) data;
     plot_rt_t plot_rt;
     
     plot_rt.canvas = canvas;
+    plot_rt.graal  = pdata->graal;
 
-    quark_traverse(project, plotone_hook, &plot_rt);
+    quark_traverse(pdata->project, plotone_hook, &plot_rt);
 }
 
 /*
  * draw all active graphs
  */
-int drawgraph(Canvas *canvas, const Quark *project)
+int drawgraph(Canvas *canvas, Graal *g, const Quark *project)
 {
     Project *pr = project_get_data(project);
 
     if (pr) {
+        plot_data pdata;
         int i;
+        
         canvas_set_udata(canvas, (Quark *) project);
         canvas_set_docname(canvas, project_get_docname(project));
 
@@ -152,7 +160,10 @@ int drawgraph(Canvas *canvas, const Quark *project)
         canvas_set_fontsize_scale(canvas,  pr->fscale);
         canvas_set_linewidth_scale(canvas, pr->lscale);
 
-        return canvas_draw(canvas, dproc, (void *) project);
+        pdata.project = (Quark *) project;
+        pdata.graal   = g;
+        
+        return canvas_draw(canvas, dproc, &pdata);
     } else {
         return RETURN_FAILURE;
     }

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -37,8 +37,9 @@
 
 #include "grace/plotP.h"
 
-static void drawgrid(Canvas *canvas, Quark *q)
+static void drawgrid(Quark *q, plot_rt_t *plot_rt)
 {
+    Canvas *canvas = plot_rt->canvas;
     Quark *gr;
     tickmarks *t;
     tickprops tprops;
@@ -484,12 +485,9 @@ void draw_axis(Canvas *canvas, Quark *qa)
     axis_set_bb(qa, &bb);
 }
 
-/* FIXME!!! */
-extern int v_evaluate(char * const formula, char * const varname,
-    double *x, unsigned int len);
-
-static void calculate_tickgrid(Quark *q)
+static void calculate_tickgrid(Quark *q, plot_rt_t *plot_rt)
 {
+    Graal *g = plot_rt->graal;
     Quark *gr;
     int itick, imtick, itmaj;
     int nmajor;
@@ -597,34 +595,35 @@ reenter:
             }
         }
         if (!string_is_empty(t->tl_formula)) {
-            double *tt = xmalloc(nmajor*SIZEOF_DOUBLE);
+            DArray *da = darray_new(nmajor);
 
-            itmaj = 0;
-            for (itick = 0; itick < t->nticks; itick++) {
+            for (itick = 0, itmaj = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
-                    tt[itmaj] = t->tloc[itick].wtpos;
+                    darray_set_val(da, itmaj, t->tloc[itick].wtpos);
                     itmaj++;
                 }
             }
 
-            res = v_evaluate(t->tl_formula, "$t", tt, nmajor);
+            res = graal_transform_arr(g, t->tl_formula, "$t", da);
             if (res != RETURN_SUCCESS) {
                 errmsg("Error in tick transformation formula");
+                darray_free(da);
                 return;
             }
 
-            itmaj = 0;
-            for (itick = 0; itick < t->nticks; itick++) {
+            for (itick = 0, itmaj = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
+                    darray_get_val(da, itmaj, &wtmaj);
                     t->tloc[itick].label = amem_strcpy(amem,
                         t->tloc[itick].label, 
                         create_fstring(get_parent_project(q),
                             &t->tl_format,
-                            tt[itmaj], LFORMAT_TYPE_EXTENDED));
+                            wtmaj, LFORMAT_TYPE_EXTENDED));
                     itmaj++;
                 }
             }
-            xfree(tt);
+            
+            darray_free(da);
         } else {
             for (itick = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
@@ -639,14 +638,14 @@ reenter:
     }
 }
 
-void draw_axisgrid(Canvas *canvas, Quark *q)
+void draw_axisgrid(Quark *q, plot_rt_t *plot_rt)
 {
     tickmarks *t = axisgrid_get_data(q);
     if (t && graph_get_type(get_parent_graph(q)) != GRAPH_PIE) {
         /* calculate tick mark positions */
-        calculate_tickgrid(q);
+        calculate_tickgrid(q, plot_rt);
         
         /* draw grid lines */
-        drawgrid(canvas, q);
+        drawgrid(q, plot_rt);
     }
 }
