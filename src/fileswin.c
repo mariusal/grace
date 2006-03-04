@@ -167,6 +167,8 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
                 0, 0, pg->width, pg->height, ui->x_offset, ui->y_offset);
             
             ui->preview_ok = TRUE;
+            
+            quark_free(project);
         }
     }
     XtFree(filename);
