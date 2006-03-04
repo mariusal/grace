@@ -32,7 +32,7 @@
 #ifndef __GRAAL_H_
 #define __GRAAL_H_
 
-#include "grace/core.h"
+#include "grace/base.h"
 
 typedef enum {
     GVarNil,
@@ -74,6 +74,9 @@ Graal *graal_new(void);
 void graal_free(Graal *g);
 void graal_parse(Graal *g, const char *s);
 void graal_parse_line(Graal *g, const char *s);
+
+int graal_transform_arr(Graal *g,
+    const char *formula, const char *varname, DArray *da);
 
 int graal_register_darr(Graal *g, DArray *da);
 void graal_free_darrs(Graal *g);

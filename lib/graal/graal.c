@@ -147,3 +147,35 @@ void graal_free_darrs(Graal *g)
     g->ndarrs = 0;
     XCFREE(g->darrs);
 }
+
+int graal_transform_arr(Graal *g,
+    const char *formula, const char *varname, DArray *da)
+{
+    GVar *var = graal_get_var(g, varname);
+    if (var) {
+        DArray *res;
+        char *buf;
+        
+        gvar_set_arr(var, da);
+        
+        buf = copy_string(NULL, varname);
+        buf = concat_strings(buf, " = ");
+        buf = concat_strings(buf, formula);
+        
+        graal_parse_line(g, buf);
+        
+        xfree(buf);
+        
+        var = graal_get_var(g, varname);
+        if (var && gvar_get_arr(var, &res) == RETURN_SUCCESS &&
+            res->size == da->size) {
+            memcpy(da->x, res->x, da->size*SIZEOF_DOUBLE);
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
