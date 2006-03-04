@@ -41,7 +41,6 @@
 
 #include "globals.h"
 #include "files.h"
-#include "parser.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -268,7 +267,7 @@ static void cmd_cb(TextStructure *cst, char *s, void *data)
     ui->eohistory = TRUE;
     
     if (!string_is_empty(s)) {
-        scanner(s);
+        graal_parse_line(grace->rt->graal, s);
         
         if (ui->auto_redraw) {
             xdrawgraph(grace->project);

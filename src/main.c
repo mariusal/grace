@@ -48,7 +48,6 @@
 #include "dicts.h"
 
 #include "devlist.h"
-#include "parser.h"
 #include "protos.h"
 
 

@@ -1122,7 +1122,6 @@ Quark *load_agr_project(Grace *grace, char *fn)
     if (retval == RETURN_SUCCESS) {
         return project;
     } else {
-        parser_state_reset(grace->project);
         quark_free(project);
         
         return NULL;

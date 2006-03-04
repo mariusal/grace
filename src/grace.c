@@ -40,7 +40,6 @@
 #include "utils.h"
 #include "dicts.h"
 #include "core_utils.h"
-#include "parser.h"
 #include "protos.h"
 
 GUI *gui_new(Grace *grace)
@@ -422,7 +421,7 @@ int grace_set_project(Grace *grace, Quark *project)
         
         quark_free(grace->project);
         grace->project = project;
-        parser_state_reset(project);
+        /* reset graal ? */
         
         /* Set dimensions of all devices */
         set_page_dimensions(grace, pr->page_wpp, pr->page_hpp, TRUE);

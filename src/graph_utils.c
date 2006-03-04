@@ -38,7 +38,6 @@
 
 #include "grace.h"
 #include "core_utils.h"
-#include "parser.h"
 #include "protos.h"
 
 static int graph_count_hook(Quark *q, void *udata, QTraverseClosure *closure)
@@ -113,7 +112,6 @@ int select_graph(Quark *gr)
     if (quark_is_active(gr)) {
         Project *pr = project_get_data(get_parent_project(gr));
         if (pr) {
-            set_parser_gno(gr);
             pr->cg = gr;
 
             return RETURN_SUCCESS;
