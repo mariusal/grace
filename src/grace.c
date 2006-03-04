@@ -160,6 +160,12 @@ RunTime *runtime_new(Grace *grace)
     canvas_set_fmap_proc(rt->canvas, fmap_proc);
     canvas_set_csparse_proc(rt->canvas, csparse_proc);
     
+    rt->graal = graal_new();
+    if (!rt->graal) {
+        runtime_free(rt);
+        return NULL;
+    }
+    
     rt->safe_mode = TRUE;
     
     /* allocatables */
@@ -329,6 +335,8 @@ void runtime_free(RunTime *rt)
     qfactory_free(rt->qfactory);
     
     canvas_free(rt->canvas);
+
+    graal_free(rt->graal);
     
     grace_rt_free_dicts(rt);
 
@@ -758,7 +766,7 @@ void do_hardcopy(const Quark *project)
     
     select_device(canvas, rt->hdevice);
     
-    res = drawgraph(canvas, project);
+    res = drawgraph(canvas, rt->graal, project);
     
     grace_close(prstream);
     

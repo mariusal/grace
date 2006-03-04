@@ -180,6 +180,8 @@ typedef struct _RunTime {
     char print_file[GR_MAXPATHLEN];
 
     Canvas *canvas;
+
+    Graal  *graal;
     
     /* Misc dictionaries */
     Dictionary *graph_type_dict;

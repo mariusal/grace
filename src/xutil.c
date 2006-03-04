@@ -572,7 +572,7 @@ void xdrawgraph(const Quark *q)
         canvas_set_prstream(grace->rt->canvas, &xstream);
 
         select_device(grace->rt->canvas, grace->rt->tdevice);
-	drawgraph(grace->rt->canvas, project);
+	drawgraph(grace->rt->canvas, grace->rt->graal, project);
 
         if (quark_is_active(gr)) {
             draw_focus(gr);

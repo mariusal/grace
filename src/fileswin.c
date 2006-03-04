@@ -160,7 +160,7 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
                 DefaultGCOfScreen(xstream.screen), 0, 0,
                 PREVIEW_WIDTH, PREVIEW_HEIGHT);
 
-	    drawgraph(ui->canvas, project);
+	    drawgraph(ui->canvas, grace->rt->graal, project);
 
             XCopyArea(XtDisplay(ui->canvasw), ui->pixmap, XtWindow(ui->canvasw),
                 DefaultGCOfScreen(XtScreen(ui->canvasw)),
