@@ -165,11 +165,18 @@ vexpr:      array { $$ = $1; }
         ;
 %%
 
-void graal_parse(Graal *g, const char *s)
+int graal_parse(Graal *g, const char *s)
 {
+    int retval;
     YY_BUFFER_STATE buffer = yy_scan_string(s, g->scanner);
     
-    yyparse(g->scanner);
+    if (yyparse(g->scanner) == 0) {
+        retval = RETURN_SUCCESS;
+    } else {
+        retval = RETURN_FAILURE;
+    }
     
     yy_delete_buffer(buffer, g->scanner);
+    
+    return retval;
 }

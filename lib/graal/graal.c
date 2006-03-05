@@ -22,13 +22,17 @@ void graal_free(Graal *g)
     }
 }
 
-void graal_parse_line(Graal *g, const char *s)
+int graal_parse_line(Graal *g, const char *s)
 {
     if (g && s) {
+        int retval;
         char *buf = copy_string(NULL, s);
         buf = concat_strings(buf, "\n");
-        graal_parse(g, buf);
+        retval = graal_parse(g, buf);
         xfree(buf);
+        return retval;
+    } else {
+        return RETURN_FAILURE;
     }
 }
 

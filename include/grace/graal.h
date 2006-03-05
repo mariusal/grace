@@ -72,8 +72,9 @@ void graal_scanner_delete(Graal *g);
 
 Graal *graal_new(void);
 void graal_free(Graal *g);
-void graal_parse(Graal *g, const char *s);
-void graal_parse_line(Graal *g, const char *s);
+
+int graal_parse(Graal *g, const char *s);
+int graal_parse_line(Graal *g, const char *s);
 
 int graal_transform_arr(Graal *g,
     const char *formula, const char *varname, DArray *da);
