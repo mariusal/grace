@@ -42,6 +42,16 @@
 #define LOAD_NXY    1
 #define LOAD_BLOCK  2
 
+typedef int (*DataParser) (
+    const char *s,
+    void *udata
+);
+
+typedef int (*DataStore) (
+    Quark *q,
+    void *udata
+);
+
 Quark *load_agr_project(Grace *grace, char *fn);
 Quark *load_xgr_project(Grace *grace, char *fn);
 Quark *load_any_project(Grace *grace, char *fn);
@@ -56,6 +66,9 @@ int add_output_filter( int method, char *id, char *comm );
 void clear_io_filters( int f );
 FILE *filter_read(Grace *grace, char *fn);
 FILE *filter_write(Grace *grace, char *fn);
+
+int uniread(Quark *pr, FILE *fp,
+    DataParser parse_cb, DataStore store_cb, void *udata);
 
 int getdata(Quark *pr, char *fn, int settype, int type);
 

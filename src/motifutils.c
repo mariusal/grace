@@ -81,36 +81,13 @@
 #include "core_utils.h"
 #include "utils.h"
 #include "dicts.h"
-#include "parser.h"
 #include "protos.h"
 
 #define canvas grace->rt->canvas
 
-static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
-
-/* lookup table to determine if character is a floating point digit 
- * only allowable char's [0-9.eE]
- */
-unsigned char fpdigit[256] = {  
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-			      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-
 extern XtAppContext app_con;
+
+static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
 
 static unsigned long xvlibcolors[MAXCOLORS];
 
@@ -4144,99 +4121,35 @@ char *xv_getstr(Widget w)
 
 
 /*
- * xv_evalexpr - take a text field and pass it to the parser if it needs to
- * evaluated, else use atof().
- * place the double result in answer
- * if an error, return False, else True
+ * xv_evalexpr - take a text field and pass it to the parser to evaluate
  */
-Boolean xv_evalexpr(Widget w, double *answer )
+int xv_evalexpr(Widget w, double *answer)
 {
+    int retval;
     char *s;
-    static char *buf = NULL;
-    int i, len, ier = 0;
-    double result;
 	
-    buf = copy_string(buf, s = XmTextGetString(w));
+    s = XmTextGetString(w);
+    
+    retval = graal_eval_expr(grace->rt->graal, s, answer);
+    
     XtFree(s);
-
-    if (!(len = strlen( buf ) )) { /* check for zero length */
-        *answer = 0;
-        return RETURN_FAILURE;
-    }
-    /* first character may be a sign */
-    if (!fpdigit[(int) buf[0]] && buf[0] != '-' && buf[0] != '+') {
-        i = len +1;
-    } else {
-        i = 1;
-    }
-
-    for (; i<len; i++) {
-        if (!fpdigit[(int) buf[i]]) {
-            break;
-        }
-    }
-
-    if (i == len) {         /* only floating point digits */
-        *answer = atof( buf );
-        return RETURN_SUCCESS;
-    } else {                /* must evaluate an expression */
-        ier = s_scanner(buf, &result);
-        if( !ier ) {
-            *answer = result;
-            return RETURN_SUCCESS;
-        } else {
-            *answer = 0;
-            return RETURN_FAILURE;
-        }
-    }
+    
+    return retval;
 }
 
 /*
- * xv_evalexpri - take a text field and pass it to the parser if it needs to
- * evaluated, else use atoi().
- * place the integer result in answer
- * if an error, return False, else True
+ * xv_evalexpri - as xv_evalexpr, but for integers
  */
-Boolean xv_evalexpri(Widget w, int *answer )
+int xv_evalexpri(Widget w, int *answer)
 {
-    char *s;
-    static char *buf = NULL;
-    int i, len, ier = 0;
-    double result;
-	
-    buf = copy_string(buf, s = XmTextGetString(w));
-    XtFree(s);
-
-    if (!(len = strlen( buf ) )) { /* check for zero length */
-        *answer = 0;
-        return RETURN_FAILURE;
-    }
-    /* first character may be a sign */
-    if (!fpdigit[(int) buf[0]] && buf[0] != '-' && buf[0] != '+') {
-        i = len +1;
-    } else {
-        i = 1;
-    }
+    int retval;
+    double buf;
     
-    for (; i<len; i++) {
-        if (!fpdigit[(int) buf[i]]) {
-            break;
-        }
-    }
-
-    if (i == len) {             /* only floating point digits */
-        *answer = atoi(buf);
-        return RETURN_SUCCESS;
-    } else {                    /* must evaluate an expression */
-        ier = s_scanner(buf, &result);
-        if( !ier ) {
-            *answer = (int)result;
-            return RETURN_SUCCESS;
-        } else {
-            *answer = 0;
-            return RETURN_FAILURE;
-        }
-    }
+    retval = xv_evalexpr(w, &buf);
+    
+    *answer = rint(buf);
+    
+    return retval;
 }
 
 

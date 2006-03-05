@@ -639,8 +639,8 @@ void ContextHelpCB(Widget w, void *data);
 char *GetStringSimple(XmString xms);
 
 char *xv_getstr(Widget w);
-Boolean xv_evalexpr(Widget w, double *);
-Boolean xv_evalexpri(Widget w, int *);
+int xv_evalexpr(Widget w, double *);
+int xv_evalexpri(Widget w, int *);
 void xv_setstr(Widget w, char *s);
 void handle_close(Widget w);
 void RaiseWindow(Widget w);

@@ -982,7 +982,7 @@ int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
             }
         }
 	filter_set(pdest, rarray);
-        set_parser_setno(pdest);
+        // set_parser_setno(pdest);
         if (scanner(fstr) != RETURN_SUCCESS) {
 	    if (psrc != pdest) {
 		quark_free(pdest);
@@ -1473,7 +1473,7 @@ int do_runavg(Quark *psrc, Quark *pdest,
     }
     t->length = runlen;
 
-    set_parser_setno(psrc);
+    // set_parser_setno(psrc);
     for (nc = 1; nc < ncols; nc++) {
         double *d1, *d2;
         d1 = set_get_col(psrc, nc);
@@ -1809,12 +1809,12 @@ int do_sample(Quark *psrc, Quark *pdest, char *formula)
 	errmsg("Empty formula");
 	return RETURN_FAILURE;
     }
-
+#if 0
     if (set_parser_setno(psrc) != RETURN_SUCCESS) {
 	errmsg("Bad set");
 	return RETURN_FAILURE;
     }
-    
+#endif    
     len = set_get_length(psrc);
     
     if (v_scanner(formula, &reslen, &result) != RETURN_SUCCESS) {
@@ -2100,7 +2100,7 @@ int featext(Quark **sets, int nsets, Quark *pdest,
     y = set_get_col(pdest, DATA_Y);
     for (i = 0; i < nsets; i++) {
         Quark *pset = sets[i];
-	set_parser_setno(pset);
+	// set_parser_setno(pset);
         x[i] = (double) i;
         if (s_scanner(formula, &y[i]) != RETURN_SUCCESS) {
             return RETURN_FAILURE;

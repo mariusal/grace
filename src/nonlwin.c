@@ -45,7 +45,6 @@
 #include "core_utils.h"
 #include "utils.h"
 #include "files.h"
-#include "parser.h"
 #include "motifinc.h"
 #include "protos.h"
 

@@ -40,7 +40,6 @@ typedef struct {
     void *data;
 } symtab_entry;
 
-
 /* array variable */
 typedef struct _grarr {
     int type;
@@ -48,31 +47,10 @@ typedef struct _grarr {
     double *data;
 } grarr;
 
-void init_symtab(void);
-int addto_symtab(symtab_entry newkey);
-
-int set_parser_gno(Quark *g);
-int set_parser_setno(Quark *pset);
-Quark *get_parser_gno(void);
-Quark *get_parser_setno(void);
-
-Quark *get_target_set(void);
-void set_target_set(Quark *pset);
-
-void parser_state_reset(Quark *pr);
-
 int   scanner(const char *s);
 int s_scanner(const char *s, double *res);
 int v_scanner(const char *s, int *reslen, double **vres);
 
-int v_evaluate(char * const formula, char * const varname,
-    double *x, unsigned int len);
-
-void realloc_vrbl(grarr *vrbl, int len);
-
-double *define_parser_scalar(char * const name);
-grarr *define_parser_arr(char * const name);
-int undefine_parser_var(void *ptr);
 grarr *get_parser_arr_by_name(char * const name);
 
 #endif /* __PARSER_H_ */

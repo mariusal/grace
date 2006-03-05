@@ -54,13 +54,9 @@
 #include "defines.h"
 #include "globals.h"
 #include "grace.h"
-#include "cephes.h"
 #include "utils.h"
 #include "files.h"
-#include "core_utils.h"
-#include "dlmodule.h"
 #include "ssdata.h"
-#include "numerics.h"
 #include "protos.h"
 #include "parser.h"
 
@@ -119,6 +115,9 @@ static int leg_loctype_obs;
 static double leg_x1_obs;
 
 static void free_tmpvrbl(grarr *vrbl);
+
+static int set_parser_gno(Quark *g);
+static int set_parser_setno(Quark *pset);
 
 static int getcharstr(void);
 static void ungetchstr(void);
@@ -2931,12 +2930,12 @@ symtab_entry key[] = {
 
 static int maxfunc = sizeof(key) / sizeof(symtab_entry);
 
-Quark *get_parser_gno(void)
+static Quark *get_parser_gno(void)
 {
     return whichgraph;
 }
 
-int set_parser_gno(Quark *gr)
+static int set_parser_gno(Quark *gr)
 {
     whichgraph = gr;
     if (gr) {
@@ -2948,12 +2947,7 @@ int set_parser_gno(Quark *gr)
     }
 }
 
-Quark *get_parser_setno(void)
-{
-    return whichset;
-}
-
-int set_parser_setno(Quark *pset)
+static int set_parser_setno(Quark *pset)
 {
     if (pset) {
         whichgraph = get_parent_graph(pset);
@@ -2966,33 +2960,6 @@ int set_parser_setno(Quark *pset)
         return RETURN_FAILURE;
     }
 }
-
-void realloc_vrbl(grarr *vrbl, int len)
-{
-    double *a;
-    int i, oldlen;
-    
-    if (vrbl->type != GRARR_VEC) {
-        errmsg("Internal error");
-        return;
-    }
-    oldlen = vrbl->length;
-    if (oldlen == len) {
-        return;
-    } else {
-        a = xrealloc(vrbl->data, len*SIZEOF_DOUBLE);
-        if (a != NULL || len == 0) {
-            vrbl->data = a;
-            vrbl->length = len;
-            for (i = oldlen; i < len; i++) {
-                vrbl->data[i] = 0.0;
-            }
-        } else {
-            errmsg("Malloc failed in realloc_vrbl()");
-        }
-    }
-}
-
 
 #define PARSER_TYPE_VOID    0
 #define PARSER_TYPE_EXPR    1
@@ -3095,12 +3062,6 @@ int scanner(const char *s)
     }
     
     return retval;
-}
-
-int v_evaluate(char * const formula, char * const varname,
-    double *x, unsigned int len)
-{
-    return RETURN_FAILURE;
 }
 
 static void free_tmpvrbl(grarr *vrbl)
@@ -3418,17 +3379,17 @@ static Quark *allocate_set(Quark *gr, int setno)
     return pset;
 }
 
-Quark *get_target_set(void)
+static Quark *get_target_set(void)
 {
     return target_set;
 }
 
-void set_target_set(Quark *pset)
+static void set_target_set(Quark *pset)
 {
     target_set = pset;
 }
 
-void parser_state_reset(Quark *pr)
+static void parser_state_reset(Quark *pr)
 {
     project = pr;
     if (project) {
@@ -3445,4 +3406,89 @@ void parser_state_reset(Quark *pr)
     curtm         = NULL;
     curobject     = NULL;
     objgno        = NULL;
+}
+
+
+static Quark *nextset(Quark *ss)
+{
+    Quark *pset, *gr, **sets;
+    int nsets = 0;
+    
+    pset = get_target_set();
+    
+    if (pset) {
+        set_target_set(NULL);
+    } else {
+        gr = get_parent_graph(ss);
+        nsets = quark_get_descendant_sets(gr, &sets);
+        if (nsets) {
+            pset = sets[0];
+        } else {
+            pset = grace_set_new(ss);
+        }
+    }
+    
+    if (nsets) {
+        xfree(sets);
+    }
+    
+    return pset;
+}
+
+static int agr_parse_cb(const char *s, void *udata)
+{
+    if (*s == '@') {
+        return scanner(s + 1);
+    } else
+    if (*s == '&') {
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+static int agr_store_cb(Quark *q, void *udata)
+{
+    Quark *gr, *pset;
+
+    gr = get_parser_gno();
+    if (!gr) {
+        return RETURN_FAILURE;
+    }
+    
+    if (quark_reparent(q, gr) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
+    pset = nextset(q);
+    
+    return quark_reparent(pset, q);
+}
+
+Quark *load_agr_project(Grace *grace, char *fn)
+{
+    Quark *project;
+    FILE *fp;
+    int retval;
+
+    fp = grace_openr(grace, fn, SOURCE_DISK);
+    if (fp == NULL) {
+	return NULL;
+    }
+    
+    project = grace_project_new(grace, AMEM_MODEL_LIBUNDO);
+
+    parser_state_reset(project);
+    
+    retval = uniread(project, fp, agr_parse_cb, agr_store_cb, NULL);
+
+    grace_close(fp);
+
+    if (retval == RETURN_SUCCESS) {
+        return project;
+    } else {
+        quark_free(project);
+        
+        return NULL;
+    }
 }

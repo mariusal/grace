@@ -614,7 +614,7 @@ static int leval_aac_cb(void *data)
         return RETURN_FAILURE;
     }
     
-    set_parser_setno(pset);
+    // set_parser_setno(pset);
 
     for (i = 0; i < nscols; i++) {
         char buf[32], *expr;

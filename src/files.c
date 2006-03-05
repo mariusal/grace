@@ -59,7 +59,6 @@
 #include "files.h"
 #include "ssdata.h"
 #include "core_utils.h"
-#include "parser.h"
 
 #include "protos.h"
 
@@ -94,7 +93,7 @@ static int expand_ib_tbl(int delay);
 static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
 static int reopen_real_time_input(Grace *gr, Input_buffer *ib);
 static int read_real_time_lines(Input_buffer *ib);
-static int process_complete_lines(Input_buffer *ib);
+static int process_complete_lines(Grace *grace, Input_buffer *ib);
 
 static int read_long_line(FILE *fp, char **linebuf, int *buflen);
 
@@ -358,7 +357,7 @@ static int read_real_time_lines(Input_buffer *ib)
 /*
  * process complete lines that have already been read
  */
-static int process_complete_lines(Input_buffer *ib)
+static int process_complete_lines(Grace *grace, Input_buffer *ib)
 {
     int line_corrupted;
     char *begin_of_line, *end_of_line;
@@ -393,7 +392,9 @@ static int process_complete_lines(Input_buffer *ib)
             *end_of_line = '\0';
             close_input = NULL;
 
-            if (line_corrupted || scanner(begin_of_line)) {
+            if (line_corrupted ||
+                graal_parse_line(grace->rt->graal, begin_of_line) !=
+                    RETURN_SUCCESS) {
                 sprintf(buf, "Error at line %d", ib->lineno);
                 errmsg(buf);
                 ++(ib->errors);
@@ -515,7 +516,7 @@ int monitor_input(Grace *grace, Input_buffer *tbl, int tblsize, int no_wait)
             if (ib->fd >= 0 && FD_ISSET(ib->fd, &rfds)) {
                 /* there is pending input */
                 if (read_real_time_lines(ib) != RETURN_SUCCESS
-                    || process_complete_lines(ib) != RETURN_SUCCESS) {
+                    || process_complete_lines(grace, ib) != RETURN_SUCCESS) {
                     return RETURN_FAILURE;
                 }
 
@@ -787,17 +788,7 @@ void grace_close(FILE *fp)
     }
 }
 
-typedef int (*DataParser) (
-    const char *s,
-    void *udata
-);
-
-typedef int (*DataStore) (
-    Quark *q,
-    void *udata
-);
-
-static int uniread(Quark *pr, FILE *fp,
+int uniread(Quark *pr, FILE *fp,
     DataParser parse_cb, DataStore store_cb, void *udata)
 {
     int nrows, nrows_allocated;
@@ -1042,91 +1033,6 @@ int update_set_from_file(Quark *pset)
     return retval;
 }
 #endif
-
-
-static Quark *nextset(Quark *ss)
-{
-    Quark *pset, *gr, **sets;
-    int nsets = 0;
-    
-    pset = get_target_set();
-    
-    if (pset) {
-        set_target_set(NULL);
-    } else {
-        gr = get_parent_graph(ss);
-        nsets = quark_get_descendant_sets(gr, &sets);
-        if (nsets) {
-            pset = sets[0];
-        } else {
-            pset = grace_set_new(ss);
-        }
-    }
-    
-    if (nsets) {
-        xfree(sets);
-    }
-    
-    return pset;
-}
-
-static int agr_parse_cb(const char *s, void *udata)
-{
-    if (*s == '@') {
-        return scanner(s + 1);
-    } else
-    if (*s == '&') {
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-static int agr_store_cb(Quark *q, void *udata)
-{
-    Quark *gr, *pset;
-
-    gr = get_parser_gno();
-    if (!gr) {
-        return RETURN_FAILURE;
-    }
-    
-    if (quark_reparent(q, gr) != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-    
-    pset = nextset(q);
-    
-    return quark_reparent(pset, q);
-}
-
-Quark *load_agr_project(Grace *grace, char *fn)
-{
-    Quark *project;
-    FILE *fp;
-    int retval;
-
-    fp = grace_openr(grace, fn, SOURCE_DISK);
-    if (fp == NULL) {
-	return NULL;
-    }
-    
-    project = grace_project_new(grace, AMEM_MODEL_LIBUNDO);
-
-    parser_state_reset(project);
-    
-    retval = uniread(project, fp, agr_parse_cb, agr_store_cb, NULL);
-
-    grace_close(fp);
-
-    if (retval == RETURN_SUCCESS) {
-        return project;
-    } else {
-        quark_free(project);
-        
-        return NULL;
-    }
-}
 
 Quark *load_any_project(Grace *grace, char *fn)
 {

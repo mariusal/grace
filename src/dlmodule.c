@@ -51,7 +51,6 @@
 
 #include "defines.h"
 #include "utils.h"
-#include "parser.h"
 
 int dl_load_fast = TRUE; /* controls type of DL module load */
 /* TODO: make it tunable through a command */
