@@ -76,6 +76,7 @@ void graal_free(Graal *g);
 int graal_parse(Graal *g, const char *s);
 int graal_parse_line(Graal *g, const char *s);
 
+int graal_eval_expr(Graal *g, const char *formula, double *val);
 int graal_transform_arr(Graal *g,
     const char *formula, const char *varname, DArray *da);
 

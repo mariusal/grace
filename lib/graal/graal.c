@@ -183,3 +183,23 @@ int graal_transform_arr(Graal *g,
     }
 }
 
+int graal_eval_expr(Graal *g, const char *formula, double *val)
+{
+    char *buf;
+    int retval;
+    GVar *var;
+    
+    buf = copy_string(NULL, "$d = ");
+    buf = concat_strings(buf, formula);
+
+    retval = graal_parse_line(g, buf);
+
+    xfree(buf);
+    
+    if (retval == RETURN_SUCCESS) {
+        var = graal_get_var(g, "$d");
+        gvar_get_num(var, val);
+    }
+    
+    return retval;
+}
