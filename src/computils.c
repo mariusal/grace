@@ -43,7 +43,6 @@
 
 #include "core_utils.h"
 #include "ssdata.h"
-#include "parser.h"
 #include "numerics.h"
 #include "protos.h"
 
@@ -976,14 +975,15 @@ int filter_set(Quark *pset, char *rarray)
 int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
 {
     if (!set_is_dataless(psrc)) {
-	if (psrc != pdest) {
+	RunTime *rt = rt_from_quark(psrc);
+        if (psrc != pdest) {
 	    if (copysetdata(psrc, pdest) != RETURN_SUCCESS) {
 	        return RETURN_FAILURE;
             }
         }
 	filter_set(pdest, rarray);
         // set_parser_setno(pdest);
-        if (scanner(fstr) != RETURN_SUCCESS) {
+        if (graal_parse_line(rt->graal, fstr) != RETURN_SUCCESS) {
 	    if (psrc != pdest) {
 		quark_free(pdest);
 	    }
@@ -1428,10 +1428,12 @@ int do_int(Quark *psrc, Quark *pdest,
 int do_runavg(Quark *psrc, Quark *pdest,
     int runlen, char *formula, int xplace)
 {
+#if 0
     int i, nc, ncols, len, newlen;
     double *x1, *x2;
-    grarr *t;
+    GVar *t;
     char buf[256];
+    RunTime *rt = rt_from_quark(psrc);
 
     if (runlen < 1) {
 	errmsg("Length of running average < 1");
@@ -1459,13 +1461,10 @@ int do_runavg(Quark *psrc, Quark *pdest,
         set_set_type(pdest, set_get_type(psrc));
     }
     
-    t = get_parser_arr_by_name("$t");
+    t = graal_get_var(rt->graal, "$t");
     if (t == NULL) {
-        // t = define_parser_arr("$t");
-        if (t == NULL) {
-            errmsg("Internal error");
-            return RETURN_FAILURE;
-        }
+        errmsg("Internal error");
+        return RETURN_FAILURE;
     }
     
     if (t->length != 0) {
@@ -1480,7 +1479,8 @@ int do_runavg(Quark *psrc, Quark *pdest,
         d2 = set_get_col(pdest, nc);
         for (i = 0; i < newlen; i++) {
             t->data = &(d1[i]);
-            if (s_scanner(formula, &(d2[i])) != RETURN_SUCCESS) {
+            if (graal_eval_expr(rt->graal, formula, &(d2[i])) !=
+                RETURN_SUCCESS) {
                 t->length = 0;
                 t->data = NULL;
                 return RETURN_FAILURE;
@@ -1511,7 +1511,7 @@ int do_runavg(Quark *psrc, Quark *pdest,
     
     sprintf(buf, "%d-pt. running %s on %s", runlen, formula, QIDSTR(psrc));
     // set_set_comment(pdest, buf);
-    
+#endif    
     return RETURN_SUCCESS;
 }
 
@@ -1800,6 +1800,7 @@ int do_histo(Quark *psrc, Quark *pdest,
  */
 int do_sample(Quark *psrc, Quark *pdest, char *formula)
 {
+#if 0
     int len, newlen, ncols, i, nc;
     int reslen;
     double *result;
@@ -1809,12 +1810,10 @@ int do_sample(Quark *psrc, Quark *pdest, char *formula)
 	errmsg("Empty formula");
 	return RETURN_FAILURE;
     }
-#if 0
     if (set_parser_setno(psrc) != RETURN_SUCCESS) {
 	errmsg("Bad set");
 	return RETURN_FAILURE;
     }
-#endif    
     len = set_get_length(psrc);
     
     if (v_scanner(formula, &reslen, &result) != RETURN_SUCCESS) {
@@ -1862,6 +1861,7 @@ int do_sample(Quark *psrc, Quark *pdest, char *formula)
     sprintf(buf, "Sample from %s, using '%s'", QIDSTR(psrc), formula);
     // set_set_comment(pdest, buf);
     
+#endif    
     return RETURN_SUCCESS;
 }
 
@@ -2087,6 +2087,7 @@ int featext(Quark **sets, int nsets, Quark *pdest,
     int i;
     char *tbuf;
     double *x, *y;
+    RunTime *rt = rt_from_quark(pdest);
 
     if (set_get_ncols(pdest) != 2) {
         set_set_type(pdest, SET_XY);
@@ -2102,7 +2103,8 @@ int featext(Quark **sets, int nsets, Quark *pdest,
         Quark *pset = sets[i];
 	// set_parser_setno(pset);
         x[i] = (double) i;
-        if (s_scanner(formula, &y[i]) != RETURN_SUCCESS) {
+        if (graal_eval_expr(rt->graal, formula, &y[i]) !=
+            RETURN_SUCCESS) {
             return RETURN_FAILURE;
         }
     }

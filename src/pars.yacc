@@ -58,7 +58,20 @@
 #include "files.h"
 #include "ssdata.h"
 #include "protos.h"
-#include "parser.h"
+
+/* symbol table entry type */
+typedef struct {
+    char *s;
+    int type;
+    void *data;
+} symtab_entry;
+
+/* array variable */
+typedef struct _grarr {
+    int length;
+    double *data;
+} grarr;
+
 
 
 #define MAX_PARS_STRING_LENGTH  4096
@@ -95,15 +108,9 @@ static Quark *objgno;
 static int curobject_loctype = COORD_VIEW;
 static int dobject_id = 0;
 
-static double  s_result;    /* return value if a scalar expression is scanned*/
-static grarr *v_result;    /* return value if a vector expression is scanned*/
-
 static int expr_parsed, vexpr_parsed;
 
 static int interr;
-
-static grarr freelist[100]; 	/* temporary vectors */
-static int fcnt = 0;		/* number of the temporary vectors allocated */
 
 static char f_string[MAX_PARS_STRING_LENGTH]; /* buffer for string to parse */
 static unsigned int pos;
@@ -113,8 +120,6 @@ static int filltype_obs;
 
 static int leg_loctype_obs;
 static double leg_x1_obs;
-
-static void free_tmpvrbl(grarr *vrbl);
 
 static int set_parser_gno(Quark *g);
 static int set_parser_setno(Quark *pset);
@@ -2961,22 +2966,12 @@ static int set_parser_setno(Quark *pset)
     }
 }
 
-#define PARSER_TYPE_VOID    0
-#define PARSER_TYPE_EXPR    1
-#define PARSER_TYPE_VEXPR   2
-
-static int parser(const char *s, int type)
+static int parser(const char *s)
 {
     char *seekpos;
-    int i;
     
     if (string_is_empty(s)) {
-        if (type == PARSER_TYPE_VOID) {
-            /* don't consider an empty string as error for generic parser */
-            return RETURN_SUCCESS;
-        } else {
-            return RETURN_FAILURE;
-        }
+        return RETURN_SUCCESS;
     }
     
     strncpy(f_string, s, MAX_PARS_STRING_LENGTH - 2);
@@ -2989,12 +2984,8 @@ static int parser(const char *s, int type)
         seekpos++;
     }
     if (*seekpos == '\n' || *seekpos == '#') {
-        if (type == PARSER_TYPE_VOID) {
-            /* don't consider an empty string as error for generic parser */
-            return RETURN_SUCCESS;
-        } else {
-            return RETURN_FAILURE;
-        }
+        /* don't consider an empty string as error for generic parser */
+        return RETURN_SUCCESS;
     }
     
     lowtoupper(f_string);
@@ -3006,80 +2997,7 @@ static int parser(const char *s, int type)
     
     yyparse();
 
-    /* free temp. arrays; for a vector expression keep the last one
-     * (which is none but v_result), given there have been no errors
-     * and it's what we've been asked for
-     */
-    if (vexpr_parsed && !interr && type == PARSER_TYPE_VEXPR) {
-        for (i = 0; i < fcnt - 1; i++) {
-            free_tmpvrbl(&(freelist[i]));
-        }
-    } else {
-        for (i = 0; i < fcnt; i++) {
-            free_tmpvrbl(&(freelist[i]));
-        }
-    }
-    fcnt = 0;
-    
-    if ((type == PARSER_TYPE_VEXPR && !vexpr_parsed) ||
-        (type == PARSER_TYPE_EXPR  && !expr_parsed)) {
-        return RETURN_FAILURE;
-    } else {
-        return (interr ? RETURN_FAILURE:RETURN_SUCCESS);
-    }
-}
-
-int s_scanner(const char *s, double *res)
-{
-    int retval = parser(s, PARSER_TYPE_EXPR);
-    *res = s_result;
-    return retval;
-}
-
-int v_scanner(const char *s, int *reslen, double **vres)
-{
-    int retval = parser(s, PARSER_TYPE_VEXPR);
-    if (retval != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    } else {
-        *reslen = v_result->length;
-        if (v_result->type == GRARR_TMP) {
-            *vres = v_result->data;
-            v_result->length = 0;
-            v_result->data = NULL;
-        } else {
-            *vres = copy_data_column_simple(v_result->data, v_result->length);
-        }
-        return RETURN_SUCCESS;
-    }
-}
-
-int scanner(const char *s)
-{
-    int retval = parser(s, PARSER_TYPE_VOID);
-    if (retval != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-    
-    return retval;
-}
-
-static void free_tmpvrbl(grarr *vrbl)
-{
-    if (vrbl->type == GRARR_TMP) {
-        vrbl->length = 0;
-        XCFREE(vrbl->data);
-    }
-}
-
-grarr *get_parser_arr_by_name(char * const name)
-{
-    return NULL;
-}
-
-double *get_parser_scalar_by_name(char * const name)
-{
-    return NULL;
+    return (interr ? RETURN_FAILURE:RETURN_SUCCESS);
 }
 
 static int findf(symtab_entry *keytable, char *s)
@@ -3194,7 +3112,7 @@ static int yylex(void)
     if (c == 'G' || c == 'S' || c == 'R') {
 	int i = 0, ctmp = c, gn, sn, rn;
 	c = getcharstr();
-	while (isdigit(c) || c == '$' || c == '_') {
+	while (isdigit(c)) {
 	    sbuf[i++] = c;
 	    c = getcharstr();
 	}
@@ -3225,13 +3143,12 @@ static int yylex(void)
 	    }
 	}
     }
-    if (isalpha(c) || c == '$') {
+    if (isalpha(c)) {
 	char *p = sbuf;
 
 	do {
 	    *p++ = c;
-	} while ((c = getcharstr()) != EOF && (isalpha(c) || isdigit(c) ||
-                  c == '_' || c == '$'));
+	} while ((c = getcharstr()) != EOF && (isalpha(c) || isdigit(c)));
 	ungetchstr();
 	*p = '\0';
 	found = -1;
@@ -3438,7 +3355,7 @@ static Quark *nextset(Quark *ss)
 static int agr_parse_cb(const char *s, void *udata)
 {
     if (*s == '@') {
-        return scanner(s + 1);
+        return parser(s + 1);
     } else
     if (*s == '&') {
         return RETURN_SUCCESS;

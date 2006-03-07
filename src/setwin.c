@@ -44,7 +44,6 @@
 #include "core_utils.h"
 #include "utils.h"
 #include "ssdata.h"
-#include "parser.h"
 #include "motifinc.h"
 #include "numerics.h"
 #include "protos.h"
@@ -558,8 +557,9 @@ static int leval_aac_cb(void *data)
     int npts;
     char *formula[MAX_SET_COLS];
     Quark *pset, *gr;
-    grarr *t;
+    GVar *t;
     Leval_ui *ui = (Leval_ui *) data;
+    RunTime *rt;
     
     gr = ui->gr;
     type = GetOptionChoice(ui->set_type);
@@ -585,15 +585,18 @@ static int leval_aac_cb(void *data)
         formula[i] = XbaeMatrixGetCell(ui->mw, i, 0);
     }
     
-    t = get_parser_arr_by_name("$t");
-    if (t == NULL) {
-        // t = define_parser_arr("$t");
-        if (t == NULL) {
-            errmsg("Internal error");
-            return RETURN_FAILURE;
-        }
-    }
     
+    pset = grace_set_new(gr);
+    set_set_type(pset, type);
+
+    rt = rt_from_quark(pset);
+    
+    t = graal_get_var(rt->graal, "$t");
+    if (t == NULL) {
+        errmsg("Internal error");
+        return RETURN_FAILURE;
+    }
+#if 0    
     if (t->length != 0) {
         xfree(t->data);
         t->length = 0;
@@ -604,18 +607,13 @@ static int leval_aac_cb(void *data)
     }
     t->length = npts;
     
-    pset = grace_set_new(gr);
-    set_set_type(pset, type);
-    quark_set_active(pset, TRUE);
     if (set_set_length(pset, npts) != RETURN_SUCCESS) {
         quark_free(pset);
         XCFREE(t->data);
         t->length = 0;
         return RETURN_FAILURE;
     }
-    
-    // set_parser_setno(pset);
-
+#endif    
     for (i = 0; i < nscols; i++) {
         char buf[32], *expr;
         int res;
@@ -626,23 +624,21 @@ static int leval_aac_cb(void *data)
         expr = concat_strings(expr, formula[i]);
         
         /* evaluate the expression */
-        res = scanner(expr);
+        res = graal_parse_line(rt->graal, expr);
         
         xfree(expr);
         
         if (res != RETURN_SUCCESS) {
             quark_free(pset);
             
-            XCFREE(t->data);
-            t->length = 0;
-            
             return RETURN_FAILURE;
         }
     }
 
+#if 0
     XCFREE(t->data);
     t->length = 0;
-
+#endif
     // set_set_comment(pset, "Formula");
     
     update_set_lists(gr);
