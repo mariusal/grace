@@ -338,7 +338,7 @@ static void datasetoptypeCB(OptionStructure *opt, int value, void *data)
     unsigned int i;
     dataSetOpType type = value;
     
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < 6; i++) {
         if (i == type) {
             ManageChild(datasettype_controls[i]);
         } else {
