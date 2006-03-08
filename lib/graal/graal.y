@@ -1,7 +1,8 @@
 %{
 #include <string.h>
 
-#include "grace/graal.h"
+#include "grace/baseP.h"
+#include "grace/graalP.h"
 
 #include "parser.h"
 #include "scanner.h"
@@ -22,6 +23,7 @@ void yyerror(char *s)
 %pure_parser
          
 %union {
+    int    ival;
     double dval;
     DArray *darr;
     char   *sval;
@@ -38,6 +40,8 @@ void yyerror(char *s)
 %nonassoc UMINUS
 
 %type <dval> expr
+%type <ival> iexpr
+%type <ival> nexpr
 %type <darr> list
 %type <darr> array
 %type <darr> vexpr
@@ -84,6 +88,7 @@ expr:	    TOK_NUMBER { $$ = $1; }
 	|   expr '/' expr {
                 if ($3 == 0.0) {
 	            yyerror("divide by zero");
+                    return 1;
                 } else {
 	            $$ = $1 / $3;
                 }
@@ -93,7 +98,36 @@ expr:	    TOK_NUMBER { $$ = $1; }
 	|   TOK_VAR_NUM {
                 gvar_get_num($1, &$$);
             }
+	|   TOK_VAR_ARR '[' nexpr ']' {
+                DArray *da;
+                gvar_get_arr($1, &da);
+                if (darray_get_val(da, $3, &$$) != RETURN_SUCCESS) {
+	            yyerror("index beyond array length");
+                    return 1;
+                }
+            }
 	;
+
+iexpr:	    expr {
+                int itmp = rint($1);
+                if (fabs(itmp - $1) > 1.e-6) {
+                    yyerror("Non-integer value supplied for integer");
+                    return 1;
+                } else {
+                    $$ = itmp;
+                }
+	    }
+        ;
+
+nexpr:	    iexpr {
+                if ($1 < 0) {
+                    yyerror("Negative value supplied for non-negative");
+                    return 1;
+                } else {
+                    $$ = $1;
+                }
+	    }
+        ;
 
 list:	    /* empty */ {
                 $$ = NULL;
@@ -149,6 +183,7 @@ vexpr:      array { $$ = $1; }
                     REGISTER_DARR($$);
                     if ($3 == 0.0) {
 	                yyerror("divide by zero");
+                        return 1;
                     } else {
                         darray_mul_val($$, 1.0/$3);
                     }

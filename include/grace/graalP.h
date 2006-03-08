@@ -26,39 +26,44 @@
  */
 
 /*
- * Graal interpreter
+ * Graal interpreter - private API
  */
 
-#ifndef __GRAAL_H_
-#define __GRAAL_H_
+#ifndef __GRAALP_H_
+#define __GRAALP_H_
 
-#include "grace/base.h"
+#include "grace/graal.h"
 
-typedef struct _Graal Graal;
-typedef struct _GVar GVar;
+typedef union {
+    double  num;
+    DArray *arr;
+    char   *str;
+} GVarData;
 
-typedef enum {
-    GVarNil,
-    GVarNum,
-    GVarArr,
-    GVarStr
-} GVarType;
+struct _GVar {
+    char *name;
+    GVarType type;
+    int allocated;
+    GVarData data;
+};
 
-Graal *graal_new(void);
-void graal_free(Graal *g);
+struct _Graal {
+    void *scanner;
+    
+    DArray **darrs;
+    unsigned int ndarrs;
+    
+    GVar **vars;
+    unsigned int nvars;
+    
+    void *udata;
+};
 
-int graal_parse(Graal *g, const char *s);
-int graal_parse_line(Graal *g, const char *s);
 
-int graal_eval_expr(Graal *g, const char *formula, double *val);
-int graal_transform_arr(Graal *g,
-    const char *formula, const char *varname, DArray *da);
+void graal_scanner_init(Graal *g);
+void graal_scanner_delete(Graal *g);
 
-GVar *graal_get_var(Graal *g, const char *name);
+int graal_register_darr(Graal *g, DArray *da);
+void graal_free_darrs(Graal *g);
 
-int gvar_get_num(GVar *var, double *value);
-int gvar_set_num(GVar *var, double value);
-int gvar_get_arr(GVar *var, DArray **da);
-int gvar_set_arr(GVar *var, DArray *da);
-
-#endif /* __GRAAL_H_ */
+#endif /* __GRAALP_H_ */

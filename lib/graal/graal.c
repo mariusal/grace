@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "grace/graal.h"
+#include "grace/graalP.h"
 
 Graal *graal_new(void)
 {

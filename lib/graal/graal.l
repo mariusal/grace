@@ -1,5 +1,5 @@
 %{
-#include "grace/graal.h"
+#include "grace/graalP.h"
 #include "parser.h"
 %}
 
