@@ -38,7 +38,7 @@ DArray *darray_new(unsigned int size)
     DArray *da = xmalloc(sizeof(DArray));
     if (da) {
         da->x = xmalloc(size*SIZEOF_DOUBLE);
-        if (!da->x) {
+        if (size && !da->x) {
             XCFREE(da);
         } else {
             da->size = size;
@@ -64,6 +64,19 @@ int darray_set_val(DArray *da, unsigned int i, double val)
 {
     if (da && i < da->size) {
         da->x[i] = val;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int darray_set_const(DArray *da, double val)
+{
+    if (da) {
+        unsigned int i;
+        for (i = 0; i < da->size; i++) {
+            da->x[i] = val;
+        }
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
