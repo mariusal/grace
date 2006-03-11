@@ -837,6 +837,8 @@ int ssd_transpose(Quark *q);
 int ssd_set_value(Quark *q, int row, int column, double value);
 int ssd_set_string(Quark *q, int row, int column, const char *s);
 
+DArray *ssd_get_darray(const Quark *q, int column);
+
 int ssd_set_index(Quark *q, int column);
 int ssd_set_indexed(Quark *q, int onoff);
 int ssd_is_indexed(const Quark *q);

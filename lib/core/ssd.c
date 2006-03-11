@@ -275,6 +275,24 @@ ss_column *ssd_get_col(const Quark *q, int col)
     }
 }
 
+/* assign given column to DArray without actually allocating the data */
+DArray *ssd_get_darray(const Quark *q, int column)
+{
+    ss_column *col = ssd_get_col(q, column);
+    if (col && col->format != FFORMAT_STRING) {
+        DArray *da = darray_new(0);
+        
+        da->allocated = FALSE;
+        da->asize = 0;
+        da->size = ssd_get_nrows(q);
+        da->x = col->data;
+        
+        return da;
+    } else {
+        return NULL;
+    }
+}
+
 ss_column *ssd_add_col(Quark *q, int format)
 {
     ss_data *ssd = ssd_get_data(q);
