@@ -65,7 +65,7 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
 	    return TOK_NUMBER;
 	}
 
-this    {
+"this"	{
             Graal *g = (Graal *) yyextra;
             if (g->default_obj) {
                 g->current_obj = g->default_obj;
@@ -76,10 +76,13 @@ this    {
             }
 	}
 
-true	{ return TOK_TRUE; }
-false	{ return TOK_FALSE; }
+"true"	{ return TOK_TRUE; }
+"false"	{ return TOK_FALSE; }
 
-{NAME} {
+"if"	{ return TOK_IF; }
+"else"	{ return TOK_ELSE; }
+
+{NAME}	{
             void *uobj;
             GVar *var;
             Graal *g = (Graal *) yyextra;
@@ -169,15 +172,15 @@ false	{ return TOK_FALSE; }
 
 {WS}	; /* ignore white space */
 
-\.\.	{ return TOK_RANGE; }
+".."	{ return TOK_RANGE; }
 
-==	{ return TOK_EQ; }
-!=	{ return TOK_NE; }
-\>=	{ return TOK_GE; }
-\<=	{ return TOK_LE; }
+"=="	{ return TOK_EQ; }
+"!="	{ return TOK_NE; }
+">="	{ return TOK_GE; }
+"<="	{ return TOK_LE; }
 
-\|\|	{ return TOK_OR; }
-&&	{ return TOK_AND; }
+"||"	{ return TOK_OR; }
+"&&"	{ return TOK_AND; }
 
 \.	{
 	    graal_set_dotcontext(yyextra, GContextDot);

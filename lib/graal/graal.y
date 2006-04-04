@@ -63,6 +63,8 @@ void yyerror(char *s)
 %token <sval> TOK_STRING
 %token <gobj> TOK_OBJECT
 
+%token <sval> TOK_BLOCK
+
 %token        TOK_PROP_NIL
 %token <ival> TOK_PROP_BOOL
 %token <dval> TOK_PROP_NUM
@@ -87,6 +89,9 @@ void yyerror(char *s)
 
 %token TOK_TRUE
 %token TOK_FALSE
+
+%token TOK_IF
+%token TOK_ELSE
 
 %type <gvar> avar
 
@@ -121,7 +126,7 @@ line:	/* empty */
                 xfree($1);
                 if (gvar_set_num(var, $3) != RETURN_SUCCESS) {
 	            yyerror("assignment failed");
-                    return 1;
+                    YYABORT;
                 }
             }
 	|   TOK_NAME '=' bexpr {
@@ -129,7 +134,7 @@ line:	/* empty */
                 xfree($1);
                 if (gvar_set_bool(var, $3) != RETURN_SUCCESS) {
 	            yyerror("assignment failed");
-                    return 1;
+                    YYABORT;
                 }
             }
 	|   TOK_NAME '=' vexpr {
@@ -137,7 +142,7 @@ line:	/* empty */
                 xfree($1);
                 if (gvar_set_arr(var, $3) != RETURN_SUCCESS) {
 	            yyerror("assignment failed");
-                    return 1;
+                    YYABORT;
                 }
             }
 	|   TOK_NAME '=' sexpr {
@@ -146,7 +151,7 @@ line:	/* empty */
                 if (gvar_set_str(var, $3) != RETURN_SUCCESS) {
                     xfree($3);
 	            yyerror("assignment failed");
-                    return 1;
+                    YYABORT;
                 } else {
                     xfree($3);
                 }
@@ -154,26 +159,26 @@ line:	/* empty */
 	|   avar '=' expr {
                 if (gvar_set_num($1, $3) != RETURN_SUCCESS) {
 	            yyerror("assignment failed - check types");
-                    return 1;
+                    YYABORT;
                 }
             }
 	|   avar '=' bexpr {
                 if (gvar_set_bool($1, $3) != RETURN_SUCCESS) {
 	            yyerror("assignment failed - check types");
-                    return 1;
+                    YYABORT;
                 }
             }
 	|   avar '=' vexpr {
                 if (gvar_set_arr($1, $3) != RETURN_SUCCESS) {
 	            yyerror("assignment failed - check types");
-                    return 1;
+                    YYABORT;
                 }
             }
 	|   avar '=' sexpr {
                 if (gvar_set_str($1, $3) != RETURN_SUCCESS) {
                     xfree($3);
 	            yyerror("assignment failed - check types");
-                    return 1;
+                    YYABORT;
                 } else {
                     xfree($3);
                 }
@@ -196,7 +201,7 @@ line:	/* empty */
 	|   TOK_VAR_NUM '/' '=' expr {
                 if ($4 == 0) {
 	            yyerror("divide by zero");
-                    return 1;
+                    YYABORT;
                 } else {
                     double val;
                     gvar_get_num($1, &val);
@@ -210,7 +215,7 @@ line:	/* empty */
                     da->x[$3] = $6;
                 } else {
 	            yyerror("index beyond array bounds");
-                    return 1;
+                    YYABORT;
                 }
             }
 	|   TOK_VAR_STR '@' '=' sexpr {
@@ -294,7 +299,7 @@ expr:	    TOK_NUMBER { $$ = $1; }
 	|   expr '/' expr {
                 if ($3 == 0.0) {
 	            yyerror("divide by zero");
-                    return 1;
+                    YYABORT;
                 } else {
 	            $$ = $1 / $3;
                 }
@@ -302,10 +307,10 @@ expr:	    TOK_NUMBER { $$ = $1; }
         |   expr '^' expr {
                 if ($1 < 0 && rint($3) != $3) {
                     yyerror("negative value raised to non-integer power");
-                    return 1;
+                    YYABORT;
                 } else if ($1 == 0.0 && $3 <= 0.0) {
                     yyerror("zero raised to non-positive power");
-                    return 1;
+                    YYABORT;
                 } else {
                     $$ = pow($1, $3);
                 }
@@ -318,7 +323,7 @@ expr:	    TOK_NUMBER { $$ = $1; }
                     $$ = $1->x[$3];
                 } else {
 	            yyerror("index beyond array bounds");
-                    return 1;
+                    YYABORT;
                 }
             }
 	|   bexpr '?' expr ':' expr { $$ = $1 ? $3:$5; }
@@ -328,7 +333,7 @@ iexpr:	    expr {
                 int itmp = rint($1);
                 if (fabs(itmp - $1) > 1.e-6) {
                     yyerror("Non-integer value supplied for integer");
-                    return 1;
+                    YYABORT;
                 } else {
                     $$ = itmp;
                 }
@@ -336,7 +341,7 @@ iexpr:	    expr {
 	|   iexpr '%' iexpr {
                 if ($3 == 0) {
 	            yyerror("divide by zero");
-                    return 1;
+                    YYABORT;
                 } else {
                     $$ = (int) rint($1) % (int) rint($3);
                 }
@@ -346,7 +351,7 @@ iexpr:	    expr {
 nexpr:	    iexpr {
                 if ($1 < 0) {
                     yyerror("Negative value supplied for non-negative");
-                    return 1;
+                    YYABORT;
                 } else {
                     $$ = $1;
                 }
@@ -389,11 +394,11 @@ vexpr:      array { $$ = $1; }
 	|   array '[' nexpr TOK_RANGE nexpr ']' {
                 if ($3 >= $1->size || $5 >= $1->size) {
 	            yyerror("index beyond array bounds");
-                    return 1;
+                    YYABORT;
                 } else
                 if ($3 > $5) {
 	            yyerror("non-positive index range");
-                    return 1;
+                    YYABORT;
                 } else {
                     $$ = darray_slice($1, $3, $5);
                     REGISTER_DARR($$);
@@ -451,7 +456,7 @@ vexpr:      array { $$ = $1; }
                     REGISTER_DARR($$);
                     if ($3 == 0.0) {
 	                yyerror("divide by zero");
-                        return 1;
+                        YYABORT;
                     } else {
                         darray_mul_val($$, 1.0/$3);
                     }
