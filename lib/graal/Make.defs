@@ -6,10 +6,14 @@
 LIB  = $(GRACE_GRAAL_LIB)
 
 SCANNER_C = scanner.c
+SCANNER_H = scanner.h
 PARSER_C = parser.c
+PARSER_H = parser.h
 
 GSRCS = $(SCANNER_C) \
-	$(PARSER_C)
+	$(SCANNER_H) \
+	$(PARSER_C) \
+	$(PARSER_H)
 
 SRCS = 	$(GSRCS) graal.c
 
@@ -19,7 +23,7 @@ OBJS = 	scanner$(O) \
 
 
 $(SCANNER_C) : graal.l
-	flex -o $@ --header-file=scanner.h $?
+	flex -o $@ --header-file=$(SCANNER_H) $?
 
 $(PARSER_C) : graal.y
-	bison -y -d -o $@ $?
+	bison -o $@ --defines=$(PARSER_H) $?
