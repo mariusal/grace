@@ -591,7 +591,7 @@ static int leval_aac_cb(void *data)
 
     rt = rt_from_quark(pset);
     
-    t = graal_get_var(rt->graal, "$t");
+    t = graal_get_var(rt->graal, "$t", TRUE);
     if (t == NULL) {
         errmsg("Internal error");
         return RETURN_FAILURE;
@@ -624,7 +624,7 @@ static int leval_aac_cb(void *data)
         expr = concat_strings(expr, formula[i]);
         
         /* evaluate the expression */
-        res = graal_parse_line(rt->graal, expr);
+        res = graal_parse_line(rt->graal, expr, NULL);
         
         xfree(expr);
         

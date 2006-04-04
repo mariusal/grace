@@ -4130,7 +4130,7 @@ int xv_evalexpr(Widget w, double *answer)
 	
     s = XmTextGetString(w);
     
-    retval = graal_eval_expr(grace->rt->graal, s, answer);
+    retval = graal_eval_expr(grace->rt->graal, s, answer, grace->project);
     
     XtFree(s);
     
@@ -4835,10 +4835,16 @@ void redo_cb(Widget but, void *data)
     undo_stats(amem);
 }
 
+/* what a mess... */
 void unlink_ssd_ui(Quark *q)
 {
     GUI *gui = gui_from_quark(q);
-    if (gui && gui->eui && gui->eui->ssd_ui && gui->eui->ssd_ui->q == q) {
-        gui->eui->ssd_ui->q = NULL;
+    if (gui && gui->eui && gui->eui->ssd_ui) {
+        if (gui->eui->ssd_ui->q == q) {
+            gui->eui->ssd_ui->q = NULL;
+        }
+        if (gui->eui->ssd_ui->col_sel->anydata == q) {
+            gui->eui->ssd_ui->col_sel->anydata = NULL;
+        }
     }
 }

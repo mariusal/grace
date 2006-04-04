@@ -393,8 +393,8 @@ static int process_complete_lines(Grace *grace, Input_buffer *ib)
             close_input = NULL;
 
             if (line_corrupted ||
-                graal_parse_line(grace->rt->graal, begin_of_line) !=
-                    RETURN_SUCCESS) {
+                graal_parse_line(grace->rt->graal,
+                    begin_of_line, grace->project) != RETURN_SUCCESS) {
                 sprintf(buf, "Error at line %d", ib->lineno);
                 errmsg(buf);
                 ++(ib->errors);

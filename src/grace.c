@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2004 Grace Development Team
+ * Copyright (c) 2001-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -105,6 +105,97 @@ void *container_data_copy(AMem *amem, void *data)
     return data;
 }
 
+static void *obj_proc(void *context, const char *name, void *udata)
+{
+    Quark *q = (Quark *) context;
+    if (q) {
+        return quark_find_child_by_idstr(q, name);
+    } else {
+        return NULL;
+    }
+}
+
+static GVarType get_proc(const void *obj,
+    const char *name, GVarData *prop, void *udata)
+{
+    Quark *q = (Quark *) obj;
+    DArray *da;
+    if (!q) {
+        return GVarNil;
+    }
+    
+    if (strings_are_equal(name, "idstr")) {
+        prop->str = copy_string(NULL, QIDSTR(q));
+        return GVarStr;
+    }
+    
+    switch (quark_fid_get(q)) {
+    case QFlavorSSD:
+        if (strings_are_equal(name, "nrows")) {
+            prop->num = ssd_get_nrows(q);
+            return GVarNum;
+        } else
+        if (strings_are_equal(name, "x")) {
+            da = ssd_get_darray(q, 0);
+            if (da) {
+                prop->arr = da;
+                return GVarArr;
+            } else {
+                return GVarNil;
+            }
+        } else {
+            return GVarNil;
+        }
+        break;
+    default:
+        return GVarNil;
+        break;
+    }
+}
+
+static int set_proc(void *obj,
+    const char *name, GVarType type, GVarData prop, void *udata)
+{
+    Quark *q = (Quark *) obj;
+    if (q && quark_fid_get(q) == QFlavorSSD &&
+        strings_are_equal(name, "x") && type == GVarArr &&
+        ssd_set_darray(q, 0, prop.arr) == RETURN_SUCCESS) {
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+static void eval_proc(GVarType type, GVarData vardata, void *udata)
+{
+    unsigned int i;
+    DArray *da;
+    char buf[64];
+    
+    switch (type) {
+    case GVarNum:
+        sprintf(buf, "%g\n", vardata.num);
+        stufftext(buf);
+        break;
+    case GVarArr:
+        da = vardata.arr;
+        stufftext("{");
+        for (i = 0; da && i < da->size; i++) {
+            sprintf(buf, " %g ", da->x[i]);
+            stufftext(buf);
+        }
+        stufftext("}\n");
+        break;
+    case GVarStr:
+        stufftext(vardata.str);
+        stufftext("\n");
+        break;
+    default:
+        errmsg("unknown data type");
+        break;
+    }
+}
+
 RunTime *runtime_new(Grace *grace)
 {
     RunTime *rt;
@@ -164,6 +255,9 @@ RunTime *runtime_new(Grace *grace)
         runtime_free(rt);
         return NULL;
     }
+    graal_set_udata(rt->graal, grace);
+    graal_set_lookup_procs(rt->graal, obj_proc, get_proc, set_proc);
+    graal_set_eval_proc(rt->graal, eval_proc);
     
     rt->safe_mode = TRUE;
     

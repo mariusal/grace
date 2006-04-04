@@ -983,7 +983,7 @@ int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
         }
 	filter_set(pdest, rarray);
         // set_parser_setno(pdest);
-        if (graal_parse_line(rt->graal, fstr) != RETURN_SUCCESS) {
+        if (graal_parse_line(rt->graal, fstr, psrc) != RETURN_SUCCESS) {
 	    if (psrc != pdest) {
 		quark_free(pdest);
 	    }
@@ -2103,7 +2103,7 @@ int featext(Quark **sets, int nsets, Quark *pdest,
         Quark *pset = sets[i];
 	// set_parser_setno(pset);
         x[i] = (double) i;
-        if (graal_eval_expr(rt->graal, formula, &y[i]) !=
+        if (graal_eval_expr(rt->graal, formula, &y[i], pset) !=
             RETURN_SUCCESS) {
             return RETURN_FAILURE;
         }

@@ -267,7 +267,7 @@ static void cmd_cb(TextStructure *cst, char *s, void *data)
     ui->eohistory = TRUE;
     
     if (!string_is_empty(s)) {
-        graal_parse_line(grace->rt->graal, s);
+        graal_parse_line(grace->rt->graal, s, grace->project);
         
         if (ui->auto_redraw) {
             xdrawgraph(grace->project);
