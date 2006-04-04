@@ -604,7 +604,7 @@ reenter:
                 }
             }
 
-            res = graal_transform_arr(g, t->tl_formula, "$t", da);
+            res = graal_transform_arr(g, t->tl_formula, "$t", da, q);
             if (res != RETURN_SUCCESS) {
                 errmsg("Error in tick transformation formula");
                 darray_free(da);
