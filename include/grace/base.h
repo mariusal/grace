@@ -197,6 +197,8 @@ int darray_get_val(const DArray *da, unsigned int i, double *val);
 DArray *darray_copy(const DArray *da);
 int darray_add_val(DArray *da, double val);
 int darray_mul_val(DArray *da, double val);
+DArray *darray_slice(const DArray *da, unsigned int from, unsigned int to);
+DArray *darray_concat(const DArray *da1, const DArray *da2);
 
 
 /*

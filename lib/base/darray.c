@@ -153,3 +153,43 @@ int darray_mul_val(DArray *da, double val)
     
     return RETURN_SUCCESS;
 }
+
+DArray *darray_slice(const DArray *da, unsigned int from, unsigned int to)
+{
+    DArray *da_new;
+    
+    if (da && from <= to && to < da->size) {
+        unsigned int new_size = to - from + 1;
+        da_new = darray_new(new_size);
+        if (da_new) {
+            memcpy(da_new->x, da->x + from, new_size*SIZEOF_DOUBLE);
+        }
+    } else {
+        da_new = NULL;
+    }
+    
+    return da_new;
+}
+
+DArray *darray_concat(const DArray *da1, const DArray *da2)
+{
+    DArray *da_new;
+    
+    if (da1 && da2) {
+        da_new = darray_new(da1->size + da2->size);
+        if (da_new) {
+            memcpy(da_new->x, da1->x, da1->size*SIZEOF_DOUBLE);
+            memcpy(da_new->x + da1->size, da2->x, da2->size*SIZEOF_DOUBLE);
+        }
+    } else
+    if (da1) {
+        da_new = darray_copy(da1);
+    } else
+    if (da2) {
+        da_new = darray_copy(da2);
+    } else {
+        da_new = NULL;
+    }
+    
+    return da_new;
+}
