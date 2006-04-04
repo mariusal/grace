@@ -34,11 +34,11 @@
 
 #include "grace/graal.h"
 
-typedef union {
-    double  num;
-    DArray *arr;
-    char   *str;
-} GVarData;
+typedef enum {
+    GContextNone,
+    GContextDot,
+    GContextColumn
+} GContext;
 
 struct _GVar {
     char *name;
@@ -56,6 +56,17 @@ struct _Graal {
     GVar **vars;
     unsigned int nvars;
     
+    GContext dot_context;
+    int      RHS;
+    
+    void *default_obj;
+    void *current_obj;
+    
+    GEvalProc eval_proc;
+    
+    GLookupObjProc  lookup_obj_proc;
+    GGetPropProc    get_prop_proc;
+    GSetPropProc    set_prop_proc;
     void *udata;
 };
 
@@ -64,6 +75,23 @@ void graal_scanner_init(Graal *g);
 void graal_scanner_delete(Graal *g);
 
 int graal_register_darr(Graal *g, DArray *da);
+void graal_free_vars(Graal *g);
 void graal_free_darrs(Graal *g);
+
+void *graal_get_user_obj(Graal *g, void *obj, const char *name);
+GVarType graal_get_user_obj_prop(Graal *g,
+    void *obj, const char *name, GVarData *prop);
+int graal_set_user_obj_prop(Graal *g,
+    void *obj, const char *name, GVarType type, GVarData prop);
+
+void graal_set_context(Graal *g, void *context);
+
+void graal_set_dotcontext(Graal *g, GContext dot_context);
+GContext graal_get_dotcontext(const Graal *g);
+
+void graal_set_RHS(Graal *g, int onoff);
+int graal_get_RHS(const Graal *g);
+
+void graal_call_eval_proc(Graal *g, GVarType type, GVarData vardata);
 
 #endif /* __GRAALP_H_ */

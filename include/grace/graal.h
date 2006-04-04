@@ -44,21 +44,43 @@ typedef enum {
     GVarStr
 } GVarType;
 
+typedef union {
+    double  num;
+    DArray *arr;
+    char   *str;
+} GVarData;
+
+typedef void (*GEvalProc)(GVarType type, GVarData vardata, void *udata);
+
+typedef void *(*GLookupObjProc)(void *context, const char *name, void *udata);
+typedef GVarType (*GGetPropProc)(const void *obj, const char *name,
+    GVarData *prop, void *udata);
+typedef int (*GSetPropProc)(void *obj, const char *name,
+    GVarType type, GVarData prop, void *udata);
+
 Graal *graal_new(void);
 void graal_free(Graal *g);
 
-int graal_parse(Graal *g, const char *s);
-int graal_parse_line(Graal *g, const char *s);
+int graal_parse(Graal *g, const char *s, void *context);
+int graal_parse_line(Graal *g, const char *s, void *context);
 
-int graal_eval_expr(Graal *g, const char *formula, double *val);
+int graal_eval_expr(Graal *g, const char *formula, double *val, void *context);
 int graal_transform_arr(Graal *g,
-    const char *formula, const char *varname, DArray *da);
+    const char *formula, const char *varname, DArray *da, void *context);
 
-GVar *graal_get_var(Graal *g, const char *name);
+GVar *graal_get_var(Graal *g, const char *name, int allocate);
 
 int gvar_get_num(GVar *var, double *value);
 int gvar_set_num(GVar *var, double value);
 int gvar_get_arr(GVar *var, DArray **da);
 int gvar_set_arr(GVar *var, DArray *da);
+int gvar_get_str(GVar *var, char **s);
+int gvar_set_str(GVar *var, const char *s);
+
+int graal_set_udata(Graal *g, void *udata);
+int graal_set_lookup_procs(Graal *g,
+    GLookupObjProc obj_proc, GGetPropProc get_proc, GSetPropProc set_proc);
+
+int graal_set_eval_proc(Graal *g, GEvalProc eval_proc);
 
 #endif /* __GRAAL_H_ */
