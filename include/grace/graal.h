@@ -39,6 +39,7 @@ typedef struct _GVar GVar;
 
 typedef enum {
     GVarNil,
+    GVarBool,
     GVarNum,
     GVarArr,
     GVarStr
@@ -46,6 +47,7 @@ typedef enum {
 
 typedef union {
     double  num;
+    double  bool;
     DArray *arr;
     char   *str;
 } GVarData;
@@ -72,6 +74,8 @@ GVar *graal_get_var(Graal *g, const char *name, int allocate);
 
 int gvar_get_num(GVar *var, double *value);
 int gvar_set_num(GVar *var, double value);
+int gvar_get_bool(GVar *var, int *value);
+int gvar_set_bool(GVar *var, int value);
 int gvar_get_arr(GVar *var, DArray **da);
 int gvar_set_arr(GVar *var, DArray *da);
 int gvar_get_str(GVar *var, char **s);

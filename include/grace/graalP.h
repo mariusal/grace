@@ -94,4 +94,6 @@ int graal_get_RHS(const Graal *g);
 
 void graal_call_eval_proc(Graal *g, GVarType type, GVarData vardata);
 
+void gvar_clear(GVar *var);
+
 #endif /* __GRAALP_H_ */

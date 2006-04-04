@@ -26,8 +26,6 @@
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <string.h>
-
 #include "grace/baseP.h"
 #include "grace/graalP.h"
 
@@ -38,6 +36,7 @@
 #define YYLEX_PARAM   scanner
 
 #define REGISTER_DARR(da)   graal_register_darr(yyget_extra(scanner), da)
+#define SET_DOTCONTEXT(ctx) graal_set_dotcontext(yyget_extra(scanner), ctx)
 
 void yyerror(char *s)
 {
@@ -65,18 +64,36 @@ void yyerror(char *s)
 %token <gobj> TOK_OBJECT
 
 %token        TOK_PROP_NIL
+%token <ival> TOK_PROP_BOOL
 %token <dval> TOK_PROP_NUM
 %token <sval> TOK_PROP_STR
 %token <darr> TOK_PROP_ARR
 
 %token <gvar> TOK_VAR_NIL
+%token <gvar> TOK_VAR_BOOL
 %token <gvar> TOK_VAR_NUM
 %token <gvar> TOK_VAR_STR
 %token <gvar> TOK_VAR_ARR
 
+%token TOK_RANGE
+
+%token TOK_EQ
+%token TOK_NE
+%token TOK_GE
+%token TOK_LE
+
+%token TOK_OR
+%token TOK_AND
+
+%token TOK_TRUE
+%token TOK_FALSE
+
+%type <gvar> avar
+
 %type <dval> expr
 %type <ival> iexpr
 %type <ival> nexpr
+%type <ival> bexpr
 %type <darr> list
 %type <darr> array
 %type <darr> vexpr
@@ -84,17 +101,22 @@ void yyerror(char *s)
 %type <sval> sexpr
 
 /* Precedence */
+%nonassoc '?' ':'
+%left TOK_OR
+%left TOK_AND
+%nonassoc '>' '<' TOK_GE TOK_LE TOK_EQ TOK_NE
 %left '-' '+' '@'
 %left '*' '/' '%'
 %nonassoc UMINUS
+%right '^'
 
 %%
 input:	/* empty */
-	|   input line { graal_free_darrs(yyget_extra(scanner)); }
+	|   input line ';' { graal_free_darrs(yyget_extra(scanner)); }
 	;
 
-line:	'\n'
-	|   TOK_NAME '=' expr '\n' {
+line:	/* empty */
+	|   TOK_NAME '=' expr {
                 GVar *var = graal_get_var(yyget_extra(scanner), $1, TRUE);
                 xfree($1);
                 if (gvar_set_num(var, $3) != RETURN_SUCCESS) {
@@ -102,25 +124,76 @@ line:	'\n'
                     return 1;
                 }
             }
-	|   TOK_VAR_NUM '=' expr '\n' {
-                gvar_set_num($1, $3);
+	|   TOK_NAME '=' bexpr {
+                GVar *var = graal_get_var(yyget_extra(scanner), $1, TRUE);
+                xfree($1);
+                if (gvar_set_bool(var, $3) != RETURN_SUCCESS) {
+	            yyerror("assignment failed");
+                    return 1;
+                }
             }
-	|   TOK_VAR_NUM '+' '=' expr '\n' {
+	|   TOK_NAME '=' vexpr {
+                GVar *var = graal_get_var(yyget_extra(scanner), $1, TRUE);
+                xfree($1);
+                if (gvar_set_arr(var, $3) != RETURN_SUCCESS) {
+	            yyerror("assignment failed");
+                    return 1;
+                }
+            }
+	|   TOK_NAME '=' sexpr {
+                GVar *var = graal_get_var(yyget_extra(scanner), $1, TRUE);
+                xfree($1);
+                if (gvar_set_str(var, $3) != RETURN_SUCCESS) {
+                    xfree($3);
+	            yyerror("assignment failed");
+                    return 1;
+                } else {
+                    xfree($3);
+                }
+            }
+	|   avar '=' expr {
+                if (gvar_set_num($1, $3) != RETURN_SUCCESS) {
+	            yyerror("assignment failed - check types");
+                    return 1;
+                }
+            }
+	|   avar '=' bexpr {
+                if (gvar_set_bool($1, $3) != RETURN_SUCCESS) {
+	            yyerror("assignment failed - check types");
+                    return 1;
+                }
+            }
+	|   avar '=' vexpr {
+                if (gvar_set_arr($1, $3) != RETURN_SUCCESS) {
+	            yyerror("assignment failed - check types");
+                    return 1;
+                }
+            }
+	|   avar '=' sexpr {
+                if (gvar_set_str($1, $3) != RETURN_SUCCESS) {
+                    xfree($3);
+	            yyerror("assignment failed - check types");
+                    return 1;
+                } else {
+                    xfree($3);
+                }
+            }
+	|   TOK_VAR_NUM '+' '=' expr {
                 double val;
                 gvar_get_num($1, &val);
                 gvar_set_num($1, val + $4);
             }
-	|   TOK_VAR_NUM '-' '=' expr '\n' {
+	|   TOK_VAR_NUM '-' '=' expr {
                 double val;
                 gvar_get_num($1, &val);
                 gvar_set_num($1, val - $4);
             }
-	|   TOK_VAR_NUM '*' '=' expr '\n' {
+	|   TOK_VAR_NUM '*' '=' expr {
                 double val;
                 gvar_get_num($1, &val);
                 gvar_set_num($1, val*$4);
             }
-	|   TOK_VAR_NUM '/' '=' expr '\n' {
+	|   TOK_VAR_NUM '/' '=' expr {
                 if ($4 == 0) {
 	            yyerror("divide by zero");
                     return 1;
@@ -130,21 +203,7 @@ line:	'\n'
                     gvar_set_num($1, val/$4);
                 }
             }
-	|   TOK_NAME '=' vexpr '\n' {
-                GVar *var = graal_get_var(yyget_extra(scanner), $1, TRUE);
-                xfree($1);
-                if (gvar_set_arr(var, $3) != RETURN_SUCCESS) {
-	            yyerror("assignment failed");
-                    return 1;
-                }
-            }
-	|   TOK_VAR_ARR '=' vexpr '\n' {
-                gvar_set_arr($1, $3);
-            }
-	|   TOK_VAR_ARR '=' expr '\n' {
-                gvar_set_num($1, $3);
-            }
-	|   TOK_VAR_ARR '[' nexpr ']' '=' expr '\n' {
+	|   TOK_VAR_ARR '[' nexpr ']' '=' expr {
                 DArray *da;
                 gvar_get_arr($1, &da);
                 if ($3 < da->size) {
@@ -154,7 +213,16 @@ line:	'\n'
                     return 1;
                 }
             }
-	|   object '.' TOK_NAME '=' expr '\n' {
+	|   TOK_VAR_STR '@' '=' sexpr {
+                char *val, *buf;
+                gvar_get_str($1, &val);
+                buf = copy_string(NULL, val);
+                buf = concat_strings(buf, $4);
+                xfree($4);
+                gvar_set_str($1, buf);
+                xfree(buf);
+            }
+	|   object '.' TOK_NAME '=' expr {
                 Graal *g = yyget_extra(scanner);
                 GVarData prop;
                 prop.num = $5;
@@ -164,7 +232,7 @@ line:	'\n'
                 }
                 xfree($3);
             }
-	|   object '.' TOK_NAME '=' vexpr '\n' {
+	|   object '.' TOK_NAME '=' vexpr {
                 Graal *g = yyget_extra(scanner);
                 GVarData prop;
                 prop.arr = $5;
@@ -174,44 +242,44 @@ line:	'\n'
                 }
                 xfree($3);
             }
-	|   TOK_NAME '=' sexpr '\n' {
-                GVar *var = graal_get_var(yyget_extra(scanner), $1, TRUE);
-                xfree($1);
-                if (gvar_set_str(var, $3) != RETURN_SUCCESS) {
-	            yyerror("assignment failed");
-                    return 1;
-                }
-                xfree($3);
-            }
-	|   TOK_VAR_STR '=' sexpr '\n' {
-                if (gvar_set_str($1, $3) != RETURN_SUCCESS) {
-                    xfree($3);
-	            yyerror("assignment failed");
-                    return 1;
-                } else {
-                    xfree($3);
-                }
-            }
-	|   eval_anon expr '\n' {
+	|   eval_anon expr {
                 GVarData vardata;
                 vardata.num = $2;
                 graal_call_eval_proc(yyget_extra(scanner), GVarNum, vardata);
             }
-	|   eval_anon vexpr '\n' {
+	|   eval_anon bexpr {
+                GVarData vardata;
+                vardata.bool = $2;
+                graal_call_eval_proc(yyget_extra(scanner), GVarBool, vardata);
+            }
+	|   eval_anon vexpr {
                 GVarData vardata;
                 vardata.arr = $2;
                 graal_call_eval_proc(yyget_extra(scanner), GVarArr, vardata);
             }
-	|   eval_anon sexpr '\n' {
+	|   eval_anon sexpr {
                 GVarData vardata;
                 vardata.str = $2;
                 graal_call_eval_proc(yyget_extra(scanner), GVarStr, vardata);
                 xfree($2);
             }
-	;
+	|   eval_anon TOK_VAR_NIL {
+                GVarData vardata;
+                vardata.num = 0;
+                graal_call_eval_proc(yyget_extra(scanner), GVarNil, vardata);
+            }
+	|   '~' avar { gvar_clear($2); }
+        ;
 
 eval_anon:  '?' { graal_set_RHS(yyget_extra(scanner), TRUE); }
 	;
+
+avar:	    TOK_VAR_NIL  { $$ = $1; }
+	|   TOK_VAR_NUM  { $$ = $1; }
+	|   TOK_VAR_BOOL { $$ = $1; }
+	|   TOK_VAR_ARR  { $$ = $1; }
+	|   TOK_VAR_STR  { $$ = $1; }
+        ;
 
 expr:	    TOK_NUMBER { $$ = $1; }
 	|   TOK_VAR_NUM {
@@ -231,6 +299,17 @@ expr:	    TOK_NUMBER { $$ = $1; }
 	            $$ = $1 / $3;
                 }
 	    }
+        |   expr '^' expr {
+                if ($1 < 0 && rint($3) != $3) {
+                    yyerror("negative value raised to non-integer power");
+                    return 1;
+                } else if ($1 == 0.0 && $3 <= 0.0) {
+                    yyerror("zero raised to non-positive power");
+                    return 1;
+                } else {
+                    $$ = pow($1, $3);
+                }
+            }
 	|   '-' expr %prec UMINUS { $$ = -$2; }
 	|   '+' expr %prec UMINUS { $$ = $2; }
 	|   '(' expr ')' { $$ = $2; }
@@ -242,7 +321,8 @@ expr:	    TOK_NUMBER { $$ = $1; }
                     return 1;
                 }
             }
-	;
+	|   bexpr '?' expr ':' expr { $$ = $1 ? $3:$5; }
+        ;
 
 iexpr:	    expr {
                 int itmp = rint($1);
@@ -306,6 +386,23 @@ array:	    '{' list '}' { $$ = $2; }
 
 
 vexpr:      array { $$ = $1; }
+	|   array '[' nexpr TOK_RANGE nexpr ']' {
+                if ($3 >= $1->size || $5 >= $1->size) {
+	            yyerror("index beyond array bounds");
+                    return 1;
+                } else
+                if ($3 > $5) {
+	            yyerror("non-positive index range");
+                    return 1;
+                } else {
+                    $$ = darray_slice($1, $3, $5);
+                    REGISTER_DARR($$);
+                }
+            }
+        |   array '@' array {
+                $$ = darray_concat($1, $3);
+                REGISTER_DARR($$);
+            }
         |   vexpr '+' expr {
                 $$ = darray_copy($1);
                 if ($$) {
@@ -313,11 +410,26 @@ vexpr:      array { $$ = $1; }
                     darray_add_val($$, $3);
                 }
             }
+        |   expr '+' vexpr {
+                $$ = darray_copy($3);
+                if ($$) {
+                    REGISTER_DARR($$);
+                    darray_add_val($$, $1);
+                }
+            }
         |   vexpr '-' expr {
                 $$ = darray_copy($1);
                 if ($$) {
                     REGISTER_DARR($$);
                     darray_add_val($$, -$3);
+                }
+            }
+        |   expr '-' vexpr {
+                $$ = darray_copy($3);
+                if ($$) {
+                    REGISTER_DARR($$);
+                    darray_mul_val($$, -1.0);
+                    darray_add_val($$, $1);
                 }
             }
         |   vexpr '*' expr {
@@ -371,15 +483,34 @@ sexpr:      TOK_STRING { $$ = $1; }
             }
         ;
 
+bexpr:	    TOK_TRUE  { $$ = TRUE; }
+	|   TOK_FALSE { $$ = FALSE; }
+	|   TOK_VAR_BOOL {
+                gvar_get_bool($1, &$$);
+            }
+        |   expr TOK_EQ expr { $$ = ($1 == $3 ? TRUE:FALSE); }
+	|   expr TOK_NE expr { $$ = ($1 != $3 ? TRUE:FALSE); }
+	|   expr TOK_LE expr { $$ = ($1 <= $3 ? TRUE:FALSE); }
+	|   expr TOK_GE expr { $$ = ($1 >= $3 ? TRUE:FALSE); }
+	|   expr '<' expr { $$ = ($1 < $3 ? TRUE:FALSE); }
+	|   expr '>' expr { $$ = ($1 > $3 ? TRUE:FALSE); }
+	|   bexpr TOK_EQ bexpr { $$ = $1 == $3; }
+	|   bexpr TOK_NE bexpr { $$ = $1 != $3; }
+	|   bexpr TOK_OR bexpr { $$ = $1 || $3; }
+	|   bexpr TOK_AND bexpr { $$ = $1 && $3; }
+	|   '!' bexpr %prec UMINUS { $$ = !$2; }
+	|   '(' bexpr ')' { $$ = $2; }
+	;
+        
 object:     TOK_OBJECT {
                 Graal *g = yyget_extra(scanner);
                 $$ = $1;
                 g->current_obj = $1;
             }
-	|   object ':' TOK_OBJECT {
+	|   object ':' { SET_DOTCONTEXT(GContextColumn); } TOK_OBJECT {
                 Graal *g = yyget_extra(scanner);
-                $$ = $3;
-                g->current_obj = $3;
+                $$ = $4;
+                g->current_obj = $4;
             }
         ;
 %%

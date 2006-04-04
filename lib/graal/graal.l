@@ -76,6 +76,9 @@ this    {
             }
 	}
 
+true	{ return TOK_TRUE; }
+false	{ return TOK_FALSE; }
+
 {NAME} {
             void *uobj;
             GVar *var;
@@ -93,6 +96,10 @@ this    {
                     case GVarNum:
                         yylval->dval = prop.num;
                         return TOK_PROP_NUM;
+                        break;
+                    case GVarBool:
+                        yylval->dval = prop.bool;
+                        return TOK_PROP_BOOL;
                         break;
                     case GVarArr:
                         yylval->darr = prop.arr;
@@ -139,6 +146,9 @@ this    {
                     case GVarNum:
                         return TOK_VAR_NUM;
                         break;
+                    case GVarBool:
+                        return TOK_VAR_BOOL;
+                        break;
                     case GVarStr:
                         return TOK_VAR_STR;
                         break;
@@ -159,12 +169,18 @@ this    {
 
 {WS}	; /* ignore white space */
 
+\.\.	{ return TOK_RANGE; }
+
+==	{ return TOK_EQ; }
+!=	{ return TOK_NE; }
+\>=	{ return TOK_GE; }
+\<=	{ return TOK_LE; }
+
+\|\|	{ return TOK_OR; }
+&&	{ return TOK_AND; }
+
 \.	{
 	    graal_set_dotcontext(yyextra, GContextDot);
-            return yytext[0];
-	}
-:	{
-	    graal_set_dotcontext(yyextra, GContextColumn);
             return yytext[0];
 	}
 =	{
@@ -173,7 +189,7 @@ this    {
 	}
 \"	string_buf_ptr = string_buf; BEGIN(QSTR);
 
-\n	|
+\n	; /* ignore EOL */
 .	{
 	    graal_set_dotcontext(yyextra, GContextNone);
             return yytext[0];

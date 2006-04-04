@@ -55,7 +55,7 @@ int graal_parse_line(Graal *g, const char *s, void *context)
     if (g && s) {
         int retval;
         char *buf = copy_string(NULL, s);
-        buf = concat_strings(buf, "\n");
+        buf = concat_strings(buf, ";");
         retval = graal_parse(g, buf, context);
         xfree(buf);
         return retval;
@@ -64,7 +64,7 @@ int graal_parse_line(Graal *g, const char *s, void *context)
     }
 }
 
-static void gvar_free(GVar *var)
+void gvar_clear(GVar *var)
 {
     if (var) {
         switch (var->type) {
@@ -77,6 +77,14 @@ static void gvar_free(GVar *var)
         default:
             break;
         }
+        var->type = GVarNil;
+    }
+}
+
+static void gvar_free(GVar *var)
+{
+    if (var) {
+        gvar_clear(var);
         xfree(var->name);
         xfree(var);
     }
@@ -147,6 +155,31 @@ int gvar_set_num(GVar *var, double value)
     }
 }
 
+int gvar_get_bool(GVar *var, int *value)
+{
+    if (var && var->type == GVarBool) {
+        *value = var->data.bool;
+        return RETURN_SUCCESS;
+    } else {
+        *value = FALSE;
+        return RETURN_FAILURE;
+    }
+}
+
+int gvar_set_bool(GVar *var, int value)
+{
+    if (var && (var->type == GVarNil || var->type == GVarBool)) {
+        var->type = GVarBool;
+        var->data.bool = value ? TRUE:FALSE;
+        return RETURN_SUCCESS;
+    } else
+    if (var->type == GVarArr) {
+        return darray_set_const(var->data.arr, value);
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 int gvar_get_str(GVar *var, char **s)
 {
     if (var && var->type == GVarStr) {
@@ -161,8 +194,11 @@ int gvar_get_str(GVar *var, char **s)
 int gvar_set_str(GVar *var, const char *s)
 {
     if (var && (var->type == GVarNil || var->type == GVarStr)) {
+        if (var->type == GVarStr) {
+            xfree(var->data.str);
+        }
         var->type = GVarStr;
-        var->data.str = copy_string(var->data.str, s);
+        var->data.str = copy_string(NULL, s);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -183,8 +219,10 @@ int gvar_get_arr(GVar *var, DArray **da)
 int gvar_set_arr(GVar *var, DArray *da)
 {
     if (var && (var->type == GVarNil || var->type == GVarArr)) {
+        if (var->type == GVarArr) {
+            darray_free(var->data.arr);
+        }
         var->type = GVarArr;
-        darray_free(var->data.arr);
         var->data.arr = darray_copy(da);
         return RETURN_SUCCESS;
     } else {
