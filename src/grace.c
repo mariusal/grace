@@ -173,9 +173,16 @@ static void eval_proc(GVarType type, GVarData vardata, void *udata)
     char buf[64];
     
     switch (type) {
+    case GVarNil:
+        stufftext("(nil)\n");
+        break;
     case GVarNum:
         sprintf(buf, "%g\n", vardata.num);
         stufftext(buf);
+        break;
+    case GVarBool:
+        stufftext(vardata.bool ? "true":"false");
+        stufftext("\n");
         break;
     case GVarArr:
         da = vardata.arr;
