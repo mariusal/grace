@@ -74,8 +74,7 @@ $(PARS_C) : $(PARS_Y)
 	$(YACC) -t $? && mv y.tab.c $@
 
 xml_in.c : grace.xcc
-	$(RM) t.c
-	$(XCC) -b -i $? -o t.c && mv t.c $@
+	$(XCC) -b -i $? -o $@
 
 $(SCHEMA) : grace.xcc xstrings.h
 	$(XCC) -s -i grace.xcc | cpp -P -nostdinc -imacros xstrings.h > $@
