@@ -808,7 +808,8 @@ static Widget CreateMainMenuBar(Widget parent)
 /*
  *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
  */
-    CreateMenuButton(menupane, "Dataset statistics", 'D', create_datasetprop_popup, NULL);
+    CreateMenuButton(menupane, "Dataset statistics", 'D',
+        create_datasetprop_popup, grace);
 
     /* Help menu */
     menupane = CreateMenu(menubar, "Help", 'H', TRUE);

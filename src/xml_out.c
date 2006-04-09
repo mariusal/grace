@@ -686,6 +686,7 @@ static int save_dataset(XFile *xf, Quark *pset)
     Attributes *attrs;
     unsigned int nc, ncols;
     Dataset *data;
+    RunTime *rt = rt_from_quark(pset);
 
     data = set_get_dataset(pset);
     
@@ -700,7 +701,8 @@ static int save_dataset(XFile *xf, Quark *pset)
     attributes_reset(attrs);
     for (nc = 0; nc < ncols; nc++) {
         if (data->cols[nc] != COL_NONE) {
-            attributes_set_ival(attrs, dataset_colname(nc), data->cols[nc]);
+            attributes_set_ival(attrs,
+                dataset_col_name(rt, nc), data->cols[nc]);
         }
     }
     if (data->acol != COL_NONE) {

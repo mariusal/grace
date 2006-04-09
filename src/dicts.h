@@ -32,7 +32,7 @@
 #ifndef __DICTS_H_
 #define __DICTS_H_
 
-#include "defines.h"
+#include "grace.h"
 #include "core_utils.h"
 
 int grace_rt_init_dicts(RunTime *rt);
@@ -88,5 +88,8 @@ char *format_type_descr(RunTime *rt, FormatType it);
 char *frame_type_name(RunTime *rt, FrameType it);
 FrameType get_frame_type_by_name(RunTime *rt, const char *name);
 char *frame_type_descr(RunTime *rt, FrameType it);
+
+char *dataset_col_name(RunTime *rt, DataColumn it);
+DataColumn get_dataset_col_by_name(RunTime *rt, const char *name);
 
 #endif /* __DICTS_H_ */

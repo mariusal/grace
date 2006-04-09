@@ -43,9 +43,10 @@
 
 #include "core_utils.h"
 #include "utils.h"
+#include "dicts.h"
 #include "ssdata.h"
-#include "motifinc.h"
 #include "numerics.h"
+#include "motifinc.h"
 #include "protos.h"
 
 #define DATA_STAT_COLS   6
@@ -80,6 +81,7 @@ void create_datasetprop_popup(Widget but, void *data)
         short column_widths[DATA_STAT_COLS] = {12, 6, 12, 6, 12, 12};
         unsigned char column_alignments[DATA_STAT_COLS];
         unsigned char column_label_alignments[DATA_STAT_COLS];
+        Grace *grace = (Grace *) data;
 
         tui.top = CreateDialogForm(app_shell, "Data set statistics");
 
@@ -106,7 +108,7 @@ void create_datasetprop_popup(Widget but, void *data)
         }
         
         for (i = 0; i < MAX_SET_COLS; i++) {
-            rowlabels[i] = copy_string(NULL, dataset_colname(i));
+            rowlabels[i] = copy_string(NULL, dataset_col_name(grace->rt, i));
             for (j = 0; j < DATA_STAT_COLS; j++) {
                 tui.rows[i][j] = NULL;
             }
@@ -455,9 +457,12 @@ void set_type_cb(OptionStructure *opt, int type, void *data)
     if (nmrows > nscols) {
         XbaeMatrixDeleteRows(ui->mw, nscols, nmrows - nscols);
     } else if (nmrows < nscols) {
-        for (i = nmrows; i < nscols; i++) {
-            rowlabels[i - nmrows] = copy_string(NULL, dataset_colname(i));
-            rowlabels[i - nmrows] = concat_strings(rowlabels[i - nmrows], " = ");
+        if (ui->gr) {
+            RunTime *rt = rt_from_quark(ui->gr);
+            for (i = nmrows; i < nscols; i++) {
+                rowlabels[i - nmrows] = copy_string(NULL, dataset_col_name(rt, i));
+                rowlabels[i - nmrows] = concat_strings(rowlabels[i - nmrows], " = ");
+            }
         }
         XbaeMatrixAddRows(ui->mw, nmrows, NULL, rowlabels, NULL, nscols - nmrows);
     }
@@ -496,6 +501,7 @@ void create_leval_frame(Widget but, void *data)
         char *rowlabels[MAX_SET_COLS];
         short column_widths[1] = {50};
         int column_maxlengths[1] = {256};
+        RunTime *rt = rt_from_quark(gr);
 
         levalui.top = CreateDialogForm(app_shell, "Load & evaluate");
 
@@ -512,7 +518,7 @@ void create_leval_frame(Widget but, void *data)
         
         nscols = 2;
         for (i = 0; i < nscols; i++) {
-            rowlabels[i] = copy_string(NULL, dataset_colname(i));
+            rowlabels[i] = copy_string(NULL, dataset_col_name(rt, i));
             rowlabels[i] = concat_strings(rowlabels[i], " = ");
             if (i == 0) {
                 rows[i][0] = "$t";
@@ -619,7 +625,7 @@ static int leval_aac_cb(void *data)
         int res;
         
         /* preparing the expression */
-        sprintf(buf, "%s = ", dataset_colname(i));
+        sprintf(buf, "%s = ", dataset_col_name(rt, i));
         expr = copy_string(NULL, buf);
         expr = concat_strings(expr, formula[i]);
         

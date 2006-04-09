@@ -244,6 +244,17 @@ int grace_rt_init_dicts(RunTime *rt)
             {FRAME_TYPE_BREAKRIGHT,  VStrBreakRight,  "Break right" }
         };
 
+    const DictEntry dataset_col_defaults =
+        {DATA_X, "x", "X"};
+    const DictEntry dataset_col_entries[] = 
+        {
+            {DATA_X,  "x",  "X" },
+            {DATA_Y,  "y",  "Y" },
+            {DATA_Y1, "y1", "Y1"},
+            {DATA_Y2, "y2", "Y2"},
+            {DATA_Y3, "y3", "Y3"},
+            {DATA_Y4, "y4", "Y4"}
+        };
 
     if (!(rt->graph_type_dict =
         DICT_NEW_STATIC(graph_type_entries, &graph_type_defaults))) {
@@ -322,6 +333,10 @@ int grace_rt_init_dicts(RunTime *rt)
         DICT_NEW_STATIC(frame_type_entries, &frame_type_defaults))) {
         return RETURN_FAILURE;
     }
+    if (!(rt->dataset_col_dict =
+        DICT_NEW_STATIC(dataset_col_entries, &dataset_col_defaults))) {
+        return RETURN_FAILURE;
+    }
 
     return RETURN_SUCCESS;
 }
@@ -347,6 +362,7 @@ void grace_rt_free_dicts(RunTime *rt)
     dict_free(rt->arcclosure_type_dict);
     dict_free(rt->format_type_dict);
     dict_free(rt->frame_type_dict);
+    dict_free(rt->dataset_col_dict);
 }
 
 char *graph_types(RunTime *rt, GraphType it)
@@ -736,4 +752,22 @@ char *frame_type_descr(RunTime *rt, FrameType it)
     dict_get_descr_by_key(rt->frame_type_dict, it, &s);
     
     return s;
+}
+
+char *dataset_col_name(RunTime *rt, DataColumn it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->dataset_col_dict, it, &s);
+    
+    return s;
+}
+
+DataColumn get_dataset_col_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->dataset_col_dict, name, &retval);
+    
+    return retval;
 }

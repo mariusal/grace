@@ -36,7 +36,9 @@
 #include <stdlib.h>
 
 #include "core_utils.h"
+#include "dicts.h"
 #include "explorer.h"
+#include "globals.h"
 
 #if 0
 
@@ -126,6 +128,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     Widget tab, fr, rc, rc1, rc2;
     OptionItem blockitem = {COL_NONE, "None"};
     unsigned int i;
+    RunTime *rt = grace->rt;
 
     ui = xmalloc(sizeof(SetUI));
 
@@ -167,7 +170,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     for (i = 0; i < MAX_SET_COLS; i++) {
         char buf[32];
-        sprintf(buf, "%s from column:", dataset_colname(i));
+        sprintf(buf, "%s from column:", dataset_col_name(rt, i));
         ui->cols[i] = CreateOptionChoice(rc, buf, 0, 1, &blockitem);
         AddOptionChoiceCB(ui->cols[i], oc_explorer_cb, eui);
     }

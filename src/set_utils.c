@@ -43,40 +43,6 @@
 #include "protos.h"
 
 /*
- * return the string version of the dataset column
- */
-char *dataset_colname(int col)
-{
-    char *s;
-
-    switch (col) {
-    case 0:
-	s = "x";
-	break;
-    case 1:
-	s = "y";
-	break;
-    case 2:
-	s = "y1";
-	break;
-    case 3:
-	s = "y2";
-	break;
-    case 4:
-	s = "y3";
-	break;
-    case 5:
-	s = "y4";
-	break;
-    default:
-	s = "?";
-	errmsg("Internal error in dataset_colname()");
-        break;
-    }
-    return s;
-}
-
-/*
  * free set data, but preserve the parameter settings
  */
 void killsetdata(Quark *pset)

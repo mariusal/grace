@@ -83,12 +83,6 @@ int number_of_frames(Quark *project);
 int number_of_graphs(Quark *project);
 int select_graph(Quark *g);
 
-char *dataset_colname(int col);
-
-int set_refpoint(Quark *gr, const WPoint *wp);
-
-WPoint get_refpoint(Quark *gr);
-
 #define getx(p) set_get_col(p, DATA_X)
 #define gety(p) set_get_col(p, DATA_Y)
 
