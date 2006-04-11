@@ -987,6 +987,9 @@ int set_get_minmax(Quark *pset,
 
 double set_get_ybase(Quark *pset);
 
+DArray *set_get_darray(const Quark *q, DataColumn col);
+int set_set_darray(Quark *pset, DataColumn col, const DArray *da);
+
 /* Region */
 region *region_get_data(const Quark *q);
 

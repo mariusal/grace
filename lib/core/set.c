@@ -481,3 +481,27 @@ void *set_get_acol(Quark *pset, int *format)
         return NULL;
     }
 }
+
+/* assign given column to DArray without actually allocating the data */
+DArray *set_get_darray(const Quark *pset, DataColumn col)
+{
+    Quark *ss = get_parent_ssd(pset);
+    set *p = set_get_data(pset);
+    if (p && ss && col < MAX_SET_COLS) {
+        return ssd_get_darray(ss, p->ds.cols[col]);
+    } else {
+        return NULL;
+    }
+}
+
+int set_set_darray(Quark *pset, DataColumn col, const DArray *da)
+{
+    Quark *ss = get_parent_ssd(pset);
+    set *p = set_get_data(pset);
+    if (p && ss && col < MAX_SET_COLS) {
+        return ssd_set_darray(ss, p->ds.cols[col], da);
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
