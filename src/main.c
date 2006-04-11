@@ -76,8 +76,6 @@ int main(int argc, char *argv[])
 
     char fd_name[GR_MAXPATHLEN];
 
-    int wpp, hpp;
-    
     RunTime *rt;
     GUI *gui;
     Canvas *canvas;
@@ -288,27 +286,6 @@ int main(int argc, char *argv[])
 		gui->install_cmap = CMAP_INSTALL_NEVER;
 	    } else if (argmatch(argv[i], "-barebones", 9)) {
 		gui_set_barebones(gui);
-#endif
-	    } else if (argmatch(argv[i], "-fixed", 5)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for fixed canvas width\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    if (i == argc - 1) {
-			fprintf(stderr, "Missing argument for fixed canvas height\n");
-			usage(stderr, argv[0]);
-		    } else {
-                        wpp = atoi(argv[i]);
-		    	i++;
-		    	hpp = atoi(argv[i]);
-                        set_page_dimensions(grace, wpp, hpp, FALSE);
-#ifndef NONE_GUI
-		    	gui_set_page_free(gui, FALSE);
-#endif
-		    }
-		}
-#ifndef NONE_GUI
 	    } else if (argmatch(argv[i], "-free", 5)) {
 		gui_set_page_free(gui, TRUE);
 #endif
@@ -424,8 +401,6 @@ int main(int argc, char *argv[])
                 grace->rt->safe_mode = FALSE;
 	    } else if (argmatch(argv[i], "-help", 2)) {
 		usage(stdout, argv[0]);
-	    } else if (argmatch(argv[i], "-usage", 5)) {
-		usage(stdout, argv[0]);
 	    } else {
 		fprintf(stderr, "No option %s\n", argv[i]);
 		usage(stderr, argv[0]);
@@ -534,7 +509,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-debug     [debug_level]              Set debugging options\n");
 #endif
     fprintf(stream, "-dpipe     [descriptor]               Read data from descriptor on startup\n");
-    fprintf(stream, "-fixed     [width] [height]           Set canvas size fixed to width*height\n");
 #ifndef NONE_GUI
     fprintf(stream, "-free                                 Use free page layout\n");
 #endif
@@ -569,7 +543,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-version                              Show the program version\n");
     fprintf(stream, "-wd        [directory]                Set the working directory\n");
 
-    fprintf(stream, "-usage|-help                          This message\n");
+    fprintf(stream, "-help                                 This message\n");
     fprintf(stream, "\n");
     fprintf(stream, " ** If it scrolls too fast, run `%s -help | more\' **\n", progname);
     exit(0);
