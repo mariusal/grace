@@ -90,6 +90,8 @@ void yyerror(char *s)
 %token TOK_TRUE
 %token TOK_FALSE
 
+%token TOK_LENGTH
+
 %token TOK_IF
 %token TOK_ELSE
 
@@ -103,6 +105,7 @@ void yyerror(char *s)
 %type <darr> array
 %type <darr> vexpr
 %type <gobj> object
+%type <sval> sarray
 %type <sval> sexpr
 
 /* Precedence */
@@ -218,6 +221,31 @@ line:	/* empty */
                     YYABORT;
                 }
             }
+	|   TOK_VAR_ARR '+' '=' expr {
+                DArray *da;
+                gvar_get_arr($1, &da);
+                darray_add_val(da, $4);
+            }
+	|   TOK_VAR_ARR '-' '=' expr {
+                DArray *da;
+                gvar_get_arr($1, &da);
+                darray_add_val(da, -$4);
+            }
+	|   TOK_VAR_ARR '*' '=' expr {
+                DArray *da;
+                gvar_get_arr($1, &da);
+                darray_mul_val(da, $4);
+            }
+	|   TOK_VAR_ARR '/' '=' expr {
+                if ($4 == 0) {
+	            yyerror("divide by zero");
+                    YYABORT;
+                } else {
+                    DArray *da;
+                    gvar_get_arr($1, &da);
+                    darray_mul_val(da, 1.0/$4);
+                }
+            }
 	|   TOK_VAR_STR '@' '=' sexpr {
                 char *val, *buf;
                 gvar_get_str($1, &val);
@@ -236,6 +264,27 @@ line:	/* empty */
 	            yyerror("assignment failed");
                 }
                 xfree($3);
+            }
+	|   object '.' TOK_NAME '=' bexpr {
+                Graal *g = yyget_extra(scanner);
+                GVarData prop;
+                prop.bool = $5;
+                if (graal_set_user_obj_prop(g, $1, $3, GVarBool, prop) !=
+                    RETURN_SUCCESS) {
+	            yyerror("assignment failed");
+                }
+                xfree($3);
+            }
+	|   object '.' TOK_NAME '=' sexpr {
+                Graal *g = yyget_extra(scanner);
+                GVarData prop;
+                prop.str = $5;
+                if (graal_set_user_obj_prop(g, $1, $3, GVarStr, prop) !=
+                    RETURN_SUCCESS) {
+	            yyerror("assignment failed");
+                }
+                xfree($3);
+                xfree($5);
             }
 	|   object '.' TOK_NAME '=' vexpr {
                 Graal *g = yyget_extra(scanner);
@@ -327,6 +376,11 @@ expr:	    TOK_NUMBER { $$ = $1; }
                 }
             }
 	|   bexpr '?' expr ':' expr { $$ = $1 ? $3:$5; }
+        |   TOK_LENGTH '(' vexpr ')' { $$ = $3 ? $3->size:0; }
+        |   TOK_LENGTH '(' sexpr ')' {
+                $$ = strlen($3);
+                xfree($3);
+            }
         ;
 
 iexpr:	    expr {
@@ -404,7 +458,7 @@ vexpr:      array { $$ = $1; }
                     REGISTER_DARR($$);
                 }
             }
-        |   array '@' array {
+        |   vexpr '@' vexpr {
                 $$ = darray_concat($1, $3);
                 REGISTER_DARR($$);
             }
@@ -422,6 +476,18 @@ vexpr:      array { $$ = $1; }
                     darray_add_val($$, $1);
                 }
             }
+        |   vexpr '+' vexpr {
+                if ($1->size != $3->size) {
+	            yyerror("vector lengths mismatch");
+                    YYABORT;
+                } else {
+                    $$ = darray_copy($1);
+                    if ($$) {
+                        REGISTER_DARR($$);
+                        darray_add($$, $3);
+                    }
+                }
+            }
         |   vexpr '-' expr {
                 $$ = darray_copy($1);
                 if ($$) {
@@ -437,6 +503,18 @@ vexpr:      array { $$ = $1; }
                     darray_add_val($$, $1);
                 }
             }
+        |   vexpr '-' vexpr {
+                if ($1->size != $3->size) {
+	            yyerror("vector lengths mismatch");
+                    YYABORT;
+                } else {
+                    $$ = darray_copy($1);
+                    if ($$) {
+                        REGISTER_DARR($$);
+                        darray_sub($$, $3);
+                    }
+                }
+            }
         |   vexpr '*' expr {
                 $$ = darray_copy($1);
                 if ($$) {
@@ -448,6 +526,18 @@ vexpr:      array { $$ = $1; }
                 if ($$) {
                     REGISTER_DARR($$);
                     darray_mul_val($$, $1);
+                }
+            }
+        |   vexpr '*' vexpr {
+                if ($1->size != $3->size) {
+	            yyerror("vector lengths mismatch");
+                    YYABORT;
+                } else {
+                    $$ = darray_copy($1);
+                    if ($$) {
+                        REGISTER_DARR($$);
+                        darray_mul($$, $3);
+                    }
                 }
             }
         |   vexpr '/' expr {
@@ -462,6 +552,34 @@ vexpr:      array { $$ = $1; }
                     }
                 }
             }
+        |   vexpr '/' vexpr {
+                if ($1->size != $3->size) {
+	            yyerror("vector lengths mismatch");
+                    YYABORT;
+                } else {
+                    $$ = darray_copy($1);
+                    if ($$) {
+                        REGISTER_DARR($$);
+                        if (darray_div($$, $3) != RETURN_SUCCESS) {
+	                    yyerror("divide by zero");
+                            YYABORT;
+                        }
+                    }
+                }
+            }
+        |   vexpr '^' expr {
+                double vmin;
+                darray_min($1, &vmin);
+                if (vmin < 0 && rint($3) != $3) {
+                    yyerror("negative value raised to non-integer power");
+                    YYABORT;
+                } else if (darray_has_zero($1) && $3 <= 0.0) {
+                    yyerror("zero raised to non-positive power");
+                    YYABORT;
+                } else {
+                    darray_pow($$, $3);
+                }
+            }
 	|   '-' vexpr %prec UMINUS {
                 $$ = darray_copy($2);
                 if ($$) {
@@ -473,12 +591,15 @@ vexpr:      array { $$ = $1; }
 	|   '(' vexpr ')' { $$ = $2; }
         ;
 
-sexpr:      TOK_STRING { $$ = $1; }
+sarray:	    TOK_STRING { $$ = $1; }
 	|   TOK_VAR_STR {
                 char *s;
                 gvar_get_str($1, &s);
                 $$ = copy_string(NULL, s);
             }
+	;
+        
+sexpr:      sarray { $$ = $1; }
 	|   object '.' TOK_PROP_STR {
                 $$ = $3;
             }
@@ -486,12 +607,35 @@ sexpr:      TOK_STRING { $$ = $1; }
                 $$ = concat_strings($1, $3);
                 xfree($3);
             }
+        |   sarray '[' nexpr TOK_RANGE nexpr ']' {
+                if ($3 > $5) {
+	            xfree($1);
+                    yyerror("non-positive index range");
+                    YYABORT;
+                } else
+                if ($5 >= strlen($1)) {
+	            xfree($1);
+	            yyerror("index beyond string length");
+                    YYABORT;
+                } else {
+                    unsigned int len = $5 - $3 + 1;
+                    $$ = xmalloc(len + 1);
+                    if ($$) {
+                        memcpy($$, $1 + $3, len);
+                        $$[len] = '\0';
+                    }
+	            xfree($1);
+                }
+            }
         ;
 
 bexpr:	    TOK_TRUE  { $$ = TRUE; }
 	|   TOK_FALSE { $$ = FALSE; }
 	|   TOK_VAR_BOOL {
                 gvar_get_bool($1, &$$);
+            }
+	|   object '.' TOK_PROP_BOOL {
+                $$ = $3;
             }
         |   expr TOK_EQ expr { $$ = ($1 == $3 ? TRUE:FALSE); }
 	|   expr TOK_NE expr { $$ = ($1 != $3 ? TRUE:FALSE); }

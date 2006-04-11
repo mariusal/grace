@@ -79,6 +79,14 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
 "true"	{ return TOK_TRUE; }
 "false"	{ return TOK_FALSE; }
 
+"length" {
+            if (graal_get_dotcontext(yyextra) != GContextNone) {
+                REJECT;
+            } else {
+                return TOK_LENGTH;
+            }
+	}
+
 "if"	{ return TOK_IF; }
 "else"	{ return TOK_ELSE; }
 
@@ -87,11 +95,11 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
             GVar *var;
             Graal *g = (Graal *) yyextra;
 	    
-            switch (graal_get_dotcontext(yyextra)) {
+            switch (graal_get_dotcontext(g)) {
             case GContextDot:
-                graal_set_dotcontext(yyextra, GContextNone);
+                graal_set_dotcontext(g, GContextNone);
             
-                if (graal_get_RHS(yyextra)) {
+                if (graal_get_RHS(g)) {
                     GVarData prop;
                     GVarType type;
                     type = graal_get_user_obj_prop(g, g->current_obj, yytext, &prop);
@@ -101,7 +109,7 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
                         return TOK_PROP_NUM;
                         break;
                     case GVarBool:
-                        yylval->dval = prop.bool;
+                        yylval->ival = prop.bool;
                         return TOK_PROP_BOOL;
                         break;
                     case GVarArr:
@@ -123,9 +131,9 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
                 break;
 
             case GContextColumn:
-                graal_set_dotcontext(yyextra, GContextNone);
+                graal_set_dotcontext(g, GContextNone);
 
-                uobj = graal_get_user_obj(yyextra, g->current_obj, yytext);
+                uobj = graal_get_user_obj(g, g->current_obj, yytext);
                 if (uobj) {
                     yylval->gobj = uobj;
                     return TOK_OBJECT;
@@ -136,13 +144,13 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
                 break;
             
             default:
-                uobj = graal_get_user_obj(yyextra, g->default_obj, yytext);
+                uobj = graal_get_user_obj(g, g->default_obj, yytext);
 	        if (uobj) {
                     yylval->gobj = uobj;
                     return TOK_OBJECT;
                 }
                 
-                var = graal_get_var(yyextra, yytext, FALSE);
+                var = graal_get_var(g, yytext, FALSE);
 	        if (var) {
                     yylval->gvar = var;
                     switch (var->type) {
