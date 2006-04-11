@@ -36,11 +36,6 @@
 
 #include "grace.h"
 
-int darray_min(const DArray *da, double *val);
-int darray_max(const DArray *da, double *val);
-int darray_avg(const DArray *da, double *val);
-int darray_std(const DArray *da, double *val);
-
 /* computils.c */
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 int apply_window(double *v, int ilen, int window, double beta);

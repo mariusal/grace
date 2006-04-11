@@ -15,7 +15,7 @@ GRSRCS =  main.c grace.c project_utils.c \
 	fourier.c \
 	graph_utils.c set_utils.c \
 	dobject_utils.c \
-	darray.c computils.c \
+	computils.c \
 	iofilters.c dates.c \
 	dummydrv.c mfdrv.c mifdrv.c psdrv.c pdfdrv.c svgdrv.c \
 	pnmdrv.c jpgdrv.c pngdrv.c \
@@ -28,7 +28,7 @@ GROBJS =  main$(O) grace$(O) project_utils$(O) \
 	fourier$(O) \
 	graph_utils$(O) set_utils$(O) \
 	dobject_utils$(O) \
-	darray$(O) computils$(O) \
+	computils$(O) \
 	$(PARS_O) \
 	iofilters$(O) dates$(O) \
 	dummydrv$(O) mfdrv$(O) mifdrv$(O) psdrv$(O) pdfdrv$(O) svgdrv$(O) \

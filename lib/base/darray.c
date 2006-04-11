@@ -154,6 +154,100 @@ int darray_mul_val(DArray *da, double val)
     return RETURN_SUCCESS;
 }
 
+int darray_add(DArray *da, const DArray *da2)
+{
+    unsigned int i;
+    
+    if (!da || !da2 || da->size != da2->size) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < da->size; i++) {
+        da->x[i] += da2->x[i];
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int darray_sub(DArray *da, const DArray *da2)
+{
+    unsigned int i;
+    
+    if (!da || !da2 || da->size != da2->size) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < da->size; i++) {
+        da->x[i] -= da2->x[i];
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int darray_mul(DArray *da, const DArray *da2)
+{
+    unsigned int i;
+    
+    if (!da || !da2 || da->size != da2->size) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < da->size; i++) {
+        da->x[i] *= da2->x[i];
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int darray_div(DArray *da, const DArray *da2)
+{
+    unsigned int i;
+    
+    if (!da || !da2 || da->size != da2->size) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < da->size; i++) {
+        if (da2->x[i] == 0.0) {
+            return RETURN_FAILURE;
+        } else {
+            da->x[i] /= da2->x[i];
+        }
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int darray_pow(DArray *da, double y)
+{
+    unsigned int i;
+    int ny = (int) rint(y);
+    int intpow;
+    
+    if (!da) {
+        return RETURN_FAILURE;
+    }
+    
+    if (y == (double) ny) {
+        intpow = TRUE;
+    } else {
+        intpow = FALSE;
+    }
+    
+    for (i = 0; i < da->size; i++) {
+        if (da->x[i] < 0.0 && !intpow) {
+            return RETURN_FAILURE;
+        } else
+        if (da->x[i] == 0.0 && y < 0.0) {
+            return RETURN_FAILURE;
+        } else {
+            da->x[i] = pow(da->x[i], y);
+        }
+    }
+    
+    return RETURN_SUCCESS;
+}
+
 DArray *darray_slice(const DArray *da, unsigned int from, unsigned int to)
 {
     DArray *da_new;
@@ -192,4 +286,101 @@ DArray *darray_concat(const DArray *da1, const DArray *da2)
     }
     
     return da_new;
+}
+
+int darray_min(const DArray *da, double *val)
+{
+    unsigned int i;
+
+    *val = 0.0;
+
+    if (!da || !da->size) {
+        return RETURN_FAILURE;
+    }
+    
+    *val = da->x[0];
+    for (i = 1; i < da->size; i++) {
+        if (da->x[i] < *val) {
+            *val = da->x[i];
+        }
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int darray_max(const DArray *da, double *val)
+{
+    unsigned int i;
+
+    *val = 0.0;
+
+    if (!da || !da->size) {
+        return RETURN_FAILURE;
+    }
+    
+    *val = da->x[0];
+    for (i = 1; i < da->size; i++) {
+        if (da->x[i] > *val) {
+            *val = da->x[i];
+        }
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int darray_has_zero(const DArray *da)
+{
+    unsigned int i;
+
+    if (!da) {
+        return FALSE;
+    }
+    
+    for (i = 1; i < da->size; i++) {
+        if (da->x[i] == 0.0) {
+            return TRUE;
+        }
+    }
+    
+    return FALSE;
+}
+
+int darray_avg(const DArray *da, double *val)
+{
+    unsigned int i;
+
+    *val = 0.0;
+    
+    if (!da || !da->size) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < da->size; i++) {
+        *val += da->x[i];
+    }
+    *val /= da->size;
+    
+    return RETURN_SUCCESS;
+}
+
+int darray_std(const DArray *da, double *val)
+{
+    double avg;
+    unsigned int i;
+
+    *val = 0.0;
+    
+    if (!da || da->size < 2) {
+        return RETURN_FAILURE;
+    }
+    
+    darray_avg(da, &avg);
+    
+    for (i = 0; i < da->size; i++) {
+        *val += (da->x[i] - avg)*(da->x[i] - avg);
+    }
+    
+    *val = sqrt(*val/(da->size - 1));
+    
+    return RETURN_SUCCESS;
 }

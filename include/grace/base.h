@@ -197,9 +197,19 @@ int darray_get_val(const DArray *da, unsigned int i, double *val);
 DArray *darray_copy(const DArray *da);
 int darray_add_val(DArray *da, double val);
 int darray_mul_val(DArray *da, double val);
+int darray_pow(DArray *da, double y);
+int darray_add(DArray *da, const DArray *da2);
+int darray_sub(DArray *da, const DArray *da2);
+int darray_mul(DArray *da, const DArray *da2);
+int darray_div(DArray *da, const DArray *da2);
 DArray *darray_slice(const DArray *da, unsigned int from, unsigned int to);
 DArray *darray_concat(const DArray *da1, const DArray *da2);
 
+int darray_has_zero(const DArray *da);
+int darray_min(const DArray *da, double *val);
+int darray_max(const DArray *da, double *val);
+int darray_avg(const DArray *da, double *val);
+int darray_std(const DArray *da, double *val);
 
 /*
  *
