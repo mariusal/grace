@@ -245,7 +245,7 @@ int grace_rt_init_dicts(RunTime *rt)
         };
 
     const DictEntry dataset_col_defaults =
-        {DATA_X, "x", "X"};
+        {DATA_BAD, "?", "?"};
     const DictEntry dataset_col_entries[] = 
         {
             {DATA_X,  "x",  "X" },
