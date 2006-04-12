@@ -275,6 +275,22 @@ ss_column *ssd_get_col(const Quark *q, int col)
     }
 }
 
+int ssd_get_column_by_name(const Quark *q, const char *name)
+{
+    unsigned int i;
+    ss_data *ssd = ssd_get_data(q);
+    if (!ssd || !name) {
+        return -1;
+    }
+    
+    for (i = 0; i < ssd->ncols; i++) {
+        if (strings_are_equal(ssd->cols[i].label, name)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 /* assign given column to DArray without actually allocating the data */
 DArray *ssd_get_darray(const Quark *q, int column)
 {

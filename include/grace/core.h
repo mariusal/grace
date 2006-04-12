@@ -837,6 +837,7 @@ int ssd_transpose(Quark *q);
 int ssd_set_value(Quark *q, int row, int column, double value);
 int ssd_set_string(Quark *q, int row, int column, const char *s);
 
+int ssd_get_column_by_name(const Quark *q, const char *name);
 DArray *ssd_get_darray(const Quark *q, int column);
 int ssd_set_darray(Quark *q, int column, const DArray *da);
 
