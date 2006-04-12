@@ -119,7 +119,10 @@ static GVarType get_proc(const void *obj,
     const char *name, GVarData *prop, void *udata)
 {
     Quark *q = (Quark *) obj;
-    DArray *da;
+    RunTime *rt = rt_from_quark(q);
+    DataColumn col;
+    int column;
+    
     if (!q) {
         return GVarNil;
     }
@@ -127,6 +130,10 @@ static GVarType get_proc(const void *obj,
     if (strings_are_equal(name, "idstr")) {
         prop->str = copy_string(NULL, QIDSTR(q));
         return GVarStr;
+    } else
+    if (strings_are_equal(name, "active")) {
+        prop->bool = quark_is_active(q);
+        return GVarBool;
     }
     
     switch (quark_fid_get(q)) {
@@ -135,14 +142,25 @@ static GVarType get_proc(const void *obj,
             prop->num = ssd_get_nrows(q);
             return GVarNum;
         } else
-        if (strings_are_equal(name, "x")) {
-            da = ssd_get_darray(q, 0);
-            if (da) {
-                prop->arr = da;
-                return GVarArr;
-            } else {
-                return GVarNil;
-            }
+        if (strings_are_equal(name, "ncols")) {
+            prop->num = ssd_get_ncols(q);
+            return GVarNum;
+        } else
+        if ((column = ssd_get_column_by_name(q, name)) >= 0) {
+            prop->arr = ssd_get_darray(q, column);
+            return GVarArr;
+        } else {
+            return GVarNil;
+        }
+        break;
+    case QFlavorSet:
+        if (strings_are_equal(name, "length")) {
+            prop->num = set_get_length(q);
+            return GVarNum;
+        } else
+        if ((col = get_dataset_col_by_name(rt, name)) != DATA_BAD) {
+            prop->arr = set_get_darray(q, col);
+            return GVarArr;
         } else {
             return GVarNil;
         }
@@ -157,12 +175,39 @@ static int set_proc(void *obj,
     const char *name, GVarType type, GVarData prop, void *udata)
 {
     Quark *q = (Quark *) obj;
-    if (q && quark_fid_get(q) == QFlavorSSD &&
-        strings_are_equal(name, "x") && type == GVarArr &&
-        ssd_set_darray(q, 0, prop.arr) == RETURN_SUCCESS) {
-        return RETURN_SUCCESS;
-    } else {
+    RunTime *rt = rt_from_quark(q);
+    DataColumn col;
+    int column;
+    
+    if (!q) {
         return RETURN_FAILURE;
+    }
+
+    if (strings_are_equal(name, "idstr") && type == GVarStr) {
+        return quark_idstr_set(q, prop.str);
+    } else
+    if (strings_are_equal(name, "active") && type == GVarBool) {
+        return quark_set_active(q, prop.bool);
+    }
+
+    switch (quark_fid_get(q)) {
+    case QFlavorSSD:
+        if ((column = ssd_get_column_by_name(q, name)) >= 0) {
+            return ssd_set_darray(q, column, prop.arr);
+        } else {
+            return RETURN_FAILURE;
+        }
+        break;
+    case QFlavorSet:
+        if ((col = get_dataset_col_by_name(rt, name)) != DATA_BAD) {
+            return set_set_darray(q, col, prop.arr);
+        } else {
+            return RETURN_FAILURE;
+        }
+        break;
+    default:
+        return RETURN_FAILURE;
+        break;
     }
 }
 
