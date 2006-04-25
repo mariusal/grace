@@ -2011,6 +2011,7 @@ static void do_geom_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	order[0] = 0;
 	order[1] = 2;
 	order[2] = 1;
+	break;
     case 2:
 	order[0] = 1;
 	order[1] = 2;
