@@ -82,7 +82,12 @@ void HelpCB(void *data)
         if (pa) {
             char *base = copy_string(NULL, p);
             base[pa - p] = '\0';
-            URL = copy_string(NULL, grace_path(base));
+            if (force_external_viewer) {
+                URL = copy_string(NULL, "file://");
+            } else {
+                URL = NULL;
+            }
+            URL = concat_strings(URL, grace_path(base));
             URL = concat_strings(URL, pa);
             xfree(base);
         } else {
