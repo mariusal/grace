@@ -236,10 +236,19 @@ int set_set_colors(Quark *pset, unsigned int color)
     }
 }
 
-Quark *grace_set_new(Quark *gr)
+Quark *grace_set_new(Quark *parent)
 {
-    Quark *pset = set_new(gr);
-    RunTime *rt = rt_from_quark(pset);
+    Quark *ssd, *pset;
+    RunTime *rt;
+    
+    ssd = get_parent_ssd(parent);
+    if (!ssd) {
+        ssd = grace_ssd_new(parent);
+    }
+    pset = set_new(ssd);
+    
+    rt = rt_from_quark(pset);
+    
     if (!pset || !rt) {
         return NULL;
     }
