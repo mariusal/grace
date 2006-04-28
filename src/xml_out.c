@@ -1022,8 +1022,8 @@ static int project_save_hook(Quark *q,
             int i;
             for (i = 0; i < r->n; i++) {
                 attributes_reset(attrs);
-                xmlio_set_world_value(q, attrs, "X", r->wps[i].x);
-                xmlio_set_world_value(q, attrs, "Y", r->wps[i].y);
+                xmlio_set_world_value(q, attrs, "x", r->wps[i].x);
+                xmlio_set_world_value(q, attrs, "y", r->wps[i].y);
                 xfile_empty_element(xf, EStrRow, attrs);
             }
         }
