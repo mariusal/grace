@@ -43,7 +43,7 @@
 #define EStrAxislabel           "axislabel"
 #define EStrBarline             "barline"
 #define EStrBoxData             "box-data"
-#define EStrCell                "cell"
+#define EStrCell                "c"
 #define EStrColorDef            "color-def"
 #define EStrColormap            "colormap"
 #define EStrDataFormats         "data-formats"
