@@ -1386,15 +1386,19 @@ void create_prune_frame(Widget but, void *data)
 typedef struct _Featext_ui {
     Widget top;
     GraphSetStructure *src;
-    GraphSetStructure *dest;
+    SSDColStructure *dst;
     TextStructure *formula;
 } Featext_ui;
 
 static int do_fext_proc(void *data)
 {
     char *formula;
-    int nsrc, ndest;
-    Quark **srcsets, **destsets, *pdest;
+    int nsrc, ndst;
+    Quark **srcsets, *dst_ssd;
+    DArray *da;
+    int retval;
+    int *dst_cols;
+    unsigned int ncols, nrows, dst_col = COL_NONE;
 
     Featext_ui *ui = (Featext_ui *) data;
 
@@ -1404,77 +1408,95 @@ static int do_fext_proc(void *data)
         return RETURN_FAILURE;
     }
 
-    ndest = GetStorageChoices(ui->dest->set_sel, &destsets);
-    if (ndest == 0) {
-        Quark *destgr;
-        if (GetSingleStorageChoice(ui->dest->graph_sel, &destgr)
-            != RETURN_SUCCESS) {
-            xfree(srcsets);
-            errmsg("No destination graph selected");
-	    return RETURN_FAILURE;
-        }
-        
-        pdest = grace_set_new(destgr);
-        
-        update_set_selectors(destgr);
-        SelectStorageChoice(ui->dest->set_sel, pdest);
-    } else if (ndest == 1) {
-        pdest = destsets[0];
-        xfree(destsets);
-    } else {
-        errmsg("Please select a single or none destination set");
-        if (ndest > 0) {
-            xfree(destsets);
-        }
-        xfree(srcsets);
+    ndst = GetSSDColChoices(ui->dst, &dst_ssd, &dst_cols);
+    if (ndst < 0) {
+        errmsg("No destination SSD selected");
+        return RETURN_FAILURE;
+    } else
+    if (ndst > 1) {
+        xfree(dst_cols);
+        errmsg("Please select a single or none destination column");
         return RETURN_FAILURE;
     }
 
-    formula = GetTextString(ui->formula);
-    
-    featext(srcsets, nsrc, pdest, formula);
+    ncols = ssd_get_ncols(dst_ssd);
+    nrows = ssd_get_nrows(dst_ssd);
 
-    xfree(formula);
-    if (nsrc > 0) {
-        xfree(srcsets);
+    if (ndst == 0) {
+        ssd_add_col(dst_ssd, FFORMAT_NUMBER);
+        dst_col = ncols;
+        
+        UpdateStorageChoice(ui->dst->ssd_sel);
+        SelectListChoice(ui->dst->col_sel, dst_col);
+    } else if (ndst == 1) {
+        dst_col = dst_cols[0];
+        xfree(dst_cols);
+    }
+
+    if (nrows != nsrc) {
+        if (yesno("Destination data will be resized to new length. Are you sure?",
+            NULL, NULL, NULL)) {
+            ssd_set_nrows(dst_ssd, nsrc);
+        } else {
+            xfree(srcsets);
+            return RETURN_FAILURE;
+        }
     }
     
-    update_set_lists(get_parent_graph(pdest));
+    formula = GetTextString(ui->formula);
     
-    return RETURN_SUCCESS;
+    da = featext(srcsets, nsrc, formula);
+
+    if (da && ssd_set_darray(dst_ssd, dst_col, da) == RETURN_SUCCESS) {
+        ssd_set_col_label(dst_ssd, dst_col, formula);
+        
+        snapshot_and_update(dst_ssd, TRUE);
+
+        retval = RETURN_SUCCESS;
+    } else {
+        retval = RETURN_FAILURE;
+    }
+    
+    xfree(formula);
+    xfree(srcsets);
+    
+    darray_free(da);
+    
+    return retval;
 }
 
 void create_featext_frame(Widget but, void *data)
 {
-    static Featext_ui *feui = NULL;
+    static Featext_ui *ui = NULL;
  
     set_wait_cursor();
     
-    if (!feui) {
+    if (!ui) {
         Widget grid;
 
-        feui = xmalloc(sizeof(Featext_ui));
-        if (!feui) {
+        ui = xmalloc(sizeof(Featext_ui));
+        if (!ui) {
             unset_wait_cursor();
             return;
         }
         
-        feui->top = CreateDialogForm(app_shell, "Feature extraction");
-        grid = CreateGrid(feui->top, 2, 1);
-        AddDialogFormChild(feui->top, grid);
-	feui->src = CreateGraphSetSelector(grid,
-            "Extract from:", LIST_TYPE_MULTIPLE);
-	feui->dest = CreateGraphSetSelector(grid,
-            "Extract to:", LIST_TYPE_SINGLE);
-        PlaceGridChild(grid, feui->src->frame, 0, 0);
-        PlaceGridChild(grid, feui->dest->frame, 1, 0);
+        ui->top = CreateDialogForm(app_shell, "Feature extraction");
+        grid = CreateGrid(ui->top, 2, 1);
+        AddDialogFormChild(ui->top, grid);
+	ui->src = CreateGraphSetSelector(grid,
+            "Source group", LIST_TYPE_MULTIPLE);
+	ui->dst = CreateSSDColSelector(grid,
+            "Destination", LIST_TYPE_SINGLE);
 
-	feui->formula = CreateTextInput(feui->top, "Formula:");
+        PlaceGridChild(grid, ui->src->frame, 0, 0);
+        PlaceGridChild(grid, ui->dst->frame, 1, 0);
 
-	CreateAACDialog(feui->top, feui->formula->form, do_fext_proc, (void *) feui);
+	ui->formula = CreateTextInput(ui->top, "Formula:");
+
+	CreateAACDialog(ui->top, ui->formula->form, do_fext_proc, ui);
     }
     
-    RaiseWindow(GetParent(feui->top));
+    RaiseWindow(GetParent(ui->top));
     
     unset_wait_cursor();
 }

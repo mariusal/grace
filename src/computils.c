@@ -2081,41 +2081,29 @@ int get_restriction_array(Quark *pset, Quark *r, int negate, char **rarray)
 }
 
 /* feature extraction */
-int featext(Quark **sets, int nsets, Quark *pdest,
-    char *formula)
+DArray *featext(Quark **sets, int nsets, const char *formula)
 {
-    int i;
-    char *tbuf;
-    double *x, *y;
-    RunTime *rt = rt_from_quark(pdest);
-
-    if (set_get_ncols(pdest) != 2) {
-        set_set_type(pdest, SET_XY);
+    DArray *da;
+    unsigned int i;
+    
+    da = darray_new(nsets);
+    if (!da) {
+        return NULL;
     }
     
-    if (set_set_length(pdest, nsets) != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-    
-    x = set_get_col(pdest, DATA_X);
-    y = set_get_col(pdest, DATA_Y);
     for (i = 0; i < nsets; i++) {
-        Quark *pset = sets[i];
-	// set_parser_setno(pset);
-        x[i] = (double) i;
-        if (graal_eval_expr(rt->graal, formula, &y[i], pset) !=
-            RETURN_SUCCESS) {
-            return RETURN_FAILURE;
+        Quark *q = sets[i];
+        RunTime *rt = rt_from_quark(q);
+        double val;
+
+        if (graal_eval_expr(rt->graal, formula, &val, q) != RETURN_SUCCESS) {
+            darray_free(da);
+            return NULL;
         }
+        darray_set_val(da, i, val);
     }
 
-    /* set comment */
-    tbuf = copy_string(NULL, "Feature extraction by formula ");
-    tbuf = concat_strings(tbuf, formula);
-    // set_set_comment(pdest, tbuf);
-    xfree(tbuf);
-    
-    return RETURN_SUCCESS;
+    return da;
 }
 
 /* cumulative properties */

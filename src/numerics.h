@@ -83,8 +83,7 @@ int do_prune(Quark *psrc, Quark *pdest,
     int interp, int elliptic, double dx, int reldx, double dy, int reldy);
 int do_interp(Quark *psrc, Quark *pdest,
     double *mesh, int meshlen, int method, int strict);
-int featext(Quark **sets, int nsets, Quark *pdest,
-    char *formula);
+DArray *featext(Quark **sets, int nsets, const char *formula);
 int num_cumulative(DArray *src_arrays, unsigned int nsrc,
     DArray *dst_array, int type);
 
