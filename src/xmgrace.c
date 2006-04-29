@@ -170,10 +170,9 @@ String fallbackResourcesCommon[] = {
     "XMgrace*XmHTML.width: 600",
     "XMgrace*XmHTML.height: 500",
 #endif
+    "XMgrace*enableThinThickness: True",
     "XMgrace*mainWin.shadowThickness: 0",
-    "XMgrace*mainWin.menuBar.shadowThickness: 1",
-    "XMgrace*toolBar*highlightThickness: 1",
-    "XMgrace*toolBar*shadowThickness: 1",
+    "XMgrace*XmMenuShell*shadowThickness: 2",
     "XMgrace*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
     "XMgrace*fileMenu.newButton.acceleratorText: Ctrl+N",
     "XMgrace*fileMenu.newButton.accelerator: Ctrl<Key>n",
