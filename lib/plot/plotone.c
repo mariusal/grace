@@ -694,7 +694,7 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
     int setlen, len;
     int i;
     int line_type = p->line.type;
-    VPoint vps[4], *vpstmp, vprev;
+    VPoint vps[4], *vpstmp, vprev = {0.0, 0.0};
     WPoint wp;
     double *x, *y;
     double lw;
@@ -927,7 +927,7 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
     set *p = set_get_data(pset);
     int setlen;
     int i;
-    VPoint vp, vprev;
+    VPoint vp, vprev = {0.0, 0.0};
     WPoint wp;
     double *x, *y, *z, *c;
     int skip = p->symskip + 1;
@@ -1035,7 +1035,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
     int setlen;
     double *x, *y, *z;
     WPoint wp;
-    VPoint vp, vprev;
+    VPoint vp, vprev = {0.0, 0.0};
     int skip = p->symskip + 1;
     AValue avalue;
     void *pdata;
@@ -1129,7 +1129,7 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
     double *x, *y;
     double *dx_plus, *dx_minus, *dy_plus, *dy_minus;
     WPoint wp1, wp2;
-    VPoint vp1, vp2, vprev;
+    VPoint vp1, vp2, vprev = {0.0, 0.0};
     int stacked_chart;
     int skip = p->symskip + 1;
     
@@ -1238,7 +1238,7 @@ void drawsethilo(Quark *pset, plot_rt_t *plot_rt)
     double ilen = 0.02*p->sym.size;
     int skip = p->symskip + 1;
     WPoint wp;
-    VPoint vp1, vp2, vprev;
+    VPoint vp1, vp2, vprev = {0.0, 0.0};
     
     if (!x || !y1 || !y2 || !y3 || !y4) {
         return;
@@ -1287,7 +1287,7 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
     int skip = p->symskip + 1;
     double ybase;
     WPoint wp;
-    VPoint vp1, vp2, vprev;
+    VPoint vp1, vp2, vprev = {0.0, 0.0};
     int stacked_chart;
     
     if (graph_get_type(gr) == GRAPH_CHART) {
@@ -1413,7 +1413,7 @@ void drawcirclexy(Quark *pset, plot_rt_t *plot_rt)
     double *x, *y, *r;
     int skip = p->symskip + 1;
     WPoint wp;
-    VPoint vp1, vp2, vprev;
+    VPoint vp1, vp2, vprev = {0.0, 0.0};
 
     setclipping(canvas, TRUE);
     
@@ -1467,7 +1467,7 @@ void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
     int skip = p->symskip + 1;
     double *x, *y, *vx, *vy;
     WPoint wp;
-    VPoint vp1, vp2, vprev;
+    VPoint vp1, vp2, vprev = {0.0, 0.0};
     Arrow arrow = {0, 1.0, 1.0, 0.0};
     
     Errbar eb = p->errbar;
@@ -1524,7 +1524,7 @@ void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt)
     double size = 0.01*p->sym.size;
     int skip = p->symskip + 1;
     WPoint wp;
-    VPoint vp1, vp2, vprev;
+    VPoint vp1, vp2, vprev = {0.0, 0.0};
 
     x  = set_get_col(pset, DATA_X);
     md = set_get_col(pset, DATA_Y);
