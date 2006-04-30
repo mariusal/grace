@@ -793,7 +793,7 @@ int grace_init_print(RunTime *rt)
         }
 
         if ((ppd = ppdOpenFile(filename)) == NULL) {
-            unlink(filename);
+            remove(filename);
             continue;
         }
 
@@ -805,7 +805,7 @@ int grace_init_print(RunTime *rt)
         }
 
         ppdClose(ppd);
-        unlink(filename);
+        remove(filename);
     }
     cupsFreeDests(rt->num_print_dests, dests);
 #else
@@ -923,7 +923,7 @@ void do_hardcopy(const Quark *project)
             yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
             grace_print(grace, fname);
 #ifndef PRINT_CMD_UNLINKS
-            unlink(fname);
+            remove(fname);
 #endif
         }
     } else {
