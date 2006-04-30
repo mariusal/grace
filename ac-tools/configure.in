@@ -480,7 +480,7 @@ AC_FUNC_ALLOCA
 AC_CHECK_FUNCS(getcwd gethostname)
 AC_CHECK_FUNCS(strstr)
 AC_CHECK_FUNCS(memcpy memmove bcopy)
-AC_CHECK_FUNCS(unlink fcntl)
+AC_CHECK_FUNCS(fcntl)
 AC_CHECK_FUNCS(popen)
 AC_CHECK_FUNCS(fdopen)
 AC_CHECK_FUNCS(mkstemp)

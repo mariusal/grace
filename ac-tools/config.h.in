@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -128,9 +128,6 @@
 
 /* Define if you have the bcopy function.  */
 #undef HAVE_BCOPY
-
-/* Define if you have the unlink function.  */
-#undef HAVE_UNLINK
 
 /* Define if you have the fcntl function.  */
 #undef HAVE_FCNTL
