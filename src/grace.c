@@ -789,12 +789,12 @@ int grace_init_print(RunTime *rt)
         }
         
         if ((filename = cupsGetPPD(dest->name)) == NULL) {
-            break;
+            continue;
         }
 
         if ((ppd = ppdOpenFile(filename)) == NULL) {
             unlink(filename);
-            break;
+            continue;
         }
 
         ppdMarkDefaults(ppd);
@@ -852,9 +852,6 @@ int grace_print(const Grace *grace, const char *fname)
     {
         sprintf(tbuf, "%s %s", get_print_cmd(grace), fname);
         system_wrap(tbuf);
-#ifndef PRINT_CMD_UNLINKS
-        unlink(fname);
-#endif
     }
     
     return retval;
@@ -870,7 +867,6 @@ void do_hardcopy(const Quark *project)
     Grace *grace = grace_from_quark(project);
     RunTime *rt;
     Canvas *canvas;
-    char *s;
     char fname[GR_MAXPATHLEN];
     view v;
     double vx, vy;
@@ -891,18 +887,12 @@ void do_hardcopy(const Quark *project)
                 get_docbname(project), dev->fext);
         }
         strcpy(fname, rt->print_file);
+        prstream = grace_openw(grace, fname);
     } else {
-        s = get_print_cmd(grace);
-        if (string_is_empty(s)) {
-            errmsg("No print command defined, output aborted");
-            return;
-        }
-        tmpnam(fname);
-        /* VMS doesn't like extensionless files */
-        strcat(fname, ".prn");
+        strcpy(fname, "graceXXXXXX");
+        prstream = grace_tmpfile(fname);
     }
     
-    prstream = grace_openw(grace, fname);
     if (prstream == NULL) {
         return;
     }
@@ -932,6 +922,9 @@ void do_hardcopy(const Quark *project)
         if (truncated_out == FALSE ||
             yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
             grace_print(grace, fname);
+#ifndef PRINT_CMD_UNLINKS
+            unlink(fname);
+#endif
         }
     } else {
         if (truncated_out == TRUE) {
