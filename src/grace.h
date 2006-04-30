@@ -261,6 +261,7 @@ char *grace_exe_path(Grace *grace, char *fn);
 FILE *grace_openw(Grace *grace, char *fn);
 FILE *grace_openr(Grace *grace, char *fn, int src);
 void grace_close(FILE *fp);
+FILE *grace_tmpfile(char *template);
 
 int grace_init_print(RunTime *rt);
 

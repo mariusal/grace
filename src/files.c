@@ -788,6 +788,31 @@ void grace_close(FILE *fp)
     }
 }
 
+FILE *grace_tmpfile(char *template)
+{
+    FILE *fp;
+#if defined(HAVE_MKSTEMP) && defined(HAVE_FDOPEN)
+    int fd;
+    
+    fd = mkstemp(template);
+    if (fd < 0) {
+        fp = NULL;
+    } else {
+        fp = fdopen(fd, "wb");
+    }
+#else
+    tmpnam(template);
+    fp = fopen(template, "wb");
+#endif
+
+    if (!fp) {
+        errmsg("Can't open temporary file");
+    }
+    
+    return fp;
+}
+
+
 int uniread(Quark *pr, FILE *fp,
     DataParser parse_cb, DataStore store_cb, void *udata)
 {
