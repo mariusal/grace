@@ -211,3 +211,8 @@ double ellpk_wrap ( double x ) {
     y = ellpk(1.0 - x);
     return y;    
 }
+
+double sign_wrap(double x)
+{
+    return (double) sign(x);
+}

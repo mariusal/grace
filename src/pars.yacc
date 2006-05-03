@@ -5513,6 +5513,7 @@ symtab_entry ikey[] = {
 	{"SD", SD, NULL},
 	{"SET", SET, NULL},
 	{"SFORMAT", SFORMAT, NULL},
+	{"SGN", FUNC_D, (void *) sign_wrap},
 	{"SHI", FUNC_D, (void *) shi_wrap},
 	{"SI", FUNC_D, (void *) si_wrap},
 	{"SIGN", SIGN, NULL},

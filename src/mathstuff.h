@@ -51,6 +51,7 @@ extern double shi_wrap(double x);
 extern double si_wrap(double x);
 extern double sqr_wrap(double x);
 extern double yv_wrap(double v, double x);
+extern double sign_wrap(double x);
 
 /* constants */
 extern double pi_const(void);
