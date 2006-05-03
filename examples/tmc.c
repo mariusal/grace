@@ -2,6 +2,7 @@
  * test of -pipe option
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 #ifndef M_PI
