@@ -291,7 +291,7 @@ void set_default_ticks(tickmarks *t)
     set_default_string(&t->label);
     t->label.x = 0.0;
     t->label.y = 0.08;
-    t->tmajor = 0.5;
+    t->tmajor = 0.2;
     t->nminor = 1;
     t->t_round = TRUE;
     t->offsx = 0.0;
