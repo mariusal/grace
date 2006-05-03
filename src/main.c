@@ -903,7 +903,7 @@ fprintf(stdout, "PDFlib: %s\n", bi_libpdf());
     fprintf(stdout, "\n\n");
     
     fprintf(stdout, "(C) Copyright 1991-1995 Paul J Turner\n");
-    fprintf(stdout, "(C) Copyright 1996-2005 Grace Development Team\n");
+    fprintf(stdout, "(C) Copyright 1996-2006 Grace Development Team\n");
     fprintf(stdout, "All Rights Reserved\n");
 
     return;
