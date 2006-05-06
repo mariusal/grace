@@ -24,10 +24,14 @@ make pars.c
 make xml_in.c
 rm -f Make.dep
 cd ..
+cd lib/graal
+make scanner.c scanner.h parser.c parser.h
+cd ../..
 cd doc
 make all
 cd ..
 rm -f Make.conf
 cd ..
-tar --exclude CVS --exclude .cvsignore --exclude autom4te.cache -cvzf ${CDIR_BNAME}.tar.gz $CDIR_BNAME
+tar --exclude CVS --exclude .cvsignore --exclude autom4te.cache --exclude Make.dep \
+ -cvzf ${CDIR_BNAME}.tar.gz $CDIR_BNAME
 cd -
