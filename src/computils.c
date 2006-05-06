@@ -39,7 +39,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cephes.h"
+#ifdef HAVE_GSL
+# include <gsl/gsl_sf.h>
+#endif
 
 #include "core_utils.h"
 #include "ssdata.h"
@@ -674,10 +676,13 @@ int apply_window(double *v, int len, int window, double beta)
 	case FFT_WINDOW_FLATTOP:
 	    c = 0.2810639 - 0.5208972*cos(w) + 0.1980399*cos(2*w);
 	    break;
+#ifdef HAVE_GSL
 	case FFT_WINDOW_KAISER:
-	    tmp = (i - 0.5*(len - 1))/(0.5*(len - 1));
-            c = i0(beta*sqrt(1.0 - tmp*tmp))/i0(beta);
+	    tmp = (double) (2*i - len + 1)/(len - 1);
+            c = gsl_sf_bessel_I0(beta*sqrt(1.0 - tmp*tmp))/
+                gsl_sf_bessel_I0(beta);
 	    break;
+#endif
 	default:	/* should never happen */
             c = 0.0;
             return RETURN_FAILURE;

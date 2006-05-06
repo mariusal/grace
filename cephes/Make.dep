@@ -1,6 +1,0 @@
-#
-# Dependencies (should be generated automatically):
-#
-
-$(OBJS) : $(TOP)/include/config.h $(TOP)/include/grace/baseP.h mconf.h cephes.h
-

@@ -376,6 +376,9 @@
 #  define NONE_GUI
 #endif
 
+/* Define if the GSL library is available*/
+#undef HAVE_GSL
+
 /* Define if the CUPS system is available*/
 #undef HAVE_CUPS
 

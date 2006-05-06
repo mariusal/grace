@@ -999,3 +999,21 @@ AC_DEFUN(ACX_CHECK_CUPS,
     $2
   fi
 ])dnl
+
+
+dnl ACX_CHECK_GSL
+dnl --------------
+AC_DEFUN(ACX_CHECK_GSL,
+[
+  AC_PATH_PROG(GSL_CONFIG, gsl-config)
+
+  if test "x$GSL_CONFIG" != x; then
+    GSL_CFLAGS="`$GSL_CONFIG --cflags`"
+    GSL_LIBS="`$GSL_CONFIG --libs`"
+    $1
+  else
+    GSL_CFLAGS=
+    GSL_LIBS=
+    $2
+  fi
+])dnl

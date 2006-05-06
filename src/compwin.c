@@ -549,7 +549,9 @@ static void toggle_complex_cb(Widget but, int onoff, void *data)
 static void option_window_cb(OptionStructure *opt, int value, void *data)
 {
     Four_ui *ui = (Four_ui *) data;
+#ifdef HAVE_GSL
     SetSensitive(ui->winpar->rc, value == FFT_WINDOW_KAISER);
+#endif
 }
 
 static void *fourier_build_cb(TransformStructure *tdialog)
@@ -568,7 +570,9 @@ static void *fourier_build_cb(TransformStructure *tdialog)
             {FFT_WINDOW_HAMMING,    "Hamming"           },
             {FFT_WINDOW_FLATTOP,    "Flat top"          },
             {FFT_WINDOW_BLACKMAN,   "Blackman"          },
+#ifdef HAVE_GSL
             {FFT_WINDOW_KAISER,     "Kaiser"            }
+#endif
         };
         OptionItem output_opitems[] = {
             {FFT_OUTPUT_MAGNITUDE, "Magnitude"       },
@@ -607,7 +611,8 @@ static void *fourier_build_cb(TransformStructure *tdialog)
 	ui->dcdump = CreateToggleButton(rc1, "Dump DC component");
 	rc2 = CreateHContainer(rc1);
 	ui->window = CreateOptionChoice(rc2,
-            "Apply window:", 0, 9, window_opitems);
+            "Apply window:", 0, sizeof(window_opitems)/sizeof(OptionItem),
+            window_opitems);
         AddOptionChoiceCB(ui->window, option_window_cb, (void *) ui);
         ui->winpar = CreateSpinChoice(rc2,
             "Parameter", 2, SPIN_TYPE_FLOAT, 0.0, 99.0, 1.0);
