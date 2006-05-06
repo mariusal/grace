@@ -8,7 +8,7 @@
 
   <title>Grace FAQ (for Grace-5.99.1)</title>
   <author><name>The Grace Team</name></author>
-  <date>12.01.2005</date>
+  <date>06.05.2006</date>
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -115,17 +115,6 @@
         Some integral parts of Grace are borrowed from other
         packages, namely libraries which are also available
         as stand-alone distributions.
-        In alphabetical order:
-        
-        <itemize>
-
-          <item> <url url="http://www.moshier.net/" name="Cephes math library"></item>
-
-          <item> <url url="http://metalab.unc.edu/pub/Linux/libs/graphics/" name="T1lib"></item>
-          
-          <item> <url url="http://www.lesstif.org/Xbae.html" name="Xbae"></item>
-          
-        </itemize>
       </p>
     </sect1>
   </sect>

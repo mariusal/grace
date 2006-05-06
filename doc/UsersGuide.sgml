@@ -6,9 +6,9 @@
 <article>
  <titlepag>
 
-  <title>Grace User's Guide (for Grace-5.99.0)</title>
+  <title>Grace User's Guide (for Grace-5.99.1)</title>
   <author><name>The Grace Team</name></author>
-  <date>12.01.2005</date>
+  <date>06.05.2006</date>
   <abstract>
     This document explains the usage of
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -56,8 +56,8 @@
   <p>
 
 <tscreen><verb>
-Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
-Copyright (&copy;) 1996-2005 Grace Development Team
+Copyright (&copy;) 1996-2006 Grace Development Team
+Portions Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
 
 Maintained by Evgeny Stambulchik
 
@@ -94,12 +94,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
        <hline>
        Package         |  License  @
        <hline>
-       Cephes library  |  Free     @
        T1lib           |  LGPL     @
        Expat           |  MIT/X    @
-       Xbae            |  BSD-like @
-       Tab Widget      |  BSD-like @
-       ListTree Widget |  LGPL     @
+       Xbae widget     |  BSD-like @
+       Tab widget      |  BSD-like @
+       ListTree widget |  LGPL     @
        <hline>
      </tabular>
      <caption>
@@ -434,8 +433,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             XYDXDY            |     +    |    -     |   +   |   -   |  -  @
             XYDXDXDYDY        |     +    |    -     |   +   |   -   |  -  @
             BAR               |     +    |    +     |   +   |   -   |  -  @
-            BARDY             |     -    |    +     |   -   |   -   |  -  @
-            BARDYDY           |     -    |    +     |   -   |   -   |  -  @
+            BARDY             |     +    |    +     |   -   |   -   |  -  @
+            BARDYDY           |     +    |    +     |   -   |   -   |  -  @
             XYHILO            |     +    |    -     |   -   |   -   |  -  @
             XYZ               |     +    |    -     |   +   |   +   |  -  @
             XYR               |     -    |    -     |   +   |   -   |  -  @
@@ -682,10 +681,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <tag> -seed <it>seed_value</it> </tag>
           <p>
               Integer seed for random number generator
-          </p>
-        <tag> -source <it>disk|pipe</it> </tag>
-          <p>
-              Source type of next data file
           </p>
         <tag> -timer <it>delay</it> </tag>
           <p>

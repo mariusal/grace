@@ -7,30 +7,38 @@
 
 <H1>Grace list of changes (since 5.1.*)</H1>
 
+<H2>KNOWN ISSUES</H2>
+
+<P>
+ Grace-5.99.* are preview releases of the forthcoming Grace-6. What does
+ "preview" mean?
+</P>
+
+<UL>
+ <LI>First, the new format of project files, xgr, has not yet stabilized. In
+     other words, <B><FONT COLOR="RED">anything you save with 5.99.* most
+     probably will not load in the further 5.99.* and in the final 6.0 releases
+     without manual tweaking of some extent</FONT></B>.</LI>
+
+ <LI>Another big deficiency of this release is that the old command interpreter
+     has been removed, while the new one (Graal) is still in its infancy. In
+     other words, <B><FONT COLOR="RED">any script-based usage of Grace is
+     impossible now</FONT></B>.</LI>
+</UL>
+
+<P>
+ Other, smaller issues:
+</P>
+
+<UL>
+ <LI>Non-linear fit is not there (this is a consequence of the above)</LI>
+ <LI>Region interface isn't finished</LI>
+ <LI>Rotated arcs are not functional</LI>
+ <LI>Stacked line plots with filled interior may have symbols shadowed</LI>
+ <LI>Part of the "Point explorer" tool functionality isn't available yet</LI>
+</UL>
+
 <PRE>
-
-<H3>KNOWN ISSUES</H3>
-
-Grace-5.99.* are preview releases of the forthcoming Grace-6. What does
-"preview" mean?
-
-* First, the new format of project files, xgr, has not yet stabilized. In other
-words, <B>anything you save with 5.99.* most probably will not load in the
-further 5.99.* and in the final 6.0 releases without manual tweaking of some
-extent</B>.
-
-* Another big deficiency of this release is that the old command interpreter
-has been removed, with no replacement on the horizon as of yet. In other words,
-<B>any script-based usage of Grace is impossible now</B>.
-
-Other, smaller issues:
-
-* Non-linear fit is not there (this is a consequence of the above)
-* Region interface isn't finished
-* Rotated arcs are not functional
-* Stacked line plots with filled interior may have symbols shadowed
-* Part of the "Point explorer" tool functionality isn't available yet
-
 
 <H2>5.99.1</H2>
 
@@ -42,6 +50,28 @@ Other, smaller issues:
  !  [ES] multiple SSD/blockdata (including reps. #589, #907)
  !  [ES] multi-level undo/redo (rep. #384)
  !  [ES] set data binding
+ !  [ES] SSD column labeling
+ !  [ES] SSD index column
+ !  [ES] SSD coalescing
+ !  [ES] impelmented SSD transposition
+ !  [ES] faster import of large data sets
+ !  [ES] added closure drawing in arc DObjects
+ !  [ES] format/precision
+ !  [ES] set export -> SSD export
+ !  [ES] "annotation" column binding for sets
+ !  [ES] unified XY* and BAR* set types. XYZ type removed
+ !  [ES] got rid of set comments
+ !  [ES] generic datetime formatting using strftime()
+ !  [ES] formatting of geographical coordinates via fstring as well
+ !  [ES] got rid of everything except support for reading in .agr files in the
+         old parser
+ *  [ES] switched to using GSL instead of the Cephes library
+
+<H3>Graal</H3>
+ !  [ES] beginning...
+
+<H3>Security</H3>
+ *  [ES] use mkstemp() instead of tmpnam() if available (rep. #1134)
 
 <H3>Interface</H3>
  *  [ES] draw plus/minus boxes in the Explorer tree
@@ -49,6 +79,8 @@ Other, smaller issues:
  *  [ES] removed "-bxy" command line option
  *  [ES] removed "Auto redraw" option from preferences (now always on)
  !  [ES] preview of projects before loading
+ *  [ES] made Motif controls slickier
+ *  [ES] got rid of -fixed and -usage command line options
 
 <H3>Bug fixes</H3>
  *  [ES] fixed bar outline placement in barcharts
