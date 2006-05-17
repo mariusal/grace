@@ -662,11 +662,16 @@ static void create_openfit_popup(void *data)
 
 static int do_openfit_proc(char *filename, void *data)
 {
+    int res;
     reset_nonl();
-    getparms(filename);
+    res = getparms(filename);
     update_nonl_frame();
     
-    return FALSE;
+    if (res) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
 }
 
 
