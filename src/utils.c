@@ -508,7 +508,7 @@ void installSignal(void){
 /* create format string */
 char *create_fstring(int form, int prec, double loc, int type)
 {
-    char format[64], eng_prefix[6];
+    char format[64], *eng_prefix;
     static char s[MAX_STRING_LENGTH];
     double tmp;
     int m, d, y, h, mm, sec;
@@ -577,47 +577,47 @@ char *create_fstring(int form, int prec, double loc, int type)
         }
         switch (exponent) {
         case -18: /* atto */
-            strcpy(eng_prefix, "a");
+            eng_prefix = "a";
             break;
         case -15: /* fempto */
-            strcpy(eng_prefix, "f");
+            eng_prefix = "f";
             break;
         case -12: /* pico */
-            strcpy(eng_prefix, "p");
+            eng_prefix = "p";
             break;
         case -9: /* nano */
-            strcpy(eng_prefix, "n");
+            eng_prefix = "n";
             break;
         case -6: /* micro */
             if (type == LFORMAT_TYPE_EXTENDED) {
-                strcpy(eng_prefix, "\\xm\\f{}");
+                eng_prefix = "\\xm\\f{}";
             } else {
-                strcpy(eng_prefix, "mk");
+                eng_prefix = "mk";
             }
             break;
         case -3: /* milli */
-            strcpy(eng_prefix, "m");
+            eng_prefix = "m";
             break;
         case 3: /* kilo */
-            strcpy(eng_prefix, "k");
+            eng_prefix = "k";
             break;
         case 6: /* Mega */
-            strcpy(eng_prefix, "M");
+            eng_prefix = "M";
             break;
         case 9: /* Giga */
-            strcpy(eng_prefix, "G");
+            eng_prefix = "G";
             break;
         case 12: /* Tera */
-            strcpy(eng_prefix, "T");
+            eng_prefix = "T";
             break;
         case 15: /* Peta */
-            strcpy(eng_prefix, "P");
+            eng_prefix = "P";
             break;
-        case 18: /* Exza (spelling?) */
-            strcpy(eng_prefix, "E");
+        case 18: /* Exa */
+            eng_prefix = "E";
             break;
         default:
-            strcpy(eng_prefix, "");
+            eng_prefix = "";
             break;
         }
 	strcpy(format, "%.*f %s");
