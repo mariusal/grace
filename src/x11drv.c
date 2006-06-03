@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -70,10 +70,10 @@ typedef struct {
     int linecap;
     int linejoin;
 
-    x11color colors[MAXCOLORS];
+    x11color *colors;
 } X11_data;
 
-static X11_data *init_x11_data(void)
+static X11_data *x11_data_new(void)
 {
     X11_data *data;
 
@@ -84,6 +84,17 @@ static X11_data *init_x11_data(void)
     }
     
     return data;
+}
+
+static void x11_data_free(void *data)
+{
+    X11_data *x11data = (X11_data *) data;
+
+    if (x11data) {
+        xfree(x11data->colors);
+    
+        xfree(x11data);
+    }
 }
 
 static void VPoint2XPoint(const X11_data *x11data, const VPoint *vp, XPoint *xp)
@@ -97,8 +108,10 @@ static void x11_initcmap(const Canvas *canvas, X11_data *x11data)
     unsigned int i;
     RGB rgb;
     long pixel;
+    unsigned int ncolors = number_of_colors(canvas);
     
-    for (i = 0; i < number_of_colors(canvas); i++) {
+    x11data->colors = xrealloc(x11data->colors, sizeof(x11color)*ncolors);
+    for (i = 0; i < ncolors; i++) {
         x11color *xc = &x11data->colors[i];
         /* even in mono, b&w must be allocated */
         if (x11data->monomode == FALSE || i < 2) {
@@ -444,6 +457,8 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
     VPoint2XPoint(x11data, vp, &xp);
       
     if (pm->bpp != 1) {
+        unsigned int *cptr = (unsigned int *) pm->bits;
+        
         if (x11data->monomode == TRUE) {
             /* TODO: dither pixmaps on mono displays */
             return;
@@ -457,7 +472,7 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
         /* re-index pixmap */
         for (k = 0; k < pm->height; k++) {
             for (j = 0; j < pm->width; j++) {
-                cindex = (unsigned char) (pm->bits)[k*pm->width+j];
+                cindex = cptr[k*pm->width + j];
                 for (l = 0; l < x11data->pixel_size; l++) {
                     pixmap_ptr[x11data->pixel_size*(k*pm->width+j) + l] =
                         (char) (x11data->colors[cindex].pixel >> (8*l));
@@ -483,7 +498,7 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
                 for (k = 0; k < pm->height; k++) {
                     line_off = k*(PADBITS(pm->width, 8) >> 3);
                     for (j = 0; j < pm->width; j++) {
-                        cindex = (unsigned char) (pm->bits)[k*pm->width+j];
+                        cindex = cptr[k*pm->width + j];
                         if (cindex != bg) {
                             clipmask_ptr[line_off+(j>>3)] |= (0x01 << (j%8));
                         }
@@ -558,12 +573,12 @@ int register_x11_drv(Canvas *canvas)
     Device_entry *d;
     X11_data *data;
 
-    data = init_x11_data();
+    data = x11_data_new();
     if (!data) {
         return -1;
     }
     
-    d = device_new("X11", DEVICE_TERM, FALSE, data, xfree);
+    d = device_new("X11", DEVICE_TERM, FALSE, data, x11_data_free);
     if (!d) {
         return -1;
     }

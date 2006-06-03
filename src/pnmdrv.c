@@ -154,9 +154,9 @@ static int pnm_output(const Canvas *canvas, void *data,
             RGB rgb;
             c = pm->matrix[i][j];
             if (get_rgb(canvas, c, &rgb) == RETURN_SUCCESS) {
-                r = rgb.red   >> (GRACE_BPP - 8);
-                g = rgb.green >> (GRACE_BPP - 8);
-                b = rgb.blue  >> (GRACE_BPP - 8);
+                r = rgb.red   >> (CANVAS_BPCC - 8);
+                g = rgb.green >> (CANVAS_BPCC - 8);
+                b = rgb.blue  >> (CANVAS_BPCC - 8);
             } else {
                 r = 0;
                 g = 0;

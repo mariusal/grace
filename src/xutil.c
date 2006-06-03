@@ -83,9 +83,9 @@ long x11_allocate_color(GUI *gui, const RGB *rgb)
     xc.pixel = 0;
     xc.flags = DoRed | DoGreen | DoBlue;
     
-    xc.red   = rgb->red   << (16 - GRACE_BPP);
-    xc.green = rgb->green << (16 - GRACE_BPP);
-    xc.blue  = rgb->blue  << (16 - GRACE_BPP);
+    xc.red   = rgb->red   << (16 - CANVAS_BPCC);
+    xc.green = rgb->green << (16 - CANVAS_BPCC);
+    xc.blue  = rgb->blue  << (16 - CANVAS_BPCC);
 
     if (XAllocColor(xstuff->disp, xstuff->cmap, &xc)) {
         return xc.pixel;

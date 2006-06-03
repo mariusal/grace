@@ -1009,11 +1009,11 @@ void ps_putpixmap(const Canvas *canvas, void *data,
             break;
         case COLORSPACE_RGB:
             layers = 3;
-            bpp = GRACE_BPP;
+            bpp = CANVAS_BPCC;
             break;
         case COLORSPACE_CMYK:
             layers = 4;
-            bpp = GRACE_BPP;
+            bpp = CANVAS_BPCC;
             break;
         }
         fprintf(prstream, "/picstr %d string def\n", pm->width*layers);

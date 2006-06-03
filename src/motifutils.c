@@ -89,7 +89,7 @@ extern XtAppContext app_con;
 
 static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
 
-static unsigned long xvlibcolors[MAXCOLORS];
+static unsigned long *xvlibcolors;
 
 
 static OptionItem *color_option_items = NULL;
@@ -2160,6 +2160,11 @@ static void init_xvlibcolors(void)
     unsigned int i;
     
     if (!pr) {
+        return;
+    }
+    
+    xvlibcolors = xrealloc(xvlibcolors, pr->ncolors*sizeof(unsigned long));
+    if (!xvlibcolors) {
         return;
     }
     

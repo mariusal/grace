@@ -698,7 +698,7 @@ void pdf_putpixmap(const Canvas *canvas, void *data,
     
     image = PDF_open_image(pdfdata->phandle, "raw", "memory",
         buf, pm->width*pm->height*components,
-        pm->width, pm->height, components, GRACE_BPP, "");
+        pm->width, pm->height, components, CANVAS_BPCC, "");
     if (image == -1) {
         errmsg("Not enough memory for image!");
         xfree(buf);

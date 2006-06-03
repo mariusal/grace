@@ -446,9 +446,9 @@ static void svg_group_props(const Canvas *canvas, Svg_data *svgdata,
 
         define_pattern(canvas, svgdata, pen.pattern, pen.color);
         if (get_rgb(canvas, pen.color, &rgb) == RETURN_SUCCESS) {
-            red   = rgb.red   >> (GRACE_BPP - 8);
-            green = rgb.green >> (GRACE_BPP - 8);
-            blue  = rgb.blue  >> (GRACE_BPP - 8);
+            red   = rgb.red   >> (CANVAS_BPCC - 8);
+            green = rgb.green >> (CANVAS_BPCC - 8);
+            blue  = rgb.blue  >> (CANVAS_BPCC - 8);
         } else {
             red   = 0;
             green = 0;
