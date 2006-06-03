@@ -97,6 +97,8 @@ static unsigned int ncolor_option_items = 0;
 static OptionStructure **color_selectors = NULL;
 static unsigned int ncolor_selectors = 0;
 
+static Widget color_choice_popup = NULL;
+
 static char *label_to_resname(const char *s, const char *suffix)
 {
     char *retval, *rs;
@@ -2507,6 +2509,8 @@ static void pen_popup(Widget parent,
         popup = pdata->color_popup;
     }
     
+    SetUserData(popup, parent);
+    
     XmMenuPosition(popup, e);
     XtManageChild(popup);
 }
@@ -2514,7 +2518,7 @@ static void pen_popup(Widget parent,
 static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Pen pen;
-    Widget button = GetParent(GetParent(GetParent(w)));
+    Widget button = GetUserData(GetParent(w));
     Button_PData *pdata;
     
     pdata = GetUserData(button);
@@ -2524,28 +2528,63 @@ static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
     SetPenChoice_int(button, &pen, TRUE);
 }
 
-static Widget CreateColorChoicePopup(Widget button)
+void update_color_choice_popup(void)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
     Project *pr = project_get_data(grace->project);
-    Widget popup;
     unsigned int ci;
-    
-    popup = XmCreatePopupMenu(button, "colorPopupMenu", NULL, 0);
-    XtVaSetValues(popup,
-                  XmNnumColumns, 4,
-                  XmNpacking, XmPACK_COLUMN,
-                  NULL);
 
-    if (pr) {
+    if (pr && color_choice_popup) {
+        int ncols = 4;
+        Widget	*ws = NULL;
+	Cardinal nw_old = 0, nw_new = pr->ncolors;
+        
+        XtVaGetValues(color_choice_popup,
+            XtNnumChildren, &nw_old,
+            XtNchildren, &ws,
+            NULL);
+    
+        /* Delete extra button widgets, if any */
+        if (nw_new < nw_old) {
+            XtUnmanageChildren(ws + nw_new, nw_old - nw_new);
+
+            for (ci = nw_new; ci < nw_old; ci++) {
+                XtDestroyWidget(ws[ci]);
+            }
+        }
+        
+        /* Don't create too tall pulldowns */
+        if (nw_new > MAX_PULLDOWN_LENGTH*ncols) {
+            ncols = (nw_new + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
+        }
+        
+        XtVaSetValues(color_choice_popup,
+                      XmNnumColumns, ncols,
+                      XmNpacking, XmPACK_COLUMN,
+                      NULL);
+        
+        /* Create new buttons, if needed */
+        for (ci = nw_old; ci < nw_new; ci++) {
+            Widget cb;
+            cb = XmCreatePushButton(color_choice_popup, "cb", NULL, 0);
+        }
+
+        XtVaGetValues(color_choice_popup,
+            XtNchildren, &ws,
+            NULL);
+        
+        /* Manage newly added widgets */
+        if (nw_new > nw_old) {
+            XtManageChildren(ws + nw_old, nw_new - nw_old);
+        }
+
+        /* Paint/label new buttons */
         for (ci = 0; ci < pr->ncolors; ci++) {
             Colordef *c = &pr->colormap[ci];
             long bg, fg;
-            Widget cb;
-            int color = c->id;
-            cb = CreateButton(popup, c->cname);
-            XtAddCallback(cb,
-                XmNactivateCallback, cc_cb, (XtPointer) color);
+            long color = c->id;
+            Widget cb = ws[ci];
+            XmString str;
 
             bg = xvlibcolors[color];
 	    if (get_rgb_intensity(&c->rgb) < 0.5) {
@@ -2553,14 +2592,32 @@ static Widget CreateColorChoicePopup(Widget button)
 	    } else {
 	        fg = BlackPixel(xstuff->disp, xstuff->screennumber);
 	    }
-	    XtVaSetValues(cb, 
+	    
+            XtRemoveAllCallbacks(cb, XmNactivateCallback);
+            XtAddCallback(cb, XmNactivateCallback, cc_cb, (XtPointer) color);
+            
+            str = XmStringCreateLocalized(c->cname);
+            XtVaSetValues(cb, 
+                XmNlabelString, str,
                 XmNbackground, bg,
                 XmNforeground, fg,
                 NULL);
+            XmStringFree(str);
         }
     }
+}
+
+static Widget CreateColorChoicePopup(Widget button)
+{
+    if (!color_choice_popup) {
+        color_choice_popup =
+            XmCreatePopupMenu(button, "colorPopupMenu", NULL, 0);
+        update_color_choice_popup();
+    } else {
+        XmAddToPostFromList(color_choice_popup, button);
+    }
     
-    return popup;
+    return color_choice_popup;
 }
 
 static Widget CreatePatternChoicePopup(Widget button)
@@ -3246,6 +3303,7 @@ void paint_color_selector(OptionStructure *optp)
     }
 }
 
+
 void update_color_selectors(void)
 {
     unsigned int i;
@@ -3266,6 +3324,8 @@ void update_color_selectors(void)
                             ncolor_option_items, color_option_items);
         paint_color_selector(color_selectors[i]);
     }
+    
+    update_color_choice_popup();
 }
 
 OptionStructure *CreateColorChoice(Widget parent, char *s)
