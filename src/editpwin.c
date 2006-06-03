@@ -544,10 +544,13 @@ static void update_cells(EditPoints *ep)
     delta_nr = new_nr - nr;
     delta_nc = new_nc - nc;
     
+#if XbaeVersion < 45101
     /* A bug in Xbae - the cell with focus on is NOT updated, so we do it */
+    /* Fixed in 4.51.01 */
     XbaeMatrixGetCurrentCell(ep->mw, &c_row, &c_column);
     XbaeMatrixSetCell(ep->mw,
         c_row, c_column, get_cell_content(ep, c_row, c_column));
+#endif
     
     if (delta_nr == 0 && delta_nc == 0) {
         XbaeMatrixRefresh(ep->mw);
@@ -595,7 +598,7 @@ static void update_cells(EditPoints *ep)
     }
     
     if (delta_nc > 0) {
-        XbaeMatrixAddColumns(ep->mw, 0, NULL, NULL, widths, maxlengths, 
+        XbaeMatrixAddColumns(ep->mw, nc, NULL, NULL, widths, maxlengths, 
             NULL, NULL, NULL, delta_nc);
     } else if (delta_nc < 0) {
         XbaeMatrixDeleteColumns(ep->mw, ncols, -delta_nc);
@@ -629,17 +632,15 @@ int ep_aac_proc(void *data)
     EditPoints *ep = (EditPoints *) data;
     int stype;
     char *comment;
-    int cur_row, cur_col;
     
     stype = GetOptionChoice(ep->stype);
     comment = GetTextString(ep->comment);
     
+    /* commit the last entered cell changes */
+    XbaeMatrixCommitEdit(ep->mw, False);
+    
     set_dataset_type(ep->gno, ep->setno, stype);
     setcomment(ep->gno, ep->setno, comment);
-    /* commit the last entered cell changes */
-    XbaeMatrixGetCurrentCell(ep->mw, &cur_row, &cur_col);
-    XbaeMatrixEditCell(ep->mw, cur_row, cur_col);
-    
     update_set_lists(ep->gno);
     xdrawgraph();
     
