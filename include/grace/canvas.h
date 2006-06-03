@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -30,9 +30,8 @@
 
 #include "grace/base.h"
 
-/* bpp that Grace uses internally ( = 256 colors) */
-#define GRACE_BPP       8
-#define MAXCOLORS       (0x01 << GRACE_BPP)
+/* bits per color channel (i.e., 256^3 colors) */
+#define CANVAS_BPCC     8
 
 /* polyline drawing modes */
 #define POLYLINE_OPEN       0

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -33,6 +33,9 @@
 #include <t1lib.h>
 
 #include <grace/canvas.h>
+
+/* Max value of color channel (255) */
+#define MAX_CC_VAL      ((0x01 << CANVAS_BPCC) - 1)
 
 #define COLOR_NONE      0
 #define COLOR_AUX       1
