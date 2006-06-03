@@ -8,6 +8,25 @@
 <H1>Grace list of changes</H1>
 
 <PRE>
+<H2>5.1.20</H2>
+
+<H3>Parser</H3>
+ *  [ES] added SGN() function
+
+<H3>Defaults</H3>
+ *  [ES] changed default major tick spacings to 0.2
+
+<H3>Bug fixes</H3>
+ *  [ES] command argument "-graphtype pie" wasn't recognized (rep. #2058)
+ *  [ES] fixed openning of help documents when using an external browser
+ *  [ES] "Geometric transforms" with order: "Rotate, scale, translate" in fact
+         was doing "Translate, scale, rotate"
+ *  [ES] Grace might crash when using "Engineering" tick label format
+         (rep. #2094)
+ *  [ES] file selection dialog wasn't closed when fit parameters file was
+         read in successfully
+
+
 <H2>5.1.19</H2>
 
 <H3>Functionality</H3>
@@ -17,7 +36,7 @@
  *  [RL] loading a DL module could fail with an irrelevant error message 
          (rep. #2071)
  *  [ES] a bug in the PS driver caused CUPS to output empty page if printing
-         accounting was enabled in foomatic
+         accounting was enabled in foomatic (rep. #2047)
  *  [ES] automatic data point purging (enabled when set length exceeds "Max
 	 drawing path length" in Edit/Preferences) could fail silently
          (rep. #2069)

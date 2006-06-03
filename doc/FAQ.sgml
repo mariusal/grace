@@ -4,12 +4,15 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.19)
+  <title>Grace FAQ (for Grace-5.1.20)
   <author>by the Grace Team
-  <date>20.11.2005
+  <date>04.06.2006
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
+    (A German translation of this document, made by Tobias Brinkert, is
+    available here: <url name="Grace FAQ"
+      url="http://www.semibyte.de/dokuwiki/informatik:linux:xmgrace:grace_faq">.)
   </abstract>
 
   <toc>
@@ -684,6 +687,16 @@ XMgrace*XmMessageBox.translations: #override\n\
         <tscreen><code>
     xmgrace -xrm "XMgrace*fontList:fixed"
         </code></tscreen>
+
+
+    <sect1>On Fedora Core 4, all set selectors collapse into a single
+           of even a zero-height line after a few operations.
+      <p>
+
+        FC4 uses a BETA version of OpenMotif 2.3 (see Help/About). The bug is
+        known and fixed
+        (<url url="http://bugs.motifzone.net/show_bug.cgi?id=1331"
+        name="bug #1331">). Ask Fedora folks to apply the patch.
 
 <!-- **************************************** -->
 

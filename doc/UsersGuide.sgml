@@ -4,12 +4,15 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.19)</title>
+<title>Grace User's Guide (for Grace-5.1.20)</title>
 <author>by the Grace Team</author>
-<date>19.05.2005</date>
+<date>04.06.2006</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
+  (A German translation of this document, made by Tobias Brinkert, is
+  available here: <url name="Grace Benutzerhandbuch"
+    url="http://www.semibyte.de/dokuwiki/informatik:linux:xmgrace:grace_benutzerhandbuch">.)
 </abstract>
 
 <toc>
@@ -53,7 +56,7 @@
 
 <tscreen><verb>
 Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
-Copyright (&copy;) 1996-2005 Grace Development Team
+Copyright (&copy;) 1996-2006 Grace Development Team
 
 Maintained by Evgeny Stambulchik
 
@@ -543,7 +546,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                 Turn off all toolbars
 
           <tag> -batch <it>batch_file</it> </tag>
-                Execute batch_file on start up
+                Execute batch_file on start up (i.e., after all other options
+                have been processed and the UI initialized)
 
           <tag> -block <it>block_data</it> </tag>
                 Assume data file is block data
@@ -2177,6 +2181,7 @@ integral     | cumulative sum @
 	rand(n)         | array of n random numbers @
 	rint(x)         | round to closest integer @
 	rsum(x)         | running sum of x @
+	sgn(x)          | signum function @
 	sin(x)          | sine function @
 	sinh(x)         | hyperbolic sine @
 	sqr(x)          | x^2 @
