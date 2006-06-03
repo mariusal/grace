@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2002 Grace Development Team
+ * Copyright (c) 2002-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -537,6 +537,7 @@ void xrst_putpixmap(const Canvas *canvas, void *data,
             }
         }
     } else {
+        unsigned int *cptr = (unsigned int *) pm->bits;
         for (k = 0; k < pm->height; k++) {
             x = mp.x;
             y++;
@@ -547,7 +548,7 @@ void xrst_putpixmap(const Canvas *canvas, void *data,
                     y < ytop  || y > ybottom) {
                     continue;
                 }
-                cindex = (pm->bits)[k*pm->width+j];
+                cindex = cptr[k*pm->width + j];
                 if (cindex != bg || pm->type == PIXMAP_OPAQUE) {
                     color = cindex;
                     MI_SET_CANVAS_DRAWABLE_PIXEL(ddata->mcanvas, x, y, color);

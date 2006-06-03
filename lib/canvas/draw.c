@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -1287,11 +1287,11 @@ static int RGB2YIQ(const RGB *rgb, YIQ *yiq)
 {
     if (is_valid_color(rgb)) {
         yiq->y = (0.299*rgb->red + 0.587*rgb->green + 0.114*rgb->blue)
-                                                            /(MAXCOLORS - 1);
+                                                            /MAX_CC_VAL;
         yiq->i = (0.596*rgb->red - 0.275*rgb->green - 0.321*rgb->blue)
-                                                            /(MAXCOLORS - 1);
+                                                            /MAX_CC_VAL;
         yiq->q = (0.212*rgb->red - 0.528*rgb->green + 0.311*rgb->blue)
-                                                             /(MAXCOLORS - 1);
+                                                             /MAX_CC_VAL;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -1301,9 +1301,9 @@ static int RGB2YIQ(const RGB *rgb, YIQ *yiq)
 static int RGB2CMY(const RGB *rgb, CMY *cmy)
 {
     if (is_valid_color(rgb)) {
-        cmy->cyan    = MAXCOLORS - 1 - rgb->red;
-        cmy->magenta = MAXCOLORS - 1 - rgb->green;
-        cmy->yellow  = MAXCOLORS - 1 - rgb->blue;
+        cmy->cyan    = MAX_CC_VAL - rgb->red;
+        cmy->magenta = MAX_CC_VAL - rgb->green;
+        cmy->yellow  = MAX_CC_VAL - rgb->blue;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -1313,9 +1313,9 @@ static int RGB2CMY(const RGB *rgb, CMY *cmy)
 static int fRGB2RGB(const fRGB *frgb, RGB *rgb)
 {
     if (frgb && rgb) {
-        rgb->red   = (int) rint(frgb->red  *(MAXCOLORS - 1));
-        rgb->green = (int) rint(frgb->green*(MAXCOLORS - 1));
-        rgb->blue  = (int) rint(frgb->blue *(MAXCOLORS - 1));
+        rgb->red   = (int) rint(frgb->red  *MAX_CC_VAL);
+        rgb->green = (int) rint(frgb->green*MAX_CC_VAL);
+        rgb->blue  = (int) rint(frgb->blue *MAX_CC_VAL);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -1325,9 +1325,9 @@ static int fRGB2RGB(const fRGB *frgb, RGB *rgb)
 static int RGB2fRGB(const RGB *rgb, fRGB *frgb)
 {
     if (frgb && rgb) {
-        frgb->red   = (double) rgb->red   / (MAXCOLORS - 1);
-        frgb->green = (double) rgb->green / (MAXCOLORS - 1);
-        frgb->blue  = (double) rgb->blue  / (MAXCOLORS - 1);
+        frgb->red   = (double) rgb->red   / MAX_CC_VAL;
+        frgb->green = (double) rgb->green / MAX_CC_VAL;
+        frgb->blue  = (double) rgb->blue  / MAX_CC_VAL;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -1438,21 +1438,17 @@ static int realloc_colors(Canvas *canvas, unsigned int n)
     unsigned int i;
     CMap_entry *cmap_tmp;
     
-    if (n > MAXCOLORS) {
+    cmap_tmp = xrealloc(canvas->cmap, n*sizeof(CMap_entry));
+    if (n != 0 && cmap_tmp == NULL) {
         return RETURN_FAILURE;
     } else {
-        cmap_tmp = xrealloc(canvas->cmap, n*sizeof(CMap_entry));
-        if (n != 0 && cmap_tmp == NULL) {
-            return RETURN_FAILURE;
-        } else {
-            canvas->cmap = cmap_tmp;
-            for (i = canvas->ncolors; i < n; i++) {
-                memset(&canvas->cmap[i], 0, sizeof(CMap_entry));
-                canvas->cmap[i].ctype = COLOR_NONE;
-            }
+        canvas->cmap = cmap_tmp;
+        for (i = canvas->ncolors; i < n; i++) {
+            memset(&canvas->cmap[i], 0, sizeof(CMap_entry));
+            canvas->cmap[i].ctype = COLOR_NONE;
         }
-        canvas->ncolors = n;
     }
+    canvas->ncolors = n;
     
     return RETURN_SUCCESS;
 }
@@ -1469,9 +1465,9 @@ static int is_rgb_grey(const RGB *rgb)
 
 static void rgb_invert(const RGB *src, RGB *dest)
 {
-    dest->red   = MAXCOLORS - 1 - src->red;
-    dest->blue  = MAXCOLORS - 1 - src->blue;
-    dest->green = MAXCOLORS - 1 - src->green;
+    dest->red   = MAX_CC_VAL - src->red;
+    dest->blue  = MAX_CC_VAL - src->blue;
+    dest->green = MAX_CC_VAL - src->green;
 }
 
 static void rgb_greyscale(const RGB *src, RGB *dest)
@@ -1489,29 +1485,29 @@ static void rgb_srgb(const RGB *src, RGB *dest)
 {
     fRGB fsrc, fdest;
     
-    fsrc.red    = (double) src->red   / (MAXCOLORS - 1);
-    fsrc.green  = (double) src->green / (MAXCOLORS - 1);
-    fsrc.blue   = (double) src->blue  / (MAXCOLORS - 1);
+    fsrc.red    = (double) src->red   / MAX_CC_VAL;
+    fsrc.green  = (double) src->green / MAX_CC_VAL;
+    fsrc.blue   = (double) src->blue  / MAX_CC_VAL;
 
     fdest.red   = fRGB2fSRGB(fsrc.red);
     fdest.green = fRGB2fSRGB(fsrc.green);
     fdest.blue  = fRGB2fSRGB(fsrc.blue);
 
-    dest->red   = (int) rint(fdest.red   * (MAXCOLORS - 1));
-    dest->green = (int) rint(fdest.green * (MAXCOLORS - 1));
-    dest->blue  = (int) rint(fdest.blue  * (MAXCOLORS - 1));
+    dest->red   = (int) rint(fdest.red   * MAX_CC_VAL);
+    dest->green = (int) rint(fdest.green * MAX_CC_VAL);
+    dest->blue  = (int) rint(fdest.blue  * MAX_CC_VAL);
 }
 
 static void rgb_bw(const RGB *src, RGB *dest)
 {
     int y;
     
-    if (src->red   < MAXCOLORS - 1 ||
-        src->green < MAXCOLORS - 1 ||
-        src->blue  < MAXCOLORS - 1) {
+    if (src->red   < MAX_CC_VAL ||
+        src->green < MAX_CC_VAL ||
+        src->blue  < MAX_CC_VAL) {
         y = 0;
     } else {
-        y = MAXCOLORS - 1;
+        y = MAX_CC_VAL;
     }
     
     dest->red   = y;
@@ -1669,10 +1665,10 @@ int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk)
     CMYK cmyk;
     
     if (get_cmyk(canvas, cindex, &cmyk) == RETURN_SUCCESS) {
-        fcmyk->cyan    = (double) cmyk.cyan    /(MAXCOLORS - 1);
-        fcmyk->magenta = (double) cmyk.magenta /(MAXCOLORS - 1);
-        fcmyk->yellow  = (double) cmyk.yellow  /(MAXCOLORS - 1);
-        fcmyk->black   = (double) cmyk.black   /(MAXCOLORS - 1);
+        fcmyk->cyan    = (double) cmyk.cyan    /MAX_CC_VAL;
+        fcmyk->magenta = (double) cmyk.magenta /MAX_CC_VAL;
+        fcmyk->yellow  = (double) cmyk.yellow  /MAX_CC_VAL;
+        fcmyk->black   = (double) cmyk.black   /MAX_CC_VAL;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;

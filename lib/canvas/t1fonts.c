@@ -51,7 +51,7 @@ int init_t1(void)
     
     /* Rasterization parameters */
     T1_SetDeviceResolutions(72.0, 72.0);
-    T1_AASetBitsPerPixel(GRACE_BPP);
+    T1_AASetBitsPerPixel(3*CANVAS_BPCC);
     T1_SetBitmapPad(T1_DEFAULT_BITMAP_PAD);
     
     return RETURN_SUCCESS;
