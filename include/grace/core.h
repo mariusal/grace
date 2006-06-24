@@ -786,6 +786,8 @@ int project_update_timestamp(Quark *q, time_t *t);
 int project_add_font(Quark *project, const Fontdef *f);
 int project_add_color(Quark *project, const Colordef *c);
 
+unsigned int project_get_ncolors(const Quark *q);
+
 Quark *get_parent_project(const Quark *q);
 
 /* SSData */

@@ -414,6 +414,16 @@ int project_add_color(Quark *project, const Colordef *c)
     return RETURN_SUCCESS;
 }
 
+unsigned int project_get_ncolors(const Quark *q)
+{
+    Project *pr = project_get_data(q);
+    if (pr) {
+        return pr->ncolors;
+    } else {
+        return 0;
+    }
+}
+
 Quark *get_parent_project(const Quark *q)
 {
     Quark *p = (Quark *) q;
