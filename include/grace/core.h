@@ -790,6 +790,10 @@ unsigned int project_get_ncolors(const Quark *q);
 
 Quark *get_parent_project(const Quark *q);
 
+char *project_get_font_name_by_id(const Quark *project, int id);
+int project_get_font_by_name(const Quark *project, const char *name);
+int project_get_color_by_name(const Quark *project, const char *name);
+
 /* SSData */
 #define FFORMAT_UNKNOWN -1
 #define FFORMAT_NUMBER   0

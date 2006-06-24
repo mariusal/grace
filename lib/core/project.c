@@ -437,3 +437,60 @@ Quark *get_parent_project(const Quark *q)
     
     return NULL;
 }
+
+char *project_get_font_name_by_id(const Quark *project, int id)
+{
+    Project *pr = project_get_data(project);
+    unsigned int i;
+    
+    if (!pr) {
+        return NULL;
+    }
+    
+    for (i = 0; i < pr->nfonts; i++) {
+        Fontdef *f = &pr->fontmap[i];
+        if (f->id == id) {
+            return f->fontname;
+        }
+    }
+    
+    return NULL;
+}
+
+int project_get_font_by_name(const Quark *project, const char *name)
+{
+    Project *pr = project_get_data(project);
+    unsigned int i;
+    
+    if (!pr) {
+        return BAD_FONT_ID;
+    }
+    
+    for (i = 0; i < pr->nfonts; i++) {
+        Fontdef *f = &pr->fontmap[i];
+        if (!strcmp(f->fontname, name)) {
+            return f->id;
+        }
+    }
+    
+    return BAD_FONT_ID;
+}
+
+int project_get_color_by_name(const Quark *project, const char *name)
+{
+    Project *pr = project_get_data(project);
+    unsigned int i;
+    
+    if (!pr) {
+        return BAD_COLOR;
+    }
+    
+    for (i = 0; i < pr->ncolors; i++) {
+        Colordef *c = &pr->colormap[i];
+        if (!strcmp(c->cname, name)) {
+            return c->id;
+        }
+    }
+    
+    return BAD_COLOR;
+}
