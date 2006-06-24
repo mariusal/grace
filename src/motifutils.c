@@ -2523,7 +2523,7 @@ static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
     
     pdata = GetUserData(button);
     pen = pdata->pen;
-    pen.color = (int) client_data;
+    pen.color = (long) client_data;
     
     SetPenChoice_int(button, &pen, TRUE);
 }
