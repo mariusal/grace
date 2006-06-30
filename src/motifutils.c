@@ -80,10 +80,9 @@
 #include "jbitmaps.h"
 #include "core_utils.h"
 #include "utils.h"
-#include "dicts.h"
 #include "protos.h"
 
-#define canvas grace->rt->canvas
+#define canvas gapp->grace->canvas
 
 extern XtAppContext app_con;
 
@@ -371,7 +370,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     int i;
     XmString str;
     OptionStructure *retval;
@@ -465,7 +464,7 @@ static unsigned char dummy_bits[] = {
 
 OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     int i;
     int ncols = 16, nchoices = 256;
     XmString str;
@@ -605,7 +604,7 @@ static void list_unselectall(Widget list)
 
 static void list_invertselection(Widget list)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     int i, n;
     unsigned char selection_type_save;
     
@@ -1018,7 +1017,7 @@ static void ss_any_cb(StorageStructure *ss, int type)
     
     if (n > 0) {
         xfree(values);
-        snapshot_and_update(grace->project, TRUE);
+        snapshot_and_update(gapp->project, TRUE);
     }
 }
 
@@ -1070,7 +1069,7 @@ static void ss_properties_cb(Widget but, void *udata)
     Quark *q;
     
     if (GetSingleStorageChoice(ss, &q) == RETURN_SUCCESS) {
-        raise_explorer(grace->gui, q);
+        raise_explorer(gapp->gui, q);
     }
 }
 
@@ -1098,7 +1097,7 @@ static void ss_update_cb(Widget but, void *udata)
 
 static void s_dc_cb(StorageStructure *ss, Quark *q, void *data)
 {
-    raise_explorer(grace->gui, q);
+    raise_explorer(gapp->gui, q);
 }
 
 static void CreateStorageChoicePopup(StorageStructure *ss)
@@ -1584,7 +1583,7 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 
 void SetSpinChoice(SpinStructure *spinp, double value)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     char buf[64];
     
     if (value < spinp->min) {
@@ -1883,7 +1882,7 @@ Widget CreateButton(Widget parent, char *label)
 Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     Widget button;
     Pixmap pm;
     Pixel fg, bg;
@@ -1935,7 +1934,7 @@ static void fsb_setcwd_cb(Widget but, void *data)
     bufp = GetStringSimple(directory);
     XmStringFree(directory);
     if (bufp != NULL) {
-        set_workingdir(grace, bufp);
+        set_workingdir(gapp, bufp);
         XtFree(bufp);
     }
 }
@@ -1953,10 +1952,10 @@ static void fsb_cd_cb(OptionStructure *opt, int value, void *data)
     
     switch (value) {
     case FSB_CWD:
-        bufp = get_workingdir(grace);
+        bufp = get_workingdir(gapp);
         break;
     case FSB_HOME:
-	bufp = get_userhome(grace);
+	bufp = get_userhome(gapp);
         break;
     case FSB_ROOT:
         bufp = "/";
@@ -2016,7 +2015,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
     XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
     xfree(bufp);
     
-    xmstr = XmStringCreateLocalized(get_workingdir(grace));
+    xmstr = XmStringCreateLocalized(get_workingdir(gapp));
     XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);
     XmStringFree(xmstr);
     
@@ -2157,8 +2156,8 @@ static BitmapOptionItem *lines_option_items;
 
 static void init_xvlibcolors(void)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
-    Project *pr = project_get_data(grace->project);
+    X11Stuff *xstuff = gapp->gui->xstuff;
+    Project *pr = project_get_data(gapp->project);
     unsigned int i;
     
     if (!pr) {
@@ -2174,7 +2173,7 @@ static void init_xvlibcolors(void)
         long pixel;
         Colordef *c = &pr->colormap[i];
         
-        pixel = x11_allocate_color(grace->gui, &c->rgb);
+        pixel = x11_allocate_color(gapp->gui, &c->rgb);
         
         if (pixel >= 0) {
             xvlibcolors[c->id] = pixel;
@@ -2251,7 +2250,7 @@ int init_option_menus(void) {
     for (i = 0; i < NUMBER_OF_SETTYPES; i++) {
         settype_option_items[i].value = i;
         settype_option_items[i].label = copy_string(NULL,
-            set_type_descr(grace->rt, i));
+            set_type_descr(gapp->grace, i));
     }
 
     fmt_option_items = xmalloc(NUMBER_OF_FORMATTYPES*sizeof(OptionItem));
@@ -2262,7 +2261,7 @@ int init_option_menus(void) {
     for (i = 0; i < NUMBER_OF_FORMATTYPES; i++) {
         fmt_option_items[i].value = i;
         fmt_option_items[i].label = copy_string(NULL,
-            format_type_descr(grace->rt, i));
+            format_type_descr(gapp->grace, i));
     }
 
     frametype_option_items = xmalloc(NUMBER_OF_FRAMETYPES*sizeof(OptionItem));
@@ -2273,7 +2272,7 @@ int init_option_menus(void) {
     for (i = 0; i < NUMBER_OF_FRAMETYPES; i++) {
         frametype_option_items[i].value = i;
         frametype_option_items[i].label = copy_string(NULL,
-            frame_type_descr(grace->rt, i));
+            frame_type_descr(gapp->grace, i));
     }
 
     return RETURN_SUCCESS;
@@ -2287,7 +2286,7 @@ static unsigned int nfont_selectors = 0;
 void update_font_selectors(void)
 {
     unsigned int i;
-    Project *pr = project_get_data(grace->project);
+    Project *pr = project_get_data(gapp->project);
     
     nfont_option_items = pr->nfonts;
     font_option_items =
@@ -2443,7 +2442,7 @@ static GC gc_pen;
 
 static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     Pixel bg, fg;
     Pixmap pixtile, pixmap;
     Button_PData *pdata;
@@ -2530,8 +2529,8 @@ static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 
 void update_color_choice_popup(void)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
-    Project *pr = project_get_data(grace->project);
+    X11Stuff *xstuff = gapp->gui->xstuff;
+    Project *pr = project_get_data(gapp->project);
     unsigned int ci;
 
     if (pr && color_choice_popup) {
@@ -2784,7 +2783,7 @@ StorageStructure *CreateSSDChoice(Widget parent, char *labelstr, int type)
 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, ssd_labeling);
-    SetStorageChoiceQuark(ss, grace->project);
+    SetStorageChoiceQuark(ss, gapp->project);
 
     nssd_selectors++;
     ssd_selectors =
@@ -2851,7 +2850,7 @@ static void gss_any_cb(void *udata, int cbtype)
     if (n > 0) {
         xfree(values);
         update_all();
-        xdrawgraph(grace->project);
+        xdrawgraph(gapp->project);
     }
 }
 
@@ -2869,8 +2868,8 @@ static void g_popup_cb(StorageStructure *ss, int nselected)
 
 static void g_new_cb(Widget but, void *udata)
 {
-    graph_next(grace->project);
-    snapshot_and_update(grace->project, TRUE);
+    graph_next(gapp->project);
+    snapshot_and_update(gapp->project, TRUE);
 }
 
 static char *graph_labeling(Quark *q, unsigned int *rid)
@@ -2880,7 +2879,7 @@ static char *graph_labeling(Quark *q, unsigned int *rid)
     if (quark_fid_get(q) == QFlavorGraph) {
         sprintf(buf, "Graph \"%s\" (type: %s, sets: %d)",
             QIDSTR(q),
-            graph_types(grace->rt, graph_get_type(q)), quark_get_number_of_descendant_sets(q));
+            graph_types(gapp->grace, graph_get_type(q)), quark_get_number_of_descendant_sets(q));
 
         (*rid)++;
 
@@ -2900,7 +2899,7 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, graph_labeling);
-    SetStorageChoiceQuark(ss, grace->project);
+    SetStorageChoiceQuark(ss, gapp->project);
     AddHelpCB(ss->rc, "doc/UsersGuide.html#graph-selector");
 
     ngraph_selectors++;
@@ -2977,7 +2976,7 @@ StorageStructure *CreateFrameChoice(Widget parent, char *labelstr, int type)
     nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, frame_labeling);
-    SetStorageChoiceQuark(ss, grace->project);
+    SetStorageChoiceQuark(ss, gapp->project);
     AddHelpCB(ss->rc, "doc/UsersGuide.html#frame-selector");
 
     nframe_selectors++;
@@ -3049,7 +3048,7 @@ static void sss_any_cb(void *udata, int cbtype)
         break;
     }
     
-    snapshot_and_update(grace->project, TRUE);
+    snapshot_and_update(gapp->project, TRUE);
 }
 
 static void s_newF_cb(Widget but, void *udata)
@@ -3064,7 +3063,7 @@ static char *set_labeling(Quark *q, unsigned int *rid)
         set *p = set_get_data(q);
 
         sprintf(buf, "Set \"%s\" (type: %s, length: %d)",
-            QIDSTR(q), set_type_descr(grace->rt, p->type),
+            QIDSTR(q), set_type_descr(gapp->grace, p->type),
             set_get_length(q));
 
         (*rid)++;
@@ -3279,10 +3278,10 @@ SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
 
 void paint_color_selector(OptionStructure *optp)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     unsigned int i;
     long bg, fg;
-    Project *pr = project_get_data(grace->project);
+    Project *pr = project_get_data(gapp->project);
     
     if (!pr) {
         return;
@@ -3307,7 +3306,7 @@ void paint_color_selector(OptionStructure *optp)
 void update_color_selectors(void)
 {
     unsigned int i;
-    Project *pr = project_get_data(grace->project);
+    Project *pr = project_get_data(gapp->project);
     
     ncolor_option_items = pr->ncolors;
 
@@ -3485,7 +3484,7 @@ OptionStructure *CreateASChoice(Widget parent, char *s)
     
     retval = CreateOptionChoice(parent, s, 1, 4, as_option_items);
     /* As init value, use this */
-    SetOptionChoice(retval, grace->rt->autoscale_onread);
+    SetOptionChoice(retval, gapp->rt->autoscale_onread);
     
     return(retval);
 }
@@ -3669,14 +3668,14 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
 
 Widget CreateDialogForm(Widget parent, const char *s)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     Widget dialog, w;
     char *bufp;
     int standalone;
     
     if (parent == NULL) {
         standalone = TRUE;
-        parent = XtAppCreateShell("XMgrace", "XMgrace",
+        parent = XtAppCreateShell("XMgapp", "XMgapp",
             topLevelShellWidgetClass, xstuff->disp,
             NULL, 0);
     } else {
@@ -3959,7 +3958,7 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
         
         *destsets = xmalloc((*nssrc)*sizeof(Quark *));
         for (i = 0; i < *nssrc; i++) {
-            (*destsets)[i] = grace_set_new(destgr);
+            (*destsets)[i] = gapp_set_new(destgr);
         }
         
         update_set_selectors(destgr);
@@ -4195,7 +4194,7 @@ int xv_evalexpr(Widget w, double *answer)
 	
     s = XmTextGetString(w);
     
-    retval = graal_eval_expr(grace->rt->graal, s, answer, grace->project);
+    retval = graal_eval_expr(gapp->grace->graal, s, answer, gapp->project);
     
     XtFree(s);
     
@@ -4244,7 +4243,7 @@ void destroy_dialog_cb(Widget but, void *data)
 /* if user tried to close from WM */
 static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    bailout(grace);
+    bailout(gapp);
 }
 
 /*
@@ -4252,7 +4251,7 @@ static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
  */
 void handle_close(Widget w)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     Atom WM_DELETE_WINDOW;
     
     XtVaSetValues(w, XmNdeleteResponse, XmDO_NOTHING, NULL);
@@ -4312,7 +4311,7 @@ void deletewidget(Widget w)
 
 void DefineDialogCursor(Cursor c)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     int i;
     
     for (i = 0; i < nsavedwidgets; i++) {
@@ -4323,7 +4322,7 @@ void DefineDialogCursor(Cursor c)
 
 void UndefineDialogCursor(void)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     int i;
     
     for (i = 0; i < nsavedwidgets; i++) {
@@ -4563,7 +4562,7 @@ void AddHelpCB(Widget w, char *ha)
 
 void ContextHelpCB(Widget but, void *data)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     Widget whelp;
     Cursor cursor;
     int ok = FALSE;
@@ -4705,7 +4704,7 @@ void SetLabel(Widget w, char *s)
 
 void SetFixedFont(Widget w)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     XFontStruct *f;
     XmFontList xmf;
 
@@ -4735,7 +4734,7 @@ void update_set_lists(Quark *gr)
 {
     update_set_selectors(gr);
     
-    snapshot_and_update(grace->project, FALSE);
+    snapshot_and_update(gapp->project, FALSE);
 }
 
 void update_undo_buttons(Quark *project)
@@ -4757,35 +4756,35 @@ void update_undo_buttons(Quark *project)
 
 void update_all(void)
 {
-    if (!grace->gui->inwin) {
+    if (!gapp->gui->inwin) {
         return;
     }
 
-    if (gui_is_page_free(grace->gui)) {
-        sync_canvas_size(grace);
+    if (gui_is_page_free(gapp->gui)) {
+        sync_canvas_size(gapp);
     }
     
-    update_ssd_selectors(grace->project);
-    update_frame_selectors(grace->project);
-    update_graph_selectors(grace->project);
+    update_ssd_selectors(gapp->project);
+    update_frame_selectors(gapp->project);
+    update_graph_selectors(gapp->project);
     update_set_selectors(NULL);
 
-    if (grace->gui->need_colorsel_update == TRUE) {
+    if (gapp->gui->need_colorsel_update == TRUE) {
         init_xvlibcolors();
         update_color_selectors();
-        grace->gui->need_colorsel_update = FALSE;
+        gapp->gui->need_colorsel_update = FALSE;
     }
 
-    if (grace->gui->need_fontsel_update == TRUE) {
+    if (gapp->gui->need_fontsel_update == TRUE) {
         update_font_selectors();
-        grace->gui->need_fontsel_update = FALSE;
+        gapp->gui->need_fontsel_update = FALSE;
     }
 
-    update_undo_buttons(grace->project);
+    update_undo_buttons(gapp->project);
     update_props_items();
-    update_explorer(grace->gui->eui, TRUE);
+    update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
-    update_app_title(grace->project);
+    update_app_title(gapp->project);
 }
 
 void update_all_cb(Widget but, void *data)
@@ -4876,12 +4875,12 @@ static void undo_stats(AMem *amem)
 
 void undo_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    AMem *amem = quark_get_amem(grace->project);
+    GraceApp *gapp = (GraceApp *) data;
+    AMem *amem = quark_get_amem(gapp->project);
     
     amem_undo(amem);
     
-    xdrawgraph(grace->project);
+    xdrawgraph(gapp->project);
     update_all();
     
     undo_stats(amem);
@@ -4889,12 +4888,12 @@ void undo_cb(Widget but, void *data)
 
 void redo_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    AMem *amem = quark_get_amem(grace->project);
+    GraceApp *gapp = (GraceApp *) data;
+    AMem *amem = quark_get_amem(gapp->project);
     
     amem_redo(amem);
     
-    xdrawgraph(grace->project);
+    xdrawgraph(gapp->project);
     update_all();
     
     undo_stats(amem);

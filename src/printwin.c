@@ -40,7 +40,7 @@
 #include "motifinc.h"
 #include "protos.h"
 
-#define canvas grace->rt->canvas
+#define canvas gapp->grace->canvas
 
 typedef struct {
     int             ndest;
@@ -108,7 +108,7 @@ void create_printer_setup(Widget but, void *data)
     set_wait_cursor();
     
     if (data == NULL) {
-        device = grace->rt->hdevice;
+        device = gapp->rt->hdevice;
     } else {
         device = *((int *) data);
     }
@@ -122,7 +122,7 @@ void create_printer_setup(Widget but, void *data)
 	pui = xmalloc(sizeof(PrintUI));
         memset(pui, 0, sizeof(PrintUI));
         
-        pui->destopts = xcalloc(grace->rt->num_print_dests, sizeof(DestSetupUI));
+        pui->destopts = xcalloc(gapp->rt->num_print_dests, sizeof(DestSetupUI));
         
         pui->top = CreateDialogForm(app_shell, "Device setup");
         SetDialogFormResizable(pui->top, TRUE);
@@ -170,15 +170,15 @@ void create_printer_setup(Widget but, void *data)
         AddToggleButtonCB(pui->printto, do_pr_toggle, pui);
 
 	pui->rc_printsel = CreateHContainer(rc1);
-        if (grace->rt->use_cups) {
-            options = xmalloc(grace->rt->num_print_dests*sizeof(OptionItem));
+        if (gapp->rt->use_cups) {
+            options = xmalloc(gapp->rt->num_print_dests*sizeof(OptionItem));
 
-            for (i = 0; i < grace->rt->num_print_dests; i++) {
+            for (i = 0; i < gapp->rt->num_print_dests; i++) {
                 options[i].value = i;
-                options[i].label = grace->rt->print_dests[i].printer;
+                options[i].label = gapp->rt->print_dests[i].printer;
             }
 	    pui->destination = CreateOptionChoice(pui->rc_printsel, "Destination:",
-                0, grace->rt->num_print_dests, options);
+                0, gapp->rt->num_print_dests, options);
 
             xfree(options);
             
@@ -300,28 +300,28 @@ static void update_device_setup(PrintUI *ui, int device_id)
             SetSensitive(ui->device_opts, True);
         }
 
-        if (string_is_empty(grace->rt->print_file)) {
-            strcpy(grace->rt->print_file,
-                mybasename(project_get_docname(grace->project))); 
+        if (string_is_empty(gapp->rt->print_file)) {
+            strcpy(gapp->rt->print_file,
+                mybasename(project_get_docname(gapp->project))); 
         }
         
         /* Replace existing filename extension */
-        bufptr = strrchr(grace->rt->print_file, '.');
+        bufptr = strrchr(gapp->rt->print_file, '.');
         if (bufptr) {
             *(bufptr + 1) = '\0';
         } else {
-            strcat(grace->rt->print_file, ".");
+            strcat(gapp->rt->print_file, ".");
         }
         if (dev->fext) {
-            strcat(grace->rt->print_file, dev->fext);
+            strcat(gapp->rt->print_file, dev->fext);
         }
         
-        if (grace->rt->use_cups) {
-            SetOptionChoice(ui->destination, get_print_dest(grace));
+        if (gapp->rt->use_cups) {
+            SetOptionChoice(ui->destination, get_print_dest(gapp));
         } else {
-            xv_setstr(ui->print_string, get_print_cmd(grace));
+            xv_setstr(ui->print_string, get_print_cmd(gapp));
         }
-        xv_setstr(ui->printfile, grace->rt->print_file);
+        xv_setstr(ui->printfile, gapp->rt->print_file);
         
         switch (dev->type) {
         case DEVICE_TERM:
@@ -339,9 +339,9 @@ static void update_device_setup(PrintUI *ui, int device_id)
         case DEVICE_PRINT:
             ManageChild(ui->output_frame);
             ManageChild(ui->page_frame);
-            SetToggleButtonState(ui->printto, get_ptofile(grace));
+            SetToggleButtonState(ui->printto, get_ptofile(gapp));
             SetSensitive(ui->printto, True);
-            if (get_ptofile(grace) == TRUE) {
+            if (get_ptofile(gapp) == TRUE) {
                 SetSensitive(ui->rc_filesel, True);
                 SetSensitive(ui->rc_printsel, False);
             } else {
@@ -423,15 +423,15 @@ static int set_printer_proc(void *data)
     dev = get_device_props(canvas, seldevice);
 
     if (dev->type != DEVICE_TERM) {
-        grace->rt->hdevice = seldevice;
-        set_ptofile(grace, GetToggleButtonState(ui->printto));
-        if (get_ptofile(grace)) {
-            strcpy(grace->rt->print_file, xv_getstr(ui->printfile));
+        gapp->rt->hdevice = seldevice;
+        set_ptofile(gapp, GetToggleButtonState(ui->printto));
+        if (get_ptofile(gapp)) {
+            strcpy(gapp->rt->print_file, xv_getstr(ui->printfile));
         } else {
-            if (grace->rt->use_cups) {
-                set_print_dest(grace, GetOptionChoice(ui->destination));
+            if (gapp->rt->use_cups) {
+                set_print_dest(gapp, GetOptionChoice(ui->destination));
             } else {
-                set_print_cmd(grace, xv_getstr(ui->print_string));
+                set_print_cmd(gapp, xv_getstr(ui->print_string));
             }
         }
 
@@ -478,12 +478,12 @@ static int set_printer_proc(void *data)
     dev->fontrast = GetOptionChoice(ui->fontrast);
     dev->color_trans = GetOptionChoice(ui->color_trans);
     
-    if (seldevice == grace->rt->tdevice) {
+    if (seldevice == gapp->rt->tdevice) {
         do_redraw = TRUE;
     }
     
     if (do_redraw) {
-        xdrawgraph(grace->project);
+        xdrawgraph(gapp->project);
     }
     
     return RETURN_SUCCESS;
@@ -619,7 +619,7 @@ static int do_prfilesel_proc(FSBStructure *fsb, char *filename, void *data)
     PrintUI *ui = (PrintUI *) data;
     
     xv_setstr(ui->printfile, filename);
-    strcpy(grace->rt->print_file, filename);
+    strcpy(gapp->rt->print_file, filename);
     XtVaSetValues(ui->printfile, XmNcursorPosition, strlen(filename), NULL);
     return TRUE;
 }
@@ -670,7 +670,7 @@ void create_devopts_popup(Widget but, void *data)
 static int set_destopts_proc(void *data)
 {
     DestSetupUI *dsui = (DestSetupUI *) data;
-    PrintDest *pd = &grace->rt->print_dests[dsui->ndest];
+    PrintDest *pd = &gapp->rt->print_dests[dsui->ndest];
     int i, j, nopts = 0;
     
     for (i = 0; i < pd->nogroups; i++) {
@@ -694,7 +694,7 @@ void create_destopts_popup(Widget but, void *data)
     DestSetupUI *dsui = &ui->destopts[ndest];
     
     if (dsui->top == NULL) {
-        PrintDest *pd = &grace->rt->print_dests[ndest];
+        PrintDest *pd = &gapp->rt->print_dests[ndest];
         Widget top, tab;
         int i, j, k, nopts = 0;
         char buf[128];
@@ -811,6 +811,6 @@ static void do_units_toggle(OptionStructure *opt, int value, void *data)
 static void do_print_cb(Widget but, void *data)
 {
     set_wait_cursor();
-    do_hardcopy(grace->project);
+    do_hardcopy(gapp->project);
     unset_wait_cursor();
 }

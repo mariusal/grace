@@ -29,7 +29,6 @@
 
 #include "globals.h"
 #include "utils.h"
-#include "dicts.h"
 
 #include "explorer.h"
 #include "qbitmaps.h"
@@ -578,7 +577,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
         }
     }
     
-    snapshot_and_update(grace->project, FALSE);
+    snapshot_and_update(gapp->project, FALSE);
 
     return res;
 }
@@ -636,7 +635,7 @@ void update_explorer(ExplorerUI *ui, int reselect)
         ListTreeDelete(ui->tree, ui->project);
     }
     ui->project = CreateQuarkTree(ui->tree, NULL,
-        grace->project, NULL, q_labeling);
+        gapp->project, NULL, q_labeling);
 
     highlight_selected(ui->tree, ui->project, nsquarks, squarks);
     xfree(squarks);
@@ -738,10 +737,10 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             qnew = graph_new(q);
             break;
         case ADD_SSD_CB:
-            qnew = grace_ssd_new(q);
+            qnew = gapp_ssd_new(q);
             break;
         case ADD_SET_CB:
-            qnew = grace_set_new(q);
+            qnew = gapp_set_new(q);
             break;
         case ADD_AXISGRID_CB:
             qnew = axisgrid_new(q);
@@ -764,7 +763,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
         }
     }
     
-    snapshot_and_update(grace->project, TRUE);
+    snapshot_and_update(gapp->project, TRUE);
     
     if (qnew) {
         SelectQuarkTreeItem(eui->tree, eui->project, qnew);
@@ -862,14 +861,14 @@ static void add_object_cb(Widget but, void *udata)
 
 void raise_explorer(GUI *gui, Quark *q)
 {
-    Grace *grace = gui->P;
+    GraceApp *gapp = gui->P;
 
     set_wait_cursor();
     
     if (!gui->eui) {
         ExplorerUI *eui;
         Widget menubar, menupane, panel, form, fr;
-        X11Stuff *xstuff = grace->gui->xstuff;
+        X11Stuff *xstuff = gapp->gui->xstuff;
         Pixel bg;
         XpmColorSymbol transparent;
         XpmAttributes attrib;
@@ -902,9 +901,9 @@ void raise_explorer(GUI *gui, Quark *q)
 
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
         eui->edit_undo_bt = CreateMenuButton(menupane, "Undo", 'U',
-            undo_cb, grace);
+            undo_cb, gapp);
         eui->edit_redo_bt = CreateMenuButton(menupane, "Redo", 'R',
-            redo_cb, grace);
+            redo_cb, gapp);
 
         menupane = CreateMenu(menubar, "Insert", 'I', FALSE);
         eui->insert_frame_bt = CreateMenuButton(menupane,
@@ -1046,7 +1045,7 @@ void raise_explorer(GUI *gui, Quark *q)
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
         eui->project = CreateQuarkTree(eui->tree, NULL,
-            grace->project, NULL, q_labeling);
+            gapp->project, NULL, q_labeling);
         
         ManageChild(eui->tree);
         ListTreeRefreshOn(eui->tree);
@@ -1089,7 +1088,7 @@ void raise_explorer(GUI *gui, Quark *q)
         SelectQuarkTreeItem(gui->eui->tree, gui->eui->project, q);
     }
 
-    update_undo_buttons(grace->project);
+    update_undo_buttons(gapp->project);
 
     unset_wait_cursor();
 }

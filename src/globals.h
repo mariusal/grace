@@ -35,12 +35,12 @@
 #ifndef __GLOBALS_H_
 #define __GLOBALS_H_
 
-#include "grace.h"
+#include "graceapp.h"
 
 #ifdef MAIN
-Grace *grace = NULL;
+GraceApp *gapp = NULL;
 #else
-extern Grace *grace;
+extern GraceApp *gapp;
 #endif
 
 #endif /* __GLOBALS_H_ */

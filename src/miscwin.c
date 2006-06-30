@@ -48,9 +48,6 @@ static Widget props_frame;
 /*
  * Panel item declarations
  */
-#ifdef DEBUG
-static SpinStructure *debug_item;
-#endif
 static Widget noask_item;
 
 static OptionStructure *graph_focus_choice_item;
@@ -84,10 +81,6 @@ void create_props_frame(Widget but, void *data)
         AddDialogFormChild(props_frame, fr);
         rc1 = CreateVContainer(fr);
 
-#ifdef DEBUG
-	debug_item = CreateSpinChoice(rc1,
-            "Debug level:", 1, SPIN_TYPE_INT, 0.0, 8.0, 1.0);
-#endif
 	noask_item = CreateToggleButton(rc1, "Don't ask questions");
 
 	graph_focus_choice_item = CreateOptionChoiceVA(rc1,
@@ -131,14 +124,7 @@ void update_props_items(void)
     int iv;
     
     if (props_frame) {
-        GUI *gui = grace->gui;
-#ifdef DEBUG
-	if (get_debuglevel(grace) > 8) {
-	    errwin("Debug level > 8, resetting to 0");
-	    set_debuglevel(grace, 0);
-	}
-	SetSpinChoice(debug_item, (double) get_debuglevel(grace));
-#endif
+        GUI *gui = gapp->gui;
 	SetToggleButtonState(noask_item, gui->noask);
 
 	if (gui->focus_policy == FOCUS_SET) {
@@ -156,22 +142,19 @@ void update_props_items(void)
 	SetToggleButtonState(force_external_viewer_item, gui->force_external_viewer);
 #endif
 	SetSpinChoice(max_path_item,
-            (double) get_max_path_limit(grace->rt->canvas));
-	SetToggleButtonState(safe_mode_item, grace->rt->safe_mode);
-	iv = (int) rint(100*grace->rt->scrollper);
+            (double) get_max_path_limit(gapp->grace->canvas));
+	SetToggleButtonState(safe_mode_item, gapp->grace->safe_mode);
+	iv = (int) rint(100*gapp->rt->scrollper);
 	SetScaleValue(scrollper_item, iv);
-	iv = (int) rint(100*grace->rt->shexper);
+	iv = (int) rint(100*gapp->rt->shexper);
 	SetScaleValue(shexper_item, iv);
     }
 }
 
 static int props_define_notify_proc(void *data)
 {
-    GUI *gui = grace->gui;
+    GUI *gui = gapp->gui;
     
-#ifdef DEBUG
-    set_debuglevel(grace, (int) GetSpinChoice(debug_item));
-#endif
     gui->noask = GetToggleButtonState(noask_item);
 
     switch (GetOptionChoice(graph_focus_choice_item)) {
@@ -191,12 +174,12 @@ static int props_define_notify_proc(void *data)
 #if defined WITH_XMHTML
     gui->force_external_viewer = GetToggleButtonState(force_external_viewer_item);
 #endif
-    set_max_path_limit(grace->rt->canvas, (int) GetSpinChoice(max_path_item));
-    grace->rt->safe_mode = GetToggleButtonState(safe_mode_item);
-    grace->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
-    grace->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
+    set_max_path_limit(gapp->grace->canvas, (int) GetSpinChoice(max_path_item));
+    gapp->grace->safe_mode = GetToggleButtonState(safe_mode_item);
+    gapp->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
+    gapp->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
     
-    xdrawgraph(grace->project);
+    xdrawgraph(gapp->project);
     
     return RETURN_SUCCESS;
 }

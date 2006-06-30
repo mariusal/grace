@@ -53,7 +53,7 @@
 
 #include "defines.h"
 #include "globals.h"
-#include "grace.h"
+#include "graceapp.h"
 #include "utils.h"
 #include "files.h"
 #include "ssdata.h"
@@ -76,7 +76,7 @@ typedef struct _grarr {
 
 #define MAX_PARS_STRING_LENGTH  4096
 
-#define canvas grace->rt->canvas
+#define canvas gapp->grace->canvas
 
 /* Tick sign type (obsolete) */
 #define SIGN_NORMAL     0
@@ -536,10 +536,10 @@ parmset:
 	    pr->bgfill = $4;
 	}
 	| PAGE SCROLL expr '%' {
-	    grace->rt->scrollper = $3 / 100.0;
+	    gapp->rt->scrollper = $3 / 100.0;
 	}
 	| PAGE INOUT expr '%' {
-	    grace->rt->shexper = $3 / 100.0;
+	    gapp->rt->shexper = $3 / 100.0;
 	}
 
 	| LINK PAGE onoff {
@@ -1170,7 +1170,7 @@ actions:
 options:
         PAGE LAYOUT pagelayout {
 #ifndef NONE_GUI
-            gui_set_page_free(grace->gui, $3 == FREE);
+            gui_set_page_free(gapp->gui, $3 == FREE);
 #endif
         }
         ;
@@ -2187,7 +2187,7 @@ onoff: ON { $$ = TRUE; }
 sourcetype: 
         DISK { $$ = SOURCE_DISK; }
 	| PIPE {
-            if (!grace->rt->safe_mode) {
+            if (!gapp->grace->safe_mode) {
                 $$ = SOURCE_PIPE;
             } else {
                 yyerror("Pipe inputs are disabled in safe mode");
@@ -2255,7 +2255,7 @@ font_select:
         }
         | FONTP CHRSTR
         {
-            $$ = get_font_by_name(project, $2);
+            $$ = project_get_font_by_name(project, $2);
             xfree($2);
         }
         ;
@@ -2345,10 +2345,10 @@ parmset_obs:
             project_set_page_dimensions(project, (int) $3, (int) $4);
         }
 	| PAGE nexpr {
-	    grace->rt->scrollper = $2 / 100.0;
+	    gapp->rt->scrollper = $2 / 100.0;
 	}
 	| PAGE INOUT nexpr {
-	    grace->rt->shexper = $3 / 100.0;
+	    gapp->rt->shexper = $3 / 100.0;
 	}
 
 	| DEFAULT FONTP SOURCE expr {
@@ -3328,7 +3328,7 @@ static void parser_state_reset(Quark *pr)
 
 static Quark *nextset(Quark *ss)
 {
-    Quark *pset, *gr, **sets;
+    Quark *pset, *gr, **sets, *ssd;
     int nsets = 0;
     
     pset = get_target_set();
@@ -3341,7 +3341,11 @@ static Quark *nextset(Quark *ss)
         if (nsets) {
             pset = sets[0];
         } else {
-            pset = grace_set_new(ss);
+            ssd = get_parent_ssd(ss);
+            if (!ssd) {
+                ssd = ssd_new(ss);
+            }
+            pset = set_new(ssd);
         }
     }
     
@@ -3382,24 +3386,24 @@ static int agr_store_cb(Quark *q, void *udata)
     return quark_reparent(pset, q);
 }
 
-Quark *load_agr_project(Grace *grace, char *fn)
+Quark *load_agr_project(GraceApp *gapp, char *fn)
 {
     Quark *project;
     FILE *fp;
     int retval;
 
-    fp = grace_openr(grace, fn, SOURCE_DISK);
+    fp = gapp_openr(gapp, fn, SOURCE_DISK);
     if (fp == NULL) {
 	return NULL;
     }
     
-    project = grace_project_new(grace, AMEM_MODEL_LIBUNDO);
+    project = project_new(gapp->grace->qfactory, AMEM_MODEL_LIBUNDO);
 
     parser_state_reset(project);
     
     retval = uniread(project, fp, agr_parse_cb, agr_store_cb, NULL);
 
-    grace_close(fp);
+    gapp_close(fp);
 
     if (retval == RETURN_SUCCESS) {
         return project;

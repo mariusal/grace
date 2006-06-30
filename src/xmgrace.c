@@ -142,107 +142,107 @@ static XtResource resources[] =
 };
 
 String fallbackResourcesCommon[] = {
-    "XMgrace.consoleDialog*text.columns: 72",
-    "XMgrace.consoleDialog*text.rows: 5",
-    "XMgrace*background: #e5e5e5",
-    "XMgrace*foreground: #000000",
-    "XMgrace*XbaeMatrix.allowColumnResize: False",
-    "XMgrace*XbaeMatrix.allowRowResize: False",
-    "XMgrace*XbaeMatrix.oddRowBackground: #cccccc",
-    "XMgrace*XbaeMatrix.evenRowBackground: #cfe7e7",
-    "XMgrace*XbaeMatrix.textBackground: #cfe7e7",
-    "XMgrace*XbaeMatrix.selectedBackground: #e5ffff",
-    "XMgrace*XbaeMatrix.selectedForeground: #000000",
-    "XMgrace*fontTable.evenRowBackground: #e5e5e5",
-    "XMgrace*SSD.evenRowBackground: #ffffff",
-    "XMgrace*SSD.buttonLabelBackground: #cccccc",
-    "XMgrace*XmPushButton.background: #b0c4de",
-    "XMgrace*XmMenuShell*XmPushButton.background: #e5e5e5",
-    "XMgrace*penButton.background: #e5e5e5",
-    "XMgrace*XmText*background: #cfe7e7",
-    "XMgrace*XmToggleButton.selectColor: #ff0000",
-    "XMgrace*XmToggleButton.fillOnSelect: true",
-    "XMgrace*XmSeparator.margin: 0",
-    "XMgrace*XmSash.HighlightColor: #b0c4de",
+    "XMgapp.consoleDialog*text.columns: 72",
+    "XMgapp.consoleDialog*text.rows: 5",
+    "XMgapp*background: #e5e5e5",
+    "XMgapp*foreground: #000000",
+    "XMgapp*XbaeMatrix.allowColumnResize: False",
+    "XMgapp*XbaeMatrix.allowRowResize: False",
+    "XMgapp*XbaeMatrix.oddRowBackground: #cccccc",
+    "XMgapp*XbaeMatrix.evenRowBackground: #cfe7e7",
+    "XMgapp*XbaeMatrix.textBackground: #cfe7e7",
+    "XMgapp*XbaeMatrix.selectedBackground: #e5ffff",
+    "XMgapp*XbaeMatrix.selectedForeground: #000000",
+    "XMgapp*fontTable.evenRowBackground: #e5e5e5",
+    "XMgapp*SSD.evenRowBackground: #ffffff",
+    "XMgapp*SSD.buttonLabelBackground: #cccccc",
+    "XMgapp*XmPushButton.background: #b0c4de",
+    "XMgapp*XmMenuShell*XmPushButton.background: #e5e5e5",
+    "XMgapp*penButton.background: #e5e5e5",
+    "XMgapp*XmText*background: #cfe7e7",
+    "XMgapp*XmToggleButton.selectColor: #ff0000",
+    "XMgapp*XmToggleButton.fillOnSelect: true",
+    "XMgapp*XmSeparator.margin: 0",
+    "XMgapp*XmSash.HighlightColor: #b0c4de",
 #ifdef WITH_XMHTML
-    "XMgrace*XmHTML.background: #ffffff",
-    "XMgrace*XmHTML.foreground: #000000",
-    "XMgrace*XmHTML.width: 600",
-    "XMgrace*XmHTML.height: 500",
+    "XMgapp*XmHTML.background: #ffffff",
+    "XMgapp*XmHTML.foreground: #000000",
+    "XMgapp*XmHTML.width: 600",
+    "XMgapp*XmHTML.height: 500",
 #endif
-    "XMgrace*enableThinThickness: True",
-    "XMgrace*mainWin.shadowThickness: 0",
-    "XMgrace*XmMenuShell*shadowThickness: 2",
-    "XMgrace*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
-    "XMgrace*fileMenu.newButton.acceleratorText: Ctrl+N",
-    "XMgrace*fileMenu.newButton.accelerator: Ctrl<Key>n",
-    "XMgrace*fileMenu.openButton.acceleratorText: Ctrl+O",
-    "XMgrace*fileMenu.openButton.accelerator: Ctrl<Key>o",
-    "XMgrace*fileMenu.saveButton.acceleratorText: Ctrl+S",
-    "XMgrace*fileMenu.saveButton.accelerator: Ctrl<Key>s",
-    "XMgrace*fileMenu.exitButton.acceleratorText: Ctrl+Q",
-    "XMgrace*fileMenu.exitButton.accelerator: Ctrl<Key>q",
-    "XMgrace*fileMenu.printSetupButton.acceleratorText: Ctrl+P",
-    "XMgrace*fileMenu.printSetupButton.accelerator: Ctrl<Key>p",
-    "XMgrace*fileMenu.printButton.acceleratorText: Ctrl+Alt+P",
-    "XMgrace*fileMenu.printButton.accelerator: Ctrl Alt<Key>p",
-    "XMgrace*editMenu.undoButton.acceleratorText: Ctrl+Z",
-    "XMgrace*editMenu.undoButton.accelerator: Ctrl<Key>z",
-    "XMgrace*editMenu.redoButton.acceleratorText: Ctrl+Shift+Z",
-    "XMgrace*editMenu.redoButton.accelerator: Ctrl Shift<Key>z",
-    "XMgrace*editMenu.explorerButton.acceleratorText: Ctrl+E",
-    "XMgrace*editMenu.explorerButton.accelerator: Ctrl<Key>e",
-    "XMgrace*helpMenu.onContextButton.acceleratorText: Shift+F1",
-    "XMgrace*helpMenu.onContextButton.accelerator: Shift<Key>F1",
-    "XMgrace*pageZoomMenu.smallerButton.acceleratorText: Ctrl+-",
-    "XMgrace*pageZoomMenu.smallerButton.accelerator: Ctrl<Key>minus",
-    "XMgrace*pageZoomMenu.largerButton.acceleratorText: Ctrl++",
-    "XMgrace*pageZoomMenu.largerButton.accelerator: Ctrl<Key>plus",
-    "XMgrace*pageZoomMenu.originalSizeButton.acceleratorText: Ctrl+1",
-    "XMgrace*pageZoomMenu.originalSizeButton.accelerator: Ctrl<Key>1",
-    "XMgrace*viewMenu.redrawButton.acceleratorText: Ctrl+L",
-    "XMgrace*viewMenu.redrawButton.accelerator: Ctrl<Key>l",
-    "XMgrace*findButton.acceleratorText: Ctrl+F",
-    "XMgrace*findButton.accelerator: Ctrl<Key>f",
-    "XMgrace*findAgainButton.acceleratorText: Ctrl+G",
-    "XMgrace*findAgainButton.accelerator: Ctrl<Key>g",
-    "XMgrace*saveLogsFSB*pattern: *.log",
-    "XMgrace*openProjectFSB*pattern: *.*gr",
-    "XMgrace*saveProjectFSB*pattern: *.xgr",
-    "XMgrace*readSetsFSB*pattern: *.dat",
-    "XMgrace*writeSetsFSB*pattern: *.dat",
-    "XMgrace*readParametersFSB*pattern: *.par",
-    "XMgrace*writeParametersFSB*pattern: *.par",
-    "XMgrace*selectNetcdfFileFSB*pattern: *.nc",
-    "XMgrace*selectHotLinkFileFSB*pattern: *.dat",
-    "XMgrace*openFitParameterFileFSB*pattern: *.fit",
-    "XMgrace*saveFitParameterFileFSB*pattern: *.fit",
+    "XMgapp*enableThinThickness: True",
+    "XMgapp*mainWin.shadowThickness: 0",
+    "XMgapp*XmMenuShell*shadowThickness: 2",
+    "XMgapp*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
+    "XMgapp*fileMenu.newButton.acceleratorText: Ctrl+N",
+    "XMgapp*fileMenu.newButton.accelerator: Ctrl<Key>n",
+    "XMgapp*fileMenu.openButton.acceleratorText: Ctrl+O",
+    "XMgapp*fileMenu.openButton.accelerator: Ctrl<Key>o",
+    "XMgapp*fileMenu.saveButton.acceleratorText: Ctrl+S",
+    "XMgapp*fileMenu.saveButton.accelerator: Ctrl<Key>s",
+    "XMgapp*fileMenu.exitButton.acceleratorText: Ctrl+Q",
+    "XMgapp*fileMenu.exitButton.accelerator: Ctrl<Key>q",
+    "XMgapp*fileMenu.printSetupButton.acceleratorText: Ctrl+P",
+    "XMgapp*fileMenu.printSetupButton.accelerator: Ctrl<Key>p",
+    "XMgapp*fileMenu.printButton.acceleratorText: Ctrl+Alt+P",
+    "XMgapp*fileMenu.printButton.accelerator: Ctrl Alt<Key>p",
+    "XMgapp*editMenu.undoButton.acceleratorText: Ctrl+Z",
+    "XMgapp*editMenu.undoButton.accelerator: Ctrl<Key>z",
+    "XMgapp*editMenu.redoButton.acceleratorText: Ctrl+Shift+Z",
+    "XMgapp*editMenu.redoButton.accelerator: Ctrl Shift<Key>z",
+    "XMgapp*editMenu.explorerButton.acceleratorText: Ctrl+E",
+    "XMgapp*editMenu.explorerButton.accelerator: Ctrl<Key>e",
+    "XMgapp*helpMenu.onContextButton.acceleratorText: Shift+F1",
+    "XMgapp*helpMenu.onContextButton.accelerator: Shift<Key>F1",
+    "XMgapp*pageZoomMenu.smallerButton.acceleratorText: Ctrl+-",
+    "XMgapp*pageZoomMenu.smallerButton.accelerator: Ctrl<Key>minus",
+    "XMgapp*pageZoomMenu.largerButton.acceleratorText: Ctrl++",
+    "XMgapp*pageZoomMenu.largerButton.accelerator: Ctrl<Key>plus",
+    "XMgapp*pageZoomMenu.originalSizeButton.acceleratorText: Ctrl+1",
+    "XMgapp*pageZoomMenu.originalSizeButton.accelerator: Ctrl<Key>1",
+    "XMgapp*viewMenu.redrawButton.acceleratorText: Ctrl+L",
+    "XMgapp*viewMenu.redrawButton.accelerator: Ctrl<Key>l",
+    "XMgapp*findButton.acceleratorText: Ctrl+F",
+    "XMgapp*findButton.accelerator: Ctrl<Key>f",
+    "XMgapp*findAgainButton.acceleratorText: Ctrl+G",
+    "XMgapp*findAgainButton.accelerator: Ctrl<Key>g",
+    "XMgapp*saveLogsFSB*pattern: *.log",
+    "XMgapp*openProjectFSB*pattern: *.*gr",
+    "XMgapp*saveProjectFSB*pattern: *.xgr",
+    "XMgapp*readSetsFSB*pattern: *.dat",
+    "XMgapp*writeSetsFSB*pattern: *.dat",
+    "XMgapp*readParametersFSB*pattern: *.par",
+    "XMgapp*writeParametersFSB*pattern: *.par",
+    "XMgapp*selectNetcdfFileFSB*pattern: *.nc",
+    "XMgapp*selectHotLinkFileFSB*pattern: *.dat",
+    "XMgapp*openFitParameterFileFSB*pattern: *.fit",
+    "XMgapp*saveFitParameterFileFSB*pattern: *.fit",
     NULL
 };
 
 String fallbackResourcesHighRes[] = {
-    "XMgrace*mainWin.width: 780",
-    "XMgrace*mainWin.height: 660",
-    "XMgrace*explorerDialog.form.width: 650",
-    "XMgrace*explorerDialog.form.height: 600",
-    "XMgrace*fontList:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
-    "XMgrace.consoleDialog*text.fontList:-*-courier-medium-r-normal-*-12-*-*-*-*-*-*-*",
-    "XMgrace*ListTree.font:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
-    "XMgrace*HContainer.marginHeight: 3",
-    "XMgrace*VContainer.marginHeight: 3",
+    "XMgapp*mainWin.width: 780",
+    "XMgapp*mainWin.height: 660",
+    "XMgapp*explorerDialog.form.width: 650",
+    "XMgapp*explorerDialog.form.height: 600",
+    "XMgapp*fontList:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
+    "XMgapp.consoleDialog*text.fontList:-*-courier-medium-r-normal-*-12-*-*-*-*-*-*-*",
+    "XMgapp*ListTree.font:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
+    "XMgapp*HContainer.marginHeight: 3",
+    "XMgapp*VContainer.marginHeight: 3",
     NULL
 };
 
 String fallbackResourcesLowRes[] = {
-    "XMgrace*mainWin.width: 600",
-    "XMgrace*mainWin.height: 520",
-    "XMgrace*explorerDialog.form.width: 530",
-    "XMgrace*explorerDialog.form.height: 485",
-    "XMgrace*fontList:-*-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*",
-    "XMgrace.consoleDialog*text.fontList:-*-courier-medium-r-normal-*-8-*-*-*-*-*-*-*",
-    "XMgrace*ListTree.font:-*-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*",
-    "XMgrace*HContainer.marginHeight: 1",
-    "XMgrace*VContainer.marginHeight: 1",
+    "XMgapp*mainWin.width: 600",
+    "XMgapp*mainWin.height: 520",
+    "XMgapp*explorerDialog.form.width: 530",
+    "XMgapp*explorerDialog.form.height: 485",
+    "XMgapp*fontList:-*-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*",
+    "XMgapp.consoleDialog*text.fontList:-*-courier-medium-r-normal-*-8-*-*-*-*-*-*-*",
+    "XMgapp*ListTree.font:-*-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*",
+    "XMgapp*HContainer.marginHeight: 1",
+    "XMgapp*VContainer.marginHeight: 1",
     NULL
 };
 
@@ -336,11 +336,11 @@ int initialize_gui(int *argc, char **argv)
 
     xstuff = xmalloc(sizeof(X11Stuff));
     memset(xstuff, 0, sizeof(X11Stuff));
-    grace->gui->xstuff = xstuff;
+    gapp->gui->xstuff = xstuff;
 
     mwui = xmalloc(sizeof(MainWinUI));
     memset(mwui, 0, sizeof(MainWinUI));
-    grace->gui->mwui = mwui;
+    gapp->gui->mwui = mwui;
     
     installXErrorHandler();
     
@@ -387,14 +387,14 @@ int initialize_gui(int *argc, char **argv)
     allResources[n_common + n_resol] = NULL;
     XtAppSetFallbackResources(app_con, allResources);
     
-    XtDisplayInitialize(app_con, xstuff->disp, "xmgrace", "XMgrace", NULL, 0, argc, argv);
+    XtDisplayInitialize(app_con, xstuff->disp, "xmgapp", "XMgapp", NULL, 0, argc, argv);
 
     XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
     XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
     XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
     XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 
-    app_shell = XtAppCreateShell(NULL, "XMgrace", applicationShellWidgetClass,
+    app_shell = XtAppCreateShell(NULL, "XMgapp", applicationShellWidgetClass,
         xstuff->disp, NULL, 0);
 
     if (is_motif_compatible() != TRUE) {
@@ -404,35 +404,35 @@ int initialize_gui(int *argc, char **argv)
     XtGetApplicationResources(app_shell, &rd,
         resources, XtNumber(resources), NULL, 0);
     
-    grace->gui->invert = rd.invert;
-    grace->gui->instant_update = rd.instantupdate;
-    grace->gui->toolbar = rd.toolbar;
-    grace->gui->statusbar = rd.statusbar;
-    grace->gui->locbar = rd.locatorbar;
+    gapp->gui->invert = rd.invert;
+    gapp->gui->instant_update = rd.instantupdate;
+    gapp->gui->toolbar = rd.toolbar;
+    gapp->gui->statusbar = rd.statusbar;
+    gapp->gui->locbar = rd.locatorbar;
 
-    x11_init(grace);
+    x11_init(gapp);
 
     /* initialize cursors */
-    init_cursors(grace->gui);
+    init_cursors(gapp->gui);
 
     return RETURN_SUCCESS;
 }
 
 static void do_drawgraph(Widget but, void *data)
 {
-    xdrawgraph(grace->project);
+    xdrawgraph(gapp->project);
 }
 
 
 /*
  * service the autoscale buttons on the main panel
  */
-static void autoscale_proc(Grace *grace, int type)
+static void autoscale_proc(GraceApp *gapp, int type)
 {
-    Quark *cg = graph_get_current(grace->project);
+    Quark *cg = graph_get_current(gapp->project);
     
     if (autoscale_graph(cg, type) == RETURN_SUCCESS) {
-        snapshot_and_update(grace->project, TRUE);
+        snapshot_and_update(gapp->project, TRUE);
     } else {
 	errmsg("Can't autoscale (no active sets?)");
     }
@@ -440,17 +440,17 @@ static void autoscale_proc(Grace *grace, int type)
 
 static void autoscale_xy_cb(Widget but, void *data)
 {
-    autoscale_proc((Grace *) data, AUTOSCALE_XY);
+    autoscale_proc((GraceApp *) data, AUTOSCALE_XY);
 }
 
 static void autoscale_x_cb(Widget but, void *data)
 {
-    autoscale_proc((Grace *) data, AUTOSCALE_X);
+    autoscale_proc((GraceApp *) data, AUTOSCALE_X);
 }
 
 static void autoscale_y_cb(Widget but, void *data)
 {
-    autoscale_proc((Grace *) data, AUTOSCALE_Y);
+    autoscale_proc((GraceApp *) data, AUTOSCALE_Y);
 }
 
 /*
@@ -458,8 +458,8 @@ static void autoscale_y_cb(Widget but, void *data)
  */
 static void autoticks_cb(Widget but, void *data)
 {
-    autotick_graph_axes(graph_get_current(grace->project), AXIS_MASK_XY);
-    snapshot_and_update(grace->project, TRUE);
+    autotick_graph_axes(graph_get_current(gapp->project), AXIS_MASK_XY);
+    snapshot_and_update(gapp->project, TRUE);
 }
 
 /*
@@ -467,17 +467,17 @@ static void autoticks_cb(Widget but, void *data)
  */
 void set_left_footer(char *s)
 {
-    Widget statlab = grace->gui->mwui->statlab;
+    Widget statlab = gapp->gui->mwui->statlab;
 
     if (s == NULL) {
         char hbuf[64], buf[GR_MAXPATHLEN + 100], *prname;
         gethostname(hbuf, 63);
-        prname = project_get_docname(grace->project);
+        prname = project_get_docname(gapp->project);
         if (prname) {
-            sprintf(buf, "%s, %s, %s, %d%%", hbuf, display_name(grace->gui),
-                prname, (int) rint(100*grace->gui->zoom));
+            sprintf(buf, "%s, %s, %s, %d%%", hbuf, display_name(gapp->gui),
+                prname, (int) rint(100*gapp->gui->zoom));
         } else {
-            sprintf(buf, "%s, %s", hbuf, display_name(grace->gui));
+            sprintf(buf, "%s, %s", hbuf, display_name(gapp->gui));
         }
         SetLabel(statlab, buf);
     } else {
@@ -488,7 +488,7 @@ void set_left_footer(char *s)
 
 void set_tracker_string(char *s)
 {
-    Widget loclab = grace->gui->mwui->loclab;
+    Widget loclab = gapp->gui->mwui->loclab;
     
     if (s == NULL) {
         SetLabel(loclab, "[Out of frame]");
@@ -502,16 +502,16 @@ void set_tracker_string(char *s)
  */
 static void set_view_items(void)
 {
-    MainWinUI *mwui = grace->gui->mwui;
+    MainWinUI *mwui = gapp->gui->mwui;
     
-    if (grace->gui->statusbar) {
+    if (gapp->gui->statusbar) {
 	SetToggleButtonState(mwui->windowbarw[1], TRUE);
 	ManageChild(mwui->frbot);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNbottomAttachment, XmATTACH_WIDGET,
 		      XmNbottomWidget, mwui->frbot,
 		      NULL);
-	if (grace->gui->toolbar) {
+	if (gapp->gui->toolbar) {
 	    XtVaSetValues(mwui->frleft,
 			  XmNbottomAttachment, XmATTACH_WIDGET,
 			  XmNbottomWidget, mwui->frbot,
@@ -523,22 +523,22 @@ static void set_view_items(void)
 		      XmNbottomAttachment, XmATTACH_FORM,
 		      NULL);
 	UnmanageChild(mwui->frbot);
-	if (grace->gui->toolbar) {
+	if (gapp->gui->toolbar) {
 	    XtVaSetValues(mwui->frleft,
 			  XmNbottomAttachment, XmATTACH_FORM,
 			  NULL);
 	}
     }
-    if (grace->gui->toolbar) {
+    if (gapp->gui->toolbar) {
 	SetToggleButtonState(mwui->windowbarw[2], TRUE);
 	ManageChild(mwui->frleft);
-	if (grace->gui->statusbar) {
+	if (gapp->gui->statusbar) {
 	    XtVaSetValues(mwui->frleft,
 			  XmNbottomAttachment, XmATTACH_WIDGET,
 			  XmNbottomWidget, mwui->frbot,
 			  NULL);
 	}
-	if (grace->gui->locbar) {
+	if (gapp->gui->locbar) {
 	    XtVaSetValues(mwui->frleft,
 			  XmNtopAttachment, XmATTACH_WIDGET,
 			  XmNtopWidget, mwui->frtop,
@@ -555,14 +555,14 @@ static void set_view_items(void)
 		      XmNleftAttachment, XmATTACH_FORM,
 		      NULL);
     }
-    if (grace->gui->locbar) {
+    if (gapp->gui->locbar) {
 	SetToggleButtonState(mwui->windowbarw[0], TRUE);
 	ManageChild(mwui->frtop);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNtopAttachment, XmATTACH_WIDGET,
 		      XmNtopWidget, mwui->frtop,
 		      NULL);
-	if (grace->gui->toolbar) {
+	if (gapp->gui->toolbar) {
 	    XtVaSetValues(mwui->frleft,
 			  XmNtopAttachment, XmATTACH_WIDGET,
 			  XmNtopWidget, mwui->frtop,
@@ -574,7 +574,7 @@ static void set_view_items(void)
 	XtVaSetValues(mwui->drawing_window,
 		      XmNtopAttachment, XmATTACH_FORM,
 		      NULL);
-	if (grace->gui->toolbar) {
+	if (gapp->gui->toolbar) {
 	    XtVaSetValues(mwui->frleft,
 			  XmNtopAttachment, XmATTACH_FORM,
 			  NULL);
@@ -587,52 +587,52 @@ static void set_view_items(void)
  */
 static void set_statusbar(Widget but, int onoff, void *data)
 {
-    grace->gui->statusbar = onoff;
+    gapp->gui->statusbar = onoff;
     set_view_items();
 }
 
 static void set_toolbar(Widget but, int onoff, void *data)
 {
-    grace->gui->toolbar = onoff;
+    gapp->gui->toolbar = onoff;
     set_view_items();
 }
 
 static void set_locbar(Widget but, int onoff, void *data)
 {
-    grace->gui->locbar = onoff;
+    gapp->gui->locbar = onoff;
     set_view_items();
 }
 
 static void zoom_in_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    page_zoom_inout(grace, +1);
+    GraceApp *gapp = (GraceApp *) data;
+    page_zoom_inout(gapp, +1);
 }
 
 static void zoom_out_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    page_zoom_inout(grace, -1);
+    GraceApp *gapp = (GraceApp *) data;
+    page_zoom_inout(gapp, -1);
 }
 
 static void zoom_1_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    page_zoom_inout(grace, 0);
+    GraceApp *gapp = (GraceApp *) data;
+    page_zoom_inout(gapp, 0);
 }
 
 static void new_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    new_project(grace, NULL);
-    xdrawgraph(grace->project);
+    GraceApp *gapp = (GraceApp *) data;
+    new_project(gapp, NULL);
+    xdrawgraph(gapp->project);
 }
 
 
 static void exit_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    bailout(grace);
+    GraceApp *gapp = (GraceApp *) data;
+    bailout(gapp);
 }
 
 static void open_cb(Widget but, void *data)
@@ -642,11 +642,11 @@ static void open_cb(Widget but, void *data)
 
 static void save_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    if (strcmp (project_get_docname(grace->project), NONAME) != 0) {
+    GraceApp *gapp = (GraceApp *) data;
+    if (!strings_are_equal(project_get_docname(gapp->project), NONAME)) {
 	set_wait_cursor();
 
-	save_project(grace->project, project_get_docname(grace->project));
+	save_project(gapp->project, project_get_docname(gapp->project));
         update_all();
 
 	unset_wait_cursor();
@@ -663,25 +663,25 @@ static void save_as_cb(Widget but, void *data)
 static void revert_cb(Widget but, void *data)
 {
     char *s;
-    Grace *grace = (Grace *) data;
+    GraceApp *gapp = (GraceApp *) data;
 
     set_wait_cursor();
-    s = copy_string(NULL, project_get_docname(grace->project));
-    if (strcmp (s, NONAME) != 0) {
-        load_project(grace, s);
+    s = copy_string(NULL, project_get_docname(gapp->project));
+    if (!strings_are_equal(s, NONAME)) {
+        load_project(gapp, s);
     } else {
-	new_project(grace, NULL);
+	new_project(gapp, NULL);
     }
     xfree(s);
-    xdrawgraph(grace->project);
+    xdrawgraph(gapp->project);
     unset_wait_cursor();
 }
 
 static void print_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
+    GraceApp *gapp = (GraceApp *) data;
     set_wait_cursor();
-    do_hardcopy(grace->project);
+    do_hardcopy(gapp->project);
     unset_wait_cursor();
 }
 
@@ -690,7 +690,7 @@ static void print_cb(Widget but, void *data)
  */
 static Widget CreateMainMenuBar(Widget parent)
 {
-    MainWinUI *mwui = grace->gui->mwui;
+    MainWinUI *mwui = gapp->gui->mwui;
     Widget menubar;
     Widget menupane, submenupane, sub2menupane;
     static char buf[128];
@@ -700,28 +700,28 @@ static Widget CreateMainMenuBar(Widget parent)
     /* File menu */
     menupane = CreateMenu(menubar, "File", 'F', FALSE);
 
-    CreateMenuButton(menupane, "New", 'N', new_cb, grace);
-    CreateMenuButton(menupane, "Open...", 'O', open_cb, grace);
-    CreateMenuButton(menupane, "Save", 'S', save_cb, grace);
-    CreateMenuButton(menupane, "Save as...", 'a', save_as_cb, grace);
-    CreateMenuButton(menupane, "Revert to saved", 'v', revert_cb, grace);
+    CreateMenuButton(menupane, "New", 'N', new_cb, gapp);
+    CreateMenuButton(menupane, "Open...", 'O', open_cb, gapp);
+    CreateMenuButton(menupane, "Save", 'S', save_cb, gapp);
+    CreateMenuButton(menupane, "Save as...", 'a', save_as_cb, gapp);
+    CreateMenuButton(menupane, "Revert to saved", 'v', revert_cb, gapp);
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Print setup...", 't', create_printer_setup, &grace->rt->hdevice);
-    CreateMenuButton(menupane, "Print", 'P', print_cb, grace);
+    CreateMenuButton(menupane, "Print setup...", 't', create_printer_setup, &gapp->rt->hdevice);
+    CreateMenuButton(menupane, "Print", 'P', print_cb, gapp);
     CreateMenuSeparator(menupane);
-    CreateMenuButton(menupane, "Exit", 'x', exit_cb, grace);
+    CreateMenuButton(menupane, "Exit", 'x', exit_cb, gapp);
 
     /* Edit menu */
     menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
-    mwui->undo_button = CreateMenuButton(menupane, "Undo", 'U', undo_cb, grace);
-    mwui->redo_button = CreateMenuButton(menupane, "Redo", 'R', redo_cb, grace);
+    mwui->undo_button = CreateMenuButton(menupane, "Undo", 'U', undo_cb, gapp);
+    mwui->redo_button = CreateMenuButton(menupane, "Redo", 'R', redo_cb, gapp);
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Explorer...", 'E', define_explorer_popup, grace->gui);
+    CreateMenuButton(menupane, "Explorer...", 'E', define_explorer_popup, gapp->gui);
 
     CreateMenuSeparator(menupane);
 
@@ -776,17 +776,17 @@ static Widget CreateMainMenuBar(Widget parent)
     mwui->windowbarw[1] = CreateMenuToggle(submenupane, "Status bar", 'S', set_statusbar, NULL);
     mwui->windowbarw[2] = CreateMenuToggle(submenupane, "Tool bar", 'T', set_toolbar, NULL);
 
-    if (!gui_is_page_free(grace->gui)) {
+    if (!gui_is_page_free(gapp->gui)) {
         submenupane = CreateMenu(menupane, "Page zoom", 'z', FALSE);
-        CreateMenuButton(submenupane, "Smaller", 'S', zoom_out_cb, grace);
-        CreateMenuButton(submenupane, "Larger", 'L', zoom_in_cb, grace);
+        CreateMenuButton(submenupane, "Smaller", 'S', zoom_out_cb, gapp);
+        CreateMenuButton(submenupane, "Larger", 'L', zoom_in_cb, gapp);
         CreateMenuSeparator(submenupane);
-        CreateMenuButton(submenupane, "Original size", 'O', zoom_1_cb, grace);
+        CreateMenuButton(submenupane, "Original size", 'O', zoom_1_cb, gapp);
     }
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Page rendering...", 'P', create_printer_setup, &grace->rt->tdevice);
+    CreateMenuButton(menupane, "Page rendering...", 'P', create_printer_setup, &gapp->rt->tdevice);
 
     CreateMenuSeparator(menupane);
 
@@ -808,7 +808,7 @@ static Widget CreateMainMenuBar(Widget parent)
  *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
  */
     CreateMenuButton(menupane, "Dataset statistics", 'D',
-        create_datasetprop_popup, grace);
+        create_datasetprop_popup, gapp);
 
     /* Help menu */
     menupane = CreateMenu(menubar, "Help", 'H', TRUE);
@@ -899,10 +899,10 @@ static Widget CreateMainMenuBar(Widget parent)
 /*
  * build the GUI
  */
-void startup_gui(Grace *grace)
+void startup_gui(GraceApp *gapp)
 {
-    MainWinUI *mwui = grace->gui->mwui;
-    X11Stuff *xstuff = grace->gui->xstuff;
+    MainWinUI *mwui = gapp->gui->mwui;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     Widget main_frame, form, menu_bar, bt, rcleft;
     Pixmap icon, shape;
 
@@ -948,7 +948,7 @@ void startup_gui(Grace *grace)
     mwui->frbot = CreateFrame(form, NULL);
     mwui->statlab = CreateLabel(mwui->frbot, NULL);
 
-    if (!gui_is_page_free(grace->gui)) {
+    if (!gui_is_page_free(gapp->gui)) {
         mwui->drawing_window = XtVaCreateManagedWidget("drawing_window",
 				     xmScrolledWindowWidgetClass, form,
 				     XmNscrollingPolicy, XmAUTOMATIC,
@@ -965,8 +965,8 @@ void startup_gui(Grace *grace)
         mwui->drawing_window = xstuff->canvas;
     }
     
-    XtAddCallback(xstuff->canvas, XmNexposeCallback, expose_resize, grace);
-    XtAddCallback(xstuff->canvas, XmNresizeCallback, expose_resize, grace);
+    XtAddCallback(xstuff->canvas, XmNexposeCallback, expose_resize, gapp);
+    XtAddCallback(xstuff->canvas, XmNresizeCallback, expose_resize, gapp);
 
     XtAddEventHandler(xstuff->canvas,
                       ButtonPressMask
@@ -976,7 +976,7 @@ void startup_gui(Grace *grace)
 		      | KeyReleaseMask
 		      | ColormapChangeMask,
 		      False,
-		      canvas_event_proc, grace);
+		      canvas_event_proc, gapp);
 		      
     XtOverrideTranslations(xstuff->canvas, XtParseTranslationTable(canvas_table));
     
@@ -1021,21 +1021,21 @@ void startup_gui(Grace *grace)
 
     /* zoom */
     bt = CreateBitmapButton(rcleft, 16, 16, zoom_bits);
-    AddButtonCB(bt, set_zoom_cb, (void *) grace);
+    AddButtonCB(bt, set_zoom_cb, (void *) gapp);
     bt = CreateBitmapButton(rcleft, 16, 16, zoom_x_bits);
-    AddButtonCB(bt, set_zoomx_cb, (void *) grace);
+    AddButtonCB(bt, set_zoomx_cb, (void *) gapp);
     bt = CreateBitmapButton(rcleft, 16, 16, zoom_y_bits);
-    AddButtonCB(bt, set_zoomy_cb, (void *) grace);
+    AddButtonCB(bt, set_zoomy_cb, (void *) gapp);
 
     CreateSeparator(rcleft);
 
     /* autoscale */
     bt = CreateBitmapButton(rcleft, 16, 16, auto_bits);
-    AddButtonCB(bt, autoscale_xy_cb, (void *) grace);
+    AddButtonCB(bt, autoscale_xy_cb, (void *) gapp);
     bt = CreateBitmapButton(rcleft, 16, 16, auto_x_bits);
-    AddButtonCB(bt, autoscale_x_cb, (void *) grace);
+    AddButtonCB(bt, autoscale_x_cb, (void *) gapp);
     bt = CreateBitmapButton(rcleft, 16, 16, auto_y_bits);
-    AddButtonCB(bt, autoscale_y_cb, (void *) grace);
+    AddButtonCB(bt, autoscale_y_cb, (void *) gapp);
     bt = CreateBitmapButton(rcleft, 16, 16, auto_tick_bits);
     AddButtonCB(bt, autoticks_cb, NULL);
 
@@ -1043,33 +1043,33 @@ void startup_gui(Grace *grace)
 
     /* scrolling buttons */
     bt = CreateBitmapButton(rcleft, 16, 16, left_bits);
-    AddButtonCB(bt, graph_scroll_left_cb, (void *) grace);
+    AddButtonCB(bt, graph_scroll_left_cb, (void *) gapp);
     bt = CreateBitmapButton(rcleft, 16, 16, right_bits);
-    AddButtonCB(bt, graph_scroll_right_cb, (void *) grace);
+    AddButtonCB(bt, graph_scroll_right_cb, (void *) gapp);
     bt = CreateBitmapButton(rcleft, 16, 16, up_bits);
-    AddButtonCB(bt, graph_scroll_up_cb, (void *) grace);
+    AddButtonCB(bt, graph_scroll_up_cb, (void *) gapp);
     bt = CreateBitmapButton(rcleft, 16, 16, down_bits);
-    AddButtonCB(bt, graph_scroll_down_cb, (void *) grace);
+    AddButtonCB(bt, graph_scroll_down_cb, (void *) gapp);
 
     CreateSeparator(rcleft);
 
     /* expand/shrink */
     bt = CreateBitmapButton(rcleft, 16, 16, expand_bits);
-    AddButtonCB(bt, graph_zoom_in_cb, (void *) grace);
+    AddButtonCB(bt, graph_zoom_in_cb, (void *) gapp);
     bt = CreateBitmapButton(rcleft, 16, 16, shrink_bits);
-    AddButtonCB(bt, graph_zoom_out_cb, (void *) grace);
+    AddButtonCB(bt, graph_zoom_out_cb, (void *) gapp);
 
     CreateSeparator(rcleft);
 
     bt = CreateBitmapButton(rcleft, 16, 16, atext_bits);
-    AddButtonCB(bt, atext_add_proc, (void *) grace);
+    AddButtonCB(bt, atext_add_proc, (void *) gapp);
 
     CreateSeparator(rcleft);
     CreateSeparator(rcleft);
 
     /* exit */
     bt = CreateBitmapButton(rcleft, 16, 16, exit_bits);
-    AddButtonCB(bt, exit_cb, grace);
+    AddButtonCB(bt, exit_cb, gapp);
 
 /*
  * initialize some option menus
@@ -1088,7 +1088,7 @@ void startup_gui(Grace *grace)
  * set icon
  */
     XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
-        grace_icon_xpm, &icon, &shape, NULL);
+        gapp_icon_xpm, &icon, &shape, NULL);
     XtVaSetValues(app_shell, XtNiconPixmap, icon, XtNiconMask, shape, NULL);
 
     XtRealizeWidget(app_shell);
@@ -1096,12 +1096,12 @@ void startup_gui(Grace *grace)
     XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
     
     xstuff->xwin = XtWindow(xstuff->canvas);
-    grace->gui->inwin = TRUE;
+    gapp->gui->inwin = TRUE;
 
 /*
  * set the title
  */
-    update_app_title(grace->project);
+    update_app_title(gapp->project);
 
     XtAppMainLoop(app_con);
 }
@@ -1117,36 +1117,36 @@ static int scroll_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
-static void graph_scroll_proc(Grace *grace, int type)
+static void graph_scroll_proc(GraceApp *gapp, int type)
 {
     Quark *cg, *f;
     
-    cg = graph_get_current(grace->project);
+    cg = graph_get_current(gapp->project);
     f = get_parent_frame(cg);
     
     quark_traverse(f, scroll_hook, &type);
     
-    snapshot_and_update(grace->project, TRUE);
+    snapshot_and_update(gapp->project, TRUE);
 }
 
 static void graph_scroll_left_cb(Widget but, void *data)
 {
-    graph_scroll_proc((Grace *) data, GSCROLL_LEFT);
+    graph_scroll_proc((GraceApp *) data, GSCROLL_LEFT);
 }
 
 static void graph_scroll_right_cb(Widget but, void *data)
 {
-    graph_scroll_proc((Grace *) data, GSCROLL_RIGHT);
+    graph_scroll_proc((GraceApp *) data, GSCROLL_RIGHT);
 }
 
 static void graph_scroll_up_cb(Widget but, void *data)
 {
-    graph_scroll_proc((Grace *) data, GSCROLL_UP);
+    graph_scroll_proc((GraceApp *) data, GSCROLL_UP);
 }
 
 static void graph_scroll_down_cb(Widget but, void *data)
 {
-    graph_scroll_proc((Grace *) data, GSCROLL_DOWN);
+    graph_scroll_proc((GraceApp *) data, GSCROLL_DOWN);
 }
 
 static int zoom_hook(Quark *q, void *udata, QTraverseClosure *closure)
@@ -1160,26 +1160,26 @@ static int zoom_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
-static void graph_zoom_proc(Grace *grace, int type)
+static void graph_zoom_proc(GraceApp *gapp, int type)
 {
     Quark *cg, *f;
     
-    cg = graph_get_current(grace->project);
+    cg = graph_get_current(gapp->project);
     f = get_parent_frame(cg);
     
     quark_traverse(f, zoom_hook, &type);
     
-    snapshot_and_update(grace->project, TRUE);
+    snapshot_and_update(gapp->project, TRUE);
 }
 
 static void graph_zoom_in_cb(Widget but, void *data)
 {
-    graph_zoom_proc((Grace *) data, GZOOM_EXPAND);
+    graph_zoom_proc((GraceApp *) data, GZOOM_EXPAND);
 }
 
 static void graph_zoom_out_cb(Widget but, void *data)
 {
-    graph_zoom_proc((Grace *) data, GZOOM_SHRINK);
+    graph_zoom_proc((GraceApp *) data, GZOOM_SHRINK);
 }
 
 static void load_example_cb(Widget but, void *data)
@@ -1190,9 +1190,9 @@ static void load_example_cb(Widget but, void *data)
     
     s = (char *) data;
     sprintf(buf, "examples/%s", s);
-    load_project(grace, buf);
+    load_project(gapp, buf);
 
-    xdrawgraph(grace->project);
+    xdrawgraph(gapp->project);
 
     unset_wait_cursor();
 }

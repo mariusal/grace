@@ -55,16 +55,6 @@
 #define GA_OFFSET_DEFAULT    0.15
 #define GA_GAP_DEFAULT       0.2
 
-
-Symbol *symbol_new(void);
-void symbol_free(Symbol *sym);
-SetLine *setline_new(void);
-void setline_free(SetLine *sl);
-BarLine *barline_new(void);
-RiserLine *riserline_new(void);
-Format *format_new(void);
-void format_free(Format *f);
-
 Quark *graph_next(Quark *project);
 
 Quark *graph_get_current(const Quark *project);
@@ -87,11 +77,12 @@ int select_graph(Quark *g);
 #define gety(p) set_get_col(p, DATA_Y)
 
 int set_set_colors(Quark *p, unsigned int color);
-Quark *grace_set_new(Quark *gr);
+Quark *gapp_set_new(Quark *gr);
 
 int copysetdata(Quark *psrc, Quark *pdest);
 
-Quark *grace_ssd_new(Quark *parent);
+int kill_ssd_cb(Quark *q, int etype, void *data);
+Quark *gapp_ssd_new(Quark *parent);
 
 void project_postprocess(Quark *pr);
 int project_get_viewport(const Quark *project, double *vx, double *vy);
@@ -115,9 +106,5 @@ void autotick_graph_axes(Quark *q, int amask);
 void move_legend(Quark *gr, const VVector *shift);
 
 void rescale_viewport(Quark *pr, double ext_x, double ext_y);
-
-char *get_font_name_by_id(const Quark *project, int id);
-int get_font_by_name(const Quark *project, const char *name);
-int get_color_by_name(const Quark *project, const char *name);
 
 #endif /* __CORE_UTILS_H_ */

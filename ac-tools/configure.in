@@ -287,11 +287,6 @@ AC_ARG_ENABLE(maintainer,
   *) AC_MSG_ERROR(bad value ${enableval} for --enable-maintainer) ;;
 esac],[maintainer=false])
 
-if test $maintainer = true
-then
-  AC_DEFINE(WITH_DEBUG)
-fi
-
 
 dnl **** Possibility to override defaults
 if test "x$CONF_FILE" != "x"
@@ -787,7 +782,7 @@ dnl **** Check for Motif
 fi
 
 dnl **** Final list of subdirs
-SUBDIRS="${t1lib_dir} ${expat_dir} ${xbae_dir} lib/base lib/canvas lib/core lib/plot lib/graal src ${grconvert_dir} fonts templates doc examples auxiliary"
+SUBDIRS="${t1lib_dir} ${expat_dir} ${xbae_dir} lib/base lib/canvas lib/core lib/plot lib/graal lib/grace src ${grconvert_dir} fonts templates doc examples auxiliary"
 
 dnl **** Create Make.conf
 AC_OUTPUT(Make.conf:ac-tools/Make.conf.in)

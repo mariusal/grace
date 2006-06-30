@@ -218,12 +218,12 @@ void del_point(Quark *pset, int pt)
 int set_set_colors(Quark *pset, unsigned int color)
 {
     set *p = set_get_data(pset);
-    RunTime *rt = rt_from_quark(pset);
-    if (!p || !rt) {
+    GraceApp *gapp = gapp_from_quark(pset);
+    if (!p || !gapp) {
         return RETURN_FAILURE;
     }
     
-    if (color < number_of_colors(rt->canvas)) {
+    if (color < number_of_colors(gapp->grace->canvas)) {
         p->line.line.pen.color    = color;
         p->sym.line.pen.color = color;
         p->sym.fillpen.color  = color;
@@ -236,16 +236,14 @@ int set_set_colors(Quark *pset, unsigned int color)
     }
 }
 
-Quark *grace_set_new(Quark *parent)
+Quark *gapp_set_new(Quark *parent)
 {
-    Quark *ssd, *pset;
+    Quark *pset, *pr;
     RunTime *rt;
     
-    ssd = get_parent_ssd(parent);
-    if (!ssd) {
-        ssd = grace_ssd_new(parent);
-    }
-    pset = set_new(ssd);
+    pr = get_parent_project(parent);
+    
+    pset = set_new(parent);
     
     rt = rt_from_quark(pset);
     
@@ -254,7 +252,7 @@ Quark *grace_set_new(Quark *parent)
     }
     
     rt->setcolor++;
-    rt->setcolor %= number_of_colors(rt->canvas);
+    rt->setcolor %= project_get_ncolors(pr);
     if (rt->setcolor == 0) {
         rt->setcolor = 1;
     }
@@ -262,57 +260,6 @@ Quark *grace_set_new(Quark *parent)
 
     return pset;
 }
-
-Symbol *symbol_new(void)
-{
-    Symbol *retval;
-    retval = xmalloc(sizeof(Symbol));
-    if (retval) {
-        memset(retval, 0, sizeof(Symbol));
-    }
-    return retval;
-}
-
-void symbol_free(Symbol *sym)
-{
-    xfree(sym);
-}
-
-SetLine *setline_new(void)
-{
-    SetLine *retval;
-    retval = xmalloc(sizeof(SetLine));
-    if (retval) {
-        memset(retval, 0, sizeof(SetLine));
-    }
-    return retval;
-}
-
-void setline_free(SetLine *sl)
-{
-    xfree(sl);
-}
-
-BarLine *barline_new(void)
-{
-    BarLine *retval;
-    retval = xmalloc(sizeof(BarLine));
-    if (retval) {
-        memset(retval, 0, sizeof(BarLine));
-    }
-    return retval;
-}
-
-RiserLine *riserline_new(void)
-{
-    RiserLine *retval;
-    retval = xmalloc(sizeof(RiserLine));
-    if (retval) {
-        memset(retval, 0, sizeof(RiserLine));
-    }
-    return retval;
-}
-
 #if 0
 /*
  * sort sets
@@ -573,7 +520,7 @@ int do_splitsets(Quark *pset, int lpart)
     /* now load each set */
     for (i = 0; i < npsets; i++) {
 	plen = MIN2(lpart, len - i*lpart); 
-        ptmp = grace_set_new(gr);
+        ptmp = gapp_set_new(gr);
         if (!ptmp) {
             errmsg("Can't create new set");
             return RETURN_FAILURE;

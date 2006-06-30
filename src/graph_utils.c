@@ -36,7 +36,7 @@
 
 #include <string.h>
 
-#include "grace.h"
+#include "graceapp.h"
 #include "core_utils.h"
 #include "protos.h"
 

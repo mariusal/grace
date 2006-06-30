@@ -35,7 +35,7 @@
 #ifndef __SSDATA_H_
 #define __SSDATA_H_
 
-#include "grace.h"
+#include "graceapp.h"
 
 double *copy_data_column_simple(double *src, int nrows);
 double *allocate_index_data(int nrows);

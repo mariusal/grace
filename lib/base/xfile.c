@@ -29,14 +29,11 @@
  * XML output and related stuff
  */
 
-#include <config.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "utils.h"
-#include "xfile.h"
+#include "grace/baseP.h"
 
 
 #define DEFAULT_INDENT_STRING   "  "

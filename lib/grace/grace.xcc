@@ -6,13 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "defines.h"
-#include "files.h"
-#include "utils.h"
-#include "dicts.h"
-#include "core_utils.h"
-#include "protos.h"
-
+#include "grace/grace.h"
 #include "xstrings.h"
 
 typedef struct {
@@ -452,8 +446,8 @@ char *utf2iso(const char *s)
         $$->red = r; $$->green = g; $$->blue = b;
     ]]></attribute-type>
     <attribute-type name="ftype" ctype="FormatType"><![CDATA[
-        RunTime *rt = ((ParserData *)$U)->grace->rt;
-        $$ = get_format_type_by_name(rt, $?);
+        Grace *grace = ((ParserData *)$U)->grace;
+        $$ = get_format_type_by_name(grace, $?);
     ]]></attribute-type>
     <attribute-type name="fontid" ctype="int">
         $$ = atoi($?);
@@ -522,8 +516,8 @@ char *utf2iso(const char *s)
         }
     </attribute-type>
     <attribute-type name="settype" ctype="SetType"><![CDATA[
-        RunTime *rt = ((ParserData *)$U)->grace->rt;
-        $$ = get_settype_by_name(rt, $?);
+        Grace *grace = ((ParserData *)$U)->grace;
+        $$ = get_settype_by_name(grace, $?);
     ]]></attribute-type>
     <attribute-type name="fillrule" ctype="int">
         if (!strcmp($?, VStrWinding)) {
@@ -533,12 +527,12 @@ char *utf2iso(const char *s)
         }
     </attribute-type>
     <attribute-type name="regiontype" ctype="int"><![CDATA[
-        RunTime *rt = ((ParserData *)$U)->grace->rt;
-        $$ = get_regiontype_by_name(rt, $?);
+        Grace *grace = ((ParserData *)$U)->grace;
+        $$ = get_regiontype_by_name(grace, $?);
     ]]></attribute-type>
     <attribute-type name="dateordval" ctype="double"><![CDATA[
-        if (parse_date_or_number($0, $?, FALSE, &$$) != RETURN_SUCCESS) {
-                $$ = 0.0;
+        if (parse_date_or_number($0, $?, FALSE, FMT_iso, &$$) != RETURN_SUCCESS) {
+            $$ = 0.0;
         }
     ]]></attribute-type>
     <attribute-type name="autodateordval" ctype="Autoval *"><![CDATA[
@@ -548,15 +542,15 @@ char *utf2iso(const char *s)
             $$->value = 0.0;
         } else {
             $$->autov = FALSE;
-            if (parse_date_or_number($0, $?, FALSE, &$$->value) != RETURN_SUCCESS) {
-                    $$->value = 0.0;
+            if (parse_date_or_number($0, $?, FALSE, FMT_iso, &$$->value) != RETURN_SUCCESS) {
+                $$->value = 0.0;
             }
         }
     ]]></attribute-type>
     
     <!-- Element types -->
     <element-type name="project" ctype="Quark *"><![CDATA[
-        $$ = grace_project_new(((ParserData *) $U)->grace, AMEM_MODEL_LIBUNDO);
+        $$ = project_new(((ParserData *)$U)->grace->qfactory, AMEM_MODEL_LIBUNDO);
     ]]></element-type>
     <element-type name="page" ctype="Page *">
         $$ = page_new();
@@ -587,7 +581,7 @@ char *utf2iso(const char *s)
         $$ = facespec_new();
     </element-type>
     <element-type name="ssd" ctype="Quark *"><![CDATA[
-        $$ = grace_ssd_new($P);
+        $$ = ssd_new($P);
         ((ParserData *) $U)->ss = $$;
         ((ParserData *) $U)->ncol = -1;
     ]]></element-type>
@@ -679,7 +673,7 @@ char *utf2iso(const char *s)
         $$ = arrow_new();
     </element-type>
     <element-type name="set" ctype="Quark *">
-        $$ = grace_set_new($P);
+        $$ = set_new($P);
     </element-type>
     <element-type name="symbol" ctype="Symbol *">
         $$ = symbol_new();
@@ -895,8 +889,8 @@ char *utf2iso(const char *s)
             quark_set_active($$, $?);
         </attribute>
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            frame_set_type($$, get_frame_type_by_name(rt, $?));
+            Grace *grace = ((ParserData *)$U)->grace;
+            frame_set_type($$, get_frame_type_by_name(grace, $?));
             xfree($?);
         </attribute>
         <!-- Child elements -->
@@ -971,8 +965,8 @@ char *utf2iso(const char *s)
     <element name="#EStrPresentationSpec" type="presentationspec">
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->type = graph_get_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->type = graph_get_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrStacked" type="bval">
@@ -1006,8 +1000,8 @@ char *utf2iso(const char *s)
             $$->max = $?;
         </attribute>
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->type = get_scale_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->type = get_scale_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrInvert" type="bval">
@@ -1023,8 +1017,8 @@ char *utf2iso(const char *s)
             $$->max = $?;
         </attribute>
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->type = get_scale_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->type = get_scale_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrInvert" type="bval">
@@ -1142,8 +1136,8 @@ char *utf2iso(const char *s)
     <element name="#EStrLocator" type="glocator">
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->type = get_glocator_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->type = get_glocator_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <!-- Child elements -->
@@ -1440,8 +1434,8 @@ char *utf2iso(const char *s)
         </attribute>
 
         <attribute name="#AStrPosition" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            axis_set_position($$, get_axis_position_by_name(rt, $?));
+            Grace *grace = ((ParserData *)$U)->grace;
+            axis_set_position($$, get_axis_position_by_name(grace, $?));
             xfree($?);
         </attribute>
 
@@ -1558,8 +1552,8 @@ char *utf2iso(const char *s)
             $$->angle2 = $?;
         </attribute>
         <attribute name="#AStrClosureType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->closure_type = get_arcclosure_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->closure_type = get_arcclosure_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrDrawClosure" type="bval">
@@ -1575,8 +1569,8 @@ char *utf2iso(const char *s)
             $$->vector.y = $?;
         </attribute>
         <attribute name="#AStrArrowsAt" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->arrow_end = get_arrow_placement_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->arrow_end = get_arrow_placement_by_name(grace, $?);
             xfree($?);
         </attribute>
 
@@ -1636,8 +1630,8 @@ char *utf2iso(const char *s)
     <element name="#EStrTextFrame" type="textframe">
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->decor = get_framedecor_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->decor = get_framedecor_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrOffset" type="dval">
@@ -1669,8 +1663,8 @@ char *utf2iso(const char *s)
     <element name="#EStrArrow" type="arrow">
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->type = get_arrow_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->type = get_arrow_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrLength" type="dval">
@@ -1729,7 +1723,7 @@ char *utf2iso(const char *s)
         <child name="#EStrCell" minOccurs="0" maxOccurs="unbounded"><![CDATA[
             ParserData *udata = (ParserData *) $U;
             double val;
-            if (parse_date_or_number($0, *$?, FALSE, &val) != RETURN_SUCCESS) {
+            if (parse_date_or_number($0, *$?, FALSE, FMT_iso, &val) != RETURN_SUCCESS) {
                 val = 0;
             }
             ssd_set_value(udata->ss, udata->nrow, udata->ncol, val);
@@ -1792,8 +1786,8 @@ char *utf2iso(const char *s)
     <element name="#EStrSymbol" type="symbol">
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->type = get_sym_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->type = get_sym_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrSize" type="dval">
@@ -1819,21 +1813,21 @@ char *utf2iso(const char *s)
     <element name="#EStrLine" type="setline">
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->type = get_line_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->type = get_line_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrFillType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->filltype = get_setfill_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->filltype = get_setfill_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrFillRule" type="fillrule">
             $$->fillrule = $?;
         </attribute>
         <attribute name="#AStrBaselineType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
-            $$->baseline_type = get_baseline_type_by_name(rt, $?);
+            Grace *grace = ((ParserData *)$U)->grace;
+            $$->baseline_type = get_baseline_type_by_name(grace, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrDrawBaseline" type="bval">
@@ -2075,19 +2069,12 @@ static int exception_handler(int ierrno,
     return handled;
 }
 
-
-Quark *load_xgr_project(Grace *grace, char *fn)
+Quark *grace_load(Grace *grace, FILE *fp)
 {
     ParserData udata;
     void *p;
     Quark *project;
-    FILE *fp;
     int ret;
-
-    fp = grace_openr(grace, fn, SOURCE_DISK);
-    if (fp == NULL) {
-        return NULL;
-    }
 
     udata.grace = grace;
     udata.ss    = NULL;
@@ -2097,8 +2084,6 @@ Quark *load_xgr_project(Grace *grace, char *fn)
     ret = xgr_parse(fp, &p, &udata, exception_handler);
     project = p;
 
-    grace_close(fp);
-    
     if (ret == XCC_RETURN_SUCCESS) {
         return project;
     } else {

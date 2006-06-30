@@ -117,7 +117,7 @@ static void x11_initcmap(const Canvas *canvas, X11_data *x11data)
         if (x11data->monomode == FALSE || i < 2) {
             if (get_rgb(canvas, i, &rgb) == RETURN_SUCCESS) {
                 if (!xc->allocated || !compare_rgb(&rgb, &xc->rgb)) {
-                    pixel = x11_allocate_color(grace->gui, &rgb);
+                    pixel = x11_allocate_color(gapp->gui, &rgb);
                     if (pixel >= 0) {
                         xc->pixel = pixel;
                     } else {
@@ -157,7 +157,7 @@ static int x11_initgraphics(const Canvas *canvas, void *data,
     x11data->screen = xstream->screen;
     x11data->pixmap = xstream->pixmap;
     
-    x11data->pixel_size = x11_get_pixelsize(grace->gui);
+    x11data->pixel_size = x11_get_pixelsize(gapp->gui);
 
     if (x11data->pixel_size == 0) {
         x11data->monomode = TRUE;

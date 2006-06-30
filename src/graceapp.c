@@ -36,13 +36,12 @@
 #endif
 
 #include "defines.h"
-#include "grace.h"
+#include "graceapp.h"
 #include "utils.h"
-#include "dicts.h"
 #include "core_utils.h"
 #include "protos.h"
 
-GUI *gui_new(Grace *grace)
+GUI *gui_new(GraceApp *gapp)
 {
     GUI *gui;
     
@@ -52,7 +51,7 @@ GUI *gui_new(Grace *grace)
     }
     memset(gui, 0, sizeof(GUI));
     
-    gui->P = grace;
+    gui->P = gapp;
 
     gui->zoom            = 1.0;
 
@@ -91,124 +90,144 @@ void gui_free(GUI *gui)
 }
 
 
-void *container_data_new(AMem *amem)
+RunTime *runtime_new(GraceApp *gapp)
 {
-    return NULL;
-}
+    RunTime *rt;
+    char *s;
 
-void container_data_free(AMem *amem, void *data)
-{
-}
-
-void *container_data_copy(AMem *amem, void *data)
-{
-    return data;
-}
-
-static void *obj_proc(void *context, const char *name, void *udata)
-{
-    Quark *q = (Quark *) context;
-    if (q) {
-        return quark_find_child_by_idstr(q, name);
-    } else {
+    rt = xmalloc(sizeof(RunTime));
+    if (!rt) {
         return NULL;
     }
+    memset(rt, 0, sizeof(RunTime));
+
+    rt->P = gapp;
+    
+    /* allocatables */
+    rt->print_dests  = NULL;
+    rt->print_cmd    = NULL;
+    rt->gapp_editor  = NULL;
+    rt->help_viewer  = NULL;
+    rt->workingdir   = NULL;
+    
+#ifdef HAVE_CUPS
+    rt->use_cups = TRUE;
+#else
+    rt->use_cups = FALSE;
+#endif
+
+    /* print command */
+    if ((s = getenv("GRACE_PRINT_CMD")) == NULL) {
+	s = bi_print_cmd();
+    }
+    rt->print_cmd = copy_string(NULL, s);
+    if (rt->use_cups) {
+        rt->ptofile = FALSE;
+    } else
+    /* if no print command defined, print to file by default */
+    if (string_is_empty(rt->print_cmd)) {
+        rt->ptofile = TRUE;
+    } else {
+        rt->ptofile = FALSE;
+    }
+
+    /* editor */
+    if ((s = getenv("GRACE_EDITOR")) == NULL) {
+	s = bi_editor();
+    }
+    rt->gapp_editor = copy_string(NULL, s);
+
+    /* html viewer */
+    if ((s = getenv("GRACE_HELPVIEWER")) == NULL) {
+	s = bi_helpviewer();
+    }
+    rt->help_viewer = copy_string(NULL, s);
+    if (!strstr(rt->help_viewer, "%s")) {
+        rt->help_viewer = concat_strings(rt->help_viewer, " %s");
+    }
+
+    /* working directory */
+    rt->workingdir = xmalloc(GR_MAXPATHLEN);
+    getcwd(rt->workingdir, GR_MAXPATHLEN - 1);
+    if (rt->workingdir[strlen(rt->workingdir)-1] != '/') {
+        rt->workingdir = concat_strings(rt->workingdir, "/");
+    }
+
+    if (!rt->print_cmd    ||
+        !rt->gapp_editor ||
+        !rt->help_viewer  ||
+        !rt->workingdir) {
+        runtime_free(rt);
+        return NULL;
+    }
+    
+    if (gapp_init_print(rt) != RETURN_SUCCESS) {
+        runtime_free(rt);
+        return NULL;
+    }
+
+    rt->print_file[0] = '\0';
+
+    rt->tdevice = 0;
+    rt->hdevice = 0;
+    
+    rt->timer_delay = 200;
+
+    rt->autoscale_onread = AUTOSCALE_XY;
+
+
+    rt->scrollper = 0.05;
+    rt->shexper = 0.05;
+    
+    rt->resfp = NULL;
+
+    rt->emergency_save = FALSE;
+    rt->interrupts = 0;
+
+    return rt;
 }
 
-static GVarType get_proc(const void *obj,
-    const char *name, GVarData *prop, void *udata)
+void runtime_free(RunTime *rt)
 {
-    Quark *q = (Quark *) obj;
-    RunTime *rt = rt_from_quark(q);
-    DataColumn col;
-    int column;
+    int i;
     
-    if (!q) {
-        return GVarNil;
+    if (!rt) {
+        return;
     }
     
-    if (strings_are_equal(name, "idstr")) {
-        prop->str = copy_string(NULL, QIDSTR(q));
-        return GVarStr;
-    } else
-    if (strings_are_equal(name, "active")) {
-        prop->bool = quark_is_active(q);
-        return GVarBool;
-    }
-    
-    switch (quark_fid_get(q)) {
-    case QFlavorSSD:
-        if (strings_are_equal(name, "nrows")) {
-            prop->num = ssd_get_nrows(q);
-            return GVarNum;
-        } else
-        if (strings_are_equal(name, "ncols")) {
-            prop->num = ssd_get_ncols(q);
-            return GVarNum;
-        } else
-        if ((column = ssd_get_column_by_name(q, name)) >= 0) {
-            prop->arr = ssd_get_darray(q, column);
-            return GVarArr;
-        } else {
-            return GVarNil;
+    for (i = 0; i < rt->num_print_dests; i++) {
+        PrintDest *pd = &rt->print_dests[i];
+        int j;
+        xfree(pd->name);
+        xfree(pd->inst);
+        xfree(pd->printer);
+        for (j = 0; j < pd->nogroups; j++) {
+            PrintOptGroup *og = &pd->ogroups[j];
+            int k;
+            xfree(og->name);
+            xfree(og->text);
+            for (k = 0; k < og->nopts; k++) {
+                PrintOption *po = &og->opts[k];
+                xfree(po->name);
+                xfree(po->text);
+                dict_free(po->choices);
+            }
+            xfree(og->opts);
         }
-        break;
-    case QFlavorSet:
-        if (strings_are_equal(name, "length")) {
-            prop->num = set_get_length(q);
-            return GVarNum;
-        } else
-        if ((col = get_dataset_col_by_name(rt, name)) != DATA_BAD) {
-            prop->arr = set_get_darray(q, col);
-            return GVarArr;
-        } else {
-            return GVarNil;
-        }
-        break;
-    default:
-        return GVarNil;
-        break;
+        xfree(pd->ogroups);
     }
-}
+    xfree(rt->print_dests);
+    
+    xfree(rt->print_cmd);
+    xfree(rt->gapp_editor);
+    xfree(rt->help_viewer);
+    xfree(rt->workingdir);
 
-static int set_proc(void *obj,
-    const char *name, GVarType type, GVarData prop, void *udata)
-{
-    Quark *q = (Quark *) obj;
-    RunTime *rt = rt_from_quark(q);
-    DataColumn col;
-    int column;
+    if (rt->resfp) {
+        gapp_close(rt->resfp);
+    }
     
-    if (!q) {
-        return RETURN_FAILURE;
-    }
-
-    if (strings_are_equal(name, "idstr") && type == GVarStr) {
-        return quark_idstr_set(q, prop.str);
-    } else
-    if (strings_are_equal(name, "active") && type == GVarBool) {
-        return quark_set_active(q, prop.bool);
-    }
-
-    switch (quark_fid_get(q)) {
-    case QFlavorSSD:
-        if ((column = ssd_get_column_by_name(q, name)) >= 0) {
-            return ssd_set_darray(q, column, prop.arr);
-        } else {
-            return RETURN_FAILURE;
-        }
-        break;
-    case QFlavorSet:
-        if ((col = get_dataset_col_by_name(rt, name)) != DATA_BAD) {
-            return set_set_darray(q, col, prop.arr);
-        } else {
-            return RETURN_FAILURE;
-        }
-        break;
-    default:
-        return RETURN_FAILURE;
-        break;
-    }
+    xfree(rt);
 }
 
 static void eval_proc(GVarType type, GVarData vardata, void *udata)
@@ -248,303 +267,75 @@ static void eval_proc(GVarType type, GVarData vardata, void *udata)
     }
 }
 
-RunTime *runtime_new(Grace *grace)
+GraceApp *gapp_new(void)
 {
-    RunTime *rt;
-    char *s;
-
-    QuarkFlavor container_qf = {
-        QFlavorContainer,
-        container_data_new,
-        container_data_free,
-        container_data_copy
-    };
-
-    rt = xmalloc(sizeof(RunTime));
-    if (!rt) {
+    GraceApp *gapp;
+    
+    gapp = xmalloc(sizeof(GraceApp));
+    if (!gapp) {
         return NULL;
     }
-    memset(rt, 0, sizeof(RunTime));
-
-    rt->P = grace;
+    memset(gapp, 0, sizeof(GraceApp));
     
-    rt->qfactory = qfactory_new();
-    if (!rt->qfactory) {
-        runtime_free(rt);
-        return NULL;
-    }
-    quark_factory_set_udata(rt->qfactory, grace);
-
-    /* register quark flavors */
-    project_qf_register(rt->qfactory);
-    ssd_qf_register(rt->qfactory);
-    frame_qf_register(rt->qfactory);
-    graph_qf_register(rt->qfactory);
-    set_qf_register(rt->qfactory);
-    axisgrid_qf_register(rt->qfactory);
-    axis_qf_register(rt->qfactory);
-    object_qf_register(rt->qfactory);
-    atext_qf_register(rt->qfactory);
-    region_qf_register(rt->qfactory);
-
-    quark_flavor_add(rt->qfactory, &container_qf);
-
-    if (canvas_init() != RETURN_SUCCESS) {
-        runtime_free(rt);
-        return NULL;
-    }
-    
-    rt->canvas = canvas_new();
-    if (!rt->canvas) {
-        runtime_free(rt);
-        return NULL;
-    }
-    canvas_set_fmap_proc(rt->canvas, fmap_proc);
-    canvas_set_csparse_proc(rt->canvas, csparse_proc);
-    
-    rt->graal = graal_new();
-    if (!rt->graal) {
-        runtime_free(rt);
-        return NULL;
-    }
-    graal_set_udata(rt->graal, grace);
-    graal_set_lookup_procs(rt->graal, obj_proc, get_proc, set_proc);
-    graal_set_eval_proc(rt->graal, eval_proc);
-    
-    rt->safe_mode = TRUE;
-    
-    /* allocatables */
-    rt->grace_home   = NULL;
-    rt->print_dests  = NULL;
-    rt->print_cmd    = NULL;
-    rt->grace_editor = NULL;
-    rt->help_viewer  = NULL;
-    rt->workingdir   = NULL;
-    rt->username     = NULL;
-    rt->userhome     = NULL;
-    
-    /* grace home directory */
-    if ((s = getenv("GRACE_HOME")) == NULL) {
-	s = bi_home();
-    }
-    rt->grace_home = copy_string(NULL, s);
-
-#ifdef HAVE_CUPS
-    rt->use_cups = TRUE;
-#else
-    rt->use_cups = FALSE;
-#endif
-
-    /* print command */
-    if ((s = getenv("GRACE_PRINT_CMD")) == NULL) {
-	s = bi_print_cmd();
-    }
-    rt->print_cmd = copy_string(NULL, s);
-    if (rt->use_cups) {
-        rt->ptofile = FALSE;
-    } else
-    /* if no print command defined, print to file by default */
-    if (string_is_empty(rt->print_cmd)) {
-        rt->ptofile = TRUE;
-    } else {
-        rt->ptofile = FALSE;
-    }
-
-    /* editor */
-    if ((s = getenv("GRACE_EDITOR")) == NULL) {
-	s = bi_editor();
-    }
-    rt->grace_editor = copy_string(NULL, s);
-
-    /* html viewer */
-    if ((s = getenv("GRACE_HELPVIEWER")) == NULL) {
-	s = bi_helpviewer();
-    }
-    rt->help_viewer = copy_string(NULL, s);
-    if (!strstr(rt->help_viewer, "%s")) {
-        rt->help_viewer = concat_strings(rt->help_viewer, " %s");
-    }
-
-    /* working directory */
-    rt->workingdir = xmalloc(GR_MAXPATHLEN);
-    getcwd(rt->workingdir, GR_MAXPATHLEN - 1);
-    if (rt->workingdir[strlen(rt->workingdir)-1] != '/') {
-        rt->workingdir = concat_strings(rt->workingdir, "/");
-    }
-
-    /* username */
-    s = getenv("LOGNAME");
-    if (string_is_empty(s)) {
-        s = getlogin();
-        if (string_is_empty(s)) {
-            s = "a user";
-        }
-    }
-    rt->username = copy_string(NULL, s);
-    canvas_set_username(rt->canvas, rt->username);
-
-    /* userhome */
-    if ((s = getenv("HOME")) == NULL) {
-        s = "/";
-    }
-    rt->userhome = copy_string(NULL, s);
-    if (rt->userhome[strlen(rt->userhome) - 1] != '/') {
-        rt->userhome = concat_strings(rt->userhome, "/");
-    }
-
-    if (!rt->grace_home   ||
-        !rt->print_cmd    ||
-        !rt->grace_editor ||
-        !rt->help_viewer  ||
-        !rt->workingdir   ||
-        !rt->username     ||
-        !rt->userhome) {
-        runtime_free(rt);
-        return NULL;
-    }
-    
-    /* dictionaries */
-    if (grace_rt_init_dicts(rt) != RETURN_SUCCESS) {
-        runtime_free(rt);
+    if (grace_init() != RETURN_SUCCESS) {
+        gapp_free(gapp);
         return NULL;
     }
 
-    if (grace_init_print(rt) != RETURN_SUCCESS) {
-        runtime_free(rt);
+    gapp->grace = grace_new();
+    if (!gapp->grace) {
+        gapp_free(gapp);
+        return NULL;
+    }
+    graal_set_eval_proc(gapp->grace->graal, eval_proc);
+
+    grace_set_udata(gapp->grace, gapp);
+    
+    gapp->rt = runtime_new(gapp);
+    if (!gapp->rt) {
+        gapp_free(gapp);
+        return NULL;
+    }
+    
+    gapp->gui = gui_new(gapp);
+    if (!gapp->gui) {
+        gapp_free(gapp);
         return NULL;
     }
 
-    rt->print_file[0] = '\0';
-
-    rt->tdevice = 0;
-    rt->hdevice = 0;
-    
-    rt->timer_delay = 200;
-
-    rt->autoscale_onread = AUTOSCALE_XY;
-
-    rt->scrollper = 0.05;
-    rt->shexper = 0.05;
-    
-    rt->resfp = NULL;
-
-    rt->emergency_save = FALSE;
-    rt->interrupts = 0;
-
-#ifdef DEBUG
-    rt->debuglevel = 0;
-#endif
-
-    return rt;
+    return gapp;
 }
 
-void runtime_free(RunTime *rt)
+void gapp_free(GraceApp *gapp)
 {
-    int i;
-    
-    if (!rt) {
+    if (!gapp) {
         return;
     }
     
-    for (i = 0; i < rt->num_print_dests; i++) {
-        PrintDest *pd = &rt->print_dests[i];
-        int j;
-        xfree(pd->name);
-        xfree(pd->inst);
-        xfree(pd->printer);
-        for (j = 0; j < pd->nogroups; j++) {
-            PrintOptGroup *og = &pd->ogroups[j];
-            int k;
-            xfree(og->name);
-            xfree(og->text);
-            for (k = 0; k < og->nopts; k++) {
-                PrintOption *po = &og->opts[k];
-                xfree(po->name);
-                xfree(po->text);
-                dict_free(po->choices);
-            }
-            xfree(og->opts);
-        }
-        xfree(pd->ogroups);
-    }
-    xfree(rt->print_dests);
+    quark_free(gapp->project);
+    gui_free(gapp->gui);
+    runtime_free(gapp->rt);
+    grace_free(gapp->grace);
     
-    xfree(rt->grace_home);
-    xfree(rt->print_cmd);
-    xfree(rt->grace_editor);
-    xfree(rt->help_viewer);
-    xfree(rt->workingdir);
-    xfree(rt->username);
-    xfree(rt->userhome);
-    
-    qfactory_free(rt->qfactory);
-    
-    canvas_free(rt->canvas);
-
-    graal_free(rt->graal);
-    
-    grace_rt_free_dicts(rt);
-
-    if (rt->resfp) {
-        grace_close(rt->resfp);
-    }
-    
-    xfree(rt);
+    xfree(gapp);
 }
 
-Grace *grace_new(void)
+GraceApp *gapp_from_quark(const Quark *q)
 {
-    Grace *grace;
-    
-    grace = xmalloc(sizeof(Grace));
-    if (!grace) {
-        return NULL;
-    }
-    memset(grace, 0, sizeof(Grace));
-
-    grace->rt = runtime_new(grace);
-    if (!grace->rt) {
-        grace_free(grace);
-        return NULL;
-    }
-    
-    grace->gui = gui_new(grace);
-    if (!grace->gui) {
-        grace_free(grace);
-        return NULL;
-    }
-
-    return grace;
-}
-
-void grace_free(Grace *grace)
-{
-    if (!grace) {
-        return;
-    }
-    
-    quark_free(grace->project);
-    gui_free(grace->gui);
-    runtime_free(grace->rt);
-    
-    xfree(grace);
-}
-
-Grace *grace_from_quark(const Quark *q)
-{
-    Grace *grace = NULL;
+    GraceApp *gapp = NULL;
     if (q) {
-        grace = (Grace *) quark_factory_get_udata(quark_get_qfactory(q));
+        Grace *grace = grace_from_quark(q);
+        gapp = grace_get_udata(grace);
     }
     
-    return grace;
+    return gapp;
 }
 
 RunTime *rt_from_quark(const Quark *q)
 {
-    Grace *grace = grace_from_quark(q);
-    if (grace) {
-        return grace->rt;
+    GraceApp *gapp = gapp_from_quark(q);
+    if (gapp) {
+        return gapp->rt;
     } else {
         return NULL;
     }
@@ -552,34 +343,34 @@ RunTime *rt_from_quark(const Quark *q)
 
 GUI *gui_from_quark(const Quark *q)
 {
-    Grace *grace = grace_from_quark(q);
-    if (grace) {
-        return grace->gui;
+    GraceApp *gapp = gapp_from_quark(q);
+    if (gapp) {
+        return gapp->gui;
     } else {
         return NULL;
     }
 }
 
-int grace_set_project(Grace *grace, Quark *project)
+int gapp_set_project(GraceApp *gapp, Quark *project)
 {
-    if (grace && project) {
+    if (gapp && project) {
         Project *pr = project_get_data(project);
         
-        quark_free(grace->project);
-        grace->project = project;
+        quark_free(gapp->project);
+        gapp->project = project;
         /* reset graal ? */
         
         /* Set dimensions of all devices */
-        set_page_dimensions(grace, pr->page_wpp, pr->page_hpp, TRUE);
+        set_page_dimensions(gapp, pr->page_wpp, pr->page_hpp, TRUE);
         
         /* Reset set autocolorization index */
-        grace->rt->setcolor = 0;
+        gapp->rt->setcolor = 0;
         
         /* Request update of color selectors */
-        grace->gui->need_colorsel_update = TRUE;
+        gapp->gui->need_colorsel_update = TRUE;
 
         /* Request update of font selectors */
-        grace->gui->need_fontsel_update = TRUE;
+        gapp->gui->need_fontsel_update = TRUE;
 
         return RETURN_SUCCESS;
     } else {
@@ -591,53 +382,53 @@ int grace_set_project(Grace *grace, Quark *project)
  * flag to indicate destination of hardcopy output,
  * ptofile = 0 means print to printer, otherwise print to file
  */
-void set_ptofile(Grace *grace, int flag)
+void set_ptofile(GraceApp *gapp, int flag)
 {
-    grace->rt->ptofile = flag;
+    gapp->rt->ptofile = flag;
 }
 
-int get_ptofile(const Grace *grace)
+int get_ptofile(const GraceApp *gapp)
 {
-    return grace->rt->ptofile;
+    return gapp->rt->ptofile;
 }
 
 /*
  * set the current print device
  */
-int set_printer(Grace *grace, int device)
+int set_printer(GraceApp *gapp, int device)
 {
-    Canvas *canvas = grace->rt->canvas;
+    Canvas *canvas = gapp->grace->canvas;
     Device_entry *d = get_device_props(canvas, device);
     if (!d || d->type == DEVICE_TERM) {
         return RETURN_FAILURE;
     } else {
-        grace->rt->hdevice = device;
+        gapp->rt->hdevice = device;
 	if (d->type != DEVICE_PRINT) {
-            set_ptofile(grace, TRUE);
+            set_ptofile(gapp, TRUE);
         }
         return RETURN_SUCCESS;
     }
 }
 
-int set_printer_by_name(Grace *grace, const char *dname)
+int set_printer_by_name(GraceApp *gapp, const char *dname)
 {
     int device;
     
-    device = get_device_by_name(grace->rt->canvas, dname);
+    device = get_device_by_name(gapp->grace->canvas, dname);
     
-    return set_printer(grace, device);
+    return set_printer(gapp, device);
 }
 
-int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
+int set_page_dimensions(GraceApp *gapp, int wpp, int hpp, int rescale)
 {
     int i;
-    Canvas *canvas = grace->rt->canvas;
+    Canvas *canvas = gapp->grace->canvas;
     
     if (wpp <= 0 || hpp <= 0) {
         return RETURN_FAILURE;
     } else {
         int wpp_old, hpp_old;
-        Project *pr = project_get_data(grace->project);
+        Project *pr = project_get_data(gapp->project);
 	if (!pr) {
             return RETURN_FAILURE;
         }
@@ -669,7 +460,7 @@ int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
                     ext_y = old_aspectr;
                 }
 
-                rescale_viewport(grace->project, ext_x, ext_y);
+                rescale_viewport(gapp->project, ext_x, ext_y);
             } 
         }
         for (i = 0; i < number_of_devices(canvas); i++) {
@@ -745,7 +536,7 @@ static void parse_group(PrintDest *pd, ppd_group_t *group)
 }
 #endif
 
-int grace_init_print(RunTime *rt)
+int gapp_init_print(RunTime *rt)
 {
 #ifdef HAVE_CUPS
     int i;
@@ -816,13 +607,13 @@ int grace_init_print(RunTime *rt)
     return RETURN_SUCCESS;
 }
 
-int grace_print(const Grace *grace, const char *fname)
+int gapp_print(const GraceApp *gapp, const char *fname)
 {
     char tbuf[128];
     int retval = RETURN_SUCCESS;
 #ifdef HAVE_CUPS
-    if (grace->rt->use_cups) {
-        PrintDest *pd = &grace->rt->print_dests[grace->rt->print_dest];
+    if (gapp->rt->use_cups) {
+        PrintDest *pd = &gapp->rt->print_dests[gapp->rt->print_dest];
         int i, j;
         int jobid;
         int num_options = 0;
@@ -850,7 +641,7 @@ int grace_print(const Grace *grace, const char *fname)
     } else
 #endif
     {
-        sprintf(tbuf, "%s %s", get_print_cmd(grace), fname);
+        sprintf(tbuf, "%s %s", get_print_cmd(gapp), fname);
         system_wrap(tbuf);
     }
     
@@ -864,7 +655,7 @@ int grace_print(const Grace *grace, const char *fname)
  */
 void do_hardcopy(const Quark *project)
 {
-    Grace *grace = grace_from_quark(project);
+    GraceApp *gapp = gapp_from_quark(project);
     RunTime *rt;
     Canvas *canvas;
     char fname[GR_MAXPATHLEN];
@@ -873,24 +664,24 @@ void do_hardcopy(const Quark *project)
     int truncated_out, res;
     FILE *prstream;
     
-    if (!grace) {
+    if (!gapp) {
         return;
     }
     
-    rt = grace->rt;
-    canvas = rt->canvas;
+    rt = gapp->rt;
+    canvas = gapp->grace->canvas;
     
-    if (get_ptofile(grace)) {
+    if (get_ptofile(gapp)) {
         if (string_is_empty(rt->print_file)) {
             Device_entry *dev = get_device_props(canvas, rt->hdevice);
             sprintf(rt->print_file, "%s.%s",
-                get_docbname(project), dev->fext);
+                QIDSTR(project), dev->fext);
         }
         strcpy(fname, rt->print_file);
-        prstream = grace_openw(grace, fname);
+        prstream = gapp_openw(gapp, fname);
     } else {
-        strcpy(fname, "graceXXXXXX");
-        prstream = grace_tmpfile(fname);
+        strcpy(fname, "gappXXXXXX");
+        prstream = gapp_tmpfile(fname);
     }
     
     if (prstream == NULL) {
@@ -901,9 +692,9 @@ void do_hardcopy(const Quark *project)
     
     select_device(canvas, rt->hdevice);
     
-    res = drawgraph(canvas, rt->graal, project);
+    res = drawgraph(canvas, gapp->grace->graal, project);
     
-    grace_close(prstream);
+    gapp_close(prstream);
     
     if (res != RETURN_SUCCESS) {
         return;
@@ -918,10 +709,10 @@ void do_hardcopy(const Quark *project)
         truncated_out = FALSE;
     }
     
-    if (get_ptofile(grace) == FALSE) {
+    if (get_ptofile(gapp) == FALSE) {
         if (truncated_out == FALSE ||
             yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
-            grace_print(grace, fname);
+            gapp_print(gapp, fname);
 #ifndef PRINT_CMD_UNLINKS
             remove(fname);
 #endif

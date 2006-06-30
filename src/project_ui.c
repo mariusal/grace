@@ -349,15 +349,15 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             project_get_page_dimensions(q, &wpp, &hpp);
             if ((orientation == PAGE_ORIENT_LANDSCAPE && wpp < hpp) ||
                 (orientation == PAGE_ORIENT_PORTRAIT  && wpp > hpp)) {
-                Grace *grace = grace_from_quark(q);
-                set_page_dimensions(grace, hpp, wpp, TRUE);
+                GraceApp *gapp = gapp_from_quark(q);
+                set_page_dimensions(gapp, hpp, wpp, TRUE);
             }
         }
         if (caller == ui->page_format) {
             int wpp, hpp;
             int orientation = GetOptionChoice(ui->page_orient);
             int format = GetOptionChoice(ui->page_format);
-            Grace *grace = grace_from_quark(q);
+            GraceApp *gapp = gapp_from_quark(q);
 
             switch (format) {
             case PAGE_FORMAT_USLETTER:
@@ -376,13 +376,13 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
                 iswap(&wpp, &hpp);
             }
 
-            set_page_dimensions(grace, wpp, hpp, TRUE);
+            set_page_dimensions(gapp, wpp, hpp, TRUE);
         }
         
         if (!caller || caller == ui->page_x || caller == ui->page_y) {
             int page_units = GetOptionChoice(ui->page_size_unit);
             double factor, page_x, page_y;
-            Grace *grace = grace_from_quark(q);
+            GraceApp *gapp = gapp_from_quark(q);
 
             if (xv_evalexpr(ui->page_x, &page_x) != RETURN_SUCCESS ||
                 xv_evalexpr(ui->page_y, &page_y) != RETURN_SUCCESS) {
@@ -405,7 +405,7 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             page_x *= factor;
             page_y *= factor;
             
-            set_page_dimensions(grace, (int) rint(page_x), (int) rint(page_y),
+            set_page_dimensions(gapp, (int) rint(page_x), (int) rint(page_y),
                 TRUE);
         }
 
@@ -424,7 +424,8 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
         }
 
         if (!caller || caller == ui->refdate) {
-            if (parse_date_or_number(q, xv_getstr(ui->refdate), TRUE, &jul) ==
+            if (parse_date_or_number(q, xv_getstr(ui->refdate),
+                TRUE, get_date_hint(), &jul) ==
                 RETURN_SUCCESS) {
                 pr->ref_date = jul;
             } else {

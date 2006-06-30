@@ -242,7 +242,7 @@ static int save_logs_proc(FSBStructure *fsb, char *filename, void *data)
     console_ui *ui = (console_ui *) data;
     FILE *pp;
 
-    pp = grace_openw(grace, filename);
+    pp = gapp_openw(gapp, filename);
 
     if (pp == NULL) {
         return RETURN_FAILURE;
@@ -254,7 +254,7 @@ static int save_logs_proc(FSBStructure *fsb, char *filename, void *data)
             xfree(text);
         }
         
-        grace_close(pp);
+        gapp_close(pp);
         
         return RETURN_SUCCESS;
     }
@@ -267,10 +267,10 @@ static void cmd_cb(TextStructure *cst, char *s, void *data)
     ui->eohistory = TRUE;
     
     if (!string_is_empty(s)) {
-        graal_parse_line(grace->rt->graal, s, grace->project);
+        graal_parse_line(gapp->grace->graal, s, gapp->project);
         
         if (ui->auto_redraw) {
-            xdrawgraph(grace->project);
+            xdrawgraph(gapp->project);
         }
 
         if (ui->auto_update) {

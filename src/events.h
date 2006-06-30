@@ -37,7 +37,7 @@
 
 #include <config.h>
 
-#include "grace.h"
+#include "graceapp.h"
 #include "xprotos.h"
 
 #include <X11/Xlib.h>

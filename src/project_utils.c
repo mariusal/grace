@@ -29,62 +29,10 @@
 
 #include <string.h>
 
-#include "grace.h"
+#include "graceapp.h"
 #include "utils.h"
 #include "core_utils.h"
 #include "protos.h"
-
-static int project_cb(Quark *pr, int etype, void *data)
-{
-    if (etype == QUARK_ETYPE_DELETE) {
-        Grace *grace = grace_from_quark(pr);
-        if (pr == grace->project) {
-            grace->project = NULL;
-        }
-    } else
-    if (etype == QUARK_ETYPE_MODIFY) {
-#if 0
-        /* TODO: */
-	if ((dirtystate > SOME_LIMIT) || 
-            (current_time - autosave_time > ANOTHER_LIMIT) ) {
-	    autosave();
-	}
-#endif
-    }
-#ifndef NONE_GUI
-    clean_graph_selectors(pr, etype, data);
-    clean_frame_selectors(pr, etype, data);
-#endif
-    return RETURN_SUCCESS;
-}
-
-/* TODO */
-#define MAGIC_FONT_SCALE    0.028
-#define MAGIC_LINEW_SCALE   0.0015
-Quark *grace_project_new(Grace *grace, int mmodel)
-{
-    Quark *q;
-    
-    q = project_new(grace->rt->qfactory, mmodel);
-
-    if (q) {
-        project_set_version_id(q, bi_version_id());
-        project_set_docname(q, NONAME);
-        project_set_fontsize_scale(q, MAGIC_FONT_SCALE);
-        project_set_linewidth_scale(q, MAGIC_LINEW_SCALE);
-
-        quark_cb_add(q, project_cb, NULL);
-    }
-
-    return q;
-}
-
-void project_reset_version(Quark *q)
-{
-    Project *pr = project_get_data(q);
-    pr->version_id = bi_version_id();
-}
-
 
 typedef struct {
     int ngraphs;
@@ -116,51 +64,6 @@ int project_get_graphs(Quark *q, Quark ***graphs)
     *graphs = p.graphs;
     
     return p.ngraphs;
-}
-
-char *get_font_name_by_id(const Quark *project, int id)
-{
-    Project *pr = project_get_data(project);
-    unsigned int i;
-    
-    for (i = 0; i < pr->nfonts; i++) {
-        Fontdef *f = &pr->fontmap[i];
-        if (f->id == id) {
-            return f->fontname;
-        }
-    }
-    
-    return NULL;
-}
-
-int get_font_by_name(const Quark *project, const char *name)
-{
-    Project *pr = project_get_data(project);
-    unsigned int i;
-    
-    for (i = 0; i < pr->nfonts; i++) {
-        Fontdef *f = &pr->fontmap[i];
-        if (!strcmp(f->fontname, name)) {
-            return f->id;
-        }
-    }
-    
-    return BAD_FONT_ID;
-}
-
-int get_color_by_name(const Quark *project, const char *name)
-{
-    Project *pr = project_get_data(project);
-    unsigned int i;
-    
-    for (i = 0; i < pr->ncolors; i++) {
-        Colordef *c = &pr->colormap[i];
-        if (!strcmp(c->cname, name)) {
-            return c->id;
-        }
-    }
-    
-    return BAD_COLOR;
 }
 
 static int fcomp(const Quark *q1, const Quark *q2, void *udata)
@@ -211,6 +114,35 @@ static int fcomp(const Quark *q1, const Quark *q2, void *udata)
     }
 }
 
+
+/* TODO */
+#define MAGIC_FONT_SCALE    0.028
+#define MAGIC_LINEW_SCALE   0.0015
+
+static int project_cb(Quark *pr, int etype, void *data)
+{
+    if (etype == QUARK_ETYPE_DELETE) {
+        GraceApp *gapp = gapp_from_quark(pr);
+        if (pr == gapp->project) {
+            gapp->project = NULL;
+        }
+    } else
+    if (etype == QUARK_ETYPE_MODIFY) {
+#if 0
+        /* TODO: */
+	if ((dirtystate > SOME_LIMIT) || 
+            (current_time - autosave_time > ANOTHER_LIMIT) ) {
+	    autosave();
+	}
+#endif
+    }
+#ifndef NONE_GUI
+    clean_graph_selectors(pr, etype, data);
+    clean_frame_selectors(pr, etype, data);
+#endif
+    return RETURN_SUCCESS;
+}
+
 static int project_postprocess_hook(Quark *q,
     void *udata, QTraverseClosure *closure)
 {
@@ -226,6 +158,13 @@ static int project_postprocess_hook(Quark *q,
     case QFlavorProject:
         pr = project_get_data(q);
         
+        if (version_id < 59901) {
+            project_set_fontsize_scale(q, MAGIC_FONT_SCALE);
+            project_set_linewidth_scale(q, MAGIC_LINEW_SCALE);
+        }
+
+        quark_cb_add(q, project_cb, NULL);
+
         if (version_id < 50200) {
             quark_sort_children(q, fcomp, NULL);
         }
@@ -307,6 +246,9 @@ static int project_postprocess_hook(Quark *q,
         if (version_id <= 40102) {
             /* TODO : world/view translation */
         }
+        break;
+    case QFlavorSSD:
+        quark_cb_add(q, kill_ssd_cb, NULL);
         break;
     case QFlavorSet:
         s = set_get_data(q);
@@ -503,23 +445,5 @@ int project_get_viewport(const Quark *project, double *vx, double *vy)
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
-    }
-}
-
-Format *format_new(void)
-{
-    Format *retval;
-    retval = xmalloc(sizeof(Format));
-    if (retval) {
-        memset(retval, 0, sizeof(Format));
-    }
-    return retval;
-}
-
-void format_free(Format *f)
-{
-    if (f) {
-        xfree(f->fstring);
-        xfree(f);
     }
 }

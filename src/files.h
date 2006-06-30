@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include "grace.h"
+#include "graceapp.h"
 
 /* data load types */
 #define LOAD_SINGLE 0
@@ -52,20 +52,20 @@ typedef int (*DataStore) (
     void *udata
 );
 
-Quark *load_agr_project(Grace *grace, char *fn);
-Quark *load_xgr_project(Grace *grace, char *fn);
-Quark *load_any_project(Grace *grace, char *fn);
+Quark *load_agr_project(GraceApp *gapp, char *fn);
+Quark *load_xgr_project(GraceApp *gapp, char *fn);
+Quark *load_any_project(GraceApp *gapp, char *fn);
 
-int new_project(Grace *grace, char *template);
-int load_project(Grace *grace, char *fn);
+int new_project(GraceApp *gapp, char *template);
+int load_project(GraceApp *gapp, char *fn);
 int save_project(Quark *project, char *fn);
 
 int add_io_filter( int type, int method, char *id, char *comm );
 int add_input_filter( int method, char *id, char *comm );
 int add_output_filter( int method, char *id, char *comm );
 void clear_io_filters( int f );
-FILE *filter_read(Grace *grace, char *fn);
-FILE *filter_write(Grace *grace, char *fn);
+FILE *filter_read(GraceApp *gapp, char *fn);
+FILE *filter_write(GraceApp *gapp, char *fn);
 
 int uniread(Quark *pr, FILE *fp,
     DataParser parse_cb, DataStore store_cb, void *udata);
@@ -75,9 +75,9 @@ int getdata(Quark *pr, char *fn, int settype, int type);
 int write_ssd(const Quark *ssd, unsigned int ncols, const int *cols, FILE *fp);
 
 void unregister_real_time_input(const char *name);
-int register_real_time_input(Grace *grace, int fd, const char *name, int reopen);
+int register_real_time_input(GraceApp *gapp, int fd, const char *name, int reopen);
 int real_time_under_monitoring(void);
-int monitor_input(Grace *grace, Input_buffer *tbl, int tblsize, int no_wait);
+int monitor_input(GraceApp *gapp, Input_buffer *tbl, int tblsize, int no_wait);
 
 int readnetcdf(Quark *pset,
 	       char *netcdfname,

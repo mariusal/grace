@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2004 Grace Development Team
+ * Copyright (c) 2001-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -25,8 +25,8 @@
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __GRACE_H_
-#define __GRACE_H_
+#ifndef __GRACEAPP_H_
+#define __GRACEAPP_H_
 
 #include <config.h>
 
@@ -37,9 +37,10 @@
 #include "grace/canvas.h"
 #include "grace/core.h"
 #include "grace/plot.h"
+#include "grace/grace.h"
 #include "defines.h"
 
-typedef struct _Grace Grace;
+typedef struct _GraceApp GraceApp;
 
 typedef struct _X11Stuff X11Stuff;
 typedef struct _ExplorerUI ExplorerUI;
@@ -47,7 +48,7 @@ typedef struct _MainWinUI MainWinUI;
 
 typedef struct _GUI {
     /* Parent */
-    Grace *P;
+    GraceApp *P;
 
     /* true if running X */
     int inwin;
@@ -115,20 +116,16 @@ typedef struct {
     int nopts;
 } PrintDest;
 
+
 typedef struct _RunTime {
     /* Parent */
-    Grace *P;
-    
-    QuarkFactory *qfactory;
-    
-    /* safe mode flag */
-    int safe_mode;
+    GraceApp *P;
     
     /* terminal device */
     int tdevice;
     /* hardcopy device */
     int hdevice;
-
+    
     /* real-time input delay (prevents getting stuck reading) */
     int timer_delay;
     /* autoscale after reading in data sets */
@@ -142,99 +139,55 @@ typedef struct _RunTime {
     /* expand/shrink fraction */
     double shexper;
 
-    /* flag raised on emergency save */
-    int emergency_save;
-    /* number of interrupts received during the emergency save */
-    int interrupts;
-    
-    /* location of the Grace home directory */
-    char *grace_home;
-    
     /* whether to use CUPS printing system */
     int use_cups;
     /* print command */
-    char *print_cmd;	
+    char *print_cmd;
     /* print destinations */
-    int num_print_dests;	
-    PrintDest *print_dests;	
-    int print_dest;	
+    int num_print_dests;
+    PrintDest *print_dests;
+    int print_dest;
     /* print to file */
     int ptofile;
     
     /* editor */
-    char *grace_editor;	
+    char *gapp_editor;
 
     /* html viewer */
-    char *help_viewer;	
+    char *help_viewer;
 
     /* working directory */
-    char *workingdir;	
+    char *workingdir;
 
-    /* username */
-    char *username;
-
-    /* $HOME */
-    char *userhome;
-    
     /* printout */
     char print_file[GR_MAXPATHLEN];
-
-    Canvas *canvas;
-
-    Graal  *graal;
     
-    /* Misc dictionaries */
-    Dictionary *graph_type_dict;
-    Dictionary *set_type_dict;
-    Dictionary *object_type_dict;
-    Dictionary *inout_placement_dict;
-    Dictionary *spec_ticks_dict;
-    Dictionary *region_type_dict;
-    Dictionary *axis_position_dict;
-    Dictionary *arrow_type_dict;
-    Dictionary *glocator_type_dict;
-    Dictionary *sym_type_dict;
-    Dictionary *line_type_dict;
-    Dictionary *setfill_type_dict;
-    Dictionary *baseline_type_dict;
-    Dictionary *framedecor_type_dict;
-    Dictionary *scale_type_dict;
-    Dictionary *arrow_placement_dict;
-    Dictionary *arcclosure_type_dict;
-    Dictionary *format_type_dict;
-    Dictionary *frame_type_dict;
-    Dictionary *dataset_col_dict;
-    
+    /* flag raised on emergency save */
+    int emergency_save;
+    /* number of interrupts received during the emergency save */
+    int interrupts;
+
     /* color index for autocolorization of new sets */
     unsigned int setcolor;
-
-    /* debug level */
-#ifdef DEBUG
-    int debuglevel;
-#endif    
 } RunTime;
 
-struct _Grace {
-#if 0
-    Quark *prefs;
-#endif
+struct _GraceApp {
+    Grace *grace;
     RunTime *rt;
     GUI *gui;
     Quark *project;
 };
 
-Quark *grace_project_new(Grace *grace, int mmodel);
-
-GUI *gui_new(Grace *grace);
+GUI *gui_new(GraceApp *gapp);
 void gui_free(GUI *gui);
 
-RunTime *runtime_new(Grace *grace);
+RunTime *runtime_new(GraceApp *gapp);
 void runtime_free(RunTime *rt);
 
-Grace *grace_new(void);
-void grace_free(Grace *grace);
+GraceApp *gapp_new(void);
+void gapp_free(GraceApp *gapp);
 
-Grace *grace_from_quark(const Quark *q);
+GraceApp *gapp_from_quark(const Quark *q);
 RunTime *rt_from_quark(const Quark *q);
 GUI *gui_from_quark(const Quark *q);
 
@@ -242,31 +195,29 @@ int gui_is_page_free(const GUI *gui);
 void gui_set_page_free(GUI *gui, int onoff);
 void gui_set_barebones(GUI *gui);
 
-int grace_set_project(Grace *grace, Quark *project);
+int gapp_set_project(GraceApp *gapp, Quark *project);
 
-int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale);
-int set_printer(Grace *grace, int device);
-int set_printer_by_name(Grace *grace, const char *dname);
-void set_ptofile(Grace *grace, int flag);
-int get_ptofile(const Grace *grace);
-
-void project_reset_version(Quark *q);
+int set_page_dimensions(GraceApp *gapp, int wpp, int hpp, int rescale);
+int set_printer(GraceApp *gapp, int device);
+int set_printer_by_name(GraceApp *gapp, const char *dname);
+void set_ptofile(GraceApp *gapp, int flag);
+int get_ptofile(const GraceApp *gapp);
 
 int project_get_graphs(Quark *q, Quark ***graphs);
 
-char *grace_path(Grace *grace, char *fn);
-char *grace_path2(Grace *grace, const char *prefix, char *fn);
-char *grace_exe_path(Grace *grace, char *fn);
+char *gapp_path(GraceApp *gapp, char *fn);
+char *gapp_path2(GraceApp *gapp, const char *prefix, char *fn);
+char *gapp_exe_path(GraceApp *gapp, char *fn);
 
-FILE *grace_openw(Grace *grace, char *fn);
-FILE *grace_openr(Grace *grace, char *fn, int src);
-void grace_close(FILE *fp);
-FILE *grace_tmpfile(char *template);
+FILE *gapp_openw(GraceApp *gapp, char *fn);
+FILE *gapp_openr(GraceApp *gapp, char *fn, int src);
+void gapp_close(FILE *fp);
+FILE *gapp_tmpfile(char *template);
 
-int grace_init_print(RunTime *rt);
+int gapp_init_print(RunTime *rt);
 
-int grace_print(const Grace *grace, const char *fname);
+int gapp_print(const GraceApp *gapp, const char *fname);
 
 void do_hardcopy(const Quark *project);
 
-#endif /* __GRACE_H_ */
+#endif /* __GRACEAPP_H_ */

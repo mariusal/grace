@@ -16,7 +16,7 @@
 #include <t1lib.h>
 
 #ifndef GRACE_HOME
-#  define GRACE_HOME "/usr/local/grace"
+#  define GRACE_HOME "/usr/local/gapp"
 #endif
 
 #ifndef GRACE_PRINT_CMD

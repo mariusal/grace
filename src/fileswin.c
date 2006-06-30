@@ -87,7 +87,7 @@ void create_saveproject_popup(void)
  */
 static int save_proc(FSBStructure *fsb, char *filename, void *data)
 {
-    if (save_project(grace->project, filename) == RETURN_SUCCESS) {
+    if (save_project(gapp->project, filename) == RETURN_SUCCESS) {
         update_all();
         return TRUE;
     } else {
@@ -122,7 +122,7 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
     
     if (stat(filename, &statb) == 0 && !S_ISDIR(statb.st_mode)) {
 
-        Quark *project = load_any_project(grace, filename);
+        Quark *project = load_any_project(gapp, filename);
 
         if (project) {
             int wpp, hpp;
@@ -160,7 +160,7 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
                 DefaultGCOfScreen(xstream.screen), 0, 0,
                 PREVIEW_WIDTH, PREVIEW_HEIGHT);
 
-	    drawgraph(ui->canvas, grace->rt->graal, project);
+	    drawgraph(ui->canvas, gapp->grace->graal, project);
 
             XCopyArea(XtDisplay(ui->canvasw), ui->pixmap, XtWindow(ui->canvasw),
                 DefaultGCOfScreen(XtScreen(ui->canvasw)),
@@ -198,12 +198,12 @@ void create_openproject_popup(void)
     set_wait_cursor();
 
     if (ui == NULL) {
-        X11Stuff *xstuff = grace->gui->xstuff;
+        X11Stuff *xstuff = gapp->gui->xstuff;
         Widget fr, text;
         
         ui = xmalloc(sizeof(openGUI));
         memset(ui, 0, sizeof(openGUI));
-        ui->canvas = grace->rt->canvas;
+        ui->canvas = gapp->grace->canvas;
 
         ui->idevice = register_x11_drv(ui->canvas);
         device_set_aux(ui->canvas, ui->idevice);
@@ -241,8 +241,8 @@ void create_openproject_popup(void)
  */
 static int open_proc(FSBStructure *fsb, char *filename, void *data)
 {
-    if (load_project(grace, filename) == RETURN_SUCCESS) {
-        xdrawgraph(grace->project);
+    if (load_project(gapp, filename) == RETURN_SUCCESS) {
+        xdrawgraph(gapp->project);
         update_all();
         return TRUE;
     } else {
@@ -339,7 +339,7 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
             settype = SET_XY;
         }
 
-        grace->rt->autoscale_onread = GetOptionChoice(gui->auto_item);
+        gapp->rt->autoscale_onread = GetOptionChoice(gui->auto_item);
         set_date_hint(GetOptionChoice(gui->datehint));
         
         getdata(gr, filename, settype, load);
@@ -411,7 +411,7 @@ static int write_ssd_proc(FSBStructure *fsb, char *filename, void *data)
         return FALSE;
     }
     
-    fp = grace_openw(grace, filename);
+    fp = gapp_openw(gapp, filename);
     if (fp == NULL) {
         return FALSE;
     }
@@ -420,7 +420,7 @@ static int write_ssd_proc(FSBStructure *fsb, char *filename, void *data)
     
     xfree(cols);
     
-    grace_close(fp);
+    gapp_close(fp);
     
     if (res == RETURN_SUCCESS) {
         return TRUE;
@@ -508,7 +508,7 @@ static void do_netcdf_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	retval = readnetcdf(NULL, fname, xvar, yvar, -1, -1, 1);
     }
     if (retval) {
-	xdrawgraph(grace->project);
+	xdrawgraph(gapp->project);
     }
     unset_wait_cursor();
 }

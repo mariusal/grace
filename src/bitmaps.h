@@ -29,7 +29,7 @@
 #ifndef __BITMAPS_H_
 #define __BITMAPS_H_
 
-static char * grace_icon_xpm[] = {
+static char * gapp_icon_xpm[] = {
 "48 39 6 1",
 " 	c #000000000000",
 ".	c #FFFFFFFFFFFF",

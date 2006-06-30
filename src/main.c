@@ -45,8 +45,6 @@
 #include "files.h"
 #include "ssdata.h"
 
-#include "dicts.h"
-
 #include "devlist.h"
 #include "protos.h"
 
@@ -55,12 +53,8 @@ extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
 
 static void usage(FILE *stream, char *progname);
-static void VersionInfo(const Grace *grace);
-static void cli_loop(Grace *grace);
-
-#if defined(DEBUG)    
-extern int yydebug;
-#endif
+static void VersionInfo(const GraceApp *gapp);
+static void cli_loop(GraceApp *gapp);
 
 int main(int argc, char *argv[])
 {
@@ -76,21 +70,23 @@ int main(int argc, char *argv[])
 
     char fd_name[GR_MAXPATHLEN];
 
+    Grace *grace;
     RunTime *rt;
     GUI *gui;
     Canvas *canvas;
     
-    grace = grace_new();
-    if (!grace) {
+    gapp = gapp_new();
+    if (!gapp) {
         errmsg("Failed to allocate run-time structures");
         exit(1);
     }
     
-    rt      = grace->rt;
-    canvas  = rt->canvas;
-    gui     = grace->gui;
+    grace   = gapp->grace;
+    rt      = gapp->rt;
+    canvas  = grace->canvas;
+    gui     = gapp->gui;
     
-    if (init_font_db(grace, canvas)) {
+    if (init_font_db(gapp, canvas)) {
         errmsg("Broken or incomplete installation - read the FAQ!");
         exit(1);
     }
@@ -182,24 +178,9 @@ int main(int argc, char *argv[])
     for (i = 1; i < argc; i++) {
 	if (argv[i][0] == '-' && argv[i][1] != '\0') {
 	    if (argmatch(argv[i], "-version", 2)) {
-                VersionInfo(grace);
+                VersionInfo(gapp);
 		exit(0);
 	    }
-#if defined(DEBUG)
-	    if (argmatch(argv[i], "-debug", 6)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for debug flag\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    set_debuglevel(grace, atoi(argv[i]));
-		    if (get_debuglevel(grace) == 4) { 
-			/* turn on debugging in pars.y */
-			yydebug = TRUE;
-		    }
-		}
-	    } else
-#endif
 	    if (argmatch(argv[i], "-nosigcatch", 6)) {
 		sigcatch = FALSE;
 	    } else if (argmatch(argv[i], "-autoscale", 2)) {
@@ -250,7 +231,7 @@ int main(int argc, char *argv[])
 		} else {
                     fd = atoi(argv[i]);
                     sprintf(fd_name, "pipe<%d>", fd);
-                    if (register_real_time_input(grace, fd, fd_name, FALSE) !=
+                    if (register_real_time_input(gapp, fd, fd_name, FALSE) !=
                         RETURN_SUCCESS) {
                         exit(1);
                     }
@@ -265,7 +246,7 @@ int main(int argc, char *argv[])
                     if (fd < 0) {
                         fprintf(stderr, "Can't open fifo\n");
                     } else {
-                        if (register_real_time_input(grace, fd, argv[i], TRUE) !=
+                        if (register_real_time_input(gapp, fd, argv[i], TRUE) !=
                             RETURN_SUCCESS) {
                             exit(1);
                         }
@@ -297,7 +278,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing argument for hardcopy device select flag\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    if (set_printer_by_name(grace, argv[i]) != RETURN_SUCCESS) {
+		    if (set_printer_by_name(gapp, argv[i]) != RETURN_SUCCESS) {
                         errmsg("Unknown or unsupported device");
                         exit(1);
                     }
@@ -308,7 +289,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing argument for hardcopy device options\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    if (parse_device_options(rt->canvas,
+		    if (parse_device_options(canvas,
                         rt->hdevice, argv[i]) != RETURN_SUCCESS) {
                         errmsg("Failed parsing device options");
                         exit(1);
@@ -320,7 +301,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing file name for printing\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    set_ptofile(grace, TRUE);
+		    set_ptofile(gapp, TRUE);
                     strcpy(rt->print_file, argv[i]);
 		}
 	    } else if (argmatch(argv[i], "-hardcopy", 6)) {
@@ -331,10 +312,10 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing filename for block data\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    if (!grace->project) {
-                        new_project(grace, NULL);
+		    if (!gapp->project) {
+                        new_project(gapp, NULL);
                     }
-                    getdata(graph_get_current(grace->project), argv[i], curtype, LOAD_BLOCK);
+                    getdata(graph_get_current(gapp->project), argv[i], curtype, LOAD_BLOCK);
 		}
 	    } else if (argmatch(argv[i], "-nxy", 4)) {
 		i++;
@@ -342,16 +323,16 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing filename for nxy data\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    if (!grace->project) {
-                        new_project(grace, NULL);
+		    if (!gapp->project) {
+                        new_project(gapp, NULL);
                     }
-		    getdata(graph_get_current(grace->project), argv[i], curtype, LOAD_NXY);
+		    getdata(graph_get_current(gapp->project), argv[i], curtype, LOAD_NXY);
 		}
 	    } else if (argmatch(argv[i], "-type", 2) ||
                        argmatch(argv[i], "-settype", 8)) {
 		/* set types */
 		i++;
-                curtype = get_settype_by_name(rt, argv[i]);
+                curtype = get_settype_by_name(grace, argv[i]);
                 if (curtype == -1) {
 		    fprintf(stderr, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
 		    usage(stderr, argv[0]);
@@ -363,7 +344,7 @@ int main(int argc, char *argv[])
 		    usage(stderr, argv[0]);
 		} else {
                     /*  open resfile if -results option given */
-		    if ((rt->resfp = grace_openw(grace, argv[i])) == NULL) {
+		    if ((rt->resfp = gapp_openw(gapp, argv[i])) == NULL) {
 		        exit(1);
 		    }
 		    setvbuf(rt->resfp, NULL, _IOLBF, 0);
@@ -374,7 +355,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing save file name\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    save_project(grace->project, argv[i]);
+		    save_project(gapp->project, argv[i]);
 		}
 	    } else if (argmatch(argv[i], "-wd", 3)) {
 		i++;
@@ -382,7 +363,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing parameters for working directory\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    if (set_workingdir(grace, argv[i]) != RETURN_SUCCESS) {
+		    if (set_workingdir(gapp, argv[i]) != RETURN_SUCCESS) {
 			fprintf(stderr, "Can't change to directory %s, fatal error", argv[i]);
 			exit(1);
 		    }
@@ -396,9 +377,9 @@ int main(int argc, char *argv[])
 		    srand48(atol(argv[i]));	/* note atol() */
 		}
             } else if (argmatch(argv[i], "-safe", 5)) {
-                grace->rt->safe_mode = TRUE;
+                grace->safe_mode = TRUE;
             } else if (argmatch(argv[i], "-nosafe", 7)) {
-                grace->rt->safe_mode = FALSE;
+                grace->safe_mode = FALSE;
 	    } else if (argmatch(argv[i], "-help", 2)) {
 		usage(stdout, argv[0]);
 	    } else {
@@ -407,18 +388,18 @@ int main(int argc, char *argv[])
 	    }
 	} else {
 	    if (strstr(argv[i], ".xgr") || strstr(argv[i], ".agr")) {
-                load_project(grace, argv[i]);
+                load_project(gapp, argv[i]);
             } else {
-		if (!grace->project) {
-                    new_project(grace, NULL);
+		if (!gapp->project) {
+                    new_project(gapp, NULL);
                 }
-                getdata(graph_get_current(grace->project), argv[i], curtype, LOAD_SINGLE);
+                getdata(graph_get_current(gapp->project), argv[i], curtype, LOAD_SINGLE);
             }
 	} /* end else */
     } /* end for */
 
-    if (!grace->project) {
-        new_project(grace, NULL);
+    if (!gapp->project) {
+        new_project(gapp, NULL);
     }
     
     /*
@@ -438,25 +419,25 @@ int main(int argc, char *argv[])
 	    exit(1);
 	}
         while (real_time_under_monitoring()) {
-            monitor_input(grace, ib_tbl, ib_tblsize, 0);
+            monitor_input(gapp, ib_tbl, ib_tblsize, 0);
         }
 	if (!noprint) {
-	    do_hardcopy(grace->project);
+	    do_hardcopy(gapp->project);
 	}
         
-	bailout(grace);
+	bailout(gapp);
     } else {
 /*
  * go main loop
  */
 #ifndef NONE_GUI
         if (cli == TRUE) {
-            cli_loop(grace);
+            cli_loop(gapp);
         } else {
-            startup_gui(grace);
+            startup_gui(gapp);
         }
 #else
-        cli_loop(grace);
+        cli_loop(gapp);
 #endif        
     }
     /* never reaches */
@@ -466,12 +447,12 @@ int main(int argc, char *argv[])
 /*
  * command interface loop
  */
-static void cli_loop(Grace *grace)
+static void cli_loop(GraceApp *gapp)
 {
     Input_buffer *ib_stdin;
     int previous = -1;
 
-    if (register_real_time_input(grace, STDIN_FILENO, "stdin", 0)
+    if (register_real_time_input(gapp, STDIN_FILENO, "stdin", 0)
         != RETURN_SUCCESS) {
         exit(1);
     }
@@ -482,11 +463,11 @@ static void cli_loop(Grace *grace)
     while (ib_stdin->fd == STDIN_FILENO) {
         /* the standard input is still under monitoring */
         if (ib_stdin->lineno != previous) {
-            printf("grace:%d> ", ib_stdin->lineno + 1);
+            printf("gapp:%d> ", ib_stdin->lineno + 1);
             fflush(stdout);
             previous = ib_stdin->lineno;
         }
-        monitor_input(grace, ib_tbl, ib_tblsize, 0);
+        monitor_input(gapp, ib_tbl, ib_tblsize, 0);
     }
 
 }
@@ -505,9 +486,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-datehint  [iso|european|us\n");
     fprintf(stream, "            |days|seconds|nohint]     Set the hint for dates analysis\n");
     fprintf(stream, "                                        (it is only a hint for the parser)\n");
-#if defined(DEBUG)
-    fprintf(stream, "-debug     [debug_level]              Set debugging options\n");
-#endif
     fprintf(stream, "-dpipe     [descriptor]               Read data from descriptor on startup\n");
 #ifndef NONE_GUI
     fprintf(stream, "-free                                 Use free page layout\n");
@@ -521,7 +499,7 @@ static void usage(FILE *stream, char *progname)
 #endif
     fprintf(stream, "-noask                                Assume the answer is yes to all requests -\n");
     fprintf(stream, "                                        if the operation would overwrite a file,\n");
-    fprintf(stream, "                                        grace will do so without prompting\n");
+    fprintf(stream, "                                        gapp will do so without prompting\n");
 #ifndef NONE_GUI
     fprintf(stream, "-noinstall                            Don't use private colormap\n");
 #endif
@@ -549,7 +527,7 @@ static void usage(FILE *stream, char *progname)
     exit(0);
 }
 
-static void VersionInfo(const Grace *grace)
+static void VersionInfo(const GraceApp *gapp)
 {
     int i;
     
@@ -574,17 +552,14 @@ static void VersionInfo(const Grace *grace)
     fprintf(stdout, "NetCDF support: off\n");
 #endif
 
-#ifdef DEBUG
-    fprintf(stdout, "Debugging: enabled\n");
-#endif
     fprintf(stdout, "Built: %s on %s\n", bi_date(), bi_system());
     fprintf(stdout, "Compiler flags: %s\n", bi_ccompiler());
  
     fprintf(stdout, "\n");
     
     fprintf(stdout, "Registered devices:\n");
-    for (i = 0; i < number_of_devices(grace->rt->canvas); i++) {
-        fprintf(stdout, "%s ", get_device_name(grace->rt->canvas, i));
+    for (i = 0; i < number_of_devices(gapp->grace->canvas); i++) {
+        fprintf(stdout, "%s ", get_device_name(gapp->grace->canvas, i));
     }
     fprintf(stdout, "\n\n");
     

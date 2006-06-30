@@ -319,7 +319,7 @@ static int create_set_fromblock(Quark *ss, int type,
         return RETURN_FAILURE;
     }
     
-    pset = grace_set_new(ss);
+    pset = gapp_set_new(ss);
     dsp = set_get_dataset(pset);
 
     if (!blockdata || !dsp) {
@@ -406,7 +406,7 @@ int store_data(Quark *q, int load_type, int settype)
     return RETURN_SUCCESS;
 }
 
-static int kill_cb(Quark *q, int etype, void *data)
+int kill_ssd_cb(Quark *q, int etype, void *data)
 {
 #ifndef NONE_GUI
     if (etype == QUARK_ETYPE_DELETE) {
@@ -417,12 +417,12 @@ static int kill_cb(Quark *q, int etype, void *data)
 }
 
 
-Quark *grace_ssd_new(Quark *parent)
+Quark *gapp_ssd_new(Quark *parent)
 {
     Quark *q; 
     q = ssd_new(parent);
     if (q) {
-        quark_cb_add(q, kill_cb, NULL);
+        quark_cb_add(q, kill_ssd_cb, NULL);
     }
     return q;
 }

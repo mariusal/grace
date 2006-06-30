@@ -53,9 +53,8 @@
 #  include <netcdf.h>
 #endif
 
-#include "grace.h"
+#include "graceapp.h"
 #include "utils.h"
-#include "dicts.h"
 #include "files.h"
 #include "ssdata.h"
 #include "core_utils.h"
@@ -91,9 +90,9 @@ int ib_tblsize = 0;		/* number of elements in ib_tbl */
 static int time_spent(void);
 static int expand_ib_tbl(int delay);
 static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
-static int reopen_real_time_input(Grace *gr, Input_buffer *ib);
+static int reopen_real_time_input(GraceApp *gr, Input_buffer *ib);
 static int read_real_time_lines(Input_buffer *ib);
-static int process_complete_lines(Grace *grace, Input_buffer *ib);
+static int process_complete_lines(GraceApp *gapp, Input_buffer *ib);
 
 static int read_long_line(FILE *fp, char **linebuf, int *buflen);
 
@@ -179,7 +178,7 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
 /*
  * reopen an Input_buffer (surely a fifo)
  */
-static int reopen_real_time_input(Grace *grace, Input_buffer *ib)
+static int reopen_real_time_input(GraceApp *gapp, Input_buffer *ib)
 {
     int fd;
     char buf[256];
@@ -248,7 +247,7 @@ void unregister_real_time_input(const char *name)
 /*
  * register a file descriptor for monitoring
  */
-int register_real_time_input(Grace *grace, int fd, const char *name, int reopen)
+int register_real_time_input(GraceApp *gapp, int fd, const char *name, int reopen)
 {
     Input_buffer *ib;
     char buf[256];
@@ -287,7 +286,7 @@ int register_real_time_input(Grace *grace, int fd, const char *name, int reopen)
     if (ib == ib_tbl + ib_tblsize) {
         /* the table was full, we expand it */
         int old_size = ib_tblsize;
-        if (expand_ib_tbl(grace->rt->timer_delay) != RETURN_SUCCESS) {
+        if (expand_ib_tbl(gapp->rt->timer_delay) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
         }
         ib = ib_tbl + old_size;
@@ -357,7 +356,7 @@ static int read_real_time_lines(Input_buffer *ib)
 /*
  * process complete lines that have already been read
  */
-static int process_complete_lines(Grace *grace, Input_buffer *ib)
+static int process_complete_lines(GraceApp *gapp, Input_buffer *ib)
 {
     int line_corrupted;
     char *begin_of_line, *end_of_line;
@@ -393,8 +392,8 @@ static int process_complete_lines(Grace *grace, Input_buffer *ib)
             close_input = NULL;
 
             if (line_corrupted ||
-                graal_parse_line(grace->rt->graal,
-                    begin_of_line, grace->project) != RETURN_SUCCESS) {
+                graal_parse_line(gapp->grace->graal,
+                    begin_of_line, gapp->project) != RETURN_SUCCESS) {
                 sprintf(buf, "Error at line %d", ib->lineno);
                 errmsg(buf);
                 ++(ib->errors);
@@ -463,7 +462,7 @@ int real_time_under_monitoring(void)
 /*
  * monitor the set of registered file descriptors for pending input
  */
-int monitor_input(Grace *grace, Input_buffer *tbl, int tblsize, int no_wait)
+int monitor_input(GraceApp *gapp, Input_buffer *tbl, int tblsize, int no_wait)
 {
 
     Input_buffer *ib;
@@ -516,7 +515,7 @@ int monitor_input(Grace *grace, Input_buffer *tbl, int tblsize, int no_wait)
             if (ib->fd >= 0 && FD_ISSET(ib->fd, &rfds)) {
                 /* there is pending input */
                 if (read_real_time_lines(ib) != RETURN_SUCCESS
-                    || process_complete_lines(grace, ib) != RETURN_SUCCESS) {
+                    || process_complete_lines(gapp, ib) != RETURN_SUCCESS) {
                     return RETURN_FAILURE;
                 }
 
@@ -527,7 +526,7 @@ int monitor_input(Grace *grace, Input_buffer *tbl, int tblsize, int no_wait)
                     if (ib->reopen) {
                         /* we should reset the input buffer, in case
                            the peer also reopens it */
-                        if (reopen_real_time_input(grace, ib) != RETURN_SUCCESS) {
+                        if (reopen_real_time_input(gapp, ib) != RETURN_SUCCESS) {
                             return RETURN_FAILURE;
                         }
                     } else {
@@ -591,7 +590,7 @@ static int read_long_line(FILE * fp, char **linebuf, int *buflen)
 
 
 /* open a file for write */
-FILE *grace_openw(Grace *grace, char *fn)
+FILE *gapp_openw(GraceApp *gapp, char *fn)
 {
     struct stat statb;
     char buf[GR_MAXPATHLEN + 50];
@@ -616,7 +615,7 @@ FILE *grace_openw(Grace *grace, char *fn)
 	        return NULL;
             }
         }
-        retval = filter_write(grace, fn);
+        retval = filter_write(gapp, fn);
         if (!retval) {
 	    sprintf(buf, "Can't write to file %s, check permissions!", fn);
             errmsg(buf);
@@ -625,7 +624,7 @@ FILE *grace_openw(Grace *grace, char *fn)
     }
 }
 
-char *grace_path(Grace *grace, char *fn)
+char *gapp_path(GraceApp *gapp, char *fn)
 {
     static char buf[GR_MAXPATHLEN];
     struct stat statb;
@@ -641,7 +640,7 @@ char *grace_path(Grace *grace, char *fn)
             return buf;
             break;
         case '~':
-            expand_tilde(grace, buf);
+            expand_tilde(gapp, buf);
             return buf;
             break;
         case '.':
@@ -670,7 +669,7 @@ char *grace_path(Grace *grace, char *fn)
         }
         
 	/* third try: in .grace/ in the $HOME dir */
-	strcpy(buf, get_userhome(grace));
+	strcpy(buf, get_userhome(gapp));
 	strcat(buf, ".grace/");
 	strcat(buf, fn);
         if (stat(buf, &statb) == 0) {
@@ -678,7 +677,7 @@ char *grace_path(Grace *grace, char *fn)
         }
 
 	/* the last attempt: in $GRACE_HOME */
-        strcpy(buf, get_grace_home(grace));
+        strcpy(buf, get_gapp_home(gapp));
 	strcat(buf, "/");
 	strcat(buf, fn);
         if (stat(buf, &statb) == 0) {
@@ -691,7 +690,7 @@ char *grace_path(Grace *grace, char *fn)
     }
 }
 
-char *grace_path2(Grace *grace, const char *prefix, char *fn)
+char *gapp_path2(GraceApp *gapp, const char *prefix, char *fn)
 {
     char *s, *bufp;
     
@@ -706,14 +705,14 @@ char *grace_path2(Grace *grace, const char *prefix, char *fn)
     
     s = concat_strings(s, fn);
     
-    bufp = grace_path(grace, s);
+    bufp = gapp_path(gapp, s);
     
     xfree(s);
     
     return bufp;
 }
 
-char *grace_exe_path(Grace *grace, char *fn)
+char *gapp_exe_path(GraceApp *gapp, char *fn)
 {
     static char buf[GR_MAXPATHLEN];
     char *cp;
@@ -723,11 +722,11 @@ char *grace_exe_path(Grace *grace, char *fn)
     } else {
         cp = strchr(fn, ' ');
         if (cp == NULL) {
-            return exe_path_translate(grace_path(grace, fn));
+            return exe_path_translate(gapp_path(gapp, fn));
         } else {
             strcpy(buf, fn);
             buf[cp - fn] = '\0';
-            strcpy(buf, grace_path(grace, buf));
+            strcpy(buf, gapp_path(gapp, buf));
             strcat(buf, " ");
             strcat(buf, cp);
             return exe_path_translate(buf);
@@ -736,7 +735,7 @@ char *grace_exe_path(Grace *grace, char *fn)
 }
 
 /* open a file for read */
-FILE *grace_openr(Grace *grace, char *fn, int src)
+FILE *gapp_openr(GraceApp *gapp, char *fn, int src)
 {
     struct stat statb;
     char *tfn;
@@ -748,7 +747,7 @@ FILE *grace_openr(Grace *grace, char *fn, int src)
     }
     switch (src) {
     case SOURCE_DISK:
-        tfn = grace_path(grace, fn);
+        tfn = gapp_path(gapp, fn);
 	if (strcmp(tfn, "-") == 0 || strcmp(tfn, "stdin") == 0) {
             return stdin;
 	} else if (stat(tfn, &statb)) {
@@ -761,15 +760,15 @@ FILE *grace_openr(Grace *grace, char *fn, int src)
             errmsg(buf);
 	    return NULL;
         } else {
-            return filter_read(grace, tfn);
+            return filter_read(gapp, tfn);
 	}
         break;
     case SOURCE_PIPE:
-        tfn = grace_exe_path(grace, fn);
+        tfn = gapp_exe_path(gapp, fn);
 	return popen(tfn, "r");
 	break;
     default:
-        errmsg("Wrong call to grace_openr()");
+        errmsg("Wrong call to gapp_openr()");
 	return NULL;
     }
 }
@@ -778,7 +777,7 @@ FILE *grace_openr(Grace *grace, char *fn, int src)
  * close either a pipe or a file pointer
  *
  */
-void grace_close(FILE *fp)
+void gapp_close(FILE *fp)
 {
     if (fp == stdin || fp == stderr || fp == stdout) {
         return;
@@ -788,7 +787,7 @@ void grace_close(FILE *fp)
     }
 }
 
-FILE *grace_tmpfile(char *template)
+FILE *gapp_tmpfile(char *template)
 {
     FILE *fp;
 #if defined(HAVE_MKSTEMP) && defined(HAVE_FDOPEN)
@@ -874,7 +873,7 @@ int uniread(Quark *pr, FILE *fp,
                 ncols = nncols + nscols;
 
                 /* init the SSD */
-                q = grace_ssd_new(pr);
+                q = gapp_ssd_new(pr);
                 if (!q || ssd_set_ncols(q, ncols, formats) != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
 		    quark_free(q);
@@ -962,10 +961,10 @@ int getdata(Quark *gr, char *fn, int settype, int load_type)
 {
     FILE *fp;
     int retval;
-    Grace *grace = grace_from_quark(gr);
+    GraceApp *gapp = gapp_from_quark(gr);
     ascii_data adata;
     
-    fp = grace_openr(grace, fn, SOURCE_DISK);
+    fp = gapp_openr(gapp, fn, SOURCE_DISK);
     if (fp == NULL) {
 	return RETURN_FAILURE;
     }
@@ -976,10 +975,10 @@ int getdata(Quark *gr, char *fn, int settype, int load_type)
     
     retval = uniread(gr, fp, NULL, store_cb, &adata);
 
-    grace_close(fp);
+    gapp_close(fp);
     
     if (load_type != LOAD_BLOCK) {
-        autoscale_graph(gr, grace->rt->autoscale_onread);
+        autoscale_graph(gr, gapp->rt->autoscale_onread);
     }
 
     return retval;
@@ -1046,28 +1045,28 @@ int update_set_from_file(Quark *pset)
         FILE *fp;
         RunTime *rt = rt_from_quark(pset);
         
-        fp = grace_openr(grace_from_quark(pset), dsp->hotfile, dsp->hotsrc);
+        fp = gapp_openr(gapp_from_quark(pset), dsp->hotfile, dsp->hotsrc);
         
         killsetdata(pset);
         rt->curtype = set_get_type(pset);
         retval = uniread(get_parent_project(pset), fp, LOAD_SINGLE, dsp->hotfile);
 
-        grace_close(fp);
+        gapp_close(fp);
     }
     
     return retval;
 }
 #endif
 
-Quark *load_any_project(Grace *grace, char *fn)
+Quark *load_any_project(GraceApp *gapp, char *fn)
 {
     Quark *project;
     
     /* A temporary hack */
     if (fn && strstr(fn, ".xgr")) {
-        project = load_xgr_project(grace, fn);
+        project = load_xgr_project(gapp, fn);
     } else {
-        project = load_agr_project(grace, fn);
+        project = load_agr_project(gapp, fn);
     }
     
     if (project) {
@@ -1077,18 +1076,18 @@ Quark *load_any_project(Grace *grace, char *fn)
     return project;
 }
 
-static int load_project_file(Grace *grace, char *fn, int as_template)
+static int load_project_file(GraceApp *gapp, char *fn, int as_template)
 {    
     Quark *project, *gr, **graphs;
     int i, ngraphs;
 
-    if (grace->project &&
-        quark_dirtystate_get(grace->project) &&
+    if (gapp->project &&
+        quark_dirtystate_get(gapp->project) &&
         !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
         return RETURN_FAILURE;
     }
     
-    project = load_any_project(grace, fn);
+    project = load_any_project(gapp, fn);
     
     if (project) {
         char *tfn;
@@ -1098,12 +1097,14 @@ static int load_project_file(Grace *grace, char *fn, int as_template)
         char *bufp;
         AMem *amem;
 
-        grace->rt->print_file[0] = '\0';
+        gapp->rt->print_file[0] = '\0';
 
-        grace_set_project(grace, project);
+        gapp_set_project(gapp, project);
         
         if (as_template == FALSE) {
-            project_set_docname(grace->project, fn);
+            project_set_docname(gapp->project, fn);
+        } else {
+            project_set_docname(gapp->project, NONAME);
         }
         
         /* Set idstr = basename */
@@ -1112,22 +1113,22 @@ static int load_project_file(Grace *grace, char *fn, int as_template)
         if (bufp) {
             *(bufp) = '\0';
         }
-        quark_idstr_set(grace->project, buf);
+        quark_idstr_set(gapp->project, buf);
         
         /* Set timestamp */
-        tfn = grace_path(grace, fn);
+        tfn = gapp_path(gapp, fn);
         if (tfn && !stat(tfn, &statb)) {
             mtime = statb.st_mtime;
         } else {
             /* Probably, piped */
             time(&mtime);
         }
-        project_update_timestamp(grace->project, &mtime);
+        project_update_timestamp(gapp->project, &mtime);
 
         /* Clear dirtystate */
-        quark_dirtystate_set(grace->project, FALSE);
+        quark_dirtystate_set(gapp->project, FALSE);
 
-        amem = quark_get_amem(grace->project);
+        amem = quark_get_amem(gapp->project);
 
         /* Set undo limit of 16MB */
         amem_set_undo_limit(amem, 0x1000000L);
@@ -1138,7 +1139,7 @@ static int load_project_file(Grace *grace, char *fn, int as_template)
     }
 
     /* try to switch to the first active graph */
-    ngraphs = project_get_graphs(grace->project, &graphs);
+    ngraphs = project_get_graphs(gapp->project, &graphs);
     for (i = 0; i < ngraphs; i++) {
         gr = graphs[i];
         if (select_graph(gr) == RETURN_SUCCESS) {
@@ -1157,33 +1158,99 @@ static int load_project_file(Grace *grace, char *fn, int as_template)
     }
 }
 
-int load_project(Grace *grace, char *fn)
+int load_project(GraceApp *gapp, char *fn)
 {
-    return load_project_file(grace, fn, FALSE);
+    return load_project_file(gapp, fn, FALSE);
 }
 
-int new_project(Grace *grace, char *template)
+int new_project(GraceApp *gapp, char *template)
 {
     int retval;
     char *s;
     
     if (string_is_empty(template)) {
-        retval = load_project_file(grace, "templates/Default.xgr", TRUE);
+        retval = load_project_file(gapp, "templates/Default.xgr", TRUE);
     } else if (template[0] == '/') {
-        retval = load_project_file(grace, template, TRUE);
+        retval = load_project_file(gapp, template, TRUE);
     } else {
         s = xmalloc(strlen("templates/") + strlen(template) + 1);
         if (s == NULL) {
             retval = RETURN_FAILURE;
         } else {
             sprintf(s, "templates/%s", template);
-            retval = load_project_file(grace, s, TRUE);
+            retval = load_project_file(gapp, s, TRUE);
             xfree(s);
         }
     }
     
     return retval;
 }
+
+
+int save_project(Quark *project, char *fn)
+{
+    FILE *fp;
+    GUI *gui = gui_from_quark(project);
+    int noask_save;
+    static int save_unsupported = FALSE;
+    int retval;
+
+    if (!project || !fn) {
+        return RETURN_FAILURE;
+    }
+    
+    if (fn && strstr(fn, ".agr")) {
+        errmsg("Cowardly refusing to overwrite an agr file");
+        return RETURN_FAILURE;
+    }
+    if (!save_unsupported &&
+        !yesno("The current format may be unsupported by the final release. Continue?",
+            "Yea, I'm risky", NULL, "doc/UsersGuide.html#unsupported_format")) {
+        return RETURN_FAILURE;
+    }
+    save_unsupported = TRUE;
+
+    noask_save = gui->noask;
+    if (strings_are_equal(project_get_docname(project), fn)) {
+        /* If saving under the same name, don't warn about overwriting */
+        gui->noask = TRUE;
+    }
+    
+    fp = gapp_openw(gapp_from_quark(project), fn);
+    if (!fp) {
+        return RETURN_FAILURE;
+    }
+    
+    gui->noask = noask_save;
+
+    retval = grace_save(project, fp);
+
+    if (retval == RETURN_SUCCESS) {
+        project_set_docname(project, fn);
+        quark_dirtystate_set(project, FALSE);
+    }
+    
+    gapp_close(fp);
+    
+    return retval;
+}
+
+Quark *load_xgr_project(GraceApp *gapp, char *fn)
+{
+    FILE *fp;
+    Quark *project;
+    
+    fp = gapp_openr(gapp, fn, SOURCE_DISK);
+    if (fp == NULL) {
+        return NULL;
+    }
+    
+    project = grace_load(gapp->grace, fp);
+
+    gapp_close(fp);
+    
+    return project;
+}   
 
 #ifdef HAVE_NETCDF
 				
@@ -1462,9 +1529,9 @@ int write_netcdf(Quark *pr, char *fname)
     long len[1];
     long it = 0;
     double *x, *y, x1, x2, y1, y2;
-    RunTime *rt = rt_from_quark(pr);
+    Grace *grace = grace_from_quark(pr);
     ncid = nccreate(fname, NC_CLOBBER);
-    ncattput(ncid, NC_GLOBAL, "Contents", NC_CHAR, 11, (void *) "grace sets");
+    ncattput(ncid, NC_GLOBAL, "Contents", NC_CHAR, 11, (void *) "gapp sets");
     ngraphs = project_get_graphs(pr, &graphs);
     for (i = 0; i < ngraphs; i++) {
         gr = graphs[i];
@@ -1477,7 +1544,7 @@ int write_netcdf(Quark *pr, char *fname)
 		    char s[64];
 
 		    sprintf(buf, "type");
-		    strcpy(s, set_types(rt, set_get_type(pset)));
+		    strcpy(s, set_types(grace, set_get_type(pset)));
 		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR, strlen(s), (void *) s);
 
 		    sprintf(buf, "n");

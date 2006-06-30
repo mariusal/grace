@@ -176,7 +176,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     
     if (cs->column == ncols && !string_is_empty(cs->value)) {
         if (parse_date_or_number(get_parent_project(ui->q),
-                    cs->value, FALSE, &value) == RETURN_SUCCESS) {
+            cs->value, FALSE, get_date_hint(), &value) == RETURN_SUCCESS) {
             format = FFORMAT_NUMBER;
         } else {
             format = FFORMAT_STRING;
@@ -199,7 +199,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
                 break;    
             default:
                 if (parse_date_or_number(get_parent_project(ui->q),
-                    cs->value, FALSE, &value) == RETURN_SUCCESS) {
+                    cs->value, FALSE, get_date_hint(), &value) == RETURN_SUCCESS) {
                     if (ssd_set_value(ui->q, cs->row, cs->column, value) ==
                         RETURN_SUCCESS) {
                         changed = TRUE;

@@ -14,7 +14,8 @@ SRCS = 	memory.c \
 	files.c \
 	dict3.c \
 	darray.c \
-	storage.c
+	storage.c \
+	xfile.c
 
 OBJS = 	memory$(O) \
 	amemory$(O) \
@@ -25,4 +26,5 @@ OBJS = 	memory$(O) \
 	files$(O) \
 	dict3$(O) \
 	darray$(O) \
-	storage$(O)
+	storage$(O) \
+	xfile$(O)

@@ -315,4 +315,49 @@ extern int finite ( double x );
 extern int isnan ( double x );
 #endif
 
+
+
+/* XFile */
+struct _XStackEntry {
+    char *name;
+    void *data;
+};
+
+struct _XStack {
+    int size;
+    int depth;
+    XStackEntry *entries;
+};
+
+struct _ElementAttribute {
+    char *name;
+    char *value;
+};
+
+struct _Attributes {
+    ElementAttribute *args;
+    unsigned int size;
+    unsigned int count;
+};
+
+struct _XFile {
+    FILE *fp;
+    XStack *tree;
+    unsigned int indent;
+    char *indstr;
+    int curpos;
+    int convert;
+    char *ns_prefix;
+    char *ns_uri;
+    int ns_force;
+};
+
+XStack *xstack_new(void);
+void xstack_free(XStack *xs);
+int xstack_increment(XStack *xs, const char *name, void *data);
+int xstack_decrement(XStack *xs, const char *name);
+int xstack_get_first(XStack *xs, char **name, void **data);
+int xstack_get_last(XStack *xs, char **name, void **data);
+int xstack_is_empty(XStack *xs);
+
 #endif /* __BASEP_H_ */

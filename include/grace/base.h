@@ -145,6 +145,8 @@ void uswap(unsigned int *x, unsigned int *y);
 void sswap(char **x, char **y);
 void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
 
+int isoneof(int c, char *s);
+
 /* locale */
 int init_locale(void);
 void set_locale_num(int flag);
@@ -315,5 +317,48 @@ int storage2_data_swap(Storage *sto1, int id1, Storage *sto2, int id2);
 int storage2_data_copy(Storage *sto1, Storage *sto2);
 int storage2_data_move(Storage *sto1, Storage *sto2);
 int storage2_data_flush(Storage *sto1, Storage *sto2);
+
+/* XFile API */
+typedef struct _XStackEntry XStackEntry;
+typedef struct _XStack XStack;
+typedef struct _ElementAttribute ElementAttribute;
+typedef struct _Attributes Attributes;
+typedef struct _XFile XFile;
+
+
+Attributes *attributes_new(void);
+void attributes_free(Attributes *attrs);
+int attributes_reset(Attributes *attrs);
+
+int attributes_set_sval(Attributes *attrs, const char *name, const char *value);
+int attributes_set_bval(Attributes *attrs, const char *name, int bval);
+int attributes_set_ival(Attributes *attrs, const char *name, int ival);
+int attributes_set_ival_formatted(Attributes *attrs, const char *name,
+    int ival, char *format);
+int attributes_set_dval(Attributes *attrs, const char *name, double dval);
+int attributes_set_dval_formatted(Attributes *attrs, const char *name,
+    double dval, char *format);
+
+int attributes_set_ns(Attributes *attrs, const char *ns, const char *uri);
+
+XFile *xfile_new(FILE *fp);
+void xfile_free(XFile *xf);
+
+int xfile_set_indstr(XFile *xf, const char *indstr);
+
+int xfile_set_ns(XFile *xf, const char *ns, const char *uri, int force);
+
+int xfile_begin(XFile *xf, char *root, Attributes *root_attrs);
+int xfile_end(XFile *xf);
+
+int xfile_begin_element(XFile *xf, char *name, Attributes *attrs);
+int xfile_end_element(XFile *xf, char *name);
+int xfile_empty_element(XFile *xf, char *name, Attributes *attrs);
+int xfile_text_element(XFile *xf,
+    char *name, Attributes *attrs, char *text, int cdata);
+
+int xfile_comment(XFile *xf, char *comment);
+
+int xfile_processing_instruction(XFile *xf, Attributes *attrs);
 
 #endif /* __BASE_H_ */

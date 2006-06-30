@@ -34,7 +34,7 @@
 #ifndef __NUMERICS_H_
 #define __NUMERICS_H_
 
-#include "grace.h"
+#include "graceapp.h"
 
 /* computils.c */
 double trapint(double *x, double *y, double *resx, double *resy, int n);

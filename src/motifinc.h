@@ -38,7 +38,7 @@
 /* for XmString; TODO: remove! */
 #include <Xm/Xm.h>
 
-#include "grace.h"
+#include "graceapp.h"
 
 /* 
  * Accept/Apply/Close for aac_cb callbacks
@@ -59,7 +59,7 @@
 
 #define CreateMenuSeparator(w) CreateSeparator(w)
 
-extern Widget app_shell;        /* defined in xmgrace.c */
+extern Widget app_shell;        /* defined in xmgapp.c */
 
 typedef struct {
     int value;

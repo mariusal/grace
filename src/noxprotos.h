@@ -35,13 +35,11 @@
 #ifndef __NOXPROTOS_H_
 #define __NOXPROTOS_H_
 
-#include "grace.h"
+#include "graceapp.h"
 
 
 /* typeset.c */
-int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring);
-int fmap_proc(const Canvas *canvas, int font);
-int init_font_db(Grace *grace, Canvas *canvas);
+int init_font_db(GraceApp *gapp, Canvas *canvas);
 
 
 /* set_utils.c */
@@ -58,12 +56,7 @@ void killsetdata(Quark *pset);
 
 void del_point(Quark *pset, int pt);
 
-/* dates.c */
 void set_date_hint(Dates_format preferred);
 Dates_format get_date_hint(void);
-int parse_float(const char* s, double *value, const char **after);
-int parse_date(const Quark *q, const char* s, Dates_format preferred, int absolute,
-               double *jul, Dates_format *recognized);
-int parse_date_or_number(const Quark *q, const char* s, int absolute, double *value);
 
 #endif /* __NOXPROTOS_H_ */

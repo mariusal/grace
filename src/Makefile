@@ -15,14 +15,12 @@ GRACEGUI=xmgrace$(PROG_SUFFIX)$(EXE)
 GRACECLI=grace$(PROG_SUFFIX)$(EXE)
 GRACEBAT=gracebat$(PROG_SUFFIX)$(EXE)
 
-SCHEMA=grace.xsd
-
 CFLAGS=$(CFLAGS0) -I$(TOP)/include -I. \
 	$(T1_INC) $(EXPAT_INC) $(GSL_CFLAGS) $(CUPS_CFLAGS) \
 	$(CPPFLAGS) $(XBAE_INC) $(GUI_FLAGS)
 
 LIBS=$(GUI_LIBS) $(NETCDF_LIBS) $(FFTW_LIB) $(EXPAT_LIB) \
-	$(GRACE_PLOT_LIB) $(GRACE_GRAAL_LIB) $(GRACE_CORE_LIB) \
+	$(GRACE_LIB) $(GRACE_PLOT_LIB) $(GRACE_GRAAL_LIB) $(GRACE_CORE_LIB) \
 	$(GRACE_CANVAS_LIB) $(T1_LIB) $(XMI_LIB) \
 	$(PDF_LIB) $(JPEG_LIB) $(PNG_LIB) $(Z_LIB) \
 	$(GRACE_BASE_LIB) $(UNDO_LIB) $(GSL_LIBS) $(CUPS_LIBS) \
@@ -35,7 +33,7 @@ PREFS=-DMAJOR_REV=$(MAJOR_REV) -DMINOR_REV=$(MINOR_REV) \
 	-DGRACE_HELPVIEWER=\"$(GRACE_HELPVIEWER)\" \
 	-DCCOMPILER=\"'$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS)'\" 
 
-all : $(GRACE) $(SCHEMA)
+all : $(GRACE)
 
 
 include Make.common
@@ -49,11 +47,11 @@ Make.dep : $(GRSRCS) $(GUISRCS) $(PARS_C)
 	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) \
 		| sed 's/\.o:/\$$(O)\ :/g' >> $@
 
-xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(GRACE_PLOT_LIB) \
+xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) \
 	$(GRACE_CORE_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB)
 	$(CC) $(CFLAGS) $(GROBJS) $(GUIOBJS) -o $@ $(LDFLAGS) $(LIBS)
 
-grace$(EXE) : $(GROBJS) $(GRACE_PLOT_LIB) $(GRACE_CORE_LIB) \
+grace$(EXE) : $(GROBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) $(GRACE_CORE_LIB) \
 	$(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB)
 	$(CC) $(CFLAGS) $(GROBJS) -o $@ $(LDFLAGS) $(LIBS)
 
@@ -75,9 +73,6 @@ $(PARS_C) : $(PARS_Y)
 
 xml_in.c : grace.xcc
 	$(XCC) -b -i $? -o $@
-
-$(SCHEMA) : grace.xcc xstrings.h
-	$(XCC) -s -i grace.xcc | cpp -P -nostdinc -imacros xstrings.h > $@
 
 install : $(GRACE)
 	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/bin

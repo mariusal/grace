@@ -60,10 +60,10 @@ static void save_wisdom(void){
     if (!initial_wisdom ||
         strings_are_equal(initial_wisdom, final_wisdom) != TRUE) {
         FILE *wf;
-        wf = grace_openw(grace, wisdom_file);
+        wf = gapp_openw(gapp, wisdom_file);
         if (wf) {
             fftw_export_wisdom_to_file(wf);
-            grace_close(wf);
+            gapp_close(wf);
         }
     } 
     
@@ -94,10 +94,10 @@ static void init_wisdom(void)
             FILE *wf;
             fftw_status fstat;
             
-            wf = grace_openr(grace, wisdom_file, SOURCE_DISK);
+            wf = gapp_openr(gapp, wisdom_file, SOURCE_DISK);
             if (wf) {
 	        fstat = fftw_import_wisdom_from_file(wf);
-	        grace_close(wf);
+	        gapp_close(wf);
 	        initial_wisdom = fftw_export_wisdom_to_string();
             } else {
                 initial_wisdom = NULL;

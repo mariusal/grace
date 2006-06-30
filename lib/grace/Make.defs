@@ -1,0 +1,30 @@
+##################################################
+#     System-independent Make.defs file for      #
+#             grace library                      #
+##################################################
+
+LIB  = $(GRACE_LIB)
+
+GSRCS = xml_in.c
+
+SRCS = 	$(GSRCS) \
+	grace.c \
+	dicts.c \
+        dates.c \
+        typeset.c \
+	xml_out.c
+
+OBJS = 	grace$(O) \
+	dicts$(O) \
+        dates$(O) \
+        typeset$(O) \
+	xml_out$(O) \
+	xml_in$(O)
+
+SCHEMA = grace.xsd
+
+xml_in.c : grace.xcc
+	$(XCC) -b -i $? -o $@
+
+$(SCHEMA) : grace.xcc xstrings.h
+	$(XCC) -s -i grace.xcc | cpp -P -nostdinc -imacros xstrings.h > $@

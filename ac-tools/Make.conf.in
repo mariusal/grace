@@ -157,3 +157,4 @@ GRACE_CANVAS_LIB=$(TOP)/lib/canvas/libgrace-canvas.a
 GRACE_CORE_LIB=$(TOP)/lib/core/libgrace-core.a
 GRACE_PLOT_LIB=$(TOP)/lib/plot/libgrace-plot.a
 GRACE_GRAAL_LIB=$(TOP)/lib/graal/libgrace-graal.a
+GRACE_LIB=$(TOP)/lib/grace/libgrace.a

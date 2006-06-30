@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1999 Grace Development Team
+ * Copyright (c) 1999-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -25,31 +25,9 @@
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-
-#include <math.h>
 #include <ctype.h>
 
-#include "defines.h"
-#include "utils.h"
-#include "protos.h"
-
-static Dates_format date_hint = FMT_nohint;
-
-/*
- * store the user's preferrence (it is only an hint)
- */
-void set_date_hint(Dates_format preferred)
-{
-    date_hint = preferred;
-}
-
-/*
- * get the user's preferrence (it is only an hint)
- */
-Dates_format get_date_hint(void)
-{
-    return date_hint;
-}
+#include "grace/grace.h"
 
 /*
  * expand years according to the following rules :
@@ -78,7 +56,8 @@ static int expanded_year(const Project *pr, Int_token y)
  * this includes either number of day in the month
  * and calendars pecularities (year 0 and October 1582)
  */
-static int check_date(const Project *pr, Int_token y, Int_token m, Int_token d, long *jul)
+static int check_date(const Project *pr,
+    Int_token y, Int_token m, Int_token d, long *jul)
 {
     int y_expand, y_check, m_check, d_check;
 
@@ -96,7 +75,6 @@ static int check_date(const Project *pr, Int_token y, Int_token m, Int_token d, 
     } else {
         return RETURN_SUCCESS;
     }
-
 }
 
 
@@ -178,7 +156,6 @@ int parse_float(const char* s, double *value, const char **after)
     }
 
     return RETURN_SUCCESS;
-
 }
 
 
@@ -186,8 +163,7 @@ int parse_float(const char* s, double *value, const char **after)
  * lexical analyzer for calendar dates
  * return the number of read elements, or -1 on failure
  */
-static int parse_calendar_date(const char* s,
-                               Int_token tab [5], double *sec)
+static int parse_calendar_date(const char* s, Int_token tab[5], double *sec)
 {
     int i, waiting_separator, negative;
 
@@ -281,7 +257,6 @@ static int parse_calendar_date(const char* s,
 
     /* something is wrong */
     return -1;
-
 }
 
 
@@ -367,13 +342,13 @@ int parse_date(const Quark *q, const char* s, Dates_format preferred, int absolu
     return RETURN_FAILURE;
 }
 
-int parse_date_or_number(const Quark *q, const char* s, int absolute, double *value)
+int parse_date_or_number(const Quark *q, const char* s,
+    int absolute, Dates_format hint, double *value)
 {
     Dates_format dummy;
     const char *sdummy;
     
-    if (parse_date(q, s, get_date_hint(), absolute, value, &dummy)
-        == RETURN_SUCCESS) {
+    if (parse_date(q, s, hint, absolute, value, &dummy) == RETURN_SUCCESS) {
         return RETURN_SUCCESS;
     } else if (parse_float(s, value, &sdummy) == RETURN_SUCCESS) {
         return RETURN_SUCCESS;

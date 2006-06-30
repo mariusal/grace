@@ -980,7 +980,7 @@ int filter_set(Quark *pset, char *rarray)
 int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
 {
     if (!set_is_dataless(psrc)) {
-	RunTime *rt = rt_from_quark(psrc);
+	GraceApp *gapp = gapp_from_quark(psrc);
         if (psrc != pdest) {
 	    if (copysetdata(psrc, pdest) != RETURN_SUCCESS) {
 	        return RETURN_FAILURE;
@@ -988,7 +988,7 @@ int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
         }
 	filter_set(pdest, rarray);
         // set_parser_setno(pdest);
-        if (graal_parse_line(rt->graal, fstr, psrc) != RETURN_SUCCESS) {
+        if (graal_parse_line(gapp->grace->graal, fstr, psrc) != RETURN_SUCCESS) {
 	    if (psrc != pdest) {
 		quark_free(pdest);
 	    }
@@ -2098,10 +2098,10 @@ DArray *featext(Quark **sets, int nsets, const char *formula)
     
     for (i = 0; i < nsets; i++) {
         Quark *q = sets[i];
-        RunTime *rt = rt_from_quark(q);
+        GraceApp *gapp = gapp_from_quark(q);
         double val;
 
-        if (graal_eval_expr(rt->graal, formula, &val, q) != RETURN_SUCCESS) {
+        if (graal_eval_expr(gapp->grace->graal, formula, &val, q) != RETURN_SUCCESS) {
             darray_free(da);
             return NULL;
         }

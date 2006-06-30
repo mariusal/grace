@@ -43,7 +43,6 @@
 
 #include "core_utils.h"
 #include "utils.h"
-#include "dicts.h"
 #include "ssdata.h"
 #include "numerics.h"
 #include "motifinc.h"
@@ -81,7 +80,7 @@ void create_datasetprop_popup(Widget but, void *data)
         short column_widths[DATA_STAT_COLS] = {12, 6, 12, 6, 12, 12};
         unsigned char column_alignments[DATA_STAT_COLS];
         unsigned char column_label_alignments[DATA_STAT_COLS];
-        Grace *grace = (Grace *) data;
+        GraceApp *gapp = (GraceApp *) data;
 
         tui.top = CreateDialogForm(app_shell, "Data set statistics");
 
@@ -108,7 +107,7 @@ void create_datasetprop_popup(Widget but, void *data)
         }
         
         for (i = 0; i < MAX_SET_COLS; i++) {
-            rowlabels[i] = copy_string(NULL, dataset_col_name(grace->rt, i));
+            rowlabels[i] = copy_string(NULL, dataset_col_name(gapp->grace, i));
             for (j = 0; j < DATA_STAT_COLS; j++) {
                 tui.rows[i][j] = NULL;
             }
@@ -458,9 +457,9 @@ void set_type_cb(OptionStructure *opt, int type, void *data)
         XbaeMatrixDeleteRows(ui->mw, nscols, nmrows - nscols);
     } else if (nmrows < nscols) {
         if (ui->gr) {
-            RunTime *rt = rt_from_quark(ui->gr);
+            Grace *grace = grace_from_quark(ui->gr);
             for (i = nmrows; i < nscols; i++) {
-                rowlabels[i - nmrows] = copy_string(NULL, dataset_col_name(rt, i));
+                rowlabels[i - nmrows] = copy_string(NULL, dataset_col_name(grace, i));
                 rowlabels[i - nmrows] = concat_strings(rowlabels[i - nmrows], " = ");
             }
         }
@@ -501,7 +500,7 @@ void create_leval_frame(Widget but, void *data)
         char *rowlabels[MAX_SET_COLS];
         short column_widths[1] = {50};
         int column_maxlengths[1] = {256};
-        RunTime *rt = rt_from_quark(gr);
+        Grace *grace = grace_from_quark(gr);
 
         levalui.top = CreateDialogForm(app_shell, "Load & evaluate");
 
@@ -518,7 +517,7 @@ void create_leval_frame(Widget but, void *data)
         
         nscols = 2;
         for (i = 0; i < nscols; i++) {
-            rowlabels[i] = copy_string(NULL, dataset_col_name(rt, i));
+            rowlabels[i] = copy_string(NULL, dataset_col_name(grace, i));
             rowlabels[i] = concat_strings(rowlabels[i], " = ");
             if (i == 0) {
                 rows[i][0] = "$t";
@@ -565,7 +564,7 @@ static int leval_aac_cb(void *data)
     Quark *pset, *gr;
     GVar *t;
     Leval_ui *ui = (Leval_ui *) data;
-    RunTime *rt;
+    Grace *grace;
     
     gr = ui->gr;
     type = GetOptionChoice(ui->set_type);
@@ -592,12 +591,12 @@ static int leval_aac_cb(void *data)
     }
     
     
-    pset = grace_set_new(gr);
+    pset = gapp_set_new(gr);
     set_set_type(pset, type);
 
-    rt = rt_from_quark(pset);
+    grace = grace_from_quark(pset);
     
-    t = graal_get_var(rt->graal, "$t", TRUE);
+    t = graal_get_var(grace->graal, "$t", TRUE);
     if (t == NULL) {
         errmsg("Internal error");
         return RETURN_FAILURE;
@@ -625,12 +624,12 @@ static int leval_aac_cb(void *data)
         int res;
         
         /* preparing the expression */
-        sprintf(buf, "%s = ", dataset_col_name(rt, i));
+        sprintf(buf, "%s = ", dataset_col_name(grace, i));
         expr = copy_string(NULL, buf);
         expr = concat_strings(expr, formula[i]);
         
         /* evaluate the expression */
-        res = graal_parse_line(rt->graal, expr, NULL);
+        res = graal_parse_line(grace->graal, expr, NULL);
         
         xfree(expr);
         

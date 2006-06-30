@@ -29,15 +29,10 @@
  * Misc stuff using dictionaries
  */
 
-#include <config.h>
-
-#include "grace.h"
-#include "defines.h"
-#include "core_utils.h"
-#include "dicts.h"
+#include "grace/grace.h"
 #include "xstrings.h"
 
-int grace_rt_init_dicts(RunTime *rt)
+int grace_init_dicts(Grace *grace)
 {
     /* Dictionary tables */
     const DictEntry graph_type_defaults =
@@ -45,7 +40,7 @@ int grace_rt_init_dicts(RunTime *rt)
     const DictEntry graph_type_entries[] = 
         {
             {GRAPH_XY,    "xy",    "XY"   },
-            {GRAPH_CHART, "chart", "Chart"},
+            {GRAPH_CHART, "chagrace", "Chagrace"},
             {GRAPH_POLAR, "polar", "Polar"},
             {GRAPH_SMITH, "smith", "Smith"},
             {GRAPH_FIXED, "fixed", "Fixed"},
@@ -256,84 +251,84 @@ int grace_rt_init_dicts(RunTime *rt)
             {DATA_Y4, "y4", "Y4"}
         };
 
-    if (!(rt->graph_type_dict =
+    if (!(grace->graph_type_dict =
         DICT_NEW_STATIC(graph_type_entries, &graph_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->set_type_dict =
+    if (!(grace->set_type_dict =
         DICT_NEW_STATIC(set_type_entries, &set_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->object_type_dict =
+    if (!(grace->object_type_dict =
         DICT_NEW_STATIC(object_type_entries, &object_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->inout_placement_dict =
+    if (!(grace->inout_placement_dict =
         DICT_NEW_STATIC(inout_placement_entries, &inout_placement_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->axis_position_dict =
+    if (!(grace->axis_position_dict =
         DICT_NEW_STATIC(axis_position_entries, &axis_position_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->spec_ticks_dict =
+    if (!(grace->spec_ticks_dict =
         DICT_NEW_STATIC(spec_ticks_entries, &spec_ticks_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->region_type_dict =
+    if (!(grace->region_type_dict =
         DICT_NEW_STATIC(region_type_entries, &region_type_defaults))) {
         return RETURN_FAILURE;
     }
     
-    if (!(rt->arrow_type_dict =
+    if (!(grace->arrow_type_dict =
         DICT_NEW_STATIC(arrow_type_entries, &arrow_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->glocator_type_dict =
+    if (!(grace->glocator_type_dict =
         DICT_NEW_STATIC(glocator_type_entries, &glocator_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->sym_type_dict =
+    if (!(grace->sym_type_dict =
         DICT_NEW_STATIC(sym_type_entries, &sym_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->line_type_dict =
+    if (!(grace->line_type_dict =
         DICT_NEW_STATIC(line_type_entries, &line_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->setfill_type_dict =
+    if (!(grace->setfill_type_dict =
         DICT_NEW_STATIC(setfill_type_entries, &setfill_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->baseline_type_dict =
+    if (!(grace->baseline_type_dict =
         DICT_NEW_STATIC(baseline_type_entries, &baseline_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->framedecor_type_dict =
+    if (!(grace->framedecor_type_dict =
         DICT_NEW_STATIC(framedecor_type_entries, &framedecor_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->scale_type_dict =
+    if (!(grace->scale_type_dict =
         DICT_NEW_STATIC(scale_type_entries, &scale_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->arrow_placement_dict =
+    if (!(grace->arrow_placement_dict =
         DICT_NEW_STATIC(arrow_placement_entries, &arrow_placement_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->arcclosure_type_dict =
+    if (!(grace->arcclosure_type_dict =
         DICT_NEW_STATIC(arcclosure_type_entries, &arcclosure_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->format_type_dict =
+    if (!(grace->format_type_dict =
         DICT_NEW_STATIC(format_type_entries, &format_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->frame_type_dict =
+    if (!(grace->frame_type_dict =
         DICT_NEW_STATIC(frame_type_entries, &frame_type_defaults))) {
         return RETURN_FAILURE;
     }
-    if (!(rt->dataset_col_dict =
+    if (!(grace->dataset_col_dict =
         DICT_NEW_STATIC(dataset_col_entries, &dataset_col_defaults))) {
         return RETURN_FAILURE;
     }
@@ -341,433 +336,433 @@ int grace_rt_init_dicts(RunTime *rt)
     return RETURN_SUCCESS;
 }
 
-void grace_rt_free_dicts(RunTime *rt)
+void grace_free_dicts(Grace *grace)
 {
-    dict_free(rt->graph_type_dict);
-    dict_free(rt->set_type_dict);
-    dict_free(rt->object_type_dict);
-    dict_free(rt->inout_placement_dict);
-    dict_free(rt->axis_position_dict);
-    dict_free(rt->spec_ticks_dict);
-    dict_free(rt->region_type_dict);
-    dict_free(rt->arrow_type_dict);
-    dict_free(rt->glocator_type_dict);
-    dict_free(rt->sym_type_dict);
-    dict_free(rt->line_type_dict);
-    dict_free(rt->setfill_type_dict);
-    dict_free(rt->baseline_type_dict);
-    dict_free(rt->framedecor_type_dict);
-    dict_free(rt->scale_type_dict);
-    dict_free(rt->arrow_placement_dict);
-    dict_free(rt->arcclosure_type_dict);
-    dict_free(rt->format_type_dict);
-    dict_free(rt->frame_type_dict);
-    dict_free(rt->dataset_col_dict);
+    dict_free(grace->graph_type_dict);
+    dict_free(grace->set_type_dict);
+    dict_free(grace->object_type_dict);
+    dict_free(grace->inout_placement_dict);
+    dict_free(grace->axis_position_dict);
+    dict_free(grace->spec_ticks_dict);
+    dict_free(grace->region_type_dict);
+    dict_free(grace->arrow_type_dict);
+    dict_free(grace->glocator_type_dict);
+    dict_free(grace->sym_type_dict);
+    dict_free(grace->line_type_dict);
+    dict_free(grace->setfill_type_dict);
+    dict_free(grace->baseline_type_dict);
+    dict_free(grace->framedecor_type_dict);
+    dict_free(grace->scale_type_dict);
+    dict_free(grace->arrow_placement_dict);
+    dict_free(grace->arcclosure_type_dict);
+    dict_free(grace->format_type_dict);
+    dict_free(grace->frame_type_dict);
+    dict_free(grace->dataset_col_dict);
 }
 
-char *graph_types(RunTime *rt, GraphType it)
+char *graph_types(Grace *grace, GraphType it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->graph_type_dict, it, &s);
+    dict_get_name_by_key(grace->graph_type_dict, it, &s);
     
     return s;
 }
 
-char *graph_type_descr(RunTime *rt, GraphType it)
+char *graph_type_descr(Grace *grace, GraphType it)
 {
     char *s;
     
-    dict_get_descr_by_key(rt->graph_type_dict, it, &s);
+    dict_get_descr_by_key(grace->graph_type_dict, it, &s);
     
     return s;
 }
 
-GraphType graph_get_type_by_name(RunTime *rt, const char *name)
+GraphType graph_get_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->graph_type_dict, name, &retval);
+    dict_get_key_by_name(grace->graph_type_dict, name, &retval);
     
     return retval;
 }
 
 
-char *set_types(RunTime *rt, SetType it)
+char *set_types(Grace *grace, SetType it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->set_type_dict, it, &s);
+    dict_get_name_by_key(grace->set_type_dict, it, &s);
     
     return s;
 }
 
-char *set_type_descr(RunTime *rt, SetType it)
+char *set_type_descr(Grace *grace, SetType it)
 {
     char *s;
     
-    dict_get_descr_by_key(rt->set_type_dict, it, &s);
+    dict_get_descr_by_key(grace->set_type_dict, it, &s);
     
     return s;
 }
 
-SetType get_settype_by_name(RunTime *rt, const char *name)
+SetType get_settype_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->set_type_dict, name, &retval);
+    dict_get_key_by_name(grace->set_type_dict, name, &retval);
     
     return retval;
 }
 
-char *object_types(RunTime *rt, OType it)
+char *object_types(Grace *grace, OType it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->object_type_dict, it, &s);
+    dict_get_name_by_key(grace->object_type_dict, it, &s);
     
     return s;
 }
 
-char *object_type_descr(RunTime *rt, OType it)
+char *object_type_descr(Grace *grace, OType it)
 {
     char *s;
     
-    dict_get_descr_by_key(rt->object_type_dict, it, &s);
+    dict_get_descr_by_key(grace->object_type_dict, it, &s);
     
     return s;
 }
 
-OType get_objecttype_by_name(RunTime *rt, const char *name)
+OType get_objecttype_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->object_type_dict, name, &retval);
+    dict_get_key_by_name(grace->object_type_dict, name, &retval);
     
     return retval;
 }
 
-char *inout_placement_name(RunTime *rt, int inout)
+char *inout_placement_name(Grace *grace, int inout)
 {
     char *s;
     
-    dict_get_name_by_key(rt->inout_placement_dict, inout, &s);
+    dict_get_name_by_key(grace->inout_placement_dict, inout, &s);
     
     return s;
 }
 
-int get_inout_placement_by_name(RunTime *rt, const char *name)
+int get_inout_placement_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->inout_placement_dict, name, &retval);
+    dict_get_key_by_name(grace->inout_placement_dict, name, &retval);
     
     return retval;
 }
 
-char *spec_tick_name(RunTime *rt, int it)
+char *spec_tick_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->spec_ticks_dict, it, &s);
+    dict_get_name_by_key(grace->spec_ticks_dict, it, &s);
     
     return s;
 }
 
-int get_spec_tick_by_name(RunTime *rt, const char *name)
+int get_spec_tick_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->spec_ticks_dict, name, &retval);
+    dict_get_key_by_name(grace->spec_ticks_dict, name, &retval);
     
     return retval;
 }
 
 
-char *region_types(RunTime *rt, int it)
+char *region_types(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->region_type_dict, it, &s);
+    dict_get_name_by_key(grace->region_type_dict, it, &s);
     
     return s;
 }
 
-int get_regiontype_by_name(RunTime *rt, const char *name)
+int get_regiontype_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->region_type_dict, name, &retval);
+    dict_get_key_by_name(grace->region_type_dict, name, &retval);
     
     return retval;
 }
 
-char *axis_position_name(RunTime *rt, int it)
+char *axis_position_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->axis_position_dict, it, &s);
+    dict_get_name_by_key(grace->axis_position_dict, it, &s);
     
     return s;
 }
 
-int get_axis_position_by_name(RunTime *rt, const char *name)
+int get_axis_position_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->axis_position_dict, name, &retval);
+    dict_get_key_by_name(grace->axis_position_dict, name, &retval);
     
     return retval;
 }
 
-char *arrow_type_name(RunTime *rt, int it)
+char *arrow_type_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->arrow_type_dict, it, &s);
+    dict_get_name_by_key(grace->arrow_type_dict, it, &s);
     
     return s;
 }
 
-int get_arrow_type_by_name(RunTime *rt, const char *name)
+int get_arrow_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->arrow_type_dict, name, &retval);
+    dict_get_key_by_name(grace->arrow_type_dict, name, &retval);
     
     return retval;
 }
 
-char *glocator_type_name(RunTime *rt, int it)
+char *glocator_type_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->glocator_type_dict, it, &s);
+    dict_get_name_by_key(grace->glocator_type_dict, it, &s);
     
     return s;
 }
 
-int get_glocator_type_by_name(RunTime *rt, const char *name)
+int get_glocator_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->glocator_type_dict, name, &retval);
+    dict_get_key_by_name(grace->glocator_type_dict, name, &retval);
     
     return retval;
 }
 
-char *sym_type_name(RunTime *rt, int it)
+char *sym_type_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->sym_type_dict, it, &s);
+    dict_get_name_by_key(grace->sym_type_dict, it, &s);
     
     return s;
 }
 
-int get_sym_type_by_name(RunTime *rt, const char *name)
+int get_sym_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->sym_type_dict, name, &retval);
+    dict_get_key_by_name(grace->sym_type_dict, name, &retval);
     
     return retval;
 }
 
-char *line_type_name(RunTime *rt, int it)
+char *line_type_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->line_type_dict, it, &s);
+    dict_get_name_by_key(grace->line_type_dict, it, &s);
     
     return s;
 }
 
-int get_line_type_by_name(RunTime *rt, const char *name)
+int get_line_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->line_type_dict, name, &retval);
+    dict_get_key_by_name(grace->line_type_dict, name, &retval);
     
     return retval;
 }
 
-char *setfill_type_name(RunTime *rt, int it)
+char *setfill_type_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->setfill_type_dict, it, &s);
+    dict_get_name_by_key(grace->setfill_type_dict, it, &s);
     
     return s;
 }
 
-int get_setfill_type_by_name(RunTime *rt, const char *name)
+int get_setfill_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->setfill_type_dict, name, &retval);
+    dict_get_key_by_name(grace->setfill_type_dict, name, &retval);
     
     return retval;
 }
 
-char *baseline_type_name(RunTime *rt, int it)
+char *baseline_type_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->baseline_type_dict, it, &s);
+    dict_get_name_by_key(grace->baseline_type_dict, it, &s);
     
     return s;
 }
 
-int get_baseline_type_by_name(RunTime *rt, const char *name)
+int get_baseline_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->baseline_type_dict, name, &retval);
+    dict_get_key_by_name(grace->baseline_type_dict, name, &retval);
     
     return retval;
 }
 
-char *framedecor_type_name(RunTime *rt, int it)
+char *framedecor_type_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->framedecor_type_dict, it, &s);
+    dict_get_name_by_key(grace->framedecor_type_dict, it, &s);
     
     return s;
 }
 
-int get_framedecor_type_by_name(RunTime *rt, const char *name)
+int get_framedecor_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->framedecor_type_dict, name, &retval);
+    dict_get_key_by_name(grace->framedecor_type_dict, name, &retval);
     
     return retval;
 }
 
-char *scale_type_name(RunTime *rt, ScaleType it)
+char *scale_type_name(Grace *grace, ScaleType it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->scale_type_dict, it, &s);
+    dict_get_name_by_key(grace->scale_type_dict, it, &s);
     
     return s;
 }
 
-ScaleType get_scale_type_by_name(RunTime *rt, const char *name)
+ScaleType get_scale_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->scale_type_dict, name, &retval);
+    dict_get_key_by_name(grace->scale_type_dict, name, &retval);
     
     return retval;
 }
 
-char *arrow_placement_name(RunTime *rt, int it)
+char *arrow_placement_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->arrow_placement_dict, it, &s);
+    dict_get_name_by_key(grace->arrow_placement_dict, it, &s);
     
     return s;
 }
 
-int get_arrow_placement_by_name(RunTime *rt, const char *name)
+int get_arrow_placement_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->arrow_placement_dict, name, &retval);
+    dict_get_key_by_name(grace->arrow_placement_dict, name, &retval);
     
     return retval;
 }
 
-char *arcclosure_type_name(RunTime *rt, int it)
+char *arcclosure_type_name(Grace *grace, int it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->arcclosure_type_dict, it, &s);
+    dict_get_name_by_key(grace->arcclosure_type_dict, it, &s);
     
     return s;
 }
 
-int get_arcclosure_type_by_name(RunTime *rt, const char *name)
+int get_arcclosure_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->arcclosure_type_dict, name, &retval);
+    dict_get_key_by_name(grace->arcclosure_type_dict, name, &retval);
     
     return retval;
 }
 
-char *format_type_name(RunTime *rt, FormatType it)
+char *format_type_name(Grace *grace, FormatType it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->format_type_dict, it, &s);
+    dict_get_name_by_key(grace->format_type_dict, it, &s);
     
     return s;
 }
 
-FormatType get_format_type_by_name(RunTime *rt, const char *name)
+FormatType get_format_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->format_type_dict, name, &retval);
+    dict_get_key_by_name(grace->format_type_dict, name, &retval);
     
     return retval;
 }
 
-char *format_type_descr(RunTime *rt, FormatType it)
+char *format_type_descr(Grace *grace, FormatType it)
 {
     char *s;
     
-    dict_get_descr_by_key(rt->format_type_dict, it, &s);
+    dict_get_descr_by_key(grace->format_type_dict, it, &s);
     
     return s;
 }
 
-char *frame_type_name(RunTime *rt, FrameType it)
+char *frame_type_name(Grace *grace, FrameType it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->frame_type_dict, it, &s);
+    dict_get_name_by_key(grace->frame_type_dict, it, &s);
     
     return s;
 }
 
-FrameType get_frame_type_by_name(RunTime *rt, const char *name)
+FrameType get_frame_type_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->frame_type_dict, name, &retval);
+    dict_get_key_by_name(grace->frame_type_dict, name, &retval);
     
     return retval;
 }
 
-char *frame_type_descr(RunTime *rt, FrameType it)
+char *frame_type_descr(Grace *grace, FrameType it)
 {
     char *s;
     
-    dict_get_descr_by_key(rt->frame_type_dict, it, &s);
+    dict_get_descr_by_key(grace->frame_type_dict, it, &s);
     
     return s;
 }
 
-char *dataset_col_name(RunTime *rt, DataColumn it)
+char *dataset_col_name(Grace *grace, DataColumn it)
 {
     char *s;
     
-    dict_get_name_by_key(rt->dataset_col_dict, it, &s);
+    dict_get_name_by_key(grace->dataset_col_dict, it, &s);
     
     return s;
 }
 
-DataColumn get_dataset_col_by_name(RunTime *rt, const char *name)
+DataColumn get_dataset_col_by_name(Grace *grace, const char *name)
 {
     int retval;
     
-    dict_get_key_by_name(rt->dataset_col_dict, name, &retval);
+    dict_get_key_by_name(grace->dataset_col_dict, name, &retval);
     
     return retval;
 }

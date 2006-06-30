@@ -1,5 +1,5 @@
 Make.dep
-buildinfo.h pars.c xml_in.c
+buildinfo.h pars.c
 xmgrace buildinfo
 *.agr *.xgr *.dat *.par
 *.gmf *.ps *.eps *.pdf *.png *.mif *.svg *.jpg

@@ -159,8 +159,8 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
         break;
     case QFlavorGraph:
         if (ct->include_graphs) {
-            Grace *grace = grace_from_quark(q);
-            Quark *cg = graph_get_current(grace->project);
+            GraceApp *gapp = gapp_from_quark(q);
+            Quark *cg = graph_get_current(gapp->project);
             if (cg == q && graph_get_viewport(q, &v) == RETURN_SUCCESS) {
                 VPoint vp;
                 GLocator *locator;
@@ -441,10 +441,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     int x, y;                /* pointer coordinates */
     VPoint vp;
     KeySym keybuf;
-    Grace *grace = (Grace *) data;
-    Quark *cg = graph_get_current(grace->project);
-    X11Stuff *xstuff = grace->gui->xstuff;
-    Widget drawing_window = grace->gui->mwui->drawing_window;
+    GraceApp *gapp = (GraceApp *) data;
+    Quark *cg = graph_get_current(gapp->project);
+    X11Stuff *xstuff = gapp->gui->xstuff;
+    Widget drawing_window = gapp->gui->mwui->drawing_window;
     
     XMotionEvent *xme;
     XButtonEvent *xbe;
@@ -467,8 +467,8 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     switch (event->type) {
     case MotionNotify:
 	xme = (XMotionEvent *) event;
-	if (grace->gui->crosshair_cursor) {
-            crosshair_motion(grace->gui, x, y);
+	if (gapp->gui->crosshair_cursor) {
+            crosshair_motion(gapp->gui, x, y);
         }
 
         x11_dev2VPoint(x, y, &vp);
@@ -476,32 +476,32 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 	if (xstuff->collect_points && xstuff->npoints) {
             switch (xstuff->sel_type) {
             case SELECTION_TYPE_RECT:
-                select_region(grace->gui,
+                select_region(gapp->gui,
                     x, y, last_b1down_x, last_b1down_y, TRUE);
                 break;
             case SELECTION_TYPE_VERT:
-                select_vregion(grace->gui, x, last_b1down_x, TRUE);
+                select_vregion(gapp->gui, x, last_b1down_x, TRUE);
                 break;
             case SELECTION_TYPE_HORZ:
-                select_hregion(grace->gui, y, last_b1down_y, TRUE);
+                select_hregion(gapp->gui, y, last_b1down_y, TRUE);
                 break;
             }
         } else
         if (xme->state & Button1Mask) {
             if (xme->state & ControlMask) {
                 if (on_focus) {
-                    resize_region(grace->gui, xstuff->f_v, on_focus,
+                    resize_region(gapp->gui, xstuff->f_v, on_focus,
                         x - last_b1down_x, y - last_b1down_y, TRUE);
                 } else
                 if (ct.found) {
-                    slide_region(grace->gui, ct.bbox,
+                    slide_region(gapp->gui, ct.bbox,
                         x - last_b1down_x, y - last_b1down_y, TRUE);
                 }
             } else {
                 scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
             }
         } else {
-            if (grace->gui->focus_policy == FOCUS_FOLLOWS) {
+            if (gapp->gui->focus_policy == FOCUS_FOLLOWS) {
                 cg = next_graph_containing(cg, &vp);
             }
             
@@ -525,9 +525,9 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                     on_focus = 0;
                 }
                 if (on_focus) {
-                    set_cursor(grace->gui, 4);
+                    set_cursor(gapp->gui, 4);
                 } else {
-                    set_cursor(grace->gui, -1);
+                    set_cursor(gapp->gui, -1);
                 }
             }
         }
@@ -560,11 +560,11 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                     ct.vp = vp;
                     ct.include_graphs = FALSE;
                     if (on_focus) {
-                        resize_region(grace->gui, xstuff->f_v, on_focus,
+                        resize_region(gapp->gui, xstuff->f_v, on_focus,
                             0, 0, FALSE);
                     } else
-                    if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
-                        slide_region(grace->gui, ct.bbox, 0, 0, FALSE);
+                    if (find_target(gapp->project, &ct) == RETURN_SUCCESS) {
+                        slide_region(gapp->gui, ct.bbox, 0, 0, FALSE);
                     }
                 } else {
                     if (xstuff->collect_points) {
@@ -575,9 +575,9 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         xstuff->xps =
                             xrealloc(xstuff->xps, xstuff->npoints*sizeof(XPoint));
                             xstuff->xps[xstuff->npoints - 1] = xp;
-                        select_region(grace->gui, x, y, x, y, FALSE);
+                        select_region(gapp->gui, x, y, x, y, FALSE);
                     } else
-                    if (grace->gui->focus_policy == FOCUS_CLICK) {
+                    if (gapp->gui->focus_policy == FOCUS_CLICK) {
                         cg = next_graph_containing(cg, &vp);
                     }
                     update_locator_lab(cg, &vp);
@@ -585,8 +585,8 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             } else {
                 ct.vp = vp;
                 ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
-                if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
-                    raise_explorer(grace->gui, ct.q);
+                if (find_target(gapp->project, &ct) == RETURN_SUCCESS) {
+                    raise_explorer(gapp->gui, ct.q);
                     ct.found = FALSE;
                 }
             }
@@ -595,7 +595,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             last_b1down_y = y;
             
             if (!xstuff->collect_points) {
-                set_cursor(grace->gui, 5);
+                set_cursor(gapp->gui, 5);
             }
             
             break;
@@ -614,12 +614,12 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             } else {
                 ct.vp = vp;
                 ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
-                if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
+                if (find_target(gapp->project, &ct) == RETURN_SUCCESS) {
                     char *s;
                     ct.found = FALSE;
                     
                     if (!popup) {
-                        popup = XmCreatePopupMenu(grace->gui->xstuff->canvas,
+                        popup = XmCreatePopupMenu(gapp->gui->xstuff->canvas,
                             "popupMenu", NULL, 0);
                         
                         poplab = CreateMenuLabel(popup, "");
@@ -738,7 +738,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 x11_dev2VPoint(x, y, &vp);
                 if (on_focus) {
                     view v;
-                    Quark *fr = get_parent_frame(graph_get_current(grace->project));
+                    Quark *fr = get_parent_frame(graph_get_current(gapp->project));
                     frame_get_view(fr, &v);
                     switch (on_focus) {
                     case 1:
@@ -761,16 +761,16 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                     frame_set_view(fr, &v);
                 } else
                 if (ct.found) {
-                    slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
+                    slide_region(gapp->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
 
                     move_target(&ct, &vp);
                 }
                 ct.found = FALSE;
 
-                snapshot_and_update(grace->project, TRUE);
+                snapshot_and_update(gapp->project, TRUE);
             }
             if (!xstuff->collect_points) {
-                set_cursor(grace->gui, -1);
+                set_cursor(gapp->gui, -1);
             }
             break;
         }
@@ -784,17 +784,17 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             break;
         case XK_KP_Add: /* "Grey" plus */
             if (xke->state & ControlMask) {
-                page_zoom_inout(grace, +1);
+                page_zoom_inout(gapp, +1);
             }
             break;
         case XK_KP_Subtract: /* "Grey" minus */
             if (xke->state & ControlMask) {
-                page_zoom_inout(grace, -1);
+                page_zoom_inout(gapp, -1);
             }
             break;
         case XK_1:
             if (xke->state & ControlMask) {
-                page_zoom_inout(grace, 0);
+                page_zoom_inout(gapp, 0);
             }
             break;
         }
@@ -804,10 +804,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         keybuf = XLookupKeysym(xke, 0);
         if (xke->state & ControlMask) {
             if (on_focus) {
-                set_cursor(grace->gui, -1);
+                set_cursor(gapp->gui, -1);
             } else
             if (ct.found) {
-                slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
+                slide_region(gapp->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
                 ct.found = FALSE;
             }
         }
@@ -820,20 +820,20 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         /* clear selection */
         switch (xstuff->sel_type) {
         case SELECTION_TYPE_RECT:
-            select_region(grace->gui,
+            select_region(gapp->gui,
                 x, y, last_b1down_x, last_b1down_y, FALSE);
             break;
         case SELECTION_TYPE_VERT:
-            select_vregion(grace->gui, x, last_b1down_x, FALSE);
+            select_vregion(gapp->gui, x, last_b1down_x, FALSE);
             break;
         case SELECTION_TYPE_HORZ:
-            select_hregion(grace->gui, y, last_b1down_y, FALSE);
+            select_hregion(gapp->gui, y, last_b1down_y, FALSE);
             break;
         }
         /* abort action */
         xstuff->npoints = 0;
         xstuff->collect_points = FALSE;
-        set_cursor(grace->gui, -1);
+        set_cursor(gapp->gui, -1);
         set_left_footer(NULL);
     } else
     if (undo_point) {
@@ -859,9 +859,9 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         xstuff->npoints_requested = 0;
         xstuff->collect_points = FALSE;
         xstuff->npoints = 0;
-        set_cursor(grace->gui, -1);
+        set_cursor(gapp->gui, -1);
 
-        snapshot_and_update(grace->project, TRUE);
+        snapshot_and_update(gapp->project, TRUE);
     }
 }
 
@@ -972,8 +972,8 @@ void switch_current_graph(Quark *gr)
 {
     
     if (quark_is_active(gr)) {
-        Grace *grace = grace_from_quark(gr);
-        Quark *cg = graph_get_current(grace->project);
+        GraceApp *gapp = gapp_from_quark(gr);
+        Quark *cg = graph_get_current(gapp->project);
         
         select_graph(gr);
         draw_focus(cg);
@@ -986,9 +986,9 @@ void switch_current_graph(Quark *gr)
 
 static int zoom_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
-    Grace *grace = (Grace *) data;
+    GraceApp *gapp = (GraceApp *) data;
     world w;
-    Quark *cg = graph_get_current(grace->project);
+    Quark *cg = graph_get_current(gapp->project);
     WPoint wp;
     
     if (!cg || npoints != 2) {
@@ -1014,9 +1014,9 @@ static int zoom_sink(unsigned int npoints, const VPoint *vps, void *data)
 
 static int zoomx_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
-    Grace *grace = (Grace *) data;
+    GraceApp *gapp = (GraceApp *) data;
     world w;
-    Quark *cg = graph_get_current(grace->project);
+    Quark *cg = graph_get_current(gapp->project);
     WPoint wp;
     
     if (!cg || npoints != 2) {
@@ -1039,9 +1039,9 @@ static int zoomx_sink(unsigned int npoints, const VPoint *vps, void *data)
 
 static int zoomy_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
-    Grace *grace = (Grace *) data;
+    GraceApp *gapp = (GraceApp *) data;
     world w;
-    Quark *cg = graph_get_current(grace->project);
+    Quark *cg = graph_get_current(gapp->project);
     WPoint wp;
     
     if (!cg || npoints != 2) {
@@ -1064,8 +1064,8 @@ static int zoomy_sink(unsigned int npoints, const VPoint *vps, void *data)
 
 static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
-    Grace *grace = (Grace *) data;
-    Quark *cg = graph_get_current(grace->project), *q;
+    GraceApp *gapp = (GraceApp *) data;
+    Quark *cg = graph_get_current(gapp->project), *q;
     WPoint wp;
     APoint ap;
 
@@ -1079,12 +1079,12 @@ static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
         ap.x = wp.x; ap.y = wp.y;
         atext_set_ap(q, &ap);
     } else {
-        q = atext_new(grace->project);
+        q = atext_new(gapp->project);
         ap.x = vps[0].x; ap.y = vps[0].y;
         atext_set_ap(q, &ap);
     }
     
-    raise_explorer(grace->gui, q);
+    raise_explorer(gapp->gui, q);
 
     return RETURN_SUCCESS;
 }
@@ -1109,31 +1109,31 @@ void set_action(GUI *gui, unsigned int npoints, int seltype,
 /* canvas_actions */
 void set_zoom_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    set_cursor(grace->gui, 0);
-    set_action(grace->gui, 2, SELECTION_TYPE_RECT, zoom_sink, grace);
+    GraceApp *gapp = (GraceApp *) data;
+    set_cursor(gapp->gui, 0);
+    set_action(gapp->gui, 2, SELECTION_TYPE_RECT, zoom_sink, gapp);
 }
 
 void set_zoomx_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    set_cursor(grace->gui, 0);
-    set_action(grace->gui, 2, SELECTION_TYPE_VERT, zoomx_sink, grace);
+    GraceApp *gapp = (GraceApp *) data;
+    set_cursor(gapp->gui, 0);
+    set_action(gapp->gui, 2, SELECTION_TYPE_VERT, zoomx_sink, gapp);
 }
 
 void set_zoomy_cb(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    set_cursor(grace->gui, 0);
-    set_action(grace->gui, 2, SELECTION_TYPE_HORZ, zoomy_sink, grace);
+    GraceApp *gapp = (GraceApp *) data;
+    set_cursor(gapp->gui, 0);
+    set_action(gapp->gui, 2, SELECTION_TYPE_HORZ, zoomy_sink, gapp);
 }
 
 
 void atext_add_proc(Widget but, void *data)
 {
-    Grace *grace = (Grace *) data;
-    set_cursor(grace->gui, 2);
-    set_action(grace->gui, 1, SELECTION_TYPE_NONE, atext_sink, grace);
+    GraceApp *gapp = (GraceApp *) data;
+    set_cursor(gapp->gui, 2);
+    set_action(gapp->gui, 1, SELECTION_TYPE_NONE, atext_sink, gapp);
     set_left_footer("Select an anchor point");
 }
 

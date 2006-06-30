@@ -72,21 +72,21 @@ void HelpCB(Widget w, void *data)
         if (pa) {
             char *base = copy_string(NULL, p);
             base[pa - p] = '\0';
-            URL = copy_string(NULL, grace_path(grace, base));
+            URL = copy_string(NULL, gapp_path(gapp, base));
             URL = concat_strings(URL, pa);
             xfree(base);
         } else {
-            URL = copy_string(NULL, grace_path(grace, p));
+            URL = copy_string(NULL, gapp_path(gapp, p));
         }
 
         remote = FALSE;
     }
     
-    if (remote || grace->gui->force_external_viewer) {
+    if (remote || gapp->gui->force_external_viewer) {
         char *help_viewer, *command;
         int i, j, len, urllen, comlen;
         
-        help_viewer = get_help_viewer(grace);
+        help_viewer = get_help_viewer(gapp);
         len = strlen(help_viewer);
         urllen = strlen(URL);
         for (i = 0, comlen = len; i < len - 1; i++) {
@@ -143,9 +143,6 @@ void create_about_grtool(Widget but, void *data)
 	fr = CreateFrame(about_panel, NULL);
         rc = CreateVContainer(fr);
 	CreateLabel(rc, bi_version_string());
-#ifdef DEBUG
-	CreateLabel(rc, "Debugging is enabled");
-#endif
 
 	fr = CreateFrame(about_panel, "Legal stuff");
         rc = CreateVContainer(fr);
@@ -231,7 +228,7 @@ static char *loadFile(char *URL)
     char *content;
 
     /* open the given file */
-    if ((file = grace_openr(grace, URL, SOURCE_DISK)) == NULL) {
+    if ((file = gapp_openr(gapp, URL, SOURCE_DISK)) == NULL) {
         return NULL;
     }
 
@@ -251,7 +248,7 @@ static char *loadFile(char *URL)
         errmsg("Warning: did not read entire file!");
     }
 
-    grace_close(file);
+    gapp_close(file);
 
     /* sanity */
     content[size] = '\0';

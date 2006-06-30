@@ -36,7 +36,6 @@
 #include <stdlib.h>
 
 #include "core_utils.h"
-#include "dicts.h"
 #include "explorer.h"
 #include "globals.h"
 
@@ -54,7 +53,7 @@ static void setapp_data_proc(Widget but, void *data)
 {
     ExplorerUI *eui = (ExplorerUI *eui) data;
     
-    int c = 0, bg = getbgcolor(grace->rt->canvas);
+    int c = 0, bg = getbgcolor(gapp->rt->canvas);
     
     for(i = 0; i < cd; i++) {
         pset = selset[i];
@@ -73,9 +72,9 @@ static void setapp_data_proc(Widget but, void *data)
         case SETAPP_ALL_COLORS:
             /* FIXME!!!
             while (c == bg ||
-                   get_colortype(grace->rt->canvas, c) != COLOR_MAIN) {
+                   get_colortype(gapp->rt->canvas, c) != COLOR_MAIN) {
                 c++;
-                c %= number_of_colors(grace->rt->canvas);
+                c %= number_of_colors(gapp->rt->canvas);
             }
             */
             setcolors(pset, c);
@@ -88,7 +87,7 @@ static void setapp_data_proc(Widget but, void *data)
             p->line.line.width = ((i % (2*((int)MAX_LINEWIDTH)- 1))+ 1)/2.0;
             break;
         case SETAPP_ALL_LINES:
-            p->line.line.style = (i % (number_of_linestyles(grace->rt->canvas)- 1))
+            p->line.line.style = (i % (number_of_linestyles(gapp->rt->canvas)- 1))
                 + 1;
             break;
         case SETAPP_ALL_BW:
@@ -98,7 +97,7 @@ static void setapp_data_proc(Widget but, void *data)
     }
 
     UpdateSymbols(cset);
-    xdrawgraph(grace->project, FALSE);
+    xdrawgraph(gapp->project, FALSE);
 }
 #endif
 
@@ -128,7 +127,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     Widget tab, fr, rc, rc1, rc2;
     OptionItem blockitem = {COL_NONE, "None"};
     unsigned int i;
-    RunTime *rt = grace->rt;
+    Grace *grace = gapp->grace;
 
     ui = xmalloc(sizeof(SetUI));
 
@@ -170,7 +169,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     for (i = 0; i < MAX_SET_COLS; i++) {
         char buf[32];
-        sprintf(buf, "%s from column:", dataset_col_name(rt, i));
+        sprintf(buf, "%s from column:", dataset_col_name(grace, i));
         ui->cols[i] = CreateOptionChoice(rc, buf, 0, 1, &blockitem);
         AddOptionChoiceCB(ui->cols[i], oc_explorer_cb, eui);
     }

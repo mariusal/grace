@@ -195,7 +195,7 @@ static void EnterCB(Widget w, XtPointer client_data, XtPointer call_data)
     fonttool_ui *ui = (fonttool_ui *) client_data;
     XbaeMatrixEnterCellCallbackStruct *cbs =
         (XbaeMatrixEnterCellCallbackStruct *) call_data;
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     char s[7];
     unsigned char c;
     
@@ -276,7 +276,7 @@ static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data)
         
         buf = copy_string(NULL, "\\f{");
         buf = concat_strings(buf,
-            get_font_name_by_id(grace->project, ui->font_id));
+            project_get_font_name_by_id(gapp->project, ui->font_id));
         buf = concat_strings(buf, "}");
         buf = concat_strings(buf, text->ptr);
         XtFree(text->ptr);

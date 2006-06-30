@@ -50,23 +50,10 @@
 #include "globals.h"
 #include "utils.h"
 #include "files.h"
-#include "dicts.h"
 #include "protos.h"
 
-static void rereadConfig(Grace *grace);
+static void rereadConfig(GraceApp *gapp);
 static RETSIGTYPE actOnSignal(int signo);
-
-int isoneof(int c, char *s)
-{
-    while (*s) {
-	if (c == *s) {
-	    return 1;
-	} else {
-	    s++;
-	}
-    }
-    return 0;
-}
 
 int argmatch(char *s1, char *s2, int atleast)
 {
@@ -167,13 +154,13 @@ double mytrunc(double a)
 }
 
 /*
- * exit grace
+ * exit gapp
  */
-void bailout(Grace *grace)
+void bailout(GraceApp *gapp)
 {
-    if ((grace->project && !quark_dirtystate_get(grace->project)) ||
+    if ((gapp->project && !quark_dirtystate_get(gapp->project)) ||
         yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
-        grace_free(grace);
+        gapp_free(gapp);
         exit(0);
     }
 }
@@ -181,7 +168,7 @@ void bailout(Grace *grace)
 /*
  * Reread config (TODO)
  */
-static void rereadConfig(Grace *grace)
+static void rereadConfig(GraceApp *gapp)
 {
 }
 
@@ -200,7 +187,7 @@ static void please_report_the_bug(void)
  * Warn about a possible bug displaying the passed message, try to save
  * any unsaved work and abort
  */
-void emergency_exit(Grace *grace, int is_my_bug, char *msg)
+void emergency_exit(GraceApp *gapp, int is_my_bug, char *msg)
 {
 /*
  *  Since we got so far, memory is probably corrupted so it's better to use
@@ -208,26 +195,26 @@ void emergency_exit(Grace *grace, int is_my_bug, char *msg)
  */
     static char buf[GR_MAXPATHLEN];
     
-    if (grace->rt->emergency_save != FALSE) {
+    if (gapp->rt->emergency_save != FALSE) {
         /* don't mind signals anymore: we're in emergency save mode already */
-        grace->rt->interrupts++;
-        if (grace->rt->interrupts > 10) {
+        gapp->rt->interrupts++;
+        if (gapp->rt->interrupts > 10) {
             fprintf(stderr, "oh, no luck :-(\n");
             please_report_the_bug();
             abort();
         }
         return;
     } else {
-        grace->rt->emergency_save = TRUE;
-        grace->rt->interrupts = 0;
+        gapp->rt->emergency_save = TRUE;
+        gapp->rt->interrupts = 0;
         fprintf(stderr, "\a\nOops! %s\n", msg);
-        if (quark_dirtystate_get(grace->project)) {
-            strcpy(buf, project_get_docname(grace->project));
+        if (quark_dirtystate_get(gapp->project)) {
+            strcpy(buf, project_get_docname(gapp->project));
             strcat(buf, "$");
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
             fflush(stderr);
-            grace->gui->noask = TRUE;
-            if (save_project(grace->project, buf) == RETURN_SUCCESS) {
+            gapp->gui->noask = TRUE;
+            if (save_project(gapp->project, buf) == RETURN_SUCCESS) {
                 fprintf(stderr, "ok!\n");
             } else {
                 fprintf(stderr, "oh, no luck :-(\n");
@@ -253,7 +240,7 @@ static RETSIGTYPE actOnSignal(int signo)
     switch (signo) {
 #ifdef SIGHUP
     case SIGHUP:
-    	rereadConfig(grace);
+    	rereadConfig(gapp);
     	break;
 #endif
 #ifdef SIGINT
@@ -265,7 +252,7 @@ static RETSIGTYPE actOnSignal(int signo)
 #ifdef SIGTERM
     case SIGTERM:
 #endif
-        bailout(grace);
+        bailout(gapp);
         break;
 #ifdef SIGILL
     case SIGILL:
@@ -288,7 +275,7 @@ static RETSIGTYPE actOnSignal(int signo)
         signame = "SIGSYS";
 #endif
         sprintf(buf, "Got fatal signal %s!", signame);
-        emergency_exit(grace, TRUE, buf);
+        emergency_exit(gapp, TRUE, buf);
         break;
     default:
         /* ignore the rest */
@@ -332,56 +319,70 @@ void installSignal(void){
 #endif
 }
 
-char *get_grace_home(const Grace *grace)
+char *get_gapp_home(const GraceApp *gapp)
 {
-    return grace->rt->grace_home;
+    return gapp->grace->grace_home;
 }
 
-int get_print_dest(const Grace *grace)
+int get_print_dest(const GraceApp *gapp)
 {
-    return grace->rt->print_dest;
+    return gapp->rt->print_dest;
 }
 
-void set_print_dest(Grace *grace, int dest)
+void set_print_dest(GraceApp *gapp, int dest)
 {
-    if (dest >= 0 && dest < grace->rt->num_print_dests) {
-        grace->rt->print_dest = dest;
+    if (dest >= 0 && dest < gapp->rt->num_print_dests) {
+        gapp->rt->print_dest = dest;
     }
 }
 
-char *get_print_cmd(const Grace *grace)
+char *get_print_cmd(const GraceApp *gapp)
 {
-    return grace->rt->print_cmd;
+    return gapp->rt->print_cmd;
 }
 
-void set_print_cmd(Grace *grace, const char *cmd)
+void set_print_cmd(GraceApp *gapp, const char *cmd)
 {
-    grace->rt->print_cmd = copy_string(grace->rt->print_cmd, cmd);
+    gapp->rt->print_cmd = copy_string(gapp->rt->print_cmd, cmd);
 }
 
-char *get_editor(const Grace *grace)
+char *get_editor(const GraceApp *gapp)
 {
-    return grace->rt->grace_editor;
+    return gapp->rt->gapp_editor;
 }
 
-void set_editor(Grace *grace, const char *cmd)
+void set_editor(GraceApp *gapp, const char *cmd)
 {
-    grace->rt->grace_editor = copy_string(grace->rt->grace_editor, cmd);
+    gapp->rt->gapp_editor = copy_string(gapp->rt->gapp_editor, cmd);
 }
 
-char *get_help_viewer(const Grace *grace)
+char *get_help_viewer(const GraceApp *gapp)
 {
-    return grace->rt->help_viewer;
+    return gapp->rt->help_viewer;
 }
 
-void set_help_viewer(Grace *grace, const char *dir)
+void set_help_viewer(GraceApp *gapp, const char *dir)
 {
-    grace->rt->help_viewer = copy_string(grace->rt->help_viewer, dir);
+    gapp->rt->help_viewer = copy_string(gapp->rt->help_viewer, dir);
 }
 
-char *get_docbname(const Quark *q)
+
+static Dates_format date_hint = FMT_nohint;
+
+/*
+ * store the user's preferrence (it is only an hint)
+ */
+void set_date_hint(Dates_format preferred)
 {
-    return QIDSTR(q);
+    date_hint = preferred;
+}
+
+/*
+ * get the user's preferrence (it is only an hint)
+ */
+Dates_format get_date_hint(void)
+{
+    return date_hint;
 }
 
 
@@ -390,7 +391,7 @@ void errmsg(const char *buf)
 #ifdef NONE_GUI
     fprintf(stderr, "%s\n", buf);
 #else
-    if (grace && grace->gui && grace->gui->inwin) {
+    if (gapp && gapp->gui && gapp->gui->inwin) {
         errwin(buf);
     } else {
         fprintf(stderr, "%s\n", buf);
@@ -405,13 +406,13 @@ int yesnoterm(char *msg)
 
 int yesno(char *msg, char *s1, char *s2, char *help_anchor)
 {
-    if (grace->gui->noask) {
+    if (gapp->gui->noask) {
 	return TRUE;
     }
 #ifdef NONE_GUI
     return (yesnoterm(msg));
 #else
-    if (grace->gui->inwin) {
+    if (gapp->gui->inwin) {
         return (yesnowin(msg, s1, s2, help_anchor));
     } else {
         return (yesnoterm(msg));
@@ -424,15 +425,15 @@ void stufftext(char *s)
 #ifdef NONE_GUI
     printf(s);
 #else
-    if (grace->gui->inwin) {
+    if (gapp->gui->inwin) {
         stufftextwin(s);
     } else {
         printf(s);
     }
 #endif
     /* log results to file */
-    if (grace->rt->resfp != NULL) {
-	fprintf(grace->rt->resfp, s);
+    if (gapp->rt->resfp != NULL) {
+	fprintf(gapp->rt->resfp, s);
     }
 }
 
@@ -475,18 +476,18 @@ char *mybasename(const char *s)
     return basename;
 }
 
-int set_workingdir(Grace *grace, const char *wd)
+int set_workingdir(GraceApp *gapp, const char *wd)
 {
     char buf[GR_MAXPATHLEN];
     
     strncpy(buf, wd, GR_MAXPATHLEN - 1);
     if (buf[0] == '~') {
-        expand_tilde(grace, buf);
+        expand_tilde(gapp, buf);
     }
     if (chdir(buf) >= 0) {
-        grace->rt->workingdir = copy_string(grace->rt->workingdir, buf);
-        if (grace->rt->workingdir[strlen(grace->rt->workingdir) - 1] != '/') {
-            grace->rt->workingdir = concat_strings(grace->rt->workingdir, "/");
+        gapp->rt->workingdir = copy_string(gapp->rt->workingdir, buf);
+        if (gapp->rt->workingdir[strlen(gapp->rt->workingdir) - 1] != '/') {
+            gapp->rt->workingdir = concat_strings(gapp->rt->workingdir, "/");
         }
 	return RETURN_SUCCESS;
     } else {
@@ -494,36 +495,36 @@ int set_workingdir(Grace *grace, const char *wd)
     }
 }
 
-char *get_workingdir(const Grace *grace)
+char *get_workingdir(const GraceApp *gapp)
 {
-    return grace->rt->workingdir;
+    return gapp->rt->workingdir;
 }
 
-char *get_username(const Grace *grace)
+char *get_username(const GraceApp *gapp)
 {
-    return grace->rt->username;
+    return gapp->grace->username;
 }
 
-char *get_userhome(const Grace *grace)
+char *get_userhome(const GraceApp *gapp)
 {
-    return grace->rt->userhome;
+    return gapp->grace->userhome;
 }
 
 /* TODO this needs some work */
-void expand_tilde(const Grace *grace, char *buf)
+void expand_tilde(const GraceApp *gapp, char *buf)
 {
     char buf2[GR_MAXPATHLEN];
 
     if (buf[0] == '~') {
 	if (strlen(buf) == 1) {
-            strcpy(buf, get_userhome(grace));
+            strcpy(buf, get_userhome(gapp));
 	} else if (buf[1] == '/') {
             if (strlen(buf) > 2) {
-                strcpy(buf2, get_userhome(grace));
+                strcpy(buf2, get_userhome(gapp));
 	        strcat(buf2, buf + 1);
 	        strcpy(buf, buf2);
             } else {
-                strcpy(buf, get_userhome(grace));
+                strcpy(buf, get_userhome(gapp));
             }
 	} else {
 	    char tmp[128], *pp = tmp, *q = buf + 1;
@@ -564,21 +565,9 @@ void msleep_wrap(unsigned int msec)
     select(0, NULL, NULL, NULL, &timeout);    
 }
 
-#ifdef DEBUG
-void set_debuglevel(Grace *grace, int level)
-{
-    grace->rt->debuglevel = level;
-}
-
-int get_debuglevel(Grace *grace)
-{
-    return grace->rt->debuglevel;
-}
-#endif
-
 char *q_labeling(Quark *q)
 {
-    RunTime *rt = rt_from_quark(q);
+    Grace *grace = grace_from_quark(q);
     char *buf;
     tickmarks *t;
     DObject *o;
@@ -613,13 +602,13 @@ char *q_labeling(Quark *q)
         sprintf(buf, "Graph \"%s%s\" (type: %s)",
             QIDSTR(q),
             quark_dirtystate_get(q) ? "*":"",
-            graph_types(rt, graph_get_type(q)));
+            graph_types(grace, graph_get_type(q)));
 
         break;
     case QFlavorSet:
         sprintf(buf, "Set \"%s%s\" (%s)",
             QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
-            set_types(rt, set_get_type(q)));
+            set_types(grace, set_get_type(q)));
 
         break;
     case QFlavorAGrid:
@@ -641,7 +630,7 @@ char *q_labeling(Quark *q)
         o = object_get_data(q);
 
         sprintf(buf, "%s \"%s%s\"",
-            object_type_descr(rt, o->type),
+            object_type_descr(grace, o->type),
             QIDSTR(q), quark_dirtystate_get(q) ? "*":"");
         
         break;

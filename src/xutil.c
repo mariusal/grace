@@ -104,23 +104,23 @@ long x11_allocate_color(GUI *gui, const RGB *rgb)
 
 void set_wait_cursor(void)
 {
-    if (grace->gui->xstuff->disp == NULL) {
+    if (gapp->gui->xstuff->disp == NULL) {
         return;
     }
     
-    DefineDialogCursor(grace->gui->xstuff->wait_cursor);
+    DefineDialogCursor(gapp->gui->xstuff->wait_cursor);
 }
 
 void unset_wait_cursor(void)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     if (xstuff->disp == NULL) {
         return;
     }
     
     UndefineDialogCursor();
     if (xstuff->cur_cursor >= 0) {
-        set_cursor(grace->gui, xstuff->cur_cursor);
+        set_cursor(gapp->gui, xstuff->cur_cursor);
     }
 }
 
@@ -192,7 +192,8 @@ void update_app_title(const Quark *pr)
     
     dstate = quark_dirtystate_get(pr);
     ts = mybasename(project_get_docname(pr));
-    if (ts_save == NULL || strcmp(ts_save, ts) != 0 || dstate != dstate_save) {
+    if (ts_save == NULL || !strings_are_equal(ts_save, ts) ||
+        dstate != dstate_save) {
         char *buf1, *buf2;
         ts_save = copy_string(ts_save, ts);
         dstate_save = dstate;
@@ -209,18 +210,18 @@ void update_app_title(const Quark *pr)
     }
 }
 
-void page_zoom_inout(Grace *grace, int inout)
+void page_zoom_inout(GraceApp *gapp, int inout)
 {
-    if (!gui_is_page_free(grace->gui)) {
+    if (!gui_is_page_free(gapp->gui)) {
         if (inout > 0) {
-            grace->gui->zoom *= ZOOM_STEP;
+            gapp->gui->zoom *= ZOOM_STEP;
         } else
         if (inout < 0) {
-            grace->gui->zoom /= ZOOM_STEP;
+            gapp->gui->zoom /= ZOOM_STEP;
         } else {
-            grace->gui->zoom = 1.0;
+            gapp->gui->zoom = 1.0;
         }
-        xdrawgraph(grace->project);
+        xdrawgraph(gapp->project);
         set_left_footer(NULL);
     }
 }
@@ -449,16 +450,16 @@ void crosshair_motion(GUI *gui, int x, int y)
     cursor_oldy = y;
 }
 
-void sync_canvas_size(Grace *grace)
+void sync_canvas_size(GraceApp *gapp)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     unsigned int w, h;
 
-    Device_entry *d = get_device_props(grace->rt->canvas, grace->rt->tdevice);
+    Device_entry *d = get_device_props(gapp->grace->canvas, gapp->rt->tdevice);
 
     GetDimensions(xstuff->canvas, &w, &h);
 
-    set_page_dimensions(grace, w*72.0/d->pg.dpi, h*72.0/d->pg.dpi, TRUE);
+    set_page_dimensions(gapp, w*72.0/d->pg.dpi, h*72.0/d->pg.dpi, TRUE);
 }
 
 
@@ -467,18 +468,12 @@ void sync_canvas_size(Grace *grace)
  */
 void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Grace *grace = (Grace *) client_data;
+    GraceApp *gapp = (GraceApp *) client_data;
     static int inc = FALSE;
     XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
 
-#if defined(DEBUG)
-    if (get_debuglevel(grace) == 7) {
-	printf("Call to expose_resize(); reason == %d\n", cbs->reason);
-    }
-#endif
-    
     /* HACK */
-    if (!grace->gui->inwin) {
+    if (!gapp->gui->inwin) {
         return;
     }
     
@@ -486,7 +481,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 	inc = TRUE;
         
         update_all();
-        xdrawgraph(grace->project);
+        xdrawgraph(gapp->project);
 
         return;
     }
@@ -498,10 +493,10 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
             cbs->event->xexpose.width,
             cbs->event->xexpose.height);
     } else {
-        if (gui_is_page_free(grace->gui)) {
-            sync_canvas_size(grace);
+        if (gui_is_page_free(gapp->gui)) {
+            sync_canvas_size(gapp);
             update_all();
-            xdrawgraph(grace->project);
+            xdrawgraph(gapp->project);
         }
     }
 }
@@ -542,14 +537,14 @@ static void xdrawgrid(X11Stuff *xstuff)
 void xdrawgraph(const Quark *q)
 {
     Quark *project = get_parent_project(q);
-    Grace *grace = grace_from_quark(q);
+    GraceApp *gapp = gapp_from_quark(q);
     
-    if (grace && grace->gui->inwin) {
-        X11Stuff *xstuff = grace->gui->xstuff;
+    if (gapp && gapp->gui->inwin) {
+        X11Stuff *xstuff = gapp->gui->xstuff;
         Quark *gr = graph_get_current(project);
-        Device_entry *d = get_device_props(grace->rt->canvas, grace->rt->tdevice);
+        Device_entry *d = get_device_props(gapp->grace->canvas, gapp->rt->tdevice);
         Page_geometry *pg = &d->pg;
-        float dpi = grace->gui->zoom*xstuff->dpi;
+        float dpi = gapp->gui->zoom*xstuff->dpi;
         X11stream xstream;
         
         set_wait_cursor();
@@ -569,15 +564,15 @@ void xdrawgraph(const Quark *q)
         
         xstream.screen = DefaultScreenOfDisplay(xstuff->disp);
         xstream.pixmap = xstuff->bufpixmap;
-        canvas_set_prstream(grace->rt->canvas, &xstream);
+        canvas_set_prstream(gapp->grace->canvas, &xstream);
 
-        select_device(grace->rt->canvas, grace->rt->tdevice);
-	drawgraph(grace->rt->canvas, grace->rt->graal, project);
+        select_device(gapp->grace->canvas, gapp->rt->tdevice);
+	drawgraph(gapp->grace->canvas, gapp->grace->graal, project);
 
         if (quark_is_active(gr)) {
             draw_focus(gr);
         }
-        reset_crosshair(grace->gui, FALSE);
+        reset_crosshair(gapp->gui, FALSE);
         region_need_erasing = FALSE;
 
         x11_redraw(xstuff->xwin, 0, 0, xstuff->win_w, xstuff->win_h);
@@ -591,15 +586,15 @@ void xdrawgraph(const Quark *q)
 
 void x11_redraw(Window window, int x, int y, int width, int height)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
-    if (grace->gui->inwin == TRUE && xstuff->bufpixmap != (Pixmap) NULL) {
+    X11Stuff *xstuff = gapp->gui->xstuff;
+    if (gapp->gui->inwin == TRUE && xstuff->bufpixmap != (Pixmap) NULL) {
         XCopyArea(xstuff->disp, xstuff->bufpixmap, window, xstuff->gc, x, y, width, height, x, y);
     }
 }
 
 static void resize_drawables(unsigned int w, unsigned int h)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     
     if (w == 0 || h == 0) {
         return;
@@ -623,7 +618,7 @@ static void resize_drawables(unsigned int w, unsigned int h)
 
     xstuff->win_scale = MIN2(xstuff->win_w, xstuff->win_h);
     
-    if (!gui_is_page_free(grace->gui)) {
+    if (!gui_is_page_free(gapp->gui)) {
         SetDimensions(xstuff->canvas, xstuff->win_w, xstuff->win_h);
     }
 }
@@ -632,14 +627,14 @@ static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId)
 {
     set_wait_cursor();
     
-    monitor_input(grace, (Input_buffer *) ib, 1, 1);
+    monitor_input(gapp, (Input_buffer *) ib, 1, 1);
     
     unset_wait_cursor();
 }
 
 void xregister_rti(Input_buffer *ib)
 {
-    if (grace->gui->inwin && ib) {
+    if (gapp->gui->inwin && ib) {
         /* the screen has been initialized : we can register the buffer */
         ib->id = (unsigned long) XtAppAddInput(app_con,
                                                ib->fd,
@@ -651,7 +646,7 @@ void xregister_rti(Input_buffer *ib)
 
 void xunregister_rti(const Input_buffer *ib)
 {
-    if (grace->gui->inwin && ib) {
+    if (gapp->gui->inwin && ib) {
         /* the screen has been initialized : we can remove the buffer */
         XtRemoveInput((XtInputId) ib->id);
     }
@@ -662,7 +657,7 @@ void xunregister_rti(const Input_buffer *ib)
  */
 void setpointer(VPoint vp)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     short x, y;
     
     x11_VPoint2dev(&vp, &x, &y);
@@ -744,7 +739,7 @@ static int HandleXError(Display *dpy, XErrorEvent *event)
     output = concat_strings(output, buffer);
     output = concat_strings(output, ".");
     
-    emergency_exit(grace, TRUE, output);
+    emergency_exit(gapp, TRUE, output);
     xfree(output);
     
     /* return value is ignored anyway */
@@ -764,7 +759,7 @@ static int HandleXIOError(Display *d)
         sprintf(msg, "Fatal IO error on X server %s.", DisplayString(d));
     }
 
-    emergency_exit(grace, FALSE, msg);
+    emergency_exit(gapp, FALSE, msg);
     
     /* Ideally, we don't reach this anyway ... */
     return 1;
@@ -776,9 +771,9 @@ void installXErrorHandler(void)
     XSetIOErrorHandler(HandleXIOError);
 }
 
-int x11_init(Grace *grace)
+int x11_init(GraceApp *gapp)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     XGCValues gc_val;
     long mrsize;
     int max_path_limit;
@@ -793,13 +788,13 @@ int x11_init(Grace *grace)
     /* init colormap */
     xstuff->cmap = DefaultColormap(xstuff->disp, xstuff->screennumber);
     /* redefine colormap, if needed */
-    if (grace->gui->install_cmap == CMAP_INSTALL_ALWAYS) {
+    if (gapp->gui->install_cmap == CMAP_INSTALL_ALWAYS) {
         xstuff->cmap = XCopyColormapAndFree(xstuff->disp, xstuff->cmap);
-        grace->gui->private_cmap = TRUE;
+        gapp->gui->private_cmap = TRUE;
     }
     
     /* set GCs */
-    if (grace->gui->invert) {
+    if (gapp->gui->invert) {
         gc_val.function = GXinvert;
     } else {
         gc_val.function = GXxor;
@@ -816,13 +811,13 @@ int x11_init(Grace *grace)
         mrsize = XMaxRequestSize(xstuff->disp);
     }
     max_path_limit = (mrsize - 3)/2;
-    if (max_path_limit < get_max_path_limit(grace->rt->canvas)) {
+    if (max_path_limit < get_max_path_limit(gapp->grace->canvas)) {
         char buf[128];
         sprintf(buf,
             "Setting max drawing path length to %d (limited by the X server)",
             max_path_limit);
         errmsg(buf);
-        set_max_path_limit(grace->rt->canvas, max_path_limit);
+        set_max_path_limit(gapp->grace->canvas, max_path_limit);
     }
     
     xstuff->dpi = rint(MM_PER_INCH*DisplayWidth(xstuff->disp, xstuff->screennumber)/
@@ -834,13 +829,13 @@ int x11_init(Grace *grace)
 
 static int x11_convx(double x)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     return ((int) rint(xstuff->win_scale * x));
 }
 
 static int x11_convy(double y)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     return ((int) rint(xstuff->win_h - xstuff->win_scale * y));
 }
 
@@ -856,7 +851,7 @@ void x11_VPoint2dev(const VPoint *vp, short *x, short *y)
  */
 void x11_dev2VPoint(short x, short y, VPoint *vp)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     if (xstuff->win_scale == 0) {
         vp->x = (double) 0.0;
         vp->y = (double) 0.0;
@@ -868,13 +863,13 @@ void x11_dev2VPoint(short x, short y, VPoint *vp)
 
 Pixmap char_to_pixmap(Widget w, int font, char c, int csize)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
+    X11Stuff *xstuff = gapp->gui->xstuff;
     CPixmap *pm;
     Pixmap pixmap = 0;
     int height, width, hshift, vshift;
     float fsize = 0.8*(float)csize;
     
-    pm = canvas_raster_char(grace->rt->canvas,
+    pm = canvas_raster_char(gapp->grace->canvas,
         font, c, fsize, &vshift, &hshift);
        
     if (pm != NULL && pm->bits != NULL) {

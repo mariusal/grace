@@ -41,12 +41,11 @@
 #  endif
 #endif
 
-#include "grace.h"
+#include "graceapp.h"
 
 #define on_or_off(x) ((x)?"on":"off")
 #define true_or_false(x) ((x)?"true":"false")
 
-int isoneof(int c, char *s);
 int argmatch(char *s1, char *s2, int atleast);
 void lowtoupper(char *s);
 void convertchar(char *s);
@@ -55,31 +54,29 @@ char *escapequotes(char *s);
 
 double mytrunc(double a);
 
-void bailout(Grace *grace);
+void bailout(GraceApp *gapp);
 
 void installSignal(void);
-void emergency_exit(Grace *grace, int is_my_bug, char *msg);
+void emergency_exit(GraceApp *gapp, int is_my_bug, char *msg);
 
-char *get_grace_home(const Grace *grace);
+char *get_gapp_home(const GraceApp *gapp);
 
-char *get_help_viewer(const Grace *grace);
-void set_help_viewer(Grace *grace,const char *dir);
+char *get_help_viewer(const GraceApp *gapp);
+void set_help_viewer(GraceApp *gapp,const char *dir);
 
-int get_print_dest(const Grace *grace);
-void set_print_dest(Grace *grace, int dest);
-char *get_print_cmd(const Grace *grace);
-void set_print_cmd(Grace *grace, const char *cmd);
+int get_print_dest(const GraceApp *gapp);
+void set_print_dest(GraceApp *gapp, int dest);
+char *get_print_cmd(const GraceApp *gapp);
+void set_print_cmd(GraceApp *gapp, const char *cmd);
 
-char *get_editor(const Grace *grace);
-void set_editor(Grace *grace, const char *cmd);
+char *get_editor(const GraceApp *gapp);
+void set_editor(GraceApp *gapp, const char *cmd);
 
-int set_workingdir(Grace *grace, const char *wd);
-char *get_workingdir(const Grace *grace);
+int set_workingdir(GraceApp *gapp, const char *wd);
+char *get_workingdir(const GraceApp *gapp);
 
-char *get_username(const Grace *grace);
-char *get_userhome(const Grace *grace);
-
-char *get_docbname(const Quark *q);
+char *get_username(const GraceApp *gapp);
+char *get_userhome(const GraceApp *gapp);
 
 void errmsg(const char *msg);
 void echomsg(char *msg);
@@ -90,7 +87,7 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor);
 
 char *mybasename(const char *s);
 
-void expand_tilde(const Grace *grace, char *buf);
+void expand_tilde(const GraceApp *gapp, char *buf);
 
 int system_wrap(const char *string);
 void msleep_wrap(unsigned int msec);
@@ -110,11 +107,6 @@ char *bi_home(void);
 char *bi_print_cmd(void);
 char *bi_editor(void);
 char *bi_helpviewer(void);
-
-#ifdef DEBUG
-void set_debuglevel(Grace *grace, int level);
-int get_debuglevel(Grace *grace);
-#endif
 
 char *q_labeling(Quark *q);
 

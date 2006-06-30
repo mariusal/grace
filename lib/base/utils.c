@@ -235,6 +235,15 @@ void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax)
     }
 }
 
+int isoneof(int c, char *s)
+{
+    if (strchr(s, c)) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 #ifdef HAVE_SETLOCALE
 static int need_locale = FALSE;
 static char *system_locale_string, *posix_locale_string;
@@ -275,3 +284,4 @@ void set_locale_num(int flag)
     }
 #endif
 }
+

@@ -692,14 +692,14 @@ static int do_savefit_proc(FSBStructure *fsb, char *filename, void *data)
     FILE *pp;
     /* Widget title_item = (Widget) data; */
     
-    pp = grace_openw(grace, filename);
+    pp = gapp_openw(gapp, filename);
     if (pp != NULL) {
 #if 0
         nlfit.title = copy_string(nlfit.title, xv_getstr(title_item));
 #endif
         errwin("Not implemented yet");
         /* FIXME */;
-        grace_close(pp);
+        gapp_close(pp);
     }
     return TRUE;
 }

@@ -114,8 +114,8 @@ static int define_arrange_proc(void *data)
     if (add && nframes < nrows*ncols) {
         int i;
         frames = xrealloc(frames, nrows*ncols*sizeof(Quark *));
-        for (i = number_of_frames(grace->project); nframes < nrows*ncols; nframes++, i++) {
-            frames[nframes] = frame_new(grace->project);
+        for (i = number_of_frames(gapp->project); nframes < nrows*ncols; nframes++, i++) {
+            frames[nframes] = frame_new(gapp->project);
         }
     }
     
@@ -130,7 +130,7 @@ static int define_arrange_proc(void *data)
         loff, roff, toff, boff, vgap, hgap,
         hpack, vpack);
     
-    snapshot_and_update(grace->project, TRUE);
+    snapshot_and_update(gapp->project, TRUE);
     
     SelectStorageChoices(ui->frames, nframes, frames);
     xfree(frames);
@@ -271,7 +271,7 @@ static int define_autos_proc(void *data)
     
     xfree(sets);
     
-    snapshot_and_update(grace->project, TRUE);
+    snapshot_and_update(gapp->project, TRUE);
     
     return RETURN_SUCCESS;
 }

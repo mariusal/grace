@@ -112,10 +112,10 @@ int x11_get_pixelsize(const GUI *gui);
 long x11_allocate_color(GUI *gui, const RGB *rgb);
 void x11_redraw(Window window, int x, int y, int widht, int height);
 
-int x11_init(Grace *grace);
+int x11_init(GraceApp *gapp);
 
 int initialize_gui(int *argc, char **argv);
-void startup_gui(Grace *grace);
+void startup_gui(GraceApp *gapp);
 
 void xdrawgraph(const Quark *q);
 void expose_resize(Widget w, XtPointer client_data, XtPointer call_data);
@@ -221,9 +221,9 @@ void update_app_title(const Quark *pr);
 void set_left_footer(char *s);
 void set_tracker_string(char *s);
 
-void page_zoom_inout(Grace *grace, int inout);
+void page_zoom_inout(GraceApp *gapp, int inout);
 
-void sync_canvas_size(Grace *grace);
+void sync_canvas_size(GraceApp *gapp);
 
 void installXErrorHandler(void);
 

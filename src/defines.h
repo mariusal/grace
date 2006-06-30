@@ -134,13 +134,6 @@
 #define RUN_XPLACE_AVERAGE 1
 #define RUN_XPLACE_RIGHT   2
 
-/* Typesetting defines */
-#define SSCRIPT_SCALE M_SQRT1_2
-#define SUBSCRIPT_SHIFT 0.4
-#define SUPSCRIPT_SHIFT 0.6
-#define ENLARGE_SCALE sqrt(M_SQRT2)
-#define OBLIQUE_FACTOR 0.25
-
 #define T1_DEFAULT_ENCODING_FILE  "Default.enc"
 #define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
 
@@ -199,17 +192,5 @@ typedef struct _Input_buffer {
     char         *buf;    /* buffer for already read lines */
     unsigned long id;     /* id for X library */
 } Input_buffer;
-
-/* dates formats */
-typedef enum   { FMT_iso,
-                 FMT_european,
-                 FMT_us,
-                 FMT_nohint
-               } Dates_format;
-
-/* tokens for the calendar dates parser */
-typedef struct { int value;
-                 int digits;
-               } Int_token;
 
 #endif /* __DEFINES_H_ */
