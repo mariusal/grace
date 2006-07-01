@@ -44,7 +44,7 @@
 #include "core_utils.h"
 #include "utils.h"
 #include "motifinc.h"
-#include "protos.h"
+#include "xprotos.h"
 
 
 static int define_arrange_proc(void *data);

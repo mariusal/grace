@@ -48,7 +48,7 @@
 #  include "motifinc.h"
 #endif
 
-#include "protos.h"
+#include "xprotos.h"
 
 typedef struct {
     int interlaced;

@@ -44,7 +44,6 @@
 #include "defines.h"
 #include "utils.h"
 #include "files.h"
-#include "protos.h"
 
 typedef struct filter {
 	char *command;

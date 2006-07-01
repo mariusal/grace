@@ -37,7 +37,7 @@
 
 #include "globals.h"
 #include "motifinc.h"
-#include "protos.h"
+#include "xprotos.h"
 
 typedef struct _fonttool_ui
 {

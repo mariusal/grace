@@ -43,7 +43,7 @@
 #include "devlist.h"
 
 #include "globals.h"
-#include "protos.h"
+#include "xprotos.h"
 
 typedef struct {
     RGB rgb;

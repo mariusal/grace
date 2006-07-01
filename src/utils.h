@@ -75,8 +75,8 @@ void set_editor(GraceApp *gapp, const char *cmd);
 int set_workingdir(GraceApp *gapp, const char *wd);
 char *get_workingdir(const GraceApp *gapp);
 
-char *get_username(const GraceApp *gapp);
-char *get_userhome(const GraceApp *gapp);
+void set_date_hint(GraceApp *gapp, Dates_format preferred);
+Dates_format get_date_hint(const GraceApp *gapp);
 
 void errmsg(const char *msg);
 void echomsg(char *msg);

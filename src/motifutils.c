@@ -80,7 +80,7 @@
 #include "jbitmaps.h"
 #include "core_utils.h"
 #include "utils.h"
-#include "protos.h"
+#include "xprotos.h"
 
 #define canvas grace_get_canvas(gapp->grace)
 

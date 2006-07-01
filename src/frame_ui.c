@@ -29,7 +29,7 @@
 
 #include "core_utils.h"
 #include "explorer.h"
-#include "protos.h"
+#include "xprotos.h"
 
 FrameUI *create_frame_ui(ExplorerUI *eui)
 {

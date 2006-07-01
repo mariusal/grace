@@ -36,7 +36,7 @@
 #include "core_utils.h"
 #include <Xm/ScrolledW.h>
 #include "explorer.h"
-#include "protos.h"
+#include "xprotos.h"
 
 AGridUI *create_axisgrid_ui(ExplorerUI *eui)
 {

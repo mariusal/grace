@@ -46,7 +46,7 @@
 #include "ssdata.h"
 #include "numerics.h"
 #include "motifinc.h"
-#include "protos.h"
+#include "xprotos.h"
 
 #define DATA_STAT_COLS   6
 

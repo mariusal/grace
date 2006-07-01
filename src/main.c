@@ -46,7 +46,7 @@
 #include "ssdata.h"
 
 #include "devlist.h"
-#include "protos.h"
+#include "xprotos.h"
 
 
 extern Input_buffer *ib_tbl;
@@ -204,13 +204,13 @@ int main(int argc, char *argv[])
 		    usage(stderr, argv[0]);
 		} else {
 		    if (!strcmp("iso", argv[i])) {
-			set_date_hint(FMT_iso);
+			set_date_hint(gapp, FMT_iso);
 		    } else if (!strcmp("european", argv[i])) {
-			set_date_hint(FMT_european);
+			set_date_hint(gapp, FMT_european);
 		    } else if (!strcmp("us", argv[i])) {
-			set_date_hint(FMT_us);
+			set_date_hint(gapp, FMT_us);
 		    } else if (!strcmp("nohint", argv[i])) {
-			set_date_hint(FMT_nohint);
+			set_date_hint(gapp, FMT_nohint);
 		    } else {
 			errmsg("Improper argument for datehint flag");
 			usage(stderr, argv[0]);

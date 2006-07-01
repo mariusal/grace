@@ -38,11 +38,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "utils.h"
 #include "core_utils.h"
 #include "files.h"
 #include "ssdata.h"
 
-#include "protos.h"
+#include "xprotos.h"
 
 double *copy_data_column_simple(double *src, int nrows)
 {
@@ -215,11 +216,12 @@ int parse_ss_row(Quark *pr, const char *s, int *nncols, int *nscols, int **forma
     double value;
     Dates_format df_pref, ddummy;
     const char *sdummy;
+    GraceApp *gapp = gapp_from_quark(pr);
 
     *nscols = 0;
     *nncols = 0;
     *formats = NULL;
-    df_pref = get_date_hint();
+    df_pref = get_date_hint(gapp);
     buf = copy_string(NULL, s);
     s1 = buf;
     while ((s1 = next_token(s1, &token, &quoted)) != NULL) {
@@ -272,8 +274,9 @@ int insert_data_row(Quark *q, unsigned int row, char *s)
     int res;
     AMem *amem = quark_get_amem(q);
     Quark *pr = get_parent_project(q); 
+    GraceApp *gapp = gapp_from_quark(q);
     
-    df_pref = get_date_hint();
+    df_pref = get_date_hint(gapp);
     for (i = 0; i < ncols; i++) {
         ss_column *pcol = ssd_get_col(q, i);
         s = next_token(s, &token, &quoted);

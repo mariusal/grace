@@ -42,7 +42,7 @@
 #include "globals.h"
 #include "files.h"
 #include "motifinc.h"
-#include "protos.h"
+#include "xprotos.h"
 
 extern XtAppContext app_con;
 

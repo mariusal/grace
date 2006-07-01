@@ -39,7 +39,6 @@
 #include "graceapp.h"
 #include "utils.h"
 #include "core_utils.h"
-#include "protos.h"
 
 GUI *gui_new(GraceApp *gapp)
 {
@@ -170,6 +169,8 @@ RunTime *runtime_new(GraceApp *gapp)
 
     rt->tdevice = 0;
     rt->hdevice = 0;
+
+    rt->date_hint = FMT_nohint;
     
     rt->timer_delay = 200;
 

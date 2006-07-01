@@ -47,7 +47,7 @@
 #  include "motifinc.h"
 #endif
 
-#include "protos.h"
+#include "xprotos.h"
 
 /* PNM sub-formats */
 #define PNM_FORMAT_PBM  0

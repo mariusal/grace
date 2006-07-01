@@ -55,7 +55,7 @@
 #include "files.h"
 #include "devlist.h"
 #include "motifinc.h"
-#include "protos.h"
+#include "xprotos.h"
 
 static int open_proc(FSBStructure *fsb, char *filename, void *data);
 static int save_proc(FSBStructure *fsb, char *filename, void *data);
@@ -310,7 +310,7 @@ void create_file_popup(Widget but, void *data)
 	rc2 = CreateHContainer(rc);
 	gui->auto_item = CreateASChoice(rc2, "Autoscale on read:");
         gui->datehint = CreateOptionChoice(rc2, "Date hint:", 0, 4, opitems);
-	SetOptionChoice(gui->datehint, get_date_hint());
+	SetOptionChoice(gui->datehint, get_date_hint(gapp));
 
         ManageChild(rdata_dialog->FSB);
     }
@@ -340,7 +340,7 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
         }
 
         gapp->rt->autoscale_onread = GetOptionChoice(gui->auto_item);
-        set_date_hint(GetOptionChoice(gui->datehint));
+        set_date_hint(gapp, GetOptionChoice(gui->datehint));
         
         getdata(gr, filename, settype, load);
 

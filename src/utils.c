@@ -50,7 +50,7 @@
 #include "globals.h"
 #include "utils.h"
 #include "files.h"
-#include "protos.h"
+#include "xprotos.h"
 
 static void rereadConfig(GraceApp *gapp);
 static RETSIGTYPE actOnSignal(int signo);
@@ -362,22 +362,14 @@ void set_help_viewer(GraceApp *gapp, const char *dir)
 }
 
 
-static Dates_format date_hint = FMT_nohint;
-
-/*
- * store the user's preferrence (it is only an hint)
- */
-void set_date_hint(Dates_format preferred)
+void set_date_hint(GraceApp *gapp, Dates_format preferred)
 {
-    date_hint = preferred;
+    gapp->rt->date_hint = preferred;
 }
 
-/*
- * get the user's preferrence (it is only an hint)
- */
-Dates_format get_date_hint(void)
+Dates_format get_date_hint(const GraceApp *gapp)
 {
-    return date_hint;
+    return gapp->rt->date_hint;
 }
 
 

@@ -48,7 +48,7 @@
 #include "devlist.h"
 #include "pdfdrv.h"
 
-#include "protos.h"
+#include "xprotos.h"
 
 #ifndef NONE_GUI
 #  include "motifinc.h"

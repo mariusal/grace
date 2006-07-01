@@ -29,10 +29,12 @@
 
 #include <stdlib.h>
 
-#include "explorer.h"
-#include "protos.h"
 #include <Xbae/Matrix.h>
 #include <Xm/RowColumn.h>
+
+#include "utils.h"
+#include "explorer.h"
+#include "xprotos.h"
 
 /* default cell value precision */
 #define CELL_PREC 8
@@ -164,6 +166,8 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     
     int changed = FALSE;
     
+    GraceApp *gapp = gapp_from_quark(ui->q);
+    
     if (cs->row < 0 || cs->column < 0 || cs->column > ncols) {
         return;
     }
@@ -176,7 +180,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     
     if (cs->column == ncols && !string_is_empty(cs->value)) {
         if (parse_date_or_number(get_parent_project(ui->q),
-            cs->value, FALSE, get_date_hint(), &value) == RETURN_SUCCESS) {
+            cs->value, FALSE, get_date_hint(gapp), &value) == RETURN_SUCCESS) {
             format = FFORMAT_NUMBER;
         } else {
             format = FFORMAT_STRING;
@@ -199,7 +203,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
                 break;    
             default:
                 if (parse_date_or_number(get_parent_project(ui->q),
-                    cs->value, FALSE, get_date_hint(), &value) == RETURN_SUCCESS) {
+                    cs->value, FALSE, get_date_hint(gapp), &value) == RETURN_SUCCESS) {
                     if (ssd_set_value(ui->q, cs->row, cs->column, value) ==
                         RETURN_SUCCESS) {
                         changed = TRUE;

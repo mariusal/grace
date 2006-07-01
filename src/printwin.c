@@ -38,7 +38,7 @@
 #include "utils.h"
 
 #include "motifinc.h"
-#include "protos.h"
+#include "xprotos.h"
 
 #define canvas grace_get_canvas(gapp->grace)
 

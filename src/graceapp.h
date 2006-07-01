@@ -150,6 +150,9 @@ typedef struct _RunTime {
     /* print to file */
     int ptofile;
     
+    /* Hint for parsing dates */
+    Dates_format date_hint;
+    
     /* editor */
     char *gapp_editor;
 

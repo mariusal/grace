@@ -34,6 +34,8 @@
 #ifndef __XPROTOS_H_
 #define __XPROTOS_H_
 
+#ifndef NONE_GUI
+
 #include "defines.h"
 #include "core_utils.h"
 #include "motifinc.h"
@@ -230,5 +232,6 @@ void installXErrorHandler(void);
 Pixmap char_to_pixmap(Widget w, int font, char c, int csize);
 
 void snapshot_and_update(Quark *q, int all);
+#endif /* NONE_GUI */
 
 #endif /* __XPROTOS_H_ */

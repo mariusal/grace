@@ -43,7 +43,7 @@
 #include "utils.h"
 #include "devlist.h"
 #include "psdrv.h"
-#include "protos.h"
+#include "xprotos.h"
 
 #ifndef NONE_GUI
 #  include "motifinc.h"

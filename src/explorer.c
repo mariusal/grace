@@ -49,7 +49,7 @@
 # define USE_PANEDW 0
 #endif
 
-#include "protos.h"
+#include "xprotos.h"
 
 /* Quark labeling procedure */
 typedef char * (*Quark_LabelingProc)(

@@ -58,7 +58,7 @@
 #include "files.h"
 #include "core_utils.h"
 #include "events.h"
-#include "protos.h"
+#include "xprotos.h"
 
 #include "motifinc.h"
 

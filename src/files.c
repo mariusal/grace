@@ -59,7 +59,7 @@
 #include "ssdata.h"
 #include "core_utils.h"
 
-#include "protos.h"
+#include "xprotos.h"
 
 #define MAXERR 5
 

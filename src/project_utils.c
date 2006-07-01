@@ -32,7 +32,7 @@
 #include "graceapp.h"
 #include "utils.h"
 #include "core_utils.h"
-#include "protos.h"
+#include "xprotos.h"
 
 typedef struct {
     int ngraphs;

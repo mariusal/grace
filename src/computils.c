@@ -46,7 +46,6 @@
 #include "core_utils.h"
 #include "ssdata.h"
 #include "numerics.h"
-#include "protos.h"
 
 /*
  * compute the area bounded by the polygon (xi,yi)

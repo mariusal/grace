@@ -107,4 +107,16 @@ void move_legend(Quark *gr, const VVector *shift);
 
 void rescale_viewport(Quark *pr, double ext_x, double ext_y);
 
+/* set_utils.c */
+int getsetminmax(Quark **sets, int nsets, 
+    double *xmin, double *xmax, double *ymin, double *ymax);
+int getsetminmax_c(Quark **sets, int nsets,
+    double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
+int set_point(Quark *pset, int seti, const WPoint *wp);
+int get_point(Quark *pset, int seti, WPoint *wp);
+int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint);
+int set_point_shift(Quark *pset, int seti, const VVector *vshift);
+
+void del_point(Quark *pset, int pt);
+
 #endif /* __CORE_UTILS_H_ */

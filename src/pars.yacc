@@ -57,7 +57,7 @@
 #include "utils.h"
 #include "files.h"
 #include "ssdata.h"
-#include "protos.h"
+#include "core_utils.h"
 
 /* symbol table entry type */
 typedef struct {

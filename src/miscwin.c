@@ -41,7 +41,7 @@
 #include "utils.h"
 #include "core_utils.h"
 #include "motifinc.h"
-#include "protos.h"
+#include "xprotos.h"
 
 static Widget props_frame;
 

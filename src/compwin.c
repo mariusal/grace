@@ -42,7 +42,7 @@
 #include "ssdata.h"
 #include "numerics.h"
 #include "motifinc.h"
-#include "protos.h"
+#include "xprotos.h"
 
 typedef struct {
     TextStructure *formula_item;

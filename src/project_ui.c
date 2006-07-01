@@ -33,7 +33,7 @@
        
 #include "explorer.h"
 #include "utils.h"
-#include "protos.h"
+#include "xprotos.h"
 
 static void wrap_year_cb(Widget but, int onoff, void *data)
 {
@@ -332,6 +332,7 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
     int retval = RETURN_SUCCESS;
     
     if (ui && pr) {
+        GraceApp *gapp = gapp_from_quark(q);
         double jul;
     
         if (!caller || caller == ui->prec) {
@@ -349,7 +350,6 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             project_get_page_dimensions(q, &wpp, &hpp);
             if ((orientation == PAGE_ORIENT_LANDSCAPE && wpp < hpp) ||
                 (orientation == PAGE_ORIENT_PORTRAIT  && wpp > hpp)) {
-                GraceApp *gapp = gapp_from_quark(q);
                 set_page_dimensions(gapp, hpp, wpp, TRUE);
             }
         }
@@ -425,7 +425,7 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
 
         if (!caller || caller == ui->refdate) {
             if (parse_date_or_number(q, xv_getstr(ui->refdate),
-                TRUE, get_date_hint(), &jul) ==
+                TRUE, get_date_hint(gapp), &jul) ==
                 RETURN_SUCCESS) {
                 pr->ref_date = jul;
             } else {

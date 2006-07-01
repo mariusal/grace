@@ -40,19 +40,6 @@
 #include "core_utils.h"
 #include "utils.h"
 #include "numerics.h"
-#include "protos.h"
-
-/*
- * free set data, but preserve the parameter settings
- */
-void killsetdata(Quark *pset)
-{
-    set *p = set_get_data(pset);
-    if (p) {
-        dataset_empty(&p->ds);
-        quark_dirtystate_set(pset, TRUE);
-    }
-}
 
 /*
  * same as copyset(), but doesn't alter the to set appearance

@@ -47,7 +47,7 @@
 #  include "motifinc.h"
 #endif
 
-#include "protos.h"
+#include "xprotos.h"
 
 #define JPEG_DCT_IFAST  0
 #define JPEG_DCT_ISLOW  1

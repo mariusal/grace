@@ -46,7 +46,7 @@
 #include "utils.h"
 #include "files.h"
 #include "motifinc.h"
-#include "protos.h"
+#include "xprotos.h"
 
 /* nonlprefs.load possible values */
 #define LOAD_VALUES         0

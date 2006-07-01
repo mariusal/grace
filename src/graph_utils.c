@@ -38,7 +38,6 @@
 
 #include "graceapp.h"
 #include "core_utils.h"
-#include "protos.h"
 
 static int graph_count_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {

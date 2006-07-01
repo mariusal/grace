@@ -30,7 +30,7 @@
 #include <stdlib.h>
 
 #include "explorer.h"
-#include "protos.h"
+#include "xprotos.h"
 
 RegionUI *create_region_ui(ExplorerUI *eui)
 {

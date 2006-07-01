@@ -47,7 +47,7 @@
 #include <Xm/RowColumn.h>
 
 #include "motifinc.h"
-#include "protos.h"
+#include "xprotos.h"
 
 static void scroll_bar_pix(Widget bar, int pix)
 {

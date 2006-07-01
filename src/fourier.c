@@ -40,7 +40,6 @@
 #include "defines.h"
 #include "utils.h"
 #include "files.h"
-#include "protos.h"
 
 #ifdef HAVE_FFTW
 
