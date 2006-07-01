@@ -282,12 +282,12 @@ GraceApp *gapp_new(void)
         return NULL;
     }
 
-    gapp->grace = grace_new();
+    gapp->grace = grace_new(bi_home());
     if (!gapp->grace) {
         gapp_free(gapp);
         return NULL;
     }
-    graal_set_eval_proc(gapp->grace->graal, eval_proc);
+    graal_set_eval_proc(grace_get_graal(gapp->grace), eval_proc);
 
     grace_set_udata(gapp->grace, gapp);
     
@@ -397,7 +397,7 @@ int get_ptofile(const GraceApp *gapp)
  */
 int set_printer(GraceApp *gapp, int device)
 {
-    Canvas *canvas = gapp->grace->canvas;
+    Canvas *canvas = grace_get_canvas(gapp->grace);
     Device_entry *d = get_device_props(canvas, device);
     if (!d || d->type == DEVICE_TERM) {
         return RETURN_FAILURE;
@@ -412,9 +412,10 @@ int set_printer(GraceApp *gapp, int device)
 
 int set_printer_by_name(GraceApp *gapp, const char *dname)
 {
+    Canvas *canvas = grace_get_canvas(gapp->grace);
     int device;
     
-    device = get_device_by_name(gapp->grace->canvas, dname);
+    device = get_device_by_name(canvas, dname);
     
     return set_printer(gapp, device);
 }
@@ -422,7 +423,7 @@ int set_printer_by_name(GraceApp *gapp, const char *dname)
 int set_page_dimensions(GraceApp *gapp, int wpp, int hpp, int rescale)
 {
     int i;
-    Canvas *canvas = gapp->grace->canvas;
+    Canvas *canvas = grace_get_canvas(gapp->grace);
     
     if (wpp <= 0 || hpp <= 0) {
         return RETURN_FAILURE;
@@ -669,7 +670,7 @@ void do_hardcopy(const Quark *project)
     }
     
     rt = gapp->rt;
-    canvas = gapp->grace->canvas;
+    canvas = grace_get_canvas(gapp->grace);
     
     if (get_ptofile(gapp)) {
         if (string_is_empty(rt->print_file)) {
@@ -692,7 +693,7 @@ void do_hardcopy(const Quark *project)
     
     select_device(canvas, rt->hdevice);
     
-    res = drawgraph(canvas, gapp->grace->graal, project);
+    res = grace_render(gapp->grace, project);
     
     gapp_close(prstream);
     

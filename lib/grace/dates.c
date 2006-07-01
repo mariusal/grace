@@ -27,7 +27,7 @@
 
 #include <ctype.h>
 
-#include "grace/grace.h"
+#include "grace/graceP.h"
 
 /*
  * expand years according to the following rules :

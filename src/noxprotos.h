@@ -38,10 +38,6 @@
 #include "graceapp.h"
 
 
-/* typeset.c */
-int init_font_db(GraceApp *gapp, Canvas *canvas);
-
-
 /* set_utils.c */
 int getsetminmax(Quark **sets, int nsets, 
     double *xmin, double *xmax, double *ymin, double *ymax);

@@ -159,6 +159,9 @@ typedef struct _RunTime {
     /* working directory */
     char *workingdir;
 
+    /* safe mode flag */
+    int safe_mode;
+
     /* printout */
     char print_file[GR_MAXPATHLEN];
     
@@ -205,12 +208,10 @@ int get_ptofile(const GraceApp *gapp);
 
 int project_get_graphs(Quark *q, Quark ***graphs);
 
-char *gapp_path(GraceApp *gapp, char *fn);
-char *gapp_path2(GraceApp *gapp, const char *prefix, char *fn);
-char *gapp_exe_path(GraceApp *gapp, char *fn);
+char *gapp_exe_path(GraceApp *gapp, const char *fn);
 
-FILE *gapp_openw(GraceApp *gapp, char *fn);
-FILE *gapp_openr(GraceApp *gapp, char *fn, int src);
+FILE *gapp_openw(GraceApp *gapp, const char *fn);
+FILE *gapp_openr(GraceApp *gapp, const char *fn, int src);
 void gapp_close(FILE *fp);
 FILE *gapp_tmpfile(char *template);
 

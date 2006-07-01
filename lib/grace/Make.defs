@@ -11,12 +11,14 @@ SRCS = 	$(GSRCS) \
 	grace.c \
 	dicts.c \
         dates.c \
+	paths.c \
         typeset.c \
 	xml_out.c
 
 OBJS = 	grace$(O) \
 	dicts$(O) \
         dates$(O) \
+	paths$(O) \
         typeset$(O) \
 	xml_out$(O) \
 	xml_in$(O)

@@ -142,8 +142,8 @@ void update_props_items(void)
 	SetToggleButtonState(force_external_viewer_item, gui->force_external_viewer);
 #endif
 	SetSpinChoice(max_path_item,
-            (double) get_max_path_limit(gapp->grace->canvas));
-	SetToggleButtonState(safe_mode_item, gapp->grace->safe_mode);
+            (double) get_max_path_limit(grace_get_canvas(gapp->grace)));
+	SetToggleButtonState(safe_mode_item, gapp->rt->safe_mode);
 	iv = (int) rint(100*gapp->rt->scrollper);
 	SetScaleValue(scrollper_item, iv);
 	iv = (int) rint(100*gapp->rt->shexper);
@@ -174,8 +174,8 @@ static int props_define_notify_proc(void *data)
 #if defined WITH_XMHTML
     gui->force_external_viewer = GetToggleButtonState(force_external_viewer_item);
 #endif
-    set_max_path_limit(gapp->grace->canvas, (int) GetSpinChoice(max_path_item));
-    gapp->grace->safe_mode = GetToggleButtonState(safe_mode_item);
+    set_max_path_limit(grace_get_canvas(gapp->grace), (int) GetSpinChoice(max_path_item));
+    gapp->rt->safe_mode = GetToggleButtonState(safe_mode_item);
     gapp->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
     gapp->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
     

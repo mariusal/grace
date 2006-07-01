@@ -82,7 +82,7 @@
 #include "utils.h"
 #include "protos.h"
 
-#define canvas gapp->grace->canvas
+#define canvas grace_get_canvas(gapp->grace)
 
 extern XtAppContext app_con;
 
@@ -1955,7 +1955,7 @@ static void fsb_cd_cb(OptionStructure *opt, int value, void *data)
         bufp = get_workingdir(gapp);
         break;
     case FSB_HOME:
-	bufp = get_userhome(gapp);
+	bufp = grace_get_userhome(gapp->grace);
         break;
     case FSB_ROOT:
         bufp = "/";
@@ -4194,7 +4194,8 @@ int xv_evalexpr(Widget w, double *answer)
 	
     s = XmTextGetString(w);
     
-    retval = graal_eval_expr(gapp->grace->graal, s, answer, gapp->project);
+    retval = graal_eval_expr(grace_get_graal(gapp->grace),
+        s, answer, gapp->project);
     
     XtFree(s);
     

@@ -134,9 +134,6 @@
 #define RUN_XPLACE_AVERAGE 1
 #define RUN_XPLACE_RIGHT   2
 
-#define T1_DEFAULT_ENCODING_FILE  "Default.enc"
-#define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
-
 /* Private colormap */
 #define CMAP_INSTALL_NEVER      0
 #define CMAP_INSTALL_ALWAYS     1

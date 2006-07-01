@@ -40,7 +40,7 @@
 #include "motifinc.h"
 #include "protos.h"
 
-#define canvas gapp->grace->canvas
+#define canvas grace_get_canvas(gapp->grace)
 
 typedef struct {
     int             ndest;

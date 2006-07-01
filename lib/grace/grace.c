@@ -29,7 +29,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "grace/grace.h"
+#include "grace/plot.h"
+#include "grace/graceP.h"
 
 
 static void *obj_proc(void *context, const char *name, void *udata)
@@ -157,7 +158,7 @@ int grace_init(void)
     return canvas_init();
 }
    
-Grace *grace_new(void)
+Grace *grace_new(const char *home)
 {
     Grace *grace;
     char *s;
@@ -175,11 +176,46 @@ Grace *grace_new(void)
     }
     memset(grace, 0, sizeof(Grace));
 
+    /* Grace home directory */
+    s = getenv("GRACE_HOME");
+    if (!string_is_empty(s)) {
+        grace->grace_home = copy_string(NULL, s);
+    } else {
+        grace->grace_home = copy_string(NULL, home);
+    }
+
+    /* username */
+    s = getenv("LOGNAME");
+    if (string_is_empty(s)) {
+        s = getlogin();
+        if (string_is_empty(s)) {
+            s = "a user";
+        }
+    }
+    grace->username = copy_string(NULL, s);
+
+    /* userhome */
+    if ((s = getenv("HOME")) == NULL) {
+        s = "/";
+    }
+    grace->userhome = copy_string(NULL, s);
+    if (grace->userhome[strlen(grace->userhome) - 1] != '/') {
+        grace->userhome = concat_strings(grace->userhome, "/");
+    }
+
+    if (!grace->grace_home   ||
+        !grace->username     ||
+        !grace->userhome) {
+        grace_free(grace);
+        return NULL;
+    }
+
     grace->qfactory = qfactory_new();
     if (!grace->qfactory) {
         grace_free(grace);
         return NULL;
     }
+    quark_factory_set_udata(grace->qfactory, grace);
 
     /* register quark flavors */
     project_qf_register(grace->qfactory);
@@ -200,8 +236,16 @@ Grace *grace_new(void)
         grace_free(grace);
         return NULL;
     }
-    canvas_set_fmap_proc(grace->canvas, fmap_proc);
-    canvas_set_csparse_proc(grace->canvas, csparse_proc);
+    
+    if (grace_init_font_db(grace) != RETURN_SUCCESS) {
+        errmsg("Font DB initialization failed (incomplete installation?)");
+        grace_free(grace);
+        return NULL;
+    }
+    
+    canvas_set_username(grace->canvas, grace->username);
+    canvas_set_fmap_proc(grace->canvas, grace_fmap_proc);
+    canvas_set_csparse_proc(grace->canvas, grace_csparse_proc);
     
     grace->graal = graal_new();
     if (!grace->graal) {
@@ -211,52 +255,11 @@ Grace *grace_new(void)
     graal_set_udata(grace->graal, grace);
     graal_set_lookup_procs(grace->graal, obj_proc, get_proc, set_proc);
     
-    grace->safe_mode = TRUE;
-    
-    grace->grace_home   = NULL;
-    grace->username     = NULL;
-    grace->userhome     = NULL;
-
-    /* Grace home directory */
-    if ((s = getenv("GRACE_HOME")) == NULL) {
-	s = bi_home();
-    }
-    grace->grace_home = copy_string(NULL, s);
-
-    /* username */
-    s = getenv("LOGNAME");
-    if (string_is_empty(s)) {
-        s = getlogin();
-        if (string_is_empty(s)) {
-            s = "a user";
-        }
-    }
-    grace->username = copy_string(NULL, s);
-    canvas_set_username(grace->canvas, grace->username);
-
-    /* userhome */
-    if ((s = getenv("HOME")) == NULL) {
-        s = "/";
-    }
-    grace->userhome = copy_string(NULL, s);
-    if (grace->userhome[strlen(grace->userhome) - 1] != '/') {
-        grace->userhome = concat_strings(grace->userhome, "/");
-    }
-
-    if (!grace->grace_home   ||
-        !grace->username     ||
-        !grace->userhome) {
-        grace_free(grace);
-        return NULL;
-    }
-
     /* dictionaries */
     if (grace_init_dicts(grace) != RETURN_SUCCESS) {
         grace_free(grace);
         return NULL;
     }
-
-    quark_factory_set_udata(grace->qfactory, grace);
 
     return grace;
 }
@@ -293,4 +296,24 @@ void *grace_get_udata(const Grace *grace)
 Grace *grace_from_quark(const Quark *q)
 {
     return (Grace *) quark_factory_get_udata(quark_get_qfactory(q));
+}
+
+Canvas *grace_get_canvas(const Grace *grace)
+{
+    return grace->canvas;
+}
+
+Graal *grace_get_graal(const Grace *grace)
+{
+    return grace->graal;
+}
+
+int grace_render(const Grace *grace, const Quark *project)
+{
+    return drawgraph(grace->canvas, grace->graal, project);
+}
+
+Quark *grace_project_new(const Grace *grace, int mmodel)
+{
+    return project_new(grace->qfactory, mmodel);
 }

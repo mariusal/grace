@@ -72,11 +72,11 @@ void HelpCB(Widget w, void *data)
         if (pa) {
             char *base = copy_string(NULL, p);
             base[pa - p] = '\0';
-            URL = copy_string(NULL, gapp_path(gapp, base));
+            URL = grace_path(gapp->grace, base);
             URL = concat_strings(URL, pa);
             xfree(base);
         } else {
-            URL = copy_string(NULL, gapp_path(gapp, p));
+            URL = grace_path(gapp->grace, p);
         }
 
         remote = FALSE;

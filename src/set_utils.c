@@ -223,7 +223,7 @@ int set_set_colors(Quark *pset, unsigned int color)
         return RETURN_FAILURE;
     }
     
-    if (color < number_of_colors(gapp->grace->canvas)) {
+    if (color < number_of_colors(grace_get_canvas(gapp->grace))) {
         p->line.line.pen.color    = color;
         p->sym.line.pen.color = color;
         p->sym.fillpen.color  = color;

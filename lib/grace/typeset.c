@@ -33,10 +33,76 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "grace/grace.h"
+#include "grace/graceP.h"
+
+#define BUFLEN   512
+
+/* T1lib is NOT re-entrant... */
+static int font_db_inited = FALSE;
+
+int grace_init_font_db(const Grace *grace)
+{
+    int i, nfonts;
+    char buf[BUFLEN], abuf[BUFLEN], fbuf[BUFLEN], *epath;
+    FILE *fp;
+    int res;
+    
+    if (font_db_inited) {
+        return RETURN_SUCCESS;
+    }
+    
+    /* Set default encoding */
+    epath = grace_path2(grace, "fonts/enc/", T1_DEFAULT_ENCODING_FILE);
+    res = canvas_set_encoding(grace->canvas, epath);
+    xfree(epath);
+    if (res != RETURN_SUCCESS) {
+        epath = grace_path2(grace, "fonts/enc/", T1_FALLBACK_ENCODING_FILE);
+        res = canvas_set_encoding(grace->canvas, epath);
+        xfree(epath);
+        if (res != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
+        }
+    }
+    
+    /* Open & process the font database */
+    epath = grace_path(grace, "fonts/FontDataBase");
+    fp = fopen(epath, "rb");
+    xfree(epath);
+    if (fp == NULL) {
+        return RETURN_FAILURE;
+    }
+    
+    /* the first line - number of fonts */
+    grace_fgets(buf, BUFLEN - 1, fp); 
+    if (sscanf(buf, "%d", &nfonts) != 1 || nfonts <= 0) {
+        fclose(fp);
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < nfonts; i++) {
+        grace_fgets(buf, BUFLEN - 1, fp); 
+        if (sscanf(buf, "%s %*s %s", abuf, fbuf) != 2) {
+            fclose(fp);
+            return RETURN_FAILURE;
+        }
+        epath = grace_path2(grace, "fonts/type1/", fbuf);
+        res = canvas_add_font(grace->canvas, epath, abuf);
+        xfree(epath);
+        if (res != RETURN_SUCCESS) {
+            fclose(fp);
+            return RETURN_FAILURE;
+        }
+    }
+    
+    fclose(fp);
+    
+    font_db_inited = TRUE;
+    
+    return RETURN_SUCCESS;
+}
 
 /* TODO: optimize, e.g. via a hashed array */
-int fmap_proc(const Canvas *canvas, int font_id)
+int grace_fmap_proc(const Canvas *canvas, int font_id)
 {
     Quark *project = (Quark *) canvas_get_udata(canvas);
     Project *pr = project_get_data(project);
@@ -163,7 +229,7 @@ static char *expand_macros(const Canvas *canvas, const char *s)
     return es;
 }
 
-int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring)
+int grace_csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring)
 {
     Quark *project = (Quark *) canvas_get_udata(canvas);
     CStringSegment *cseg;

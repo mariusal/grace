@@ -10,7 +10,6 @@ PARS_C = pars.c
 PARS_O = pars$(O)
 
 GRSRCS =  main.c graceapp.c project_utils.c \
-	typeset.c \
 	utils.c files.c ssdata.c \
 	fourier.c \
 	graph_utils.c set_utils.c \
@@ -23,7 +22,6 @@ GRSRCS =  main.c graceapp.c project_utils.c \
 
 
 GROBJS =  main$(O) graceapp$(O) project_utils$(O) \
-	typeset$(O) \
 	utils$(O) files$(O) ssdata$(O) \
 	fourier$(O) \
 	graph_utils$(O) set_utils$(O) \

@@ -6,8 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "grace/grace.h"
-#include "xstrings.h"
+#include "grace/graceP.h"
 
 typedef struct {
     Grace *grace;

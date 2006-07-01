@@ -103,7 +103,6 @@ typedef struct {
     Widget canvasw;
     Pixmap pixmap;
 
-    Canvas *canvas;
     int idevice;
 
     int preview_ok;
@@ -115,6 +114,7 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
     openGUI *ui = (openGUI *) client_data;
     char *filename = XmTextGetString(w);
     struct stat statb;
+    Canvas *canvas = grace_get_canvas(gapp->grace);
     
     XClearWindow(XtDisplay(ui->canvasw), XtWindow(ui->canvasw));
 
@@ -127,7 +127,7 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
         if (project) {
             int wpp, hpp;
             float dpi;
-            Device_entry *d = get_device_props(ui->canvas, ui->idevice);
+            Device_entry *d = get_device_props(canvas, ui->idevice);
             Page_geometry *pg = &d->pg;
             X11stream xstream;
             
@@ -145,11 +145,11 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
             ui->x_offset = (PREVIEW_WIDTH - pg->width)/2;
             ui->y_offset = (PREVIEW_HEIGHT - pg->height)/2;
 
-            select_device(ui->canvas, ui->idevice);
+            select_device(canvas, ui->idevice);
             
             xstream.screen = XtScreen(ui->canvasw);
             xstream.pixmap = ui->pixmap;
-            canvas_set_prstream(ui->canvas, &xstream);
+            canvas_set_prstream(canvas, &xstream);
 
             XSetForeground(XtDisplay(ui->canvasw),
                 DefaultGCOfScreen(xstream.screen),
@@ -160,7 +160,7 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
                 DefaultGCOfScreen(xstream.screen), 0, 0,
                 PREVIEW_WIDTH, PREVIEW_HEIGHT);
 
-	    drawgraph(ui->canvas, gapp->grace->graal, project);
+	    grace_render(gapp->grace, project);
 
             XCopyArea(XtDisplay(ui->canvasw), ui->pixmap, XtWindow(ui->canvasw),
                 DefaultGCOfScreen(XtScreen(ui->canvasw)),
@@ -200,13 +200,13 @@ void create_openproject_popup(void)
     if (ui == NULL) {
         X11Stuff *xstuff = gapp->gui->xstuff;
         Widget fr, text;
+        Canvas *canvas = grace_get_canvas(gapp->grace);
         
         ui = xmalloc(sizeof(openGUI));
         memset(ui, 0, sizeof(openGUI));
-        ui->canvas = gapp->grace->canvas;
 
-        ui->idevice = register_x11_drv(ui->canvas);
-        device_set_aux(ui->canvas, ui->idevice);
+        ui->idevice = register_x11_drv(canvas);
+        device_set_aux(canvas, ui->idevice);
         
         ui->pixmap = XCreatePixmap(xstuff->disp, xstuff->root,
             PREVIEW_WIDTH, PREVIEW_HEIGHT, xstuff->depth);

@@ -455,7 +455,7 @@ void sync_canvas_size(GraceApp *gapp)
     X11Stuff *xstuff = gapp->gui->xstuff;
     unsigned int w, h;
 
-    Device_entry *d = get_device_props(gapp->grace->canvas, gapp->rt->tdevice);
+    Device_entry *d = get_device_props(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
 
     GetDimensions(xstuff->canvas, &w, &h);
 
@@ -542,7 +542,7 @@ void xdrawgraph(const Quark *q)
     if (gapp && gapp->gui->inwin) {
         X11Stuff *xstuff = gapp->gui->xstuff;
         Quark *gr = graph_get_current(project);
-        Device_entry *d = get_device_props(gapp->grace->canvas, gapp->rt->tdevice);
+        Device_entry *d = get_device_props(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
         Page_geometry *pg = &d->pg;
         float dpi = gapp->gui->zoom*xstuff->dpi;
         X11stream xstream;
@@ -564,10 +564,10 @@ void xdrawgraph(const Quark *q)
         
         xstream.screen = DefaultScreenOfDisplay(xstuff->disp);
         xstream.pixmap = xstuff->bufpixmap;
-        canvas_set_prstream(gapp->grace->canvas, &xstream);
+        canvas_set_prstream(grace_get_canvas(gapp->grace), &xstream);
 
-        select_device(gapp->grace->canvas, gapp->rt->tdevice);
-	drawgraph(gapp->grace->canvas, gapp->grace->graal, project);
+        select_device(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
+	grace_render(gapp->grace, project);
 
         if (quark_is_active(gr)) {
             draw_focus(gr);
@@ -811,13 +811,13 @@ int x11_init(GraceApp *gapp)
         mrsize = XMaxRequestSize(xstuff->disp);
     }
     max_path_limit = (mrsize - 3)/2;
-    if (max_path_limit < get_max_path_limit(gapp->grace->canvas)) {
+    if (max_path_limit < get_max_path_limit(grace_get_canvas(gapp->grace))) {
         char buf[128];
         sprintf(buf,
             "Setting max drawing path length to %d (limited by the X server)",
             max_path_limit);
         errmsg(buf);
-        set_max_path_limit(gapp->grace->canvas, max_path_limit);
+        set_max_path_limit(grace_get_canvas(gapp->grace), max_path_limit);
     }
     
     xstuff->dpi = rint(MM_PER_INCH*DisplayWidth(xstuff->disp, xstuff->screennumber)/
@@ -869,7 +869,7 @@ Pixmap char_to_pixmap(Widget w, int font, char c, int csize)
     int height, width, hshift, vshift;
     float fsize = 0.8*(float)csize;
     
-    pm = canvas_raster_char(gapp->grace->canvas,
+    pm = canvas_raster_char(grace_get_canvas(gapp->grace),
         font, c, fsize, &vshift, &hshift);
        
     if (pm != NULL && pm->bits != NULL) {

@@ -392,7 +392,7 @@ static int process_complete_lines(GraceApp *gapp, Input_buffer *ib)
             close_input = NULL;
 
             if (line_corrupted ||
-                graal_parse_line(gapp->grace->graal,
+                graal_parse_line(grace_get_graal(gapp->grace),
                     begin_of_line, gapp->project) != RETURN_SUCCESS) {
                 sprintf(buf, "Error at line %d", ib->lineno);
                 errmsg(buf);
@@ -590,7 +590,7 @@ static int read_long_line(FILE * fp, char **linebuf, int *buflen)
 
 
 /* open a file for write */
-FILE *gapp_openw(GraceApp *gapp, char *fn)
+FILE *gapp_openw(GraceApp *gapp, const char *fn)
 {
     struct stat statb;
     char buf[GR_MAXPATHLEN + 50];
@@ -624,97 +624,9 @@ FILE *gapp_openw(GraceApp *gapp, char *fn)
     }
 }
 
-char *gapp_path(GraceApp *gapp, char *fn)
+char *gapp_exe_path(GraceApp *gapp, const char *fn)
 {
-    static char buf[GR_MAXPATHLEN];
-    struct stat statb;
-
-    if (fn == NULL) {
-	return NULL;
-    } else {
-        strcpy(buf, fn);
-        
-        switch (fn[0]) {
-        case '/':
-        case '\0':
-            return buf;
-            break;
-        case '~':
-            expand_tilde(gapp, buf);
-            return buf;
-            break;
-        case '.':
-            switch (fn[1]) {
-            case '/':
-                return buf;
-                break;
-            case '.':
-                if (fn[2] == '/') {
-                    return buf;
-                }
-                break;
-            }
-        }
-        /* if we arrived here, the path is relative */
-        if (stat(buf, &statb) == 0) {
-            /* ok, we found it */
-            return buf;
-        }
-        
-	/* second try: in .grace/ in the current dir */
-        strcpy(buf, ".grace/");
-	strcat(buf, fn);
-        if (stat(buf, &statb) == 0) {
-            return buf;
-        }
-        
-	/* third try: in .grace/ in the $HOME dir */
-	strcpy(buf, get_userhome(gapp));
-	strcat(buf, ".grace/");
-	strcat(buf, fn);
-        if (stat(buf, &statb) == 0) {
-            return buf;
-        }
-
-	/* the last attempt: in $GRACE_HOME */
-        strcpy(buf, get_gapp_home(gapp));
-	strcat(buf, "/");
-	strcat(buf, fn);
-        if (stat(buf, &statb) == 0) {
-            return buf;
-        }
-        
-	/* giving up... */
-	strcpy(buf, fn);
-        return buf;
-    }
-}
-
-char *gapp_path2(GraceApp *gapp, const char *prefix, char *fn)
-{
-    char *s, *bufp;
-    
-    s = copy_string(NULL, prefix);
-    if (!s) {
-        return NULL;
-    }
-    
-    if (s[strlen(s) - 1] != '/') {
-        s = concat_strings(s, "/");
-    }
-    
-    s = concat_strings(s, fn);
-    
-    bufp = gapp_path(gapp, s);
-    
-    xfree(s);
-    
-    return bufp;
-}
-
-char *gapp_exe_path(GraceApp *gapp, char *fn)
-{
-    static char buf[GR_MAXPATHLEN];
+    static char buf[GR_MAXPATHLEN], *epath;
     char *cp;
     
     if (fn == NULL) {
@@ -722,11 +634,16 @@ char *gapp_exe_path(GraceApp *gapp, char *fn)
     } else {
         cp = strchr(fn, ' ');
         if (cp == NULL) {
-            return exe_path_translate(gapp_path(gapp, fn));
+            epath = grace_path(gapp->grace, fn);
+            strcpy(buf, exe_path_translate(epath));
+            xfree(epath);
+            return buf;
         } else {
             strcpy(buf, fn);
             buf[cp - fn] = '\0';
-            strcpy(buf, gapp_path(gapp, buf));
+            epath = grace_path(gapp->grace, buf);
+            strcpy(buf, epath);
+            xfree(epath);
             strcat(buf, " ");
             strcat(buf, cp);
             return exe_path_translate(buf);
@@ -735,7 +652,7 @@ char *gapp_exe_path(GraceApp *gapp, char *fn)
 }
 
 /* open a file for read */
-FILE *gapp_openr(GraceApp *gapp, char *fn, int src)
+FILE *gapp_openr(GraceApp *gapp, const char *fn, int src)
 {
     struct stat statb;
     char *tfn;
@@ -747,7 +664,7 @@ FILE *gapp_openr(GraceApp *gapp, char *fn, int src)
     }
     switch (src) {
     case SOURCE_DISK:
-        tfn = gapp_path(gapp, fn);
+        tfn = grace_path(gapp->grace, fn);
 	if (strcmp(tfn, "-") == 0 || strcmp(tfn, "stdin") == 0) {
             return stdin;
 	} else if (stat(tfn, &statb)) {
@@ -1058,7 +975,7 @@ int update_set_from_file(Quark *pset)
 }
 #endif
 
-Quark *load_any_project(GraceApp *gapp, char *fn)
+Quark *load_any_project(GraceApp *gapp, const char *fn)
 {
     Quark *project;
     
@@ -1076,7 +993,7 @@ Quark *load_any_project(GraceApp *gapp, char *fn)
     return project;
 }
 
-static int load_project_file(GraceApp *gapp, char *fn, int as_template)
+static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
 {    
     Quark *project, *gr, **graphs;
     int i, ngraphs;
@@ -1116,7 +1033,7 @@ static int load_project_file(GraceApp *gapp, char *fn, int as_template)
         quark_idstr_set(gapp->project, buf);
         
         /* Set timestamp */
-        tfn = gapp_path(gapp, fn);
+        tfn = grace_path(gapp->grace, fn);
         if (tfn && !stat(tfn, &statb)) {
             mtime = statb.st_mtime;
         } else {
@@ -1235,7 +1152,7 @@ int save_project(Quark *project, char *fn)
     return retval;
 }
 
-Quark *load_xgr_project(GraceApp *gapp, char *fn)
+Quark *load_xgr_project(GraceApp *gapp, const char *fn)
 {
     FILE *fp;
     Quark *project;

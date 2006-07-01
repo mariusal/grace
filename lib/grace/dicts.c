@@ -29,8 +29,7 @@
  * Misc stuff using dictionaries
  */
 
-#include "grace/grace.h"
-#include "xstrings.h"
+#include "grace/graceP.h"
 
 int grace_init_dicts(Grace *grace)
 {

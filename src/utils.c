@@ -319,11 +319,6 @@ void installSignal(void){
 #endif
 }
 
-char *get_gapp_home(const GraceApp *gapp)
-{
-    return gapp->grace->grace_home;
-}
-
 int get_print_dest(const GraceApp *gapp)
 {
     return gapp->rt->print_dest;
@@ -478,72 +473,29 @@ char *mybasename(const char *s)
 
 int set_workingdir(GraceApp *gapp, const char *wd)
 {
-    char buf[GR_MAXPATHLEN];
+    char buf[GR_MAXPATHLEN], *epath;
+    int retval;
     
-    strncpy(buf, wd, GR_MAXPATHLEN - 1);
-    if (buf[0] == '~') {
-        expand_tilde(gapp, buf);
-    }
-    if (chdir(buf) >= 0) {
+    epath = grace_path(gapp->grace, wd);
+    
+    if (chdir(epath) >= 0) {
         gapp->rt->workingdir = copy_string(gapp->rt->workingdir, buf);
         if (gapp->rt->workingdir[strlen(gapp->rt->workingdir) - 1] != '/') {
             gapp->rt->workingdir = concat_strings(gapp->rt->workingdir, "/");
         }
-	return RETURN_SUCCESS;
+	retval = RETURN_SUCCESS;
     } else {
-        return RETURN_FAILURE;
+        retval = RETURN_FAILURE;
     }
+    
+    xfree(epath);
+    
+    return retval;
 }
 
 char *get_workingdir(const GraceApp *gapp)
 {
     return gapp->rt->workingdir;
-}
-
-char *get_username(const GraceApp *gapp)
-{
-    return gapp->grace->username;
-}
-
-char *get_userhome(const GraceApp *gapp)
-{
-    return gapp->grace->userhome;
-}
-
-/* TODO this needs some work */
-void expand_tilde(const GraceApp *gapp, char *buf)
-{
-    char buf2[GR_MAXPATHLEN];
-
-    if (buf[0] == '~') {
-	if (strlen(buf) == 1) {
-            strcpy(buf, get_userhome(gapp));
-	} else if (buf[1] == '/') {
-            if (strlen(buf) > 2) {
-                strcpy(buf2, get_userhome(gapp));
-	        strcat(buf2, buf + 1);
-	        strcpy(buf, buf2);
-            } else {
-                strcpy(buf, get_userhome(gapp));
-            }
-	} else {
-	    char tmp[128], *pp = tmp, *q = buf + 1;
-	    struct passwd *pent;
-
-	    while (*q && (*q != '/')) {
-		*pp++ = *q++;
-	    }
-	    *pp = 0;
-	    if ((pent = getpwnam(tmp)) != NULL) {
-		strcpy(buf2, pent->pw_dir);
-		strcat(buf2, "/");
-		strcat(buf2, q);
-		strcpy(buf, buf2);
-	    } else {
-		errmsg("No user by that name");
-	    }
-	}
-    }
 }
 
 void echomsg(char *msg)

@@ -988,7 +988,8 @@ int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
         }
 	filter_set(pdest, rarray);
         // set_parser_setno(pdest);
-        if (graal_parse_line(gapp->grace->graal, fstr, psrc) != RETURN_SUCCESS) {
+        if (graal_parse_line(grace_get_graal(gapp->grace), fstr, psrc)
+            != RETURN_SUCCESS) {
 	    if (psrc != pdest) {
 		quark_free(pdest);
 	    }
@@ -2101,7 +2102,8 @@ DArray *featext(Quark **sets, int nsets, const char *formula)
         GraceApp *gapp = gapp_from_quark(q);
         double val;
 
-        if (graal_eval_expr(gapp->grace->graal, formula, &val, q) != RETURN_SUCCESS) {
+        if (graal_eval_expr(grace_get_graal(gapp->grace), formula, &val, q) !=
+            RETURN_SUCCESS) {
             darray_free(da);
             return NULL;
         }

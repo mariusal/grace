@@ -27,8 +27,7 @@
 
 #include <string.h>
 
-#include "grace/grace.h"
-#include "xstrings.h"
+#include "grace/graceP.h"
 
 /*
  * XML project output
@@ -1050,7 +1049,7 @@ int grace_save(Quark *project, FILE *fp)
     xfile_set_ns(xf, GRACE_NS_PREFIX, GRACE_NS_URI, FALSE);
     
     attributes_reset(attrs);
-    attributes_set_ival(attrs, AStrVersion, bi_version_id());
+    attributes_set_ival(attrs, AStrVersion, XGR_VERSION_ID);
     xfile_begin(xf, EStrGrace, attrs);
 
     quark_traverse(project, project_save_hook, xf);

@@ -76,7 +76,7 @@ typedef struct _grarr {
 
 #define MAX_PARS_STRING_LENGTH  4096
 
-#define canvas gapp->grace->canvas
+#define canvas grace_get_canvas(gapp->grace)
 
 /* Tick sign type (obsolete) */
 #define SIGN_NORMAL     0
@@ -1561,7 +1561,6 @@ setprop:
 	}
 
 	| selectset COMMENT CHRSTR {
-	    // set_set_comment($1, $3);
 	    xfree($3);
 	}
         
@@ -2187,7 +2186,7 @@ onoff: ON { $$ = TRUE; }
 sourcetype: 
         DISK { $$ = SOURCE_DISK; }
 	| PIPE {
-            if (!gapp->grace->safe_mode) {
+            if (!gapp->rt->safe_mode) {
                 $$ = SOURCE_PIPE;
             } else {
                 yyerror("Pipe inputs are disabled in safe mode");
@@ -3386,7 +3385,7 @@ static int agr_store_cb(Quark *q, void *udata)
     return quark_reparent(pset, q);
 }
 
-Quark *load_agr_project(GraceApp *gapp, char *fn)
+Quark *load_agr_project(GraceApp *gapp, const char *fn)
 {
     Quark *project;
     FILE *fp;
@@ -3397,7 +3396,7 @@ Quark *load_agr_project(GraceApp *gapp, char *fn)
 	return NULL;
     }
     
-    project = project_new(gapp->grace->qfactory, AMEM_MODEL_LIBUNDO);
+    project = grace_project_new(gapp->grace, AMEM_MODEL_LIBUNDO);
 
     parser_state_reset(project);
     

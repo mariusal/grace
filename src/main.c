@@ -83,13 +83,8 @@ int main(int argc, char *argv[])
     
     grace   = gapp->grace;
     rt      = gapp->rt;
-    canvas  = grace->canvas;
+    canvas  = grace_get_canvas(grace);
     gui     = gapp->gui;
-    
-    if (init_font_db(gapp, canvas)) {
-        errmsg("Broken or incomplete installation - read the FAQ!");
-        exit(1);
-    }
     
     /*
      * if program name is gracebat* then don't initialize the X toolkit
@@ -377,9 +372,9 @@ int main(int argc, char *argv[])
 		    srand48(atol(argv[i]));	/* note atol() */
 		}
             } else if (argmatch(argv[i], "-safe", 5)) {
-                grace->safe_mode = TRUE;
+                rt->safe_mode = TRUE;
             } else if (argmatch(argv[i], "-nosafe", 7)) {
-                grace->safe_mode = FALSE;
+                rt->safe_mode = FALSE;
 	    } else if (argmatch(argv[i], "-help", 2)) {
 		usage(stdout, argv[0]);
 	    } else {
@@ -530,6 +525,7 @@ static void usage(FILE *stream, char *progname)
 static void VersionInfo(const GraceApp *gapp)
 {
     int i;
+    Canvas *canvas = grace_get_canvas(gapp->grace);
     
     fprintf(stdout, "\n%s\n\n", bi_version_string());
 
@@ -558,8 +554,8 @@ static void VersionInfo(const GraceApp *gapp)
     fprintf(stdout, "\n");
     
     fprintf(stdout, "Registered devices:\n");
-    for (i = 0; i < number_of_devices(gapp->grace->canvas); i++) {
-        fprintf(stdout, "%s ", get_device_name(gapp->grace->canvas, i));
+    for (i = 0; i < number_of_devices(canvas); i++) {
+        fprintf(stdout, "%s ", get_device_name(canvas, i));
     }
     fprintf(stdout, "\n\n");
     

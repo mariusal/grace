@@ -87,8 +87,6 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor);
 
 char *mybasename(const char *s);
 
-void expand_tilde(const GraceApp *gapp, char *buf);
-
 int system_wrap(const char *string);
 void msleep_wrap(unsigned int msec);
 

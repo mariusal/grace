@@ -57,13 +57,13 @@ Filter *ifilt, *ofilt;
 int numIfilt=0;
 int numOfilt=0;
 
-int add_input_filter( int method, char *id, char *comm );
-int add_output_filter( int method, char *id, char *comm );
-static void hex2char( Filter *, char * );
-static int test_magic( int len, char *magic, FILE *in );
-static int test_pattern( char *ext, char *fn );
+int add_input_filter( int method, const char *id, const char *comm );
+int add_output_filter( int method, const char *id, const char *comm );
+static void hex2char( Filter *, const char * );
+static int test_magic( int len, const char *magic, FILE *in );
+static int test_pattern( char *ext, const char *fn );
 
-int add_io_filter( int type, int method, char *id, char *comm )
+int add_io_filter( int type, int method, const char *id, const char *comm )
 {
 	if( type == FILTER_INPUT )
 		return add_input_filter( method, id, comm );
@@ -77,7 +77,7 @@ int add_io_filter( int type, int method, char *id, char *comm )
  * if method == 0 -> PATTERN MATCHING else method = the number of bytes to
  * match in MAGIC NUMBER
  */
-int add_input_filter( int method, char *id, char *comm )
+int add_input_filter( int method, const char *id, const char *comm )
 {
 	ifilt = xrealloc( ifilt, ++numIfilt*sizeof(Filter) );
 	ifilt[numIfilt-1].command = copy_string(NULL, comm);
@@ -99,7 +99,7 @@ int add_input_filter( int method, char *id, char *comm )
 }
 
 
-int add_output_filter( int method, char *id, char *comm )
+int add_output_filter( int method, const char *id, const char *comm )
 {
 	ofilt = xrealloc( ofilt, ++numOfilt*sizeof(Filter) );
 	ofilt[numOfilt-1].command = copy_string(NULL, comm);
@@ -139,7 +139,7 @@ void clear_io_filters( int f )
 /* 
  * filter input file and return pointer to a pipe
  */
-FILE *filter_read(GraceApp *gapp, char *fn)
+FILE *filter_read(GraceApp *gapp, const char *fn)
 {
 	char buf[1024];
 	int i;
@@ -170,7 +170,7 @@ FILE *filter_read(GraceApp *gapp, char *fn)
 /*
  * filter output file and return pointer to a pipe or file
  */
-FILE *filter_write(GraceApp *gapp, char *fn)
+FILE *filter_write(GraceApp *gapp, const char *fn)
 {
 	char buf[1024];
 	int i;
@@ -204,7 +204,7 @@ FILE *filter_write(GraceApp *gapp, char *fn)
  * if found at the beginning of the file, return 1
  * else 0
  */
-static int test_magic( int len, char *magic, FILE *in )
+static int test_magic( int len, const char *magic, FILE *in )
 {
 	char buf[512], rstr[50];
 
@@ -222,7 +222,7 @@ static int test_magic( int len, char *magic, FILE *in )
  * test for a pattern match
  * if found return 1, else 0
  */
-static int test_pattern( char *ext, char *fn )
+static int test_pattern( char *ext, const char *fn )
 {
 #if defined(HAVE_FNMATCH)
 	return !fnmatch( ext, fn, 0 );
@@ -237,7 +237,7 @@ static int test_pattern( char *ext, char *fn )
  * convert hex string to character string interpreting 2 hex digits as 1
  * byte 
  */
-static void hex2char( Filter *f, char *hex )
+static void hex2char( Filter *f, const char *hex )
 {
 	unsigned int i;
 	char tmp[3], *ptr;
