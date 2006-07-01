@@ -228,7 +228,7 @@ char *project_get_docname(const Quark *q)
     }
 }
 
-int project_set_docname(Quark *q, char *s)
+int project_set_docname(Quark *q, const char *s)
 {
     Project *pr = project_get_data(q);
     if (pr) {

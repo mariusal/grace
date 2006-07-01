@@ -768,7 +768,7 @@ int project_set_description(Quark *q, char *descr);
 unsigned int project_get_prec(const Quark *q);
 int project_set_prec(Quark *q, unsigned int prec);
 char *project_get_docname(const Quark *q);
-int project_set_docname(Quark *q, char *s);
+int project_set_docname(Quark *q, const char *s);
 
 int project_get_page_dimensions(const Quark *q, int *wpp, int *hpp);
 int project_set_page_dimensions(Quark *q, int wpp, int hpp);
