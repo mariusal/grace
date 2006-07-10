@@ -49,12 +49,6 @@ static int xrst_parser_wrapper(const Canvas *canvas, void *data, const char *s)
     return ddata->parser(canvas, ddata->data, s);
 }
 
-static void xrst_setup_wrapper(const Canvas *canvas, void *data)
-{
-    Xrst_data *ddata = (Xrst_data *) data;
-    ddata->setup(canvas, ddata->data);
-}
-
 static void xrst_data_free(void *data)
 {
     Xrst_data *ddata = (Xrst_data *) data;
@@ -78,7 +72,6 @@ int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev)
     memset(ddata, 0, sizeof(Xrst_data));
     
     ddata->dump       = xdev->dump;
-    ddata->setup      = xdev->setup;
     ddata->parser     = xdev->parser;
     ddata->data       = xdev->data;
     ddata->freedata   = xdev->freedata;
@@ -96,7 +89,6 @@ int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev)
         xrst_initgraphics,
         xrst_leavegraphics,
         xdev->parser ? xrst_parser_wrapper:NULL,
-        xdev->setup  ? xrst_setup_wrapper:NULL,
         NULL,
         xrst_drawpixel,
         xrst_drawpolyline,

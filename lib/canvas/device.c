@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -34,7 +34,7 @@
 #include "grace/canvasP.h"
 
 Device_entry *device_new(const char *name, int type, int twopass,
-    void *data, DevFreeDataProc freedata)
+    void *devdata, DevFreeDataProc freedata)
 {
     Device_entry *d;
     
@@ -47,7 +47,7 @@ Device_entry *device_new(const char *name, int type, int twopass,
         d->type     = type;
         d->twopass  = twopass;
         d->name     = copy_string(NULL, name);
-        d->data     = data;
+        d->devdata  = devdata;
         d->freedata = freedata;
     }
     
@@ -60,7 +60,7 @@ void device_free(Device_entry *d)
         xfree(d->name);
         xfree(d->fext);
         if (d->freedata) {
-            d->freedata(d->data);
+            d->freedata(d->devdata);
         }
         xfree(d);
     }
@@ -70,7 +70,6 @@ int device_set_procs(Device_entry *d,
     DevInitProc          initgraphics,
     DevLeaveGraphicsProc leavegraphics,
     DevParserProc        parser,
-    DevSetupProc         setup,
     DevUpdateCmapProc    updatecmap,
     DevDrawPixelProc     drawpixel,
     DevDrawPolyLineProc  drawpolyline,
@@ -83,7 +82,6 @@ int device_set_procs(Device_entry *d,
     d->initgraphics  = initgraphics;
     d->leavegraphics = leavegraphics;
     d->parser        = parser;
-    d->setup         = setup;
     d->updatecmap    = updatecmap;
     d->drawpixel     = drawpixel;
     d->drawpolyline  = drawpolyline;
@@ -261,13 +259,13 @@ int parse_device_options(Canvas *canvas, unsigned int dindex, char *options)
             n = MIN2((p - oldp), 64 - 1);
             strncpy(opstring, oldp, n);
             opstring[n] = '\0';
-            if (dev->parser(canvas, dev->data, opstring) !=
+            if (dev->parser(canvas, dev->devdata, opstring) !=
                 RETURN_SUCCESS) {
                 return RETURN_FAILURE;
             }
             oldp = p + 1;
         }
-        return dev->parser(canvas, dev->data, oldp);
+        return dev->parser(canvas, dev->devdata, oldp);
     }
 }
 
@@ -336,5 +334,37 @@ PageFormat get_page_format(const Canvas *canvas, int device)
         return PAGE_FORMAT_A4;
     } else {
         return PAGE_FORMAT_CUSTOM;
+    }
+}
+
+int device_set_udata(Canvas *canvas, unsigned int dindex, void *udata)
+{
+    Device_entry *dev = get_device_props(canvas, dindex);
+    if (dev) {
+        dev->udata = udata;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+void *device_get_udata(const Canvas *canvas, unsigned int dindex)
+{
+    Device_entry *dev = get_device_props(canvas, dindex);
+    if (dev) {
+        return dev->udata;
+    } else {
+        return NULL;
+    }
+}
+
+
+void *device_get_devdata(const Canvas *canvas, unsigned int dindex)
+{
+    Device_entry *dev = get_device_props(canvas, dindex);
+    if (dev) {
+        return dev->devdata;
+    } else {
+        return NULL;
     }
 }

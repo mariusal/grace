@@ -57,7 +57,6 @@ typedef struct _Xrst_data {
     
     XrstDumpProc  dump;
     DevParserProc parser;
-    DevSetupProc  setup;
     
     void *data;
     DevFreeDataProc freedata;

@@ -69,7 +69,7 @@ void canvas_dev_drawpixel(Canvas *canvas, const VPoint *vp)
 {
     canvas_stats_update(canvas, CANVAS_STATS_COLOR);
     if (!canvas->drypass) {
-        canvas->curdevice->drawpixel(canvas, canvas->curdevice->data, vp);
+        canvas->curdevice->drawpixel(canvas, canvas->curdevice->devdata, vp);
     }
 }
 
@@ -78,7 +78,7 @@ void canvas_dev_drawpolyline(Canvas *canvas,
 {
     canvas_stats_update(canvas, CANVAS_STATS_LINE);
     if (!canvas->drypass) {
-        canvas->curdevice->drawpolyline(canvas, canvas->curdevice->data,
+        canvas->curdevice->drawpolyline(canvas, canvas->curdevice->devdata,
             vps, n, mode);
     }
 }
@@ -87,7 +87,7 @@ void canvas_dev_fillpolygon(Canvas *canvas, const VPoint *vps, int nc)
 {
     canvas_stats_update(canvas, CANVAS_STATS_PEN);
     if (!canvas->drypass) {
-        canvas->curdevice->fillpolygon(canvas, canvas->curdevice->data,
+        canvas->curdevice->fillpolygon(canvas, canvas->curdevice->devdata,
             vps, nc);
     }
 }
@@ -97,7 +97,7 @@ void canvas_dev_drawarc(Canvas *canvas,
 {
     canvas_stats_update(canvas, CANVAS_STATS_LINE);
     if (!canvas->drypass) {
-        canvas->curdevice->drawarc(canvas, canvas->curdevice->data,
+        canvas->curdevice->drawarc(canvas, canvas->curdevice->devdata,
             vp1, vp2, a1, a2);
     }
 }
@@ -107,7 +107,7 @@ void canvas_dev_fillarc(Canvas *canvas,
 {
     canvas_stats_update(canvas, CANVAS_STATS_PEN);
     if (!canvas->drypass) {
-        canvas->curdevice->fillarc(canvas, canvas->curdevice->data,
+        canvas->curdevice->fillarc(canvas, canvas->curdevice->devdata,
             vp1, vp2, a1, a2, mode);
     }
 }
@@ -133,7 +133,7 @@ void canvas_dev_putpixmap(Canvas *canvas, const VPoint *vp, const CPixmap *pm)
         }
     }
     if (!canvas->drypass) {
-        canvas->curdevice->putpixmap(canvas, canvas->curdevice->data, vp, pm);
+        canvas->curdevice->putpixmap(canvas, canvas->curdevice->devdata, vp, pm);
     }
 }
 
@@ -147,7 +147,7 @@ void canvas_dev_puttext(Canvas *canvas,
         canvas_stats_update(canvas, CANVAS_STATS_PEN);
         canvas_char_stats_update(canvas, font, s, len);
         if (!canvas->drypass) {
-            canvas->curdevice->puttext(canvas, canvas->curdevice->data,
+            canvas->curdevice->puttext(canvas, canvas->curdevice->devdata,
                 vp, s, len, font, tm, underline, overline, kerning);
         }
     }
@@ -538,7 +538,7 @@ int initgraphics(Canvas *canvas, const CanvasStats *cstats)
     }
     
     retval = canvas->curdevice->initgraphics(canvas,
-        canvas->curdevice->data, cstats);
+        canvas->curdevice->devdata, cstats);
     
     if (retval == RETURN_SUCCESS) {
         canvas->device_ready = TRUE;
@@ -551,7 +551,7 @@ int initgraphics(Canvas *canvas, const CanvasStats *cstats)
 
 void leavegraphics(Canvas *canvas, const CanvasStats *cstats)
 {
-    canvas->curdevice->leavegraphics(canvas, canvas->curdevice->data, cstats);
+    canvas->curdevice->leavegraphics(canvas, canvas->curdevice->devdata, cstats);
     canvas->device_ready = FALSE;
 }
 
@@ -1354,7 +1354,7 @@ static int store_color(Canvas *canvas, unsigned int n, const RGB *rgb, int ctype
         if (canvas->device_ready) {
             canvas_color_trans(canvas, cmap);
             if (canvas->curdevice->updatecmap != NULL) {
-                canvas->curdevice->updatecmap(canvas, canvas->curdevice->data);
+                canvas->curdevice->updatecmap(canvas, canvas->curdevice->devdata);
             }
         }
         return RETURN_SUCCESS;

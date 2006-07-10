@@ -249,8 +249,6 @@ typedef int (*DevInitProc)(const Canvas *canvas, void *data,
     const CanvasStats *cstats);
 /* function to parse device-specific commands */
 typedef int (*DevParserProc)(const Canvas *canvas, void *data, const char *s);
-/* function (GUI interface) to setup device */
-typedef void (*DevSetupProc)(const Canvas *canvas, void *data);
 /* update color map */
 typedef void (*DevUpdateCmapProc)(const Canvas *canvas, void *data);
 /* device exit */
@@ -355,7 +353,6 @@ typedef struct {
     DevInitProc          initgraphics;
     DevLeaveGraphicsProc leavegraphics;
     DevParserProc        parser;
-    DevSetupProc         setup;
     DevUpdateCmapProc    updatecmap;
     DevDrawPixelProc     drawpixel;
     DevDrawPolyLineProc  drawpolyline;
@@ -365,8 +362,10 @@ typedef struct {
     DevPutPixmapProc     putpixmap;
     DevPutTextProc       puttext;
     
-    void                 *data;            /* device private data */
+    void                 *devdata;         /* device private data */
     DevFreeDataProc      freedata;         /* freeing private data */
+    
+    void                 *udata;           /* user-supplied data */
 } Device_entry;
 
 char *canvas_get_username(const Canvas *canvas);
@@ -578,7 +577,6 @@ typedef struct _XrstDevice_entry {
     char            *fext;
     int             fontaa;
     DevParserProc   parser;
-    DevSetupProc    setup;
     
     XrstDumpProc    dump;
     
@@ -588,13 +586,12 @@ typedef struct _XrstDevice_entry {
 
 
 Device_entry *device_new(const char *name, int type, int twopass,
-    void *data, DevFreeDataProc freedata);
+    void *devdata, DevFreeDataProc freedata);
 void device_free(Device_entry *d);
 int device_set_procs(Device_entry *d,
     DevInitProc          initgraphics,
     DevLeaveGraphicsProc leavegraphics,
     DevParserProc        parser,
-    DevSetupProc         setup,
     DevUpdateCmapProc    updatecmap,
     DevDrawPixelProc     drawpixel,
     DevDrawPolyLineProc  drawpolyline,
@@ -628,6 +625,11 @@ char *font_subset(const Canvas *canvas,
 
 double *get_kerning_vector(const Canvas *canvas,
     const char *str, int len, int font);
+
+void *device_get_devdata(const Canvas *canvas, unsigned int dindex);
+
+int device_set_udata(Canvas *canvas, unsigned int dindex, void *udata);
+void *device_get_udata(const Canvas *canvas, unsigned int dindex);
 
 #endif
 
