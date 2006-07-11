@@ -5,8 +5,21 @@
 
 LIB  = $(GRACE_CANVAS_LIB)
 
-SRCS = draw.c t1fonts.c device.c xrstdrv.c
+SRCS = draw.c t1fonts.c device.c xrstdrv.c \
+	dummydrv.c \
+	mfdrv.c \
+	psdrv.c \
+	mifdrv.c \
+	svgdrv.c \
+	pnmdrv.c
 
-OBJS = draw$(O) t1fonts$(O) device$(O) xrstdrv$(O)
+OBJS = draw$(O) t1fonts$(O) device$(O) xrstdrv$(O) \
+	dummydrv$(O) \
+	mfdrv$(O) \
+	psdrv$(O) \
+	mifdrv$(O) \
+	svgdrv$(O) \
+	pnmdrv$(O)
+        
 
 EXTRAFLAGS = $(T1_INC)

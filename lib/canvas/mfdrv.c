@@ -29,46 +29,16 @@
  * Driver for the Grace Metafile format
  */
 
-#include <config.h>
-
 #include <stdio.h>
 #include <string.h>
 
 #define CANVAS_BACKEND_API
 #include "grace/canvas.h"
 
-#include "devlist.h"
-#include "mfdrv.h"
+#define GMF_VERSION "0.10"
 
-int register_mf_drv(Canvas *canvas)
-{
-    Device_entry *d;
-
-    d = device_new("Metafile", DEVICE_FILE, TRUE, NULL, NULL);
-    if (!d) {
-        return -1;
-    }
-    
-    device_set_fext(d, "gmf");
-    
-    device_set_procs(d,
-        mf_initgraphics,
-        mf_leavegraphics,
-        NULL,
-        NULL,
-        NULL,
-        mf_drawpixel,
-        mf_drawpolyline,
-        mf_fillpolygon,
-        mf_drawarc,
-        mf_fillarc,
-        mf_putpixmap,
-        mf_puttext);
-    
-    return register_device(canvas, d);
-}
-
-int mf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
+static int mf_initgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
 {
     unsigned int i, j;
     Page_geometry *pg;
@@ -125,7 +95,7 @@ int mf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
     return RETURN_SUCCESS;
 }
 
-void mf_setpen(const Canvas *canvas)
+static void mf_setpen(const Canvas *canvas)
 {
     Pen pen;
     FILE *prstream = canvas_get_prstream(canvas);
@@ -134,14 +104,14 @@ void mf_setpen(const Canvas *canvas)
     fprintf(prstream, "SetPen { %d %d }\n", pen.color, pen.pattern);
 }
 
-void mf_setdrawbrush(const Canvas *canvas)
+static void mf_setdrawbrush(const Canvas *canvas)
 {
     FILE *prstream = canvas_get_prstream(canvas);
     fprintf(prstream, "SetLineWidth { %.4f }\n", getlinewidth(canvas));
     fprintf(prstream, "SetLineStyle { %d }\n", getlinestyle(canvas));
 }
 
-void mf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
+static void mf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
 {
     FILE *prstream = canvas_get_prstream(canvas);
     mf_setpen(canvas);
@@ -149,7 +119,7 @@ void mf_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
     fprintf(prstream, "DrawPixel { ( %.4f , %.4f ) }\n", vp->x, vp->y);
 }
 
-void mf_drawpolyline(const Canvas *canvas, void *data,
+static void mf_drawpolyline(const Canvas *canvas, void *data,
     const VPoint *vps, int n, int mode)
 {
     int i;
@@ -170,7 +140,7 @@ void mf_drawpolyline(const Canvas *canvas, void *data,
     fprintf(prstream, "}\n");
 }
 
-void mf_fillpolygon(const Canvas *canvas, void *data,
+static void mf_fillpolygon(const Canvas *canvas, void *data,
     const VPoint *vps, int nc)
 {
     int i;
@@ -185,7 +155,7 @@ void mf_fillpolygon(const Canvas *canvas, void *data,
     fprintf(prstream, "}\n"); 
 }
 
-void mf_drawarc(const Canvas *canvas, void *data,
+static void mf_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     FILE *prstream = canvas_get_prstream(canvas);
@@ -197,7 +167,7 @@ void mf_drawarc(const Canvas *canvas, void *data,
         vp1->x, vp1->y, vp2->x, vp2->y, a1, a2);
 }
 
-void mf_fillarc(const Canvas *canvas, void *data,
+static void mf_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     char *name;
@@ -215,7 +185,7 @@ void mf_fillarc(const Canvas *canvas, void *data,
         name, vp1->x, vp1->y, vp2->x, vp2->y, a1, a2);
 }
 
-void mf_putpixmap(const Canvas *canvas, void *data,
+static void mf_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, const CPixmap *pm)
 {
     int i, j, k;
@@ -268,7 +238,7 @@ void mf_putpixmap(const Canvas *canvas, void *data,
     fprintf(prstream, "}\n"); 
 }
 
-void mf_puttext(const Canvas *canvas, void *data,
+static void mf_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning)
 {
@@ -292,7 +262,7 @@ void mf_puttext(const Canvas *canvas, void *data,
     fprintf(prstream, "}\n"); 
 }
 
-void mf_leavegraphics(const Canvas *canvas, void *data,
+static void mf_leavegraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
     FILE *prstream = canvas_get_prstream(canvas);
@@ -302,3 +272,29 @@ void mf_leavegraphics(const Canvas *canvas, void *data,
         v.xv1, v.yv1, v.xv2, v.yv2);
 }
 
+int register_mf_drv(Canvas *canvas)
+{
+    Device_entry *d;
+
+    d = device_new("Metafile", DEVICE_FILE, TRUE, NULL, NULL);
+    if (!d) {
+        return -1;
+    }
+    
+    device_set_fext(d, "gmf");
+    
+    device_set_procs(d,
+        mf_initgraphics,
+        mf_leavegraphics,
+        NULL,
+        NULL,
+        mf_drawpixel,
+        mf_drawpolyline,
+        mf_fillpolygon,
+        mf_drawarc,
+        mf_fillarc,
+        mf_putpixmap,
+        mf_puttext);
+    
+    return register_device(canvas, d);
+}

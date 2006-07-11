@@ -40,8 +40,6 @@
 #define CANVAS_BACKEND_API
 #include "grace/canvas.h"
 
-#include "devlist.h"
-
 #include "globals.h"
 #include "xprotos.h"
 
@@ -586,7 +584,6 @@ int register_x11_drv(Canvas *canvas)
     device_set_procs(d,
         x11_initgraphics,
         x11_leavegraphics,
-        NULL,
         NULL,
         x11_updatecmap,
         x11_drawpixel,

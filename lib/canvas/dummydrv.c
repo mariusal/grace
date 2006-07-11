@@ -26,7 +26,7 @@
  */
 
 /*
- * Dummy (Null) driver for Grace
+ * Dummy (Null) driver
  */
 
 #include <stdio.h>
@@ -34,8 +34,31 @@
  
 #define CANVAS_BACKEND_API
 #include "grace/canvas.h"
-#include "devlist.h"
-#include "dummydrv.h"
+
+static int dummy_initgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
+{
+    return RETURN_SUCCESS;
+}
+
+static void dummy_drawpixel(const Canvas *canvas, void *data,
+    const VPoint *vp){}
+static void dummy_drawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode){}
+static void dummy_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc){}
+static void dummy_drawarc(const Canvas *canvas, void *data,
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2){}
+static void dummy_fillarc(const Canvas *canvas, void *data,
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode){}
+void dummy_putpixmap(const Canvas *canvas, void *data,
+    const VPoint *vp, const CPixmap *pm){}
+static void dummy_puttext(const Canvas *canvas, void *data,
+    const VPoint *vp, const char *s, int len, int font,
+    const TextMatrix *tm, int underline, int overline, int kerning){}
+
+static void dummy_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats){}
 
 int register_dummy_drv(Canvas *canvas)
 {
@@ -51,7 +74,6 @@ int register_dummy_drv(Canvas *canvas)
         dummy_leavegraphics,
         NULL,
         NULL,
-        NULL,
         dummy_drawpixel,
         dummy_drawpolyline,
         dummy_fillpolygon,
@@ -62,26 +84,3 @@ int register_dummy_drv(Canvas *canvas)
     
     return register_device(canvas, d);
 }
-
-int dummy_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
-{
-    return RETURN_SUCCESS;
-}
-
-void dummy_drawpixel(const Canvas *canvas, void *data, const VPoint *vp){}
-void dummy_drawpolyline(const Canvas *canvas, void *data,
-    const VPoint *vps, int n, int mode){}
-void dummy_fillpolygon(const Canvas *canvas, void *data,
-    const VPoint *vps, int nc){}
-void dummy_drawarc(const Canvas *canvas, void *data,
-    const VPoint *vp1, const VPoint *vp2, double a1, double a2){}
-void dummy_fillarc(const Canvas *canvas, void *data,
-    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode){}
-void dummy_putpixmap(const Canvas *canvas, void *data,
-    const VPoint *vp, const CPixmap *pm){}
-void dummy_puttext(const Canvas *canvas, void *data,
-    const VPoint *vp, const char *s, int len, int font,
-    const TextMatrix *tm, int underline, int overline, int kerning){}
-
-void dummy_leavegraphics(const Canvas *canvas, void *data,
-    const CanvasStats *cstats){}

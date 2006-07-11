@@ -363,7 +363,11 @@ void *device_get_devdata(const Canvas *canvas, unsigned int dindex)
 {
     Device_entry *dev = get_device_props(canvas, dindex);
     if (dev) {
-        return dev->devdata;
+        if (dev->is_xrst) {
+            return xrst_get_devdata(dev);
+        } else {
+            return dev->devdata;
+        }
     } else {
         return NULL;
     }

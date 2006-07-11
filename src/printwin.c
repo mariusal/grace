@@ -287,6 +287,8 @@ static void update_device_setup(PrintUI *ui, int device_id)
         int page_units;
         double page_x, page_y;
         PageFormat pf;
+        
+        dev_gui_setup *setup_data;
 
         Page_geometry pg;
         Device_entry *dev;
@@ -294,7 +296,9 @@ static void update_device_setup(PrintUI *ui, int device_id)
 	dev = get_device_props(canvas, device_id);
         pg = dev->pg;
         	
-        if (dev->setup == NULL) {
+        setup_data = (dev_gui_setup *) device_get_udata(canvas, device_id);
+        
+        if (setup_data == NULL) {
             SetSensitive(ui->device_opts, False);
         } else {
             SetSensitive(ui->device_opts, True);
@@ -656,14 +660,18 @@ void create_devopts_popup(Widget but, void *data)
     PrintUI *ui = (PrintUI *) data;
     int device_id;
     Device_entry *dev;
+    dev_gui_setup *setup_data;
     
     device_id = GetOptionChoice(ui->devices);
     dev = get_device_props(canvas, device_id);
-    if (dev->setup == NULL) {
+
+    setup_data = (dev_gui_setup *) device_get_udata(canvas, device_id);
+    
+    if (setup_data == NULL || setup_data->setup == NULL) {
         /* Should never come to here */
         errmsg("No options can be set for this device");
     } else {
-        (dev->setup)(canvas, dev->data);
+        (setup_data->setup)(canvas, setup_data->ui);
     }
 }
 

@@ -29,10 +29,6 @@
  * Grace PNM driver (based upon the generic xrst driver)
  */
 
-#include <config.h>
-
-#ifdef HAVE_LIBXMI
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,43 +36,13 @@
 #define CANVAS_BACKEND_API
 #include "grace/canvas.h"
 
-#include "utils.h"
-#include "devlist.h"
-
-#ifndef NONE_GUI
-#  include "motifinc.h"
-#endif
-
-#include "xprotos.h"
-
-/* PNM sub-formats */
-#define PNM_FORMAT_PBM  0
-#define PNM_FORMAT_PGM  1
-#define PNM_FORMAT_PPM  2
+#ifdef HAVE_LIBXMI
 
 #define DEFAULT_PNM_FORMAT PNM_FORMAT_PPM
 
-typedef struct {
-    int format;
-    int rawbits;
-#ifndef NONE_GUI
-    Widget frame;
-    Widget rawbits_item;
-    OptionStructure *format_item;
-#endif
-} Pnm_data;
-
-#ifndef NONE_GUI
-static void pnm_gui_setup(const Canvas *canvas, void *data);
-static void update_pnm_setup_frame(Pnm_data *pnmdata);
-static int set_pnm_setup_proc(void *data);
-#else
-#  define pnm_gui_setup NULL
-#endif
-
 static int pnm_op_parser(const Canvas *canvas, void *data, const char *opstring)
 {
-    Pnm_data *pnmdata = (Pnm_data *) data;
+    PNM_data *pnmdata = (PNM_data *) data;
     
     if (!strcmp(opstring, "rawbits:on")) {
         pnmdata->rawbits = TRUE;
@@ -101,7 +67,7 @@ static int pnm_op_parser(const Canvas *canvas, void *data, const char *opstring)
 static int pnm_output(const Canvas *canvas, void *data,
     unsigned int ncolors, unsigned int *colors, Xrst_pixmap *pm)
 {
-    Pnm_data *pnmdata = (Pnm_data *) data;
+    PNM_data *pnmdata = (PNM_data *) data;
     FILE *fp;
     int w, h;
     int i, j, k;
@@ -139,7 +105,7 @@ static int pnm_output(const Canvas *canvas, void *data,
         }
     }
     
-    fprintf(fp, "#Creator: %s\n", bi_version_string());
+    fprintf(fp, "#Creator: %s\n", "Grace/libcanvas");
     
     fprintf(fp, "%d %d\n", w, h);
     
@@ -206,64 +172,14 @@ static int pnm_output(const Canvas *canvas, void *data,
     return RETURN_SUCCESS;
 }
 
-#ifndef NONE_GUI
-
-void pnm_gui_setup(const Canvas *canvas, void *data)
-{
-    Pnm_data *pnmdata = (Pnm_data *) data;
-
-    set_wait_cursor();
-    
-    if (pnmdata->frame == NULL) {
-        Widget fr, rc;
-        
-	pnmdata->frame = CreateDialogForm(app_shell, "PNM options");
-
-	fr = CreateFrame(pnmdata->frame, "PNM options");
-        rc = CreateVContainer(fr);
-	pnmdata->format_item = CreateOptionChoiceVA(rc, "Format: ",
-            "1-bit mono (PBM)",      PNM_FORMAT_PBM,
-            "8-bit grayscale (PGM)", PNM_FORMAT_PGM,
-            "8-bit color (PPM)",     PNM_FORMAT_PPM,
-            NULL);
-	pnmdata->rawbits_item = CreateToggleButton(rc, "\"Rawbits\"");
-
-	CreateAACDialog(pnmdata->frame, fr, set_pnm_setup_proc, pnmdata);
-    }
-    update_pnm_setup_frame(pnmdata);
-
-    RaiseWindow(GetParent(pnmdata->frame));
-    unset_wait_cursor();
-}
-
-static void update_pnm_setup_frame(Pnm_data *pnmdata)
-{
-    if (pnmdata->frame) {
-        SetOptionChoice(pnmdata->format_item, pnmdata->format);
-        SetToggleButtonState(pnmdata->rawbits_item, pnmdata->rawbits);
-    }
-}
-
-static int set_pnm_setup_proc(void *data)
-{
-    Pnm_data *pnmdata = (Pnm_data *) data;
-    
-    pnmdata->format = GetOptionChoice(pnmdata->format_item);
-    pnmdata->rawbits = GetToggleButtonState(pnmdata->rawbits_item);
-    
-    return RETURN_SUCCESS;
-}
-
-#endif
-
 int register_pnm_drv(Canvas *canvas)
 {
     XrstDevice_entry xdev;
-    Pnm_data *pnmdata;
+    PNM_data *pnmdata;
     
-    pnmdata = xmalloc(sizeof(Pnm_data));
+    pnmdata = xmalloc(sizeof(PNM_data));
     if (pnmdata) {
-        memset(pnmdata, 0, sizeof(Pnm_data));
+        memset(pnmdata, 0, sizeof(PNM_data));
         pnmdata->format  = DEFAULT_PNM_FORMAT;
         pnmdata->rawbits = TRUE;
         
@@ -272,9 +188,8 @@ int register_pnm_drv(Canvas *canvas)
         xdev.fext     = "pnm";
         xdev.fontaa   = TRUE;
         xdev.parser   = pnm_op_parser;
-        xdev.setup    = pnm_gui_setup;
         xdev.dump     = pnm_output;
-        xdev.data     = pnmdata;
+        xdev.devdata  = pnmdata;
         xdev.freedata = xfree;
 
         return register_xrst_device(canvas, &xdev);

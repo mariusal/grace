@@ -45,7 +45,6 @@
 #include "grace/canvas.h"
 
 #include "utils.h"
-#include "devlist.h"
 #include "pdfdrv.h"
 
 #include "xprotos.h"
@@ -146,7 +145,6 @@ int register_pdf_drv(Canvas *canvas)
         pdf_initgraphics,
         pdf_leavegraphics,
         pdf_op_parser,
-        pdf_gui_setup,
         NULL,
         pdf_drawpixel,
         pdf_drawpolyline,

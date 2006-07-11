@@ -46,7 +46,7 @@
 static int xrst_parser_wrapper(const Canvas *canvas, void *data, const char *s)
 {
     Xrst_data *ddata = (Xrst_data *) data;
-    return ddata->parser(canvas, ddata->data, s);
+    return ddata->parser(canvas, ddata->devdata, s);
 }
 
 static void xrst_data_free(void *data)
@@ -54,7 +54,7 @@ static void xrst_data_free(void *data)
     Xrst_data *ddata = (Xrst_data *) data;
     if (ddata) {
         if (ddata->freedata) {
-            ddata->freedata(ddata->data);
+            ddata->freedata(ddata->devdata);
         }
         xfree(ddata);
     }
@@ -73,7 +73,7 @@ int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev)
     
     ddata->dump       = xdev->dump;
     ddata->parser     = xdev->parser;
-    ddata->data       = xdev->data;
+    ddata->devdata       = xdev->devdata;
     ddata->freedata   = xdev->freedata;
     
     d = device_new(xdev->name, xdev->type, FALSE,
@@ -82,6 +82,8 @@ int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev)
         xfree(ddata);
         return -1;
     }
+    
+    d->is_xrst = TRUE;
 
     device_set_fext(d, xdev->fext);
     
@@ -589,7 +591,7 @@ void xrst_leavegraphics(const Canvas *canvas, void *data,
             pixmap.matrix[i] = &ddata->mcanvas->drawable->pixmap[i + lump.y][lump.x];
         }
         
-        ddata->dump(canvas, ddata->data,
+        ddata->dump(canvas, ddata->devdata,
             cstats->ncolors, cstats->colors, &pixmap);
     
         xfree(pixmap.matrix);
@@ -599,6 +601,20 @@ void xrst_leavegraphics(const Canvas *canvas, void *data,
     miDeleteCanvas(ddata->mcanvas);
     miDeleteGC(ddata->gc);
     miDeletePaintedSet(ddata->paintedSet);
+}
+
+void *xrst_get_devdata(const Device_entry *dev)
+{
+    if (dev->is_xrst) {
+        Xrst_data *ddata = (Xrst_data *) dev->devdata;
+        if (ddata) {
+            return ddata->devdata;
+        } else {
+            return NULL;
+        }
+    } else {
+        return NULL;
+    }
 }
 
 #else /* No XMI library */

@@ -42,7 +42,6 @@
 #include "grace/canvas.h"
 
 #include "utils.h"
-#include "devlist.h"
 
 #ifndef NONE_GUI
 #  include "motifinc.h"
@@ -327,9 +326,8 @@ int register_png_drv(Canvas *canvas)
         xdev.fext     = "png";
         xdev.fontaa   = TRUE;
         xdev.parser   = png_op_parser;
-        xdev.setup    = png_gui_setup;
         xdev.dump     = png_output;
-        xdev.data     = pngdata;
+        xdev.devdata  = pngdata;
         xdev.freedata = xfree;
 
         return register_xrst_device(canvas, &xdev);

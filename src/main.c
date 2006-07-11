@@ -45,7 +45,6 @@
 #include "files.h"
 #include "ssdata.h"
 
-#include "devlist.h"
 #include "xprotos.h"
 
 
@@ -74,6 +73,8 @@ int main(int argc, char *argv[])
     RunTime *rt;
     GUI *gui;
     Canvas *canvas;
+    
+    int device_id;
     
     gapp = gapp_new();
     if (!gapp) {
@@ -141,7 +142,13 @@ int main(int argc, char *argv[])
 #endif
 
     rt->hdevice = register_ps_drv(canvas);
-    register_eps_drv(canvas);
+#ifndef NONE_GUI
+    attach_ps_drv_setup(canvas, rt->hdevice);
+#endif
+    device_id = register_eps_drv(canvas);
+#ifndef NONE_GUI
+    attach_eps_drv_setup(canvas, device_id);
+#endif
 
 #ifdef HAVE_LIBPDF
     register_pdf_drv(canvas);
@@ -150,7 +157,10 @@ int main(int argc, char *argv[])
     register_svg_drv(canvas);
 
 #ifdef HAVE_LIBXMI
-    register_pnm_drv(canvas);
+    device_id = register_pnm_drv(canvas);
+#ifndef NONE_GUI
+    attach_pnm_drv_setup(canvas, device_id);
+#endif
 #  ifdef HAVE_LIBJPEG
     register_jpg_drv(canvas);
 #  endif

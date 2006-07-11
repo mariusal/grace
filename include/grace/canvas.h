@@ -349,6 +349,8 @@ typedef struct {
 
     int color_trans;                       /* color transformation type */
     
+    int is_xrst;                           /* the device is Xrst-based */
+
     /* low-level device routines */
     DevInitProc          initgraphics;
     DevLeaveGraphicsProc leavegraphics;
@@ -416,6 +418,9 @@ Pattern *canvas_get_pattern(const Canvas *canvas, unsigned int n);
 
 unsigned int number_of_linestyles(const Canvas *canvas);
 LineStyle *canvas_get_linestyle(const Canvas *canvas, unsigned int n);
+
+int device_set_udata(Canvas *canvas, unsigned int dindex, void *udata);
+void *device_get_udata(const Canvas *canvas, unsigned int dindex);
 
 #if !defined(CANVAS_BACKEND_API) || defined(__CANVASP_H_)
 
@@ -580,7 +585,7 @@ typedef struct _XrstDevice_entry {
     
     XrstDumpProc    dump;
     
-    void            *data;      /* device private data */
+    void            *devdata;   /* device private data */
     DevFreeDataProc freedata;   /* freeing private data */
 } XrstDevice_entry;
 
@@ -609,7 +614,9 @@ Page_geometry *get_page_geometry(const Canvas *canvas);
 
 int register_device(Canvas *canvas, Device_entry *d);
 
+#ifdef HAVE_LIBXMI
 int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev);
+#endif
 
 int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb);
 int  get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb);
@@ -628,9 +635,104 @@ double *get_kerning_vector(const Canvas *canvas,
 
 void *device_get_devdata(const Canvas *canvas, unsigned int dindex);
 
-int device_set_udata(Canvas *canvas, unsigned int dindex, void *udata);
-void *device_get_udata(const Canvas *canvas, unsigned int dindex);
+
+/* PostScript/EPS driver */
+#define PS_FORMAT   0
+#define EPS_FORMAT  1
+
+typedef enum {
+    PS_COLORSPACE_GRAYSCALE,
+    PS_COLORSPACE_RGB,
+    PS_COLORSPACE_CMYK
+} PSColorSpace;
+
+#define PS_MEDIA_FEED_AUTO    0  
+#define PS_MEDIA_FEED_MATCH   1
+#define PS_MEDIA_FEED_MANUAL  2
+
+#define PS_DOCDATA_7BIT       0
+#define PS_DOCDATA_8BIT       1
+#define PS_DOCDATA_BINARY     2
+
+#define PS_FONT_EMBED_NONE    0
+#define PS_FONT_EMBED_BUT13   1
+#define PS_FONT_EMBED_BUT35   2
+#define PS_FONT_EMBED_ALL     3
+
+typedef struct {
+    int format;
+
+    unsigned long page_scale;
+    double pixel_size;
+    float page_scalef;
+    int page_orientation;
+
+    int color;
+    int pattern;
+    double linew;
+    int lines;
+    int linecap;
+    int linejoin;
+
+    int level2;
+    PSColorSpace colorspace;
+    int docdata;
+    int fonts;
+    int printable;
+
+    int offset_x;
+    int offset_y;
+    int feed;
+    int hwres;
+} PS_data;
+
+#ifdef HAVE_LIBXMI
+
+/* PNM sub-formats */
+#define PNM_FORMAT_PBM  0
+#define PNM_FORMAT_PGM  1
+#define PNM_FORMAT_PPM  2
+
+typedef struct {
+    int format;
+    int rawbits;
+} PNM_data;
+
+#endif /* HAVE_LIBXMI */
 
 #endif
+
+/* Dummy/NULL driver */
+int register_dummy_drv(Canvas *canvas);
+
+/* Grace Metafile driver */
+int register_mf_drv(Canvas *canvas);
+
+/* PostScript driver */
+int register_ps_drv(Canvas *canvas);
+/* EPS driver */
+int register_eps_drv(Canvas *canvas);
+
+/* MIF driver */
+int register_mif_drv(Canvas *canvas);
+
+/* SVG driver */
+int register_svg_drv(Canvas *canvas);
+
+#ifdef HAVE_LIBPDF
+int register_pdf_drv(Canvas *canvas);
+#endif
+
+#ifdef HAVE_LIBXMI
+int register_pnm_drv(Canvas *canvas);
+
+#ifdef HAVE_LIBJPEG
+int register_jpg_drv(Canvas *canvas);
+#endif
+
+#ifdef HAVE_LIBPNG
+int register_png_drv(Canvas *canvas);
+#endif
+#endif /* HAVE_LIBXMI */
 
 #endif /* __CANVAS_H_ */

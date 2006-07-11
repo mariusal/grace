@@ -42,12 +42,10 @@
 #define CANVAS_BACKEND_API
 #include "grace/canvas.h"
 
-#include "devlist.h"
 #ifndef NONE_GUI
-#  include "motifinc.h"
+#  include "xprotos.h"
 #endif
 
-#include "xprotos.h"
 
 #define JPEG_DCT_IFAST  0
 #define JPEG_DCT_ISLOW  1
@@ -350,9 +348,8 @@ int register_jpg_drv(Canvas *canvas)
         xdev.fext     = "jpg";
         xdev.fontaa   = TRUE;
         xdev.parser   = jpg_op_parser;
-        xdev.setup    = jpg_gui_setup;
         xdev.dump     = jpg_output;
-        xdev.data     = jpgdata;
+        xdev.devdata  = jpgdata;
         xdev.freedata = xfree;
 
         return register_xrst_device(canvas, &xdev);

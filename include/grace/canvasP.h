@@ -210,4 +210,6 @@ void get_page_viewport(const Canvas *canvas, double *vx, double *vy);
 
 Device_entry *get_curdevice_props(const Canvas *canvas);
 
+void *xrst_get_devdata(const Device_entry *dev);
+
 #endif /* __CANVASP_H_ */

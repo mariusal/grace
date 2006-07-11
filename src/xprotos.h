@@ -107,8 +107,17 @@ struct _MainWinUI {
     Widget redo_button;
 };
 
+typedef void (*DevSetupProc)(const Canvas *canvas, void *ui);
+
+typedef struct {
+    DevSetupProc setup;
+    void *ui;
+} dev_gui_setup;
+
 void x11_VPoint2dev(const VPoint *vp, short *x, short *y);
 void x11_dev2VPoint(short x, short y, VPoint *vp);
+
+int register_x11_drv(Canvas *canvas);
 
 int x11_get_pixelsize(const GUI *gui);
 long x11_allocate_color(GUI *gui, const RGB *rgb);
@@ -232,6 +241,11 @@ void installXErrorHandler(void);
 Pixmap char_to_pixmap(Widget w, int font, char c, int csize);
 
 void snapshot_and_update(Quark *q, int all);
+
+int attach_ps_drv_setup(Canvas *canvas, int device_id);
+int attach_eps_drv_setup(Canvas *canvas, int device_id);
+int attach_pnm_drv_setup(Canvas *canvas, int device_id);
+
 #endif /* NONE_GUI */
 
 #endif /* __XPROTOS_H_ */
