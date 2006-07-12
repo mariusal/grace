@@ -686,6 +686,49 @@ typedef struct {
     int hwres;
 } PS_data;
 
+
+#ifdef HAVE_LIBPDF
+#include <pdflib.h>
+
+typedef enum {
+    PDF_1_3,
+    PDF_1_4,
+    PDF_1_5
+} PDFCompatibility;
+
+typedef enum {
+    PDF_COLORSPACE_GRAYSCALE,
+    PDF_COLORSPACE_RGB,
+    PDF_COLORSPACE_CMYK
+} PDFColorSpace;
+
+typedef struct {
+    PDF             *phandle;
+
+    unsigned long    page_scale;
+    float            pixel_size;
+    float            page_scalef;
+
+    int             *font_ids;
+    int             *pattern_ids;
+
+    int              color;
+    int              pattern;
+    double           linew;
+    int              lines;
+    int              linecap;
+    int              linejoin;
+
+    PDFCompatibility compat;
+    PDFColorSpace    colorspace;
+    int              compression;
+    int              fpprec;
+    
+    int              kerning_supported;
+} PDF_data;
+
+#endif /* HAVE_LIBPDF */
+
 #ifdef HAVE_LIBXMI
 
 /* PNM sub-formats */
@@ -697,6 +740,34 @@ typedef struct {
     int format;
     int rawbits;
 } PNM_data;
+
+#ifdef HAVE_LIBPNG
+
+typedef struct {
+    int interlaced;
+    int transparent;
+    int compression;
+} PNG_data;
+
+#endif /* HAVE_LIBPNG */
+
+#ifdef HAVE_LIBJPEG
+
+#define JPEG_DCT_IFAST  0
+#define JPEG_DCT_ISLOW  1
+#define JPEG_DCT_FLOAT  2
+
+typedef struct {
+    int quality;
+    int grayscale;
+    int baseline;
+    int progressive;
+    int optimize;
+    int smoothing;
+    int dct;
+} JPG_data;
+
+#endif /* HAVE_LIBJPEG */
 
 #endif /* HAVE_LIBXMI */
 

@@ -9,34 +9,26 @@ PARS_Y = pars.yacc
 PARS_C = pars.c
 PARS_O = pars$(O)
 
-GRSRCS =  main.c graceapp.c project_utils.c \
-	utils.c files.c ssdata.c \
-	fourier.c \
-	graph_utils.c set_utils.c \
-	dobject_utils.c \
-	computils.c \
-	iofilters.c \
-	pdfdrv.c jpgdrv.c pngdrv.c \
-	bi.c
+GRSRCS = main.c graceapp.c \
+	project_utils.c graph_utils.c set_utils.c dobject_utils.c \
+	files.c iofilters.c ssdata.c \
+	computils.c fourier.c \
+	utils.c bi.c
 
 
-GROBJS =  main$(O) graceapp$(O) project_utils$(O) \
-	utils$(O) files$(O) ssdata$(O) \
-	fourier$(O) \
-	graph_utils$(O) set_utils$(O) \
-	dobject_utils$(O) \
-	computils$(O) \
+GROBJS = main$(O) graceapp$(O) \
+	project_utils$(O) graph_utils$(O) set_utils$(O) dobject_utils$(O) \
+	files$(O) iofilters$(O) ssdata$(O) \
+	computils$(O) fourier$(O) \
 	$(PARS_O) \
-	iofilters$(O) \
-	pdfdrv$(O) jpgdrv$(O) pngdrv$(O) \
-	bi$(O)
+        utils$(O) bi$(O)
 
 # The following are for a GUI
 #
 # X/MOTIF sources
 #
 
-GUISRCS =  Tab.c ListTree.c motifutils.c \
+GUISRCS = Tab.c ListTree.c motifutils.c \
 	compwin.c \
 	events.c fileswin.c \
 	helpwin.c \
@@ -48,7 +40,7 @@ GUISRCS =  Tab.c ListTree.c motifutils.c \
 	dobject_ui.c atext_ui.c region_ui.c \
 	worldwin.c fontwin.c xutil.c x11drv.c xmgrace.c
 
-GUIOBJS =  Tab$(O) ListTree$(O) motifutils$(O) \
+GUIOBJS = Tab$(O) ListTree$(O) motifutils$(O) \
 	compwin$(O) \
 	events$(O) fileswin$(O) \
 	helpwin$(O) \

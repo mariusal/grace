@@ -228,6 +228,101 @@ int attach_eps_drv_setup(Canvas *canvas, int device_id)
     return RETURN_SUCCESS;
 }
 
+#ifdef HAVE_LIBPDF
+
+typedef struct {
+    PDF_data        *pdf;
+    
+    Widget           frame;
+    OptionStructure *compat;
+    SpinStructure   *compression;
+    SpinStructure   *fpprec;
+    OptionStructure *colorspace;
+} PDF_UI_data;
+
+static void update_pdf_setup_frame(PDF_UI_data *ui)
+{
+    if (ui->frame) {
+        PDF_data *pdf = ui->pdf;
+        
+        SetOptionChoice(ui->compat,     pdf->compat);
+        SetOptionChoice(ui->colorspace, pdf->colorspace);
+        SetSpinChoice(ui->compression, (double) pdf->compression);
+        SetSpinChoice(ui->fpprec,      (double) pdf->fpprec);
+    }
+}
+
+static int set_pdf_setup_proc(void *data)
+{
+    PDF_UI_data *ui = (PDF_UI_data *) data;
+    PDF_data *pdf = ui->pdf;
+
+    pdf->compat      = GetOptionChoice(ui->compat);
+    pdf->colorspace  = GetOptionChoice(ui->colorspace);
+    pdf->compression = (int) GetSpinChoice(ui->compression);
+    pdf->fpprec      = (int) GetSpinChoice(ui->fpprec);
+    
+    return RETURN_SUCCESS;
+}
+
+void pdf_gui_setup(const Canvas *canvas, void *data)
+{
+    PDF_UI_data *ui = (PDF_UI_data *) data;
+
+    set_wait_cursor();
+    
+    if (ui->frame == NULL) {
+        Widget fr, rc;
+        OptionItem compat_ops[3] = {
+            {PDF_1_3, "PDF-1.3"},
+            {PDF_1_4, "PDF-1.4"},
+            {PDF_1_5, "PDF-1.5"}
+        };
+        OptionItem colorspace_ops[3] = {
+            {PDF_COLORSPACE_GRAYSCALE, "Grayscale"},
+            {PDF_COLORSPACE_RGB,       "RGB"      },
+            {PDF_COLORSPACE_CMYK,      "CMYK"     }
+        };
+    
+	ui->frame = CreateDialogForm(app_shell, "PDF options");
+
+	fr = CreateFrame(ui->frame, "PDF options");
+        rc = CreateVContainer(fr);
+	ui->compat =
+            CreateOptionChoice(rc, "Compatibility:", 1, 3, compat_ops);
+        ui->colorspace =
+            CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_ops);
+	ui->compression = CreateSpinChoice(rc,
+            "Compression:", 1, SPIN_TYPE_INT, 0.0, 9.0, 1.0);
+	ui->fpprec = CreateSpinChoice(rc,
+            "FP precision:", 1, SPIN_TYPE_INT, 4.0, 6.0, 1.0);
+
+	CreateAACDialog(ui->frame, fr, set_pdf_setup_proc, ui);
+    }
+    update_pdf_setup_frame(ui);
+    RaiseWindow(GetParent(ui->frame));
+    unset_wait_cursor();
+}
+
+int attach_pdf_drv_setup(Canvas *canvas, int device_id)
+{
+    dev_gui_setup *setup_data;
+    PDF_UI_data *ui_data;
+    
+    ui_data = xmalloc(sizeof(PDF_UI_data));
+    memset(ui_data, 0, sizeof(PDF_UI_data));
+    ui_data->pdf = device_get_devdata(canvas, device_id);
+    
+    setup_data = xmalloc(sizeof(dev_gui_setup));
+    setup_data->setup = pdf_gui_setup;
+    setup_data->ui = ui_data;
+    
+    device_set_udata(canvas, device_id, setup_data);
+
+    return RETURN_SUCCESS;
+}
+
+#endif /* HAVE_LIBPDF */
 
 #ifdef HAVE_LIBXMI
 
@@ -259,7 +354,7 @@ static void update_pnm_setup_frame(PNM_UI_data *ui)
     }
 }
 
-void pnm_gui_setup(const Canvas *canvas, void *data)
+static void pnm_gui_setup(const Canvas *canvas, void *data)
 {
     PNM_UI_data *ui = (PNM_UI_data *) data;
 
@@ -306,5 +401,194 @@ int attach_pnm_drv_setup(Canvas *canvas, int device_id)
     return RETURN_SUCCESS;
 }
 
+
+#ifdef HAVE_LIBPNG
+#include <zlib.h>
+
+typedef struct {
+    PNG_data *png;
+    
+    Widget frame;
+    Widget interlaced;
+    Widget transparent;
+    SpinStructure *compression;
+} PNG_UI_data;
+
+static void update_png_setup_frame(PNG_UI_data *ui)
+{
+    if (ui->frame) {
+        PNG_data *png = ui->png;
+        
+        SetToggleButtonState(ui->interlaced,  png->interlaced);
+        SetToggleButtonState(ui->transparent, png->transparent);
+        SetSpinChoice(ui->compression,        png->compression);
+    }
+}
+
+static int set_png_setup_proc(void *data)
+{
+    PNG_UI_data *ui = (PNG_UI_data *) data;
+    PNG_data *png = ui->png;
+    
+    png->interlaced  = GetToggleButtonState(ui->interlaced);
+    png->transparent = GetToggleButtonState(ui->transparent);
+    png->compression = GetSpinChoice(ui->compression);
+    
+    return RETURN_SUCCESS;
+}
+
+static void png_gui_setup(const Canvas *canvas, void *data)
+{
+    PNG_UI_data *ui = (PNG_UI_data *) data;
+
+    set_wait_cursor();
+    
+    if (ui->frame == NULL) {
+        Widget fr, rc;
+        
+	ui->frame = CreateDialogForm(app_shell, "PNG options");
+
+	fr = CreateFrame(ui->frame, "PNG options");
+        rc = CreateVContainer(fr);
+	ui->interlaced = CreateToggleButton(rc, "Interlaced");
+	ui->transparent = CreateToggleButton(rc, "Transparent");
+	ui->compression = CreateSpinChoice(rc,
+            "Compression:", 1, SPIN_TYPE_INT,
+            (double) Z_NO_COMPRESSION, (double) Z_BEST_COMPRESSION, 1.0);
+
+	CreateAACDialog(ui->frame, fr, set_png_setup_proc, ui);
+    }
+    update_png_setup_frame(ui);
+    
+    RaiseWindow(GetParent(ui->frame));
+    unset_wait_cursor();
+}
+
+int attach_png_drv_setup(Canvas *canvas, int device_id)
+{
+    dev_gui_setup *setup_data;
+    PNG_UI_data *ui_data;
+    
+    ui_data = xmalloc(sizeof(PNG_UI_data));
+    memset(ui_data, 0, sizeof(PNG_UI_data));
+    ui_data->png = device_get_devdata(canvas, device_id);
+    
+    setup_data = xmalloc(sizeof(dev_gui_setup));
+    setup_data->setup = png_gui_setup;
+    setup_data->ui = ui_data;
+    
+    device_set_udata(canvas, device_id, setup_data);
+
+    return RETURN_SUCCESS;
+}
+
+#endif /* HAVE_LIBPNG */
+
+#ifdef HAVE_LIBJPEG
+
+typedef struct {
+    JPG_data *jpg;
+    
+    Widget frame;
+    Widget grayscale;
+    Widget baseline;
+    Widget optimize;
+    Widget progressive;
+    SpinStructure *quality;
+    SpinStructure *smoothing;
+    OptionStructure *dct;
+} JPG_UI_data;
+
+
+static void update_jpg_setup_frame(JPG_UI_data *ui)
+{
+    if (ui->frame) {
+        JPG_data *jpg = ui->jpg;
+        
+        SetToggleButtonState(ui->grayscale,   jpg->grayscale);
+        SetToggleButtonState(ui->baseline,    jpg->baseline);
+        SetToggleButtonState(ui->optimize,    jpg->optimize);
+        SetToggleButtonState(ui->progressive, jpg->progressive);
+        SetSpinChoice       (ui->quality,     jpg->quality);
+        SetSpinChoice       (ui->smoothing,   jpg->smoothing);
+        SetOptionChoice     (ui->dct,         jpg->dct);
+    }
+}
+
+static int set_jpg_setup_proc(void *data)
+{
+    JPG_UI_data *ui = (JPG_UI_data *) data;
+    JPG_data *jpg = ui->jpg;
+    
+    jpg->grayscale   = GetToggleButtonState(ui->grayscale);
+    jpg->baseline    = GetToggleButtonState(ui->baseline);
+    jpg->optimize    = GetToggleButtonState(ui->optimize);
+    jpg->progressive = GetToggleButtonState(ui->progressive);
+    jpg->quality     = (int) GetSpinChoice (ui->quality);
+    jpg->smoothing   = (int) GetSpinChoice (ui->smoothing);
+    jpg->dct         = GetOptionChoice     (ui->dct);
+    
+    return RETURN_SUCCESS;
+}
+
+static void jpg_gui_setup(const Canvas *canvas, void *data)
+{
+    JPG_UI_data *ui = (JPG_UI_data *) data;
+
+    set_wait_cursor();
+    
+    if (ui->frame == NULL) {
+        Widget rc, fr, rc1;
+        
+	ui->frame = CreateDialogForm(app_shell, "JPEG options");
+
+        rc = CreateVContainer(ui->frame);
+
+	fr = CreateFrame(rc, "JPEG options");
+        rc1 = CreateVContainer(fr);
+	ui->quality = CreateSpinChoice(rc1,
+            "Quality:", 3, SPIN_TYPE_INT, 0.0, 100.0, 5.0);
+	ui->optimize = CreateToggleButton(rc1, "Optimize");
+	ui->progressive = CreateToggleButton(rc1, "Progressive");
+	ui->grayscale = CreateToggleButton(rc1, "Grayscale");
+
+	fr = CreateFrame(rc, "JPEG advanced options");
+        rc1 = CreateVContainer(fr);
+	ui->smoothing = CreateSpinChoice(rc1,
+            "Smoothing:", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
+	ui->baseline = CreateToggleButton(rc1, "Force baseline");
+	ui->dct = CreateOptionChoiceVA(rc, "DCT: ",
+            "Fast integer", JPEG_DCT_IFAST,
+            "Slow integer", JPEG_DCT_ISLOW,
+            "Float",        JPEG_DCT_FLOAT,
+            NULL);
+
+	CreateAACDialog(ui->frame, rc, set_jpg_setup_proc, ui);
+    }
+    update_jpg_setup_frame(ui);
+
+    RaiseWindow(GetParent(ui->frame));
+    unset_wait_cursor();
+}
+
+int attach_jpg_drv_setup(Canvas *canvas, int device_id)
+{
+    dev_gui_setup *setup_data;
+    JPG_UI_data *ui_data;
+    
+    ui_data = xmalloc(sizeof(JPG_UI_data));
+    memset(ui_data, 0, sizeof(JPG_UI_data));
+    ui_data->jpg = device_get_devdata(canvas, device_id);
+    
+    setup_data = xmalloc(sizeof(dev_gui_setup));
+    setup_data->setup = jpg_gui_setup;
+    setup_data->ui = ui_data;
+    
+    device_set_udata(canvas, device_id, setup_data);
+
+    return RETURN_SUCCESS;
+}
+
+#endif /* HAVE_LIBJPEG */
 
 #endif /* HAVE_LIBXMI */

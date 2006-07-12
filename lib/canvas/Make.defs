@@ -9,17 +9,22 @@ SRCS = draw.c t1fonts.c device.c xrstdrv.c \
 	dummydrv.c \
 	mfdrv.c \
 	psdrv.c \
+	pdfdrv.c \
 	mifdrv.c \
 	svgdrv.c \
-	pnmdrv.c
+	pnmdrv.c \
+	pngdrv.c \
+	jpgdrv.c
 
 OBJS = draw$(O) t1fonts$(O) device$(O) xrstdrv$(O) \
 	dummydrv$(O) \
 	mfdrv$(O) \
 	psdrv$(O) \
+	pdfdrv$(O) \
 	mifdrv$(O) \
 	svgdrv$(O) \
-	pnmdrv$(O)
+	pnmdrv$(O) \
+	jpgdrv$(O) \
         
 
 EXTRAFLAGS = $(T1_INC)

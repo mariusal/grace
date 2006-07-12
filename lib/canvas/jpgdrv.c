@@ -39,52 +39,15 @@
 #define JPEG_INTERNAL_OPTIONS
 #include <jpeglib.h>
 
+#include "grace/baseP.h"
 #define CANVAS_BACKEND_API
 #include "grace/canvas.h"
 
-#ifndef NONE_GUI
-#  include "xprotos.h"
-#endif
-
-
-#define JPEG_DCT_IFAST  0
-#define JPEG_DCT_ISLOW  1
-#define JPEG_DCT_FLOAT  2
-
 #define JPEG_DCT_DEFAULT    JPEG_DCT_ISLOW
-
-
-typedef struct {
-    int quality;
-    int grayscale;
-    int baseline;
-    int progressive;
-    int optimize;
-    int smoothing;
-    int dct;
-#ifndef NONE_GUI
-    Widget frame;
-    Widget grayscale_item;
-    Widget baseline_item;
-    Widget optimize_item;
-    Widget progressive_item;
-    SpinStructure *quality_item;
-    SpinStructure *smoothing_item;
-    OptionStructure *dct_item;
-#endif
-} Jpg_data;
-
-#ifndef NONE_GUI
-static void jpg_gui_setup(const Canvas *canvas, void *data);
-static void update_jpg_setup_frame(Jpg_data *jpgdata);
-static int set_jpg_setup_proc(void *data);
-#else
-#  define jpg_gui_setup NULL
-#endif
 
 static int jpg_op_parser(const Canvas *canvas, void *data, const char *opstring)
 {
-    Jpg_data *jpgdata = (Jpg_data *) data;
+    JPG_data *jpgdata = (JPG_data *) data;
     
     char *bufp;
     
@@ -147,7 +110,7 @@ static int jpg_op_parser(const Canvas *canvas, void *data, const char *opstring)
 static int jpg_output(const Canvas *canvas, void *data,
     unsigned int ncolors, unsigned int *colors, Xrst_pixmap *pm)
 {
-    Jpg_data *jpgdata = (Jpg_data *) data;
+    JPG_data *jpgdata = (JPG_data *) data;
     FILE *fp;
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -255,86 +218,14 @@ static int jpg_output(const Canvas *canvas, void *data,
     return RETURN_SUCCESS;
 }
 
-#ifndef NONE_GUI
-
-void jpg_gui_setup(const Canvas *canvas, void *data)
-{
-    Jpg_data *jpgdata = (Jpg_data *) data;
-
-    set_wait_cursor();
-    
-    if (jpgdata->frame == NULL) {
-        Widget rc, fr, rc1;
-        
-	jpgdata->frame = CreateDialogForm(app_shell, "JPEG options");
-
-        rc = CreateVContainer(jpgdata->frame);
-
-	fr = CreateFrame(rc, "JPEG options");
-        rc1 = CreateVContainer(fr);
-	jpgdata->quality_item = CreateSpinChoice(rc1,
-            "Quality:", 3, SPIN_TYPE_INT, 0.0, 100.0, 5.0);
-	jpgdata->optimize_item = CreateToggleButton(rc1, "Optimize");
-	jpgdata->progressive_item = CreateToggleButton(rc1, "Progressive");
-	jpgdata->grayscale_item = CreateToggleButton(rc1, "Grayscale");
-
-	fr = CreateFrame(rc, "JPEG advanced options");
-        rc1 = CreateVContainer(fr);
-	jpgdata->smoothing_item = CreateSpinChoice(rc1,
-            "Smoothing:", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
-	jpgdata->baseline_item = CreateToggleButton(rc1, "Force baseline");
-	jpgdata->dct_item = CreateOptionChoiceVA(rc, "DCT: ",
-            "Fast integer", JPEG_DCT_IFAST,
-            "Slow integer", JPEG_DCT_ISLOW,
-            "Float",        JPEG_DCT_FLOAT,
-            NULL);
-
-	CreateAACDialog(jpgdata->frame, rc, set_jpg_setup_proc, jpgdata);
-    }
-    update_jpg_setup_frame(jpgdata);
-
-    RaiseWindow(GetParent(jpgdata->frame));
-    unset_wait_cursor();
-}
-
-static void update_jpg_setup_frame(Jpg_data *jpgdata)
-{
-    if (jpgdata->frame) {
-        SetToggleButtonState(jpgdata->grayscale_item, jpgdata->grayscale);
-        SetToggleButtonState(jpgdata->baseline_item, jpgdata->baseline);
-        SetToggleButtonState(jpgdata->optimize_item, jpgdata->optimize);
-        SetToggleButtonState(jpgdata->progressive_item, jpgdata->progressive);
-        SetSpinChoice(jpgdata->quality_item, jpgdata->quality);
-        SetSpinChoice(jpgdata->smoothing_item, jpgdata->smoothing);
-        SetOptionChoice(jpgdata->dct_item, jpgdata->dct);
-    }
-}
-
-static int set_jpg_setup_proc(void *data)
-{
-    Jpg_data *jpgdata = (Jpg_data *) data;
-    
-    jpgdata->grayscale = GetToggleButtonState(jpgdata->grayscale_item);
-    jpgdata->baseline = GetToggleButtonState(jpgdata->baseline_item);
-    jpgdata->optimize = GetToggleButtonState(jpgdata->optimize_item);
-    jpgdata->progressive = GetToggleButtonState(jpgdata->progressive_item);
-    jpgdata->quality = (int) GetSpinChoice(jpgdata->quality_item);
-    jpgdata->smoothing = (int) GetSpinChoice(jpgdata->smoothing_item);
-    jpgdata->dct = GetOptionChoice(jpgdata->dct_item);
-    
-    return RETURN_SUCCESS;
-}
-
-#endif
-
 int register_jpg_drv(Canvas *canvas)
 {
     XrstDevice_entry xdev;
-    Jpg_data *jpgdata;
+    JPG_data *jpgdata;
     
-    jpgdata = xmalloc(sizeof(Jpg_data));
+    jpgdata = xmalloc(sizeof(JPG_data));
     if (jpgdata) {
-        memset(jpgdata, 0, sizeof(Jpg_data));
+        memset(jpgdata, 0, sizeof(JPG_data));
         jpgdata->quality     = 75;                 
         jpgdata->grayscale   = FALSE;              
         jpgdata->baseline    = FALSE;              

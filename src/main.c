@@ -151,7 +151,10 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef HAVE_LIBPDF
-    register_pdf_drv(canvas);
+    device_id = register_pdf_drv(canvas);
+#ifndef NONE_GUI
+    attach_pdf_drv_setup(canvas, device_id);
+#endif
 #endif
     register_mif_drv(canvas);
     register_svg_drv(canvas);
@@ -162,10 +165,16 @@ int main(int argc, char *argv[])
     attach_pnm_drv_setup(canvas, device_id);
 #endif
 #  ifdef HAVE_LIBJPEG
-    register_jpg_drv(canvas);
+    device_id = register_jpg_drv(canvas);
+#ifndef NONE_GUI
+    attach_jpg_drv_setup(canvas, device_id);
+#endif
 #  endif
 #  ifdef HAVE_LIBPNG
-    register_png_drv(canvas);
+    device_id = register_png_drv(canvas);
+#ifndef NONE_GUI
+    attach_png_drv_setup(canvas, device_id);
+#endif
 #  endif
 #endif
 

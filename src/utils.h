@@ -44,7 +44,6 @@
 #include "graceapp.h"
 
 #define on_or_off(x) ((x)?"on":"off")
-#define true_or_false(x) ((x)?"true":"false")
 
 int argmatch(char *s1, char *s2, int atleast);
 void lowtoupper(char *s);

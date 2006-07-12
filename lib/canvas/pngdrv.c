@@ -38,40 +38,13 @@
 
 #include <png.h>
 
+#include "grace/baseP.h"
 #define CANVAS_BACKEND_API
 #include "grace/canvas.h"
 
-#include "utils.h"
-
-#ifndef NONE_GUI
-#  include "motifinc.h"
-#endif
-
-#include "xprotos.h"
-
-typedef struct {
-    int interlaced;
-    int transparent;
-    int compression;
-#ifndef NONE_GUI
-    Widget frame;
-    Widget interlaced_item;
-    Widget transparent_item;
-    SpinStructure *compression_item;
-#endif
-} Png_data;
-
-#ifndef NONE_GUI
-static void png_gui_setup(const Canvas *canvas, void *data);
-static void update_png_setup_frame(Png_data *pngdata);
-static int set_png_setup_proc(void *data);
-#else
-#  define png_gui_setup NULL
-#endif
-
 static int png_op_parser(const Canvas *canvas, void *data, const char *opstring)
 {
-    Png_data *pngdata = (Png_data *) data;
+    PNG_data *pngdata = (PNG_data *) data;
     
     char *bufp;
     
@@ -104,7 +77,7 @@ static int png_op_parser(const Canvas *canvas, void *data, const char *opstring)
 static int png_output(const Canvas *canvas, void *data,
     unsigned int ncolors, unsigned int *colors, Xrst_pixmap *pm)
 {
-    Png_data *pngdata = (Png_data *) data;
+    PNG_data *pngdata = (PNG_data *) data;
     FILE *fp;
     png_structp png_ptr;
     png_infop info_ptr;
@@ -206,7 +179,7 @@ static int png_output(const Canvas *canvas, void *data,
     text_ptr[1].text        = canvas_get_username(canvas);
     text_ptr[1].compression = PNG_TEXT_COMPRESSION_NONE;
     text_ptr[2].key         = "Software";
-    text_ptr[2].text        = bi_version_string();
+    text_ptr[2].text        = "Grace/libcanvas";
     text_ptr[2].compression = PNG_TEXT_COMPRESSION_NONE;
     num_text = 3;
     s = canvas_get_description(canvas);
@@ -258,65 +231,14 @@ static int png_output(const Canvas *canvas, void *data,
     return RETURN_SUCCESS;
 }
 
-#ifndef NONE_GUI
-
-void png_gui_setup(const Canvas *canvas, void *data)
-{
-    Png_data *pngdata = (Png_data *) data;
-
-    set_wait_cursor();
-    
-    if (pngdata->frame == NULL) {
-        Widget fr, rc;
-        
-	pngdata->frame = CreateDialogForm(app_shell, "PNG options");
-
-	fr = CreateFrame(pngdata->frame, "PNG options");
-        rc = CreateVContainer(fr);
-	pngdata->interlaced_item = CreateToggleButton(rc, "Interlaced");
-	pngdata->transparent_item = CreateToggleButton(rc, "Transparent");
-	pngdata->compression_item = CreateSpinChoice(rc,
-            "Compression:", 1, SPIN_TYPE_INT,
-            (double) Z_NO_COMPRESSION, (double) Z_BEST_COMPRESSION, 1.0);
-
-	CreateAACDialog(pngdata->frame, fr, set_png_setup_proc, pngdata);
-    }
-    update_png_setup_frame(pngdata);
-    
-    RaiseWindow(GetParent(pngdata->frame));
-    unset_wait_cursor();
-}
-
-static void update_png_setup_frame(Png_data *pngdata)
-{
-    if (pngdata->frame) {
-        SetToggleButtonState(pngdata->interlaced_item, pngdata->interlaced);
-        SetToggleButtonState(pngdata->transparent_item, pngdata->transparent);
-        SetSpinChoice(pngdata->compression_item, pngdata->compression);
-    }
-}
-
-static int set_png_setup_proc(void *data)
-{
-    Png_data *pngdata = (Png_data *) data;
-    
-    pngdata->interlaced = GetToggleButtonState(pngdata->interlaced_item);
-    pngdata->transparent = GetToggleButtonState(pngdata->transparent_item);
-    pngdata->compression = GetSpinChoice(pngdata->compression_item);
-    
-    return RETURN_SUCCESS;
-}
-
-#endif
-
 int register_png_drv(Canvas *canvas)
 {
     XrstDevice_entry xdev;
-    Png_data *pngdata;
+    PNG_data *pngdata;
     
-    pngdata = xmalloc(sizeof(Png_data));
+    pngdata = xmalloc(sizeof(PNG_data));
     if (pngdata) {
-        memset(pngdata, 0, sizeof(Png_data));
+        memset(pngdata, 0, sizeof(PNG_data));
         pngdata->interlaced = FALSE;
         pngdata->transparent = FALSE;
         pngdata->compression = 4;

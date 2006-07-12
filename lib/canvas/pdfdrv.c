@@ -41,50 +41,13 @@
 
 #include <pdflib.h>
 
+#include "grace/baseP.h"
 #define CANVAS_BACKEND_API
 #include "grace/canvas.h"
 
-#include "utils.h"
-#include "pdfdrv.h"
+#define true_or_false(x) ((x)?"true":"false")
 
-#include "xprotos.h"
-
-#ifndef NONE_GUI
-#  include "motifinc.h"
-#endif
-
-typedef struct {
-    PDF             *phandle;
-
-    unsigned long    page_scale;
-    float            pixel_size;
-    float            page_scalef;
-
-    int             *font_ids;
-    int             *pattern_ids;
-
-    int              color;
-    int              pattern;
-    double           linew;
-    int              lines;
-    int              linecap;
-    int              linejoin;
-
-    PDFCompatibility compat;
-    PDFColorSpace    colorspace;
-    int              compression;
-    int              fpprec;
-    
-    int              kerning_supported;
-
-#ifndef NONE_GUI
-    Widget           frame;
-    OptionStructure *compat_item;
-    SpinStructure   *compression_item;
-    SpinStructure   *fpprec_item;
-    OptionStructure *colorspace_item;
-#endif
-} PDF_data;
+#define PDF_DEFAULT_COLORSPACE  PDF_COLORSPACE_RGB
 
 static void pdf_error_handler(PDF *p, int type, const char* msg);
 
@@ -101,7 +64,7 @@ static PDF_data *init_pdf_data(void)
     memset(data, 0, sizeof(PDF_data));
 
     data->compat      = PDF_1_4;
-    data->colorspace  = DEFAULT_COLORSPACE;
+    data->colorspace  = PDF_DEFAULT_COLORSPACE;
     data->compression = 4;
     data->fpprec      = 4;
     
@@ -117,44 +80,6 @@ static void pdf_data_free(void *data)
         xfree(pdfdata->pattern_ids);
         xfree(pdfdata);
     }
-}
-
-int register_pdf_drv(Canvas *canvas)
-{
-    Device_entry *d;
-    PDF_data *data;
-    
-    PDF_boot();
-    
-    data = init_pdf_data();
-    if (!data) {
-        return -1;
-    }
-
-    d = device_new("PDF", DEVICE_FILE, TRUE, data, pdf_data_free);
-    if (!d) {
-        xfree(data);
-        return -1;
-    }
-    
-    device_set_fext(d, "pdf");
-
-    device_set_dpi(d, 300.0);
-    
-    device_set_procs(d,
-        pdf_initgraphics,
-        pdf_leavegraphics,
-        pdf_op_parser,
-        NULL,
-        pdf_drawpixel,
-        pdf_drawpolyline,
-        pdf_fillpolygon,
-        pdf_drawarc,
-        pdf_fillarc,
-        pdf_putpixmap,
-        pdf_puttext);
-    
-    return register_device(canvas, d);
 }
 
 static char *pdf_builtin_fonts[] = 
@@ -251,7 +176,7 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
     PDF_set_value(pdfdata->phandle, "compress", (float) pdfdata->compression);
     PDF_set_value(pdfdata->phandle, "floatdigits", (float) pdfdata->fpprec);
 
-    PDF_set_info(pdfdata->phandle, "Creator", bi_version_string());
+    PDF_set_info(pdfdata->phandle, "Creator", "Grace/libcanvas");
     PDF_set_info(pdfdata->phandle, "Author", canvas_get_username(canvas));
     PDF_set_info(pdfdata->phandle, "Title", canvas_get_docname(canvas));
         
@@ -261,7 +186,7 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
     }
     for (i = 0; i < cstats->nfonts; i++) {
         int font;
-        char buf[GR_MAXPATHLEN];
+        char buf[256];
         char *fontname, *encscheme;
         char *pdflibenc;
         char *embedstr;
@@ -356,7 +281,7 @@ void pdf_setpen(const Canvas *canvas, const Pen *pen, PDF_data *pdfdata)
         float c1, c2, c3, c4;
         char *cstype;
         switch (pdfdata->colorspace) {
-        case COLORSPACE_GRAYSCALE:
+        case PDF_COLORSPACE_GRAYSCALE:
             {
                 cstype = "gray";
                 
@@ -364,7 +289,7 @@ void pdf_setpen(const Canvas *canvas, const Pen *pen, PDF_data *pdfdata)
                 c2 = c3 = c4 = 0.0;
             }
             break;
-        case COLORSPACE_CMYK:
+        case PDF_COLORSPACE_CMYK:
             {
                 fCMYK fcmyk;
                 
@@ -377,7 +302,7 @@ void pdf_setpen(const Canvas *canvas, const Pen *pen, PDF_data *pdfdata)
                 c4 = (float) fcmyk.black;
             }
             break;
-        case COLORSPACE_RGB:
+        case PDF_COLORSPACE_RGB:
         default:
             {
                 fRGB frgb;
@@ -758,7 +683,7 @@ void pdf_leavegraphics(const Canvas *canvas, void *data,
     PDF_end_page_ext(pdfdata->phandle, "");
     PDF_end_document(pdfdata->phandle, "");
     PDF_delete(pdfdata->phandle);
-    xfree(pdfdata->font_ids);
+    XCFREE(pdfdata->font_ids);
     XCFREE(pdfdata->pattern_ids);
 }
 
@@ -823,88 +748,58 @@ int pdf_op_parser(const Canvas *canvas, void *data, const char *opstring)
         }
     } else
     if (!strcmp(opstring, "colorspace:grayscale")) {
-        pdfdata->colorspace = COLORSPACE_GRAYSCALE;
+        pdfdata->colorspace = PDF_COLORSPACE_GRAYSCALE;
         return RETURN_SUCCESS;
     } else
     if (!strcmp(opstring, "colorspace:rgb")) {
-        pdfdata->colorspace = COLORSPACE_RGB;
+        pdfdata->colorspace = PDF_COLORSPACE_RGB;
         return RETURN_SUCCESS;
     } else
     if (!strcmp(opstring, "colorspace:cmyk")) {
-        pdfdata->colorspace = COLORSPACE_CMYK;
+        pdfdata->colorspace = PDF_COLORSPACE_CMYK;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
 }
 
-#ifndef NONE_GUI
-
-static void update_pdf_setup_frame(PDF_data *pdfdata);
-static int set_pdf_setup_proc(void *data);
-
-void pdf_gui_setup(const Canvas *canvas, void *data)
+int register_pdf_drv(Canvas *canvas)
 {
-    PDF_data *pdfdata = (PDF_data *) data;
-
-    set_wait_cursor();
+    Device_entry *d;
+    PDF_data *data;
     
-    if (pdfdata->frame == NULL) {
-        Widget fr, rc;
-        OptionItem compat_op_items[3] = {
-            {PDF_1_3, "PDF-1.3"},
-            {PDF_1_4, "PDF-1.4"},
-            {PDF_1_5, "PDF-1.5"}
-        };
-        OptionItem colorspace_op_items[3] = {
-            {COLORSPACE_GRAYSCALE, "Grayscale"},
-            {COLORSPACE_RGB,       "RGB"      },
-            {COLORSPACE_CMYK,      "CMYK"     }
-        };
+    PDF_boot();
     
-	pdfdata->frame = CreateDialogForm(app_shell, "PDF options");
-
-	fr = CreateFrame(pdfdata->frame, "PDF options");
-        rc = CreateVContainer(fr);
-	pdfdata->compat_item =
-            CreateOptionChoice(rc, "Compatibility:", 1, 3, compat_op_items);
-        pdfdata->colorspace_item =
-            CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_op_items);
-	pdfdata->compression_item = CreateSpinChoice(rc,
-            "Compression:", 1, SPIN_TYPE_INT, 0.0, 9.0, 1.0);
-	pdfdata->fpprec_item = CreateSpinChoice(rc,
-            "FP precision:", 1, SPIN_TYPE_INT, 4.0, 6.0, 1.0);
-
-	CreateAACDialog(pdfdata->frame, fr, set_pdf_setup_proc, pdfdata);
+    data = init_pdf_data();
+    if (!data) {
+        return -1;
     }
-    update_pdf_setup_frame(pdfdata);
-    RaiseWindow(GetParent(pdfdata->frame));
-    unset_wait_cursor();
-}
 
-static void update_pdf_setup_frame(PDF_data *pdfdata)
-{
-    if (pdfdata->frame) {
-        SetOptionChoice(pdfdata->compat_item, pdfdata->compat);
-        SetOptionChoice(pdfdata->colorspace_item, pdfdata->colorspace);
-        SetSpinChoice(pdfdata->compression_item, (double) pdfdata->compression);
-        SetSpinChoice(pdfdata->fpprec_item, (double) pdfdata->fpprec);
+    d = device_new("PDF", DEVICE_FILE, TRUE, data, pdf_data_free);
+    if (!d) {
+        xfree(data);
+        return -1;
     }
-}
-
-static int set_pdf_setup_proc(void *data)
-{
-    PDF_data *pdfdata = (PDF_data *) data;
-
-    pdfdata->compat      = GetOptionChoice(pdfdata->compat_item);
-    pdfdata->colorspace  = GetOptionChoice(pdfdata->colorspace_item);
-    pdfdata->compression = (int) GetSpinChoice(pdfdata->compression_item);
-    pdfdata->fpprec      = (int) GetSpinChoice(pdfdata->fpprec_item);
     
-    return RETURN_SUCCESS;
-}
+    device_set_fext(d, "pdf");
 
-#endif
+    device_set_dpi(d, 300.0);
+    
+    device_set_procs(d,
+        pdf_initgraphics,
+        pdf_leavegraphics,
+        pdf_op_parser,
+        NULL,
+        pdf_drawpixel,
+        pdf_drawpolyline,
+        pdf_fillpolygon,
+        pdf_drawarc,
+        pdf_fillarc,
+        pdf_putpixmap,
+        pdf_puttext);
+    
+    return register_device(canvas, d);
+}
 
 #else /* No PDFlib */
 void _pdfdrv_c_dummy_func(void) {}

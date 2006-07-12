@@ -245,6 +245,9 @@ void snapshot_and_update(Quark *q, int all);
 int attach_ps_drv_setup(Canvas *canvas, int device_id);
 int attach_eps_drv_setup(Canvas *canvas, int device_id);
 int attach_pnm_drv_setup(Canvas *canvas, int device_id);
+int attach_png_drv_setup(Canvas *canvas, int device_id);
+int attach_jpg_drv_setup(Canvas *canvas, int device_id);
+int attach_pdf_drv_setup(Canvas *canvas, int device_id);
 
 #endif /* NONE_GUI */
 
