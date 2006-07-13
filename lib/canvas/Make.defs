@@ -24,7 +24,8 @@ OBJS = draw$(O) t1fonts$(O) device$(O) xrstdrv$(O) \
 	mifdrv$(O) \
 	svgdrv$(O) \
 	pnmdrv$(O) \
-	jpgdrv$(O) \
+	pngdrv$(O) \
+	jpgdrv$(O)
         
 
 EXTRAFLAGS = $(T1_INC)
