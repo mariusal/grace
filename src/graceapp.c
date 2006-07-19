@@ -355,14 +355,12 @@ GUI *gui_from_quark(const Quark *q)
 int gapp_set_project(GraceApp *gapp, Quark *project)
 {
     if (gapp && project) {
-        Project *pr = project_get_data(project);
-        
         quark_free(gapp->project);
         gapp->project = project;
         /* reset graal ? */
         
         /* Set dimensions of all devices */
-        set_page_dimensions(gapp, pr->page_wpp, pr->page_hpp, TRUE);
+        grace_sync_canvas_devices(gapp->grace, project);
         
         /* Reset set autocolorization index */
         gapp->rt->setcolor = 0;
@@ -423,9 +421,6 @@ int set_printer_by_name(GraceApp *gapp, const char *dname)
 
 int set_page_dimensions(GraceApp *gapp, int wpp, int hpp, int rescale)
 {
-    int i;
-    Canvas *canvas = grace_get_canvas(gapp->grace);
-    
     if (wpp <= 0 || hpp <= 0) {
         return RETURN_FAILURE;
     } else {
@@ -465,11 +460,9 @@ int set_page_dimensions(GraceApp *gapp, int wpp, int hpp, int rescale)
                 rescale_viewport(gapp->project, ext_x, ext_y);
             } 
         }
-        for (i = 0; i < number_of_devices(canvas); i++) {
-            Device_entry *d = get_device_props(canvas, i);
-            d->pg.width  = (unsigned long) wpp*d->pg.dpi/72;
-            d->pg.height = (unsigned long) hpp*d->pg.dpi/72;
-        }
+
+        grace_sync_canvas_devices(gapp->grace, gapp->project);
+
         return RETURN_SUCCESS;
     }
 }
