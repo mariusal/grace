@@ -317,3 +317,25 @@ Quark *grace_project_new(const Grace *grace, int mmodel)
 {
     return project_new(grace->qfactory, mmodel);
 }
+
+int grace_sync_canvas_devices(Grace *grace, const Quark *project)
+{
+    int wpp, hpp;
+    int i;
+    
+    if (!grace || !grace->canvas) {
+        return RETURN_FAILURE;
+    }
+
+    if (project_get_page_dimensions(project, &wpp, &hpp) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < number_of_devices(grace->canvas); i++) {
+        Device_entry *d = get_device_props(grace->canvas, i);
+        d->pg.width  = (unsigned long) wpp*d->pg.dpi/72;
+        d->pg.height = (unsigned long) hpp*d->pg.dpi/72;
+    }
+    
+    return RETURN_SUCCESS;
+}

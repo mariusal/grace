@@ -59,10 +59,12 @@ int grace_render(const Grace *grace, const Quark *project);
 
 Quark *grace_project_new(const Grace *grace, int mmodel);
 
+int grace_sync_canvas_devices(Grace *grace, const Quark *project);
+
 /* xml_out.c */
 int grace_save(Quark *project, FILE *fp);
 /* xml_in.c */
-Quark *grace_load(Grace *grace, FILE *fp);
+Quark *grace_load(Grace *grace, FILE *fp, int mmodel);
 
 /* dicts.c */
 char *graph_types(Grace *grace, GraphType it);

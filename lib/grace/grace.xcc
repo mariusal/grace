@@ -10,6 +10,7 @@
 
 typedef struct {
     Grace *grace;
+    int mmodel;
     int ncol;
     int nrow;
     Quark *ss;
@@ -549,7 +550,10 @@ char *utf2iso(const char *s)
     
     <!-- Element types -->
     <element-type name="project" ctype="Quark *"><![CDATA[
-        $$ = project_new(((ParserData *)$U)->grace->qfactory, AMEM_MODEL_LIBUNDO);
+        {
+        ParserData *udata = (ParserData *) $U;
+        $$ = project_new(udata->grace->qfactory, udata->mmodel);
+        }
     ]]></element-type>
     <element-type name="page" ctype="Page *">
         $$ = page_new();
@@ -2068,17 +2072,18 @@ static int exception_handler(int ierrno,
     return handled;
 }
 
-Quark *grace_load(Grace *grace, FILE *fp)
+Quark *grace_load(Grace *grace, FILE *fp, int mmodel)
 {
     ParserData udata;
     void *p;
     Quark *project;
     int ret;
 
-    udata.grace = grace;
-    udata.ss    = NULL;
-    udata.nrow  = -1;
-    udata.ncol  = -1;
+    udata.grace  = grace;
+    udata.mmodel = mmodel;
+    udata.ss     = NULL;
+    udata.nrow   = -1;
+    udata.ncol   = -1;
     
     ret = xgr_parse(fp, &p, &udata, exception_handler);
     project = p;
