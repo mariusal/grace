@@ -2058,7 +2058,7 @@ defines:
 	    tmpkey.type = KEY_VAR;
 	    tmpkey.data = (void *) var;
 	    if (addto_symtab(tmpkey) != RETURN_SUCCESS) {
-	        yyerror("Keyword already exists");
+	        yyerror("Adding new symbol failed");
 	    }
 
             xfree($2);
@@ -2066,7 +2066,7 @@ defines:
 	| DEFINE NEW_TOKEN '[' ']'
         {
 	    if (define_parser_arr($2) == NULL) {
-	        yyerror("Keyword already exists");
+	        yyerror("Adding new symbol failed");
 	    }
 
             xfree($2);
@@ -2075,12 +2075,20 @@ defines:
         {
 	    grarr *var;
             if ((var = define_parser_arr($2)) == NULL) {
-	        yyerror("Keyword already exists");
+	        yyerror("Adding new symbol failed");
 	    } else {
                 realloc_vrbl(var, $4);
             }
 
             xfree($2);
+        }
+	| DEFINE VAR_D
+        {
+            yyerror("Keyword already exists");
+        }
+	| DEFINE VEC_D
+        {
+            yyerror("Keyword already exists");
         }
 	| CLEAR VAR_D
         {
