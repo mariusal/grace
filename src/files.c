@@ -1122,7 +1122,7 @@ int save_project(Quark *project, char *fn)
     }
     if (!save_unsupported &&
         !yesno("The current format may be unsupported by the final release. Continue?",
-            "Yea, I'm risky", NULL, "doc/UsersGuide.html#unsupported_format")) {
+            "Yeah, I'm brave!", NULL, "doc/UsersGuide.html#unsupported_format")) {
         return RETURN_FAILURE;
     }
     save_unsupported = TRUE;
@@ -1162,7 +1162,7 @@ Quark *load_xgr_project(GraceApp *gapp, const char *fn)
         return NULL;
     }
     
-    project = grace_load(gapp->grace, fp);
+    project = grace_load(gapp->grace, fp, AMEM_MODEL_LIBUNDO);
 
     gapp_close(fp);
     
