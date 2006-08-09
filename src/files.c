@@ -975,6 +975,31 @@ int update_set_from_file(Quark *pset)
 }
 #endif
 
+static int project_cb(Quark *pr, int etype, void *data)
+{
+    if (etype == QUARK_ETYPE_DELETE) {
+        GraceApp *gapp = gapp_from_quark(pr);
+        if (pr == gapp->project) {
+            gapp->project = NULL;
+        }
+    } else
+    if (etype == QUARK_ETYPE_MODIFY) {
+#if 0
+        /* TODO: */
+	if ((dirtystate > SOME_LIMIT) || 
+            (current_time - autosave_time > ANOTHER_LIMIT) ) {
+	    autosave();
+	}
+#endif
+    }
+#ifndef NONE_GUI
+    clean_graph_selectors(pr, etype, data);
+    clean_frame_selectors(pr, etype, data);
+#endif
+    return RETURN_SUCCESS;
+}
+
+
 Quark *load_any_project(GraceApp *gapp, const char *fn)
 {
     Quark *project;
@@ -987,7 +1012,7 @@ Quark *load_any_project(GraceApp *gapp, const char *fn)
     }
     
     if (project) {
-        project_postprocess(project);
+        quark_cb_add(project, project_cb, NULL);
     }
 
     return project;

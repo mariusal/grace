@@ -84,7 +84,6 @@ int copysetdata(Quark *psrc, Quark *pdest);
 int kill_ssd_cb(Quark *q, int etype, void *data);
 Quark *gapp_ssd_new(Quark *parent);
 
-void project_postprocess(Quark *pr);
 int project_get_viewport(const Quark *project, double *vx, double *vy);
 
 void move_object(Quark *q, VVector shift);
