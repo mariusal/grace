@@ -39,7 +39,7 @@ int grace_init_dicts(Grace *grace)
     const DictEntry graph_type_entries[] = 
         {
             {GRAPH_XY,    "xy",    "XY"   },
-            {GRAPH_CHART, "chagrace", "Chagrace"},
+            {GRAPH_CHART, "chart", "Chart"},
             {GRAPH_POLAR, "polar", "Polar"},
             {GRAPH_SMITH, "smith", "Smith"},
             {GRAPH_FIXED, "fixed", "Fixed"},
@@ -110,7 +110,7 @@ int grace_init_dicts(Grace *grace)
         {ARROW_TYPE_LINE, VStrLine, "Line"};
     const DictEntry arrow_type_entries[] = 
         {
-            {ARROW_TYPE_LINE,   VStrLine,   "Line"},
+            {ARROW_TYPE_LINE,   VStrLine,   "Line"  },
             {ARROW_TYPE_FILLED, VStrFilled, "Filled"},
             {ARROW_TYPE_CIRCLE, VStrCircle, "Circle"}
         };
@@ -178,10 +178,10 @@ int grace_init_dicts(Grace *grace)
         {FRAME_DECOR_NONE, VStrNone, "None"};
     const DictEntry framedecor_type_entries[] = 
         {
-            {FRAME_DECOR_NONE, VStrNone,      "None"},
+            {FRAME_DECOR_NONE, VStrNone,      "None"     },
             {FRAME_DECOR_LINE, VStrLine,      "Underline"},
             {FRAME_DECOR_RECT, VStrRectangle, "Rectangle"},
-            {FRAME_DECOR_OVAL, VStrOval,      "Oval"}
+            {FRAME_DECOR_OVAL, VStrOval,      "Oval"     }
         };
 
     const DictEntry scale_type_defaults =
@@ -216,14 +216,14 @@ int grace_init_dicts(Grace *grace)
         {FORMAT_GENERAL, VStrGeneral, "General"};
     const DictEntry format_type_entries[] = 
         {
-            {FORMAT_DECIMAL,        VStrDecimal,        "Decimal"            },
-            {FORMAT_EXPONENTIAL,    VStrExponential,    "Exponential"        },
-            {FORMAT_GENERAL,        VStrGeneral,        "General"            },
-            {FORMAT_POWER,          VStrPower,          "Power"              },
-            {FORMAT_SCIENTIFIC,     VStrScientific,     "Scientific"         },
-            {FORMAT_ENGINEERING,    VStrEngineering,    "Engineering"        },
-            {FORMAT_DATETIME,       VStrDateTime,       "DateTime"           },
-            {FORMAT_GEOGRAPHIC,     VStrGeographic,     "Geographic"         }
+            {FORMAT_DECIMAL,        VStrDecimal,        "Decimal"    },
+            {FORMAT_EXPONENTIAL,    VStrExponential,    "Exponential"},
+            {FORMAT_GENERAL,        VStrGeneral,        "General"    },
+            {FORMAT_POWER,          VStrPower,          "Power"      },
+            {FORMAT_SCIENTIFIC,     VStrScientific,     "Scientific" },
+            {FORMAT_ENGINEERING,    VStrEngineering,    "Engineering"},
+            {FORMAT_DATETIME,       VStrDateTime,       "DateTime"   },
+            {FORMAT_GEOGRAPHIC,     VStrGeographic,     "Geographic" }
         };
 
     const DictEntry frame_type_defaults =
