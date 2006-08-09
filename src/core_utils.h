@@ -86,9 +86,6 @@ Quark *gapp_ssd_new(Quark *parent);
 
 int project_get_viewport(const Quark *project, double *vx, double *vy);
 
-void move_object(Quark *q, VVector shift);
-int object_place_at_vp(Quark *q, VPoint vp);
-
 int graph_scroll(Quark *gr, int type);
 int graph_zoom(Quark *gr, int type);
 
