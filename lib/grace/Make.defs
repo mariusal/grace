@@ -28,5 +28,6 @@ SCHEMA = grace.xsd
 xml_in.c : grace.xcc
 	$(XCC) -b -i $? -o $@
 
-$(SCHEMA) : grace.xcc xstrings.h
-	$(XCC) -s -i grace.xcc | cpp -P -nostdinc -imacros xstrings.h > $@
+$(SCHEMA) : grace.xcc $(TOP)/include/grace/graceP.h
+	$(XCC) -s -i grace.xcc | \
+	cpp -P -I$(TOP)/include -imacros grace/graceP.h | grep -v '^\ *$$' > $@
