@@ -310,6 +310,7 @@ Graal *grace_get_graal(const Grace *grace)
 
 int grace_render(const Grace *grace, const Quark *project)
 {
+    canvas_set_docname(grace->canvas, project_get_docname(project));
     return drawgraph(grace->canvas, grace->graal, project);
 }
 

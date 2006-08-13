@@ -146,7 +146,6 @@ int drawgraph(Canvas *canvas, Graal *g, const Quark *project)
         int i;
         
         canvas_set_udata(canvas, (Quark *) project);
-        canvas_set_docname(canvas, project_get_docname(project));
 
         /* Reset colormap */
         canvas_cmap_reset(canvas);
