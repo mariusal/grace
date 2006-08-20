@@ -104,7 +104,8 @@ int grace_init_font_db(const Grace *grace)
 /* TODO: optimize, e.g. via a hashed array */
 int grace_fmap_proc(const Canvas *canvas, int font_id)
 {
-    Quark *project = (Quark *) canvas_get_udata(canvas);
+    GProject *gp = (GProject *) canvas_get_udata(canvas);
+    Quark *project = gp->q;
     Project *pr = project_get_data(project);
     int font = BAD_FONT_ID;
     unsigned int i;
@@ -157,7 +158,8 @@ static int get_escape_args(const char *s, char *buf)
 
 static char *expand_macros(const Canvas *canvas, const char *s)
 {
-    Quark *project = (Quark *) canvas_get_udata(canvas);
+    GProject *gp = (GProject *) canvas_get_udata(canvas);
+    Quark *project = gp->q;
     char *es, *macro, *subst;
     int i, j, k, slen, extra_len = 0;
     
@@ -179,7 +181,7 @@ static char *expand_macros(const Canvas *canvas, const char *s)
                 subst = project_get_timestamp(project);
             } else
             if (!strcmp(macro, "filename")) {
-                subst = project_get_docname(project);
+                subst = gproject_get_docname(gp);
             } else
             if (!strcmp(macro, "filebname")) {
                 subst = QIDSTR(project);
@@ -208,7 +210,7 @@ static char *expand_macros(const Canvas *canvas, const char *s)
                 subst = project_get_timestamp(project);
             } else
             if (!strcmp(macro, "filename")) {
-                subst = project_get_docname(project);
+                subst = gproject_get_docname(gp);
             } else
             if (!strcmp(macro, "filebname")) {
                 subst = QIDSTR(project);
@@ -231,7 +233,8 @@ static char *expand_macros(const Canvas *canvas, const char *s)
 
 int grace_csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring)
 {
-    Quark *project = (Quark *) canvas_get_udata(canvas);
+    GProject *gp = (GProject *) canvas_get_udata(canvas);
+    Quark *project = gp->q;
     CStringSegment *cseg;
 
     char *string, *ss, *buf, *acc_buf;

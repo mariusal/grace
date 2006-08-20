@@ -10,7 +10,7 @@
 
 typedef struct {
     Grace *grace;
-    int mmodel;
+    GProject *gp;
     int ncol;
     int nrow;
     Quark *ss;
@@ -552,7 +552,7 @@ char *utf2iso(const char *s)
     <element-type name="project" ctype="Quark *"><![CDATA[
         {
         ParserData *udata = (ParserData *) $U;
-        $$ = project_new(udata->grace->qfactory, udata->mmodel);
+        $$ = udata->gp->q;
         }
     ]]></element-type>
     <element-type name="page" ctype="Page *">
@@ -2072,26 +2072,38 @@ static int exception_handler(int ierrno,
     return handled;
 }
 
-Quark *grace_load(Grace *grace, FILE *fp, int mmodel)
+GProject *gproject_load(Grace *grace, GrFILE *grf, int mmodel)
 {
     ParserData udata;
-    void *p;
-    Quark *project;
+    void *dummy;
     int ret;
 
     udata.grace  = grace;
-    udata.mmodel = mmodel;
     udata.ss     = NULL;
     udata.nrow   = -1;
     udata.ncol   = -1;
+    udata.gp     = gproject_new(grace, mmodel);
     
-    ret = xgr_parse(fp, &p, &udata, exception_handler);
-    project = p;
+    if (!udata.gp) {
+        return NULL;
+    }
+    
+    udata.gp->grf = grfile_new(grf->fname);
+
+    ret = xgr_parse(grf->fp, &dummy, &udata, exception_handler);
 
     if (ret == XCC_RETURN_SUCCESS) {
-        return project;
+        Quark *pr = udata.gp->q;
+        time_t mtime = grfile_get_mtime(grf);
+
+        project_update_timestamp(pr, mtime);
+
+        /* Clear dirtystate */
+        quark_dirtystate_set(pr, FALSE);
+        
+        return udata.gp;
     } else {
-        quark_free(project);
+        gproject_free(udata.gp);
         
         return NULL;
     }

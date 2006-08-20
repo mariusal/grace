@@ -298,6 +298,24 @@ Grace *grace_from_quark(const Quark *q)
     return (Grace *) quark_factory_get_udata(quark_get_qfactory(q));
 }
 
+Grace *grace_from_gproject(const GProject *gp)
+{
+    if (gp) {
+        return grace_from_quark(gp->q);
+    } else {
+        return NULL;
+    }
+}
+
+Quark *gproject_get_top(const GProject *gp)
+{
+    if (gp) {
+        return gp->q;
+    } else {
+        return NULL;
+    }
+}
+
 Canvas *grace_get_canvas(const Grace *grace)
 {
     return grace->canvas;
@@ -308,27 +326,65 @@ Graal *grace_get_graal(const Grace *grace)
     return grace->graal;
 }
 
-int grace_render(const Grace *grace, const Quark *project)
+int gproject_render(const GProject *gp)
 {
-    canvas_set_docname(grace->canvas, project_get_docname(project));
-    return drawgraph(grace->canvas, grace->graal, project);
+    Grace *grace = grace_from_gproject(gp);
+    
+    if (!grace) {
+        return RETURN_FAILURE;
+    }
+    
+    canvas_set_udata(grace->canvas, (GProject *) gp);
+    
+    canvas_set_docname(grace->canvas, gproject_get_docname(gp));
+    
+    return drawgraph(grace->canvas, grace->graal, gp->q);
 }
 
-Quark *grace_project_new(const Grace *grace, int mmodel)
+GProject *gproject_new(const Grace *grace, int mmodel)
 {
-    return project_new(grace->qfactory, mmodel);
+    GProject *gp = xmalloc(sizeof(GProject));
+    if (gp) {
+        memset(gp, 0, sizeof(GProject));
+        gp->q = project_new(grace->qfactory, mmodel);
+        if (!gp->q) {
+            gproject_free(gp);
+            return NULL;
+        }
+    }
+    
+    return gp;
 }
 
-int grace_sync_canvas_devices(Grace *grace, const Quark *project)
+void gproject_free(GProject *gp)
 {
+    if (gp) {
+        quark_free(gp->q);
+        grfile_free(gp->grf);
+        xfree(gp);
+    }
+}
+
+char *gproject_get_docname(const GProject *gp)
+{
+    if (gp && gp->grf) {
+        return gp->grf->fname;
+    } else {
+        return NULL;
+    }
+}
+
+int grace_sync_canvas_devices(const GProject *gp)
+{
+    Grace *grace = grace_from_gproject(gp);
     int wpp, hpp;
     int i;
     
-    if (!grace || !grace->canvas) {
+    if (!grace) {
         return RETURN_FAILURE;
     }
 
-    if (project_get_page_dimensions(project, &wpp, &hpp) != RETURN_SUCCESS) {
+    if (project_get_page_dimensions(gp->q, &wpp, &hpp) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
     

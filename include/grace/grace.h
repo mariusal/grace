@@ -41,6 +41,11 @@ typedef enum {
     FMT_nohint
 } Dates_format;
 
+typedef struct {
+    Quark *q;
+    GrFILE *grf;
+} GProject;
+
 /* grace.c */
 int grace_init(void);
 
@@ -55,16 +60,22 @@ Grace *grace_from_quark(const Quark *q);
 Canvas *grace_get_canvas(const Grace *grace);
 Graal *grace_get_graal(const Grace *grace);
 
-int grace_render(const Grace *grace, const Quark *project);
+int gproject_render(const GProject *gp);
 
-Quark *grace_project_new(const Grace *grace, int mmodel);
+Quark *gproject_get_top(const GProject *gp);
 
-int grace_sync_canvas_devices(Grace *grace, const Quark *project);
+GProject *gproject_new(const Grace *grace, int mmodel);
+void gproject_free(GProject *gp);
+char *gproject_get_docname(const GProject *gp);
+
+Grace *grace_from_gproject(const GProject *gp);
+
+int grace_sync_canvas_devices(const GProject *gp);
 
 /* xml_out.c */
-int grace_save(Quark *project, FILE *fp);
+int gproject_save(GProject *gp, GrFILE *grf);
 /* xml_in.c */
-Quark *grace_load(Grace *grace, FILE *fp, int mmodel);
+GProject *gproject_load(Grace *grace, GrFILE *grf, int mmodel);
 
 /* dicts.c */
 char *graph_types(Grace *grace, GraphType it);

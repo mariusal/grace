@@ -1029,12 +1029,19 @@ static int project_save_hook(Quark *q,
 }
 
 
-int grace_save(Quark *project, FILE *fp)
+int gproject_save(GProject *gp, GrFILE *grf)
 {
+    Quark *project;
     XFile *xf;
     Attributes *attrs;
 
-    xf = xfile_new(fp);
+    if (!gp || !grf) {
+        return RETURN_FAILURE;
+    }
+    
+    project = gp->q;
+    
+    xf = xfile_new(grf->fp);
     
     attrs = attributes_new();
     
@@ -1058,6 +1065,10 @@ int grace_save(Quark *project, FILE *fp)
     
     xfile_end(xf);
     xfile_free(xf);
+    
+    grfile_free(gp->grf);
+    gp->grf = grfile_new(grf->fname);
+    quark_dirtystate_set(project, FALSE);
     
     return RETURN_SUCCESS;
 }
