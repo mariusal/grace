@@ -39,6 +39,8 @@
 
 /* for size_t */
 #include <sys/types.h>
+/* for time_t */
+#include <sys/time.h>
 
 /* boolean values */
 #ifndef TRUE
@@ -117,6 +119,23 @@ unsigned char reversebits(unsigned char inword);
 
 /* file i/o */
 char *grace_fgets(char *s, int size, FILE *stream);
+
+#define GRFILE_MODE_READ    0
+#define GRFILE_MODE_WRITE   1
+
+typedef struct {
+    char *fname;
+    int mode;
+    int pipe;
+    FILE *fp;
+} GrFILE;
+
+GrFILE *grfile_new(const char *fname);
+void grfile_free(GrFILE *grf);
+GrFILE *grfile_openr(const char *fname);
+GrFILE *grfile_openw(const char *fname);
+int grfile_close(GrFILE *grf);
+time_t grfile_get_mtime(const GrFILE *grf);
 
 /* dates */
 

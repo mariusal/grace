@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -29,12 +29,14 @@
  * file utils
  */
 
+#include <sys/stat.h>
 #include <string.h>
 
 #include "grace/base.h"
 
 /* replacement for fgets() to fix up reading DOS text files */
-char *grace_fgets(char *s, int size, FILE *stream) {
+char *grace_fgets(char *s, int size, FILE *stream)
+{
     int  slen;
     char *endptr;
 
@@ -54,4 +56,106 @@ char *grace_fgets(char *s, int size, FILE *stream) {
         }
     }
     return s;
+}
+
+void grfile_free(GrFILE *grf)
+{
+    if (grf) {
+        xfree(grf->fname);
+        if (grf->fp) {
+            fclose(grf->fp);
+        }
+        xfree(grf);
+    }
+}
+
+GrFILE *grfile_new(const char *fname)
+{
+    GrFILE *grf;
+    
+    if (!fname) {
+        return NULL;
+    }
+    
+    grf = xmalloc(sizeof(GrFILE));
+    if (!grf) {
+        return NULL;
+    }
+    memset(grf, 0, sizeof(GrFILE));
+    
+    grf->fname = copy_string(NULL, fname);
+    if (!grf->fname) {
+        grfile_free(grf);
+        return NULL;
+    }
+    
+    return grf;
+}
+
+
+GrFILE *grfile_openr(const char *fname)
+{
+    GrFILE *grf;
+    
+    grf = grfile_new(fname);
+    
+    if (!grf) {
+        return NULL;
+    }
+    
+    grf->fp = fopen(fname, "rb");
+    if (!grf->fp) {
+        grfile_free(grf);
+        return NULL;
+    }
+    
+    grf->mode = GRFILE_MODE_READ;
+    
+    return grf;
+}
+
+GrFILE *grfile_openw(const char *fname)
+{
+    GrFILE *grf;
+    
+    grf = grfile_new(fname);
+    
+    if (!grf) {
+        return NULL;
+    }
+    
+    grf->fp = fopen(fname, "wb");
+    if (!grf->fp) {
+        grfile_free(grf);
+        return NULL;
+    }
+    
+    grf->mode = GRFILE_MODE_WRITE;
+    
+    return grf;
+}
+
+int grfile_close(GrFILE *grf)
+{
+    if (grf && grf->fp) {
+        /* Never close standard streams */
+        if (grf->fp != stdin && grf->fp != stderr && grf->fp != stdout) {
+            fclose(grf->fp);
+            grf->fp = NULL;
+        }
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+time_t grfile_get_mtime(const GrFILE *grf)
+{
+    struct stat statb;
+    
+    if (grf && grf->fname && !stat(grf->fname, &statb)) {
+        return statb.st_mtime;
+    } else {
+        return 0;
+    }
 }
