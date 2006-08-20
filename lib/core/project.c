@@ -89,8 +89,6 @@ void project_data_free(AMem *amem, Project *pr)
     
     amem_free(amem, pr->description);
     
-    amem_free(amem, pr->docname);
-    
     amem_free(amem, pr->timestamp);
     
     for (i = 0; i < pr->nfonts; i++) {
@@ -133,7 +131,7 @@ int project_qf_register(QuarkFactory *qfactory)
 static int project_cb(Quark *q, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_MODIFY) {
-        project_update_timestamp(q, NULL);
+        project_update_timestamp(q, 0);
     }
 
     return RETURN_SUCCESS;
@@ -211,28 +209,6 @@ int project_set_prec(Quark *q, unsigned int prec)
     Project *pr = project_get_data(q);
     if (pr && prec >= DATA_PREC_MIN && prec <= DATA_PREC_MAX) {
         pr->prec = prec;
-        quark_dirtystate_set(q, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-char *project_get_docname(const Quark *q)
-{
-    Project *pr = project_get_data(q);
-    if (pr) {
-        return pr->docname;
-    } else {
-        return NULL;
-    }
-}
-
-int project_set_docname(Quark *q, const char *s)
-{
-    Project *pr = project_get_data(q);
-    if (pr) {
-        pr->docname = amem_strcpy(q->amem, pr->docname, s);
         quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
@@ -333,11 +309,10 @@ int project_set_wrap_year(Quark *q, int year)
 }
 
 
-int project_update_timestamp(Quark *q, time_t *t)
+int project_update_timestamp(Quark *q, time_t t)
 {
     Project *pr = project_get_data(q);
     struct tm tm;
-    time_t time_value;
     char *str;
 
     if (!pr) {
@@ -345,11 +320,9 @@ int project_update_timestamp(Quark *q, time_t *t)
     }
     
     if (!t) {
-        (void) time(&time_value);
-    } else {
-        time_value = *t;
+        (void) time(&t);
     }
-    tm = *localtime(&time_value);
+    tm = *localtime(&t);
     str = asctime(&tm);
     if (str[strlen(str) - 1] == '\n') {
         str[strlen(str) - 1]= '\0';

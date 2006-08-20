@@ -258,9 +258,6 @@ typedef struct _Project {
 
     /* default graphics properties */
     defaults grdefaults;
-    
-    /* project file name */
-    char *docname;      
 } Project;
 
 /* A point in world coordinates */
@@ -767,8 +764,6 @@ char *project_get_description(const Quark *q);
 int project_set_description(Quark *q, char *descr);
 unsigned int project_get_prec(const Quark *q);
 int project_set_prec(Quark *q, unsigned int prec);
-char *project_get_docname(const Quark *q);
-int project_set_docname(Quark *q, const char *s);
 
 int project_get_page_dimensions(const Quark *q, int *wpp, int *hpp);
 int project_set_page_dimensions(Quark *q, int wpp, int hpp);
@@ -781,7 +776,7 @@ int project_allow_two_digits_years(Quark *q, int flag);
 int project_set_wrap_year(Quark *q, int year);
 
 char *project_get_timestamp(Quark *q);
-int project_update_timestamp(Quark *q, time_t *t);
+int project_update_timestamp(Quark *q, time_t t);
 
 int project_add_font(Quark *project, const Fontdef *f);
 int project_add_color(Quark *project, const Colordef *c);
