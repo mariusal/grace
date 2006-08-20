@@ -43,6 +43,7 @@
 #include "numerics.h"
 #include "motifinc.h"
 #include "xprotos.h"
+#include "globals.h"
 
 typedef struct {
     TextStructure *formula_item;
@@ -1455,7 +1456,7 @@ static int do_fext_proc(void *data)
     if (da && ssd_set_darray(dst_ssd, dst_col, da) == RETURN_SUCCESS) {
         ssd_set_col_label(dst_ssd, dst_col, formula);
         
-        snapshot_and_update(dst_ssd, TRUE);
+        snapshot_and_update(gapp->gp, TRUE);
 
         retval = RETURN_SUCCESS;
     } else {
@@ -1599,7 +1600,7 @@ static int do_cumulative_proc(void *data)
     
     xfree(src_arrays);
 
-    snapshot_and_update(dst_ssd, TRUE);
+    snapshot_and_update(gapp->gp, TRUE);
   
     return RETURN_SUCCESS;
 }

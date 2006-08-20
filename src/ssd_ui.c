@@ -35,6 +35,7 @@
 #include "utils.h"
 #include "explorer.h"
 #include "xprotos.h"
+#include "globals.h"
 
 /* default cell value precision */
 #define CELL_PREC 8
@@ -218,7 +219,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     }
     
     if (changed) {
-        snapshot_and_update(ui->q, FALSE);
+        snapshot_and_update(gapp->gp, FALSE);
     }
 }
 
@@ -318,7 +319,7 @@ static void index_cb(Widget but, void *udata)
 {
     SSDataUI *ui = (SSDataUI *) udata;
     if (ssd_set_index(ui->q, ui->cb_column) == RETURN_SUCCESS) {
-        snapshot_and_update(ui->q, TRUE);
+        snapshot_and_update(gapp->gp, TRUE);
     }
 }
 
@@ -326,7 +327,7 @@ static void unindex_cb(Widget but, void *udata)
 {
     SSDataUI *ui = (SSDataUI *) udata;
     if (ssd_set_indexed(ui->q, FALSE) == RETURN_SUCCESS) {
-        snapshot_and_update(ui->q, TRUE);
+        snapshot_and_update(gapp->gp, TRUE);
     }
 }
 

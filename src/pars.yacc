@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 #if defined(HAVE_SYS_PARAM_H)
 #  include <sys/param.h>
 #endif
@@ -3712,8 +3713,9 @@ static void project_postprocess(Quark *project)
     quark_traverse(project, project_postprocess_hook, &version_id);
 }
 
-Quark *load_agr_project(GraceApp *gapp, const char *fn)
+GProject *load_agr_project(GraceApp *gapp, const char *fn)
 {
+    GProject *gp;
     Quark *project;
     FILE *fp;
     int retval;
@@ -3723,7 +3725,8 @@ Quark *load_agr_project(GraceApp *gapp, const char *fn)
 	return NULL;
     }
     
-    project = grace_project_new(gapp->grace, AMEM_MODEL_LIBUNDO);
+    gp = gproject_new(gapp->grace, AMEM_MODEL_LIBUNDO);
+    project = gproject_get_top(gp);
 
     parser_state_reset(project);
     
@@ -3732,11 +3735,27 @@ Quark *load_agr_project(GraceApp *gapp, const char *fn)
     gapp_close(fp);
 
     if (retval == RETURN_SUCCESS) {
+        struct stat statb;
+        time_t mtime;
+
+        if (fn && !stat(fn, &statb)) {
+            mtime = statb.st_mtime;
+        } else {
+            mtime = 0;
+        }
+
         project_postprocess(project);
 
-        return project;
+        project_update_timestamp(project, mtime);
+
+        /* Clear dirtystate */
+        quark_dirtystate_set(project, FALSE);
+
+        gp->grf = grfile_new(fn);
+
+        return gp;
     } else {
-        quark_free(project);
+        gproject_free(gp);
         
         return NULL;
     }

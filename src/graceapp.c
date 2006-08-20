@@ -313,7 +313,7 @@ void gapp_free(GraceApp *gapp)
         return;
     }
     
-    quark_free(gapp->project);
+    gproject_free(gapp->gp);
     gui_free(gapp->gui);
     runtime_free(gapp->rt);
     grace_free(gapp->grace);
@@ -352,15 +352,15 @@ GUI *gui_from_quark(const Quark *q)
     }
 }
 
-int gapp_set_project(GraceApp *gapp, Quark *project)
+int gapp_set_project(GraceApp *gapp, GProject *gp)
 {
-    if (gapp && project) {
-        quark_free(gapp->project);
-        gapp->project = project;
+    if (gapp && gp) {
+        gproject_free(gapp->gp);
+        gapp->gp = gp;
         /* reset graal ? */
         
         /* Set dimensions of all devices */
-        grace_sync_canvas_devices(gapp->grace, project);
+        grace_sync_canvas_devices(gp);
         
         /* Reset set autocolorization index */
         gapp->rt->setcolor = 0;
@@ -421,11 +421,11 @@ int set_printer_by_name(GraceApp *gapp, const char *dname)
 
 int set_page_dimensions(GraceApp *gapp, int wpp, int hpp, int rescale)
 {
-    if (wpp <= 0 || hpp <= 0) {
+    if (wpp <= 0 || hpp <= 0 || !gapp || !gapp->gp) {
         return RETURN_FAILURE;
     } else {
         int wpp_old, hpp_old;
-        Project *pr = project_get_data(gapp->project);
+        Project *pr = project_get_data(gproject_get_top(gapp->gp));
 	if (!pr) {
             return RETURN_FAILURE;
         }
@@ -457,11 +457,11 @@ int set_page_dimensions(GraceApp *gapp, int wpp, int hpp, int rescale)
                     ext_y = old_aspectr;
                 }
 
-                rescale_viewport(gapp->project, ext_x, ext_y);
+                rescale_viewport(gproject_get_top(gapp->gp), ext_x, ext_y);
             } 
         }
 
-        grace_sync_canvas_devices(gapp->grace, gapp->project);
+        grace_sync_canvas_devices(gapp->gp);
 
         return RETURN_SUCCESS;
     }
@@ -648,8 +648,9 @@ int gapp_print(const GraceApp *gapp, const char *fname)
 /*
  * If writing to a file, check to see if it exists
  */
-void do_hardcopy(const Quark *project)
+void do_hardcopy(const GProject *gp)
 {
+    Quark *project = gproject_get_top(gp);
     GraceApp *gapp = gapp_from_quark(project);
     RunTime *rt;
     Canvas *canvas;
@@ -687,7 +688,7 @@ void do_hardcopy(const Quark *project)
     
     select_device(canvas, rt->hdevice);
     
-    res = grace_render(gapp->grace, project);
+    res = gproject_render(gp);
     
     gapp_close(prstream);
     

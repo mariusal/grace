@@ -52,13 +52,13 @@ typedef int (*DataStore) (
     void *udata
 );
 
-Quark *load_agr_project(GraceApp *gapp, const char *fn);
-Quark *load_xgr_project(GraceApp *gapp, const char *fn);
-Quark *load_any_project(GraceApp *gapp, const char *fn);
+GProject *load_agr_project(GraceApp *gapp, const char *fn);
+GProject *load_xgr_project(GraceApp *gapp, const char *fn);
+GProject *load_any_project(GraceApp *gapp, const char *fn);
 
 int new_project(GraceApp *gapp, char *template);
 int load_project(GraceApp *gapp, char *fn);
-int save_project(Quark *project, char *fn);
+int save_project(GProject *gp, char *fn);
 
 int add_io_filter( int type, int method, const char *id, const char *comm );
 int add_input_filter( int method, const char *id, const char *comm );

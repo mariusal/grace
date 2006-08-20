@@ -48,6 +48,7 @@
 
 #include "motifinc.h"
 #include "xprotos.h"
+#include "globals.h"
 
 static void scroll_bar_pix(Widget bar, int pix)
 {
@@ -160,7 +161,7 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
     case QFlavorGraph:
         if (ct->include_graphs) {
             GraceApp *gapp = gapp_from_quark(q);
-            Quark *cg = graph_get_current(gapp->project);
+            Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
             if (cg == q && graph_get_viewport(q, &v) == RETURN_SUCCESS) {
                 VPoint vp;
                 GLocator *locator;
@@ -226,10 +227,10 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
-static int find_target(Quark *pr, canvas_target *ct)
+static int find_target(GProject *gp, canvas_target *ct)
 {
     ct->found = FALSE;
-    quark_traverse(pr, target_hook, ct);
+    quark_traverse(gproject_get_top(gp), target_hook, ct);
 
     return ct->found ? RETURN_SUCCESS:RETURN_FAILURE;
 }
@@ -331,7 +332,7 @@ static void popup_any_cb(canvas_target *ct, int type)
         break;
     }
     
-    snapshot_and_update(q, TRUE);
+    snapshot_and_update(gapp->gp, TRUE);
 }
 
 static void edit_cb(Widget but, void *udata)
@@ -397,7 +398,7 @@ static void atext_cb(Widget but, void *udata)
     atext_set_ap(q, &ap);
     atext_set_pointer(q, TRUE);
 
-    snapshot_and_update(q, TRUE);
+    snapshot_and_update(gapp->gp, TRUE);
 
     raise_explorer(gui_from_quark(ct->q), q);
 }
@@ -414,7 +415,7 @@ static void do_clear_point(Widget but, void *udata)
     locator->pointset = FALSE;
     quark_dirtystate_set(ct->q, TRUE);
     
-    snapshot_and_update(ct->q, TRUE);
+    snapshot_and_update(gapp->gp, TRUE);
 }
 
 /*
@@ -433,7 +434,7 @@ static void set_locator_cb(Widget but, void *udata)
     locator->pointset = TRUE;
     quark_dirtystate_set(ct->q, TRUE);
 
-    snapshot_and_update(ct->q, TRUE);
+    snapshot_and_update(gapp->gp, TRUE);
 }
 
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
@@ -442,7 +443,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     VPoint vp;
     KeySym keybuf;
     GraceApp *gapp = (GraceApp *) data;
-    Quark *cg = graph_get_current(gapp->project);
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
     X11Stuff *xstuff = gapp->gui->xstuff;
     Widget drawing_window = gapp->gui->mwui->drawing_window;
     
@@ -563,7 +564,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         resize_region(gapp->gui, xstuff->f_v, on_focus,
                             0, 0, FALSE);
                     } else
-                    if (find_target(gapp->project, &ct) == RETURN_SUCCESS) {
+                    if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
                         slide_region(gapp->gui, ct.bbox, 0, 0, FALSE);
                     }
                 } else {
@@ -585,7 +586,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             } else {
                 ct.vp = vp;
                 ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
-                if (find_target(gapp->project, &ct) == RETURN_SUCCESS) {
+                if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
                     raise_explorer(gapp->gui, ct.q);
                     ct.found = FALSE;
                 }
@@ -614,7 +615,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             } else {
                 ct.vp = vp;
                 ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
-                if (find_target(gapp->project, &ct) == RETURN_SUCCESS) {
+                if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
                     char *s;
                     ct.found = FALSE;
                     
@@ -738,7 +739,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 x11_dev2VPoint(x, y, &vp);
                 if (on_focus) {
                     view v;
-                    Quark *fr = get_parent_frame(graph_get_current(gapp->project));
+                    Quark *fr = get_parent_frame(graph_get_current(gproject_get_top(gapp->gp)));
                     frame_get_view(fr, &v);
                     switch (on_focus) {
                     case 1:
@@ -767,7 +768,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 }
                 ct.found = FALSE;
 
-                snapshot_and_update(gapp->project, TRUE);
+                snapshot_and_update(gapp->gp, TRUE);
             }
             if (!xstuff->collect_points) {
                 set_cursor(gapp->gui, -1);
@@ -861,7 +862,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         xstuff->npoints = 0;
         set_cursor(gapp->gui, -1);
 
-        snapshot_and_update(gapp->project, TRUE);
+        snapshot_and_update(gapp->gp, TRUE);
     }
 }
 
@@ -973,7 +974,7 @@ void switch_current_graph(Quark *gr)
     
     if (quark_is_active(gr)) {
         GraceApp *gapp = gapp_from_quark(gr);
-        Quark *cg = graph_get_current(gapp->project);
+        Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
         
         select_graph(gr);
         draw_focus(cg);
@@ -988,7 +989,7 @@ static int zoom_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
     world w;
-    Quark *cg = graph_get_current(gapp->project);
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
     WPoint wp;
     
     if (!cg || npoints != 2) {
@@ -1016,7 +1017,7 @@ static int zoomx_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
     world w;
-    Quark *cg = graph_get_current(gapp->project);
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
     WPoint wp;
     
     if (!cg || npoints != 2) {
@@ -1041,7 +1042,7 @@ static int zoomy_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
     world w;
-    Quark *cg = graph_get_current(gapp->project);
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
     WPoint wp;
     
     if (!cg || npoints != 2) {
@@ -1065,7 +1066,7 @@ static int zoomy_sink(unsigned int npoints, const VPoint *vps, void *data)
 static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
-    Quark *cg = graph_get_current(gapp->project), *q;
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp)), *q;
     WPoint wp;
     APoint ap;
 
@@ -1079,7 +1080,7 @@ static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
         ap.x = wp.x; ap.y = wp.y;
         atext_set_ap(q, &ap);
     } else {
-        q = atext_new(gapp->project);
+        q = atext_new(gproject_get_top(gapp->gp));
         ap.x = vps[0].x; ap.y = vps[0].y;
         atext_set_ap(q, &ap);
     }

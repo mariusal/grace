@@ -491,7 +491,7 @@ static void drop_cb(Widget w, XtPointer client, XtPointer call)
                     }
                 }
                 cbs->ok = True;
-                snapshot_and_update(drop_q, TRUE);
+                snapshot_and_update(gapp->gp, TRUE);
             }
         }
     }
@@ -577,7 +577,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
         }
     }
     
-    snapshot_and_update(gapp->project, FALSE);
+    snapshot_and_update(gapp->gp, FALSE);
 
     return res;
 }
@@ -635,7 +635,7 @@ void update_explorer(ExplorerUI *ui, int reselect)
         ListTreeDelete(ui->tree, ui->project);
     }
     ui->project = CreateQuarkTree(ui->tree, NULL,
-        gapp->project, NULL, q_labeling);
+        gproject_get_top(gapp->gp), NULL, q_labeling);
 
     highlight_selected(ui->tree, ui->project, nsquarks, squarks);
     xfree(squarks);
@@ -763,7 +763,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
         }
     }
     
-    snapshot_and_update(gapp->project, TRUE);
+    snapshot_and_update(gapp->gp, TRUE);
     
     if (qnew) {
         SelectQuarkTreeItem(eui->tree, eui->project, qnew);
@@ -1045,7 +1045,7 @@ void raise_explorer(GUI *gui, Quark *q)
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
         eui->project = CreateQuarkTree(eui->tree, NULL,
-            gapp->project, NULL, q_labeling);
+            gproject_get_top(gapp->gp), NULL, q_labeling);
         
         ManageChild(eui->tree);
         ListTreeRefreshOn(eui->tree);
@@ -1088,7 +1088,7 @@ void raise_explorer(GUI *gui, Quark *q)
         SelectQuarkTreeItem(gui->eui->tree, gui->eui->project, q);
     }
 
-    update_undo_buttons(gapp->project);
+    update_undo_buttons(gapp->gp);
 
     unset_wait_cursor();
 }

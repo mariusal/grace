@@ -267,10 +267,10 @@ static void cmd_cb(TextStructure *cst, char *s, void *data)
     ui->eohistory = TRUE;
     
     if (!string_is_empty(s)) {
-        graal_parse_line(grace_get_graal(gapp->grace), s, gapp->project);
+        graal_parse_line(grace_get_graal(gapp->grace), s, gproject_get_top(gapp->gp));
         
         if (ui->auto_redraw) {
-            xdrawgraph(gapp->project);
+            xdrawgraph(gapp->gp);
         }
 
         if (ui->auto_update) {

@@ -178,11 +178,12 @@ void init_cursors(GUI *gui)
 /*
  * put a string in the title bar
  */
-void update_app_title(const Quark *pr)
+void update_app_title(const GProject *gp)
 {
+    Quark *pr = gproject_get_top(gp);
     GUI *gui = gui_from_quark(pr);
     static char *ts_save = NULL;
-    char *ts;
+    char *ts, *docname;
     static int dstate_save = 0;
     int dstate;
     
@@ -191,7 +192,11 @@ void update_app_title(const Quark *pr)
     }
     
     dstate = quark_dirtystate_get(pr);
-    ts = mybasename(project_get_docname(pr));
+    docname = gproject_get_docname(gp);
+    if (!docname) {
+        docname = NONAME;
+    }
+    ts = mybasename(docname);
     if (ts_save == NULL || !strings_are_equal(ts_save, ts) ||
         dstate != dstate_save) {
         char *buf1, *buf2;
@@ -221,7 +226,7 @@ void page_zoom_inout(GraceApp *gapp, int inout)
         } else {
             gapp->gui->zoom = 1.0;
         }
-        xdrawgraph(gapp->project);
+        xdrawgraph(gapp->gp);
         set_left_footer(NULL);
     }
 }
@@ -481,7 +486,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 	inc = TRUE;
         
         update_all();
-        xdrawgraph(gapp->project);
+        xdrawgraph(gapp->gp);
 
         return;
     }
@@ -496,7 +501,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
         if (gui_is_page_free(gapp->gui)) {
             sync_canvas_size(gapp);
             update_all();
-            xdrawgraph(gapp->project);
+            xdrawgraph(gapp->gp);
         }
     }
 }
@@ -534,10 +539,10 @@ static void xdrawgrid(X11Stuff *xstuff)
 /* 
  * redraw all
  */
-void xdrawgraph(const Quark *q)
+void xdrawgraph(const GProject *gp)
 {
-    Quark *project = get_parent_project(q);
-    GraceApp *gapp = gapp_from_quark(q);
+    Quark *project = gproject_get_top(gp);
+    GraceApp *gapp = gapp_from_quark(project);
     
     if (gapp && gapp->gui->inwin) {
         X11Stuff *xstuff = gapp->gui->xstuff;
@@ -567,7 +572,7 @@ void xdrawgraph(const Quark *q)
         canvas_set_prstream(grace_get_canvas(gapp->grace), &xstream);
 
         select_device(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
-	grace_render(gapp->grace, project);
+	gproject_render(gp);
 
         if (quark_is_active(gr)) {
             draw_focus(gr);

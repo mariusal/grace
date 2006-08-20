@@ -276,7 +276,7 @@ static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data)
         
         buf = copy_string(NULL, "\\f{");
         buf = concat_strings(buf,
-            project_get_font_name_by_id(gapp->project, ui->font_id));
+            project_get_font_name_by_id(gproject_get_top(gapp->gp), ui->font_id));
         buf = concat_strings(buf, "}");
         buf = concat_strings(buf, text->ptr);
         XtFree(text->ptr);

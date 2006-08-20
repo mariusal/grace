@@ -128,7 +128,7 @@ int x11_init(GraceApp *gapp);
 int initialize_gui(int *argc, char **argv);
 void startup_gui(GraceApp *gapp);
 
-void xdrawgraph(const Quark *q);
+void xdrawgraph(const GProject *gp);
 void expose_resize(Widget w, XtPointer client_data, XtPointer call_data);
 
 void setpointer(VPoint vp);
@@ -193,7 +193,7 @@ void create_about_grtool(Widget but, void *data);
 
 void create_monitor_frame_cb(Widget but, void *data);
 
-void update_undo_buttons(Quark *project);
+void update_undo_buttons(GProject *gp);
 void update_set_lists(Quark *gr);
 void update_props_items(void);
 void update_all(void);
@@ -228,7 +228,7 @@ void unset_wait_cursor(void);
 
 int init_option_menus(void);
 
-void update_app_title(const Quark *pr);
+void update_app_title(const GProject *gp);
 void set_left_footer(char *s);
 void set_tracker_string(char *s);
 
@@ -240,7 +240,7 @@ void installXErrorHandler(void);
 
 Pixmap char_to_pixmap(Widget w, int font, char c, int csize);
 
-void snapshot_and_update(Quark *q, int all);
+void snapshot_and_update(GProject *gp, int all);
 
 int attach_ps_drv_setup(Canvas *canvas, int device_id);
 int attach_eps_drv_setup(Canvas *canvas, int device_id);

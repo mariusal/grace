@@ -1017,7 +1017,7 @@ static void ss_any_cb(StorageStructure *ss, int type)
     
     if (n > 0) {
         xfree(values);
-        snapshot_and_update(gapp->project, TRUE);
+        snapshot_and_update(gapp->gp, TRUE);
     }
 }
 
@@ -2157,7 +2157,7 @@ static BitmapOptionItem *lines_option_items;
 static void init_xvlibcolors(void)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
-    Project *pr = project_get_data(gapp->project);
+    Project *pr = project_get_data(gproject_get_top(gapp->gp));
     unsigned int i;
     
     if (!pr) {
@@ -2286,7 +2286,7 @@ static unsigned int nfont_selectors = 0;
 void update_font_selectors(void)
 {
     unsigned int i;
-    Project *pr = project_get_data(gapp->project);
+    Project *pr = project_get_data(gproject_get_top(gapp->gp));
     
     nfont_option_items = pr->nfonts;
     font_option_items =
@@ -2530,7 +2530,7 @@ static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 void update_color_choice_popup(void)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
-    Project *pr = project_get_data(gapp->project);
+    Project *pr = project_get_data(gproject_get_top(gapp->gp));
     unsigned int ci;
 
     if (pr && color_choice_popup) {
@@ -2783,7 +2783,7 @@ StorageStructure *CreateSSDChoice(Widget parent, char *labelstr, int type)
 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, ssd_labeling);
-    SetStorageChoiceQuark(ss, gapp->project);
+    SetStorageChoiceQuark(ss, gproject_get_top(gapp->gp));
 
     nssd_selectors++;
     ssd_selectors =
@@ -2850,7 +2850,7 @@ static void gss_any_cb(void *udata, int cbtype)
     if (n > 0) {
         xfree(values);
         update_all();
-        xdrawgraph(gapp->project);
+        xdrawgraph(gapp->gp);
     }
 }
 
@@ -2868,8 +2868,8 @@ static void g_popup_cb(StorageStructure *ss, int nselected)
 
 static void g_new_cb(Widget but, void *udata)
 {
-    graph_next(gapp->project);
-    snapshot_and_update(gapp->project, TRUE);
+    graph_next(gproject_get_top(gapp->gp));
+    snapshot_and_update(gapp->gp, TRUE);
 }
 
 static char *graph_labeling(Quark *q, unsigned int *rid)
@@ -2899,7 +2899,7 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, graph_labeling);
-    SetStorageChoiceQuark(ss, gapp->project);
+    SetStorageChoiceQuark(ss, gproject_get_top(gapp->gp));
     AddHelpCB(ss->rc, "doc/UsersGuide.html#graph-selector");
 
     ngraph_selectors++;
@@ -2976,7 +2976,7 @@ StorageStructure *CreateFrameChoice(Widget parent, char *labelstr, int type)
     nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, frame_labeling);
-    SetStorageChoiceQuark(ss, gapp->project);
+    SetStorageChoiceQuark(ss, gproject_get_top(gapp->gp));
     AddHelpCB(ss->rc, "doc/UsersGuide.html#frame-selector");
 
     nframe_selectors++;
@@ -3048,7 +3048,7 @@ static void sss_any_cb(void *udata, int cbtype)
         break;
     }
     
-    snapshot_and_update(gapp->project, TRUE);
+    snapshot_and_update(gapp->gp, TRUE);
 }
 
 static void s_newF_cb(Widget but, void *udata)
@@ -3281,7 +3281,7 @@ void paint_color_selector(OptionStructure *optp)
     X11Stuff *xstuff = gapp->gui->xstuff;
     unsigned int i;
     long bg, fg;
-    Project *pr = project_get_data(gapp->project);
+    Project *pr = project_get_data(gproject_get_top(gapp->gp));
     
     if (!pr) {
         return;
@@ -3306,7 +3306,7 @@ void paint_color_selector(OptionStructure *optp)
 void update_color_selectors(void)
 {
     unsigned int i;
-    Project *pr = project_get_data(gapp->project);
+    Project *pr = project_get_data(gproject_get_top(gapp->gp));
     
     ncolor_option_items = pr->ncolors;
 
@@ -4195,7 +4195,7 @@ int xv_evalexpr(Widget w, double *answer)
     s = XmTextGetString(w);
     
     retval = graal_eval_expr(grace_get_graal(gapp->grace),
-        s, answer, gapp->project);
+        s, answer, gproject_get_top(gapp->gp));
     
     XtFree(s);
     
@@ -4735,11 +4735,12 @@ void update_set_lists(Quark *gr)
 {
     update_set_selectors(gr);
     
-    snapshot_and_update(gapp->project, FALSE);
+    snapshot_and_update(gapp->gp, FALSE);
 }
 
-void update_undo_buttons(Quark *project)
+void update_undo_buttons(GProject *gp)
 {
+    Quark *project = gproject_get_top(gp);
     GUI *gui = gui_from_quark(project);
     AMem *amem = quark_get_amem(project);
     if (!gui || !amem) {
@@ -4765,9 +4766,9 @@ void update_all(void)
         sync_canvas_size(gapp);
     }
     
-    update_ssd_selectors(gapp->project);
-    update_frame_selectors(gapp->project);
-    update_graph_selectors(gapp->project);
+    update_ssd_selectors(gproject_get_top(gapp->gp));
+    update_frame_selectors(gproject_get_top(gapp->gp));
+    update_graph_selectors(gproject_get_top(gapp->gp));
     update_set_selectors(NULL);
 
     if (gapp->gui->need_colorsel_update == TRUE) {
@@ -4781,11 +4782,11 @@ void update_all(void)
         gapp->gui->need_fontsel_update = FALSE;
     }
 
-    update_undo_buttons(gapp->project);
+    update_undo_buttons(gapp->gp);
     update_props_items();
     update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
-    update_app_title(gapp->project);
+    update_app_title(gapp->gp);
 }
 
 void update_all_cb(Widget but, void *data)
@@ -4793,10 +4794,10 @@ void update_all_cb(Widget but, void *data)
     update_all();
 }
 
-void snapshot_and_update(Quark *q, int all)
+void snapshot_and_update(GProject *gp, int all)
 {
-    Quark *pr = get_parent_project(q);
-    GUI *gui = gui_from_quark(q);
+    Quark *pr = gproject_get_top(gp);
+    GUI *gui = gui_from_quark(pr);
     AMem *amem;
     
     if (!pr) {
@@ -4806,14 +4807,14 @@ void snapshot_and_update(Quark *q, int all)
     amem = quark_get_amem(pr);
     amem_snapshot(amem);
 
-    xdrawgraph(pr);
+    xdrawgraph(gp);
     
     if (all) {
         update_all();
     } else {
-        update_undo_buttons(pr);
+        update_undo_buttons(gp);
         update_explorer(gui->eui, FALSE);
-        update_app_title(pr);
+        update_app_title(gp);
     }
 }
 
@@ -4877,11 +4878,11 @@ static void undo_stats(AMem *amem)
 void undo_cb(Widget but, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
-    AMem *amem = quark_get_amem(gapp->project);
+    AMem *amem = quark_get_amem(gproject_get_top(gapp->gp));
     
     amem_undo(amem);
     
-    xdrawgraph(gapp->project);
+    xdrawgraph(gapp->gp);
     update_all();
     
     undo_stats(amem);
@@ -4890,11 +4891,11 @@ void undo_cb(Widget but, void *data)
 void redo_cb(Widget but, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
-    AMem *amem = quark_get_amem(gapp->project);
+    AMem *amem = quark_get_amem(gproject_get_top(gapp->gp));
     
     amem_redo(amem);
     
-    xdrawgraph(gapp->project);
+    xdrawgraph(gapp->gp);
     update_all();
     
     undo_stats(amem);

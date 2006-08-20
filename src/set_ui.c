@@ -97,7 +97,7 @@ static void setapp_data_proc(Widget but, void *data)
     }
 
     UpdateSymbols(cset);
-    xdrawgraph(gapp->project, FALSE);
+    xdrawgraph(gapp->gp, FALSE);
 }
 #endif
 

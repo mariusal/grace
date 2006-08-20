@@ -158,7 +158,7 @@ double mytrunc(double a)
  */
 void bailout(GraceApp *gapp)
 {
-    if ((gapp->project && !quark_dirtystate_get(gapp->project)) ||
+    if ((gapp->gp && !quark_dirtystate_get(gproject_get_top(gapp->gp))) ||
         yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
         gapp_free(gapp);
         exit(0);
@@ -208,13 +208,13 @@ void emergency_exit(GraceApp *gapp, int is_my_bug, char *msg)
         gapp->rt->emergency_save = TRUE;
         gapp->rt->interrupts = 0;
         fprintf(stderr, "\a\nOops! %s\n", msg);
-        if (quark_dirtystate_get(gapp->project)) {
-            strcpy(buf, project_get_docname(gapp->project));
+        if (gapp->gp && quark_dirtystate_get(gproject_get_top(gapp->gp))) {
+            strcpy(buf, gproject_get_docname(gapp->gp));
             strcat(buf, "$");
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
             fflush(stderr);
             gapp->gui->noask = TRUE;
-            if (save_project(gapp->project, buf) == RETURN_SUCCESS) {
+            if (save_project(gapp->gp, buf) == RETURN_SUCCESS) {
                 fprintf(stderr, "ok!\n");
             } else {
                 fprintf(stderr, "oh, no luck :-(\n");

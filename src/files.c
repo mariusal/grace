@@ -393,7 +393,7 @@ static int process_complete_lines(GraceApp *gapp, Input_buffer *ib)
 
             if (line_corrupted ||
                 graal_parse_line(grace_get_graal(gapp->grace),
-                    begin_of_line, gapp->project) != RETURN_SUCCESS) {
+                    begin_of_line, gproject_get_top(gapp->gp)) != RETURN_SUCCESS) {
                 sprintf(buf, "Error at line %d", ib->lineno);
                 errmsg(buf);
                 ++(ib->errors);
@@ -979,8 +979,8 @@ static int project_cb(Quark *pr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {
         GraceApp *gapp = gapp_from_quark(pr);
-        if (pr == gapp->project) {
-            gapp->project = NULL;
+        if (pr == gproject_get_top(gapp->gp)) {
+            gapp->gp = NULL;
         }
     } else
     if (etype == QUARK_ETYPE_MODIFY) {
@@ -1000,88 +1000,63 @@ static int project_cb(Quark *pr, int etype, void *data)
 }
 
 
-Quark *load_any_project(GraceApp *gapp, const char *fn)
+GProject *load_any_project(GraceApp *gapp, const char *fn)
 {
-    Quark *project;
+    GProject *gp;
     
     /* A temporary hack */
     if (fn && strstr(fn, ".xgr")) {
-        project = load_xgr_project(gapp, fn);
+        gp = load_xgr_project(gapp, fn);
     } else {
-        project = load_agr_project(gapp, fn);
+        gp = load_agr_project(gapp, fn);
     }
     
-    if (project) {
-        quark_cb_add(project, project_cb, NULL);
+    if (gp) {
+        quark_cb_add(gproject_get_top(gp), project_cb, NULL);
     }
 
-    return project;
+    return gp;
 }
 
 static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
 {    
+    GProject *gp;
     Quark *project, *gr, **graphs;
     int i, ngraphs;
+    AMem *amem;
 
-    if (gapp->project &&
-        quark_dirtystate_get(gapp->project) &&
+    if (gapp->gp && gproject_get_top(gapp->gp) &&
+        quark_dirtystate_get(gproject_get_top(gapp->gp)) &&
         !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
         return RETURN_FAILURE;
     }
     
-    project = load_any_project(gapp, fn);
-    
-    if (project) {
-        char *tfn;
-        struct stat statb;
-        time_t mtime;
-        static char buf[GR_MAXPATHLEN];
-        char *bufp;
-        AMem *amem;
-
-        gapp->rt->print_file[0] = '\0';
-
-        gapp_set_project(gapp, project);
-        
-        if (as_template == FALSE) {
-            project_set_docname(gapp->project, fn);
-        } else {
-            project_set_docname(gapp->project, NONAME);
-        }
-        
-        /* Set idstr = basename */
-        strcpy(buf, mybasename(fn)); 
-        bufp = strrchr(buf, '.');
-        if (bufp) {
-            *(bufp) = '\0';
-        }
-        quark_idstr_set(gapp->project, buf);
-        
-        /* Set timestamp */
-        tfn = grace_path(gapp->grace, fn);
-        if (tfn && !stat(tfn, &statb)) {
-            mtime = statb.st_mtime;
-        } else {
-            /* Probably, piped */
-            time(&mtime);
-        }
-        project_update_timestamp(gapp->project, &mtime);
-
-        /* Clear dirtystate */
-        quark_dirtystate_set(gapp->project, FALSE);
-
-        amem = quark_get_amem(gapp->project);
-
-        /* Set undo limit of 16MB */
-        amem_set_undo_limit(amem, 0x1000000L);
-        /* Get initial memory snapshot */
-        amem_snapshot(amem);
-    } else {
+    gp = load_any_project(gapp, fn);
+    if (!gp) {
         errmsg("Failed loading project file");
+        return RETURN_FAILURE;
+    }
+    
+    project = gproject_get_top(gp);
+
+    gapp->rt->print_file[0] = '\0';
+
+    gapp_set_project(gapp, gp);
+
+    if (as_template) {
+        grfile_free(gp->grf);
+        gp->grf = NULL;
     }
 
+    amem = quark_get_amem(project);
+
+    /* Set undo limit of 16MB */
+    amem_set_undo_limit(amem, 0x1000000L);
+    /* Get initial memory snapshot */
+    amem_snapshot(amem);
+
     /* try to switch to the first active graph */
-    ngraphs = project_get_graphs(gapp->project, &graphs);
+    ngraphs = project_get_graphs(project, &graphs);
     for (i = 0; i < ngraphs; i++) {
         gr = graphs[i];
         if (select_graph(gr) == RETURN_SUCCESS) {
@@ -1129,9 +1104,10 @@ int new_project(GraceApp *gapp, char *template)
 }
 
 
-int save_project(Quark *project, char *fn)
+int save_project(GProject *gp, char *fn)
 {
-    FILE *fp;
+    GrFILE *grf;
+    Quark *project = gproject_get_top(gp);
     GUI *gui = gui_from_quark(project);
     int noask_save;
     static int save_unsupported = FALSE;
@@ -1153,45 +1129,43 @@ int save_project(Quark *project, char *fn)
     save_unsupported = TRUE;
 
     noask_save = gui->noask;
-    if (strings_are_equal(project_get_docname(project), fn)) {
+    if (strings_are_equal(gproject_get_docname(gp), fn)) {
         /* If saving under the same name, don't warn about overwriting */
         gui->noask = TRUE;
     }
     
-    fp = gapp_openw(gapp_from_quark(project), fn);
-    if (!fp) {
+    grf = grfile_openw(fn);
+    if (!grf) {
         return RETURN_FAILURE;
     }
     
     gui->noask = noask_save;
 
-    retval = grace_save(project, fp);
+    retval = gproject_save(gp, grf);
 
-    if (retval == RETURN_SUCCESS) {
-        project_set_docname(project, fn);
-        quark_dirtystate_set(project, FALSE);
-    }
-    
-    gapp_close(fp);
+    grfile_free(grf);
     
     return retval;
 }
 
-Quark *load_xgr_project(GraceApp *gapp, const char *fn)
+GProject *load_xgr_project(GraceApp *gapp, const char *fn)
 {
-    FILE *fp;
-    Quark *project;
+    GrFILE *grf;
+    GProject *gp;
+    char *epath;
     
-    fp = gapp_openr(gapp, fn, SOURCE_DISK);
-    if (fp == NULL) {
+    epath = grace_path(gapp->grace, fn);
+    grf = grfile_openr(epath);
+    xfree(epath);
+    if (grf == NULL) {
         return NULL;
     }
     
-    project = grace_load(gapp->grace, fp, AMEM_MODEL_LIBUNDO);
+    gp = gproject_load(gapp->grace, grf, AMEM_MODEL_LIBUNDO);
 
-    gapp_close(fp);
+    grfile_free(grf);
     
-    return project;
+    return gp;
 }   
 
 #ifdef HAVE_NETCDF

@@ -326,10 +326,10 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing filename for block data\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    if (!gapp->project) {
+		    if (!gapp->gp) {
                         new_project(gapp, NULL);
                     }
-                    getdata(graph_get_current(gapp->project), argv[i], curtype, LOAD_BLOCK);
+                    getdata(graph_get_current(gproject_get_top(gapp->gp)), argv[i], curtype, LOAD_BLOCK);
 		}
 	    } else if (argmatch(argv[i], "-nxy", 4)) {
 		i++;
@@ -337,10 +337,10 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing filename for nxy data\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    if (!gapp->project) {
+		    if (!gapp->gp) {
                         new_project(gapp, NULL);
                     }
-		    getdata(graph_get_current(gapp->project), argv[i], curtype, LOAD_NXY);
+		    getdata(graph_get_current(gproject_get_top(gapp->gp)), argv[i], curtype, LOAD_NXY);
 		}
 	    } else if (argmatch(argv[i], "-type", 2) ||
                        argmatch(argv[i], "-settype", 8)) {
@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing save file name\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    save_project(gapp->project, argv[i]);
+		    save_project(gapp->gp, argv[i]);
 		}
 	    } else if (argmatch(argv[i], "-wd", 3)) {
 		i++;
@@ -404,15 +404,15 @@ int main(int argc, char *argv[])
 	    if (strstr(argv[i], ".xgr") || strstr(argv[i], ".agr")) {
                 load_project(gapp, argv[i]);
             } else {
-		if (!gapp->project) {
+		if (!gapp->gp) {
                     new_project(gapp, NULL);
                 }
-                getdata(graph_get_current(gapp->project), argv[i], curtype, LOAD_SINGLE);
+                getdata(graph_get_current(gproject_get_top(gapp->gp)), argv[i], curtype, LOAD_SINGLE);
             }
 	} /* end else */
     } /* end for */
 
-    if (!gapp->project) {
+    if (!gapp->gp) {
         new_project(gapp, NULL);
     }
     
@@ -436,7 +436,7 @@ int main(int argc, char *argv[])
             monitor_input(gapp, ib_tbl, ib_tblsize, 0);
         }
 	if (!noprint) {
-	    do_hardcopy(gapp->project);
+	    do_hardcopy(gapp->gp);
 	}
         
 	bailout(gapp);

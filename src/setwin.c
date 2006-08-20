@@ -47,6 +47,7 @@
 #include "numerics.h"
 #include "motifinc.h"
 #include "xprotos.h"
+#include "globals.h"
 
 #define DATA_STAT_COLS   6
 
@@ -425,7 +426,7 @@ static int datasetop_aac_cb(void *data)
             return RETURN_FAILURE;
         }
         
-        snapshot_and_update(get_parent_project(selssd[0]), TRUE);
+        snapshot_and_update(gapp->gp, TRUE);
         
         xfree(selssd);
 

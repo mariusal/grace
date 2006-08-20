@@ -306,7 +306,7 @@ static void update_device_setup(PrintUI *ui, int device_id)
 
         if (string_is_empty(gapp->rt->print_file)) {
             strcpy(gapp->rt->print_file,
-                mybasename(project_get_docname(gapp->project))); 
+                mybasename(gproject_get_docname(gapp->gp))); 
         }
         
         /* Replace existing filename extension */
@@ -487,7 +487,7 @@ static int set_printer_proc(void *data)
     }
     
     if (do_redraw) {
-        xdrawgraph(gapp->project);
+        xdrawgraph(gapp->gp);
     }
     
     return RETURN_SUCCESS;
@@ -819,6 +819,6 @@ static void do_units_toggle(OptionStructure *opt, int value, void *data)
 static void do_print_cb(Widget but, void *data)
 {
     set_wait_cursor();
-    do_hardcopy(gapp->project);
+    do_hardcopy(gapp->gp);
     unset_wait_cursor();
 }

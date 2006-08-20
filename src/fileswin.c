@@ -86,7 +86,7 @@ void create_saveproject_popup(void)
  */
 static int save_proc(FSBStructure *fsb, char *filename, void *data)
 {
-    if (save_project(gapp->project, filename) == RETURN_SUCCESS) {
+    if (save_project(gapp->gp, filename) == RETURN_SUCCESS) {
         update_all();
         return TRUE;
     } else {
@@ -121,9 +121,10 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
     
     if (stat(filename, &statb) == 0 && !S_ISDIR(statb.st_mode)) {
 
-        Quark *project = load_any_project(gapp, filename);
+        GProject *gp = load_any_project(gapp, filename);
 
-        if (project) {
+        if (gp) {
+            Quark *project = gproject_get_top(gp);
             int wpp, hpp;
             float dpi;
             Device_entry *d = get_device_props(canvas, ui->idevice);
@@ -159,7 +160,7 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
                 DefaultGCOfScreen(xstream.screen), 0, 0,
                 PREVIEW_WIDTH, PREVIEW_HEIGHT);
 
-	    grace_render(gapp->grace, project);
+	    gproject_render(gp);
 
             XCopyArea(XtDisplay(ui->canvasw), ui->pixmap, XtWindow(ui->canvasw),
                 DefaultGCOfScreen(XtScreen(ui->canvasw)),
@@ -167,7 +168,7 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
             
             ui->preview_ok = TRUE;
             
-            quark_free(project);
+            gproject_free(gp);
         }
     }
     XtFree(filename);
@@ -241,7 +242,7 @@ void create_openproject_popup(void)
 static int open_proc(FSBStructure *fsb, char *filename, void *data)
 {
     if (load_project(gapp, filename) == RETURN_SUCCESS) {
-        xdrawgraph(gapp->project);
+        xdrawgraph(gapp->gp);
         update_all();
         return TRUE;
     } else {
@@ -343,7 +344,7 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
         
         getdata(gr, filename, settype, load);
 
-        snapshot_and_update(gr, TRUE);
+        snapshot_and_update(gapp->gp, TRUE);
     }
     /* never close the popup */
     return FALSE;
@@ -507,7 +508,7 @@ static void do_netcdf_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	retval = readnetcdf(NULL, fname, xvar, yvar, -1, -1, 1);
     }
     if (retval) {
-	xdrawgraph(gapp->project);
+	xdrawgraph(gapp->gp);
     }
     unset_wait_cursor();
 }
