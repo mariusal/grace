@@ -96,22 +96,9 @@ void lowtoupper(char *s)
 }
 
 /*
- * remove all that fortran nastiness
- */
-void convertchar(char *s)
-{
-    while (*s++) {
-	if (*s == ',')
-	    *s = ' ';
-	if (*s == 'D' || *s == 'd')
-	    *s = 'e';
-    }
-}
-
-/*
  * escape quotes
  */
-char *escapequotes (char *s)
+char *escapequotes(char *s)
 {
     static char *es = NULL;
     int i, k, n, len, elen;
@@ -142,15 +129,6 @@ char *escapequotes (char *s)
     }
     es[elen-1] = '\0';
     return es;
-}
-
-double mytrunc(double a)
-{
-    if (a > 0.0) {
-        return floor(a);
-    } else {
-        return ceil(a);
-    }
 }
 
 /*

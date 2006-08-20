@@ -47,11 +47,8 @@
 
 int argmatch(char *s1, char *s2, int atleast);
 void lowtoupper(char *s);
-void convertchar(char *s);
 
 char *escapequotes(char *s);
-
-double mytrunc(double a);
 
 void bailout(GraceApp *gapp);
 
