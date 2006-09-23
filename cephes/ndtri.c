@@ -63,21 +63,20 @@ static double s2pi = 2.50662827463100050242E0;
 #endif
 
 #ifdef DEC
-static unsigned short s2p[] = {0040440,0066230,0177661,0034055};
-#define s2pi *(double *)s2p
+static union us2d_t s2p = {{0040440,0066230,0177661,0034055}};
+#define s2pi s2p.d
 #endif
 
 #ifdef IBMPC
-static unsigned short s2p[] = {0x2706,0x1ff6,0x0d93,0x4004};
-#define s2pi *(double *)s2p
+static union us2d_t s2p = {{0x2706,0x1ff6,0x0d93,0x4004}};
+#define s2pi s2p.d
 #endif
 
 #ifdef MIEEE
-static unsigned short s2p[] = {
-0x4004,0x0d93,0x1ff6,0x2706
-};
-#define s2pi *(double *)s2p
+static union us2d_t s2p = { {0x4004,0x0d93,0x1ff6,0x2706} };
+#define s2pi s2p.d
 #endif
+
 
 /* approximation for 0 <= |y - 0.5| <= 3/8 */
 #ifdef UNK

@@ -64,6 +64,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 #include "mconf.h"
 #include "cephes.h"
 
+
 #ifdef DEC
 static unsigned short P[] =
 {
@@ -93,8 +94,8 @@ static unsigned short Q[] =
 0037377,0177777,0177776,0156435,
 0040000,0000000,0000000,0000000
 };
-static unsigned short ac1[] = {0040261,0071027,0173721,0147572};
-#define C1 (*(double *)ac1)
+static union us2d_t ac1 = {{0040261,0071027,0173721,0147572}};
+#define C1 ac1.d
 #endif
 
 #ifdef IBMPC
@@ -126,8 +127,8 @@ static unsigned short Q[] =
 0xdba4,0xffff,0xffff,0x3fbf,
 0x0000,0x0000,0x0000,0x3fe0
 };
-static unsigned short ac1[] = {0x39ef,0xfefa,0x2e42,0x3ff6};
-#define C1 (*(double *)ac1)
+static union us2d_t ac1 = {{0x39ef,0xfefa,0x2e42,0x3ff6}};
+#define C1 ac1.d
 #endif
 
 #ifdef MIEEE
@@ -159,10 +160,8 @@ static unsigned short Q[] =
 0x3fbf,0xffff,0xffff,0xdba4,
 0x3fe0,0x0000,0x0000,0x0000
 };
-static unsigned short ac1[] = {
-0x3ff6,0x2e42,0xfefa,0x39ef
-};
-#define C1 (*(double *)ac1)
+static union us2d_t ac1 = { {0x3ff6,0x2e42,0xfefa,0x39ef} };
+#define C1 ac1.d
 #endif
 
 #ifdef UNK

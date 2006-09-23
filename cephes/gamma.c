@@ -159,10 +159,8 @@ static unsigned short Q[] = {
 #define MAXGAM 34.84425627277176174
 
 #ifndef HAVE_LGAMMA
-static unsigned short LPI[4] = {
-0040222,0103202,0043475,0006750,
-};
-#define LOGPI *(double *)LPI
+static union us2d_t LPI = { {0040222,0103202,0043475,0006750} };
+#define LOGPI LPI.d
 #endif
 
 #endif
@@ -190,10 +188,8 @@ static unsigned short Q[] = {
 #define MAXGAM 171.624376956302725
 
 #ifndef HAVE_LGAMMA
-static unsigned short LPI[4] = {
-0xa1bd,0x48e7,0x50d0,0x3ff2,
-};
-#define LOGPI *(double *)LPI
+static union us2d_t LPI = { { 0xa1bd,0x48e7,0x50d0,0x3ff2} };
+#define LOGPI LPI.d
 #endif
 
 #endif 
@@ -221,10 +217,8 @@ static unsigned short Q[] = {
 #define MAXGAM 171.624376956302725
 
 #ifndef HAVE_LGAMMA
-static unsigned short LPI[4] = {
-0x3ff2,0x50d0,0x48e7,0xa1bd,
-};
-#define LOGPI *(double *)LPI
+static union us2d_t LPI = { { 0x3ff2,0x50d0,0x48e7,0xa1bd} };
+#define LOGPI LPI.d
 #endif
 
 #endif 
@@ -250,10 +244,8 @@ static unsigned short STIR[20] = {
 0037252,0125252,0125252,0146064,
 };
 #define MAXSTIR 26.77
-static unsigned short SQT[4] = {
-0040440,0066230,0177661,0034055,
-};
-#define SQTPI *(double *)SQT
+static union us2d_t SQT = { {0040440,0066230,0177661,0034055} };
+#define SQTPI SQT.d
 #endif
 #if IBMPC
 static unsigned short STIR[20] = {
@@ -264,10 +256,8 @@ static unsigned short STIR[20] = {
 0x5986,0x5555,0x5555,0x3fb5,
 };
 #define MAXSTIR 143.01608
-static unsigned short SQT[4] = {
-0x2706,0x1ff6,0x0d93,0x4004,
-};
-#define SQTPI *(double *)SQT
+static union us2d_t SQT = { { 0x2706,0x1ff6,0x0d93,0x4004} };
+#define SQTPI SQT.d
 #endif
 #if MIEEE
 static unsigned short STIR[20] = {
@@ -278,10 +268,8 @@ static unsigned short STIR[20] = {
 0x3fb5,0x5555,0x5555,0x5986,
 };
 #define MAXSTIR 143.01608
-static unsigned short SQT[4] = {
-0x4004,0x0d93,0x1ff6,0x2706,
-};
-#define SQTPI *(double *)SQT
+static union us2d_t SQT = { { 0x4004,0x0d93,0x1ff6,0x2706} };
+#define SQTPI SQT.d
 #endif
 
 extern double MAXLOG, MAXNUM, PI;
@@ -498,8 +486,8 @@ static unsigned short C[] = {
 0145366,0071133,0050217,0005122
 };
 /* log( sqrt( 2*pi ) ) */
-static unsigned short LS2P[] = {040153,037616,041445,0172645,};
-#define LS2PI *(double *)LS2P
+static union us2d_t LS2P = { {040153,037616,041445,0172645}};
+#define LS2PI LS2P.d
 #define MAXLGM 2.035093e36
 #endif
 
@@ -529,10 +517,8 @@ static unsigned short C[] = {
 0xe14a,0x6a11,0xce4b,0xc13e
 };
 /* log( sqrt( 2*pi ) ) */
-static unsigned short LS2P[] = {
-0xbeb5,0xc864,0x67f1,0x3fed
-};
-#define LS2PI *(double *)LS2P
+static union us2d_t LS2P = { { 0xbeb5,0xc864,0x67f1,0x3fed} };
+#define LS2PI LS2P.d
 #define MAXLGM 2.556348e305
 #endif
 
@@ -561,10 +547,8 @@ static unsigned short C[] = {
 0xc13e,0xce4b,0x6a11,0xe14a
 };
 /* log( sqrt( 2*pi ) ) */
-static unsigned short LS2P[] = {
-0x3fed,0x67f1,0xc864,0xbeb5
-};
-#define LS2PI *(double *)LS2P
+static union us2d_t LS2P = { { 0x3fed,0x67f1,0xc864,0xbeb5} };
+#define LS2PI LS2P.d
 #define MAXLGM 2.556348e305
 #endif
 

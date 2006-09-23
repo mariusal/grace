@@ -72,7 +72,7 @@ extern double MAXNUM, MACHEP;
 double hyperg( a, b, x)
 double a, b, x;
 {
-double asum, psum, acanc, pcanc;
+double asum, psum, acanc, pcanc=0;
 
 
 

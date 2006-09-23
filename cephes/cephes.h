@@ -86,3 +86,7 @@ extern int poldiv ( double a[], int na, double b[], int nb, double c[] );
 extern void polsbt ( double a[], int na, double b[], int nb, double c[] );
 extern double poleva ( double a[], int na, double x );
 
+union us2d_t {
+   unsigned short   us[4];
+   double      d;
+};
