@@ -968,7 +968,9 @@ sexpr:	CHRSTR {
         }
         | sexpr '.' expr {
             char buf[32];
+            set_locale_num(TRUE);
             sprintf(buf, "%g", $3);
+            set_locale_num(FALSE);
             $$ = concat_strings($1, buf);
         }
         ;
@@ -3102,7 +3104,9 @@ actions:
 	}
 	| ECHO expr {
 	    char buf[32];
+            set_locale_num(TRUE);
             sprintf(buf, "%g", $2);
+            set_locale_num(FALSE);
             echomsg(buf);
 	}
 	| CLOSE {
