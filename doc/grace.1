@@ -1,4 +1,4 @@
-.TH GRACE 1 "May 4, 2006"
+.TH GRACE 1 "Sep 24, 2006"
 .LO 1
 .SH NAME
 grace \- command line interface
@@ -53,7 +53,7 @@ Read data from descriptor on startup
 .BI "\-fixed "    "width height"           
 Set canvas size fixed to width*height
 .TP
-.B -free                                 
+.B "\-free"                                 
 Use free page layout
 .TP
 .BI "\-graph "     "number"             
@@ -62,22 +62,24 @@ Set the current graph number
 .BI "\-graphtype " "type"               
 Set the type of the current graph
 .TP
-.B -hardcopy
+.B "\-hardcopy"
 No interactive session, just print and quit
 .TP
 .BI "\-hdevice "   "device_name"     
-Set default hardcopy device
+Set default hardcopy device. See
+.B "xmgrace \-version"
+for a list of supported devices.
 .TP
-.B -install
+.B "\-install"
 Install private colormap
 .TP
-.B -legend    load
+.B "\-legend"    "load"
 Turn the graph legend on
 .TP
-.B -log       x|y|xy 
+.B "\-log"       "x|y|xy" 
 Set the axis scaling of the current graph to logarithmic
 .TP
-.B -mono                                 
+.B "\-mono"                                 
 Run grace in monochrome mode (affects the display only)
 .TP
 .BI "\-netcdf "  "file"
@@ -85,25 +87,25 @@ Assume data file is in netCDF format. This option is present
 only if the netCDF support was compiled in
 .TP
 .BI "\-netcdfxy " "X_var Y_var"
-If -netcdf was used previously, read from the netCDF file
+If \-netcdf was used previously, read from the netCDF file
 X_var and Y_var variables and create a set.
 If X_var is "null" then load the index of Y to X.
 This option is present only if the netCDF support was compiled in
 .TP
-.B -noask
+.B "\-noask"
 Assume the answer is yes to all requests, if the operation would overwrite
 a file, grace will do so without prompting
 .TP
-.B -noinstall                            
+.B "\-noinstall"                            
 Don't use private colormap
 .TP
-.B -noprint                              
+.B "\-noprint"                              
 In batch mode, do not print
 .TP
-.B -nosafe                              
+.B "\-nosafe"                              
 Disable safe mode
 .TP
-.B -nosigcatch                           
+.B "\-nosigcatch"                           
 Don't catch signals
 .TP
 .BI "\-npipe "     "file"                     
@@ -120,24 +122,24 @@ to the current graph
 .BI "\-pexec "    "string"         
 Interpret string as a parameter setting
 .TP
-.B -pipe
+.B "\-pipe"
 Read data from stdin on startup
 .TP
 .BI "\-printfile " "file" 
 Save print output to 
 .I file 
 .TP
-.B -remove                               
+.B "\-remove"                               
 Remove data file(s) after read
 .TP
 .BI "\-results "  "file"             
 Write results of some data manipulations to 
 .I file
 .TP
-.B -rvideo
+.B "\-rvideo"
 Exchange the color indices for black and white
 .TP
-.B -safe                              
+.B "\-safe"                              
 Run in the safe mode (default)
 .TP
 .BI "\-saveall "  "file"
@@ -147,7 +149,7 @@ Save all to
 .BI "\-seed "     "value"               
 Integer seed for random number generator
 .TP
-.B -source    disk|pipe                
+.B "\-source"    "disk|pipe"                
 Source type of next data file
 .TP
 .BI "\-timer "    "delay"                    
@@ -155,14 +157,14 @@ Set allowed time slice for real time inputs to
 .I delay
 ms
 .TP
-.B -timestamp                            
+.B "\-timestamp"                            
 Add timestamp to plot
 .TP
-.B -settype   xy|xydx|...              
+.B "\-settype"   "xy|xydx|..."              
 Set the type of the next data file
 .TP
-.B -version                             
-Show the program version and exit
+.B "\-version"                             
+Show the program version, registered devices and build time configuration information.
 .TP
 .BI "\-viewport " "xmin ymin xmax ymax"      
 Set the viewport for the current graph
@@ -173,7 +175,7 @@ Set the working directory
 .BI "\-world "    "xmin ymin xmax ymax"
 Set the world coordinates for the current graph
 .TP
-.B -usage|-help
+.B "\-usage|\-help"
 This message
 
 .SH RESOURCES
@@ -208,9 +210,14 @@ A flag (0 or 1) and a file name which determine whether a FFT should use
 
 .SH FILES
 In many cases, when Grace needs to access a file given with a
-relative \f4pathname\f1, it searches for the file along the
-following path:
-\f4 ./pathname:./.grace/pathname:~/.grace/pathname: $GRACE_HOME/pathname\f1
+relative 
+.ft I
+pathname\c
+.ft R
+, it searches for the file along the following path:
+.ft I
+ ./pathname:./.grace/pathname:~/.grace/pathname:$GRACE_HOME/pathname
+.ft R
 
 The following files are of a special importance:
 
