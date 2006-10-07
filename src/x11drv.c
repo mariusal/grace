@@ -69,6 +69,7 @@ typedef struct {
     int linejoin;
 
     x11color *colors;
+    unsigned int ncolors;
 } X11_data;
 
 static X11_data *x11_data_new(void)
@@ -109,6 +110,16 @@ static void x11_initcmap(const Canvas *canvas, X11_data *x11data)
     unsigned int ncolors = number_of_colors(canvas);
     
     x11data->colors = xrealloc(x11data->colors, sizeof(x11color)*ncolors);
+    if (!x11data->colors) {
+        return;
+    }
+    
+    if (ncolors && ncolors > x11data->ncolors) {
+        memset(x11data->colors + x11data->ncolors, 0,
+            sizeof(x11color)*(ncolors - x11data->ncolors));
+    }
+    x11data->ncolors = ncolors;
+    
     for (i = 0; i < ncolors; i++) {
         x11color *xc = &x11data->colors[i];
         /* even in mono, b&w must be allocated */
