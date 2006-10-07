@@ -305,8 +305,11 @@ static void update_device_setup(PrintUI *ui, int device_id)
         }
 
         if (string_is_empty(gapp->rt->print_file)) {
-            strcpy(gapp->rt->print_file,
-                mybasename(gproject_get_docname(gapp->gp))); 
+            char *docname = gproject_get_docname(gapp->gp);
+            if (!docname) {
+                docname = NONAME;
+            }
+            strcpy(gapp->rt->print_file, mybasename(docname)); 
         }
         
         /* Replace existing filename extension */
