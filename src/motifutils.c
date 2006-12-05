@@ -3961,8 +3961,9 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
             Quark *ssd = gapp_ssd_new(destgr);
             int fformats[] = {FFORMAT_NUMBER, FFORMAT_NUMBER};
             if (ssd && ssd_set_ncols(ssd, 2, fformats) == RETURN_SUCCESS) {
+                Dataset *dsp;
                 (*destsets)[i] = gapp_set_new(ssd);
-                Dataset *dsp = set_get_dataset((*destsets)[i]);
+                dsp = set_get_dataset((*destsets)[i]);
                 dsp->cols[0] = 0;
                 dsp->cols[1] = 1;
             }

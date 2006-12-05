@@ -352,8 +352,6 @@ static void datasetoptypeCB(OptionStructure *opt, int value, void *data)
 static int datasetop_aac_cb(void *data)
 {
     int n, i;
-    int stype;
-    int lpart;
     int startno, endno;
     dataSetOpType optype;
     Quark *ss, **selssd;
@@ -547,8 +545,8 @@ void create_leval_frame(Widget but, void *data)
             XmNallowColumnResize, True,
             NULL);
 
-        // XtAddCallback(levalui.mw, XmNleaveCellCallback, leaveCB, &levalui);
-        
+        XtAddCallback(levalui.mw, XmNleaveCellCallback, leaveCB, &levalui);
+
         CreateAACDialog(levalui.top, levalui.mw, leval_aac_cb, &levalui);
     }
     
@@ -645,7 +643,6 @@ static int leval_aac_cb(void *data)
     XCFREE(t->data);
     t->length = 0;
 #endif
-    // set_set_comment(pset, "Formula");
     
     update_set_lists(gr);
     

@@ -312,7 +312,7 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
 
 static void col_delete_cb(Widget but, void *udata)
 {
-    SSDataUI *ui = (SSDataUI *) udata;
+    /* SSDataUI *ui = (SSDataUI *) udata; */
 }
 
 static void index_cb(Widget but, void *udata)

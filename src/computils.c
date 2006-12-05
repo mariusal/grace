@@ -986,7 +986,10 @@ int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
             }
         }
 	filter_set(pdest, rarray);
-        // set_parser_setno(pdest);
+        /* TODO!!! */
+#if 0
+        set_parser_setno(pdest);
+#endif
         if (graal_parse_line(grace_get_graal(gapp->grace), fstr, psrc)
             != RETURN_SUCCESS) {
 	    if (psrc != pdest) {
@@ -1529,7 +1532,7 @@ int do_fourier(Quark *psrc, Quark *pdest,
     double oversampling, int round2n, int window, double beta, int halflen,
     int output)
 {
-    int i, inlen, buflen, outlen, ncols, settype;
+    int i, inlen, buflen, outlen, ncols;
     double *in_x, *in_re, *in_im, *buf_re, *buf_im, *out_x, *out_y, *out_y1;
     double xspace, amp_correction;
     char buf[256];
@@ -1652,20 +1655,17 @@ int do_fourier(Quark *psrc, Quark *pdest,
     case FFT_OUTPUT_REIM:
     case FFT_OUTPUT_APHI:
         ncols = 3;
-        // settype = SET_XYZ;
         break;
     default:
         ncols = 2;
-        settype = SET_XY;
         break;
     }
     
     if (set_get_ncols(pdest) != ncols) {
-        if (set_set_type(pdest, settype) != RETURN_SUCCESS) {
-            xfree(buf_re);
-            xfree(buf_im);
-            return RETURN_FAILURE;
-        } 
+        xfree(buf_re);
+        xfree(buf_im);
+        errmsg("Invalid number of columns in the destination set");
+        return RETURN_FAILURE;
     }
     if (set_set_length(pdest, outlen) != RETURN_SUCCESS) {
         xfree(buf_re);

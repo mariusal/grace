@@ -1415,14 +1415,17 @@ int readnetcdf(Quark *pset,
 /*
  * initialize stuff for the newly created set
  */
+    /* TODO!!! */
     set_set_type(pset, SET_XY);
-    // set_set_col(pset, DATA_X, x, n);
-    xfree(x);
-    // set_set_col(pset, DATA_Y, y, n);
-    xfree(y);
-
     sprintf(buf, "File %s x = %s y = %s", netcdfname, xvar == NULL ? "Index" : xvar, yvar);
-    // set_set_comment(pset, buf);
+#if 0
+    set_set_col(pset, DATA_X, x, n);
+    set_set_col(pset, DATA_Y, y, n);
+    set_set_comment(pset, buf);
+#endif
+
+    xfree(x);
+    xfree(y);
     
     autoscale_graph(gr, rt->autoscale_onread);
     
