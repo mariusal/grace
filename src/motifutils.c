@@ -4750,17 +4750,31 @@ void update_undo_buttons(GProject *gp)
 {
     Quark *project = gproject_get_top(gp);
     GUI *gui = gui_from_quark(project);
+    unsigned int undo_count, redo_count;
+    char buf[64];
+    
     AMem *amem = quark_get_amem(project);
     if (!gui || !amem) {
         return;
     }
-    
-    SetSensitive(gui->mwui->undo_button, amem_get_undo_count(amem));
-    SetSensitive(gui->mwui->redo_button, amem_get_redo_count(amem));
 
+    undo_count = amem_get_undo_count(amem);
+    redo_count = amem_get_redo_count(amem);
+    
+    sprintf(buf, "Undo (%d)", undo_count);
+    SetLabel(gui->mwui->undo_button, buf);
+    SetSensitive(gui->mwui->undo_button, undo_count);
     if (gui->eui) {
-        SetSensitive(gui->eui->edit_undo_bt, amem_get_undo_count(amem));
-        SetSensitive(gui->eui->edit_redo_bt, amem_get_redo_count(amem));
+        SetLabel(gui->eui->edit_undo_bt, buf);
+        SetSensitive(gui->eui->edit_undo_bt, undo_count);
+    }
+    
+    sprintf(buf, "Redo (%d)", redo_count);
+    SetLabel(gui->mwui->redo_button, buf);
+    SetSensitive(gui->mwui->redo_button, redo_count);
+    if (gui->eui) {
+        SetLabel(gui->eui->edit_redo_bt, buf);
+        SetSensitive(gui->eui->edit_redo_bt, redo_count);
     }
 }
 
@@ -4877,12 +4891,6 @@ int clean_set_selectors(Quark *gr, int etype, void *data)
     return RETURN_SUCCESS;
 }
 
-static void undo_stats(AMem *amem)
-{
-    printf("undo = %d, redo = %d\n",
-        amem_get_undo_count(amem), amem_get_redo_count(amem));
-}
-
 void undo_cb(Widget but, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
@@ -4892,8 +4900,6 @@ void undo_cb(Widget but, void *data)
     
     xdrawgraph(gapp->gp);
     update_all();
-    
-    undo_stats(amem);
 }
 
 void redo_cb(Widget but, void *data)
@@ -4905,8 +4911,6 @@ void redo_cb(Widget but, void *data)
     
     xdrawgraph(gapp->gp);
     update_all();
-    
-    undo_stats(amem);
 }
 
 /* what a mess... */
