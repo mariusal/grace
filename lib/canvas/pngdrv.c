@@ -85,7 +85,6 @@ static int png_output(const Canvas *canvas, void *data,
     int interlace_type;
     unsigned int i, j;
     int bg;
-    png_color *palette;
     png_byte *trans;
     int num_text;
     png_text text_ptr[4];
@@ -126,41 +125,16 @@ static int png_output(const Canvas *canvas, void *data,
     }
 
     png_set_IHDR(png_ptr, info_ptr, w, h,
-        8, PNG_COLOR_TYPE_PALETTE, interlace_type,
+        8, PNG_COLOR_TYPE_RGB, interlace_type,
         PNG_COMPRESSION_TYPE_DEFAULT,
         PNG_FILTER_TYPE_DEFAULT);
 
-    palette = xmalloc(ncolors*sizeof(png_color));
     trans = xmalloc(ncolors*sizeof(png_byte));
-    if (palette == NULL || trans == NULL) {
-        xfree(palette);
-        xfree(trans);
+    if (trans == NULL) {
         return RETURN_FAILURE;
     }
     
     bg = getbgcolor(canvas);
-    for (i = 0; i < ncolors; i++) {
-        RGB rgb;
-        int r, g, b;
-        if (get_rgb(canvas, colors[i], &rgb) == RETURN_SUCCESS) {
-            r = rgb.red;
-            g = rgb.green;
-            b = rgb.blue;
-        } else {
-            r = 0;
-            g = 0;
-            b = 0;
-        }
-        if (colors[i] == bg) {
-            trans[i] = 0;
-        } else {
-            trans[i] = 255;
-        }
-        palette[i].red   = r;
-        palette[i].green = g;
-        palette[i].blue  = b;
-    }
-    png_set_PLTE(png_ptr, info_ptr, palette, ncolors);
     
     res_meter = (png_uint_32) rint(page_dpi(canvas)/MM_PER_INCH*1000.0);
     png_set_pHYs(png_ptr, info_ptr, res_meter, res_meter, PNG_RESOLUTION_METER);
@@ -201,17 +175,22 @@ static int png_output(const Canvas *canvas, void *data,
     /* allocate image of byte-sized pixels */
     image = xmalloc(h*SIZEOF_VOID_P);
     for (i = 0; i < h; i++) {
-        image[i] = xmalloc(w*sizeof(png_byte));
+        image[i] = xmalloc(w*3*sizeof(png_byte));
         for (j = 0; j < w; j++) {
-            unsigned int k;
-            png_byte cid = 0;
-            for (k = 0; k < ncolors; k++) {
-                if (colors[k] == pm->matrix[i][j]) {
-                    cid = k;
-                    break;
-                }
+            RGB rgb;
+            int r, g, b;
+            if (get_rgb(canvas, pm->matrix[i][j], &rgb) == RETURN_SUCCESS) {
+                r = rgb.red;
+                g = rgb.green;
+                b = rgb.blue;
+            } else {
+                r = 0;
+                g = 0;
+                b = 0;
             }
-            image[i][j] = cid;
+            image[i][3*j + 0] = r;
+            image[i][3*j + 1] = g;
+            image[i][3*j + 2] = b;
         }
     }
     
@@ -219,7 +198,6 @@ static int png_output(const Canvas *canvas, void *data,
     
     png_write_end(png_ptr, info_ptr);
     png_destroy_write_struct(&png_ptr, &info_ptr);
-    xfree(palette);
     xfree(trans);
     
     /* free the tmp image */
