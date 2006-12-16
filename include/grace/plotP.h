@@ -53,8 +53,8 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt);
 void draw_frame(Quark *q, plot_rt_t *plot_rt);
 void fillframe(Canvas *canvas, Quark *q);
 
-void drawtext(Canvas *canvas,
-    const VPoint *vp, const TextProps *pstr, const char *s);
+void drawtext(Canvas *canvas, const VPoint *vp,
+    const TextProps *tprops, const TextFrame *tf, const char *s, view *tbbox);
 
 void drawsetfill(Quark *pset, plot_rt_t *plot_rt);
 void drawsetline(Quark *pset, plot_rt_t *plot_rt);

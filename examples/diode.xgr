@@ -131,6 +131,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="1">
@@ -175,6 +179,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="1">
@@ -465,6 +473,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="0.5">
@@ -1007,6 +1019,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="0.5">
@@ -1301,6 +1317,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="1">
@@ -2469,6 +2489,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="1">
@@ -3517,6 +3541,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="1">
@@ -4443,6 +4471,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="1">
@@ -5247,6 +5279,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="1">
@@ -5925,6 +5961,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="1">
@@ -6471,6 +6511,10 @@
        <face-spec font-id="0" color-id="1" char-size="1"/>
       </text-properties>
       <format type="general" prec="3" format-string=""/>
+      <text-frame type="line" offset="0.005">
+       <line-spec color-id="1" pattern-id="1" style-id="1" width="2"/>
+       <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
      </annotation>
      <errorbar active="yes">
       <barline size="1">

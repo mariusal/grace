@@ -587,6 +587,13 @@ typedef struct {
     double cliplen;      /* riser clipped length (v.p.) */
 } Errbar;
 
+typedef struct {
+    int decor;
+    double offset;
+    Line line;
+    Pen fillpen;
+} TextFrame;
+
 /* Annotative strings for data values */
 typedef struct {
     int active;                 /* active or not */
@@ -598,6 +605,8 @@ typedef struct {
 
     char *prestr;               /* prepend string */
     char *appstr;               /* append string */
+
+    TextFrame frame;            /* text frame properties */
 } AValue;
 
 typedef struct {
@@ -687,10 +696,7 @@ typedef struct _AText {
     char *s;
     TextProps text_props;
 
-    int frame_decor;
-    double frame_offset;
-    Line line;
-    Pen fillpen;
+    TextFrame frame;
     int arrow_flag;
     Arrow arrow;
     

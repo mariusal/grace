@@ -165,7 +165,8 @@ static void xmlio_write_text(XFile *xf, char *text)
     }
 }
 
-static void xmlio_write_arrow(Grace *grace, XFile *xf, Attributes *attrs, Arrow *arrow)
+static void xmlio_write_arrow(Grace *grace, XFile *xf, Attributes *attrs,
+    Arrow *arrow)
 {
     attributes_reset(attrs);
     
@@ -175,6 +176,22 @@ static void xmlio_write_arrow(Grace *grace, XFile *xf, Attributes *attrs, Arrow 
     attributes_set_dval(attrs, AStrLlFf, arrow->lL_ff);
     xfile_empty_element(xf, EStrArrow, attrs);
 }
+
+static void xmlio_write_textframe(Grace *grace, XFile *xf, Attributes *attrs,
+    TextFrame *tf)
+{
+    attributes_reset(attrs);
+    
+    attributes_set_sval(attrs, AStrType, framedecor_type_name(grace, tf->decor));
+    attributes_set_dval(attrs, AStrOffset, tf->offset);
+    xfile_begin_element(xf, EStrTextFrame, attrs);
+    {
+        xmlio_write_line_spec(xf, attrs, &tf->line);
+        xmlio_write_fill_spec(xf, attrs, &tf->fillpen);
+    }
+    xfile_end_element(xf, EStrTextFrame);
+}
+
 
 static void xmlio_set_just(Attributes *attrs, int just)
 {
@@ -579,6 +596,7 @@ int save_set_properties(XFile *xf, Quark *pset)
     {
         xmlio_write_text_props(xf, attrs, &p->avalue.tprops);
         xmlio_write_format_spec(grace, xf, attrs, EStrFormat, &p->avalue.format);
+        xmlio_write_textframe(grace, xf, attrs, &p->avalue.frame);
     }
     xfile_end_element(xf, EStrAnnotation);
 
@@ -976,17 +994,7 @@ static int project_save_hook(Quark *q,
             xmlio_write_location(q, xf, attrs, &at->ap);
             xmlio_write_text_props(xf, attrs, &at->text_props);
             xmlio_write_text(xf, at->s);
-            
-            attributes_reset(attrs);
-            attributes_set_sval(attrs, AStrType,
-                framedecor_type_name(grace, at->frame_decor));
-            attributes_set_dval(attrs, AStrOffset, at->frame_offset);
-            xfile_begin_element(xf, EStrTextFrame, attrs);
-            {
-                xmlio_write_line_spec(xf, attrs, &at->line);
-                xmlio_write_fill_spec(xf, attrs, &at->fillpen);
-            }
-            xfile_end_element(xf, EStrTextFrame);
+            xmlio_write_textframe(grace, xf, attrs, &at->frame);
             
             attributes_reset(attrs);
             attributes_set_bval(attrs, AStrActive, at->arrow_flag);

@@ -159,6 +159,7 @@ typedef struct {
     Widget          line_tp;
     Widget          errbar_tp;
     Widget          avalue_tp;
+    Widget          frame_tp;
 
     OptionStructure *type;
     
@@ -210,6 +211,13 @@ typedef struct {
     OptionStructure *avalue_just;
     TextStructure   *avalue_prestr;
     TextStructure   *avalue_appstr;
+
+    OptionStructure *frame_decor;
+    SpinStructure   *frame_offset;
+    SpinStructure   *frame_linew;
+    OptionStructure *frame_lines;
+    Widget          frame_linepen;
+    Widget          frame_fillpen;
 } SetUI;
 
 typedef struct {

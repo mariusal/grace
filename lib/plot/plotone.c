@@ -1007,18 +1007,80 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
 }
 
 
-void drawtext(Canvas *canvas,
-    const VPoint *vp, const TextProps *tprops, const char *s)
+static void draw_text_frame(Canvas *canvas, view *bbox, const TextFrame *tf)
 {
-    if (!s) {
+    if (tf && (tf->line.pen.pattern || tf->fillpen.pattern)) {
+        VPoint vp1, vp2;
+
+        view_extend(bbox, tf->offset);
+
+        switch (tf->decor) {
+        case FRAME_DECOR_LINE:
+            vp1.x = bbox->xv1;
+            vp1.y = bbox->yv1;
+            vp2.x = bbox->xv2;
+            vp2.y = bbox->yv1;
+            setline(canvas, &tf->line);
+            DrawLine(canvas, &vp1, &vp2);
+            break;
+        case FRAME_DECOR_RECT:
+            vp1.x = bbox->xv1;
+            vp1.y = bbox->yv1;
+            vp2.x = bbox->xv2;
+            vp2.y = bbox->yv2;
+            setpen(canvas, &tf->fillpen);
+            FillRect(canvas, &vp1, &vp2);
+            setline(canvas, &tf->line);
+            DrawRect(canvas, &vp1, &vp2);
+            break;
+        case FRAME_DECOR_OVAL:
+            vp1.x = bbox->xv1 - (M_SQRT2 - 1)/2*(bbox->xv2 - bbox->xv1);
+            vp1.y = bbox->yv1 - (M_SQRT2 - 1)/2*(bbox->yv2 - bbox->yv1);
+            vp2.x = bbox->xv2 + (M_SQRT2 - 1)/2*(bbox->xv2 - bbox->xv1);
+            vp2.y = bbox->yv2 + (M_SQRT2 - 1)/2*(bbox->yv2 - bbox->yv1);
+            setpen(canvas, &tf->fillpen);
+            DrawFilledEllipse(canvas, &vp1, &vp2);
+            setline(canvas, &tf->line);
+            DrawEllipse(canvas, &vp1, &vp2);
+            break;
+        }
+    }
+}
+
+void drawtext(Canvas *canvas, const VPoint *vp,
+    const TextProps *tprops, const TextFrame *tf, const char *s, view *tbbox)
+{
+    int savebg;
+    view bb;
+    
+    if (!s || !tprops) {
         return;
     }
     
-    setcolor(canvas, tprops->color);
-    setfont(canvas, tprops->font);
     setcharsize(canvas, tprops->charsize);
+    setfont(canvas, tprops->font);
+
+    get_string_bbox(canvas, vp, tprops->angle, tprops->just, s, &bb);
+    
+    draw_text_frame(canvas, &bb, tf);
+    
+    if (tbbox) {
+        *tbbox = bb;
+    }
+
+    setcolor(canvas, tprops->color);
+
+    savebg = getbgcolor(canvas);
+    /* If frame is filled with a solid color, alter bgcolor to
+       make AA look good */
+    if (tf && tf->fillpen.pattern == 1) {
+        setbgcolor(canvas, tf->fillpen.color);
+    }
 
     WriteString(canvas, vp, tprops->angle, tprops->just, s);
+
+    /* restore background */
+    setbgcolor(canvas, savebg);
 }
 
 /* draw the annotative values */
@@ -1111,7 +1173,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         str = concat_strings(str, buf);
         str = concat_strings(str, avalue.appstr);
         
-        drawtext(canvas, &vp, &avalue.tprops, str);
+        drawtext(canvas, &vp, &avalue.tprops, &avalue.frame, str, NULL);
         
         xfree(str);
     }
@@ -1717,7 +1779,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
             str = concat_strings(str, buf);
             str = concat_strings(str, avalue.appstr);
 
-            drawtext(canvas, &vpa, &tprops, str);
+            drawtext(canvas, &vpa, &tprops, NULL, str, NULL);
             
             xfree(str);
         }

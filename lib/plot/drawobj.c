@@ -170,8 +170,9 @@ void draw_object(Canvas *canvas, Quark *q)
 void draw_atext(Canvas *canvas, Quark *q)
 {
     VPoint anchor;
-    int savebg;
     AText *at = atext_get_data(q);
+    TextFrame *tf;
+    view bbox;
     
     if (!at || string_is_empty(at->s)) {
         return;
@@ -185,115 +186,71 @@ void draw_atext(Canvas *canvas, Quark *q)
     
     setclipping(canvas, FALSE);
     
-    activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
-    reset_bbox(canvas, BBOX_TYPE_TEMP);
+    tf = &at->frame;
 
-    if (at->line.pen.pattern || at->fillpen.pattern) {
-        view bbox;
+    drawtext(canvas, &anchor, &at->text_props, tf, at->s, &bbox);
+    
+    at->bb = bbox;
+    
+    if ((tf->line.pen.pattern || tf->fillpen.pattern) &&
+        at->arrow_flag && tf->line.style) {
         VPoint vp1, vp2;
 
-        setcharsize(canvas, at->text_props.charsize);
-        setfont(canvas, at->text_props.font);
-        get_string_bbox(canvas, &anchor,
-            at->text_props.angle, at->text_props.just, at->s, &bbox);
-        view_extend(&bbox, at->frame_offset);
-        at->bb = bbox;
-        switch (at->frame_decor) {
+        vp2.x = anchor.x - at->offset.x;
+        vp2.y = anchor.y - at->offset.y;
+
+        switch (tf->decor) {
         case FRAME_DECOR_LINE:
-            vp1.x = bbox.xv1;
+            if (vp2.x < bbox.xv1) {
+                vp1.x = bbox.xv1;
+            } else
+            if (vp2.x > bbox.xv2) {
+                vp1.x = bbox.xv2;
+            } else {
+                vp1.x = vp2.x;
+            }
             vp1.y = bbox.yv1;
-            vp2.x = bbox.xv2;
-            vp2.y = bbox.yv1;
-            setline(canvas, &at->line);
-            DrawLine(canvas, &vp1, &vp2);
-            break;
-        case FRAME_DECOR_RECT:
-            vp1.x = bbox.xv1;
-            vp1.y = bbox.yv1;
-            vp2.x = bbox.xv2;
-            vp2.y = bbox.yv2;
-            setpen(canvas, &at->fillpen);
-            FillRect(canvas, &vp1, &vp2);
-            setline(canvas, &at->line);
-            DrawRect(canvas, &vp1, &vp2);
             break;
         case FRAME_DECOR_OVAL:
-            vp1.x = bbox.xv1 - (M_SQRT2 - 1)/2*(bbox.xv2 - bbox.xv1);
-            vp1.y = bbox.yv1 - (M_SQRT2 - 1)/2*(bbox.yv2 - bbox.yv1);
-            vp2.x = bbox.xv2 + (M_SQRT2 - 1)/2*(bbox.xv2 - bbox.xv1);
-            vp2.y = bbox.yv2 + (M_SQRT2 - 1)/2*(bbox.yv2 - bbox.yv1);
-            setpen(canvas, &at->fillpen);
-            DrawFilledEllipse(canvas, &vp1, &vp2);
-            setline(canvas, &at->line);
-            DrawEllipse(canvas, &vp1, &vp2);
-            break;
-        }
-
-        if (at->arrow_flag && at->line.style) {
-            vp2.x = anchor.x - at->offset.x;
-            vp2.y = anchor.y - at->offset.y;
-            switch (at->frame_decor) {
-            case FRAME_DECOR_LINE:
-                if (vp2.x < bbox.xv1) {
-                    vp1.x = bbox.xv1;
-                } else
-                if (vp2.x > bbox.xv2) {
-                    vp1.x = bbox.xv2;
-                } else {
-                    vp1.x = vp2.x;
-                }
-                vp1.y = bbox.yv1;
-                break;
-            case FRAME_DECOR_OVAL:
-                if (vp2.x < bbox.xv1) {
-                    vp1.x = bbox.xv1;
-                } else
-                if (vp2.x > bbox.xv2) {
-                    vp1.x = bbox.xv2;
-                } else {
-                    vp1.x = (bbox.xv1 + bbox.xv2)/2;
-                }
-                if (vp2.y < bbox.yv1) {
-                    vp1.y = bbox.yv1;
-                } else
-                if (vp2.y > bbox.yv2) {
-                    vp1.y = bbox.yv2;
-                } else {
-                    vp1.y = (bbox.yv1 + bbox.yv2)/2;
-                }
-                break;
-            default:
-                if (vp2.x < bbox.xv1) {
-                    vp1.x = bbox.xv1;
-                } else
-                if (vp2.x > bbox.xv2) {
-                    vp1.x = bbox.xv2;
-                } else {
-                    vp1.x = vp2.x;
-                }
-                if (vp2.y < bbox.yv1) {
-                    vp1.y = bbox.yv1;
-                } else
-                if (vp2.y > bbox.yv2) {
-                    vp1.y = bbox.yv2;
-                } else {
-                    vp1.y = vp2.y;
-                }
+            if (vp2.x < bbox.xv1) {
+                vp1.x = bbox.xv1;
+            } else
+            if (vp2.x > bbox.xv2) {
+                vp1.x = bbox.xv2;
+            } else {
+                vp1.x = (bbox.xv1 + bbox.xv2)/2;
             }
-
-            setline(canvas, &at->line);
-            DrawLine(canvas, &vp1, &vp2);
-            draw_arrowhead(canvas, &vp1, &vp2, &at->arrow,
-                &at->line.pen, &at->line.pen);
+            if (vp2.y < bbox.yv1) {
+                vp1.y = bbox.yv1;
+            } else
+            if (vp2.y > bbox.yv2) {
+                vp1.y = bbox.yv2;
+            } else {
+                vp1.y = (bbox.yv1 + bbox.yv2)/2;
+            }
+            break;
+        default:
+            if (vp2.x < bbox.xv1) {
+                vp1.x = bbox.xv1;
+            } else
+            if (vp2.x > bbox.xv2) {
+                vp1.x = bbox.xv2;
+            } else {
+                vp1.x = vp2.x;
+            }
+            if (vp2.y < bbox.yv1) {
+                vp1.y = bbox.yv1;
+            } else
+            if (vp2.y > bbox.yv2) {
+                vp1.y = bbox.yv2;
+            } else {
+                vp1.y = vp2.y;
+            }
         }
-    }
 
-    savebg = getbgcolor(canvas);
-    /* If frame is filled with a solid color, alter bgcolor to
-       make AA look good */
-    if (at->fillpen.pattern == 1) {
-        setbgcolor(canvas, at->fillpen.color);
+        setline(canvas, &tf->line);
+        DrawLine(canvas, &vp1, &vp2);
+        draw_arrowhead(canvas, &vp1, &vp2, &at->arrow,
+            &tf->line.pen, &tf->line.pen);
     }
-    drawtext(canvas, &anchor, &at->text_props, at->s);
-    setbgcolor(canvas, savebg);
 }

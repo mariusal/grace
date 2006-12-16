@@ -339,13 +339,6 @@ Arrow *arrow_new(void)
     return retval;
 }
 
-typedef struct {
-    int decor;
-    double offset;
-    Line line;
-    Pen fillpen;
-} TextFrame;
-
 TextFrame *textframe_new(void)
 {
     TextFrame *retval;
@@ -1614,10 +1607,7 @@ char *utf2iso(const char *s)
         <child name="#EStrTextFrame" minOccurs="1" maxOccurs="1"><![CDATA[
             AText *at = atext_get_data($$);
             if (at) {
-                at->frame_decor  = $?->decor;
-                at->frame_offset = $?->offset;
-                at->line         = $?->line;
-                at->fillpen      = $?->fillpen;
+                at->frame = *$?;
             }
             xfree($?);
         ]]></child>
@@ -1876,6 +1866,10 @@ char *utf2iso(const char *s)
             $$->format = *$?;
             $$->format.fstring = amem_strdup(amem, $?->fstring);
             format_free($?);
+        </child>
+        <child name="#EStrTextFrame" minOccurs="1" maxOccurs="1">
+            $$->frame = *$?;
+            xfree($?);
         </child>
     </element>
     <element name="#EStrTextProperties" type="textprops">

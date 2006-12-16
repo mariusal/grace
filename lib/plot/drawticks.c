@@ -471,7 +471,7 @@ void draw_axis(Canvas *canvas, Quark *qa)
                 vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
                                                vbase_tlabel*ort_perp.y;
                 tprops.just = tlabel1_just;
-                drawtext(canvas, &vp_tlabel, &tprops, tlabel); 
+                drawtext(canvas, &vp_tlabel, &tprops, NULL, tlabel, NULL); 
             }
             itcur++;
         }

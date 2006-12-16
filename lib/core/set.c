@@ -144,12 +144,12 @@ static void set_default_set(Quark *pset)
     
     grdefs = pr->grdefaults;
     
-    p->type = SET_XY;                            /* dataset type */
+    p->type = SET_XY;                           /* dataset type */
 
-    p->symskip = 0;                              /* How many symbols to skip */
-    p->symskipmindist = 0;                  /* Min. distance between symbols */
-    p->sym.type = 0;                             /* set plot symbol */
-    p->sym.size = grdefs.charsize;           /* size of symbols */
+    p->symskip = 0;                             /* How many symbols to skip */
+    p->symskipmindist = 0;                      /* Min. distance between symbols */
+    p->sym.type = 0;                            /* set plot symbol */
+    p->sym.size = grdefs.charsize;              /* size of symbols */
     p->sym.line = grdefs.line;
     p->sym.fillpen = grdefs.fillpen;
     p->sym.symchar = 'A';
@@ -169,6 +169,9 @@ static void set_default_set(Quark *pset)
     p->avalue.format.fstring = NULL;
     p->avalue.prestr = NULL;
     p->avalue.appstr = NULL;
+    
+    p->avalue.frame.offset = 0.005;
+    p->avalue.frame.line = grdefs.line;
 
     p->line.type = LINE_TYPE_STRAIGHT;
     p->line.line = grdefs.line;

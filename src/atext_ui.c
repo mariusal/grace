@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2004 Grace Development Team
+ * Copyright (c) 2001-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -40,13 +40,6 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
 {
     ATextUI *ui;
     Widget fr, rc, rc1;
-
-    OptionItem opitems[4] = {
-        {FRAME_DECOR_NONE, "None"     },
-        {FRAME_DECOR_LINE, "Underline"},
-        {FRAME_DECOR_RECT, "Rectangle"},
-        {FRAME_DECOR_OVAL, "Oval"     }
-    };
 
     ui = xmalloc(sizeof(ATextUI));
     
@@ -98,7 +91,12 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->frame_tp, "Frame");
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
-    ui->frame_decor = CreateOptionChoice(rc1, "Type:", 0, 4, opitems);
+    ui->frame_decor = CreateOptionChoiceVA(rc1, "Type:",
+        "None",      FRAME_DECOR_NONE,
+        "Underline", FRAME_DECOR_LINE,
+        "Rectangle", FRAME_DECOR_RECT,
+        "Oval",      FRAME_DECOR_OVAL,
+        NULL);
     AddOptionChoiceCB(ui->frame_decor, oc_explorer_cb, eui);
     ui->frame_offset = CreateSpinChoice(rc1, "Offset:", 5,
         SPIN_TYPE_FLOAT, 0.0, 1.0, 0.005);
@@ -168,12 +166,12 @@ void update_atext_ui(ATextUI *ui, Quark *q)
         SetOptionChoice(ui->just,  at->text_props.just);
         SetAngleChoice(ui->angle,  (int) rint(at->text_props.angle));
 
-        SetOptionChoice(ui->frame_decor, at->frame_decor);
-        SetSpinChoice(ui->frame_offset, at->frame_offset);
-        SetSpinChoice(ui->linew,   at->line.width);
-        SetOptionChoice(ui->lines, at->line.style);
-        SetPenChoice(ui->linepen, &at->line.pen);
-        SetPenChoice(ui->fillpen, &at->fillpen);
+        SetOptionChoice(ui->frame_decor, at->frame.decor);
+        SetSpinChoice(ui->frame_offset, at->frame.offset);
+        SetSpinChoice(ui->linew,   at->frame.line.width);
+        SetOptionChoice(ui->lines, at->frame.line.style);
+        SetPenChoice(ui->linepen, &at->frame.line.pen);
+        SetPenChoice(ui->fillpen, &at->frame.fillpen);
         
         SetToggleButtonState(ui->arrow_flag, at->arrow_flag);
         SetOptionChoice(ui->a_type, at->arrow.type);
@@ -224,22 +222,22 @@ int set_atext_data(ATextUI *ui, Quark *q, void *caller)
         }
 
         if (!caller || caller == ui->frame_decor) {
-            at->frame_decor = GetOptionChoice(ui->frame_decor);
+            at->frame.decor = GetOptionChoice(ui->frame_decor);
         }
         if (!caller || caller == ui->frame_offset) {
-            at->frame_offset = GetSpinChoice(ui->frame_offset);
+            at->frame.offset = GetSpinChoice(ui->frame_offset);
         }
         if (!caller || caller == ui->linew) {
-            at->line.width = GetSpinChoice(ui->linew);
+            at->frame.line.width = GetSpinChoice(ui->linew);
         }
         if (!caller || caller == ui->lines) {
-            at->line.style = GetOptionChoice(ui->lines);
+            at->frame.line.style = GetOptionChoice(ui->lines);
         }
         if (!caller || caller == ui->linepen) {
-            GetPenChoice(ui->linepen, &at->line.pen);
+            GetPenChoice(ui->linepen, &at->frame.line.pen);
         }
         if (!caller || caller == ui->fillpen) {
-            GetPenChoice(ui->fillpen, &at->fillpen);
+            GetPenChoice(ui->fillpen, &at->frame.fillpen);
         }
 
         if (!caller || caller == ui->arrow_flag) {

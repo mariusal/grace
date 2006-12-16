@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2006 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -312,6 +312,47 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddToggleButtonCB(ui->baseline, tb_explorer_cb, eui);
 
 
+    /* ------------ Errbar tab -------------- */
+
+    ui->errbar_tp = CreateTabPage(tab, "Error bars");
+
+    rc2 = CreateHContainer(ui->errbar_tp);
+
+    rc1 = CreateVContainer(rc2);
+
+    fr = CreateFrame(rc1, "Common");
+    rc = CreateVContainer(fr);
+    ui->errbar_pen = CreatePenChoice(rc, "Pen:");
+    AddPenChoiceCB(ui->errbar_pen, pen_explorer_cb, eui);
+
+    fr = CreateFrame(rc1, "Clipping");
+    rc = CreateVContainer(fr);
+    ui->errbar_aclip = CreateToggleButton(rc, "Arrow clip");
+    AddToggleButtonCB(ui->errbar_aclip, tb_explorer_cb, eui);
+    ui->errbar_cliplen = CreateSpinChoice(rc, "Max length:",
+        3, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
+    AddSpinChoiceCB(ui->errbar_cliplen, sp_explorer_cb, eui);
+
+    rc1 = CreateVContainer(rc2);
+
+    fr = CreateFrame(rc1, "Bar line");
+    rc = CreateVContainer(fr);
+    ui->errbar_size = CreateSpinChoice(rc, "Size",
+        4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
+    AddSpinChoiceCB(ui->errbar_size, sp_explorer_cb, eui);
+    ui->errbar_width = CreateLineWidthChoice(rc, "Width:");
+    AddSpinChoiceCB(ui->errbar_width, sp_explorer_cb, eui);
+    ui->errbar_lines = CreateLineStyleChoice(rc, "Style:");
+    AddOptionChoiceCB(ui->errbar_lines, oc_explorer_cb, eui);
+
+    fr = CreateFrame(rc1, "Riser line");
+    rc = CreateVContainer(fr);
+    ui->errbar_riserlinew = CreateLineWidthChoice(rc, "Width:");
+    AddSpinChoiceCB(ui->errbar_riserlinew, sp_explorer_cb, eui);
+    ui->errbar_riserlines = CreateLineStyleChoice(rc, "Style:");
+    AddOptionChoiceCB(ui->errbar_riserlines, oc_explorer_cb, eui);
+
+
     /* ------------ AValue tab -------------- */
 
     ui->avalue_tp = CreateTabPage(tab, "Ann. values");
@@ -355,46 +396,30 @@ SetUI *create_set_ui(ExplorerUI *eui)
     ui->avalue_just = CreateTextJustChoice(rc, "Justification:");
     AddOptionChoiceCB(ui->avalue_just, oc_explorer_cb, eui);
 
-
-    /* ------------ Errbar tab -------------- */
-
-    ui->errbar_tp = CreateTabPage(tab, "Error bars");
-
-    rc2 = CreateHContainer(ui->errbar_tp);
-
-    rc1 = CreateVContainer(rc2);
-
-    fr = CreateFrame(rc1, "Common");
+    fr = CreateFrame(ui->avalue_tp, "Frame");
     rc = CreateVContainer(fr);
-    ui->errbar_pen = CreatePenChoice(rc, "Pen:");
-    AddPenChoiceCB(ui->errbar_pen, pen_explorer_cb, eui);
+    rc1 = CreateHContainer(rc);
+    ui->frame_decor = CreateOptionChoiceVA(rc1, "Type:",
+        "None",      FRAME_DECOR_NONE,
+        "Underline", FRAME_DECOR_LINE,
+        "Rectangle", FRAME_DECOR_RECT,
+        "Oval",      FRAME_DECOR_OVAL,
+        NULL);
+    AddOptionChoiceCB(ui->frame_decor, oc_explorer_cb, eui);
+    ui->frame_offset = CreateSpinChoice(rc1, "Offset:", 5,
+        SPIN_TYPE_FLOAT, 0.0, 1.0, 0.005);
+    AddSpinChoiceCB(ui->frame_offset, sp_explorer_cb, eui);
+    rc1 = CreateHContainer(rc);
+    ui->frame_linew = CreateLineWidthChoice(rc1, "Width:");
+    AddSpinChoiceCB(ui->frame_linew, sp_explorer_cb, eui);
+    ui->frame_lines = CreateLineStyleChoice(rc1, "Style:");
+    AddOptionChoiceCB(ui->frame_lines, oc_explorer_cb, eui);
+    rc1 = CreateHContainer(rc);
+    ui->frame_linepen = CreatePenChoice(rc1, "Outline pen:");
+    AddPenChoiceCB(ui->frame_linepen, pen_explorer_cb, eui);
+    ui->frame_fillpen = CreatePenChoice(rc1, "Fill pen:");
+    AddPenChoiceCB(ui->frame_fillpen, pen_explorer_cb, eui);
 
-    fr = CreateFrame(rc1, "Clipping");
-    rc = CreateVContainer(fr);
-    ui->errbar_aclip = CreateToggleButton(rc, "Arrow clip");
-    AddToggleButtonCB(ui->errbar_aclip, tb_explorer_cb, eui);
-    ui->errbar_cliplen = CreateSpinChoice(rc, "Max length:",
-        3, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
-    AddSpinChoiceCB(ui->errbar_cliplen, sp_explorer_cb, eui);
-
-    rc1 = CreateVContainer(rc2);
-
-    fr = CreateFrame(rc1, "Bar line");
-    rc = CreateVContainer(fr);
-    ui->errbar_size = CreateSpinChoice(rc, "Size",
-        4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
-    AddSpinChoiceCB(ui->errbar_size, sp_explorer_cb, eui);
-    ui->errbar_width = CreateLineWidthChoice(rc, "Width:");
-    AddSpinChoiceCB(ui->errbar_width, sp_explorer_cb, eui);
-    ui->errbar_lines = CreateLineStyleChoice(rc, "Style:");
-    AddOptionChoiceCB(ui->errbar_lines, oc_explorer_cb, eui);
-
-    fr = CreateFrame(rc1, "Riser line");
-    rc = CreateVContainer(fr);
-    ui->errbar_riserlinew = CreateLineWidthChoice(rc, "Width:");
-    AddSpinChoiceCB(ui->errbar_riserlinew, sp_explorer_cb, eui);
-    ui->errbar_riserlines = CreateLineStyleChoice(rc, "Style:");
-    AddOptionChoiceCB(ui->errbar_riserlines, oc_explorer_cb, eui);
 
     SelectTabPage(tab, ui->main_tp);
 
@@ -519,6 +544,13 @@ void update_set_ui(SetUI *ui, Quark *q)
         xv_setstr(ui->avalue_offsety, val);
 
         SetOptionChoice(ui->avalue_just, p->avalue.tprops.just);
+
+        SetOptionChoice(ui->frame_decor, p->avalue.frame.decor);
+        SetSpinChoice(ui->frame_offset, p->avalue.frame.offset);
+        SetSpinChoice(ui->frame_linew,   p->avalue.frame.line.width);
+        SetOptionChoice(ui->frame_lines, p->avalue.frame.line.style);
+        SetPenChoice(ui->frame_linepen, &p->avalue.frame.line.pen);
+        SetPenChoice(ui->frame_fillpen, &p->avalue.frame.fillpen);
     }
 }
 
@@ -676,6 +708,25 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->avalue_just) {
             p->avalue.tprops.just = GetOptionChoice(ui->avalue_just);
+        }
+
+        if (!caller || caller == ui->frame_decor) {
+            p->avalue.frame.decor = GetOptionChoice(ui->frame_decor);
+        }
+        if (!caller || caller == ui->frame_offset) {
+            p->avalue.frame.offset = GetSpinChoice(ui->frame_offset);
+        }
+        if (!caller || caller == ui->frame_linew) {
+            p->avalue.frame.line.width = GetSpinChoice(ui->frame_linew);
+        }
+        if (!caller || caller == ui->frame_lines) {
+            p->avalue.frame.line.style = GetOptionChoice(ui->frame_lines);
+        }
+        if (!caller || caller == ui->frame_linepen) {
+            GetPenChoice(ui->frame_linepen, &p->avalue.frame.line.pen);
+        }
+        if (!caller || caller == ui->frame_fillpen) {
+            GetPenChoice(ui->frame_fillpen, &p->avalue.frame.fillpen);
         }
 
         quark_dirtystate_set(q, TRUE);

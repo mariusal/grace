@@ -52,7 +52,7 @@ AText *atext_data_new(AMem *amem)
     if (at) {
         memset(at, 0, sizeof(AText));
         set_default_arrow(&at->arrow);
-        at->frame_offset = 0.005;
+        at->frame.offset = 0.005;
     }
     
     return at;
@@ -94,7 +94,7 @@ Quark *atext_new(Quark *q)
         set_default_textprops(&at->text_props, &grdefs);
         at->offset.x = at->offset.y = 0.0;
 
-        at->line = grdefs.line;
+        at->frame.line = grdefs.line;
     }
     return qnew;
 }
