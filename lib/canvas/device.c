@@ -363,9 +363,12 @@ void *device_get_devdata(const Canvas *canvas, unsigned int dindex)
 {
     Device_entry *dev = get_device_props(canvas, dindex);
     if (dev) {
+#ifdef HAVE_LIBXMI
         if (dev->is_xrst) {
             return xrst_get_devdata(dev);
-        } else {
+        } else
+#endif
+        {
             return dev->devdata;
         }
     } else {
