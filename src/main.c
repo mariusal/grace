@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2007 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -636,6 +636,14 @@ int main(int argc, char *argv[])
 		    } else {
 			srand48(atol(argv[i]));	/* note atol() */
 		    }
+		} else if (argmatch(argv[i], "-maxpath", 8)) {
+		    i++;
+		    if (i == argc) {
+			fprintf(stderr, "Missing argument for max drawing path\n");
+			usage(stderr, argv[0]);
+		    } else {
+			set_max_path_limit(atoi(argv[i]));
+		    }
 		} else if (argmatch(argv[i], "-safe", 5)) {
 		    safe_mode = TRUE;
 		} else if (argmatch(argv[i], "-nosafe", 7)) {
@@ -799,6 +807,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-legend    [load]                     Turn the graph legend on\n");
     fprintf(stream, "-log       [x|y|xy]                   Set the axis scaling of the current graph\n");
     fprintf(stream, "                                        to logarithmic\n");
+    fprintf(stream, "-maxpath   [length]                   Set the maximal drawing path length\n");
 #ifndef NONE_GUI
     fprintf(stream, "-mono                                 Run Grace in monochrome mode (affects\n");
     fprintf(stream, "                                        the display only)\n");
