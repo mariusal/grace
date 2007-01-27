@@ -8,7 +8,7 @@
 
   <title>Grace User's Guide (for Grace-5.99.1)</title>
   <author><name>The Grace Team</name></author>
-  <date>06.05.2006</date>
+  <date>28.01.2007</date>
   <abstract>
     This document explains the usage of
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -56,7 +56,7 @@
   <p>
 
 <tscreen><verb>
-Copyright (&copy;) 1996-2006 Grace Development Team
+Copyright (&copy;) 1996-2007 Grace Development Team
 Portions Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
 
 Maintained by Evgeny Stambulchik
@@ -641,6 +641,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <p>
               Install private colormap
           </p>
+        <tag> -maxpath <it>length</it> </tag>
+          <p>
+              Set the maximal drawing path length
+          </p>
         <tag> -noask </tag>
           <p>
               Assume the answer is yes to all requests - if the operation would
@@ -682,13 +686,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <p>
               Integer seed for random number generator
           </p>
-        <tag> -timer <it>delay</it> </tag>
-          <p>
-              Set allowed time slice for real time inputs to delay ms
-          </p>
         <tag> -settype <it>xy|xydx|...</it> </tag>
           <p>
               Set the type of the next data file
+          </p>
+        <tag> -timer <it>delay</it> </tag>
+          <p>
+              Set allowed time slice for real time inputs to delay ms
           </p>
         <tag> -version </tag>
           <p>

@@ -284,6 +284,14 @@ int main(int argc, char *argv[])
 	    } else if (argmatch(argv[i], "-free", 5)) {
 		gui_set_page_free(gui, TRUE);
 #endif
+	    } else if (argmatch(argv[i], "-maxpath", 8)) {
+		i++;
+		if (i == argc) {
+		    fprintf(stderr, "Missing argument for max drawing path\n");
+		    usage(stderr, argv[0]);
+		} else {
+		    set_max_path_limit(canvas, atoi(argv[i]));
+		}
 	    } else if (argmatch(argv[i], "-noask", 5)) {
 		gui->noask = TRUE;
 	    } else if (argmatch(argv[i], "-hdevice", 5)) {
@@ -511,6 +519,7 @@ static void usage(FILE *stream, char *progname)
 #ifndef NONE_GUI
     fprintf(stream, "-install                              Install private colormap\n");
 #endif
+    fprintf(stream, "-maxpath   [length]                   Set the maximal drawing path length\n");
     fprintf(stream, "-noask                                Assume the answer is yes to all requests -\n");
     fprintf(stream, "                                        if the operation would overwrite a file,\n");
     fprintf(stream, "                                        gapp will do so without prompting\n");

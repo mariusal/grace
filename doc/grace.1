@@ -1,4 +1,5 @@
-.TH "grace" "1" "April 12, 2006" "" "Grace"
+.TH GRACE 1 "Jan 28, 2007"
+.LO 1
 .SH "NAME"
 grace \- command line interface
 .br 
@@ -22,7 +23,7 @@ Grace is a WYSIWYG tool to make two\-dimensional plots of scientific
 data.
 .SH "OPTIONS"
 .TP 
-.B "\-autoscale" "x|y|xy|none"
+.BI "\-autoscale " "x|y|xy|none"
 Set autoscale type
 .TP 
 .BI "\-barebones "
@@ -53,6 +54,9 @@ Set options for default hardcopy device
 .TP 
 .B \-install
 Install private colormap
+.TP
+.BI "\-maxpath "   "length" 
+Set the maximal drawing path length
 .TP 
 .B \-noask
 Assume the answer is yes to all requests, if the operation would overwrite
@@ -94,13 +98,13 @@ Save all to
 .BI "\-seed "     "value"               
 Integer seed for random number generator
 .TP 
+.BI "\-settype "  xy|xydx|...              
+Set the type of the next data file
+.TP 
 .BI "\-timer "    "delay"                    
 Set allowed time slice for real time inputs to
 .I delay
 ms
-.TP 
-.B \-settype   xy|xydx|...              
-Set the type of the next data file
 .TP 
 .B \-version                             
 Show the program version and exit
@@ -170,7 +174,7 @@ Paul J Turner. From version number 4.00, the development was taken
 over by a team of volunteers under the coordination of Evgeny Stambulchik.
 As of now, most of the codebase has been re\-written from scratch.
 .SH "COPYRIGHT"
-Copyright (c) 1996\-2006 Grace Development Team
+Copyright (c) 1996\-2007 Grace Development Team
 .br 
 Portions Copyright (c) 1991\-1995 Paul J Turner, Portland, OR
 .SH "LICENSE"
