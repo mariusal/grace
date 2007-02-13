@@ -323,9 +323,10 @@ void create_graphapp_frame(int gno)
 					     "0", "1", "2", "3", "4", "5",
 					     NULL);
 	legends_len_item = CreatePanelChoice(rc, "Legend line length:",
-					     10,
+					     16,
 				             "0", "1", "2", "3", "4",
-                                             "5", "6", "7", "8",
+                                             "5", "6", "7", "8", "9",
+                                             "10","11","12","13","14",
 					     NULL);
 	legends_invert_item = CreateToggleButton(rc, "Put in reverse order");
         
