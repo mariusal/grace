@@ -3429,6 +3429,9 @@ actions:
                 xfree(cols);
             }
 	}
+	| KILL BLOCK {
+	    set_blockdata(NULL);
+	}
 	| READ xytype sexpr {
 	    gotread = TRUE;
 	    curtype = $2;

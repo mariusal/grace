@@ -108,7 +108,9 @@ static ss_data blockdata = {0, 0, NULL, NULL};
 void set_blockdata(ss_data *ssd)
 {
     free_ss_data(&blockdata);
-    memcpy(&blockdata, ssd, sizeof(ss_data));
+    if (ssd) {
+        memcpy(&blockdata, ssd, sizeof(ss_data));
+    }
 }
 
 int get_blockncols(void)
