@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2006 Grace Development Team
+ * Copyright (c) 1996-2007 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -564,8 +564,7 @@ reenter:
                 wtmaj = ifscale(swc_start + itmaj*stmajor, scale);
             } else {
                 wtmaj = swc_start + itmaj*stmajor;
-                if (t->tl_format.type == FORMAT_GENERAL &&
-                    fabs(wtmaj) < 1.0e-6*stmajor) {
+                if (t->t_round == TRUE && fabs(wtmaj) < 1.0e-6*stmajor) {
                     wtmaj = 0.0;
                 }
             }
