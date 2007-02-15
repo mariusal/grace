@@ -242,10 +242,10 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
     case FORMAT_ENGINEERING:
         if (loc != 0.0) {
             exponent = (int) floor(log10(fabs(loc)));
-            if (exponent < -18) {
-                exponent = -18;
-            } else if (exponent > 18) {
-                exponent = 18;
+            if (exponent < -24) {
+                exponent = -24;
+            } else if (exponent > 24) {
+                exponent = 24;
             } else {
                 exponent = (int) floor((double) exponent/3)*3;
             }
@@ -253,6 +253,12 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
             exponent = 0;
         }
         switch (exponent) {
+        case -24: /* yocto */
+            eng_prefix = "y";
+            break;
+        case -21: /* zepto */
+            eng_prefix = "z";
+            break;
         case -18: /* atto */
             eng_prefix = "a";
             break;
@@ -292,6 +298,12 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
             break;
         case 18: /* Exa */
             eng_prefix = "E";
+            break;
+        case 21: /* Zetta */
+            eng_prefix = "Z";
+            break;
+        case 24: /* Yotta */
+            eng_prefix = "Y";
             break;
         default:
             eng_prefix = "";
