@@ -73,6 +73,9 @@ char *get_format_types(int f)
     case FORMAT_ENGINEERING:
 	s = "engineering";
 	break;
+    case FORMAT_COMPUTING:
+	s = "computing";
+	break;
     case FORMAT_DDMMYY:
 	s = "ddmmyy";
 	break;

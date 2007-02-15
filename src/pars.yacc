@@ -228,6 +228,7 @@ symtab_entry *key;
 %token <ival> COLOR
 %token <ival> COMMENT
 %token <ival> COMPLEX
+%token <ival> COMPUTING
 %token <ival> CONSTRAINTS
 %token <ival> COPY
 %token <ival> CYCLE
@@ -4514,6 +4515,7 @@ formatchoice: DECIMAL { $$ = FORMAT_DECIMAL; }
 	| GENERAL { $$ = FORMAT_GENERAL; }
 	| SCIENTIFIC { $$ = FORMAT_SCIENTIFIC; }
 	| ENGINEERING { $$ = FORMAT_ENGINEERING; }
+	| COMPUTING { $$ = FORMAT_COMPUTING; }
 	| POWER { $$ = FORMAT_POWER; }
 	| DDMMYY { $$ = FORMAT_DDMMYY; }
 	| MMDDYY { $$ = FORMAT_MMDDYY; }
@@ -5257,6 +5259,7 @@ symtab_entry ikey[] = {
 	{"COLOR", COLOR, NULL},
 	{"COMMENT", COMMENT, NULL},
 	{"COMPLEX", COMPLEX, NULL},
+	{"COMPUTING", COMPUTING, NULL},
 	{"CONST", KEY_CONST, NULL},
 	{"CONSTRAINTS", CONSTRAINTS, NULL},
 	{"COPY", COPY, NULL},

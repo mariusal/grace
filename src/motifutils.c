@@ -2689,7 +2689,7 @@ int GetChoice(Widget * w)
     return i;
 }
 
-static OptionItem fmt_option_items[31] =
+static OptionItem fmt_option_items[32] =
 {
     {FORMAT_DECIMAL,        "Decimal"             },
     {FORMAT_EXPONENTIAL,    "Exponential"         },
@@ -2697,6 +2697,7 @@ static OptionItem fmt_option_items[31] =
     {FORMAT_POWER,          "Power"               },
     {FORMAT_SCIENTIFIC,     "Scientific"          },
     {FORMAT_ENGINEERING,    "Engineering"         },
+    {FORMAT_COMPUTING,      "Computing (K,M,G,...)"},
     {FORMAT_DDMMYY,         "DD-MM-YY"            },
     {FORMAT_MMDDYY,         "MM-DD-YY"            },
     {FORMAT_YYMMDD,         "YY-MM-DD"            },

@@ -505,10 +505,11 @@ void installSignal(void){
 #endif
 }
 
+
 /* create format string */
 char *create_fstring(int form, int prec, double loc, int type)
 {
-    char format[64], *eng_prefix;
+    char format[64], *eng_prefix,*comp_prefix;
     static char s[MAX_STRING_LENGTH];
     double tmp;
     int m, d, y, h, mm, sec;
@@ -560,6 +561,69 @@ char *create_fstring(int form, int prec, double loc, int type)
         } else {
 	    strcpy(format, "%.*f");
 	    sprintf(s, format, prec, 0.0);
+        }
+	break;
+    case FORMAT_COMPUTING:
+        /* As per FORMAT_GENERAL but uses computer notation (K,M,G,...)
+         * to give the value in multiples of the powers of 1024
+         */       
+        if (loc != 0.0) {
+            exponent = (int) floor(log2(fabs(loc)));
+            if (exponent < 10) {
+                exponent = 0;
+            } else if (exponent > 80) {
+                exponent = 80;
+            } else {
+                exponent = (int) floor((double) exponent/10)*10;
+            }
+        } else {
+            exponent = 0;
+        }
+
+        /* use next prefix if we would get 1024 because
+        ** of the print precision requested.  This happens
+        ** for values slightly less than 1024.
+        */
+        sprintf(s, "%.*g", prec, loc/(pow(2.0, exponent)));
+        if ((exponent < 80) && (strcmp(s, "1024") == 0)){
+	    exponent += 10;
+	}
+
+        switch (exponent) {
+        case 10: /* kilo */
+            comp_prefix = "K";
+            break;
+        case 20: /* Mega */
+            comp_prefix = "M";
+            break;
+        case 30: /* Giga */
+            comp_prefix = "G";
+            break;
+        case 40: /* Tera */
+            comp_prefix = "T";
+            break;
+        case 50: /* Peta */
+            comp_prefix = "P";
+            break;
+        case 60: /* Exa */
+            comp_prefix = "E";
+            break;
+        case 70: /* Zetta */
+            comp_prefix = "Z";
+            break;
+        case 80: /* Yotta */
+            comp_prefix = "Y";
+            break;
+        default:
+            comp_prefix = "";
+            break;
+        }
+        sprintf(s,"%.*g%s", prec, loc/(pow(2.0, exponent)), comp_prefix);
+        tmp = atof(s);          /* fix reverse axes problem when loc == -0.0 */
+        if (tmp == 0.0) {
+            strcpy(format, "%lg");
+            loc = 0.0;
+            sprintf(s, format, loc);
         }
 	break;
     case FORMAT_ENGINEERING:
