@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2007 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -587,7 +587,7 @@ static void VersionInfo(const GraceApp *gapp)
     }
     fprintf(stdout, "\n\n");
     
-    fprintf(stdout, "(C) Copyright 1996-2006 Grace Development Team\n");
+    fprintf(stdout, "(C) Copyright 1996-2007 Grace Development Team\n");
     fprintf(stdout, "(C) Portions Copyright 1991-1995 Paul J Turner\n");
     fprintf(stdout, "All Rights Reserved\n");
 

@@ -146,7 +146,7 @@ void create_about_grtool(Widget but, void *data)
 
 	fr = CreateFrame(about_panel, "Legal stuff");
         rc = CreateVContainer(fr);
-	CreateLabel(rc, "Copyright (c) 1996-2006 Grace Development Team");
+	CreateLabel(rc, "Copyright (c) 1996-2007 Grace Development Team");
 	CreateLabel(rc, "Portions Copyright (c) 1991-1995 Paul J Turner");
 	CreateLabel(rc, "Maintained by Evgeny Stambulchik");
 	CreateLabel(rc, "All rights reserved");
