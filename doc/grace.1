@@ -1,4 +1,4 @@
-.TH GRACE 1 "Sep 24, 2006"
+.TH GRACE 1 "Jan 28, 2007"
 .LO 1
 .SH NAME
 grace \- command line interface
@@ -23,10 +23,10 @@ data.
 
 .SH OPTIONS
 .TP
-.B "\-autoscale" "x|y|xy|none"
+.BI "\-autoscale " "x|y|xy|none"
 Set autoscale type
 .TP
-.BI "\-barebones "
+.B "\-barebones "
 Turn off all toolbars
 .TP
 .BI "\-batch "    "file"
@@ -40,7 +40,7 @@ Assume the data
 .I file
 is block data
 .TP
-.B "\-bxy"       "x:y:etc."
+.BI "\-bxy "       "x:y:etc."
 Form a set from the current block data set using the current set type
 from columns given in the argument
 .TP
@@ -76,8 +76,11 @@ Install private colormap
 .B "\-legend"    "load"
 Turn the graph legend on
 .TP
-.B "\-log"       "x|y|xy" 
+.BI "\-log "       "x|y|xy" 
 Set the axis scaling of the current graph to logarithmic
+.TP
+.BI "\-maxpath "   "length" 
+Set the maximal drawing path length
 .TP
 .B "\-mono"                                 
 Run grace in monochrome mode (affects the display only)
@@ -149,7 +152,10 @@ Save all to
 .BI "\-seed "     "value"               
 Integer seed for random number generator
 .TP
-.B "\-source"    "disk|pipe"                
+.BI "\-settype "   "xy|xydx|..."              
+Set the type of the next data file
+.TP
+.BI "\-source "    "disk|pipe"                
 Source type of next data file
 .TP
 .BI "\-timer "    "delay"                    
@@ -159,9 +165,6 @@ ms
 .TP
 .B "\-timestamp"                            
 Add timestamp to plot
-.TP
-.B "\-settype"   "xy|xydx|..."              
-Set the type of the next data file
 .TP
 .B "\-version"                             
 Show the program version, registered devices and build time configuration information.
@@ -231,7 +234,7 @@ The following files are of a special importance:
 - the file responsible for font configuration.
 
 .SH "SEE ALSO"
-grconvert(1), X(1), Grace User's Guide
+grconvert(1), X(1) [or Xorg(1)], Grace User's Guide
 
 .SH HOME PAGE
 http://plasma-gate.weizmann.ac.il/Grace/
@@ -252,7 +255,7 @@ over by a team of volunteers under the coordination of Evgeny Stambulchik.
 .SH COPYRIGHT
 Copyright (c) 1991-1995 Paul J Turner, Portland, OR
 .br
-Copyright (c) 1996-2006 Grace Development Team
+Copyright (c) 1996-2007 Grace Development Team
 
 .SH LICENSE
 The program is distributed under the terms of the GNU General Public License as

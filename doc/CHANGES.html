@@ -8,6 +8,33 @@
 <H1>Grace list of changes</H1>
 
 <PRE>
+<H2>5.1.21</H2>
+
+<H3>Functionality</H3>
+ *  [ES] added IsoLatin5 (ISO 8859-9) encoding file
+ *  [ES] now honor locale in number stringifications (rep. #2109)
+ *  [ES] extended range of prefixes in the Engineering format up to 10^{+/-24}
+ *  [HR] added "Computing" tick label format
+
+<H3>Interface</H3>
+ *  [ES] added "-maxpath" command line option for setting maximal drawing
+         path length
+ *  [ES] allow for longer legend lines
+
+<H3>Parser</H3>
+ *  [ES] added "KILL BLOCK" command (deallocates the memory of the current
+         block data)
+
+<H3>Bug fixes</H3>
+ *  [ES] there was a misleading error message when attempting to redefine an
+         existing variable/keyword in the parser
+ *  [ES] fixed rounding-off problem with zero labels (rep. #2098)
+
+<H3>Portability/Compilation</H3>
+ *  [IG] eliminated some of gcc-4.1 warnings (rep. #2111)
+ *  [IG] man page cleaned (rep. #2110)
+
+
 <H2>5.1.20</H2>
 
 <H3>Parser</H3>
@@ -1490,6 +1517,8 @@
     [MO]  - Marius Olechnovi&ccaron;ius &lt;img(at-nospam)mail.lt&gt;
     [YZ]  - Yura Zotov &lt;yznews(at-nospam)hotbox.ru&gt;
     [TO]  - Tobias Oed &lt;tobias(at-nospam)physics.odu.edu&gt;
+    [IG]  - Ionut Georgescu &lt;ionutg(at-nospam)gmail.com&gt;
+    [HR]  - Harvey Richardson
     [ES]  - Evgeny Stambulchik &lt;evgeny(at-nospam)stambulchik.net&gt;
 
     "!" means no documentation provided (yet)

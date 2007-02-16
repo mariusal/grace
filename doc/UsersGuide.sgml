@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.20)</title>
+<title>Grace User's Guide (for Grace-5.1.21)</title>
 <author>by the Grace Team</author>
-<date>04.06.2006</date>
+<date>14.02.2007</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -56,7 +56,7 @@
 
 <tscreen><verb>
 Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
-Copyright (&copy;) 1996-2006 Grace Development Team
+Copyright (&copy;) 1996-2007 Grace Development Team
 
 Maintained by Evgeny Stambulchik
 
@@ -588,6 +588,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <tag> -log <it>x|y|xy</it> </tag>
                 Set the axis scaling of the current graph to logarithmic
 
+          <tag> -maxpath <it>length</it> </tag>
+                Set the maximal drawing path length
+
           <tag> -mono </tag>
                 Run Grace in monochrome mode (affects the display only)
 
@@ -601,8 +604,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                 <it>X_var</it> name is "null" then load the index of Y to X.
                 This option is present only if the netCDF support was compiled
                 in
- 
- 
  
           <tag> -noask </tag>
                 Assume the answer is yes to all requests - if the operation would
@@ -657,6 +658,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <tag> -seed <it>seed_value</it> </tag>
                 Integer seed for random number generator
 
+          <tag> -settype <it>xy|xydx|...</it> </tag>
+                Set the type of the next data file
+
           <tag> -source <it>disk|pipe</it> </tag>
                 Source type of next data file
 
@@ -664,9 +668,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                 Set allowed time slice for real time inputs to delay ms
 
           <tag> -timestamp </tag> Add timestamp to plot
-
-          <tag> -settype <it>xy|xydx|...</it> </tag>
-                Set the type of the next data file
 
           <tag> -version </tag>
                 Show the program version
@@ -2725,6 +2726,8 @@ integral     | cumulative sum @
 	                     sexpr <it>file</it> | READ NXY "gad.dat" @
 	READ BLOCK <it>"file"</it> | Reads <it>file</it> as block data |
 	                     sexpr <it>file</it> | READ BLOCK "zooks.dat" @
+	KILL BLOCK | Kills the current block data and frees the associated memory |
+	                     &nbsp; | KILL BLOCK @
 	BLOCK <it>settype</it> <it>columns</it> | Forms a data set of type <it>settype</it> using <it>columns</it> from current block data file. |
 	             xytype <it>settype</it>, sexpr <it>columns</it> | BLOCK xydxdy "0:2:1:3" @
     	WRITE <it>set</it> | writes <it>set</it> to stdout|
