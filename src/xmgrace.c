@@ -887,6 +887,7 @@ static Widget CreateMainMenuBar(Widget parent)
     sub2menupane = CreateMenu(submenupane, "XY graphs", 'g', FALSE);
     CreateMenuButton(sub2menupane, "Log scale", '\0', load_example, "tlog.agr");
     CreateMenuButton(sub2menupane, "Log2 scale", '\0', load_example, "log2.agr");
+    CreateMenuButton(sub2menupane, "Log2/log scale", '\0', load_example, "log2log.agr");
     CreateMenuButton(sub2menupane, "Logit scale", '\0', load_example, "logit.agr");
     CreateMenuButton(sub2menupane, "Reciprocal scale", '\0', load_example, "reciprocal.agr");
     CreateMenuButton(sub2menupane, "Error bars", '\0', load_example, "terr.agr");

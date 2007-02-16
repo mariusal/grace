@@ -70,6 +70,9 @@ $GRACE tlog.agr
 # a log2 example
 $GRACE log2.agr 
 #
+# a log2/log example with engineering and computing tick labels
+$GRACE log2log.agr 
+#
 # a logit scale sample
 $GRACE logit.agr 
 #
