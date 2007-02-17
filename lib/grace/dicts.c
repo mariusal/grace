@@ -221,6 +221,7 @@ int grace_init_dicts(Grace *grace)
             {FORMAT_GENERAL,        VStrGeneral,        "General"    },
             {FORMAT_POWER,          VStrPower,          "Power"      },
             {FORMAT_SCIENTIFIC,     VStrScientific,     "Scientific" },
+            {FORMAT_COMPUTING,      VStrComputing,      "Computing"  },
             {FORMAT_ENGINEERING,    VStrEngineering,    "Engineering"},
             {FORMAT_DATETIME,       VStrDateTime,       "DateTime"   },
             {FORMAT_GEOGRAPHIC,     VStrGeographic,     "Geographic" }

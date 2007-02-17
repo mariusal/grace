@@ -185,6 +185,7 @@ static void yyerror(char *s);
 %token <ival> CLIP
 %token <ival> COLOR
 %token <ival> COMMENT
+%token <ival> COMPUTING
 %token <ival> DAYMONTH
 %token <ival> DAYOFWEEKL
 %token <ival> DAYOFWEEKS
@@ -2211,6 +2212,7 @@ formatchoice: DECIMAL { $$ = format_new(); $$->type = FORMAT_DECIMAL; }
 	| GENERAL { $$ = format_new(); $$->type = FORMAT_GENERAL; }
 	| SCIENTIFIC { $$ = format_new(); $$->type = FORMAT_SCIENTIFIC; }
 	| ENGINEERING { $$ = format_new(); $$->type = FORMAT_ENGINEERING; }
+	| COMPUTING { $$ = format_new(); $$->type = FORMAT_COMPUTING; }
 	| POWER { $$ = format_new(); $$->type = FORMAT_POWER; }
 	| DDMMYY { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%d-%m-%Y"; }
 	| MMDDYY { $$ = format_new(); $$->type = FORMAT_DATETIME; $$->fstring = "%m-%d-%Y"; }
@@ -2740,6 +2742,7 @@ symtab_entry key[] = {
 	{"CLIP", CLIP, NULL},
 	{"COLOR", COLOR, NULL},
 	{"COMMENT", COMMENT, NULL},
+	{"COMPUTING", COMPUTING, NULL},
 	{"DATE", DATE, NULL},
 	{"DAYMONTH", DAYMONTH, NULL},
 	{"DAYOFWEEKL", DAYOFWEEKL, NULL},

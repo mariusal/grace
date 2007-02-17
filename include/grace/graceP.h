@@ -216,6 +216,7 @@
 #define VStrChord               "chord"
 #define VStrCircle              "circle"
 #define VStrClosed              "closed"
+#define VStrComputing           "computing"
 #define VStrDateTime            "datetime"
 #define VStrDecimal             "decimal"
 #define VStrDiamond             "diamond"

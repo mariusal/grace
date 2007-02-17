@@ -185,7 +185,7 @@ static int dayofweek(double j)
 /* create format string */
 char *create_fstring(const Quark *q, const Format *form, double loc, int type)
 {
-    char format[64], *eng_prefix;
+    char format[64], *prefix;
     static char s[MAX_STRING_LENGTH];
     double tmp;
     int m, d, y, h, mm, sec;
@@ -239,6 +239,69 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
             sprintf(s, format, form->prec, 0.0);
         }
         break;
+    case FORMAT_COMPUTING:
+        /* As per FORMAT_GENERAL but uses computer notation (K,M,G,...)
+         * to give the value in multiples of the powers of 1024
+         */       
+        if (loc != 0.0) {
+            exponent = (int) floor(log2(fabs(loc)));
+            if (exponent < 10) {
+                exponent = 0;
+            } else if (exponent > 80) {
+                exponent = 80;
+            } else {
+                exponent = (int) floor((double) exponent/10)*10;
+            }
+        } else {
+            exponent = 0;
+        }
+
+        /* use next prefix if we would get 1024 because
+        ** of the print precision requested.  This happens
+        ** for values slightly less than 1024.
+        */
+        sprintf(s, "%.*g", form->prec, loc/(pow(2.0, exponent)));
+        if ((exponent < 80) && (strcmp(s, "1024") == 0)){
+            exponent += 10;
+        }
+
+        switch (exponent) {
+        case 10: /* kilo */
+            prefix = "K";
+            break;
+        case 20: /* Mega */
+            prefix = "M";
+            break;
+        case 30: /* Giga */
+            prefix = "G";
+            break;
+        case 40: /* Tera */
+            prefix = "T";
+            break;
+        case 50: /* Peta */
+            prefix = "P";
+            break;
+        case 60: /* Exa */
+            prefix = "E";
+            break;
+        case 70: /* Zetta */
+            prefix = "Z";
+            break;
+        case 80: /* Yotta */
+            prefix = "Y";
+            break;
+        default:
+            prefix = "";
+            break;
+        }
+        sprintf(s,"%.*g%s", form->prec, loc/(pow(2.0, exponent)), prefix);
+        tmp = atof(s);          /* fix reverse axes problem when loc == -0.0 */
+        if (tmp == 0.0) {
+            strcpy(format, "%lg");
+            loc = 0.0;
+            sprintf(s, format, loc);
+        }
+        break;
     case FORMAT_ENGINEERING:
         if (loc != 0.0) {
             exponent = (int) floor(log10(fabs(loc)));
@@ -254,63 +317,63 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
         }
         switch (exponent) {
         case -24: /* yocto */
-            eng_prefix = "y";
+            prefix = "y";
             break;
         case -21: /* zepto */
-            eng_prefix = "z";
+            prefix = "z";
             break;
         case -18: /* atto */
-            eng_prefix = "a";
+            prefix = "a";
             break;
         case -15: /* fempto */
-            eng_prefix = "f";
+            prefix = "f";
             break;
         case -12: /* pico */
-            eng_prefix = "p";
+            prefix = "p";
             break;
         case -9: /* nano */
-            eng_prefix = "n";
+            prefix = "n";
             break;
         case -6: /* micro */
             if (type == LFORMAT_TYPE_EXTENDED) {
-                eng_prefix = "\\xm\\f{}";
+                prefix = "\\xm\\f{}";
             } else {
-                eng_prefix = "mk";
+                prefix = "mk";
             }
             break;
         case -3: /* milli */
-            eng_prefix = "m";
+            prefix = "m";
             break;
         case 3: /* kilo */
-            eng_prefix = "k";
+            prefix = "k";
             break;
         case 6: /* Mega */
-            eng_prefix = "M";
+            prefix = "M";
             break;
         case 9: /* Giga */
-            eng_prefix = "G";
+            prefix = "G";
             break;
         case 12: /* Tera */
-            eng_prefix = "T";
+            prefix = "T";
             break;
         case 15: /* Peta */
-            eng_prefix = "P";
+            prefix = "P";
             break;
         case 18: /* Exa */
-            eng_prefix = "E";
+            prefix = "E";
             break;
         case 21: /* Zetta */
-            eng_prefix = "Z";
+            prefix = "Z";
             break;
         case 24: /* Yotta */
-            eng_prefix = "Y";
+            prefix = "Y";
             break;
         default:
-            eng_prefix = "";
+            prefix = "";
             break;
         }
         strcpy(format, "%.*f %s");
-        sprintf(s, format, form->prec, loc/(pow(10.0, exponent)), eng_prefix);
+        sprintf(s, format, form->prec, loc/(pow(10.0, exponent)), prefix);
         break;
     case FORMAT_POWER:
         if (loc < 0.0) {
