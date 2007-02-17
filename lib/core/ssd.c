@@ -312,7 +312,7 @@ DArray *ssd_get_darray(const Quark *q, int column)
 int ssd_set_darray(Quark *q, int column, const DArray *da)
 {
     ss_column *col = ssd_get_col(q, column);
-    if (col && col->format != FFORMAT_STRING &&
+    if (da && col && col->format != FFORMAT_STRING &&
         ssd_get_nrows(q) == da->size) {
         memcpy(col->data, da->x, da->size*SIZEOF_DOUBLE);
         
