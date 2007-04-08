@@ -198,6 +198,10 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
 	    graal_set_RHS(yyextra, TRUE);
             return yytext[0];
 	}
+;	{
+	    graal_set_RHS(yyextra, FALSE);
+            return yytext[0];
+	}
 \"	string_buf_ptr = string_buf; BEGIN(QSTR);
 
 \n	; /* ignore EOL */
