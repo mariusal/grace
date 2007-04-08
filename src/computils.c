@@ -980,16 +980,8 @@ int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
 {
     if (!set_is_dataless(psrc)) {
 	GraceApp *gapp = gapp_from_quark(psrc);
-        if (psrc != pdest) {
-	    if (copysetdata(psrc, pdest) != RETURN_SUCCESS) {
-	        return RETURN_FAILURE;
-            }
-        }
-	filter_set(pdest, rarray);
         /* TODO!!! */
-#if 0
-        set_parser_setno(pdest);
-#endif
+	filter_set(pdest, rarray);
         if (graal_parse_line(grace_get_graal(gapp->grace), fstr, psrc)
             != RETURN_SUCCESS) {
 	    if (psrc != pdest) {
