@@ -122,7 +122,7 @@ static void create_monitor_frame(int force, char *msg)
 
     if (ui == NULL) {
         AMem *amem;
-        Widget menubar, menupane, fr;
+        Widget but, menubar, menupane, fr;
         
         amem = amem_amem_new(AMEM_MODEL_SIMPLE);
 
@@ -132,8 +132,8 @@ static void create_monitor_frame(int force, char *msg)
         ui->history = storage_new(amem, amem_free, wrap_str_copy, NULL);
         ui->eohistory = TRUE;
         ui->popup_only_on_errors = FALSE;
-        ui->auto_redraw = FALSE;
-        ui->auto_update = FALSE;
+        ui->auto_redraw = TRUE;
+        ui->auto_update = TRUE;
 
         menubar = CreateMenuBar(ui->mon_frame);
         ManageChild(menubar);
@@ -150,8 +150,10 @@ static void create_monitor_frame(int force, char *msg)
         menupane = CreateMenu(menubar, "Options", 'O', FALSE);
         CreateMenuToggle(menupane, "Popup only on errors", 'e', popup_on, ui);
         CreateMenuSeparator(menupane);
-        CreateMenuToggle(menupane, "Auto redraw", 'r', auto_redraw_cb, ui);
-        CreateMenuToggle(menupane, "Auto update", 'p', auto_update_cb, ui);
+        but = CreateMenuToggle(menupane, "Auto redraw", 'r', auto_redraw_cb, ui);
+	SetToggleButtonState(but, ui->auto_redraw);
+        but = CreateMenuToggle(menupane, "Auto update", 'p', auto_update_cb, ui);
+	SetToggleButtonState(but, ui->auto_update);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On console", 'c',
