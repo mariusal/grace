@@ -66,6 +66,11 @@
  !  [ES] got rid of everything except support for reading in .agr files in the
          old parser
  *  [ES] switched to using GSL instead of the Cephes library
+ *  [JSB] Grace now uses 16M true-color model
+ *  [ES] added IsoLatin5 encoding file
+ !  [ES] added text frame to ann. values
+ *  [ES] PNG driver changed to use the RGB colorspace
+ *  [ES] enabled by default autoredraw/update in Console
 
 <H3>Graal</H3>
  !  [ES] beginning...
@@ -81,6 +86,9 @@
  !  [ES] preview of projects before loading
  *  [ES] made Motif controls slickier
  *  [ES] got rid of -fixed and -usage command line options
+ *  [ES] added "-maxpath" command line option for setting maximal drawing
+         path length (rep. #2082)
+ *  [ES] 
 
 <H3>Bug fixes</H3>
  *  [ES] fixed bar outline placement in barcharts
@@ -250,6 +258,7 @@
     [RA]  - Robert Atwood &lt;r.atwood(at-nospam)imperial.ac.uk&gt;
     [KK]  - Karim Kaschani &lt;karim.kaschani(at-nospam)arcormail.de&gt;
     [MD]  - Matthias Dillier &lt;Matthias.Dillier(at-nospam)snb.ch&gt;
+    [JSB] - J. Scott Berg &lt;jsberg(at-nospam)bnl.gov&gt;
     [ES]  - Evgeny Stambulchik &lt;evgeny(at-nospam)stambulchik.net&gt;
 
     "!" means no documentation provided (yet)
