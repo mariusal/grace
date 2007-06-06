@@ -320,7 +320,7 @@ GraceClose(void)
     }
 
     /* Tell grace to exit */
-    if (GraceCommand ("exit") == -1 || GraceFlush() == -1){
+    if (pid > 0 && (GraceCommand ("exit") == -1 || GraceFlush() == -1)) {
         kill(pid, SIGTERM);
     }
 
