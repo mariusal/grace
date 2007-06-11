@@ -96,7 +96,6 @@ struct passwd {
     char  *pw_shell;
 };
 char *getlogin();
-struct passwd *getpwnam(char *name);
 #  endif  /* __CRTL_VER */
 #endif /* __VMS */
 
