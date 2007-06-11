@@ -29,10 +29,8 @@
  * Path translations for I/O operations
  */
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
-#include <pwd.h>
 #include <unistd.h>
 
 #include "grace/graceP.h"
@@ -42,66 +40,11 @@ char *grace_get_userhome(const Grace *grace)
     return grace->userhome;
 }
 
-/* If path begins with '~', replace it with the user's home dir.
-   If expanding is impossible, return NULL */
-static char *grace_expand_tilde(const Grace *grace, const char *path)
-{
-    size_t uname_len;
-    char *sep_ptr, *epath;
-    
-    if (!path || path[0] != '~') {
-        return NULL;
-    }
-    
-    /* position of the first path separator */
-    sep_ptr = strchr(path, '/');
-    
-    if (sep_ptr) {
-        uname_len = sep_ptr - path - 1;
-    } else {
-        uname_len = 0;
-    }
-    
-    /* get the home dir path first */
-    if (!uname_len) {
-        epath = copy_string(NULL, grace->userhome);
-    } else {
-	char *uname;
-        struct passwd *pent;
-        
-        uname = xmalloc(uname_len + 1);
-        if (uname) {
-            strncpy(uname, path + 1, uname_len);
-            uname[uname_len] = '\0';
-        }
-        
-	pent = getpwnam(uname);
-        xfree(uname);
-        
-        if (pent) {
-	    epath = copy_string(NULL, pent->pw_dir);
-        } else {
-	    errmsg("No user by that name");
-            return NULL;
-        }
-    }
-    
-    /* append the rest of the path */
-    epath = concat_strings(epath, sep_ptr);
-    
-    return epath;
-}
-
 char *grace_path(const Grace *grace, const char *path)
 {
     char *epath;
     struct stat statb;
 
-    epath = grace_expand_tilde(grace, path);
-    if (epath) {
-        return epath;
-    }
-    
     if (string_is_empty(path)       ||
         path[0] == '/'              ||
         strstr(path, "./")  == path ||
