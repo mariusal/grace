@@ -23,6 +23,8 @@ OBJS = 	grace$(O) \
 	xml_out$(O) \
 	xml_in$(O)
 
+EXTRAFLAGS = $(EXPAT_INC)
+
 SCHEMA = grace.xsd
 
 xml_in.c : grace.xcc
