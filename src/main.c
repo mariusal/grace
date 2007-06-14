@@ -41,6 +41,7 @@
 
 #include "globals.h"
 
+#include "core_utils.h"
 #include "utils.h"
 #include "files.h"
 #include "ssdata.h"
