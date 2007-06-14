@@ -70,7 +70,6 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor);
 char *mybasename(const char *s);
 
 int system_wrap(const char *string);
-void msleep_wrap(unsigned int msec);
 
 long bi_version_id(void);
 char *bi_version_string(void);

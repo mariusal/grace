@@ -479,14 +479,6 @@ int system_wrap(const char *string)
     return system(string);
 }
 
-void msleep_wrap(unsigned int msec)
-{
-    struct timeval timeout;
-    timeout.tv_sec = msec / 1000;
-    timeout.tv_usec = 1000 * (msec % 1000);
-    select(0, NULL, NULL, NULL, &timeout);    
-}
-
 char *q_labeling(Quark *q)
 {
     Grace *grace = grace_from_quark(q);
