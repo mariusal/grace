@@ -3536,9 +3536,6 @@ static int project_postprocess_hook(Quark *q,
             /* TODO : world/view translation */
         }
         break;
-    case QFlavorSSD:
-        quark_cb_add(q, kill_ssd_cb, NULL);
-        break;
     case QFlavorSet:
         s = set_get_data(q);
         gtype = graph_get_type(get_parent_graph(q));

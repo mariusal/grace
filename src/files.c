@@ -1000,19 +1000,33 @@ static int project_cb(Quark *pr, int etype, void *data)
 }
 
 
+static int project_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    switch (quark_fid_get(q)) {
+    case QFlavorProject:
+        quark_cb_add(q, project_cb, NULL);
+        break;
+    case QFlavorSSD:
+        quark_cb_add(q, kill_ssd_cb, NULL);
+        break;
+    }
+    
+    return TRUE;
+}
+
 GProject *load_any_project(GraceApp *gapp, const char *fn)
 {
     GProject *gp;
     
-    /* A temporary hack */
+    /* FIXME: A temporary hack */
     if (fn && strstr(fn, ".xgr")) {
         gp = load_xgr_project(gapp, fn);
     } else {
         gp = load_agr_project(gapp, fn);
     }
-    
+
     if (gp) {
-        quark_cb_add(gproject_get_top(gp), project_cb, NULL);
+        quark_traverse(gproject_get_top(gp), project_hook, NULL);
     }
 
     return gp;
