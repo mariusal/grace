@@ -78,6 +78,9 @@ typedef struct {
     Widget          hotfile;
     
     Widget          popup;
+    Widget          index_btn;
+    Widget          unindex_btn;
+    Widget          delete_btn;
 
     int             cb_column;
 } SSDataUI;

@@ -286,33 +286,28 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
     }
 
     if (xbe->button == Button3) {
-        int nrows, ncolumns;
-        Boolean **selectedCells;
-
+        ss_column *col;
         if (!cbs->row_label) {
             ui->cb_column = cbs->column;
         }
 
-        XtVaGetValues(ui->mw, XmNrows, &nrows, XmNcolumns, &ncolumns,
-            XmNselectedCells, &selectedCells, NULL);
-        if (selectedCells) {
-            int i, j;
-            for (i = 0; i < nrows; i++) {
-                for (j = 0; j < ncolumns; j++) {
-                    printf("(%d %d) -> %s\n", i, j,
-                        selectedCells[i][j] ? "yes":"no");
-                }
-            }
-        }
+        col = ssd_get_col(ui->q, ui->cb_column);
+        SetSensitive(ui->delete_btn, col != NULL);
+        SetSensitive(ui->index_btn, ui->cb_column != 0 && col != NULL);
+        SetSensitive(ui->unindex_btn, ui->cb_column == 0 && col != NULL);
+        
         XmMenuPosition(ui->popup, xbe);
-        XtManageChild(ui->popup);
+        ManageChild(ui->popup);
         return;
     }
 }
 
 static void col_delete_cb(Widget but, void *udata)
 {
-    /* SSDataUI *ui = (SSDataUI *) udata; */
+    SSDataUI *ui = (SSDataUI *) udata;
+    if (ssd_delete_col(ui->q, ui->cb_column) == RETURN_SUCCESS) {
+        snapshot_and_update(gapp->gp, TRUE);
+    }
 }
 
 static void index_cb(Widget but, void *udata)
@@ -432,9 +427,9 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
 
     ui->popup = XmCreatePopupMenu(ui->mw, "popupMenu", NULL, 0);
-    CreateMenuButton(ui->popup, "Delete column(s)", '\0', col_delete_cb, ui);
-    CreateMenuButton(ui->popup, "Set as index", '\0', index_cb, ui);
-    CreateMenuButton(ui->popup, "Unset index", '\0', unindex_cb, ui);
+    ui->delete_btn  = CreateMenuButton(ui->popup, "Delete column", '\0', col_delete_cb, ui);
+    ui->index_btn   = CreateMenuButton(ui->popup, "Set as index", '\0', index_cb, ui);
+    ui->unindex_btn = CreateMenuButton(ui->popup, "Unset index", '\0', unindex_cb, ui);
 
 
     /* ------------ Column props -------------- */
