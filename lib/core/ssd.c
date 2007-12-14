@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2007 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -48,23 +48,30 @@ ss_data *ssd_data_new(AMem *amem)
     return ssd;
 }
 
+static void ss_column_free(AMem *amem, unsigned int nrows, ss_column *col)
+{
+    unsigned int j;
+    if (col->format == FFORMAT_STRING) {
+        char **sp = (char **) col->data;
+        for (j = 0; j < nrows; j++) {
+            amem_free(amem, sp[j]);
+        }
+    }
+    amem_free(amem, col->data);
+    amem_free(amem, col->label);
+}
+
 void ssd_data_free(AMem *amem, ss_data *ssd)
 {
     if (ssd) {
-        unsigned int i, j;
-        char **sp;
+        unsigned int i;
 
         for (i = 0; i < ssd->ncols; i++) {
             ss_column *col = &ssd->cols[i];
-            if (col->format == FFORMAT_STRING) {
-                sp = (char **) col->data;
-                for (j = 0; j < ssd->nrows; j++) {
-                    amem_free(amem, sp[j]);
-                }
-            }
-            amem_free(amem, col->data);
-            amem_free(amem, col->label);
+            
+            ss_column_free(amem, ssd->nrows, col);
         }
+
         amem_free(amem, ssd->cols);
 
         amem_free(amem, ssd->hotfile);
@@ -436,6 +443,76 @@ int ssd_is_indexed(const Quark *q)
         return TRUE;
     } else {
         return FALSE;
+    }
+}
+
+static int delete_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    int *column = (int *) udata;
+    
+    if (quark_fid_get(q) == QFlavorSet) {
+        Dataset *dsp = set_get_dataset(q);
+        unsigned int k;
+        for (k = 0; k < MAX_SET_COLS; k++) {
+            if (dsp->cols[k] > *column) {
+                dsp->cols[k]--;
+            } else
+            if (dsp->cols[k] == *column) {
+                dsp->cols[k] = COL_NONE;
+            }
+        }
+        if (dsp->acol > *column) {
+            dsp->acol--;
+        } else
+        if (dsp->acol == *column) {
+            dsp->acol = COL_NONE;
+        }
+    }
+    
+    return TRUE;
+}
+
+int ssd_delete_col(Quark *q, int column)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd) {
+        ss_column *col = ssd_get_col(q, column);
+        if (col) {
+            void *p;
+            
+            ss_column_free(q->amem, ssd->nrows, col);
+
+            if (column < ssd->ncols - 1) {
+                memmove(&ssd->cols[column], &ssd->cols[column + 1],
+                    (ssd->ncols - 1 - column)*sizeof(ss_column));
+            }
+            
+            p = amem_realloc(q->amem, ssd->cols,
+                (ssd->ncols - 1)*sizeof(ss_column));
+            ssd->ncols--;
+
+            /* should never happen, but... */
+            if (!p) {
+                return RETURN_FAILURE;
+            }
+            ssd->cols = p;
+            
+            /* index column is removed */
+            if (column == 0) {
+                ssd->indexed = FALSE;
+            }
+            
+            /* update set indexing */
+            quark_traverse(q, delete_hook, &column);
+            
+            quark_dirtystate_set(q, TRUE);
+
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
+    } else {
+        return RETURN_FAILURE;
     }
 }
 
