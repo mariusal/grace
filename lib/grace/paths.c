@@ -80,10 +80,11 @@ char *grace_path(const Grace *grace, const char *path)
     epath = concat_strings(epath, path);
     if (stat(epath, &statb) == 0) {
         return epath;
+    } else {
+        /* giving up... */
+        xfree(epath);
+        return copy_string(NULL, path);
     }
-
-    /* giving up... */
-    return copy_string(NULL, path);
 }
 
 char *grace_path2(const Grace *grace, const char *prefix, const char *path)
