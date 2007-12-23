@@ -293,7 +293,8 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
 
         col = ssd_get_col(ui->q, ui->cb_column);
         SetSensitive(ui->delete_btn, col != NULL);
-        SetSensitive(ui->index_btn, col != NULL && !ssd_is_indexed(ui->q));
+        SetSensitive(ui->index_btn, col != NULL && ui->cb_column != 0 &&
+            (col->format == FFORMAT_NUMBER || col->format == FFORMAT_DATE));
         SetSensitive(ui->unindex_btn, ui->cb_column == 0 && col != NULL &&
             ssd_is_indexed(ui->q));
         
