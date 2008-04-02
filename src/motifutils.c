@@ -2654,12 +2654,18 @@ Widget *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,...)
 void SetChoice(Widget * w, int value)
 {
     Arg a;
+    Cardinal nchoices;
 
     if (w == (Widget *) NULL) {
+	errwin("Internal error, SetChoice: Attempt to set NULL Widget");
 	return;
     }
-    if (w[value + 2] == (Widget) NULL) {
-	errwin("Internal error, SetChoice: Attempt to set NULL Widget");
+    
+    XtSetArg(a, XmNnumChildren, &nchoices);
+    XtGetValues(w[1], &a, 1);
+    
+    if (value >= nchoices) {
+	errwin("Value not found in SetChoice()");
 	return;
     }
     XtSetArg(a, XmNmenuHistory, w[value + 2]);
