@@ -657,6 +657,7 @@ FILE *gapp_openr(GraceApp *gapp, const char *fn, int src)
     struct stat statb;
     char *tfn;
     char buf[GR_MAXPATHLEN + 50];
+    FILE *fp;
 
     if (!fn || !fn[0]) {
         errmsg("No file name given");
@@ -666,23 +667,30 @@ FILE *gapp_openr(GraceApp *gapp, const char *fn, int src)
     case SOURCE_DISK:
         tfn = grace_path(gapp->grace, fn);
 	if (strcmp(tfn, "-") == 0 || strcmp(tfn, "stdin") == 0) {
+            xfree(tfn);
             return stdin;
 	} else if (stat(tfn, &statb)) {
             sprintf(buf, "Can't stat file %s", tfn);
             errmsg(buf);
+            xfree(tfn);
 	    return NULL;
 	/* check to make sure this is a file and not a dir */
 	} else if (!S_ISREG(statb.st_mode)) {
             sprintf(buf, "%s is not a regular file", tfn);
             errmsg(buf);
+            xfree(tfn);
 	    return NULL;
         } else {
-            return filter_read(gapp, tfn);
+            fp = filter_read(gapp, tfn);
+            xfree(tfn);
+            return fp;
 	}
         break;
     case SOURCE_PIPE:
         tfn = gapp_exe_path(gapp, fn);
-	return popen(tfn, "r");
+	fp = popen(tfn, "r");
+        xfree(tfn);
+        return fp;
 	break;
     default:
         errmsg("Wrong call to gapp_openr()");
