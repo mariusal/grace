@@ -186,13 +186,43 @@ handle_sigchld(int signum)
     pid_t retval;
     
     if (fd_pipe != -1) {
-        retval = waitpid(pid, &status, WNOHANG);
-        if (retval == pid) {
-            /* Grace just died */
-            pid = (pid_t) -1;
+        if (pid > 0) {
+            retval = waitpid(pid, &status, WNOHANG);
+            if (retval == pid) {
+                /* Grace just died */
+                pid = (pid_t) -1;
+            }
         }
+        close(fd_pipe);
+        fd_pipe = -1;
     }
 }
+
+static int
+_GraceFlush(void)
+{
+    int loop, left;
+
+    if (fd_pipe == -1) {
+        return (-1);
+    }
+
+    left = strlen(buf);
+
+    for (loop = 0; loop < 30; loop++) {
+        left = GraceOneWrite(left);
+        if (left < 0) {
+            return (-1);
+        } else if (left == 0) {
+            return (0);
+        }
+    }
+
+    error_function("GraceFlush: ran into eternal loop");
+
+    return (-1);
+}
+
 
 int
 GraceOpenVA(char* exe, int bs, ...)
@@ -315,13 +345,16 @@ int
 GraceClose(void)
 {
     if (fd_pipe == -1) {
-        error_function("No grace subprocess");
+        error_function("No grace subprocess1");
         return (-1);
     }
 
     /* Tell grace to exit */
-    if (pid > 0 && (GraceCommand ("exit") == -1 || GraceFlush() == -1)) {
-        kill(pid, SIGTERM);
+    if (pid > 0) {
+        /* what the mess with globals... */
+        if ((GraceCommand ("exit") == -1 || _GraceFlush() == -1) && pid > 0) {
+            kill(pid, SIGTERM);
+        }
     }
 
     GraceCleanup();
@@ -333,12 +366,12 @@ int
 GraceClosePipe(void)
 {
     if (fd_pipe == -1) {
-        error_function("No grace subprocess");
+        error_function("No grace subprocess2");
         return (-1);
     }
 
     /* Tell grace to close the pipe */
-    if (GraceCommand ("close") == -1 || GraceFlush() == -1){
+    if (GraceCommand ("close") == -1 || _GraceFlush() == -1){
         GraceCleanup();
         return (-1);
     }
@@ -351,27 +384,12 @@ GraceClosePipe(void)
 int
 GraceFlush(void)
 {
-    int loop, left;
-
     if (fd_pipe == -1) {
-        error_function("No grace subprocess");
+        error_function("No grace subprocess3");
         return (-1);
     }
 
-    left = strlen(buf);
-
-    for (loop = 0; loop < 30; loop++) {
-        left = GraceOneWrite(left);
-        if (left < 0) {
-            return (-1);
-        } else if (left == 0) {
-            return (0);
-        }
-    }
-
-    error_function("GraceFlush: ran into eternal loop");
-
-    return (-1);
+    return _GraceFlush();
 }
 
 int
@@ -382,7 +400,7 @@ GracePrintf(const char* fmt, ...)
     int nchar;
     
     if (fd_pipe == -1) {
-        error_function("No grace subprocess");
+        error_function("No grace subprocess4");
         return (0);
     }
 
@@ -414,7 +432,7 @@ GraceCommand(const char* cmd)
     int left;
     
     if (fd_pipe == -1) {
-        error_function("No grace subprocess");
+        error_function("No grace subprocess5");
         return (-1);
     }
 
@@ -430,7 +448,7 @@ GraceCommand(const char* cmd)
     /* Try to send the global write buffer to grace */
     left = GraceOneWrite(left);
     if (left >= bufsizeforce) {
-        if (GraceFlush() != 0) {
+        if (_GraceFlush() != 0) {
             return (-1);
         }
     } else if (left < 0) {
