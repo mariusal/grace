@@ -697,3 +697,27 @@ void set_graph_string(int i, plotstr * s)
     memcpy(&pstr[i], s, sizeof(plotstr));
 }
 
+char *object_types(int type)
+{
+    char *stype;
+    
+    switch (type) {
+    case OBJECT_LINE:
+        stype = "line";
+        break;
+    case OBJECT_BOX:
+        stype = "box";
+        break;
+    case OBJECT_ELLIPSE:
+        stype = "ellipse";
+        break;
+    case OBJECT_STRING:
+        stype = "string";
+        break;
+    default:
+        stype = "";
+        break;
+    }
+    
+    return stype;
+}

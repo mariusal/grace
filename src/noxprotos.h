@@ -124,6 +124,8 @@ void set_graph_line(int i, linetype *l);
 void set_graph_string(int i, plotstr *s);
 void set_graph_ellipse(int i, ellipsetype * e);
 
+char *object_types(int type);
+
 void pop_world(void);
 
 void define_autos(int aon, int au, int ap);
