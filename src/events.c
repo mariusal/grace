@@ -271,7 +271,9 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 break;
             case DEL_OBJECT:
                 if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
-                    if (yesno("Kill the object?", NULL, NULL, NULL) == TRUE) {
+                    char message[32];
+                    sprintf(message, "Kill the %s?", object_types(type));
+                    if (yesno(message, NULL, NULL, NULL) == TRUE) {
                         kill_object(type, id);
                         xdrawgraph();
                     }
