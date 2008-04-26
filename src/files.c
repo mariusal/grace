@@ -226,7 +226,7 @@ void unregister_real_time_input(const char *name)
 
     nb_rt = 0;
     for (ib = ib_tbl; ib < ib_tbl + ib_tblsize; ib++) {
-        l2 = (ib->name == 0) ? -1 : strlen(ib->name);
+        l2 = (ib->name == NULL) ? -1 : strlen(ib->name);
         if (l1 == l2 && strcmp (name, ib->name) == 0) {
             /* name is usually the same pointer as ib->name so we cannot */
             /* free the string and output the message using name afterwards */
@@ -237,8 +237,9 @@ void unregister_real_time_input(const char *name)
             ib->fd = -1;
             xfree(ib->name);
             ib->name = NULL;
-        } else {
-            /* this descriptor is still in use */
+        } else 
+        if (l2 > 0) {
+            /* this descriptor (if not dummy!) is still in use */
             nb_rt++;
         }
     }
