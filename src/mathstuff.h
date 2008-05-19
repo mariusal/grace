@@ -53,6 +53,8 @@ extern double sqr_wrap(double x);
 extern double yv_wrap(double v, double x);
 extern double sign_wrap(double x);
 
+double voigt(double gamma, double sigma, double x);
+
 /* constants */
 extern double pi_const(void);
 extern double deg_uconst(void);

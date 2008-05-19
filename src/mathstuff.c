@@ -216,3 +216,22 @@ double sign_wrap(double x)
 {
     return (double) sign(x);
 }
+
+
+/* Double-precision wrapper around humlik(), as the rest of funcs in Grace */
+double voigt(double gamma, double sigma, double x)
+{
+    double v, X, Y;
+
+    if (sigma == 0.0) {
+        v = gamma/M_PI/(gamma*gamma + x*x);
+    } else {
+        X = x/sigma*M_SQRT1_2;
+        Y = gamma/sigma*M_SQRT1_2;
+
+        v = humlik(X, Y);
+        v /= sigma*sqrt(2*M_PI);
+    }
+    
+    return v;
+}

@@ -5593,6 +5593,7 @@ symtab_entry ikey[] = {
 	{"VERTO", VERTO, NULL},
 	{"VGAP", VGAP, NULL},
 	{"VIEW", VIEW, NULL},
+	{"VOIGT", FUNC_PPD, (void *) voigt},
 	{"VX1", VX1, NULL},
 	{"VX2", VX2, NULL},
 	{"VXMAX", VXMAX, NULL},

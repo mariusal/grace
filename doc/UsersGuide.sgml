@@ -2269,6 +2269,7 @@ integral     | cumulative sum @
 	si(x)           | sine integral @
 	spence(x)       | dilogarithm @
 	struve(v, x)    | Struve function @
+	voigt(gamma, sigma, x) | Voigt function (convolution of Lorentzian and Gaussian) @
 	yv(v, x)        | Bessel function of order v @
 	zeta(x, q)      | Riemann zeta function of two arguments @
 	zetac(x)        | Riemann zeta function   @
