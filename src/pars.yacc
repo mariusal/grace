@@ -318,6 +318,7 @@ symtab_entry *key;
 %token <ival> LEFT
 %token <ival> LEGEND
 %token <ival> LENGTH
+%token <ival> LINCONV
 %token <ival> LINE
 %token <ival> LINEAR
 %token <ival> LINESTYLE
@@ -3339,6 +3340,9 @@ actions:
  	| XCOR '(' selectset ',' selectset ',' nexpr ',' onoff ')' {
 	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, $7, $9);
 	}
+ 	| LINCONV '(' selectset ',' selectset ')' {
+	    do_linearc($3->gno, $3->setno, $5->gno, $5->setno);
+	}
  	| RESTRICT '(' selectset ',' vexpr ')' {
             int len = getsetlength($3->gno, $3->setno);
             if (len != $5->length) {
@@ -5408,6 +5412,7 @@ symtab_entry ikey[] = {
 	{"LEGEND", LEGEND, NULL},
 	{"LENGTH", LENGTH, NULL},
 	{"LGAMMA", FUNC_D, (void *) lgamma},
+	{"LINCONV", LINCONV, NULL},
 	{"LINE", LINE, NULL},
 	{"LINEAR", LINEAR, NULL},
 	{"LINESTYLE", LINESTYLE, NULL},

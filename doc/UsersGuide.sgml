@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.21)</title>
+<title>Grace User's Guide (for Grace-5.1.22)</title>
 <author>by the Grace Team</author>
-<date>14.02.2007</date>
+<date>20.05.2008</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -2350,6 +2350,10 @@ integral     | cumulative sum @
           calculate cross-correlation (or -covariance if the <it>covar</it> flag is set) of <it>set1</it> with <it>set2</it> with maximum lag <it>maxlag</it>. |
           nexpr <it>maxlag</it>, onoff <it>covar</it> |
           XCOR (S0, S0, 50, OFF) @
+        LINCONV (set1, set2) |
+          calculate linear convolution of the array of ordinates of <it>set1</it> with that of <it>set2</it>. |
+          &nbsp; |
+          LINCONV (S0, S1) @
         RESTRICT (set, restriction) |
           filter <it>set</it> according to logical <it>restriction</it>. The original set will be overwritten |
           vexpr <it>restriction</it> |

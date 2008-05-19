@@ -1881,7 +1881,7 @@ static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data
 	return;
     }
     set_wait_cursor();
-    do_linearc(set1, set2);
+    do_linearc(get_cg(), set1, get_cg(), set2);
     update_set_lists(get_cg());
     xdrawgraph();
     unset_wait_cursor();

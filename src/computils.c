@@ -243,30 +243,30 @@ void do_digfilter(int set1, int set2)
 /*
  * linear convolution
  */
-void do_linearc(int set1, int set2)
+void do_linearc(int gno1, int set1, int gno2, int set2)
 {
-    int linearcset, i, itmp;
+    int linearcset, i, itmp, cg = get_cg();
     double *xtmp;
 
-    if (!(is_set_active(get_cg(), set1) && is_set_active(get_cg(), set2))) {
+    if (!(is_set_active(gno1, set1) && is_set_active(gno2, set2))) {
 	errmsg("Set not active");
 	return;
     }
-    if ((getsetlength(get_cg(), set1) < 3) || (getsetlength(get_cg(), set2) < 3)) {
+    if ((getsetlength(gno1, set1) < 3) || (getsetlength(gno2, set2) < 3)) {
 	errmsg("Set length < 3");
 	return;
     }
-    linearcset = nextset(get_cg());
+    linearcset = nextset(cg);
     if (linearcset != (-1)) {
-	activateset(get_cg(), linearcset);
-	setlength(get_cg(), linearcset, (itmp = getsetlength(get_cg(), set1) + getsetlength(get_cg(), set2) - 1));
-	linearconv(gety(get_cg(), set2), gety(get_cg(), set1), gety(get_cg(), linearcset), getsetlength(get_cg(), set2), getsetlength(get_cg(), set1));
-	xtmp = getx(get_cg(), linearcset);
+	activateset(cg, linearcset);
+	setlength(cg, linearcset, (itmp = getsetlength(gno1, set1) + getsetlength(gno2, set2) - 1));
+	linearconv(gety(gno2, set2), gety(gno1, set1), gety(cg, linearcset), getsetlength(gno2, set2), getsetlength(gno1, set1));
+	xtmp = getx(cg, linearcset);
 	for (i = 0; i < itmp; i++) {
 	    xtmp[i] = i;
 	}
 	sprintf(buf, "Linear convolution of set %d with set %d", set1, set2);
-	setcomment(get_cg(), linearcset, buf);
+	setcomment(cg, linearcset, buf);
     }
 }
 
