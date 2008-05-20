@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.20)
+  <title>Grace FAQ (for Grace-5.1.22)
   <author>by the Grace Team
-  <date>04.06.2006
+  <date>20.05.2008
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -1189,6 +1189,16 @@ XMgrace*background: ...
         A part of them are saved with the project; most of the rest are
         available via command-line options and/or X resources. A more
         homogeneous approach will be implemented in a future version. 
+
+
+    <sect1>In an XY-plot with a huge number of points some regions become
+           straight lines instead of the original curve. When I zoom in to
+           the area the data becomes correctly drawn.
+      <p>
+        
+        Enlarge "Max drawing path length" in Edit/Preferences. Also, consider
+        whether you really need that huge number of points drawn connected
+        by line?
 
 
 <!-- **************************************** -->
