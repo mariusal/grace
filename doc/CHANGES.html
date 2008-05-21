@@ -8,6 +8,24 @@
 <H1>Grace list of changes</H1>
 
 <PRE>
+<H2>5.1.22</H2>
+
+<H3>Interface</H3>
+ *  [DC] mention object type when asking for user's confirmation on delete
+
+<H3>Parser</H3>
+ *  [ES] added "LINCONV(set1, set2)" command - an equivalent of
+         Transformations-&gt;Linear convolution
+ *  [ES] added "VOIGT(gamma, sigma, x)" function (rep. #2144)
+
+<H3>Bug fixes</H3>
+ *  [ES] in the grace_np library GraceClose() could kill all user processes
+         if by that time the Grace subprocess has exited (rep. #2035)
+ *  [ES] certain hand-modified settings in project files might cause the GUI
+         crash (incl. rep. #2139)
+ *  [ES] ungraceful closing of anonymous pipes could result in high CPU load
+
+
 <H2>5.1.21</H2>
 
 <H3>Functionality</H3>
@@ -1519,6 +1537,7 @@
     [TO]  - Tobias Oed &lt;tobias(at-nospam)physics.odu.edu&gt;
     [IG]  - Ionut Georgescu &lt;ionutg(at-nospam)gmail.com&gt;
     [HR]  - Harvey Richardson
+    [DC]  - Dan Connelly &lt;djconnel(at-nospam)ieee.org&gt;
     [ES]  - Evgeny Stambulchik &lt;evgeny(at-nospam)stambulchik.net&gt;
 
     "!" means no documentation provided (yet)
