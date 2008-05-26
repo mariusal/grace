@@ -357,6 +357,10 @@ int store_data(Quark *q, int load_type, int settype)
     int i, j, acol;
     unsigned int coli[MAX_SET_COLS];
     
+    if (load_type == LOAD_BLOCK) {
+        return RETURN_SUCCESS;
+    }
+    
     ncols = ssd_get_ncols(q);
     nrows = ssd_get_nrows(q);
     if (ncols <= 0 || nrows <= 0) {
