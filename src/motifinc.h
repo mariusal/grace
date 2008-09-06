@@ -228,13 +228,19 @@ typedef struct {
 typedef struct {
     Widget frame;
     StorageStructure *ssd_sel;
+    StorageStructure *set_sel;
+} SSDSetStructure;
+
+typedef struct {
+    Widget frame;
+    StorageStructure *ssd_sel;
     ListStructure *col_sel;
 } SSDColStructure;
 
 typedef struct {
     Widget form;
-    GraphSetStructure *src;
-    GraphSetStructure *dest;
+    SSDSetStructure *src;
+    SSDSetStructure *dest;
 } SrcDestStructure;
 
 typedef struct {
@@ -560,6 +566,7 @@ void UpdateSetChoice(StorageStructure *ss);
 Quark *get_set_choice_gr(StorageStructure *ss);
 
 GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type);
+SSDSetStructure *CreateSSDSetSelector(Widget parent, char *s, int sel_type);
 SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type);
 
 ListStructure *CreateColChoice(Widget parent, char *labelstr, int type);

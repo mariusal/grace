@@ -3162,6 +3162,25 @@ GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
 }
 
 
+SSDSetStructure *CreateSSDSetSelector(Widget parent, char *s, int sel_type)
+{
+    SSDSetStructure *retval;
+    Widget rc;
+
+    retval = xmalloc(sizeof(SSDSetStructure));
+    retval->frame = CreateFrame(parent, s);
+    rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, retval->frame, NULL);
+    retval->ssd_sel = CreateSSDChoice(rc, "SSD:", LIST_TYPE_SINGLE);
+    retval->set_sel = CreateSetChoice(rc, "Set:", sel_type, retval->ssd_sel);
+    AddStorageChoiceCB(retval->ssd_sel, update_sets_cb, (void *) retval);
+    UpdateSetChoice(retval->set_sel);
+    retval->set_sel->governor = retval->ssd_sel;
+    XtManageChild(rc);
+
+    return retval;
+}
+
+
 
 ListStructure *CreateColChoice(Widget parent, char *labelstr, int type)
 {
@@ -3253,8 +3272,8 @@ SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
         xmFormWidgetClass, parent,
         XmNfractionBase, 2,
         NULL);
-    retval->src  = CreateGraphSetSelector(retval->form, "Source", sel_type);
-    retval->dest = CreateGraphSetSelector(retval->form, "Destination", sel_type);
+    retval->src  = CreateSSDSetSelector(retval->form, "Source", sel_type);
+    retval->dest = CreateSSDSetSelector(retval->form, "Destination", sel_type);
     XtVaSetValues(retval->src->frame,
         XmNtopAttachment, XmATTACH_FORM,
         XmNbottomAttachment, XmATTACH_FORM,
@@ -3826,7 +3845,7 @@ WidgetList CreateAACDialog(Widget form,
 int td_cb(void *data)
 {
     int res, i, nssrc, error;
-    Quark **srcsets, **destsets, *destgr;
+    Quark **srcsets, **destsets;
     TransformStructure *tdialog = (TransformStructure *) data;
     void *tddata;
 
@@ -3836,23 +3855,25 @@ int td_cb(void *data)
         return RETURN_FAILURE;
     }
     
-    tddata = tdialog->get_cb(tdialog->gui);
-    if (!tddata) {
-        return RETURN_FAILURE;
-    }
-    
     error = FALSE;
     
-    for (i = 0; i < nssrc; i++) {
-	Quark *psrc, *pdest;
-        psrc  = srcsets[i];
-	pdest = destsets[i];
+    tddata = tdialog->get_cb(tdialog->gui);
+    if (!tddata) {
+        error = TRUE;
+    }
+    
+    if (!error) {
+        for (i = 0; i < nssrc; i++) {
+	    Quark *psrc, *pdest;
+            psrc  = srcsets[i];
+	    pdest = destsets[i];
 
-        res = tdialog->run_cb(psrc, pdest, tddata);
-	if (res != RETURN_SUCCESS) {
-	    error = TRUE;
-	    break;
-	}
+            res = tdialog->run_cb(psrc, pdest, tddata);
+	    if (res != RETURN_SUCCESS) {
+	        error = TRUE;
+	        break;
+	    }
+        }
     }
     
     if (nssrc > 0) {
@@ -3860,11 +3881,11 @@ int td_cb(void *data)
         xfree(destsets);
     }
     
-    tdialog->free_cb(tddata);
+    if (tddata) {
+        tdialog->free_cb(tddata);
+    }
 
-    GetSingleStorageChoice(tdialog->srcdest->dest->graph_sel, &destgr);
-
-    update_set_lists(destgr);
+    snapshot_and_update(gapp->gp, TRUE);
     
     if (error == FALSE) {
         return RETURN_SUCCESS;
@@ -3920,6 +3941,13 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
         int *nssrc, Quark ***srcsets, Quark ***destsets)
 {
     int i, nsdest;
+    Quark *srcssd, *destssd;
+    
+    if (GetSingleStorageChoice(tdialog->srcdest->src->ssd_sel, &srcssd)
+        != RETURN_SUCCESS) {
+        errmsg("No source SSD selected");
+	return RETURN_FAILURE;
+    }
     
     *nssrc = GetStorageChoices(tdialog->srcdest->src->set_sel, srcsets);
     if (*nssrc == 0) {
@@ -3935,41 +3963,42 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
 	return RETURN_FAILURE;
     }
     
-    /* check for mutually exclusive selections */
-    if (tdialog->exclusive && nsdest != 0) {
-        for (i = 0; i < *nssrc; i++) {
-            if ((*srcsets)[i] == (*destsets)[i]) {
-                xfree(*srcsets);
-                xfree(*destsets);
-                errmsg("Source and destination set(s) are not mutually exclusive");
-	        return RETURN_FAILURE;
-            }
-        }
-    }
-    
-    if (nsdest == 0) {
-        Quark *destgr;
-        if (GetSingleStorageChoice(tdialog->srcdest->dest->graph_sel, &destgr)
-            != RETURN_SUCCESS) {
+    if (GetSingleStorageChoice(tdialog->srcdest->dest->ssd_sel, &destssd)
+        != RETURN_SUCCESS) {
+        destssd = gapp_ssd_new(quark_parent_get(srcssd));
+        if (!destssd) {
             xfree(*srcsets);
-            errmsg("No destination graph selected");
+            errmsg("Cannot create new SSD");
 	    return RETURN_FAILURE;
         }
-        
+    } else {
+        /* check for mutually exclusive selections */
+        if (tdialog->exclusive && destssd == srcssd) {
+            xfree(*srcsets);
+            if (nsdest) {
+                xfree(*destsets);
+            }
+            errmsg("Source and destination SSD's are the same");
+	    return RETURN_FAILURE;
+        }
+    }
+
+    if (nsdest == 0) {
         *destsets = xmalloc((*nssrc)*sizeof(Quark *));
         for (i = 0; i < *nssrc; i++) {
-            Quark *ssd = gapp_ssd_new(destgr);
-            int fformats[] = {FFORMAT_NUMBER, FFORMAT_NUMBER};
-            if (ssd && ssd_set_ncols(ssd, 2, fformats) == RETURN_SUCCESS) {
+            if (ssd_add_col(destssd, FFORMAT_NUMBER) &&
+                ssd_add_col(destssd, FFORMAT_NUMBER)) {
                 Dataset *dsp;
-                (*destsets)[i] = gapp_set_new(ssd);
+                (*destsets)[i] = gapp_set_new(destssd);
                 dsp = set_get_dataset((*destsets)[i]);
-                dsp->cols[0] = 0;
-                dsp->cols[1] = 1;
+                dsp->cols[0] = ssd_get_ncols(destssd) - 2;
+                dsp->cols[1] = ssd_get_ncols(destssd) - 1;
             }
         }
         
-        update_set_selectors(destgr);
+        update_ssd_selectors(gproject_get_top(gapp->gp));
+        
+        SelectStorageChoice(tdialog->srcdest->dest->ssd_sel, destssd);
         SelectStorageChoices(tdialog->srcdest->dest->set_sel, *nssrc, *destsets);
     }
     
