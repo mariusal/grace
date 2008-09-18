@@ -332,16 +332,16 @@ then
 
     dnl **** some arch-specific optimizations/settings for gcc
     case "${host}" in
-      i486-*) CPU_FLAGS="-m486";;
+      i486-*) CPU_FLAGS="-march=i486";;
       i586-*) ACX_CHECK_CC_FLAGS(-mcpu=pentium,cpu_pentium,
                  [CPU_FLAGS=-mcpu=pentium],
                  [ACX_CHECK_CC_FLAGS(-mpentium,pentium,
-                         [CPU_FLAGS=-mpentium], [CPU_FLAGS=-m486])])
+                         [CPU_FLAGS=-mpentium], [CPU_FLAGS=-march=i486])])
               ;;
       i686-*) ACX_CHECK_CC_FLAGS(-mcpu=pentiumpro,cpu_pentiumpro,
                  [CPU_FLAGS=-mcpu=pentiumpro],
                  [ACX_CHECK_CC_FLAGS(-mpentiumpro,pentiumpro,
-                         [CPU_FLAGS=-mpentiumpro], [CPU_FLAGS=-m486])])
+                         [CPU_FLAGS=-mpentiumpro], [CPU_FLAGS=-march=i486])])
               ;;
     esac
 
