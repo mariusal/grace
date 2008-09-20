@@ -22,4 +22,5 @@ src/buildinfo.h
 src/grace
 src/pars.c
 src/tags
+autom4te.cache/
 
