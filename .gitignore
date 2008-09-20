@@ -17,9 +17,14 @@ lib/graal/parser.h
 lib/graal/scanner.c
 lib/graal/scanner.h
 lib/grace/xml_in.c
+lib/qtgrace/Make.qt
+lib/qtgrace/moc_mainwindow.cpp
+lib/qtgrace/ui_mainwindow.h
 src/buildinfo
 src/buildinfo.h
 src/grace
+src/xmgrace
+src/qtgrace
 src/pars.c
 src/tags
 autom4te.cache/
