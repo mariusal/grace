@@ -48,6 +48,10 @@
 
 #include "xprotos.h"
 
+#ifdef QT_GUI
+#include "../lib/qtgrace/qtgrace.h"
+#endif
+
 
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
@@ -460,6 +464,13 @@ int main(int argc, char *argv[])
             startup_gui(gapp);
         }
 #else
+#ifdef QT_GUI
+        if (cli == TRUE) {
+            cli_loop(gapp);
+        } else {
+            startup_qt_gui(gapp);
+        }
+#endif
         cli_loop(gapp);
 #endif        
     }

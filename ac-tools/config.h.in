@@ -376,6 +376,9 @@
 #  define NONE_GUI
 #endif
 
+/* Define if you use Qt GUI  */
+#undef QT_GUI
+
 /* Define if the GSL library is available*/
 #undef HAVE_GSL
 

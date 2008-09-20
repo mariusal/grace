@@ -21,7 +21,7 @@ CFLAGS=$(CFLAGS0) -I$(TOP)/include -I. \
 
 LIBS=$(GUI_LIBS) \
 	$(GRACE_LIB) $(EXPAT_LIB) $(GRACE_PLOT_LIB) $(GRACE_GRAAL_LIB) \
-	$(GRACE_CORE_LIB) $(GRACE_CANVAS_LIB) $(T1_LIB) $(XMI_LIB) \
+	$(GRACE_CORE_LIB) $(GRACE_CANVAS_LIB) $(GRACE_QT_LIB) $(T1_LIB) $(XMI_LIB) \
 	$(PDF_LIB) $(JPEG_LIB) $(PNG_LIB) $(Z_LIB) \
 	$(GRACE_BASE_LIB) $(UNDO_LIB) \
 	$(GSL_LIBS) $(NETCDF_LIBS) $(FFTW_LIB) $(CUPS_LIBS) \
@@ -47,6 +47,10 @@ Make.dep : $(GRSRCS) $(GUISRCS) $(PARS_C)
 	echo "# Generated automatically by \`make depend'" > $@
 	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) \
 		| sed 's/\.o:/\$$(O)\ :/g' >> $@
+
+qtgrace$(EXE) : $(GROBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) $(GRACE_CORE_LIB) \
+	$(GRACE_GRAAL_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB) $(GRACE_QT_LIB)
+	$(CC) $(CFLAGS) $(GROBJS) -o $@ $(LDFLAGS) $(LIBS)
 
 xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) \
 	$(GRACE_GRAAL_LIB) $(GRACE_CORE_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB)

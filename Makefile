@@ -31,7 +31,7 @@ distclean : clean
 	$(RM) auxiliary/convcal doc/FAQ.html doc/FAQ.pdf doc/UsersGuide.html doc/UsersGuide.pdf
 	$(RM) grconvert/grconvert lib/base/Make.dep lib/canvas/Make.dep lib/core/Make.dep lib/graal/Make.dep
 	$(RM) lib/graal/parser.c lib/graal/parser.h lib/graal/scanner.c lib/graal/scanner.h lib/grace/Make.dep
-	$(RM) lib/grace/xml_in.c lib/plot/Make.dep src/Make.dep src/pars.c src/xmgrace
+	$(RM) lib/grace/xml_in.c lib/plot/Make.dep src/Make.dep src/pars.c src/xmgrace src/qtgrace
 	$(RM) -r autom4te.cache
 
 devclean : distclean

@@ -1,0 +1,172 @@
+<ui version="4.0" >
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget" >
+   <property name="geometry" >
+    <rect>
+     <x>36</x>
+     <y>23</y>
+     <width>764</width>
+     <height>557</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QMenuBar" name="menubar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File" >
+    <property name="title" >
+     <string>&amp;File</string>
+    </property>
+    <addaction name="actionNew" />
+    <addaction name="actionOpen" />
+    <addaction name="actionSave" />
+    <addaction name="actionSaveAs" />
+    <addaction name="actionRevertToSaved" />
+    <addaction name="separator" />
+    <addaction name="actionPrintSetup" />
+    <addaction name="actionPrint" />
+    <addaction name="separator" />
+    <addaction name="actionExit" />
+   </widget>
+   <widget class="QMenu" name="menu_Edit" >
+    <property name="title" >
+     <string>&amp;Edit</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_Data" >
+    <property name="title" >
+     <string>&amp;Data</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_View" >
+    <property name="title" >
+     <string>&amp;View</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_Tools" >
+    <property name="title" >
+     <string>&amp;Tools</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_Help" >
+    <property name="title" >
+     <string>&amp;Help</string>
+    </property>
+   </widget>
+   <addaction name="menu_File" />
+   <addaction name="menu_Edit" />
+   <addaction name="menu_Data" />
+   <addaction name="menu_View" />
+   <addaction name="menu_Tools" />
+   <addaction name="menu_Help" />
+  </widget>
+  <widget class="QStatusBar" name="statusbar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>580</y>
+     <width>800</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QToolBar" name="toolBar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>23</y>
+     <width>36</width>
+     <height>557</height>
+    </rect>
+   </property>
+   <property name="windowTitle" >
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea" >
+    <enum>LeftToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak" >
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionExit" />
+  </widget>
+  <action name="actionNew" >
+   <property name="text" >
+    <string>&amp;New</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionOpen" >
+   <property name="text" >
+    <string>&amp;Open...</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSave" >
+   <property name="text" >
+    <string>&amp;Save</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSaveAs" >
+   <property name="text" >
+    <string>S&amp;ave as...</string>
+   </property>
+  </action>
+  <action name="actionRevertToSaved" >
+   <property name="text" >
+    <string>Re&amp;vert to saved</string>
+   </property>
+  </action>
+  <action name="actionPrintSetup" >
+   <property name="text" >
+    <string>Prin&amp;t setup...</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionPrint" >
+   <property name="text" >
+    <string>&amp;Print</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+Alt+P</string>
+   </property>
+  </action>
+  <action name="actionExit" >
+   <property name="text" >
+    <string>E&amp;xit</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
