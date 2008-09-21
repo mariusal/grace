@@ -1,7 +1,7 @@
 TEMPLATE = lib
 CONFIG -= moc
 CONFIG += staticlib
-INCLUDEPATH += . ../../src/
+INCLUDEPATH += . ../../src/ ../../include
 
 # Input
 FORMS += mainwindow.ui

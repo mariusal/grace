@@ -246,7 +246,7 @@ static void eval_proc(GVarType type, GVarData vardata, void *udata)
         stufftext(buf);
         break;
     case GVarBool:
-        stufftext(vardata.bool ? "true":"false");
+        stufftext(vardata.boolval ? "true":"false");
         stufftext("\n");
         break;
     case GVarArr:

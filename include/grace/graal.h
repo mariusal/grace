@@ -47,7 +47,7 @@ typedef enum {
 
 typedef union {
     double  num;
-    double  bool;
+    double  boolval;
     DArray *arr;
     char   *str;
 } GVarData;

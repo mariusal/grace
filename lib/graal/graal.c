@@ -158,7 +158,7 @@ int gvar_set_num(GVar *var, double value)
 int gvar_get_bool(GVar *var, int *value)
 {
     if (var && var->type == GVarBool) {
-        *value = var->data.bool;
+        *value = var->data.boolval;
         return RETURN_SUCCESS;
     } else {
         *value = FALSE;
@@ -170,7 +170,7 @@ int gvar_set_bool(GVar *var, int value)
 {
     if (var && (var->type == GVarNil || var->type == GVarBool)) {
         var->type = GVarBool;
-        var->data.bool = value ? TRUE:FALSE;
+        var->data.boolval = value ? TRUE:FALSE;
         return RETURN_SUCCESS;
     } else
     if (var->type == GVarArr) {

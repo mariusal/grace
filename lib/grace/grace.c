@@ -60,7 +60,7 @@ static GVarType get_proc(const void *obj,
         return GVarStr;
     } else
     if (strings_are_equal(name, "active")) {
-        prop->bool = quark_is_active(q);
+        prop->boolval = quark_is_active(q);
         return GVarBool;
     }
     
@@ -115,7 +115,7 @@ static int set_proc(void *obj,
         return quark_idstr_set(q, prop.str);
     } else
     if (strings_are_equal(name, "active") && type == GVarBool) {
-        return quark_set_active(q, prop.bool);
+        return quark_set_active(q, prop.boolval);
     }
 
     switch (quark_fid_get(q)) {

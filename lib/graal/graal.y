@@ -268,7 +268,7 @@ line:	/* empty */
 	|   object '.' TOK_NAME '=' bexpr {
                 Graal *g = yyget_extra(scanner);
                 GVarData prop;
-                prop.bool = $5;
+                prop.boolval = $5;
                 if (graal_set_user_obj_prop(g, $1, $3, GVarBool, prop) !=
                     RETURN_SUCCESS) {
 	            yyerror("assignment failed");
@@ -303,7 +303,7 @@ line:	/* empty */
             }
 	|   eval_anon bexpr {
                 GVarData vardata;
-                vardata.bool = $2;
+                vardata.boolval = $2;
                 graal_call_eval_proc(yyget_extra(scanner), GVarBool, vardata);
             }
 	|   eval_anon vexpr {

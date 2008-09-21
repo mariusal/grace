@@ -109,7 +109,7 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
                         return TOK_PROP_NUM;
                         break;
                     case GVarBool:
-                        yylval->ival = prop.bool;
+                        yylval->ival = prop.boolval;
                         return TOK_PROP_BOOL;
                         break;
                     case GVarArr:

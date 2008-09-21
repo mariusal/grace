@@ -14,7 +14,7 @@ int main_cpp(int argc, char *argv[])
   return app.exec();
 }
 
-void startup_qt_gui()
+void startup_qt_gui(GraceApp *gapp)
 {
   char *ch[8] = {"qtgrace"};
   main_cpp(1, ch);

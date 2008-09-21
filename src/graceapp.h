@@ -216,7 +216,7 @@ char *gapp_exe_path(GraceApp *gapp, const char *fn);
 FILE *gapp_openw(GraceApp *gapp, const char *fn);
 FILE *gapp_openr(GraceApp *gapp, const char *fn, int src);
 void gapp_close(FILE *fp);
-FILE *gapp_tmpfile(char *template);
+FILE *gapp_tmpfile(char *templateval);
 
 int gapp_init_print(RunTime *rt);
 

@@ -713,21 +713,21 @@ void gapp_close(FILE *fp)
     }
 }
 
-FILE *gapp_tmpfile(char *template)
+FILE *gapp_tmpfile(char *templateval)
 {
     FILE *fp;
 #if defined(HAVE_MKSTEMP) && defined(HAVE_FDOPEN)
     int fd;
     
-    fd = mkstemp(template);
+    fd = mkstemp(templateval);
     if (fd < 0) {
         fp = NULL;
     } else {
         fp = fdopen(fd, "wb");
     }
 #else
-    tmpnam(template);
-    fp = fopen(template, "wb");
+    tmpnam(templateval);
+    fp = fopen(templateval, "wb");
 #endif
 
     if (!fp) {
