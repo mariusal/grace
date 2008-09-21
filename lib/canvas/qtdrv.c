@@ -1,0 +1,86 @@
+/*
+ * Grace - GRaphing, Advanced Computation and Exploration of data
+ * 
+ * Home page: http://plasma-gate.weizmann.ac.il/Grace/
+ * 
+ * Copyright (c) 1996-2008 Grace Development Team
+ * 
+ * Maintained by Evgeny Stambulchik
+ * 
+ * 
+ *                           All Rights Reserved
+ * 
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+/*
+ * Qt driver
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+ 
+#define CANVAS_BACKEND_API
+#include "grace/canvas.h"
+
+static int qt_initgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
+{
+    return RETURN_SUCCESS;
+}
+
+static void qt_drawpixel(const Canvas *canvas, void *data,
+    const VPoint *vp){}
+static void qt_drawpolyline(const Canvas *canvas, void *data,
+    const VPoint *vps, int n, int mode){}
+static void qt_fillpolygon(const Canvas *canvas, void *data,
+    const VPoint *vps, int nc){}
+static void qt_drawarc(const Canvas *canvas, void *data,
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2){}
+static void qt_fillarc(const Canvas *canvas, void *data,
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode){}
+void qt_putpixmap(const Canvas *canvas, void *data,
+    const VPoint *vp, const CPixmap *pm){}
+static void qt_puttext(const Canvas *canvas, void *data,
+    const VPoint *vp, const char *s, int len, int font,
+    const TextMatrix *tm, int underline, int overline, int kerning){}
+
+static void qt_leavegraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats){}
+
+int register_qt_drv(Canvas *canvas)
+{
+    Device_entry *d;
+
+    d = device_new("Qt", DEVICE_TERM, FALSE, NULL, NULL);
+    if (!d) {
+        return -1;
+    }
+    
+    device_set_procs(d,
+        qt_initgraphics,
+        qt_leavegraphics,
+        NULL,
+        NULL,
+        qt_drawpixel,
+        qt_drawpolyline,
+        qt_fillpolygon,
+        qt_drawarc,
+        qt_fillarc,
+        qt_putpixmap,
+        qt_puttext);
+    
+    return register_device(canvas, d);
+}

@@ -776,6 +776,9 @@ typedef struct {
 /* Dummy/NULL driver */
 int register_dummy_drv(Canvas *canvas);
 
+/* Qt driver */
+int register_qt_drv(Canvas *canvas);
+
 /* Grace Metafile driver */
 int register_mf_drv(Canvas *canvas);
 

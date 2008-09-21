@@ -143,7 +143,11 @@ int main(int argc, char *argv[])
     
     }
 #else
+#ifdef QT_GUI
+    rt->tdevice = register_qt_drv(canvas);
+#else
     rt->tdevice = register_dummy_drv(canvas);
+#endif
 #endif
 
     rt->hdevice = register_ps_drv(canvas);
@@ -470,8 +474,9 @@ int main(int argc, char *argv[])
         } else {
             startup_qt_gui(gapp);
         }
-#endif
+#else
         cli_loop(gapp);
+#endif
 #endif        
     }
     /* never reaches */

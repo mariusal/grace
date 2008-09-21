@@ -7,6 +7,7 @@ LIB  = $(GRACE_CANVAS_LIB)
 
 SRCS = draw.c t1fonts.c device.c xrstdrv.c \
 	dummydrv.c \
+	qtdrv.c \
 	mfdrv.c \
 	psdrv.c \
 	pdfdrv.c \
@@ -18,6 +19,7 @@ SRCS = draw.c t1fonts.c device.c xrstdrv.c \
 
 OBJS = draw$(O) t1fonts$(O) device$(O) xrstdrv$(O) \
 	dummydrv$(O) \
+	qtdrv$(O) \
 	mfdrv$(O) \
 	psdrv$(O) \
 	pdfdrv$(O) \
