@@ -9,6 +9,9 @@ class MainWindow : public QMainWindow
 public:
    MainWindow(QMainWindow *parent = 0);
 
+private slots:
+  void on_actionExit_triggered();
+
 private:
    Ui::MainWindow ui;
 };
