@@ -1,8 +1,14 @@
+#include <QPainter>
+#include <QFont>
+
 #include "mainwindow.h"
+
+#include "canvaswidget.h"
 
 MainWindow::MainWindow(QMainWindow *parent) : QMainWindow(parent)
 {
-   ui.setupUi(this);
+  ui.setupUi(this);
+  new CanvasWidget(ui.canvasFrame);
 }
 
 void MainWindow::on_actionExit_triggered()

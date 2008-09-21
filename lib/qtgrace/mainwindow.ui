@@ -23,7 +23,14 @@
    </property>
    <layout class="QGridLayout" name="gridLayout" >
     <item row="0" column="0" >
-     <widget class="QWidget" native="1" name="canvasWidget" />
+     <widget class="QFrame" name="canvasFrame" >
+      <property name="frameShape" >
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow" >
+       <enum>QFrame::Sunken</enum>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
