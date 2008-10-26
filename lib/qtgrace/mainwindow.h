@@ -1,8 +1,14 @@
+#ifndef __MAINWINDOW_H_
+#define __MAINWINDOW_H_
+
 #include <QMainWindow>
 
 #include "ui_mainwindow.h"
+#include "canvaswidget.h"
 
-#include "grace/grace.h"
+extern "C" {
+#include <grace/grace.h>
+}
 
 class MainWindow : public QMainWindow
 {
@@ -10,12 +16,35 @@ class MainWindow : public QMainWindow
 
 public:
   MainWindow(QMainWindow *parent = 0);
-  void drawGraph(const GProject *gp);
+  ~MainWindow();
+
+protected:
+  void closeEvent(QCloseEvent*);
 
 private slots:
   void on_actionExit_triggered();
+  void on_actionOpen_triggered();
+  void readSettings();
+  void writeSettings();
+  bool maybeSave();
+  void loadFile(const QString &fileName);
 
 private:
-   Ui::MainWindow ui;
+  void setCurrentFile(const QString &fileName);
+  QString strippedName(const QString &fullFileName);
+
+  Ui::MainWindow ui;
+  CanvasWidget *canvasWidget;
+  
+  Grace *grace;
+  Canvas *canvas;
+  GProject *gp;
+  //int hdevice;
+  GrFILE *grf;
+  //FILE *fpout; 
+
+  QString curFile;
 };
+
+#endif /* __MAINWINDOW_H_ */
 

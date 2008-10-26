@@ -12,5 +12,6 @@ HEADERS += qtgrace.h \
 
 SOURCES += qtgrace.cpp \
 	   mainwindow.cpp \
-	   canvaswidget.cpp
+	   canvaswidget.cpp \
+	   qtdrv.cpp
 

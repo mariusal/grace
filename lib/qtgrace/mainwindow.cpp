@@ -2,13 +2,35 @@
 #include <QFont>
 
 #include "mainwindow.h"
-
-#include "canvaswidget.h"
+#include <QCloseEvent>
+#include <QFileDialog>
+#include <QSettings>
+#include <QMessageBox>
+#include <QTextStream>
 
 MainWindow::MainWindow(QMainWindow *parent) : QMainWindow(parent)
 {
   ui.setupUi(this);
-  new CanvasWidget(ui.canvasFrame);
+  canvasWidget = new CanvasWidget(ui.canvasFrame);
+
+  readSettings();
+
+  setCurrentFile("");
+}
+
+MainWindow::~MainWindow()
+{
+  delete canvasWidget;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+  if (maybeSave()) {
+    writeSettings();
+    event->accept();
+  } else {
+    event->ignore();
+  }
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -16,51 +38,132 @@ void MainWindow::on_actionExit_triggered()
   close();
 }
 
-void MainWindow::drawGraph(const GProject *gp)
+void MainWindow::on_actionOpen_triggered()
 {
-/*    Quark *project = gproject_get_top(gp);
-    GraceApp *gapp = gapp_from_quark(project);
-    
-    if (gapp && gapp->gui->inwin) {
-        X11Stuff *xstuff = gapp->gui->xstuff;
-        Quark *gr = graph_get_current(project);
-        Device_entry *d = get_device_props(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
-        Page_geometry *pg = &d->pg;
-        float dpi = gapp->gui->zoom*xstuff->dpi;
-        X11stream xstream;
-        
-        set_wait_cursor();
-
-        if (dpi != pg->dpi) {
-            int wpp, hpp;
-            project_get_page_dimensions(project, &wpp, &hpp);
-
-            pg->width  = (unsigned long) (wpp*dpi/72);
-            pg->height = (unsigned long) (hpp*dpi/72);
-            pg->dpi = dpi;
-        }
-        
-        resize_drawables(pg->width, pg->height);
-        
-        xdrawgrid(xstuff);
-        
-        xstream.screen = DefaultScreenOfDisplay(xstuff->disp);
-        xstream.pixmap = xstuff->bufpixmap;
-        canvas_set_prstream(grace_get_canvas(gapp->grace), &xstream);
-
-        select_device(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
-	gproject_render(gp);
-
-        if (quark_is_active(gr)) {
-            draw_focus(gr);
-        }
-        reset_crosshair(gapp->gui, FALSE);
-        region_need_erasing = FALSE;
-
-        x11_redraw(xstuff->xwin, 0, 0, xstuff->win_w, xstuff->win_h);
-
-        XFlush(xstuff->disp);
-
-	unset_wait_cursor();
-    }*/
+  if (maybeSave()) {
+    QString fileName = QFileDialog::getOpenFileName(this);
+    if (!fileName.isEmpty())
+      loadFile(fileName);
+  }
 }
+
+void MainWindow::readSettings()
+{
+  QSettings settings("Grace Project", "Grace");
+  QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
+  QSize size = settings.value("size", QSize(400, 400)).toSize();
+  resize(size);
+  move(pos);
+}
+
+void MainWindow::writeSettings()
+{
+  QSettings settings("Grace Project", "Grace");
+  settings.setValue("pos", pos());
+  settings.setValue("size", size());
+}
+
+bool MainWindow::maybeSave()
+{
+  //if (textEdit->document()->isModified()) {
+  if (false) {
+    QMessageBox::StandardButton ret;
+    ret = QMessageBox::warning(this, tr("Grace"),
+	tr("The document has been modified.\n"
+	  "Do you want to save your changes?"),
+	QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    if (ret == QMessageBox::Save)
+      //return save();
+      return true;
+    else if (ret == QMessageBox::Cancel)
+      return false;
+  }
+  return true;
+}
+
+void MainWindow::loadFile(const QString &fileName)
+{
+/*  QFile file(fileName);
+  if (!file.open(QFile::ReadOnly | QFile::Text)) {
+    QMessageBox::warning(this, tr("Grace"),
+	tr("Cannot read file %1:\n%2.")
+	.arg(fileName)
+	.arg(file.errorString()));
+    return;
+  }*/
+
+  /* Allocate Grace object */
+  grace = grace_new("/usr/local/grace");
+  if (!grace) {
+    exit(1);
+  } 
+
+  QByteArray bytes = fileName.toAscii();
+  const char *ptr = bytes.data();
+
+  /* Open input stream from a project file */
+  grf = grfile_openr(ptr);
+  if (!grf) {
+    errmsg("Can't open input for reading");
+    exit(1);
+  }
+
+  /* Parse & load the project */
+  gp = gproject_load(grace, grf, AMEM_MODEL_SIMPLE);
+  if (!gp) {
+    errmsg("Failed parsing project");
+    exit(1);
+  }
+
+  /* Free the stream */
+  grfile_free(grf); 
+
+  /* Sync device dimensions with the plot page size */
+  grace_sync_canvas_devices(gp);
+
+  /* Assign the output stream */
+//  canvas_set_prstream(canvas, fpout);
+
+  /* Switch to the hardcopy device */
+//  select_device(canvas, hdevice);
+
+  /* Do the actual rendering */
+//  gproject_render(gp);
+
+  /* Free the GProject object */
+//  gproject_free(gp);
+
+  /* Free the Grace object (or, it could be re-used for other projects) */
+//  grace_free(grace);
+
+//  exit(0); 
+
+  //QTextStream in(&file);
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  //textEdit->setPlainText(in.readAll());
+  QApplication::restoreOverrideCursor();
+
+  setCurrentFile(fileName);
+  statusBar()->showMessage(tr("File loaded"), 2000);
+}
+
+void MainWindow::setCurrentFile(const QString &fileName)
+{
+  curFile = fileName;
+  //textEdit->document()->setModified(false);
+  setWindowModified(false);
+
+  QString shownName;
+  if (curFile.isEmpty())
+    shownName = "untitled.txt";
+  else
+    shownName = strippedName(curFile);
+
+  setWindowTitle(tr("%1[*] - %2").arg(shownName).arg(tr("Grace")));
+}
+
+QString MainWindow::strippedName(const QString &fullFileName)
+{
+  return QFileInfo(fullFileName).fileName();
+}
+

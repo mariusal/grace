@@ -33,7 +33,12 @@
 #include <stdlib.h>
  
 #define CANVAS_BACKEND_API
-#include "grace/canvas.h"
+extern "C" {
+  #include "grace/canvas.h"
+}
+
+#include <QPicture>
+#include <QPainter>
 
 static int qt_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
@@ -44,7 +49,20 @@ static int qt_initgraphics(const Canvas *canvas, void *data,
 static void qt_drawpixel(const Canvas *canvas, void *data,
     const VPoint *vp){}
 static void qt_drawpolyline(const Canvas *canvas, void *data,
-    const VPoint *vps, int n, int mode){}
+    const VPoint *vps, int n, int mode)
+{
+  QPicture *qtstream = (QPicture *) canvas_get_prstream(canvas);
+
+  static const QPointF points[3] = {
+    QPointF(10.0, 80.0),
+    QPointF(20.0, 10.0),
+    QPointF(80.0, 30.0),
+  };
+
+  QPainter painter(qtstream);
+  painter.drawPolyline(points, 3);
+}
+
 static void qt_fillpolygon(const Canvas *canvas, void *data,
     const VPoint *vps, int nc){}
 static void qt_drawarc(const Canvas *canvas, void *data,
