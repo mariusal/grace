@@ -51,12 +51,13 @@ static void qt_drawpixel(const Canvas *canvas, void *data,
 static void qt_drawpolyline(const Canvas *canvas, void *data,
     const VPoint *vps, int n, int mode)
 {
+    errmsg("draw polyline qt drv");
   QPicture *qtstream = (QPicture *) canvas_get_prstream(canvas);
 
   static const QPointF points[3] = {
     QPointF(10.0, 80.0),
     QPointF(20.0, 10.0),
-    QPointF(80.0, 30.0),
+    QPointF(380.0, 30.0),
   };
 
   QPainter painter(qtstream);
@@ -100,5 +101,6 @@ int register_qt_drv(Canvas *canvas)
         qt_putpixmap,
         qt_puttext);
     
+    errmsg("register qt drv");
     return register_device(canvas, d);
 }

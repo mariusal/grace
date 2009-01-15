@@ -3,7 +3,6 @@
 
 #include "canvaswidget.h"
 #include <stdio.h>
-#include <grace/grace.h> 
 
 CanvasWidget::CanvasWidget(QWidget *parent) : QWidget(parent)
 {
@@ -28,5 +27,18 @@ void CanvasWidget::paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
   qtstream.play(&painter);
+}
+
+void CanvasWidget::draw(Grace *grace, GProject *gp)
+{
+  printf("draw\n");
+
+  canvas_set_prstream(grace_get_canvas(grace), &qtstream);
+  select_device(grace_get_canvas(grace), register_qt_drv(grace_get_canvas(grace)));
+  gproject_render(gp);
+  
+  printf("draw2\n");
+  repaint();
+  printf("draw3\n");
 }
 

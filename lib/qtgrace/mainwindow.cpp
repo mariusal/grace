@@ -93,7 +93,7 @@ void MainWindow::loadFile(const QString &fileName)
   }*/
 
   /* Allocate Grace object */
-  grace = grace_new("/usr/local/grace");
+  grace = grace_new("");
   if (!grace) {
     exit(1);
   } 
@@ -122,7 +122,9 @@ void MainWindow::loadFile(const QString &fileName)
   grace_sync_canvas_devices(gp);
 
   /* Assign the output stream */
-//  canvas_set_prstream(canvas, fpout);
+  //canvas_set_prstream(grace_get_canvas(gapp->grace), &xstream);
+  //canvas_set_prstream(grace_get_canvas(grace), fpout);
+  canvasWidget->draw(grace, gp);
 
   /* Switch to the hardcopy device */
 //  select_device(canvas, hdevice);
