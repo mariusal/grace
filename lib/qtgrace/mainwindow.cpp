@@ -11,7 +11,7 @@
 MainWindow::MainWindow(QMainWindow *parent) : QMainWindow(parent)
 {
   ui.setupUi(this);
-  canvasWidget = new CanvasWidget(ui.canvasFrame);
+  canvasWidget = ui.widget;
 
   readSettings();
 
@@ -20,7 +20,6 @@ MainWindow::MainWindow(QMainWindow *parent) : QMainWindow(parent)
 
 MainWindow::~MainWindow()
 {
-  delete canvasWidget;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

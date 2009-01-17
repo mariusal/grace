@@ -38,7 +38,7 @@ void CanvasWidget::draw(Grace *grace, GProject *gp)
   gproject_render(gp);
   
   printf("draw2\n");
-  repaint();
+  update();
   printf("draw3\n");
 }
 
