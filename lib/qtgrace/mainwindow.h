@@ -6,10 +6,6 @@
 #include "ui_mainwindow.h"
 #include "canvaswidget.h"
 
-extern "C" {
-#include <grace/grace.h>
-}
-
 class MainWindow : public QMainWindow
 {
    Q_OBJECT
@@ -36,13 +32,6 @@ private:
   Ui::MainWindow ui;
   CanvasWidget *canvasWidget;
   
-  Grace *grace;
-  Canvas *canvas;
-  GProject *gp;
-  //int hdevice;
-  GrFILE *grf;
-  //FILE *fpout; 
-
   QString curFile;
 };
 

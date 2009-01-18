@@ -91,53 +91,7 @@ void MainWindow::loadFile(const QString &fileName)
     return;
   }*/
 
-  /* Allocate Grace object */
-  grace = grace_new("");
-  if (!grace) {
-    exit(1);
-  } 
-
-  QByteArray bytes = fileName.toAscii();
-  const char *ptr = bytes.data();
-
-  /* Open input stream from a project file */
-  grf = grfile_openr(ptr);
-  if (!grf) {
-    errmsg("Can't open input for reading");
-    exit(1);
-  }
-
-  /* Parse & load the project */
-  gp = gproject_load(grace, grf, AMEM_MODEL_SIMPLE);
-  if (!gp) {
-    errmsg("Failed parsing project");
-    exit(1);
-  }
-
-  /* Free the stream */
-  grfile_free(grf); 
-
-  /* Sync device dimensions with the plot page size */
-  grace_sync_canvas_devices(gp);
-
-  /* Assign the output stream */
-  //canvas_set_prstream(grace_get_canvas(gapp->grace), &xstream);
-  //canvas_set_prstream(grace_get_canvas(grace), fpout);
-  canvasWidget->draw(grace, gp);
-
-  /* Switch to the hardcopy device */
-//  select_device(canvas, hdevice);
-
-  /* Do the actual rendering */
-//  gproject_render(gp);
-
-  /* Free the GProject object */
-//  gproject_free(gp);
-
-  /* Free the Grace object (or, it could be re-used for other projects) */
-//  grace_free(grace);
-
-//  exit(0); 
+  canvasWidget->draw(fileName);
 
   //QTextStream in(&file);
   QApplication::setOverrideCursor(Qt::WaitCursor);

@@ -14,11 +14,19 @@ class CanvasWidget : public QWidget
 
 public:
   CanvasWidget(QWidget *parent = 0);
-  void draw(Grace *grace, GProject *gp);
+  void draw(QString fileName);
 
 private:
   QPicture qtstream;
   void paintEvent(QPaintEvent *event);
+
+  Grace *grace;
+  Canvas *canvas;
+  GProject *gp;
+  int hdevice;
+  GrFILE *grf;
+  //FILE *fpout;
+
 };
 
 #endif /* __CANVASWIDGET_H_ */
