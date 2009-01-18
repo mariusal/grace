@@ -2,7 +2,9 @@
 #include <QFont>
 
 #include "canvaswidget.h"
-#include <stdio.h>
+#include <iostream>
+using namespace std;
+
 
 CanvasWidget::CanvasWidget(QWidget *parent) : QWidget(parent)
 {
@@ -15,12 +17,12 @@ CanvasWidget::CanvasWidget(QWidget *parent) : QWidget(parent)
   QPainter painter(&qtstream);
   painter.drawPolyline(points, 3);*/
 
-  printf("Hello world\n");
+  //printf("Hello world\n");
 //  canvas_set_prstream(grace_get_canvas(m_gapp->grace), &qtstream);
   //select_device(grace_get_canvas(m_gapp->grace), m_gapp->rt->tdevice);
   //gproject_render(gp);
   
-  printf("Hello world2\n");
+  //printf("Hello world2\n");
 }
 
 void CanvasWidget::paintEvent(QPaintEvent *)
@@ -31,9 +33,8 @@ void CanvasWidget::paintEvent(QPaintEvent *)
 
 void CanvasWidget::draw(QString fileName)
 {
-  printf("draw\n");
   /* Global init. Needs to be done only once. */ 
-  grace_init(); 
+//  grace_init(); 
      
   /* Allocate Grace object */
   grace = grace_new("");
@@ -49,6 +50,10 @@ void CanvasWidget::draw(QString fileName)
 
   /* Register a canvas device (here - the PS device) */ 
   hdevice = register_qt_drv(canvas);
+
+  Device_entry *d;
+  d = get_device_props(canvas, hdevice);
+  d->fontrast = FONT_RASTER_AA_SMART;
 
   QByteArray bytes = fileName.toAscii();
   const char *ptr = bytes.data();
@@ -72,6 +77,8 @@ void CanvasWidget::draw(QString fileName)
 
   /* Sync device dimensions with the plot page size */
   grace_sync_canvas_devices(gp);
+  setMinimumSize(d->pg.width, d->pg.height);
+
 
   /* Assign the output stream */
   //canvas_set_prstream(grace_get_canvas(gapp->grace), &xstream);
@@ -87,8 +94,6 @@ void CanvasWidget::draw(QString fileName)
   /* Free the Grace object (or, it could be re-used for other projects) */
 //  grace_free(grace);
 
-  printf("draw2\n");
   update();
-  printf("draw3\n");
 }
 

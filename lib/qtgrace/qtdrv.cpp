@@ -29,10 +29,6 @@
  * Qt driver
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-using namespace std;
 #include <math.h>
 
 #define MIN2(a, b) (((a) < (b)) ? a : b)
@@ -40,11 +36,12 @@ using namespace std;
  
 #define CANVAS_BACKEND_API
 extern "C" {
-  #include "grace/canvas.h"
+  #include <grace/canvas.h>
 }
 
 #include <QPicture>
 #include <QPainter>
+#include <QBitmap>
 
 typedef struct {
     short x;
@@ -112,7 +109,6 @@ static void VPoint2XPoint(const Qt_data *qtdata, const VPoint *vp, XPoint *xp)
 
 static void qt_initcmap(const Canvas *canvas, Qt_data *qtdata)
 {
-    errmsg("init cmap qt drv");
     unsigned int i;
     RGB rgb;
     unsigned int ncolors = number_of_colors(canvas);
@@ -147,7 +143,6 @@ static void qt_initcmap(const Canvas *canvas, Qt_data *qtdata)
 
 static void qt_updatecmap(const Canvas *canvas, void *data)
 {
-    errmsg("update cmap qt drv");
     Qt_data *qtdata = (Qt_data *) data;
     /* TODO: replace!!! */
     qt_initcmap(canvas, qtdata);
@@ -156,12 +151,10 @@ static void qt_updatecmap(const Canvas *canvas, void *data)
 static int qt_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
-    errmsg("init graphics qt drv");
     Qt_data *qtdata = (Qt_data *) data;
 
     Page_geometry *pg = get_page_geometry(canvas);
 
-    cout << "page width: " << pg->width << " page height: " << pg->height << endl;
     qtdata->width = pg->width;
     qtdata->height = pg->height;
     qtdata->page_scale = MIN2(pg->width, pg->height);
@@ -199,39 +192,10 @@ static void qt_setpen(const Canvas *canvas, Qt_data *qtdata)
     bg = getbgcolor(canvas);
     getpen(canvas, &pen);
     fg = pen.color;
-    p = pen.pattern;
-    
-    if ((fg == qtdata->color) && (bg == qtdata->bgcolor) && (p == qtdata->patno)) {
-        return;
-    }
-        
-    qtdata->color = fg;
-    qtdata->bgcolor = bg;
-    qtdata->patno = p;
-    
-    if (p == 0) { /* TODO: transparency !!!*/
-        return;
-    } else if (p == 1) {
-        /* To make X faster */
-	qtdata->painter->setPen(QPen(qtdata->colors[fg].pixel));
-	qtdata->painter->setBrush(QBrush(qtdata->colors[bg].pixel));
-/*        XSetForeground(DisplayOfScreen(qtdata->screen),
-            DefaultGCOfScreen(qtdata->screen), qtdata->colors[fg].pixel);
-        XSetBackground(DisplayOfScreen(qtdata->screen),
-            DefaultGCOfScreen(qtdata->screen), qtdata->colors[bg].pixel);
-        XSetFillStyle(DisplayOfScreen(qtdata->screen),
-            DefaultGCOfScreen(qtdata->screen), FillSolid);*/
-    } else {
-        /*Pattern *pat = canvas_get_pattern(canvas, p);
-        Pixmap ptmp = XCreatePixmapFromBitmapData(DisplayOfScreen(qtdata->screen), RootWindowOfScreen(qtdata->screen),
-            (char *) pat->bits, pat->width, pat->height,
-            qtdata->colors[fg].pixel, qtdata->colors[bg].pixel,
-                PlanesOfScreen(qtdata->screen));
-        XSetFillStyle(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), FillTiled);
-        XSetTile(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), ptmp);
-        
-        XFreePixmap(DisplayOfScreen(qtdata->screen), ptmp);*/
-    }
+
+    QPen qpen(qtdata->colors[fg].pixel);
+    qpen.setStyle(Qt::SolidLine);
+    qtdata->painter->setPen(qpen);
 }
 
 static void qt_setdrawbrush(const Canvas *canvas, Qt_data *qtdata)
@@ -276,22 +240,24 @@ static void qt_setdrawbrush(const Canvas *canvas, Qt_data *qtdata)
         break;
     }
     
-    if (iw != qtdata->linewidth || style != qtdata->linestyle ||
-        lc != qtdata->linecap   || lj    != qtdata->linejoin) {
+//    if (iw != qtdata->linewidth || style != qtdata->linestyle ||
+//        lc != qtdata->linecap   || lj    != qtdata->linejoin) {
         if (style > 1) {
             LineStyle *linestyle = canvas_get_linestyle(canvas, style);
             darr_len = linestyle->length;
-            xdarr = (char *) xmalloc(darr_len*SIZEOF_CHAR);
-            if (xdarr == NULL) {
-                return;
-            }
             scale = MAX2(1, iw);
+	    QVector<qreal> dashes(darr_len);
             for (i = 0; i < darr_len; i++) {
-                xdarr[i] = scale*linestyle->array[i];
+		dashes[i] = scale*linestyle->array[i];
             }
-            //XSetLineAttributes(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), iw, LineOnOffDash, lc, lj);
-            //XSetDashes(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), 0, xdarr, darr_len);
-            xfree(xdarr);
+	    QPen pen = qtdata->painter->pen();
+
+	    pen.setWidth(iw);
+	    pen.setDashPattern(dashes);
+	    pen.setCapStyle((Qt::PenCapStyle) lc);
+	    pen.setJoinStyle((Qt::PenJoinStyle) lj);
+
+	    qtdata->painter->setPen(pen);
         } else if (style == 1) {
 	    QPen pen = qtdata->painter->pen();
 
@@ -303,32 +269,28 @@ static void qt_setdrawbrush(const Canvas *canvas, Qt_data *qtdata)
 	    qtdata->painter->setPen(pen);
         }
  
-        qtdata->linestyle = style;
-        qtdata->linewidth = iw;
-        qtdata->linecap   = lc;
-        qtdata->linejoin  = lj;
-    }
+//        qtdata->linestyle = style;
+//        qtdata->linewidth = iw;
+//        qtdata->linecap   = lc;
+//        qtdata->linejoin  = lj;
+//    }
     return;
 }
 
 static void qt_drawpixel(const Canvas *canvas, void *data,
     const VPoint *vp)
 {
-    errmsg("draw pixel qt drv");
     Qt_data *qtdata = (Qt_data *) data;
     XPoint xp;
     
     VPoint2XPoint(qtdata, vp, &xp);
     qt_setpen(canvas, qtdata);
-    cout << "x: " << vp->x << " y: " << vp->y << endl;
-    cout << "xp: " << xp.x << " yp: " << xp.y << endl;
     qtdata->painter->drawPoint(xp.x, xp.y);
 }
 
 static void qt_drawpolyline(const Canvas *canvas, void *data,
     const VPoint *vps, int n, int mode)
 {
-//    errmsg("draw polyline qt drv");
     Qt_data *qtdata = (Qt_data *) data;
     int i, xn = n;
     XPoint *p;
@@ -356,16 +318,69 @@ static void qt_drawpolyline(const Canvas *canvas, void *data,
     qtdata->painter->drawPolyline(points, xn);
 }
 
+static void qt_setfillpen(const Canvas *canvas, Qt_data *qtdata)
+{
+    int fg, p;
+    Pen pen;
+    
+    getpen(canvas, &pen);
+    fg = pen.color;
+    p = pen.pattern;
+    
+    if (p == 0) { /* TODO: transparency !!!*/
+        return;
+    } else if (p == 1) {
+	qtdata->painter->setPen(Qt::NoPen);
+	qtdata->painter->setBrush(QBrush(qtdata->colors[fg].pixel));
+    } else {
+	qtdata->painter->setPen(Qt::NoPen);
+
+        Pattern *pat = canvas_get_pattern(canvas, p);
+	QBitmap bitmap = QBitmap::fromData(QSize(pat->width, pat->height), pat->bits, QImage::Format_MonoLSB);
+	QBrush brush(qtdata->colors[fg].pixel);
+	brush.setTexture(bitmap);
+	qtdata->painter->setBrush(brush);
+    }
+}
+
 static void qt_fillpolygon(const Canvas *canvas, void *data,
     const VPoint *vps, int nc)
 {
-    errmsg("fill polygon qt drv");
+    Qt_data *qtdata = (Qt_data *) data;
+    int i;
+    XPoint *p;
+
+    p = (XPoint *) xmalloc(nc*sizeof(XPoint));
+    if (p == NULL) {
+        return;
+    }
+
+    QPoint points[nc];
+    for (i = 0; i < nc; i++) {
+        VPoint2XPoint(qtdata, &vps[i], &p[i]);
+	points[i] = QPoint(p[i].x, p[i].y);
+    }
+
+    qt_setfillpen(canvas, qtdata);
+
+    Qt::FillRule rule;
+    if (getfillrule(canvas) != qtdata->fillrule) {
+        qtdata->fillrule = getfillrule(canvas);
+        if (getfillrule(canvas) == FILLRULE_WINDING) {
+	    rule = Qt::WindingFill;
+        } else {
+	    rule = Qt::OddEvenFill;
+        }
+    }
+
+    qtdata->painter->drawPolygon(points, nc, rule);
+
+    xfree(p);
 }
 
 static void qt_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
-  //  errmsg("draw arc qt drv");
     Qt_data *qtdata = (Qt_data *) data;
     XPoint xp;
     short x1, y1, x2, y2;
@@ -391,7 +406,6 @@ static void qt_drawarc(const Canvas *canvas, void *data,
 static void qt_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
-    errmsg("fill arc qt drv");
     Qt_data *qtdata = (Qt_data *) data;
     XPoint xp;
     short x1, y1, x2, y2;
@@ -403,22 +417,16 @@ static void qt_fillarc(const Canvas *canvas, void *data,
     x2 = xp.x;
     y1 = xp.y;
 
-    qt_setpen(canvas, qtdata);
+    qt_setfillpen(canvas, qtdata);
+
     if (x1 != x2 || y1 != y2) {
         int a1_64 = (int) rint(64*a1), a2_64 = (int) rint(64*a2);
         a1_64 %= 360*64;
-        if (qtdata->arcfillmode != mode) {
-            qtdata->arcfillmode = mode;
-            if (mode == ARCCLOSURE_CHORD) {
-		qtdata->painter->drawChord(QRectF (MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
-                //XSetArcMode(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), ArcChord);
-            } else {
-		qtdata->painter->drawPie(QRectF (MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
-                //XSetArcMode(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), ArcPieSlice);
-            }
-        }
-        //XFillArc(DisplayOfScreen(qtdata->screen), qtdata->pixmap, DefaultGCOfScreen(qtdata->screen), MIN2(x1, x2), MIN2(y1, y2),
-           //abs(x2 - x1), abs(y2 - y1), a1_64, a2_64);
+	if (mode == ARCCLOSURE_CHORD) {
+	    qtdata->painter->drawChord(QRectF (MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
+	} else {
+	    qtdata->painter->drawPie(QRectF (MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
+	}
     } else { /* zero radius */
 	qtdata->painter->drawPoint(x1, y1);
     }
@@ -427,13 +435,137 @@ static void qt_fillarc(const Canvas *canvas, void *data,
 void qt_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, const CPixmap *pm)
 {
-    errmsg("put pixmap qt drv");
+    Qt_data *qtdata = (Qt_data *) data;
+    int j, k, l;
+    
+    XPoint xp;
+
+    //XImage *ximage;
+ 
+    //Pixmap clipmask = 0;
+    char *pixmap_ptr;
+    char *clipmask_ptr = NULL;
+    
+    int line_off;
+
+    int cindex, fg, bg;
+    
+    VPoint2XPoint(qtdata, vp, &xp);
+
+    QPixmap pixmap;
+    pixmap.loadFromData(pm->bits);
+    qtdata->painter->drawPixmap(QPoint(xp.x, xp.y), pixmap);
+      
+//    if (pm->bpp != 1) {
+//        unsigned int *cptr = (unsigned int *) pm->bits;
+//        
+//        if (qtdata->monomode == TRUE) {
+//            /* TODO: dither pixmaps on mono displays */
+//            return;
+//        }
+//        pixmap_ptr = xcalloc(PADBITS(pm->width, 8) * pm->height, qtdata->pixel_size);
+//        if (pixmap_ptr == NULL) {
+//            errmsg("xmalloc failed in x11_putpixmap()");
+//            return;
+//        }
+// 
+//        /* re-index pixmap */
+//        for (k = 0; k < pm->height; k++) {
+//            for (j = 0; j < pm->width; j++) {
+//                cindex = cptr[k*pm->width + j];
+//                for (l = 0; l < qtdata->pixel_size; l++) {
+//                    pixmap_ptr[qtdata->pixel_size*(k*pm->width+j) + l] =
+//                        (char) (qtdata->colors[cindex].pixel >> (8*l));
+//                }
+//            }
+//        }
+//
+//        ximage=XCreateImage(DisplayOfScreen(qtdata->screen),
+//            DefaultVisualOfScreen(qtdata->screen),
+//            PlanesOfScreen(qtdata->screen), ZPixmap, 0,
+//            pixmap_ptr, pm->width, pm->height,
+//            pm->pad, 0);
+//
+//        if (pm->type == PIXMAP_TRANSPARENT) {
+//            clipmask_ptr = xcalloc((PADBITS(pm->width, 8)>>3)
+//                                              * pm->height, SIZEOF_CHAR);
+//            if (clipmask_ptr == NULL) {
+//                errmsg("xmalloc failed in x11_putpixmap()");
+//                return;
+//            } else {
+//                /* Note: We pad the clipmask always to byte boundary */
+//                bg = getbgcolor(canvas);
+//                for (k = 0; k < pm->height; k++) {
+//                    line_off = k*(PADBITS(pm->width, 8) >> 3);
+//                    for (j = 0; j < pm->width; j++) {
+//                        cindex = cptr[k*pm->width + j];
+//                        if (cindex != bg) {
+//                            clipmask_ptr[line_off+(j>>3)] |= (0x01 << (j%8));
+//                        }
+//                    }
+//                }
+//        
+//                clipmask = XCreateBitmapFromData(DisplayOfScreen(qtdata->screen),
+//                    RootWindowOfScreen(qtdata->screen), clipmask_ptr, pm->width, pm->height);
+//                xfree(clipmask_ptr);
+//            }
+//        }
+//    } else {
+//        pixmap_ptr = xcalloc((PADBITS(pm->width, pm->pad)>>3) * pm->height,
+//                                                        sizeof(unsigned char));
+//        if (pixmap_ptr == NULL) {
+//            errmsg("xmalloc failed in x11_putpixmap()");
+//            return;
+//        }
+//        memcpy(pixmap_ptr, pm->bits, ((PADBITS(pm->width, pm->pad)>>3) * pm->height));
+//
+//        fg = getcolor(canvas);
+//        if (fg != qtdata->color) {
+//            XSetForeground(DisplayOfScreen(qtdata->screen),
+//                DefaultGCOfScreen(qtdata->screen), qtdata->colors[fg].pixel);
+//            qtdata->color = fg;
+//        }
+//        ximage = XCreateImage(DisplayOfScreen(qtdata->screen),
+//            DefaultVisualOfScreen(qtdata->screen),
+//            1, XYBitmap, 0, pixmap_ptr, pm->width, pm->height,
+//            pm->pad, 0);
+//        if (pm->type == PIXMAP_TRANSPARENT) {
+//            clipmask = XCreateBitmapFromData(DisplayOfScreen(qtdata->screen),
+//                RootWindowOfScreen(qtdata->screen), pixmap_ptr,
+//                PADBITS(pm->width, pm->pad), pm->height);
+//        }
+//    }
+//
+//    if (pm->type == PIXMAP_TRANSPARENT) {
+//        XSetClipMask(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), clipmask);
+//        XSetClipOrigin(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), xp.x, xp.y);
+//    }
+//        
+//    /* Force bit and byte order */
+//    ximage->bitmap_bit_order = LSBFirst;
+//    ximage->byte_order       = LSBFirst;
+//    
+//    XPutImage(DisplayOfScreen(qtdata->screen), qtdata->pixmap,
+//        DefaultGCOfScreen(qtdata->screen), ximage, 0, 0, xp.x, xp.y, pm->width, pm->height);
+//    
+//    /* XDestroyImage free's the image data - which is VERY wrong since we
+//       allocated (and hence, want to free) it ourselves. So, the trick is
+//       to set the image data to NULL to avoid the double free() */
+//    xfree(pixmap_ptr);
+//    ximage->data = NULL;
+//    XDestroyImage(ximage);
+//     
+//    if (pm->type == PIXMAP_TRANSPARENT) {
+//        XFreePixmap(DisplayOfScreen(qtdata->screen), clipmask);
+//        clipmask = 0;
+//        XSetClipMask(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), None);
+//        XSetClipOrigin(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), 0, 0);
+//    }    
 }
 
 static void qt_leavegraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
-    errmsg("leave graphics qt drv");
     Qt_data *qtdata = (Qt_data *) data;
     delete qtdata->painter;
 }
@@ -466,6 +598,5 @@ int register_qt_drv(Canvas *canvas)
         qt_putpixmap,
         NULL);
     
-    errmsg("register qt drv");
     return register_device(canvas, d);
 }

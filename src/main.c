@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
     }
 #else
 #ifdef QT_GUI
-/*    rt->tdevice = register_qt_drv(canvas);*/
+    rt->tdevice = register_qt_drv(canvas);
 #else
     rt->tdevice = register_dummy_drv(canvas);
 #endif

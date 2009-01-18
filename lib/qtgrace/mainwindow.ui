@@ -15,18 +15,24 @@
   <widget class="QWidget" name="centralwidget" >
    <layout class="QGridLayout" name="gridLayout" >
     <item row="0" column="0" >
-     <widget class="QFrame" name="canvasFrame" >
-      <property name="frameShape" >
-       <enum>QFrame::StyledPanel</enum>
+     <widget class="QScrollArea" name="scrollArea" >
+      <property name="widgetResizable" >
+       <bool>true</bool>
       </property>
-      <property name="frameShadow" >
-       <enum>QFrame::Sunken</enum>
+      <property name="alignment" >
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
       </property>
-      <layout class="QGridLayout" name="gridLayout_2" >
-       <item row="0" column="0" >
-        <widget class="CanvasWidget" native="1" name="widget" />
-       </item>
-      </layout>
+      <widget class="CanvasWidget" name="widget" >
+       <property name="geometry" >
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>751</width>
+         <height>543</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_2" />
+      </widget>
      </widget>
     </item>
    </layout>

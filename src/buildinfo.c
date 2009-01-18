@@ -53,7 +53,11 @@ static void VersionInfo(FILE *outfile)
    but those settings which may be related to problems at runtime */
 
 #ifdef NONE_GUI
+#ifdef QT_GUI
+    fprintf(outfile, "#define BI_GUI \"Qt\"\n");
+#else
     fprintf(outfile, "#define BI_GUI \"none\"\n");
+#endif
 #else
     fprintf(outfile, "#define BI_GUI \"%s\"\n", XmVERSION_STRING);
     fprintf(outfile, "#define BI_GUI_XBAE \"%i\"\n", XbaeVersion);
