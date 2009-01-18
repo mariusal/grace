@@ -6,6 +6,7 @@
 
 extern "C" {
 #include <grace/grace.h>
+#include "qtgrace.h"
 }
 
 class CanvasWidget : public QWidget
@@ -14,6 +15,7 @@ class CanvasWidget : public QWidget
 
 public:
   CanvasWidget(QWidget *parent = 0);
+  void qtdrawgraph(const GProject*);
   void draw(QString fileName);
 
 private:

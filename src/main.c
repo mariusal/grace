@@ -472,7 +472,7 @@ int main(int argc, char *argv[])
         if (cli == TRUE) {
             cli_loop(gapp);
         } else {
-            startup_qt_gui();
+            startup_qt_gui(gapp);
         }
 #else
         cli_loop(gapp);

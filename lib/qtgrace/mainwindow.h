@@ -5,13 +5,16 @@
 
 #include "ui_mainwindow.h"
 #include "canvaswidget.h"
+extern "C" {
+#include <graceapp.h>
+}
 
 class MainWindow : public QMainWindow
 {
    Q_OBJECT
 
 public:
-  MainWindow(QMainWindow *parent = 0);
+  MainWindow(GraceApp *gapp, QMainWindow *parent = 0);
   ~MainWindow();
 
 protected:
@@ -26,6 +29,8 @@ private slots:
   void loadFile(const QString &fileName);
 
 private:
+  GraceApp *gapp;
+
   void setCurrentFile(const QString &fileName);
   QString strippedName(const QString &fullFileName);
 

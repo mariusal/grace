@@ -8,14 +8,18 @@
 #include <QMessageBox>
 #include <QTextStream>
 
-MainWindow::MainWindow(QMainWindow *parent) : QMainWindow(parent)
+MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent)
 {
-  ui.setupUi(this);
-  canvasWidget = ui.widget;
+    ui.setupUi(this);
+    this->gapp = gapp;
+    gapp->gui->inwin = TRUE; // TODO: reimplement startup_gui(gapp) function here
 
-  readSettings();
+    canvasWidget = ui.widget;
+    canvasWidget->qtdrawgraph(gapp->gp);
 
-  setCurrentFile("");
+    readSettings();
+
+    setCurrentFile("");
 }
 
 MainWindow::~MainWindow()
@@ -91,15 +95,25 @@ void MainWindow::loadFile(const QString &fileName)
     return;
   }*/
 
-  canvasWidget->draw(fileName);
+    QByteArray bytes = fileName.toAscii();
+    const char *filename = bytes.data();
+
+    //QApplication::setOverrideCursor(Qt::WaitCursor);
+    //if (load_project(gapp, filename) == RETURN_SUCCESS) {
+	//canvasWidget->qtdrawgraph(gapp->gp);
+	//canvasWidget->update_all();
+	//QApplication::restoreOverrideCursor();
+	//setCurrentFile(fileName);
+	//statusBar()->showMessage(tr("File loaded"), 2000);
+    //} else {
+	//statusBar()->showMessage(tr("File failed to load"), 2000);
+    //}
+
+  //canvasWidget->draw(fileName);
 
   //QTextStream in(&file);
-  QApplication::setOverrideCursor(Qt::WaitCursor);
   //textEdit->setPlainText(in.readAll());
-  QApplication::restoreOverrideCursor();
 
-  setCurrentFile(fileName);
-  statusBar()->showMessage(tr("File loaded"), 2000);
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
