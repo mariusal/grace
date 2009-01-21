@@ -7,6 +7,9 @@
 #include <QSettings>
 #include <QMessageBox>
 #include <QTextStream>
+extern "C" {
+#include <files.h>
+}
 
 MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent)
 {
@@ -96,18 +99,18 @@ void MainWindow::loadFile(const QString &fileName)
   }*/
 
     QByteArray bytes = fileName.toAscii();
-    const char *filename = bytes.data();
+    char *filename = bytes.data();
 
-    //QApplication::setOverrideCursor(Qt::WaitCursor);
-    //if (load_project(gapp, filename) == RETURN_SUCCESS) {
-	//canvasWidget->qtdrawgraph(gapp->gp);
+    if (load_project(gapp, filename) == RETURN_SUCCESS) {
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	canvasWidget->qtdrawgraph(gapp->gp);
 	//canvasWidget->update_all();
-	//QApplication::restoreOverrideCursor();
-	//setCurrentFile(fileName);
-	//statusBar()->showMessage(tr("File loaded"), 2000);
-    //} else {
-	//statusBar()->showMessage(tr("File failed to load"), 2000);
-    //}
+	QApplication::restoreOverrideCursor();
+	setCurrentFile(fileName);
+	statusBar()->showMessage(tr("File loaded"), 2000);
+    } else {
+	statusBar()->showMessage(tr("File failed to load"), 2000);
+    }
 
   //canvasWidget->draw(fileName);
 

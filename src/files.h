@@ -56,7 +56,7 @@ GProject *load_agr_project(GraceApp *gapp, const char *fn);
 GProject *load_xgr_project(GraceApp *gapp, const char *fn);
 GProject *load_any_project(GraceApp *gapp, const char *fn);
 
-int new_project(GraceApp *gapp, char *template);
+int new_project(GraceApp *gapp, char *pr_template);
 int load_project(GraceApp *gapp, char *fn);
 int save_project(GProject *gp, char *fn);
 

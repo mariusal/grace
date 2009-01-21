@@ -1103,21 +1103,21 @@ int load_project(GraceApp *gapp, char *fn)
     return load_project_file(gapp, fn, FALSE);
 }
 
-int new_project(GraceApp *gapp, char *template)
+int new_project(GraceApp *gapp, char *pr_template)
 {
     int retval;
     char *s;
     
-    if (string_is_empty(template)) {
+    if (string_is_empty(pr_template)) {
         retval = load_project_file(gapp, "templates/Default.xgr", TRUE);
-    } else if (template[0] == '/') {
-        retval = load_project_file(gapp, template, TRUE);
+    } else if (pr_template[0] == '/') {
+        retval = load_project_file(gapp, pr_template, TRUE);
     } else {
-        s = xmalloc(strlen("templates/") + strlen(template) + 1);
+        s = xmalloc(strlen("templates/") + strlen(pr_template) + 1);
         if (s == NULL) {
             retval = RETURN_FAILURE;
         } else {
-            sprintf(s, "templates/%s", template);
+            sprintf(s, "templates/%s", pr_template);
             retval = load_project_file(gapp, s, TRUE);
             xfree(s);
         }
