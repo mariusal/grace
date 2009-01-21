@@ -383,7 +383,7 @@ static void qt_drawarc(const Canvas *canvas, void *data,
 {
     Qt_data *qtdata = (Qt_data *) data;
     XPoint xp;
-    short x1, y1, x2, y2;
+    int x1, y1, x2, y2;
 
     VPoint2XPoint(qtdata, vp1, &xp);
     x1 = xp.x;
@@ -397,7 +397,7 @@ static void qt_drawarc(const Canvas *canvas, void *data,
     if (x1 != x2 || y1 != y2) {
         int a1_64 = (int) rint(64*a1), a2_64 = (int) rint(64*a2);
         a1_64 %= 360*64;
-	qtdata->painter->drawArc(QRectF (MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
+	qtdata->painter->drawArc(QRect(MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
     } else { /* zero radius */
 	qtdata->painter->drawPoint(x1, y1);
     }
@@ -408,7 +408,7 @@ static void qt_fillarc(const Canvas *canvas, void *data,
 {
     Qt_data *qtdata = (Qt_data *) data;
     XPoint xp;
-    short x1, y1, x2, y2;
+    int x1, y1, x2, y2;
 
     VPoint2XPoint(qtdata, vp1, &xp);
     x1 = xp.x;
@@ -423,9 +423,9 @@ static void qt_fillarc(const Canvas *canvas, void *data,
         int a1_64 = (int) rint(64*a1), a2_64 = (int) rint(64*a2);
         a1_64 %= 360*64;
 	if (mode == ARCCLOSURE_CHORD) {
-	    qtdata->painter->drawChord(QRectF (MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
+	    qtdata->painter->drawChord(QRect(MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
 	} else {
-	    qtdata->painter->drawPie(QRectF (MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
+	    qtdata->painter->drawPie(QRect(MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
 	}
     } else { /* zero radius */
 	qtdata->painter->drawPoint(x1, y1);
