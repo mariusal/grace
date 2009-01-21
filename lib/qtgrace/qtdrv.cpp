@@ -436,131 +436,83 @@ void qt_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, const CPixmap *pm)
 {
     Qt_data *qtdata = (Qt_data *) data;
-    int j, k, l;
+    int cindex, bg;
+    int color;
+    
+    int i, k, j;
+    long paddedW;
     
     XPoint xp;
-
-    //XImage *ximage;
- 
-    //Pixmap clipmask = 0;
-    char *pixmap_ptr;
-    char *clipmask_ptr = NULL;
+    //miPoint xp;
+    int x, y;// xleft, ytop, xright, ybottom;
     
-    int line_off;
-
-    int cindex, fg, bg;
+    bg = getbgcolor(canvas);
     
+    //VPoint2miPoint(qtdata, vp, &xp);
     VPoint2XPoint(qtdata, vp, &xp);
-
-    QPixmap pixmap;
-    pixmap.loadFromData(pm->bits);
-    qtdata->painter->drawPixmap(QPoint(xp.x, xp.y), pixmap);
-      
-//    if (pm->bpp != 1) {
-//        unsigned int *cptr = (unsigned int *) pm->bits;
-//        
-//        if (qtdata->monomode == TRUE) {
-//            /* TODO: dither pixmaps on mono displays */
-//            return;
-//        }
-//        pixmap_ptr = xcalloc(PADBITS(pm->width, 8) * pm->height, qtdata->pixel_size);
-//        if (pixmap_ptr == NULL) {
-//            errmsg("xmalloc failed in x11_putpixmap()");
-//            return;
-//        }
-// 
-//        /* re-index pixmap */
-//        for (k = 0; k < pm->height; k++) {
-//            for (j = 0; j < pm->width; j++) {
-//                cindex = cptr[k*pm->width + j];
-//                for (l = 0; l < qtdata->pixel_size; l++) {
-//                    pixmap_ptr[qtdata->pixel_size*(k*pm->width+j) + l] =
-//                        (char) (qtdata->colors[cindex].pixel >> (8*l));
-//                }
-//            }
-//        }
-//
-//        ximage=XCreateImage(DisplayOfScreen(qtdata->screen),
-//            DefaultVisualOfScreen(qtdata->screen),
-//            PlanesOfScreen(qtdata->screen), ZPixmap, 0,
-//            pixmap_ptr, pm->width, pm->height,
-//            pm->pad, 0);
-//
-//        if (pm->type == PIXMAP_TRANSPARENT) {
-//            clipmask_ptr = xcalloc((PADBITS(pm->width, 8)>>3)
-//                                              * pm->height, SIZEOF_CHAR);
-//            if (clipmask_ptr == NULL) {
-//                errmsg("xmalloc failed in x11_putpixmap()");
-//                return;
-//            } else {
-//                /* Note: We pad the clipmask always to byte boundary */
-//                bg = getbgcolor(canvas);
-//                for (k = 0; k < pm->height; k++) {
-//                    line_off = k*(PADBITS(pm->width, 8) >> 3);
-//                    for (j = 0; j < pm->width; j++) {
-//                        cindex = cptr[k*pm->width + j];
-//                        if (cindex != bg) {
-//                            clipmask_ptr[line_off+(j>>3)] |= (0x01 << (j%8));
-//                        }
-//                    }
-//                }
-//        
-//                clipmask = XCreateBitmapFromData(DisplayOfScreen(qtdata->screen),
-//                    RootWindowOfScreen(qtdata->screen), clipmask_ptr, pm->width, pm->height);
-//                xfree(clipmask_ptr);
-//            }
-//        }
-//    } else {
-//        pixmap_ptr = xcalloc((PADBITS(pm->width, pm->pad)>>3) * pm->height,
-//                                                        sizeof(unsigned char));
-//        if (pixmap_ptr == NULL) {
-//            errmsg("xmalloc failed in x11_putpixmap()");
-//            return;
-//        }
-//        memcpy(pixmap_ptr, pm->bits, ((PADBITS(pm->width, pm->pad)>>3) * pm->height));
-//
-//        fg = getcolor(canvas);
-//        if (fg != qtdata->color) {
-//            XSetForeground(DisplayOfScreen(qtdata->screen),
-//                DefaultGCOfScreen(qtdata->screen), qtdata->colors[fg].pixel);
-//            qtdata->color = fg;
-//        }
-//        ximage = XCreateImage(DisplayOfScreen(qtdata->screen),
-//            DefaultVisualOfScreen(qtdata->screen),
-//            1, XYBitmap, 0, pixmap_ptr, pm->width, pm->height,
-//            pm->pad, 0);
-//        if (pm->type == PIXMAP_TRANSPARENT) {
-//            clipmask = XCreateBitmapFromData(DisplayOfScreen(qtdata->screen),
-//                RootWindowOfScreen(qtdata->screen), pixmap_ptr,
-//                PADBITS(pm->width, pm->pad), pm->height);
-//        }
-//    }
-//
-//    if (pm->type == PIXMAP_TRANSPARENT) {
-//        XSetClipMask(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), clipmask);
-//        XSetClipOrigin(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), xp.x, xp.y);
-//    }
-//        
-//    /* Force bit and byte order */
-//    ximage->bitmap_bit_order = LSBFirst;
-//    ximage->byte_order       = LSBFirst;
-//    
-//    XPutImage(DisplayOfScreen(qtdata->screen), qtdata->pixmap,
-//        DefaultGCOfScreen(qtdata->screen), ximage, 0, 0, xp.x, xp.y, pm->width, pm->height);
-//    
-//    /* XDestroyImage free's the image data - which is VERY wrong since we
-//       allocated (and hence, want to free) it ourselves. So, the trick is
-//       to set the image data to NULL to avoid the double free() */
-//    xfree(pixmap_ptr);
-//    ximage->data = NULL;
-//    XDestroyImage(ximage);
-//     
-//    if (pm->type == PIXMAP_TRANSPARENT) {
-//        XFreePixmap(DisplayOfScreen(qtdata->screen), clipmask);
-//        clipmask = 0;
-//        XSetClipMask(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), None);
-//        XSetClipOrigin(DisplayOfScreen(qtdata->screen), DefaultGCOfScreen(qtdata->screen), 0, 0);
-//    }    
+    
+    //MI_GET_CANVAS_DRAWABLE_BOUNDS(qtdata->mcanvas, xleft, ytop, xright, ybottom)
+    
+    y = xp.y;
+    if (pm->bpp == 1) {
+        color = getcolor(canvas);
+        paddedW = PADBITS(pm->width, pm->pad);
+        for (k = 0; k < pm->height; k++) {
+            x = xp.x;
+            y++;
+            for (j = 0; j < paddedW/pm->pad; j++) {
+                for (i = 0; i < pm->pad && j*pm->pad + i < pm->width; i++) {
+                    x++;
+                    /* bound checking */
+              //      if (x < xleft || x > xright ||
+              //          y < ytop  || y > ybottom) {
+              //          continue;
+              //      }
+                    if (bin_dump(&(pm->bits)[k*paddedW/pm->pad+j], i, pm->pad)) {
+                        //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, color);
+			RGB rgb;
+			get_rgb(canvas, color, &rgb);
+			QPen qpen(QColor(rgb.red, rgb.green, rgb.blue));
+			qtdata->painter->setPen(qpen);
+			qtdata->painter->drawPoint(x, y);
+                    } else {
+                        if (pm->type == PIXMAP_OPAQUE) {
+			    RGB rgb;
+			    get_rgb(canvas, bg, &rgb);
+			    QPen qpen(QColor(rgb.red, rgb.green, rgb.blue));
+			    qtdata->painter->setPen(qpen);
+			    qtdata->painter->drawPoint(x, y);
+                            //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, bg);
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        unsigned int *cptr = (unsigned int *) pm->bits;
+        for (k = 0; k < pm->height; k++) {
+            x = xp.x;
+            y++;
+            for (j = 0; j < pm->width; j++) {
+                x++;
+                /* bound checking */
+              //  if (x < xleft || x > xright ||
+              //      y < ytop  || y > ybottom) {
+              //      continue;
+              //  }
+                cindex = cptr[k*pm->width + j];
+                if (cindex != bg || pm->type == PIXMAP_OPAQUE) {
+                    color = cindex;
+                    RGB rgb;
+                    get_rgb(canvas, cindex, &rgb);
+		    QPen qpen(QColor(rgb.red, rgb.green, rgb.blue));
+		    qtdata->painter->setPen(qpen);
+		    qtdata->painter->drawPoint(x, y);
+                    //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, color);
+                }
+            }
+        }
+    }
 }
 
 static void qt_leavegraphics(const Canvas *canvas, void *data,
