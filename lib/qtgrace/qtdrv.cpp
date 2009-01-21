@@ -186,7 +186,7 @@ static int qt_initgraphics(const Canvas *canvas, void *data,
 
 static void qt_setpen(const Canvas *canvas, Qt_data *qtdata)
 {
-    int fg, bg, p;
+    int fg, bg;
     Pen pen;
     
     bg = getbgcolor(canvas);
@@ -204,7 +204,6 @@ static void qt_setdrawbrush(const Canvas *canvas, Qt_data *qtdata)
     int style;
     int lc, lj;
     int i, scale, darr_len;
-    char *xdarr;
 
     qt_setpen(canvas, qtdata);
     
@@ -363,7 +362,7 @@ static void qt_fillpolygon(const Canvas *canvas, void *data,
 
     qt_setfillpen(canvas, qtdata);
 
-    Qt::FillRule rule;
+    Qt::FillRule rule = Qt::WindingFill;
     if (getfillrule(canvas) != qtdata->fillrule) {
         qtdata->fillrule = getfillrule(canvas);
         if (getfillrule(canvas) == FILLRULE_WINDING) {
