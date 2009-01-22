@@ -3984,14 +3984,20 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
     }
 
     if (nsdest == 0) {
+        ssd_set_indexed(destssd, TRUE);
+        if (!ssd_is_indexed(destssd)) {
+            if (!ssd_add_col(destssd, FFORMAT_NUMBER)) {
+	        return RETURN_FAILURE;
+            }
+        }
+        
         *destsets = xmalloc((*nssrc)*sizeof(Quark *));
         for (i = 0; i < *nssrc; i++) {
-            if (ssd_add_col(destssd, FFORMAT_NUMBER) &&
-                ssd_add_col(destssd, FFORMAT_NUMBER)) {
+            if (ssd_add_col(destssd, FFORMAT_NUMBER)) {
                 Dataset *dsp;
                 (*destsets)[i] = gapp_set_new(destssd);
                 dsp = set_get_dataset((*destsets)[i]);
-                dsp->cols[0] = ssd_get_ncols(destssd) - 2;
+                dsp->cols[0] = 0;
                 dsp->cols[1] = ssd_get_ncols(destssd) - 1;
             }
         }
