@@ -23,12 +23,15 @@ CanvasWidget::CanvasWidget(QWidget *parent) : QWidget(parent)
   //gproject_render(gp);
   
   //printf("Hello world2\n");
+    pixmap = 0;
 }
 
 void CanvasWidget::paintEvent(QPaintEvent *)
 {
-  QPainter painter(this);
-  qtstream.play(&painter);
+    if (pixmap != 0) {
+	QPainter painter(this);
+	painter.drawPixmap(0, 0, *pixmap);
+    }
 }
 
 void CanvasWidget::qtdrawgraph(const GProject *gp)
@@ -69,6 +72,13 @@ void CanvasWidget::qtdrawgraph(const GProject *gp)
 
 	select_device(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
 	gproject_render(gp);
+
+	if (pixmap != 0) {
+	    delete pixmap;
+	}
+	pixmap = new QPixmap(pg->width, pg->height);
+	QPainter p(pixmap);
+	qtstream.play(&p);
 
 	if (quark_is_active(gr)) {
 	    //draw_focus(gr);

@@ -20,6 +20,7 @@ public:
 
 private:
   QPicture qtstream;
+  QPixmap *pixmap;
   void paintEvent(QPaintEvent *event);
 
   Grace *grace;
