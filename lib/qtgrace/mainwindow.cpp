@@ -56,8 +56,8 @@ void MainWindow::on_actionOpen_triggered()
 void MainWindow::readSettings()
 {
   QSettings settings("Grace Project", "Grace");
-  QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
-  QSize size = settings.value("size", QSize(400, 400)).toSize();
+  QPoint pos = settings.value("pos", QPoint(0, 0)).toPoint();
+  QSize size = settings.value("size", QSize(800, 600)).toSize();
   resize(size);
   move(pos);
 }
