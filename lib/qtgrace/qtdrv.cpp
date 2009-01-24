@@ -44,8 +44,8 @@ extern "C" {
 #include <QBitmap>
 
 typedef struct {
-    short x;
-    short y;
+    double x;
+    double y;
 } XPoint;
 
 typedef struct {
@@ -103,8 +103,8 @@ static void qt_data_free(void *data)
 
 static void VPoint2XPoint(const Qt_data *qtdata, const VPoint *vp, XPoint *xp)
 {
-    xp->x = (short) rint(qtdata->page_scale*vp->x);
-    xp->y = (short) rint(qtdata->height - qtdata->page_scale*vp->y);
+    xp->x = qtdata->page_scale*vp->x;
+    xp->y = qtdata->height - qtdata->page_scale*vp->y;
 }
 
 static void qt_initcmap(const Canvas *canvas, Qt_data *qtdata)
@@ -315,6 +315,8 @@ static void qt_drawpolyline(const Canvas *canvas, void *data,
     qt_setdrawbrush(canvas, qtdata);
 
     qtdata->painter->drawPolyline(points, xn);
+
+    xfree(p);
 }
 
 static void qt_setfillpen(const Canvas *canvas, Qt_data *qtdata)
@@ -381,24 +383,24 @@ static void qt_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     Qt_data *qtdata = (Qt_data *) data;
-    XPoint xp;
-    int x1, y1, x2, y2;
+    XPoint xp1, xp2;
 
-    VPoint2XPoint(qtdata, vp1, &xp);
-    x1 = xp.x;
-    y2 = xp.y;
-    VPoint2XPoint(qtdata, vp2, &xp);
-    x2 = xp.x;
-    y1 = xp.y;
+    VPoint2XPoint(qtdata, vp1, &xp1);
+    VPoint2XPoint(qtdata, vp2, &xp2);
 
     qt_setdrawbrush(canvas, qtdata);
 
-    if (x1 != x2 || y1 != y2) {
-        int a1_64 = (int) rint(64*a1), a2_64 = (int) rint(64*a2);
-        a1_64 %= 360*64;
-	qtdata->painter->drawArc(QRect(MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
+    if (xp1.x != xp2.x || xp1.y != xp2.y) {
+        double x      = MIN2(xp1.x, xp2.x);
+        double y      = MIN2(xp1.y, xp2.y);
+        double width  = abs(xp2.x - xp1.x);
+        double height = abs(xp2.y - xp1.y);
+        double angle1 = 16*a1;
+        double angle2 = 16*a2;
+
+	qtdata->painter->drawArc(x, y, width, height, angle1, angle2);
     } else { /* zero radius */
-	qtdata->painter->drawPoint(x1, y1);
+	qtdata->painter->drawPoint(xp1.x, xp1.y);
     }
 }
 
@@ -406,28 +408,28 @@ static void qt_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     Qt_data *qtdata = (Qt_data *) data;
-    XPoint xp;
-    int x1, y1, x2, y2;
+    XPoint xp1, xp2;
 
-    VPoint2XPoint(qtdata, vp1, &xp);
-    x1 = xp.x;
-    y2 = xp.y;
-    VPoint2XPoint(qtdata, vp2, &xp);
-    x2 = xp.x;
-    y1 = xp.y;
+    VPoint2XPoint(qtdata, vp1, &xp1);
+    VPoint2XPoint(qtdata, vp2, &xp2);
 
     qt_setfillpen(canvas, qtdata);
 
-    if (x1 != x2 || y1 != y2) {
-        int a1_64 = (int) rint(64*a1), a2_64 = (int) rint(64*a2);
-        a1_64 %= 360*64;
+    if (xp1.x != xp2.x || xp1.y != xp2.y) {
+        double x      = MIN2(xp1.x, xp2.x);
+        double y      = MIN2(xp1.y, xp2.y);
+        double width  = abs(xp2.x - xp1.x);
+        double height = abs(xp2.y - xp1.y);
+        double angle1 = 16*a1;
+        double angle2 = 16*a2;
+
 	if (mode == ARCCLOSURE_CHORD) {
-	    qtdata->painter->drawChord(QRect(MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
+	    qtdata->painter->drawChord(x, y, width, height, angle1, angle2);
 	} else {
-	    qtdata->painter->drawPie(QRect(MIN2(x1, x2), MIN2(y1, y2), abs(x2 - x1), abs(y2 - y1)), a1_64, a2_64);
+	    qtdata->painter->drawPie(x, y, width, height, angle1, angle2);
 	}
     } else { /* zero radius */
-	qtdata->painter->drawPoint(x1, y1);
+	qtdata->painter->drawPoint(xp1.x, xp1.y);
     }
 }
 
