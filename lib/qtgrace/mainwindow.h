@@ -27,6 +27,7 @@ private slots:
   void on_actionSmaller_triggered();
   void on_actionLarger_triggered();
   void on_actionOriginalSize_triggered();
+  void on_actionRedraw_triggered();
 
   void readSettings();
   void writeSettings();

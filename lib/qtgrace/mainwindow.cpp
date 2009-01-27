@@ -119,6 +119,11 @@ void MainWindow::on_actionOriginalSize_triggered()
     page_zoom_inout(this->gapp, 0);
 }
 
+void MainWindow::on_actionRedraw_triggered()
+{
+    canvasWidget->qtdrawgraph(gapp->gp);
+}
+
 void MainWindow::readSettings()
 {
   QSettings settings("Grace Project", "Grace");
