@@ -38,6 +38,7 @@ private:
 
   void setCurrentFile(const QString &fileName);
   QString strippedName(const QString &fullFileName);
+  void setToolBarIcons();
 
   Ui::MainWindow ui;
   CanvasWidget *canvasWidget;

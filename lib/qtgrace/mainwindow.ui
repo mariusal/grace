@@ -27,8 +27,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>751</width>
-         <height>543</height>
+         <width>707</width>
+         <height>540</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2" />
@@ -43,7 +43,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File" >
@@ -123,12 +123,46 @@
    <property name="windowTitle" >
     <string>toolBar</string>
    </property>
+   <property name="movable" >
+    <bool>false</bool>
+   </property>
+   <property name="iconSize" >
+    <size>
+     <width>16</width>
+     <height>16</height>
+    </size>
+   </property>
+   <property name="floatable" >
+    <bool>false</bool>
+   </property>
    <attribute name="toolBarArea" >
     <enum>LeftToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak" >
     <bool>false</bool>
    </attribute>
+   <addaction name="actionRedraw" />
+   <addaction name="separator" />
+   <addaction name="actionZoom" />
+   <addaction name="actionZoomX" />
+   <addaction name="actionZoomY" />
+   <addaction name="separator" />
+   <addaction name="actionAutoScale" />
+   <addaction name="actionAutoScaleX" />
+   <addaction name="actionAutoScaleY" />
+   <addaction name="actionAutoTick" />
+   <addaction name="separator" />
+   <addaction name="actionScrollLeft" />
+   <addaction name="actionScrollRight" />
+   <addaction name="actionScrollUp" />
+   <addaction name="actionScrollDown" />
+   <addaction name="separator" />
+   <addaction name="actionZoomIn" />
+   <addaction name="actionZoomOut" />
+   <addaction name="separator" />
+   <addaction name="actionAddText" />
+   <addaction name="separator" />
+   <addaction name="separator" />
    <addaction name="actionExit" />
   </widget>
   <action name="actionNew" >
@@ -262,6 +296,76 @@
    </property>
    <property name="text" >
     <string>&amp;Tool bar</string>
+   </property>
+  </action>
+  <action name="actionZoom" >
+   <property name="text" >
+    <string>Zoom</string>
+   </property>
+  </action>
+  <action name="actionZoomX" >
+   <property name="text" >
+    <string>ZoomX</string>
+   </property>
+  </action>
+  <action name="actionZoomY" >
+   <property name="text" >
+    <string>ZoomY</string>
+   </property>
+  </action>
+  <action name="actionAutoScale" >
+   <property name="text" >
+    <string>AutoScale</string>
+   </property>
+  </action>
+  <action name="actionAutoScaleX" >
+   <property name="text" >
+    <string>AutoScaleX</string>
+   </property>
+  </action>
+  <action name="actionAutoScaleY" >
+   <property name="text" >
+    <string>AutoScaleY</string>
+   </property>
+  </action>
+  <action name="actionAutoTick" >
+   <property name="text" >
+    <string>AutoTick</string>
+   </property>
+  </action>
+  <action name="actionScrollLeft" >
+   <property name="text" >
+    <string>ScrollLeft</string>
+   </property>
+  </action>
+  <action name="actionScrollRight" >
+   <property name="text" >
+    <string>ScrollRight</string>
+   </property>
+  </action>
+  <action name="actionScrollUp" >
+   <property name="text" >
+    <string>ScrollUp</string>
+   </property>
+  </action>
+  <action name="actionScrollDown" >
+   <property name="text" >
+    <string>ScrollDown</string>
+   </property>
+  </action>
+  <action name="actionZoomIn" >
+   <property name="text" >
+    <string>ZoomIn</string>
+   </property>
+  </action>
+  <action name="actionZoomOut" >
+   <property name="text" >
+    <string>ZoomOut</string>
+   </property>
+  </action>
+  <action name="actionAddText" >
+   <property name="text" >
+    <string>AddText</string>
    </property>
   </action>
  </widget>

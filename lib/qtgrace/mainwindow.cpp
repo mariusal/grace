@@ -7,22 +7,29 @@
 #include <QSettings>
 #include <QMessageBox>
 #include <QTextStream>
+#include <QBitmap>
 extern "C" {
 #include <files.h>
+#include <bitmaps.h>
 }
 
 MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent)
 {
     ui.setupUi(this);
+
+    setWindowIcon(QPixmap(gapp_icon_xpm));
+    setToolBarIcons();
+
+    readSettings();
+    //restoreState();
+
+    setCurrentFile("");
+
     this->gapp = gapp;
     gapp->gui->inwin = TRUE; // TODO: reimplement startup_gui(gapp) function here
 
     canvasWidget = ui.widget;
     canvasWidget->qtdrawgraph(gapp->gp);
-
-    readSettings();
-
-    setCurrentFile("");
 }
 
 MainWindow::~MainWindow()
@@ -33,10 +40,37 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
   if (maybeSave()) {
     writeSettings();
+//    restoreState();
     event->accept();
   } else {
     event->ignore();
   }
+}
+
+void MainWindow::setToolBarIcons()
+{
+    ui.actionRedraw->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), redraw_bits, QImage::Format_MonoLSB)));
+
+    ui.actionZoom->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), zoom_bits, QImage::Format_MonoLSB)));
+    ui.actionZoomX->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), zoom_x_bits, QImage::Format_MonoLSB)));
+    ui.actionZoomY->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), zoom_y_bits, QImage::Format_MonoLSB)));
+
+    ui.actionAutoScale->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), auto_bits, QImage::Format_MonoLSB)));
+    ui.actionAutoScaleX->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), auto_x_bits, QImage::Format_MonoLSB)));
+    ui.actionAutoScaleY->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), auto_y_bits, QImage::Format_MonoLSB)));
+    ui.actionAutoTick->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), auto_tick_bits, QImage::Format_MonoLSB)));
+
+    ui.actionScrollLeft->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), left_bits, QImage::Format_MonoLSB)));
+    ui.actionScrollRight->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), right_bits, QImage::Format_MonoLSB)));
+    ui.actionScrollUp->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), up_bits, QImage::Format_MonoLSB)));
+    ui.actionScrollDown->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), down_bits, QImage::Format_MonoLSB)));
+
+    ui.actionZoomIn->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), expand_bits, QImage::Format_MonoLSB)));
+    ui.actionZoomOut->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), shrink_bits, QImage::Format_MonoLSB)));
+
+    ui.actionAddText->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), atext_bits, QImage::Format_MonoLSB)));
+
+    ui.actionExit->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), exit_bits, QImage::Format_MonoLSB)));
 }
 
 void MainWindow::on_actionExit_triggered()
