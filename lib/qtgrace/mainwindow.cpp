@@ -53,6 +53,38 @@ void MainWindow::on_actionOpen_triggered()
   }
 }
 
+void MainWindow::page_zoom_inout(GraceApp *gapp, int inout)
+{
+    if (!gui_is_page_free(gapp->gui)) {
+        if (inout > 0) {
+            gapp->gui->zoom *= ZOOM_STEP;
+        } else
+        if (inout < 0) {
+            gapp->gui->zoom /= ZOOM_STEP;
+        } else {
+            gapp->gui->zoom = 1.0;
+        }
+        //xdrawgraph(gapp->gp);
+	canvasWidget->qtdrawgraph(gapp->gp);
+        //set_left_footer(NULL);
+    }
+}
+
+void MainWindow::on_actionSmaller_triggered()
+{
+    page_zoom_inout(this->gapp, -1);
+}
+
+void MainWindow::on_actionLarger_triggered()
+{
+    page_zoom_inout(this->gapp, +1);
+}
+
+void MainWindow::on_actionOriginalSize_triggered()
+{
+    page_zoom_inout(this->gapp, 0);
+}
+
 void MainWindow::readSettings()
 {
   QSettings settings("Grace Project", "Grace");

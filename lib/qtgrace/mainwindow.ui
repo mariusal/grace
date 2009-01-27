@@ -75,6 +75,31 @@
     <property name="title" >
      <string>&amp;View</string>
     </property>
+    <widget class="QMenu" name="menuSho_w_Hide" >
+     <property name="title" >
+      <string>Sho&amp;w/Hide</string>
+     </property>
+     <addaction name="actionLocatorBar" />
+     <addaction name="actionStatusBar" />
+     <addaction name="actionTooBar" />
+    </widget>
+    <widget class="QMenu" name="menuPage_zoom" >
+     <property name="title" >
+      <string>Page &amp;zoom</string>
+     </property>
+     <addaction name="actionSmaller" />
+     <addaction name="actionLarger" />
+     <addaction name="separator" />
+     <addaction name="actionOriginalSize" />
+    </widget>
+    <addaction name="menuSho_w_Hide" />
+    <addaction name="menuPage_zoom" />
+    <addaction name="separator" />
+    <addaction name="actionPageRendering" />
+    <addaction name="separator" />
+    <addaction name="actionRedraw" />
+    <addaction name="separator" />
+    <addaction name="actionUpdateAll" />
    </widget>
    <widget class="QMenu" name="menu_Tools" >
     <property name="title" >
@@ -162,6 +187,81 @@
    </property>
    <property name="shortcut" >
     <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionPageRendering" >
+   <property name="text" >
+    <string>&amp;Page rendering...</string>
+   </property>
+  </action>
+  <action name="actionRedraw" >
+   <property name="text" >
+    <string>&amp;Redraw</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionUpdateAll" >
+   <property name="text" >
+    <string>&amp;Update all</string>
+   </property>
+  </action>
+  <action name="actionSmaller" >
+   <property name="text" >
+    <string>&amp;Smaller</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+-</string>
+   </property>
+  </action>
+  <action name="actionLarger" >
+   <property name="text" >
+    <string>&amp;Larger</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl++</string>
+   </property>
+  </action>
+  <action name="actionOriginalSize" >
+   <property name="text" >
+    <string>&amp;Original size</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="actionLocatorBar" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="checked" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>&amp;Locator bar</string>
+   </property>
+  </action>
+  <action name="actionStatusBar" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="checked" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>&amp;Status bar</string>
+   </property>
+  </action>
+  <action name="actionTooBar" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="checked" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>&amp;Tool bar</string>
    </property>
   </action>
  </widget>

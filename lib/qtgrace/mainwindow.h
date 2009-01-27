@@ -23,6 +23,11 @@ protected:
 private slots:
   void on_actionExit_triggered();
   void on_actionOpen_triggered();
+  void page_zoom_inout(GraceApp *gapp, int inout);
+  void on_actionSmaller_triggered();
+  void on_actionLarger_triggered();
+  void on_actionOriginalSize_triggered();
+
   void readSettings();
   void writeSettings();
   bool maybeSave();
