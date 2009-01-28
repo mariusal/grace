@@ -2,7 +2,6 @@
 #define __CANVASWIDGET_H_
 
 #include <QWidget>
-#include <QPicture>
 
 extern "C" {
 #include <grace/grace.h>
@@ -19,7 +18,6 @@ public:
   void draw(QString fileName);
 
 private:
-  QPicture qtstream;
   QPixmap *pixmap;
   void paintEvent(QPaintEvent *event);
 

@@ -39,7 +39,6 @@ extern "C" {
   #include <grace/canvas.h>
 }
 
-#include <QPicture>
 #include <QPainter>
 #include <QBitmap>
 
@@ -58,7 +57,7 @@ typedef struct {
 //    Screen *screen;
 //    Pixmap pixmap;
     QPainter *painter;
-    QPicture *pixmap;
+    QPixmap *pixmap;
     
 //    int pixel_size;
     unsigned int height, width, page_scale;
@@ -159,7 +158,7 @@ static int qt_initgraphics(const Canvas *canvas, void *data,
     qtdata->height = pg->height;
     qtdata->page_scale = MIN2(pg->width, pg->height);
 
-    qtdata->pixmap = (QPicture *) canvas_get_prstream(canvas);
+    qtdata->pixmap = (QPixmap *) canvas_get_prstream(canvas);
     qtdata->painter = new QPainter(qtdata->pixmap);
     
     //qtdata->pixel_size = x11_get_pixelsize(gapp->gui);

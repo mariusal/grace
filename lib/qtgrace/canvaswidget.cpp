@@ -6,7 +6,8 @@
 using namespace std;
 
 
-CanvasWidget::CanvasWidget(QWidget *parent) : QWidget(parent)
+CanvasWidget::CanvasWidget(QWidget *parent) : 
+    QWidget(parent), pixmap(0)
 {
 /*  static const QPointF points[3] = {
     QPointF(10.0, 80.0),
@@ -23,7 +24,6 @@ CanvasWidget::CanvasWidget(QWidget *parent) : QWidget(parent)
   //gproject_render(gp);
   
   //printf("Hello world2\n");
-    pixmap = 0;
 }
 
 void CanvasWidget::paintEvent(QPaintEvent *)
@@ -68,17 +68,14 @@ void CanvasWidget::qtdrawgraph(const GProject *gp)
 
 	//xstream.screen = DefaultScreenOfDisplay(xstuff->disp);
 	//xstream.pixmap = xstuff->bufpixmap;
-	canvas_set_prstream(grace_get_canvas(gapp->grace), &qtstream);
-
-	select_device(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
-	gproject_render(gp);
-
 	if (pixmap != 0) {
 	    delete pixmap;
 	}
 	pixmap = new QPixmap(pg->width, pg->height);
-	QPainter p(pixmap);
-	qtstream.play(&p);
+	canvas_set_prstream(grace_get_canvas(gapp->grace), pixmap);
+
+	select_device(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
+	gproject_render(gp);
 
 	if (quark_is_active(gr)) {
 	    //draw_focus(gr);
@@ -148,7 +145,7 @@ void CanvasWidget::draw(QString fileName)
   //canvas_set_prstream(grace_get_canvas(gapp->grace), &xstream);
   //canvas_set_prstream(grace_get_canvas(grace), fpout);
 
-  canvas_set_prstream(canvas, &qtstream);
+  canvas_set_prstream(canvas, &pixmap);
   select_device(canvas, hdevice);
   gproject_render(gp);
   
