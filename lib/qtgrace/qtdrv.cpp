@@ -48,12 +48,6 @@ typedef struct {
 } XPoint;
 
 typedef struct {
-    RGB rgb;
-    QColor pixel;
-    int allocated;
-} QtColor;
-
-typedef struct {
 //    Screen *screen;
 //    Pixmap pixmap;
     QPainter *painter;
@@ -73,9 +67,6 @@ typedef struct {
     int arcfillmode;
     int linecap;
     int linejoin;
-
-    QtColor *colors;
-    unsigned int ncolors;
 } Qt_data;
 
 static Qt_data *qt_data_new(void)
@@ -94,8 +85,6 @@ static void qt_data_free(void *data)
     Qt_data *qtdata = (Qt_data *) data;
 
     if (qtdata) {
-	delete (QtColor *) qtdata->colors;
-    
 	delete (Qt_data *) data;
     }
 }
@@ -106,45 +95,11 @@ static void VPoint2XPoint(const Qt_data *qtdata, const VPoint *vp, XPoint *xp)
     xp->y = qtdata->height - qtdata->page_scale*vp->y;
 }
 
-static void qt_initcmap(const Canvas *canvas, Qt_data *qtdata)
+static QColor Color2QColor(const Canvas *canvas, const int color)
 {
-    unsigned int i;
     RGB rgb;
-    unsigned int ncolors = number_of_colors(canvas);
-    
-    qtdata->colors = (QtColor *) xrealloc(qtdata->colors, sizeof(QtColor)*ncolors);
-    if (!qtdata->colors) {
-        return;
-    }
-    
-    if (ncolors && ncolors > qtdata->ncolors) {
-        memset(qtdata->colors + qtdata->ncolors, 0,
-            sizeof(QtColor)*(ncolors - qtdata->ncolors));
-    }
-    qtdata->ncolors = ncolors;
-    
-    for (i = 0; i < ncolors; i++) {
-        QtColor *qc = &qtdata->colors[i];
-        /* even in mono, b&w must be allocated */
-//        if (qtdata->monomode == FALSE || i < 2) {
-            if (get_rgb(canvas, i, &rgb) == RETURN_SUCCESS) {
-                if (!qc->allocated || !compare_rgb(&rgb, &qc->rgb)) {
-                    qc->pixel.setRgb(rgb.red, rgb.green, rgb.blue);
-                    qc->rgb = rgb;
-                    qc->allocated = TRUE;
-                }
-            }
-//        } else {
-//            qc->pixel = BlackPixelOfScreen(qtdata->screen);
-//        }
-    }
-}
-
-static void qt_updatecmap(const Canvas *canvas, void *data)
-{
-    Qt_data *qtdata = (Qt_data *) data;
-    /* TODO: replace!!! */
-    qt_initcmap(canvas, qtdata);
+    get_rgb(canvas, color, &rgb);
+    return QColor(rgb.red, rgb.green, rgb.blue);
 }
 
 static int qt_initgraphics(const Canvas *canvas, void *data,
@@ -178,8 +133,6 @@ static int qt_initgraphics(const Canvas *canvas, void *data,
     qtdata->linecap     = -1;
     qtdata->linejoin    = -1;
 
-    qt_initcmap(canvas, qtdata);
-    
     return RETURN_SUCCESS;
 }
 
@@ -192,7 +145,7 @@ static void qt_setpen(const Canvas *canvas, Qt_data *qtdata)
     getpen(canvas, &pen);
     fg = pen.color;
 
-    QPen qpen(qtdata->colors[fg].pixel);
+    QPen qpen(Color2QColor(canvas, fg));
     qpen.setStyle(Qt::SolidLine);
     qtdata->painter->setPen(qpen);
 }
@@ -331,13 +284,13 @@ static void qt_setfillpen(const Canvas *canvas, Qt_data *qtdata)
         return;
     } else if (p == 1) {
 	qtdata->painter->setPen(Qt::NoPen);
-	qtdata->painter->setBrush(QBrush(qtdata->colors[fg].pixel));
+	qtdata->painter->setBrush(QBrush(Color2QColor(canvas, fg)));
     } else {
 	qtdata->painter->setPen(Qt::NoPen);
 
         Pattern *pat = canvas_get_pattern(canvas, p);
 	QBitmap bitmap = QBitmap::fromData(QSize(pat->width, pat->height), pat->bits, QImage::Format_MonoLSB);
-	QBrush brush(qtdata->colors[fg].pixel);
+	QBrush brush(Color2QColor(canvas, fg));
 	brush.setTexture(bitmap);
 	qtdata->painter->setBrush(brush);
     }
@@ -541,7 +494,7 @@ int register_qt_drv(Canvas *canvas)
         qt_initgraphics,
         qt_leavegraphics,
         NULL,
-        qt_updatecmap,
+        NULL,
         qt_drawpixel,
         qt_drawpolyline,
         qt_fillpolygon,
