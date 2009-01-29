@@ -155,7 +155,7 @@ static void qt_setdrawbrush(const Canvas *canvas, Qt_data *qtdata)
     unsigned int iw;
     int style;
     int lc, lj;
-    int i, scale, darr_len;
+    int i, darr_len;
 
     qt_setpen(canvas, qtdata);
     
@@ -196,17 +196,16 @@ static void qt_setdrawbrush(const Canvas *canvas, Qt_data *qtdata)
         if (style > 1) {
             LineStyle *linestyle = canvas_get_linestyle(canvas, style);
             darr_len = linestyle->length;
-            scale = MAX2(1, iw);
 	    QVector<qreal> dashes(darr_len);
             for (i = 0; i < darr_len; i++) {
-		dashes[i] = scale*linestyle->array[i];
+		dashes[i] = linestyle->array[i];
             }
 	    QPen pen = qtdata->painter->pen();
 
 	    pen.setWidth(iw);
-	    pen.setDashPattern(dashes);
 	    pen.setCapStyle((Qt::PenCapStyle) lc);
 	    pen.setJoinStyle((Qt::PenJoinStyle) lj);
+	    pen.setDashPattern(dashes);
 
 	    qtdata->painter->setPen(pen);
         } else if (style == 1) {
