@@ -27,8 +27,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>707</width>
-         <height>540</height>
+         <width>713</width>
+         <height>543</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2" />
@@ -43,7 +43,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>19</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File" >
@@ -120,8 +120,23 @@
   </widget>
   <widget class="QStatusBar" name="statusbar" />
   <widget class="QToolBar" name="toolBar" >
+   <property name="contextMenuPolicy" >
+    <enum>Qt::CustomContextMenu</enum>
+   </property>
    <property name="windowTitle" >
     <string>toolBar</string>
+   </property>
+   <property name="styleSheet" >
+    <string notr="true" > QToolButton {
+    border: 1px solid #8f8f91;
+    border-radius: 2px;
+    background-color: #b0c4de;
+ }
+
+ QToolButton:pressed {
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                           stop: 0 #dadbde, stop: 1 #f6f7fa);
+ }</string>
    </property>
    <property name="movable" >
     <bool>false</bool>
