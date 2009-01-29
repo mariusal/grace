@@ -85,7 +85,7 @@ static void qt_data_free(void *data)
     Qt_data *qtdata = (Qt_data *) data;
 
     if (qtdata) {
-	delete (Qt_data *) data;
+	delete qtdata;
     }
 }
 
@@ -316,14 +316,11 @@ static void qt_fillpolygon(const Canvas *canvas, void *data,
 
     qt_setfillpen(canvas, qtdata);
 
-    Qt::FillRule rule = Qt::WindingFill;
-    if (getfillrule(canvas) != qtdata->fillrule) {
-        qtdata->fillrule = getfillrule(canvas);
-        if (getfillrule(canvas) == FILLRULE_WINDING) {
-	    rule = Qt::WindingFill;
-        } else {
-	    rule = Qt::OddEvenFill;
-        }
+    Qt::FillRule rule;
+    if (getfillrule(canvas) == FILLRULE_WINDING) {
+	rule = Qt::WindingFill;
+    } else {
+	rule = Qt::OddEvenFill;
     }
 
     qtdata->painter->drawPolygon(points, nc, rule);
@@ -423,16 +420,12 @@ void qt_putpixmap(const Canvas *canvas, void *data,
               //      }
                     if (bin_dump(&(pm->bits)[k*paddedW/pm->pad+j], i, pm->pad)) {
                         //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, color);
-			RGB rgb;
-			get_rgb(canvas, color, &rgb);
-			QPen qpen(QColor(rgb.red, rgb.green, rgb.blue));
+			QPen qpen(Color2QColor(canvas, color));
 			qtdata->painter->setPen(qpen);
 			qtdata->painter->drawPoint(x, y);
                     } else {
                         if (pm->type == PIXMAP_OPAQUE) {
-			    RGB rgb;
-			    get_rgb(canvas, bg, &rgb);
-			    QPen qpen(QColor(rgb.red, rgb.green, rgb.blue));
+			    QPen qpen(Color2QColor(canvas, bg));
 			    qtdata->painter->setPen(qpen);
 			    qtdata->painter->drawPoint(x, y);
                             //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, bg);
@@ -456,9 +449,7 @@ void qt_putpixmap(const Canvas *canvas, void *data,
                 cindex = cptr[k*pm->width + j];
                 if (cindex != bg || pm->type == PIXMAP_OPAQUE) {
                     color = cindex;
-                    RGB rgb;
-                    get_rgb(canvas, cindex, &rgb);
-		    QPen qpen(QColor(rgb.red, rgb.green, rgb.blue));
+		    QPen qpen(Color2QColor(canvas, color));
 		    qtdata->painter->setPen(qpen);
 		    qtdata->painter->drawPoint(x, y);
                     //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, color);
