@@ -235,7 +235,7 @@ static void qt_drawpixel(const Canvas *canvas, void *data,
     
     VPoint2XPoint(qtdata, vp, &xp);
     qt_setpen(canvas, qtdata);
-    qtdata->painter->drawPoint(xp.x, xp.y);
+    qtdata->painter->drawPoint(QPointF(xp.x, xp.y));
 }
 
 static void qt_drawpolyline(const Canvas *canvas, void *data,
@@ -254,13 +254,13 @@ static void qt_drawpolyline(const Canvas *canvas, void *data,
         return;
     }
 
-    QPoint points[xn];
+    QPointF points[xn];
     for (i = 0; i < n; i++) {
         VPoint2XPoint(qtdata, &vps[i], &p[i]);
-	points[i] = QPoint(p[i].x, p[i].y);
+	points[i] = QPointF(p[i].x, p[i].y);
     }
     if (mode == POLYLINE_CLOSED) {
-	points[n] = QPoint(p[0].x, p[0].y);
+	points[n] = QPointF(p[0].x, p[0].y);
     }
 
     qt_setdrawbrush(canvas, qtdata);
@@ -307,10 +307,10 @@ static void qt_fillpolygon(const Canvas *canvas, void *data,
         return;
     }
 
-    QPoint points[nc];
+    QPointF points[nc];
     for (i = 0; i < nc; i++) {
         VPoint2XPoint(qtdata, &vps[i], &p[i]);
-	points[i] = QPoint(p[i].x, p[i].y);
+	points[i] = QPointF(p[i].x, p[i].y);
     }
 
     qt_setfillpen(canvas, qtdata);
@@ -341,14 +341,14 @@ static void qt_drawarc(const Canvas *canvas, void *data,
     if (xp1.x != xp2.x || xp1.y != xp2.y) {
         double x      = MIN2(xp1.x, xp2.x);
         double y      = MIN2(xp1.y, xp2.y);
-        double width  = abs(xp2.x - xp1.x);
-        double height = abs(xp2.y - xp1.y);
-        double angle1 = 16*a1;
-        double angle2 = 16*a2;
+        double width  = fabs(xp2.x - xp1.x);
+        double height = fabs(xp2.y - xp1.y);
+        int angle1 = (int) rint(16*a1);
+        int angle2 = (int) rint(16*a2);
 
-	qtdata->painter->drawArc(x, y, width, height, angle1, angle2);
+	qtdata->painter->drawArc(QRectF(x, y, width, height), angle1, angle2);
     } else { /* zero radius */
-	qtdata->painter->drawPoint(xp1.x, xp1.y);
+	qtdata->painter->drawPoint(QPointF(xp1.x, xp1.y));
     }
 }
 
@@ -366,18 +366,18 @@ static void qt_fillarc(const Canvas *canvas, void *data,
     if (xp1.x != xp2.x || xp1.y != xp2.y) {
         double x      = MIN2(xp1.x, xp2.x);
         double y      = MIN2(xp1.y, xp2.y);
-        double width  = abs(xp2.x - xp1.x);
-        double height = abs(xp2.y - xp1.y);
-        double angle1 = 16*a1;
-        double angle2 = 16*a2;
+        double width  = fabs(xp2.x - xp1.x);
+        double height = fabs(xp2.y - xp1.y);
+        int angle1 = (int) rint(16*a1);
+        int angle2 = (int) rint(16*a2);
 
 	if (mode == ARCCLOSURE_CHORD) {
-	    qtdata->painter->drawChord(x, y, width, height, angle1, angle2);
+	    qtdata->painter->drawChord(QRectF(x, y, width, height), angle1, angle2);
 	} else {
-	    qtdata->painter->drawPie(x, y, width, height, angle1, angle2);
+	    qtdata->painter->drawPie(QRectF(x, y, width, height), angle1, angle2);
 	}
     } else { /* zero radius */
-	qtdata->painter->drawPoint(xp1.x, xp1.y);
+	qtdata->painter->drawPoint(QPointF(xp1.x, xp1.y));
     }
 }
 
@@ -393,7 +393,7 @@ void qt_putpixmap(const Canvas *canvas, void *data,
     
     XPoint xp;
     //miPoint xp;
-    int x, y;// xleft, ytop, xright, ybottom;
+    double x, y;// xleft, ytop, xright, ybottom;
     
     bg = getbgcolor(canvas);
     
@@ -421,12 +421,12 @@ void qt_putpixmap(const Canvas *canvas, void *data,
                         //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, color);
 			QPen qpen(Color2QColor(canvas, color));
 			qtdata->painter->setPen(qpen);
-			qtdata->painter->drawPoint(x, y);
+			qtdata->painter->drawPoint(QPointF(x, y));
                     } else {
                         if (pm->type == PIXMAP_OPAQUE) {
 			    QPen qpen(Color2QColor(canvas, bg));
 			    qtdata->painter->setPen(qpen);
-			    qtdata->painter->drawPoint(x, y);
+			    qtdata->painter->drawPoint(QPointF(x, y));
                             //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, bg);
                         }
                     }
@@ -450,7 +450,7 @@ void qt_putpixmap(const Canvas *canvas, void *data,
                     color = cindex;
 		    QPen qpen(Color2QColor(canvas, color));
 		    qtdata->painter->setPen(qpen);
-		    qtdata->painter->drawPoint(x, y);
+		    qtdata->painter->drawPoint(QPointF(x, y));
                     //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, color);
                 }
             }
