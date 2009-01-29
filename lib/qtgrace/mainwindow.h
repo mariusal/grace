@@ -22,7 +22,10 @@ protected:
 
 private slots:
   void on_actionExit_triggered();
+  void on_actionNew_triggered();
   void on_actionOpen_triggered();
+  void on_actionSave_triggered();
+  void on_actionSaveAs_triggered();
   void page_zoom_inout(GraceApp *gapp, int inout);
   void on_actionSmaller_triggered();
   void on_actionLarger_triggered();
@@ -31,8 +34,6 @@ private slots:
 
   void readSettings();
   void writeSettings();
-  bool maybeSave();
-  void loadFile(const QString &fileName);
 
 private:
   GraceApp *gapp;

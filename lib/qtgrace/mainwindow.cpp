@@ -9,6 +9,7 @@
 #include <QTextStream>
 #include <QBitmap>
 extern "C" {
+#include <utils.h>
 #include <files.h>
 #include <bitmaps.h>
 }
@@ -34,17 +35,6 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
 
 MainWindow::~MainWindow()
 {
-}
-
-void MainWindow::closeEvent(QCloseEvent *event)
-{
-  if (maybeSave()) {
-    writeSettings();
-//    restoreState();
-    event->accept();
-  } else {
-    event->ignore();
-  }
 }
 
 void MainWindow::setToolBarIcons()
@@ -73,18 +63,59 @@ void MainWindow::setToolBarIcons()
     ui.actionExit->setIcon(QIcon(QBitmap::fromData(QSize(16, 16), exit_bits, QImage::Format_MonoLSB)));
 }
 
-void MainWindow::on_actionExit_triggered()
+void MainWindow::on_actionNew_triggered()
 {
-  close();
+    new_project(this->gapp, NULL);
+    canvasWidget->qtdrawgraph(gapp->gp);
 }
 
 void MainWindow::on_actionOpen_triggered()
 {
-  if (maybeSave()) {
     QString fileName = QFileDialog::getOpenFileName(this);
-    if (!fileName.isEmpty())
-      loadFile(fileName);
-  }
+    if (!fileName.isEmpty()) {
+	char *filename = fileName.toAscii().data();
+
+	if (load_project(gapp, filename) == RETURN_SUCCESS) {
+	    QApplication::setOverrideCursor(Qt::WaitCursor);
+	    canvasWidget->qtdrawgraph(gapp->gp);
+	    //canvasWidget->update_all();
+	    QApplication::restoreOverrideCursor();
+	    setCurrentFile(fileName);
+	    statusBar()->showMessage(tr("File loaded"), 2000);
+	} else {
+	    statusBar()->showMessage(tr("File failed to load"), 2000);
+	}
+    }
+}
+
+void MainWindow::on_actionSave_triggered()
+{
+    if (gproject_get_docname(this->gapp->gp)) {
+        //set_wait_cursor();
+
+        save_project(this->gapp->gp, gproject_get_docname(this->gapp->gp));
+        //update_all();
+
+        //unset_wait_cursor();
+    } else {
+	//create_saveproject_popup();
+        on_actionSaveAs_triggered();
+    }
+}
+
+void MainWindow::on_actionSaveAs_triggered()
+{
+    QString fileName = QFileDialog::getSaveFileName(this);
+    if (!fileName.isEmpty()) {
+	//if (save_project(gapp->gp, filename) == RETURN_SUCCESS) {
+	char *filename = fileName.toAscii().data();
+	if (save_project(gapp->gp, filename) == RETURN_SUCCESS) {
+	    //update_all();
+	    //return TRUE;
+	} else {
+	    //return FALSE;
+	}
+    }
 }
 
 void MainWindow::page_zoom_inout(GraceApp *gapp, int inout)
@@ -124,6 +155,16 @@ void MainWindow::on_actionRedraw_triggered()
     canvasWidget->qtdrawgraph(gapp->gp);
 }
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    bailout(this->gapp);
+}
+
+void MainWindow::on_actionExit_triggered()
+{
+    bailout(this->gapp);
+}
+
 void MainWindow::readSettings()
 {
   QSettings settings("Grace Project", "Grace");
@@ -138,56 +179,6 @@ void MainWindow::writeSettings()
   QSettings settings("Grace Project", "Grace");
   settings.setValue("pos", pos());
   settings.setValue("size", size());
-}
-
-bool MainWindow::maybeSave()
-{
-  //if (textEdit->document()->isModified()) {
-  if (false) {
-    QMessageBox::StandardButton ret;
-    ret = QMessageBox::warning(this, tr("Grace"),
-	tr("The document has been modified.\n"
-	  "Do you want to save your changes?"),
-	QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-    if (ret == QMessageBox::Save)
-      //return save();
-      return true;
-    else if (ret == QMessageBox::Cancel)
-      return false;
-  }
-  return true;
-}
-
-void MainWindow::loadFile(const QString &fileName)
-{
-/*  QFile file(fileName);
-  if (!file.open(QFile::ReadOnly | QFile::Text)) {
-    QMessageBox::warning(this, tr("Grace"),
-	tr("Cannot read file %1:\n%2.")
-	.arg(fileName)
-	.arg(file.errorString()));
-    return;
-  }*/
-
-    QByteArray bytes = fileName.toAscii();
-    char *filename = bytes.data();
-
-    if (load_project(gapp, filename) == RETURN_SUCCESS) {
-	QApplication::setOverrideCursor(Qt::WaitCursor);
-	canvasWidget->qtdrawgraph(gapp->gp);
-	//canvasWidget->update_all();
-	QApplication::restoreOverrideCursor();
-	setCurrentFile(fileName);
-	statusBar()->showMessage(tr("File loaded"), 2000);
-    } else {
-	statusBar()->showMessage(tr("File failed to load"), 2000);
-    }
-
-  //canvasWidget->draw(fileName);
-
-  //QTextStream in(&file);
-  //textEdit->setPlainText(in.readAll());
-
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
