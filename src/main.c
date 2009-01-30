@@ -49,7 +49,7 @@
 #include "xprotos.h"
 
 #ifdef QT_GUI
-#include "../lib/qtgrace/qtgrace.h"
+#include "qtgui/qtgrace.h"
 #endif
 
 
