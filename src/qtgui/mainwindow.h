@@ -32,9 +32,6 @@ private slots:
   void on_actionOriginalSize_triggered();
   void on_actionRedraw_triggered();
 
-  void readSettings();
-  void writeSettings();
-
 private:
   GraceApp *gapp;
 

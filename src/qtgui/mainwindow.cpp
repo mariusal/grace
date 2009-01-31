@@ -21,8 +21,8 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
     setWindowIcon(QPixmap(gapp_icon_xpm));
     setToolBarIcons();
 
-    readSettings();
-    //restoreState();
+    QSettings settings("GraceProject", "Grace");
+    restoreGeometry(settings.value("geometry").toByteArray());
 
     setCurrentFile("");
 
@@ -157,28 +157,15 @@ void MainWindow::on_actionRedraw_triggered()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    QSettings settings("GraceProject", "Grace");
+    settings.setValue("geometry", saveGeometry());
+    QWidget::closeEvent(event);
     bailout(this->gapp);
 }
 
 void MainWindow::on_actionExit_triggered()
 {
-    bailout(this->gapp);
-}
-
-void MainWindow::readSettings()
-{
-  QSettings settings("Grace Project", "Grace");
-  QPoint pos = settings.value("pos", QPoint(0, 0)).toPoint();
-  QSize size = settings.value("size", QSize(800, 600)).toSize();
-  resize(size);
-  move(pos);
-}
-
-void MainWindow::writeSettings()
-{
-  QSettings settings("Grace Project", "Grace");
-  settings.setValue("pos", pos());
-  settings.setValue("size", size());
+    close();
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)

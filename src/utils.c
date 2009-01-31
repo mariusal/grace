@@ -139,7 +139,11 @@ void bailout(GraceApp *gapp)
     if ((gapp->gp && !quark_dirtystate_get(gproject_get_top(gapp->gp))) ||
         yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
         gapp_free(gapp);
+#ifdef QT_GUI
+	return;
+#else
         exit(0);
+#endif
     }
 }
 
