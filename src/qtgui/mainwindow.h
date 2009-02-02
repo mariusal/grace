@@ -31,6 +31,13 @@ private slots:
   void on_actionLarger_triggered();
   void on_actionOriginalSize_triggered();
   void on_actionRedraw_triggered();
+  
+  void snapshot_and_update(GProject *gp, int all);
+  void graph_scroll_proc(GraceApp *gapp, int type);
+  void on_actionScrollLeft_triggered();
+  void on_actionScrollRight_triggered();
+  void on_actionScrollUp_triggered();
+  void on_actionScrollDown_triggered();
 
 private:
   GraceApp *gapp;

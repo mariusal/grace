@@ -143,11 +143,7 @@ void bailout(GraceApp *gapp)
     if ((gapp->gp && !quark_dirtystate_get(gproject_get_top(gapp->gp))) ||
         yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
         gapp_free(gapp);
-#ifdef QT_GUI
-	return;
-#else
         exit(0);
-#endif
     }
 }
 
@@ -382,7 +378,7 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor)
     if (gapp->gui->noask) {
 	return TRUE;
     }
-#ifdef NONE_GUI
+#if defined(NONE_GUI) && !defined(QT_GUI) 
     return (yesnoterm(msg));
 #else
     if (gapp->gui->inwin) {

@@ -12,6 +12,8 @@ extern "C" {
 #include <utils.h>
 #include <files.h>
 #include <bitmaps.h>
+#include <core_utils.h>
+#include <xprotos.h>
 }
 
 MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent)
@@ -109,7 +111,7 @@ void MainWindow::on_actionSaveAs_triggered()
     if (!fileName.isEmpty()) {
 	//if (save_project(gapp->gp, filename) == RETURN_SUCCESS) {
 	char *filename = fileName.toAscii().data();
-	if (save_project(gapp->gp, filename) == RETURN_SUCCESS) {
+	if (save_project(this->gapp->gp, filename) == RETURN_SUCCESS) {
 	    //update_all();
 	    //return TRUE;
 	} else {
@@ -157,16 +159,89 @@ void MainWindow::on_actionRedraw_triggered()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    QSettings settings("GraceProject", "Grace");
-    settings.setValue("geometry", saveGeometry());
-    QWidget::closeEvent(event);
-    bailout(this->gapp);
+    if ((this->gapp->gp && !quark_dirtystate_get(gproject_get_top(this->gapp->gp))) ||
+        yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
+        gapp_free(this->gapp);
+	QSettings settings("GraceProject", "Grace");
+	settings.setValue("geometry", saveGeometry());
+        event->accept();
+    } else {
+        event->ignore();
+    }
 }
 
 void MainWindow::on_actionExit_triggered()
 {
     close();
 }
+
+void MainWindow::snapshot_and_update(GProject *gp, int all)
+{
+    Quark *pr = gproject_get_top(gp);
+    //GUI *gui = gui_from_quark(pr);
+    //AMem *amem;
+
+    if (!pr) {
+        return;
+    }
+
+    //amem = quark_get_amem(pr);
+    //amem_snapshot(amem);
+
+    canvasWidget->qtdrawgraph(gp);
+
+    //if (all) {
+        //update_all();
+    //} else {
+        //update_undo_buttons(gp);
+        //update_explorer(gui->eui, FALSE);
+        //update_app_title(gp);
+    //}
+}
+
+int scroll_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    if (quark_fid_get(q) == QFlavorGraph) {
+        int *type = (int *) udata;
+        closure->descend = FALSE;
+        graph_scroll(q, *type);
+    }
+
+    return TRUE;
+}
+
+void MainWindow::graph_scroll_proc(GraceApp *gapp, int type)
+{
+    Quark *cg, *f;
+
+    cg = graph_get_current(gproject_get_top(gapp->gp));
+    f = get_parent_frame(cg);
+
+    quark_traverse(f, scroll_hook, &type);
+
+    snapshot_and_update(gapp->gp, TRUE);
+}
+
+void MainWindow::on_actionScrollLeft_triggered()
+{
+    graph_scroll_proc(this->gapp, GSCROLL_LEFT);
+}
+
+void MainWindow::on_actionScrollRight_triggered()
+{
+    graph_scroll_proc(this->gapp, GSCROLL_RIGHT);
+}
+
+void MainWindow::on_actionScrollUp_triggered()
+{
+    graph_scroll_proc(this->gapp, GSCROLL_UP);
+}
+
+void MainWindow::on_actionScrollDown_triggered()
+{
+    graph_scroll_proc(this->gapp, GSCROLL_DOWN);
+}
+
 
 void MainWindow::setCurrentFile(const QString &fileName)
 {
