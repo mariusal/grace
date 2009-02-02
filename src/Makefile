@@ -50,9 +50,11 @@ Make.dep : $(GRSRCS) $(GUISRCS) $(PARS_C)
 
 include qtgui/Make.common
 
+qtgui/Make.common : 
+
 qtgrace$(EXE) : $(GROBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) $(GRACE_CORE_LIB) \
-	$(GRACE_GRAAL_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB) $(GRACE_QT_LIB) qtgui/Make.common
-	$(CC) $(CFLAGS) $(GROBJS) $(QTOBJS) -o $@ $(LDFLAGS) $(LIBS)
+	$(GRACE_GRAAL_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB) $(GRACE_QT_LIB)
+	$(CXX) $(CFLAGS) $(GROBJS) $(QTOBJS) -o $@ $(LDFLAGS) $(LIBS)
 
 xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) \
 	$(GRACE_GRAAL_LIB) $(GRACE_CORE_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB)

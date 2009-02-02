@@ -186,7 +186,11 @@ static int reopen_real_time_input(GraceApp *gapp, Input_buffer *ib)
     /* in order to avoid race conditions (broken pipe on the write
        side), we open a new file descriptor before closing the
        existing one */
+#ifdef WIN32
+    fd = open(ib->name, O_RDONLY); /* TODO: windows port O_NONBLOCK */ 
+#else
     fd = open(ib->name, O_RDONLY | O_NONBLOCK);
+#endif
     if (fd < 0) {
         sprintf(buf, "Can't reopen real time input %s", ib->name);
         errmsg(buf);
@@ -465,7 +469,7 @@ int real_time_under_monitoring(void)
  */
 int monitor_input(GraceApp *gapp, Input_buffer *tbl, int tblsize, int no_wait)
 {
-
+#ifndef WIN32 /* TODO: windows port */
     Input_buffer *ib;
     fd_set rfds;
     int remaining;
@@ -543,7 +547,7 @@ int monitor_input(GraceApp *gapp, Input_buffer *tbl, int tblsize, int no_wait)
         /* after one pass, we obey timeout */
         first_time = 0;
     }
-
+#endif
     return RETURN_SUCCESS;
 }
 

@@ -821,7 +821,7 @@ void DrawRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 /*
  * DrawRect - draw a rectangle using the current color and linestyle
  */
-void FillRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
+void FillRectangle(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
     VPoint vps[4];
     
@@ -2319,7 +2319,7 @@ int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data)
             setcolor(canvas, getbgcolor(canvas));
             setpattern(canvas, 1);
             setclipping(canvas, FALSE);
-            FillRect(canvas, &vp1, &vp2);
+            FillRectangle(canvas, &vp1, &vp2);
         }
 
         activate_bbox(canvas, BBOX_TYPE_GLOB, TRUE);

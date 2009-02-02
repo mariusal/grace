@@ -38,10 +38,14 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <string.h>
-#include <pwd.h>
+#ifndef WIN32
+#   include <pwd.h>
+#endif
 #include <signal.h>
 #include <sys/types.h>
-#include <sys/resource.h>
+#ifndef WIN32
+#   include <sys/resource.h>
+#endif
 #ifdef HAVE_SYS_SELECT_H
 #  include <sys/select.h>
 #endif

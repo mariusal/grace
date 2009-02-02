@@ -779,9 +779,17 @@ fi
 
 if test "$qt_gui" = true
 then
+  AC_PROG_CXX
   AC_DEFINE(QT_GUI)
   GRACE=qtgrace
-  LDFLAGS="$LDFLAGS -lQtGui -lQtCore -lpthread"
+  case "$host_os" in
+      *cygwin* | *mingw*)
+      LDFLAGS="$LDFLAGS -L$QTDIR/lib -lQtGui4 -lQtCore4"
+      ;;
+      *)
+      LDFLAGS="$LDFLAGS -L$QTDIR/lib -lQtGui -lQtCore -lpthread"
+      ;;
+  esac
   qtgui_dir="src/qtgui"
 fi
 

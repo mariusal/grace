@@ -6,7 +6,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/utsname.h>
+#ifdef WIN32
+#include <windows.h>
+#else
+#   include <sys/utsname.h>
+#endif /* WIN32 */
 #include <time.h>
 #ifndef NONE_GUI
 #  include <Xm/Xm.h>
@@ -35,7 +39,13 @@
 static void VersionInfo(FILE *outfile)
 {
 
+#ifdef WIN32
+    char u_info[MAX_COMPUTERNAME_LENGTH+1] ;
+    DWORD name_len = MAX_COMPUTERNAME_LENGTH + 1 ;
+    SYSTEM_INFO SystemInfo;
+#else
     struct utsname u_info;
+#endif /* WIN32 */
     time_t time_info;
     char *ctime_string;
 
@@ -69,9 +79,22 @@ static void VersionInfo(FILE *outfile)
     fprintf(outfile, "#define BI_CCOMPILER \"%s\"\n",
         CCOMPILER);
     
+#ifdef WIN32
+    GetSystemInfo( &SystemInfo ) ;
+    if ( !GetComputerName(u_info , &name_len) )
+	strcpy(u_info , "no_name") ;
+
+    fprintf(outfile, "#define BI_SYSTEM \"%-15s%-15s%d.%d%d\"\n",
+	"Windows NT",
+	u_info ,
+	GetVersion() & 0xFF ,
+	GetVersion() & 0xFF00 ,
+	SystemInfo.dwProcessorType);
+#else
     uname(&u_info);
     fprintf(outfile, "#define BI_SYSTEM \"%s %s %s\"\n",
         u_info.sysname, u_info.release, u_info.machine);
+#endif /* WIN32 */
 
     time_info = time(NULL);
     ctime_string = ctime(&time_info);

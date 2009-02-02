@@ -23,10 +23,12 @@ src/qtgui/moc_mainwindow.cpp
 src/qtgui/moc_canvaswidget.cpp
 src/qtgui/ui_mainwindow.h
 src/buildinfo
+src/buildinfo.exe
 src/buildinfo.h
 src/grace
 src/xmgrace
 src/qtgrace
+src/qtgrace.exe
 src/pars.c
 src/tags
 autom4te.cache/

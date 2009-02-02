@@ -537,7 +537,7 @@ void fillframe(Canvas *canvas, Quark *q)
         vp1.y = v.yv1;
         vp2.x = v.xv2;
         vp2.y = v.yv2;
-        FillRect(canvas, &vp1, &vp2);
+        FillRectangle(canvas, &vp1, &vp2);
     }
 }    
 
@@ -1029,7 +1029,7 @@ static void draw_text_frame(Canvas *canvas, view *bbox, const TextFrame *tf)
             vp2.x = bbox->xv2;
             vp2.y = bbox->yv2;
             setpen(canvas, &tf->fillpen);
-            FillRect(canvas, &vp1, &vp2);
+            FillRectangle(canvas, &vp1, &vp2);
             setline(canvas, &tf->line);
             DrawRect(canvas, &vp1, &vp2);
             break;
@@ -1419,7 +1419,7 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
                  continue;
             vprev = vp2;
             
-            FillRect(canvas, &vp1, &vp2);
+            FillRectangle(canvas, &vp1, &vp2);
         }
     }
     if (p->sym.line.style != 0 && p->sym.line.pen.pattern != 0) {
@@ -1627,7 +1627,7 @@ void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt)
         vp1.x -= size;
         vp2.x += size;
         setpen(canvas, &p->sym.fillpen);
-        FillRect(canvas, &vp1, &vp2);
+        FillRectangle(canvas, &vp1, &vp2);
 
         setline(canvas, &p->sym.line);
         DrawRect(canvas, &vp1, &vp2);
@@ -2160,7 +2160,7 @@ void draw_legend_syms(Quark *pset,
                 /* TODO: settable option for setfill presentation */
                 setpen(canvas, &p->line.fillpen);
                 if (1) {
-                    FillRect(canvas, &vpf1, &vpf2);
+                    FillRectangle(canvas, &vpf1, &vpf2);
                 } else {
                     DrawFilledEllipse(canvas, &vpf1, &vpf2);
                 }
@@ -2375,7 +2375,7 @@ void draw_legends(Quark *q, plot_rt_t *plot_rt)
     
     if (nleg_entries) {
         setpen(canvas, &l->boxfillpen);
-        FillRect(canvas, &vp, &vp2);
+        FillRectangle(canvas, &vp, &vp2);
 
         setline(canvas, &l->boxline);
         DrawRect(canvas, &vp, &vp2);

@@ -32,6 +32,20 @@
 #include "grace/plot.h"
 #include "grace/graceP.h"
 
+#ifdef WIN32
+#define _WINSOCK2_H
+#include <windows.h>
+#undef _WINSOCK2_H
+char *getlogin (void)
+{
+  char *p;
+  DWORD dum = 100;
+
+  p = xmalloc(dum);
+  GetUserName (p, &dum);
+  return p;
+}
+#endif
 
 static void *obj_proc(void *context, const char *name, void *udata)
 {

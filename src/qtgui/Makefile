@@ -12,13 +12,12 @@ Makefile.qt : qtgrace.pro
 library : Makefile.qt
 	$(MAKE) -f Makefile.qt
 
-lib : library Make.common
+lib : library
+	$(MAKE) -f Makefile.qt Make.common
 
 clean: Makefile.qt
+	$(MAKE) -f Makefile.qt clean
+
+distclean: Makefile.qt
 	$(MAKE) -f Makefile.qt distclean
 
-distclean: clean
-
-include Makefile.qt
-Make.common : $(TARGET)
-	echo "QTOBJS = "$(foreach object, $(OBJECTS), qtgui/$(object)) > Make.common
