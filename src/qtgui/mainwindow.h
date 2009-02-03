@@ -26,19 +26,19 @@ private slots:
   void on_actionOpen_triggered();
   void on_actionSave_triggered();
   void on_actionSaveAs_triggered();
-  void autoscale_proc(GraceApp *gapp, int type);
+  void autoscale_proc(int type);
   void on_actionAutoScale_triggered();
   void on_actionAutoScaleX_triggered();
   void on_actionAutoScaleY_triggered();
   void on_actionAutoTick_triggered();
-  void page_zoom_inout(GraceApp *gapp, int inout);
+  void page_zoom_inout(int inout);
   void on_actionSmaller_triggered();
   void on_actionLarger_triggered();
   void on_actionOriginalSize_triggered();
   void on_actionRedraw_triggered();
   
   void snapshot_and_update(GProject *gp, int all);
-  void graph_scroll_proc(GraceApp *gapp, int type);
+  void graph_scroll_proc(int type);
   void on_actionScrollLeft_triggered();
   void on_actionScrollRight_triggered();
   void on_actionScrollUp_triggered();

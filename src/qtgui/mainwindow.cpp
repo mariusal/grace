@@ -67,7 +67,7 @@ void MainWindow::setToolBarIcons()
 
 void MainWindow::on_actionNew_triggered()
 {
-    new_project(this->gapp, NULL);
+    new_project(gapp, NULL);
     canvasWidget->qtdrawgraph(gapp->gp);
 }
 
@@ -75,7 +75,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open project"), "", tr("Grace Files (*.xgr *.agr)"));
     if (!fileName.isEmpty()) {
-	if (load_project(this->gapp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
+	if (load_project(gapp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
 	     canvasWidget->qtdrawgraph(gapp->gp);
 	    //canvasWidget->update_all();
 	    setCurrentFile(fileName);
@@ -88,10 +88,10 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionSave_triggered()
 {
-    if (gproject_get_docname(this->gapp->gp)) {
+    if (gproject_get_docname(gapp->gp)) {
         //set_wait_cursor();
 
-        save_project(this->gapp->gp, gproject_get_docname(this->gapp->gp));
+        save_project(gapp->gp, gproject_get_docname(gapp->gp));
         //update_all();
 
         //unset_wait_cursor();
@@ -106,8 +106,7 @@ void MainWindow::on_actionSaveAs_triggered()
     QString fileName = QFileDialog::getSaveFileName(this);
     if (!fileName.isEmpty()) {
 	//if (save_project(gapp->gp, filename) == RETURN_SUCCESS) {
-	char *filename = fileName.toAscii().data();
-	if (save_project(this->gapp->gp, filename) == RETURN_SUCCESS) {
+	if (save_project(gapp->gp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
 	    //update_all();
 	    //return TRUE;
 	} else {
@@ -116,7 +115,7 @@ void MainWindow::on_actionSaveAs_triggered()
     }
 }
 
-void MainWindow::autoscale_proc(GraceApp *gapp, int type)
+void MainWindow::autoscale_proc(int type)
 {
     Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
     
@@ -129,17 +128,17 @@ void MainWindow::autoscale_proc(GraceApp *gapp, int type)
 
 void MainWindow::on_actionAutoScale_triggered()
 {
-    autoscale_proc(gapp, AUTOSCALE_XY);
+    autoscale_proc(AUTOSCALE_XY);
 }
 
 void MainWindow::on_actionAutoScaleX_triggered()
 {
-    autoscale_proc(gapp, AUTOSCALE_X);
+    autoscale_proc(AUTOSCALE_X);
 }
 
 void MainWindow::on_actionAutoScaleY_triggered()
 {
-    autoscale_proc(gapp, AUTOSCALE_Y);
+    autoscale_proc(AUTOSCALE_Y);
 }
 
 /*
@@ -151,7 +150,7 @@ void MainWindow::on_actionAutoTick_triggered()
     snapshot_and_update(gapp->gp, TRUE);
 }
 
-void MainWindow::page_zoom_inout(GraceApp *gapp, int inout)
+void MainWindow::page_zoom_inout(int inout)
 {
     if (!gui_is_page_free(gapp->gui)) {
         if (inout > 0) {
@@ -170,17 +169,17 @@ void MainWindow::page_zoom_inout(GraceApp *gapp, int inout)
 
 void MainWindow::on_actionSmaller_triggered()
 {
-    page_zoom_inout(this->gapp, -1);
+    page_zoom_inout(-1);
 }
 
 void MainWindow::on_actionLarger_triggered()
 {
-    page_zoom_inout(this->gapp, +1);
+    page_zoom_inout(+1);
 }
 
 void MainWindow::on_actionOriginalSize_triggered()
 {
-    page_zoom_inout(this->gapp, 0);
+    page_zoom_inout(0);
 }
 
 void MainWindow::on_actionRedraw_triggered()
@@ -190,9 +189,9 @@ void MainWindow::on_actionRedraw_triggered()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if ((this->gapp->gp && !quark_dirtystate_get(gproject_get_top(this->gapp->gp))) ||
+    if ((gapp->gp && !quark_dirtystate_get(gproject_get_top(gapp->gp))) ||
         yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
-        gapp_free(this->gapp);
+        gapp_free(gapp);
 	QSettings settings("GraceProject", "Grace");
 	settings.setValue("geometry", saveGeometry());
         event->accept();
@@ -241,7 +240,7 @@ int scroll_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
-void MainWindow::graph_scroll_proc(GraceApp *gapp, int type)
+void MainWindow::graph_scroll_proc(int type)
 {
     Quark *cg, *f;
 
@@ -255,22 +254,22 @@ void MainWindow::graph_scroll_proc(GraceApp *gapp, int type)
 
 void MainWindow::on_actionScrollLeft_triggered()
 {
-    graph_scroll_proc(this->gapp, GSCROLL_LEFT);
+    graph_scroll_proc(GSCROLL_LEFT);
 }
 
 void MainWindow::on_actionScrollRight_triggered()
 {
-    graph_scroll_proc(this->gapp, GSCROLL_RIGHT);
+    graph_scroll_proc(GSCROLL_RIGHT);
 }
 
 void MainWindow::on_actionScrollUp_triggered()
 {
-    graph_scroll_proc(this->gapp, GSCROLL_UP);
+    graph_scroll_proc(GSCROLL_UP);
 }
 
 void MainWindow::on_actionScrollDown_triggered()
 {
-    graph_scroll_proc(this->gapp, GSCROLL_DOWN);
+    graph_scroll_proc(GSCROLL_DOWN);
 }
 
 
