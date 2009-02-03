@@ -73,15 +73,11 @@ void MainWindow::on_actionNew_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString fileName = QFileDialog::getOpenFileName(this);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open project"), "", tr("Grace Files (*.xgr *.agr)"));
     if (!fileName.isEmpty()) {
-	char *filename = fileName.toAscii().data();
-
-	if (load_project(gapp, filename) == RETURN_SUCCESS) {
-	    QApplication::setOverrideCursor(Qt::WaitCursor);
-	    canvasWidget->qtdrawgraph(gapp->gp);
+	if (load_project(this->gapp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
+	     canvasWidget->qtdrawgraph(gapp->gp);
 	    //canvasWidget->update_all();
-	    QApplication::restoreOverrideCursor();
 	    setCurrentFile(fileName);
 	    statusBar()->showMessage(tr("File loaded"), 2000);
 	} else {
@@ -118,6 +114,41 @@ void MainWindow::on_actionSaveAs_triggered()
 	    //return FALSE;
 	}
     }
+}
+
+void MainWindow::autoscale_proc(GraceApp *gapp, int type)
+{
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
+    
+    if (autoscale_graph(cg, type) == RETURN_SUCCESS) {
+        snapshot_and_update(gapp->gp, TRUE);
+    } else {
+	errmsg("Can't autoscale (no active sets?)");
+    }
+}
+
+void MainWindow::on_actionAutoScale_triggered()
+{
+    autoscale_proc(gapp, AUTOSCALE_XY);
+}
+
+void MainWindow::on_actionAutoScaleX_triggered()
+{
+    autoscale_proc(gapp, AUTOSCALE_X);
+}
+
+void MainWindow::on_actionAutoScaleY_triggered()
+{
+    autoscale_proc(gapp, AUTOSCALE_Y);
+}
+
+/*
+ * service the autoticks button on the main panel
+ */
+void MainWindow::on_actionAutoTick_triggered()
+{
+    autotick_graph_axes(graph_get_current(gproject_get_top(gapp->gp)), AXIS_MASK_XY);
+    snapshot_and_update(gapp->gp, TRUE);
 }
 
 void MainWindow::page_zoom_inout(GraceApp *gapp, int inout)

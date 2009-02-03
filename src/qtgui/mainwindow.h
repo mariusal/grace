@@ -26,6 +26,11 @@ private slots:
   void on_actionOpen_triggered();
   void on_actionSave_triggered();
   void on_actionSaveAs_triggered();
+  void autoscale_proc(GraceApp *gapp, int type);
+  void on_actionAutoScale_triggered();
+  void on_actionAutoScaleX_triggered();
+  void on_actionAutoScaleY_triggered();
+  void on_actionAutoTick_triggered();
   void page_zoom_inout(GraceApp *gapp, int inout);
   void on_actionSmaller_triggered();
   void on_actionLarger_triggered();
