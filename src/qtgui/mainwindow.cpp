@@ -113,6 +113,22 @@ void MainWindow::on_actionSaveAs_triggered()
     }
 }
 
+void MainWindow::on_actionRevertToSaved_triggered()
+{
+    char *docname;
+
+//    set_wait_cursor();
+    docname = gproject_get_docname(gapp->gp);
+    if (docname) {
+        load_project(gapp, docname);
+    } else {
+	new_project(gapp, NULL);
+    }
+    canvasWidget->qtdrawgraph(gapp->gp);
+    //xdrawgraph(gapp->gp);
+//    unset_wait_cursor();
+}
+
 void MainWindow::autoscale_proc(int type)
 {
     Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
