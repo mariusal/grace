@@ -96,16 +96,14 @@ void MainWindow::on_actionSave_triggered()
 
         //unset_wait_cursor();
     } else {
-	//create_saveproject_popup();
         on_actionSaveAs_triggered();
     }
 }
 
 void MainWindow::on_actionSaveAs_triggered()
 {
-    QString fileName = QFileDialog::getSaveFileName(this);
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save project"), "", tr("Grace File (*.xgr)"));
     if (!fileName.isEmpty()) {
-	//if (save_project(gapp->gp, filename) == RETURN_SUCCESS) {
 	if (save_project(gapp->gp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
 	    //update_all();
 	    //return TRUE;
