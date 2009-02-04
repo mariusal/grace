@@ -129,6 +129,21 @@ void MainWindow::on_actionRevertToSaved_triggered()
 //    unset_wait_cursor();
 }
 
+void MainWindow::on_actionZoom_triggered()
+{
+    canvasWidget->setCursor(Qt::CrossCursor);
+}
+
+void MainWindow::on_actionZoomX_triggered()
+{
+    canvasWidget->setCursor(Qt::CrossCursor);
+}
+
+void MainWindow::on_actionZoomY_triggered()
+{
+    canvasWidget->setCursor(Qt::CrossCursor);
+}
+
 void MainWindow::autoscale_proc(int type)
 {
     Quark *cg = graph_get_current(gproject_get_top(gapp->gp));

@@ -27,6 +27,9 @@ private slots:
   void on_actionSave_triggered();
   void on_actionSaveAs_triggered();
   void on_actionRevertToSaved_triggered();
+  void on_actionZoom_triggered();
+  void on_actionZoomX_triggered();
+  void on_actionZoomY_triggered();
   void autoscale_proc(int type);
   void on_actionAutoScale_triggered();
   void on_actionAutoScaleX_triggered();

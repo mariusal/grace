@@ -77,3 +77,15 @@ void CanvasWidget::qtdrawgraph(const GProject *gp)
     }
 }
 
+void CanvasWidget::mousePressEvent(QMouseEvent *event)
+{
+}
+
+void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
+{
+}
+
+void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+}
+

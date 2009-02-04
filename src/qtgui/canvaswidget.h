@@ -16,6 +16,11 @@ public:
   CanvasWidget(QWidget *parent = 0);
   void qtdrawgraph(const GProject*);
 
+protected:
+  void mousePressEvent(QMouseEvent *event);
+  void mouseMoveEvent(QMouseEvent *event);
+  void mouseReleaseEvent(QMouseEvent *event);
+
 private:
   QPixmap *pixmap;
   void paintEvent(QPaintEvent *event);
