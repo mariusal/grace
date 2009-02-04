@@ -6,6 +6,7 @@
 
 extern "C" {
   #include "qtgrace.h"
+  #include <bitmaps.h>
 }
 
 int main_cpp(int argc, char *argv[], GraceApp *gapp)
@@ -26,6 +27,7 @@ void startup_qt_gui(GraceApp *gapp)
 int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 {
     QMessageBox msgBox;
+    msgBox.setWindowIcon(QPixmap(gapp_icon_xpm));
     msgBox.setWindowTitle("Grace: Warning");
     msgBox.setIcon(QMessageBox::Question);
     if (msg != NULL) {
