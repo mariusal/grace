@@ -63,10 +63,13 @@ private:
   GraceApp *gapp;
 
   void setToolBarIcons();
+  void set_tracker_string(char *s);
+  void update_locator_lab(Quark *cg, VPoint *vpp);
   void sync_canvas_size(GraceApp *gapp);
 
   Ui::MainWindow ui;
   CanvasWidget *canvasWidget;
+  QLabel *locBar;
 
   QString curFile;
 };
