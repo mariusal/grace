@@ -1,25 +1,25 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- * 
+ *
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- * 
+ *
  * Copyright (c) 1996-2008 Grace Development Team
- * 
+ *
  * Maintained by Evgeny Stambulchik
- * 
- * 
+ *
+ *
  *                           All Rights Reserved
- * 
+ *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- * 
+ *
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- * 
+ *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -33,7 +33,7 @@
 
 #define MIN2(a, b) (((a) < (b)) ? a : b)
 #define MAX2(a, b) (((a) > (b)) ? a : b)
- 
+
 #define CANVAS_BACKEND_API
 extern "C" {
   #include <grace/canvas.h>
@@ -48,15 +48,10 @@ typedef struct {
 } XPoint;
 
 typedef struct {
-//    Screen *screen;
-//    Pixmap pixmap;
     QPainter *painter;
     QPixmap *pixmap;
-    
-//    int pixel_size;
+
     unsigned int height, width, page_scale;
-        
-//    int monomode;
 
     int color;
     int bgcolor;
@@ -85,7 +80,7 @@ static void qt_data_free(void *data)
     Qt_data *qtdata = (Qt_data *) data;
 
     if (qtdata) {
-	delete qtdata;
+        delete qtdata;
     }
 }
 
@@ -115,14 +110,8 @@ static int qt_initgraphics(const Canvas *canvas, void *data,
 
     qtdata->pixmap = (QPixmap *) canvas_get_prstream(canvas);
     qtdata->painter = new QPainter(qtdata->pixmap);
-    
-    //qtdata->pixel_size = x11_get_pixelsize(gapp->gui);
 
-//    if (qtdata->pixel_size == 0) {
-//        qtdata->monomode = TRUE;
-//    }
-
-    /* init settings specific to X11 driver */    
+    /* init settings specific to Qt driver */
     qtdata->color       = BAD_COLOR;
     qtdata->bgcolor     = BAD_COLOR;
     qtdata->patno       = -1;
@@ -138,10 +127,9 @@ static int qt_initgraphics(const Canvas *canvas, void *data,
 
 static void qt_setpen(const Canvas *canvas, Qt_data *qtdata)
 {
-    int fg, bg;
+    int fg;
     Pen pen;
-    
-    bg = getbgcolor(canvas);
+
     getpen(canvas, &pen);
     fg = pen.color;
 
@@ -158,15 +146,15 @@ static void qt_setdrawbrush(const Canvas *canvas, Qt_data *qtdata)
     int i, darr_len;
 
     qt_setpen(canvas, qtdata);
-    
-    iw = (unsigned int) rint(getlinewidth(canvas)*qtdata->page_scale);
+
+    iw = (unsigned int) rint(getlinewidth(canvas) * qtdata->page_scale);
     if (iw == 1) {
         iw = 0;
     }
     style = getlinestyle(canvas);
     lc = getlinecap(canvas);
     lj = getlinejoin(canvas);
-    
+
     switch (lc) {
     case LINECAP_BUTT:
         lc = (int) Qt::FlatCap;
@@ -190,40 +178,40 @@ static void qt_setdrawbrush(const Canvas *canvas, Qt_data *qtdata)
         lj = (int) Qt::BevelJoin;
         break;
     }
-    
-//    if (iw != qtdata->linewidth || style != qtdata->linestyle ||
-//        lc != qtdata->linecap   || lj    != qtdata->linejoin) {
-        if (style > 1) {
-            LineStyle *linestyle = canvas_get_linestyle(canvas, style);
-            darr_len = linestyle->length;
-	    QVector<qreal> dashes(darr_len);
-            for (i = 0; i < darr_len; i++) {
-		dashes[i] = linestyle->array[i];
-            }
-	    QPen pen = qtdata->painter->pen();
 
-	    pen.setWidth(iw);
-	    pen.setCapStyle((Qt::PenCapStyle) lc);
-	    pen.setJoinStyle((Qt::PenJoinStyle) lj);
-	    pen.setDashPattern(dashes);
-
-	    qtdata->painter->setPen(pen);
-        } else if (style == 1) {
-	    QPen pen = qtdata->painter->pen();
-
-	    pen.setWidth(iw);
-	    pen.setStyle(Qt::SolidLine);
-	    pen.setCapStyle((Qt::PenCapStyle) lc);
-	    pen.setJoinStyle((Qt::PenJoinStyle) lj);
-
-	    qtdata->painter->setPen(pen);
+    //    if (iw != qtdata->linewidth || style != qtdata->linestyle ||
+    //        lc != qtdata->linecap   || lj    != qtdata->linejoin) {
+    if (style > 1) {
+        LineStyle *linestyle = canvas_get_linestyle(canvas, style);
+        darr_len = linestyle->length;
+        QVector<qreal> dashes(darr_len);
+        for (i = 0; i < darr_len; i++) {
+            dashes[i] = linestyle->array[i];
         }
- 
-//        qtdata->linestyle = style;
-//        qtdata->linewidth = iw;
-//        qtdata->linecap   = lc;
-//        qtdata->linejoin  = lj;
-//    }
+        QPen pen = qtdata->painter->pen();
+
+        pen.setWidth(iw);
+        pen.setCapStyle((Qt::PenCapStyle) lc);
+        pen.setJoinStyle((Qt::PenJoinStyle) lj);
+        pen.setDashPattern(dashes);
+
+        qtdata->painter->setPen(pen);
+    } else if (style == 1) {
+        QPen pen = qtdata->painter->pen();
+
+        pen.setWidth(iw);
+        pen.setStyle(Qt::SolidLine);
+        pen.setCapStyle((Qt::PenCapStyle) lc);
+        pen.setJoinStyle((Qt::PenJoinStyle) lj);
+
+        qtdata->painter->setPen(pen);
+    }
+
+    //        qtdata->linestyle = style;
+    //        qtdata->linewidth = iw;
+    //        qtdata->linecap   = lc;
+    //        qtdata->linejoin  = lj;
+    //    }
     return;
 }
 
@@ -232,7 +220,7 @@ static void qt_drawpixel(const Canvas *canvas, void *data,
 {
     Qt_data *qtdata = (Qt_data *) data;
     XPoint xp;
-    
+
     VPoint2XPoint(qtdata, vp, &xp);
     qt_setpen(canvas, qtdata);
     qtdata->painter->drawPoint(QPointF(xp.x, xp.y));
@@ -249,7 +237,7 @@ static void qt_drawpolyline(const Canvas *canvas, void *data,
         xn++;
     }
 
-    p = (XPoint *) xmalloc(xn*sizeof(XPoint));
+    p = (XPoint *) xmalloc(xn * sizeof(XPoint));
     if (p == NULL) {
         return;
     }
@@ -257,10 +245,10 @@ static void qt_drawpolyline(const Canvas *canvas, void *data,
     QPointF points[xn];
     for (i = 0; i < n; i++) {
         VPoint2XPoint(qtdata, &vps[i], &p[i]);
-	points[i] = QPointF(p[i].x, p[i].y);
+        points[i] = QPointF(p[i].x, p[i].y);
     }
     if (mode == POLYLINE_CLOSED) {
-	points[n] = QPointF(p[0].x, p[0].y);
+        points[n] = QPointF(p[0].x, p[0].y);
     }
 
     qt_setdrawbrush(canvas, qtdata);
@@ -274,24 +262,25 @@ static void qt_setfillpen(const Canvas *canvas, Qt_data *qtdata)
 {
     int fg, p;
     Pen pen;
-    
+
     getpen(canvas, &pen);
     fg = pen.color;
     p = pen.pattern;
-    
+
     if (p == 0) { /* TODO: transparency !!!*/
         return;
     } else if (p == 1) {
-	qtdata->painter->setPen(Qt::NoPen);
-	qtdata->painter->setBrush(QBrush(Color2QColor(canvas, fg)));
+        qtdata->painter->setPen(Qt::NoPen);
+        qtdata->painter->setBrush(QBrush(Color2QColor(canvas, fg)));
     } else {
-	qtdata->painter->setPen(Qt::NoPen);
+        qtdata->painter->setPen(Qt::NoPen);
 
         Pattern *pat = canvas_get_pattern(canvas, p);
-	QBitmap bitmap = QBitmap::fromData(QSize(pat->width, pat->height), pat->bits, QImage::Format_MonoLSB);
-	QBrush brush(Color2QColor(canvas, fg));
-	brush.setTexture(bitmap);
-	qtdata->painter->setBrush(brush);
+        QBitmap bitmap = QBitmap::fromData(QSize(pat->width, pat->height),
+                pat->bits, QImage::Format_MonoLSB);
+        QBrush brush(Color2QColor(canvas, fg));
+        brush.setTexture(bitmap);
+        qtdata->painter->setBrush(brush);
     }
 }
 
@@ -302,7 +291,7 @@ static void qt_fillpolygon(const Canvas *canvas, void *data,
     int i;
     XPoint *p;
 
-    p = (XPoint *) xmalloc(nc*sizeof(XPoint));
+    p = (XPoint *) xmalloc(nc * sizeof(XPoint));
     if (p == NULL) {
         return;
     }
@@ -310,16 +299,16 @@ static void qt_fillpolygon(const Canvas *canvas, void *data,
     QPointF points[nc];
     for (i = 0; i < nc; i++) {
         VPoint2XPoint(qtdata, &vps[i], &p[i]);
-	points[i] = QPointF(p[i].x, p[i].y);
+        points[i] = QPointF(p[i].x, p[i].y);
     }
 
     qt_setfillpen(canvas, qtdata);
 
     Qt::FillRule rule;
     if (getfillrule(canvas) == FILLRULE_WINDING) {
-	rule = Qt::WindingFill;
+        rule = Qt::WindingFill;
     } else {
-	rule = Qt::OddEvenFill;
+        rule = Qt::OddEvenFill;
     }
 
     qtdata->painter->drawPolygon(points, nc, rule);
@@ -339,16 +328,16 @@ static void qt_drawarc(const Canvas *canvas, void *data,
     qt_setdrawbrush(canvas, qtdata);
 
     if (xp1.x != xp2.x || xp1.y != xp2.y) {
-        double x      = MIN2(xp1.x, xp2.x);
-        double y      = MIN2(xp1.y, xp2.y);
-        double width  = fabs(xp2.x - xp1.x);
+        double x = MIN2(xp1.x, xp2.x);
+        double y = MIN2(xp1.y, xp2.y);
+        double width = fabs(xp2.x - xp1.x);
         double height = fabs(xp2.y - xp1.y);
-        int angle1 = (int) rint(16*a1);
-        int angle2 = (int) rint(16*a2);
+        int angle1 = (int) rint(16 * a1);
+        int angle2 = (int) rint(16 * a2);
 
-	qtdata->painter->drawArc(QRectF(x, y, width, height), angle1, angle2);
+        qtdata->painter->drawArc(QRectF(x, y, width, height), angle1, angle2);
     } else { /* zero radius */
-	qtdata->painter->drawPoint(QPointF(xp1.x, xp1.y));
+        qtdata->painter->drawPoint(QPointF(xp1.x, xp1.y));
     }
 }
 
@@ -364,20 +353,20 @@ static void qt_fillarc(const Canvas *canvas, void *data,
     qt_setfillpen(canvas, qtdata);
 
     if (xp1.x != xp2.x || xp1.y != xp2.y) {
-        double x      = MIN2(xp1.x, xp2.x);
-        double y      = MIN2(xp1.y, xp2.y);
-        double width  = fabs(xp2.x - xp1.x);
+        double x = MIN2(xp1.x, xp2.x);
+        double y = MIN2(xp1.y, xp2.y);
+        double width = fabs(xp2.x - xp1.x);
         double height = fabs(xp2.y - xp1.y);
-        int angle1 = (int) rint(16*a1);
-        int angle2 = (int) rint(16*a2);
+        int angle1 = (int) rint(16 * a1);
+        int angle2 = (int) rint(16 * a2);
 
-	if (mode == ARCCLOSURE_CHORD) {
-	    qtdata->painter->drawChord(QRectF(x, y, width, height), angle1, angle2);
-	} else {
-	    qtdata->painter->drawPie(QRectF(x, y, width, height), angle1, angle2);
-	}
+        if (mode == ARCCLOSURE_CHORD) {
+            qtdata->painter->drawChord(QRectF(x, y, width, height), angle1, angle2);
+        } else {
+            qtdata->painter->drawPie(QRectF(x, y, width, height), angle1, angle2);
+        }
     } else { /* zero radius */
-	qtdata->painter->drawPoint(QPointF(xp1.x, xp1.y));
+        qtdata->painter->drawPoint(QPointF(xp1.x, xp1.y));
     }
 }
 
@@ -387,21 +376,17 @@ void qt_putpixmap(const Canvas *canvas, void *data,
     Qt_data *qtdata = (Qt_data *) data;
     int cindex, bg;
     int color;
-    
+
     int i, k, j;
     long paddedW;
-    
+
     XPoint xp;
-    //miPoint xp;
-    double x, y;// xleft, ytop, xright, ybottom;
-    
+    double x, y;
+
     bg = getbgcolor(canvas);
-    
-    //VPoint2miPoint(qtdata, vp, &xp);
+
     VPoint2XPoint(qtdata, vp, &xp);
-    
-    //MI_GET_CANVAS_DRAWABLE_BOUNDS(qtdata->mcanvas, xleft, ytop, xright, ybottom)
-    
+
     y = xp.y;
     if (pm->bpp == 1) {
         color = getcolor(canvas);
@@ -409,25 +394,18 @@ void qt_putpixmap(const Canvas *canvas, void *data,
         for (k = 0; k < pm->height; k++) {
             x = xp.x;
             y++;
-            for (j = 0; j < paddedW/pm->pad; j++) {
-                for (i = 0; i < pm->pad && j*pm->pad + i < pm->width; i++) {
+            for (j = 0; j < paddedW / pm->pad; j++) {
+                for (i = 0; i < pm->pad && j * pm->pad + i < pm->width; i++) {
                     x++;
-                    /* bound checking */
-              //      if (x < xleft || x > xright ||
-              //          y < ytop  || y > ybottom) {
-              //          continue;
-              //      }
-                    if (bin_dump(&(pm->bits)[k*paddedW/pm->pad+j], i, pm->pad)) {
-                        //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, color);
-			QPen qpen(Color2QColor(canvas, color));
-			qtdata->painter->setPen(qpen);
-			qtdata->painter->drawPoint(QPointF(x, y));
+                    if (bin_dump(&(pm->bits)[k * paddedW / pm->pad + j], i, pm->pad)) {
+                        QPen qpen(Color2QColor(canvas, color));
+                        qtdata->painter->setPen(qpen);
+                        qtdata->painter->drawPoint(QPointF(x, y));
                     } else {
                         if (pm->type == PIXMAP_OPAQUE) {
-			    QPen qpen(Color2QColor(canvas, bg));
-			    qtdata->painter->setPen(qpen);
-			    qtdata->painter->drawPoint(QPointF(x, y));
-                            //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, bg);
+                            QPen qpen(Color2QColor(canvas, bg));
+                            qtdata->painter->setPen(qpen);
+                            qtdata->painter->drawPoint(QPointF(x, y));
                         }
                     }
                 }
@@ -440,18 +418,12 @@ void qt_putpixmap(const Canvas *canvas, void *data,
             y++;
             for (j = 0; j < pm->width; j++) {
                 x++;
-                /* bound checking */
-              //  if (x < xleft || x > xright ||
-              //      y < ytop  || y > ybottom) {
-              //      continue;
-              //  }
-                cindex = cptr[k*pm->width + j];
+                cindex = cptr[k * pm->width + j];
                 if (cindex != bg || pm->type == PIXMAP_OPAQUE) {
                     color = cindex;
-		    QPen qpen(Color2QColor(canvas, color));
-		    qtdata->painter->setPen(qpen);
-		    qtdata->painter->drawPoint(QPointF(x, y));
-                    //MI_SET_CANVAS_DRAWABLE_PIXEL(qtdata->mcanvas, x, y, color);
+                    QPen qpen(Color2QColor(canvas, color));
+                    qtdata->painter->setPen(qpen);
+                    qtdata->painter->drawPoint(QPointF(x, y));
                 }
             }
         }
@@ -479,7 +451,7 @@ int register_qt_drv(Canvas *canvas)
     if (!d) {
         return -1;
     }
-    
+
     device_set_procs(d,
         qt_initgraphics,
         qt_leavegraphics,
@@ -492,6 +464,6 @@ int register_qt_drv(Canvas *canvas)
         qt_fillarc,
         qt_putpixmap,
         NULL);
-    
+
     return register_device(canvas, d);
 }
