@@ -20,21 +20,40 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
 {
     ui.setupUi(this);
 
-    setWindowIcon(QPixmap(gapp_icon_xpm));
+    this->gapp = gapp;
+    canvasWidget = ui.widget;
+
     setToolBarIcons();
 
     QSettings settings("GraceProject", "Grace");
     restoreGeometry(settings.value("geometry").toByteArray());
 
-    //setCurrentFile("");
+    /*
+     * initialize some option menus
+     */
+//    init_option_menus();
 
-    this->gapp = gapp;
-    gapp->gui->inwin = TRUE; // TODO: reimplement startup_gui(gapp) function here
+    /*
+     * initialize the tool bars
+     */
+//    set_view_items();
 
-    canvasWidget = ui.widget;
-    canvasWidget->qtdrawgraph(gapp->gp);
+//    set_tracker_string(NULL);
+    set_left_footer(NULL);
 
+    /*
+     * set icon
+     */
+    setWindowIcon(QPixmap(gapp_icon_xpm));
+
+    gapp->gui->inwin = TRUE;
+
+    /*
+     * set the title
+     */
     update_app_title(gapp->gp);
+
+    canvasWidget->qtdrawgraph(gapp->gp);
 }
 
 MainWindow::~MainWindow()
@@ -75,16 +94,19 @@ void MainWindow::on_actionNew_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open project"), "", tr("Grace Files (*.xgr *.agr)"));
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Open project"),
+                                                    "",
+                                                    tr("Grace Files (*.xgr *.agr)")
+                                                   );
     if (!fileName.isEmpty()) {
-	if (load_project(gapp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
-	     canvasWidget->qtdrawgraph(gapp->gp);
-	    //canvasWidget->update_all();
-	    //setCurrentFile(fileName);
-	    //statusBar()->showMessage(tr("File loaded"), 2000);
-	} else {
-	    //statusBar()->showMessage(tr("File failed to load"), 2000);
-	}
+        if (load_project(gapp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
+            canvasWidget->qtdrawgraph(gapp->gp);
+            update_all();
+            //statusBar()->showMessage(tr("File loaded"), 2000);
+        } else {
+            //statusBar()->showMessage(tr("File failed to load"), 2000);
+        }
     }
 }
 
@@ -94,7 +116,7 @@ void MainWindow::on_actionSave_triggered()
         //set_wait_cursor();
 
         save_project(gapp->gp, gproject_get_docname(gapp->gp));
-        //update_all();
+        update_all();
 
         //unset_wait_cursor();
     } else {
@@ -104,14 +126,18 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionSaveAs_triggered()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save project"), "", tr("Grace File (*.xgr)"));
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("Save project"),
+                                                    "",
+                                                    tr("Grace File (*.xgr)")
+                                                   );
     if (!fileName.isEmpty()) {
-	if (save_project(gapp->gp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
-	    //update_all();
-	    //return TRUE;
-	} else {
-	    //return FALSE;
-	}
+        if (save_project(gapp->gp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
+            update_all();
+            //return TRUE;
+        } else {
+            //return FALSE;
+        }
     }
 }
 
@@ -119,16 +145,15 @@ void MainWindow::on_actionRevertToSaved_triggered()
 {
     char *docname;
 
-//    set_wait_cursor();
+    //    set_wait_cursor();
     docname = gproject_get_docname(gapp->gp);
     if (docname) {
         load_project(gapp, docname);
     } else {
-	new_project(gapp, NULL);
+        new_project(gapp, NULL);
     }
     canvasWidget->qtdrawgraph(gapp->gp);
-    //xdrawgraph(gapp->gp);
-//    unset_wait_cursor();
+    //    unset_wait_cursor();
 }
 
 void MainWindow::on_actionZoom_triggered()
@@ -153,7 +178,7 @@ void MainWindow::autoscale_proc(int type)
     if (autoscale_graph(cg, type) == RETURN_SUCCESS) {
         snapshot_and_update(gapp->gp, TRUE);
     } else {
-	errmsg("Can't autoscale (no active sets?)");
+        errmsg("Can't autoscale (no active sets?)");
     }
 }
 
@@ -192,7 +217,6 @@ void MainWindow::page_zoom_inout(int inout)
         } else {
             gapp->gui->zoom = 1.0;
         }
-        //xdrawgraph(gapp->gp);
         canvasWidget->qtdrawgraph(gapp->gp);
         set_left_footer(NULL);
     }
@@ -341,8 +365,6 @@ void MainWindow::on_actionZoomOut_triggered()
  */
 void MainWindow::set_left_footer(char *s)
 {
-    //Widget statlab = gapp->gui->mwui->statlab;
-
     if (s == NULL) {
         char hbuf[64], buf[GR_MAXPATHLEN + 100], *prname;
         gethostname(hbuf, 63);
@@ -354,12 +376,9 @@ void MainWindow::set_left_footer(char *s)
             sprintf(buf, "%s", hbuf);
         }
         statusBar()->showMessage(buf);
-        //SetLabel(statlab, buf);
     } else {
         statusBar()->showMessage(s);
-        //SetLabel(statlab, s);
     }
-    //XmUpdateDisplay(statlab);
 }
 
 /*
@@ -437,12 +456,10 @@ void MainWindow::update_all(void)
 
 void MainWindow::sync_canvas_size(GraceApp *gapp)
 {
-    //X11Stuff *xstuff = gapp->gui->xstuff;
     unsigned int w, h;
 
     Device_entry *d = get_device_props(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
 
-    //GetDimensions(xstuff->canvas, &w, &h);
     w = canvasWidget->width();
     h = canvasWidget->height();
 
