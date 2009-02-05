@@ -17,6 +17,10 @@ public:
   MainWindow(GraceApp *gapp, QMainWindow *parent = 0);
   ~MainWindow();
 
+  void set_left_footer(char *s);
+  void update_app_title(const GProject *gp);
+  void update_all(void);
+
 protected:
   void closeEvent(QCloseEvent*);
 
@@ -58,9 +62,8 @@ private slots:
 private:
   GraceApp *gapp;
 
-  void setCurrentFile(const QString &fileName);
-  QString strippedName(const QString &fullFileName);
   void setToolBarIcons();
+  void sync_canvas_size(GraceApp *gapp);
 
   Ui::MainWindow ui;
   CanvasWidget *canvasWidget;

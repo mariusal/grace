@@ -1,10 +1,12 @@
 #include <QApplication>
 #include <QPainter>
 #include <QFont>
-
+extern "C" {
+    #include <core_utils.h>
+}
 #include "canvaswidget.h"
 
-CanvasWidget::CanvasWidget(QWidget *parent) : 
+CanvasWidget::CanvasWidget(QWidget *parent) :
     QWidget(parent), pixmap(0)
 {
 }
@@ -17,63 +19,99 @@ void CanvasWidget::paintEvent(QPaintEvent *)
     }
 }
 
+void set_wait_cursor()
+{
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+}
+
+void unset_wait_cursor()
+{
+    QApplication::restoreOverrideCursor();
+}
+
+void CanvasWidget::xdrawgrid()
+{
+    int i, j;
+    double step;
+    double x, y;
+
+    double w = width();
+    double h = height();
+
+    QPainter painter(pixmap);
+
+    QPen pen;
+    pen.setColor(Qt::black);
+    pen.setWidth(1);
+    pen.setStyle(Qt::SolidLine);
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setJoinStyle(Qt::MiterJoin);
+    painter.setPen(pen);
+
+    QBrush brush;
+    brush.setColor(Qt::white);
+    painter.setBrush(brush);
+
+    painter.drawRect(rect());
+
+    step = MIN2(w, h)/10;
+    for (i = 0; i < w/step; i++) {
+        for (j = 0; j < h/step; j++) {
+            x = i*step;
+            y = h - j*step;
+            painter.drawPoint(QPointF(x, y));
+        }
+    }
+}
+
 void CanvasWidget::qtdrawgraph(const GProject *gp)
 {
     Quark *project = gproject_get_top(gp);
     GraceApp *gapp = gapp_from_quark(project);
 
     if (gapp && gapp->gui->inwin) {
-	//X11Stuff *xstuff = gapp->gui->xstuff;
-	//Quark *gr = graph_get_current(project);
-	Project *pr = project_get_data(project);
-	Quark *gr = pr->cg;
-	Device_entry *d = get_device_props(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
-	Page_geometry *pg = &d->pg;
-	//float dpi = gapp->gui->zoom*xstuff->dpi;
-	float dpi = gapp->gui->zoom*physicalDpiX();
-	//X11stream xstream;
+        Quark *gr = graph_get_current(project);
+        Device_entry *d = get_device_props(grace_get_canvas(gapp->grace),  gapp->rt->tdevice);
+        Page_geometry *pg = &d->pg;
+        float dpi = gapp->gui->zoom * physicalDpiX();
 
-	//set_wait_cursor();
-	QApplication::setOverrideCursor(Qt::WaitCursor);
+        set_wait_cursor();
 
-	if (dpi != pg->dpi) {
-	    int wpp, hpp;
-	    project_get_page_dimensions(project, &wpp, &hpp);
+        if (dpi != pg->dpi) {
+            int wpp, hpp;
+            project_get_page_dimensions(project, &wpp, &hpp);
 
-	    pg->width  = (unsigned long) (wpp*dpi/72);
-	    pg->height = (unsigned long) (hpp*dpi/72);
-	    pg->dpi = dpi;
-	}
+            pg->width  = (unsigned long) (wpp*dpi/72);
+            pg->height = (unsigned long) (hpp*dpi/72);
+            pg->dpi = dpi;
+        }
 
-	//resize_drawables(pg->width, pg->height);
-	setMinimumSize(pg->width, pg->height);
+        setMinimumSize(pg->width, pg->height);
 
-	//xdrawgrid(xstuff);
+        if (pixmap != 0) {
+            delete pixmap;
+        }
+        pixmap = new QPixmap(pg->width, pg->height);
 
-	//xstream.screen = DefaultScreenOfDisplay(xstuff->disp);
-	//xstream.pixmap = xstuff->bufpixmap;
-	if (pixmap != 0) {
-	    delete pixmap;
-	}
-	pixmap = new QPixmap(pg->width, pg->height);
-	canvas_set_prstream(grace_get_canvas(gapp->grace), pixmap);
+        xdrawgrid();
 
-	select_device(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
-	gproject_render(gp);
+        canvas_set_prstream(grace_get_canvas(gapp->grace), pixmap);
 
-	if (quark_is_active(gr)) {
-	    //draw_focus(gr);
-	}
-	//reset_crosshair(gapp->gui, FALSE);
-	//region_need_erasing = FALSE;
+        select_device(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
+        gproject_render(gp);
 
-	update();
-	//x11_redraw(xstuff->xwin, 0, 0, xstuff->win_w, xstuff->win_h);
+        if (quark_is_active(gr)) {
+            //draw_focus(gr);
+        }
+        //reset_crosshair(gapp->gui, FALSE);
+        //region_need_erasing = FALSE;
 
-	//XFlush(xstuff->disp);
+        update();
+        //x11_redraw(xstuff->xwin, 0, 0, xstuff->win_w, xstuff->win_h);
 
-	//unset_wait_cursor();
-	QApplication::restoreOverrideCursor();
+        //XFlush(xstuff->disp);
+
+        unset_wait_cursor();
     }
 }
 

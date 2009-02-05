@@ -26,13 +26,15 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
     QSettings settings("GraceProject", "Grace");
     restoreGeometry(settings.value("geometry").toByteArray());
 
-    setCurrentFile("");
+    //setCurrentFile("");
 
     this->gapp = gapp;
     gapp->gui->inwin = TRUE; // TODO: reimplement startup_gui(gapp) function here
 
     canvasWidget = ui.widget;
     canvasWidget->qtdrawgraph(gapp->gp);
+
+    update_app_title(gapp->gp);
 }
 
 MainWindow::~MainWindow()
@@ -78,10 +80,10 @@ void MainWindow::on_actionOpen_triggered()
 	if (load_project(gapp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
 	     canvasWidget->qtdrawgraph(gapp->gp);
 	    //canvasWidget->update_all();
-	    setCurrentFile(fileName);
-	    statusBar()->showMessage(tr("File loaded"), 2000);
+	    //setCurrentFile(fileName);
+	    //statusBar()->showMessage(tr("File loaded"), 2000);
 	} else {
-	    statusBar()->showMessage(tr("File failed to load"), 2000);
+	    //statusBar()->showMessage(tr("File failed to load"), 2000);
 	}
     }
 }
@@ -191,8 +193,8 @@ void MainWindow::page_zoom_inout(int inout)
             gapp->gui->zoom = 1.0;
         }
         //xdrawgraph(gapp->gp);
-	canvasWidget->qtdrawgraph(gapp->gp);
-        //set_left_footer(NULL);
+        canvasWidget->qtdrawgraph(gapp->gp);
+        set_left_footer(NULL);
     }
 }
 
@@ -218,11 +220,11 @@ void MainWindow::on_actionRedraw_triggered()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if ((gapp->gp && !quark_dirtystate_get(gproject_get_top(gapp->gp))) ||
-        yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
+    if ((gapp->gp && !quark_dirtystate_get(gproject_get_top(gapp->gp)))
+            || yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
         gapp_free(gapp);
-	QSettings settings("GraceProject", "Grace");
-	settings.setValue("geometry", saveGeometry());
+        QSettings settings("GraceProject", "Grace");
+        settings.setValue("geometry", saveGeometry());
         event->accept();
     } else {
         event->ignore();
@@ -249,13 +251,13 @@ void MainWindow::snapshot_and_update(GProject *gp, int all)
 
     canvasWidget->qtdrawgraph(gp);
 
-    //if (all) {
-        //update_all();
-    //} else {
+    if (all) {
+        update_all();
+    } else {
         //update_undo_buttons(gp);
         //update_explorer(gui->eui, FALSE);
-        //update_app_title(gp);
-    //}
+        update_app_title(gp);
+    }
 }
 
 int scroll_hook(Quark *q, void *udata, QTraverseClosure *closure)
@@ -334,23 +336,117 @@ void MainWindow::on_actionZoomOut_triggered()
     graph_zoom_proc(GZOOM_SHRINK);
 }
 
-void MainWindow::setCurrentFile(const QString &fileName)
+/*
+ * set the message in the left footer
+ */
+void MainWindow::set_left_footer(char *s)
 {
-  curFile = fileName;
-  //textEdit->document()->setModified(false);
-  setWindowModified(false);
+    //Widget statlab = gapp->gui->mwui->statlab;
 
-  QString shownName;
-  if (curFile.isEmpty())
-    shownName = "untitled.txt";
-  else
-    shownName = strippedName(curFile);
-
-  setWindowTitle(tr("%1[*] - %2").arg(shownName).arg(tr("Grace")));
+    if (s == NULL) {
+        char hbuf[64], buf[GR_MAXPATHLEN + 100], *prname;
+        gethostname(hbuf, 63);
+        prname = gproject_get_docname(gapp->gp);
+        if (prname) {
+            sprintf(buf, "%s, %s, %d%%", hbuf,
+                prname, (int) rint(100*gapp->gui->zoom));
+        } else {
+            sprintf(buf, "%s", hbuf);
+        }
+        statusBar()->showMessage(buf);
+        //SetLabel(statlab, buf);
+    } else {
+        statusBar()->showMessage(s);
+        //SetLabel(statlab, s);
+    }
+    //XmUpdateDisplay(statlab);
 }
 
-QString MainWindow::strippedName(const QString &fullFileName)
+/*
+ * put a string in the title bar
+ */
+void MainWindow::update_app_title(const GProject *gp)
 {
-  return QFileInfo(fullFileName).fileName();
+    Quark *pr = gproject_get_top(gp);
+    GUI *gui = gui_from_quark(pr);
+    static char *ts_save = NULL;
+    char *ts, *docname;
+    static int dstate_save = 0;
+    int dstate;
+
+    if (!pr || !gui->inwin) {
+        return;
+    }
+
+    dstate = quark_dirtystate_get(pr);
+    docname = gproject_get_docname(gp);
+    if (!docname) {
+        docname = NONAME;
+    }
+    ts = mybasename(docname);
+    if (ts_save == NULL || !strings_are_equal(ts_save, ts) ||
+        dstate != dstate_save) {
+        char *buf1, *buf2;
+        ts_save = copy_string(ts_save, ts);
+        dstate_save = dstate;
+        buf1 = copy_string(NULL, "Grace: ");
+        buf1 = concat_strings(buf1, ts);
+        buf2 = copy_string(NULL, ts);
+        if (dstate) {
+            buf2 = concat_strings(buf2, "*");
+            buf1 = concat_strings(buf1, " (modified)");
+        }
+        setWindowTitle(buf1); //TODO: Where use buf2?
+        xfree(buf1);
+        xfree(buf2);
+    }
 }
+
+void MainWindow::update_all(void)
+{
+    if (!gapp->gui->inwin) {
+        return;
+    }
+
+    if (gui_is_page_free(gapp->gui)) {
+        sync_canvas_size(gapp);
+    }
+
+    //update_ssd_selectors(gproject_get_top(gapp->gp));
+    //update_frame_selectors(gproject_get_top(gapp->gp));
+    //update_graph_selectors(gproject_get_top(gapp->gp));
+    //update_set_selectors(NULL);
+
+    if (gapp->gui->need_colorsel_update == TRUE) {
+        //init_xvlibcolors();
+        //update_color_selectors();
+        gapp->gui->need_colorsel_update = FALSE;
+    }
+
+    if (gapp->gui->need_fontsel_update == TRUE) {
+        //update_font_selectors();
+        gapp->gui->need_fontsel_update = FALSE;
+    }
+
+    //update_undo_buttons(gapp->gp);
+    //update_props_items();
+    //update_explorer(gapp->gui->eui, TRUE);
+    set_left_footer(NULL);
+    update_app_title(gapp->gp);
+}
+
+void MainWindow::sync_canvas_size(GraceApp *gapp)
+{
+    //X11Stuff *xstuff = gapp->gui->xstuff;
+    unsigned int w, h;
+
+    Device_entry *d = get_device_props(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
+
+    //GetDimensions(xstuff->canvas, &w, &h);
+    w = canvasWidget->width();
+    h = canvasWidget->height();
+
+    set_page_dimensions(gapp, w*72.0/d->pg.dpi, h*72.0/d->pg.dpi, TRUE);
+}
+
 

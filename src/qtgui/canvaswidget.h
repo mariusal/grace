@@ -23,6 +23,7 @@ protected:
 
 private:
   QPixmap *pixmap;
+  void xdrawgrid();
   void paintEvent(QPaintEvent *event);
 
   Grace *grace;
