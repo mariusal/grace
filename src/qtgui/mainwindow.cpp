@@ -147,7 +147,7 @@ void MainWindow::on_actionZoomY_triggered()
 void MainWindow::autoscale_proc(int type)
 {
     Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
-    
+
     if (autoscale_graph(cg, type) == RETURN_SUCCESS) {
         snapshot_and_update(gapp->gp, TRUE);
     } else {
@@ -301,6 +301,38 @@ void MainWindow::on_actionScrollDown_triggered()
     graph_scroll_proc(GSCROLL_DOWN);
 }
 
+int zoom_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    if (quark_fid_get(q) == QFlavorGraph) {
+        int *type = (int *) udata;
+        closure->descend = FALSE;
+        graph_zoom(q, *type);
+    }
+
+    return TRUE;
+}
+
+void MainWindow::graph_zoom_proc(int type)
+{
+    Quark *cg, *f;
+
+    cg = graph_get_current(gproject_get_top(gapp->gp));
+    f = get_parent_frame(cg);
+
+    quark_traverse(f, zoom_hook, &type);
+
+    snapshot_and_update(gapp->gp, TRUE);
+}
+
+void MainWindow::on_actionZoomIn_triggered()
+{
+    graph_zoom_proc(GZOOM_EXPAND);
+}
+
+void MainWindow::on_actionZoomOut_triggered()
+{
+    graph_zoom_proc(GZOOM_SHRINK);
+}
 
 void MainWindow::setCurrentFile(const QString &fileName)
 {
