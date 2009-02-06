@@ -49,7 +49,7 @@ typedef struct {
 
 typedef struct {
     QPainter *painter;
-    QPixmap *pixmap;
+    QImage *pixmap;
 
     unsigned int height, width, page_scale;
 
@@ -108,7 +108,7 @@ static int qt_initgraphics(const Canvas *canvas, void *data,
     qtdata->height = pg->height;
     qtdata->page_scale = MIN2(pg->width, pg->height);
 
-    qtdata->pixmap = (QPixmap *) canvas_get_prstream(canvas);
+    qtdata->pixmap = (QImage *) canvas_get_prstream(canvas);
     qtdata->painter = new QPainter(qtdata->pixmap);
 
     /* init settings specific to Qt driver */

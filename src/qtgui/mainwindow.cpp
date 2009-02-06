@@ -22,7 +22,9 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
 
     this->gapp = gapp;
     canvasWidget = ui.widget;
-    locBar = ui.locatorBar;
+    canvasWidget->setGraceApp(this->gapp);
+    canvasWidget->setLocatorBar(ui.locatorBar);
+    canvasWidget->setMainWindow(this);
 
     setToolBarIcons();
 
@@ -39,7 +41,7 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
      */
 //    set_view_items();
 
-    set_tracker_string(NULL);
+    canvasWidget->set_tracker_string(NULL);
     set_left_footer(NULL);
 
     /*
@@ -60,82 +62,6 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
 MainWindow::~MainWindow()
 {
 }
-
-void MainWindow::set_tracker_string(char *s)
-{
-    if (s == NULL) {
-        locBar->setText("[Out of frame]");
-    } else {
-        locBar->setText(s);
-    }
-}
-
-/*
- * locator on main_panel
- */
-void MainWindow::update_locator_lab(Quark *cg, VPoint *vpp)
-{
-    static VPoint vp = {0.0, 0.0};
-    view v;
-    GLocator *locator;
-    char buf[256];
-
-    if (vpp != NULL) {
-        vp = *vpp;
-    }
-
-    if (quark_is_active(cg) == TRUE                  &&
-        graph_get_viewport(cg, &v) == RETURN_SUCCESS &&
-        is_vpoint_inside(&v, &vp, 0.0) == TRUE       &&
-        (locator = graph_get_locator(cg)) != NULL    &&
-        locator->type != GLOCATOR_TYPE_NONE) {
-        char bufx[64], bufy[64], *s, *prefix, *sx, *sy;
-        WPoint wp;
-        double wx, wy, xtmp, ytmp;
-
-        Vpoint2Wpoint(cg, &vp, &wp);
-        wx = wp.x;
-        wy = wp.y;
-
-        if (locator->pointset) {
-        wx -= locator->origin.x;
-        wy -= locator->origin.y;
-            prefix = "d";
-        } else {
-            prefix = "";
-        }
-
-        switch (locator->type) {
-        case GLOCATOR_TYPE_XY:
-            xtmp = wx;
-            ytmp = wy;
-            sx = "X";
-            sy = "Y";
-            break;
-        case GLOCATOR_TYPE_POLAR:
-            xy2polar(wx, wy, &xtmp, &ytmp);
-            sx = "Phi";
-            sy = "Rho";
-            break;
-        default:
-            return;
-        }
-        s = create_fstring(get_parent_project(cg),
-            &locator->fx, xtmp, LFORMAT_TYPE_PLAIN);
-        strcpy(bufx, s);
-        s = create_fstring(get_parent_project(cg),
-            &locator->fy, ytmp, LFORMAT_TYPE_PLAIN);
-        strcpy(bufy, s);
-
-        sprintf(buf, "%s: %s%s, %s%s = (%s, %s)", QIDSTR(cg),
-            prefix, sx, prefix, sy, bufx, bufy);
-    } else {
-        sprintf(buf, "VX, VY = (%.4f, %.4f)", vp.x, vp.y);
-    }
-
-    set_tracker_string(buf);
-}
-
 
 void MainWindow::setToolBarIcons()
 {
