@@ -583,8 +583,8 @@ void CanvasWidget::aux_XFillRectangle(GUI *gui, double x, double y, double width
 {
     QPainter painter(pixmap);
     painter.setPen(QPen(Qt::NoPen));
-    painter.setBrush(QBrush(Qt::black));
-    painter.setCompositionMode(QPainter::CompositionMode_Xor);
+    painter.setBrush(QBrush(Qt::white));
+    painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
     painter.drawRect(QRectF(x, y, width, height));
     //X11Stuff *xstuff = gui->xstuff;
     //XFillRectangle(xstuff->disp, xstuff->xwin, gcxor, x, y, width, height);
