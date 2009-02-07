@@ -22,6 +22,7 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
 
     this->gapp = gapp;
     canvasWidget = ui.widget;
+    canvasWidget->setStatic();
     canvasWidget->setGraceApp(this->gapp);
     canvasWidget->setLocatorBar(ui.locatorBar);
     canvasWidget->setMainWindow(this);
@@ -161,17 +162,17 @@ void MainWindow::on_actionRevertToSaved_triggered()
 
 void MainWindow::on_actionZoom_triggered()
 {
-    canvasWidget->setCursor(Qt::CrossCursor);
+    canvasWidget->actionZoom();
 }
 
 void MainWindow::on_actionZoomX_triggered()
 {
-    canvasWidget->setCursor(Qt::CrossCursor);
+    canvasWidget->actionZoomX();
 }
 
 void MainWindow::on_actionZoomY_triggered()
 {
-    canvasWidget->setCursor(Qt::CrossCursor);
+    canvasWidget->actionZoomY();
 }
 
 void MainWindow::autoscale_proc(int type)
@@ -363,6 +364,11 @@ void MainWindow::on_actionZoomOut_triggered()
     graph_zoom_proc(GZOOM_SHRINK);
 }
 
+void MainWindow::on_actionAddText_triggered() {
+    //set_cursor(gapp->gui, 2);
+    canvasWidget->actionAddText();
+    set_left_footer("Select an anchor point");
+}
 /*
  * set the message in the left footer
  */
@@ -455,6 +461,7 @@ void MainWindow::update_all(void)
     //update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
     update_app_title(gapp->gp);
+    canvasWidget->update();
 }
 
 void MainWindow::sync_canvas_size(GraceApp *gapp)

@@ -17,6 +17,7 @@ public:
   MainWindow(GraceApp *gapp, QMainWindow *parent = 0);
   ~MainWindow();
 
+  void snapshot_and_update(GProject *gp, int all);
   void set_left_footer(char *s);
   void update_app_title(const GProject *gp);
   void update_all(void);
@@ -48,7 +49,6 @@ private slots:
   void on_actionOriginalSize_triggered();
   void on_actionRedraw_triggered();
 
-  void snapshot_and_update(GProject *gp, int all);
   void graph_scroll_proc(int type);
   void on_actionScrollLeft_triggered();
   void on_actionScrollRight_triggered();
@@ -58,6 +58,8 @@ private slots:
   void graph_zoom_proc(int type);
   void on_actionZoomIn_triggered();
   void on_actionZoomOut_triggered();
+
+  void on_actionAddText_triggered();
 
 private:
   GraceApp *gapp;
