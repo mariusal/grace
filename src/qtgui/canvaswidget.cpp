@@ -260,12 +260,15 @@ void CanvasWidget::resize_drawables(unsigned int w, unsigned int h)
         return;
     }
 
-    // TODO: what image format to use?
+    /* 8 bits per color channel (i.e., 256^3 colors) */
+    /* are defined in CANVAS_BPCC canvas.h file. */
+    /* Use alpha channel to be able to use QPainter::setCompositionMode(CompositionMode mode)*/
+    /* Image composition using alpha blending are faster using premultiplied ARGB32 than with plain ARGB32 */
     if (pixmap == 0) {
-        pixmap = new QImage(w, h, QImage::Format_ARGB4444_Premultiplied);
+        pixmap = new QImage(w, h, QImage::Format_ARGB32_Premultiplied);
     } if (xstuff->win_w != w || xstuff->win_h != h) {
         delete pixmap;
-        pixmap = new QImage(w, h, QImage::Format_ARGB4444_Premultiplied);
+        pixmap = new QImage(w, h, QImage::Format_ARGB32_Premultiplied);
     }
 
     if (pixmap == 0) {
