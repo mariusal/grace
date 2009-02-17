@@ -7,9 +7,65 @@
 extern "C" {
 #include <grace/grace.h>
 #include "qtgrace.h"
+#include <core_utils.h>
 }
 
-typedef struct _QtStuff QtStuff;
+typedef struct {
+    double x;
+    double y;
+} XPoint;
+
+typedef int (*CanvasPointSink) (
+    unsigned int npoints,
+    const VPoint *vps,
+    void *data
+);
+
+typedef struct {
+//    Display *disp;
+    int screennumber;
+
+//    Window root;
+//    Window xwin;
+
+//    Widget canvas;
+
+//   GC gc;
+    int depth;
+//    Colormap cmap;
+
+    double dpi;
+
+//    Pixmap bufpixmap;
+
+    double win_h;
+    double win_w;
+    double win_scale;
+
+    /* cursors */
+//    Cursor wait_cursor;
+//    Cursor line_cursor;
+//    Cursor find_cursor;
+//    Cursor move_cursor;
+//    Cursor text_cursor;
+//    Cursor kill_cursor;
+//    Cursor drag_cursor;
+    int cur_cursor;
+
+    /* coords of focus markers*/
+    double f_x1, f_y1, f_x2, f_y2;
+    view f_v;
+
+    unsigned int npoints;
+    XPoint *xps;
+
+    unsigned int npoints_requested;
+    int collect_points;
+
+    CanvasPointSink point_sink;
+    void *sink_data;
+    int sel_type;
+} QtStuff;
 
 typedef struct {
     VPoint vp;
@@ -19,12 +75,6 @@ typedef struct {
     view bbox;
     int found;
 } canvas_target;
-
-typedef int (*CanvasPointSink) (
-    unsigned int npoints,
-    const VPoint *vps,
-    void *data
-);
 
 class MainWindow;
 
@@ -61,16 +111,17 @@ protected:
     void wheelEvent(QWheelEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+    void contextMenuEvent(QContextMenuEvent *event);
 
 private:
     GraceApp *gapp;
     QLabel *locatorBar;
     QImage *pixmap;
-    QtStuff *xstuff;
+    QtStuff xstuff;
 
-    bool leftMouseButton;
     int region_need_erasing;
     double last_b1down_x, last_b1down_y;   /* coords of last event */
+    double last_mouse_move_x, last_mouse_move_y;
     int undo_point;
     int abort_action;
     canvas_target ct;
@@ -90,6 +141,7 @@ private:
     void select_hregion(GUI *gui, double y1, double y2, int erase);
     void aux_XDrawRectangle(GUI *gui, double x, double y, double width, double height);
     void aux_XFillRectangle(GUI *gui, double x, double y, double width, double height);
+    void completeAction(double x, double y);
 
     Grace *grace;
     Canvas *canvas;
