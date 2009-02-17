@@ -416,87 +416,6 @@ Quark* CanvasWidget::next_graph_containing(Quark *q, VPoint *vp)
     return graph_get_current(pr);
 }
 
-void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
-
-    QPointF point = event->posF();
-    double x = point.x();
-    double y = point.y();
-
-    VPoint vp;
-
-    qt_dev2VPoint(x, y, &vp);
-
-    if (gapp->gui->crosshair_cursor) {
-        //crosshair_motion(gapp->gui, x, y);
-    }
-
-    qt_dev2VPoint(x, y, &vp);
-
-    if (xstuff->collect_points && xstuff->npoints) {
-            switch (xstuff->sel_type) {
-            case SELECTION_TYPE_RECT:
-                select_region(gapp->gui, x, y, last_b1down_x, last_b1down_y, TRUE);
-                break;
-            case SELECTION_TYPE_VERT:
-                select_vregion(gapp->gui, x, last_b1down_x, TRUE);
-                break;
-            case SELECTION_TYPE_HORZ:
-                select_hregion(gapp->gui, y, last_b1down_y, TRUE);
-                break;
-            }
-        } else
-        if (leftMouseButton) {
-            if (event->modifiers() & Qt::ControlModifier) {
-                if (on_focus) {
-                    resize_region(gapp->gui, xstuff->f_v, on_focus,
-                        x - last_b1down_x, y - last_b1down_y, TRUE);
-                } else
-                if (ct.found) {
-                    slide_region(gapp->gui, ct.bbox,
-                        x - last_b1down_x, y - last_b1down_y, TRUE);
-                }
-            } else {
-                //scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
-            }
-        } else {
-            if (gapp->gui->focus_policy == FOCUS_FOLLOWS) {
-                cg = next_graph_containing(cg, &vp);
-            }
-
-            if (event->modifiers() & Qt::ControlModifier) {
-                if (fabs(x - xstuff->f_x1) <= 5 &&
-                    fabs(y - xstuff->f_y1) <= 5) {
-                    on_focus = 1;
-                } else
-                if (fabs(x - xstuff->f_x1) <= 5 &&
-                    fabs(y - xstuff->f_y2) <= 5) {
-                    on_focus = 2;
-                } else
-                if (fabs(x - xstuff->f_x2) <= 5 &&
-                    fabs(y - xstuff->f_y2) <= 5) {
-                    on_focus = 3;
-                } else
-                if (fabs(x - xstuff->f_x2) <= 5 &&
-                    fabs(y - xstuff->f_y1) <= 5) {
-                    on_focus = 4;
-                } else {
-                    on_focus = 0;
-                }
-                if (on_focus) {
-                    //set_cursor(gapp->gui, 4);
-                    setCursor(Qt::SizeAllCursor);
-                } else {
-                    //set_cursor(gapp->gui, -1);
-                    setCursor(Qt::ArrowCursor);
-                }
-            }
-        }
-
-        update_locator_lab(cg, &vp);
-}
-
 /*
  * slide an xor'ed bbox shifted by shift_*, (optionally erasing previous one)
  */
@@ -728,6 +647,189 @@ static int find_target(GProject *gp, canvas_target *ct)
     return ct->found ? RETURN_SUCCESS:RETURN_FAILURE;
 }
 
+static void move_target(canvas_target *ct, const VPoint *vp)
+{
+    VVector vshift;
+
+    vshift.x = vp->x - ct->vp.x;
+    vshift.y = vp->y - ct->vp.y;
+
+    switch (quark_fid_get(ct->q)) {
+    case QFlavorFrame:
+        switch (ct->part) {
+        case 0:
+            frame_shift(ct->q, &vshift);
+            break;
+        case 1:
+            frame_legend_shift(ct->q, &vshift);
+            break;
+        }
+        break;
+    case QFlavorAText:
+        switch (ct->part) {
+        case 0:
+            atext_shift(ct->q, &vshift);
+            break;
+        case 1:
+            atext_at_shift(ct->q, &vshift);
+            break;
+        }
+        break;
+    case QFlavorAxis:
+        axis_shift(ct->q, &vshift);
+        break;
+    case QFlavorDObject:
+        object_shift(ct->q, &vshift);
+        break;
+    case QFlavorSet:
+        set_point_shift(ct->q, ct->part, &vshift);
+        break;
+    }
+}
+
+static int zoom_sink(unsigned int npoints, const VPoint *vps, void *data)
+{
+    GraceApp *gapp = (GraceApp *) data;
+    world w;
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
+    WPoint wp;
+
+    if (!cg || npoints != 2) {
+        return RETURN_FAILURE;
+    }
+
+    Vpoint2Wpoint(cg, &vps[0], &wp);
+    w.xg1 = wp.x;
+    w.yg1 = wp.y;
+    Vpoint2Wpoint(cg, &vps[1], &wp);
+    w.xg2 = wp.x;
+    w.yg2 = wp.y;
+
+    if (w.xg1 > w.xg2) {
+        fswap(&w.xg1, &w.xg2);
+    }
+    if (w.yg1 > w.yg2) {
+        fswap(&w.yg1, &w.yg2);
+    }
+
+    return graph_set_world(cg, &w);
+}
+
+static int zoomx_sink(unsigned int npoints, const VPoint *vps, void *data)
+{
+    GraceApp *gapp = (GraceApp *) data;
+    world w;
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
+    WPoint wp;
+
+    if (!cg || npoints != 2) {
+        return RETURN_FAILURE;
+    }
+
+    graph_get_world(cg, &w);
+
+    Vpoint2Wpoint(cg, &vps[0], &wp);
+    w.xg1 = wp.x;
+    Vpoint2Wpoint(cg, &vps[1], &wp);
+    w.xg2 = wp.x;
+
+    if (w.xg1 > w.xg2) {
+        fswap(&w.xg1, &w.xg2);
+    }
+
+    return graph_set_world(cg, &w);
+}
+
+static int zoomy_sink(unsigned int npoints, const VPoint *vps, void *data)
+{
+    GraceApp *gapp = (GraceApp *) data;
+    world w;
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
+    WPoint wp;
+
+    if (!cg || npoints != 2) {
+        return RETURN_FAILURE;
+    }
+
+    graph_get_world(cg, &w);
+
+    Vpoint2Wpoint(cg, &vps[0], &wp);
+    w.yg1 = wp.y;
+    Vpoint2Wpoint(cg, &vps[1], &wp);
+    w.yg2 = wp.y;
+
+    if (w.yg1 > w.yg2) {
+        fswap(&w.yg1, &w.yg2);
+    }
+
+    return graph_set_world(cg, &w);
+}
+
+static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
+{
+    GraceApp *gapp = (GraceApp *) data;
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp)), *q;
+    WPoint wp;
+    APoint ap;
+
+    if (!cg || npoints != 1) {
+        return RETURN_FAILURE;
+    }
+
+    if (Vpoint2Wpoint(cg, &vps[0], &wp) == RETURN_SUCCESS &&
+        is_validWPoint(cg, &wp) == TRUE) {
+        q = atext_new(cg);
+        ap.x = wp.x; ap.y = wp.y;
+        atext_set_ap(q, &ap);
+    } else {
+        q = atext_new(gproject_get_top(gapp->gp));
+        ap.x = vps[0].x; ap.y = vps[0].y;
+        atext_set_ap(q, &ap);
+    }
+
+    //raise_explorer(gapp->gui, q);
+
+    return RETURN_SUCCESS;
+}
+
+void CanvasWidget::set_action(GUI *gui, unsigned int npoints, int seltype,
+    CanvasPointSink sink, void *data)
+{
+    xstuff->npoints = 0;
+    xstuff->npoints_requested = npoints;
+    xstuff->point_sink = sink;
+    xstuff->sink_data  = data;
+    xstuff->sel_type = seltype;
+
+    xstuff->collect_points = TRUE;
+
+//    XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
+}
+
+void CanvasWidget::actionZoom()
+{
+    setCursor(Qt::CrossCursor);
+    set_action(gapp->gui, 2, SELECTION_TYPE_RECT, zoom_sink, gapp);
+}
+
+void CanvasWidget::actionZoomY()
+{
+    setCursor(Qt::CrossCursor);
+    set_action(gapp->gui, 2, SELECTION_TYPE_HORZ, zoomy_sink, gapp);
+}
+
+void CanvasWidget::actionZoomX()
+{
+    setCursor(Qt::CrossCursor);
+    set_action(gapp->gui, 2, SELECTION_TYPE_VERT, zoomx_sink, gapp);
+}
+
+void CanvasWidget::actionAddText()
+{
+    setCursor(Qt::IBeamCursor);
+    set_action(gapp->gui, 1, SELECTION_TYPE_NONE, atext_sink, gapp);
+}
+
 void CanvasWidget::mousePressEvent(QMouseEvent *event)
 {
     QPointF point = event->posF();
@@ -906,58 +1008,86 @@ void CanvasWidget::mousePressEvent(QMouseEvent *event)
 
 }
 
-void CanvasWidget::mouseDoubleClickEvent(QMouseEvent *event)
+void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
 {
-     //            ct.vp = vp;
-     //            ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
-     //            if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
-     //                raise_explorer(gapp->gui, ct.q);
-     //                ct.found = FALSE;
-     //            }
-     //        }
+    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
 
-}
+    QPointF point = event->posF();
+    double x = point.x();
+    double y = point.y();
 
-static void move_target(canvas_target *ct, const VPoint *vp)
-{
-    VVector vshift;
+    VPoint vp;
 
-    vshift.x = vp->x - ct->vp.x;
-    vshift.y = vp->y - ct->vp.y;
+    qt_dev2VPoint(x, y, &vp);
 
-    switch (quark_fid_get(ct->q)) {
-    case QFlavorFrame:
-        switch (ct->part) {
-        case 0:
-            frame_shift(ct->q, &vshift);
-            break;
-        case 1:
-            frame_legend_shift(ct->q, &vshift);
-            break;
-        }
-        break;
-    case QFlavorAText:
-        switch (ct->part) {
-        case 0:
-            atext_shift(ct->q, &vshift);
-            break;
-        case 1:
-            atext_at_shift(ct->q, &vshift);
-            break;
-        }
-        break;
-    case QFlavorAxis:
-        axis_shift(ct->q, &vshift);
-        break;
-    case QFlavorDObject:
-        object_shift(ct->q, &vshift);
-        break;
-    case QFlavorSet:
-        set_point_shift(ct->q, ct->part, &vshift);
-        break;
+    if (gapp->gui->crosshair_cursor) {
+        //crosshair_motion(gapp->gui, x, y);
     }
-}
 
+    qt_dev2VPoint(x, y, &vp);
+
+    if (xstuff->collect_points && xstuff->npoints) {
+            switch (xstuff->sel_type) {
+            case SELECTION_TYPE_RECT:
+                select_region(gapp->gui, x, y, last_b1down_x, last_b1down_y, TRUE);
+                break;
+            case SELECTION_TYPE_VERT:
+                select_vregion(gapp->gui, x, last_b1down_x, TRUE);
+                break;
+            case SELECTION_TYPE_HORZ:
+                select_hregion(gapp->gui, y, last_b1down_y, TRUE);
+                break;
+            }
+        } else
+        if (leftMouseButton) {
+            if (event->modifiers() & Qt::ControlModifier) {
+                if (on_focus) {
+                    resize_region(gapp->gui, xstuff->f_v, on_focus,
+                        x - last_b1down_x, y - last_b1down_y, TRUE);
+                } else
+                if (ct.found) {
+                    slide_region(gapp->gui, ct.bbox,
+                        x - last_b1down_x, y - last_b1down_y, TRUE);
+                }
+            } else {
+                //scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
+            }
+        } else {
+            if (gapp->gui->focus_policy == FOCUS_FOLLOWS) {
+                cg = next_graph_containing(cg, &vp);
+            }
+
+            if (event->modifiers() & Qt::ControlModifier) {
+                if (fabs(x - xstuff->f_x1) <= 5 &&
+                    fabs(y - xstuff->f_y1) <= 5) {
+                    on_focus = 1;
+                } else
+                if (fabs(x - xstuff->f_x1) <= 5 &&
+                    fabs(y - xstuff->f_y2) <= 5) {
+                    on_focus = 2;
+                } else
+                if (fabs(x - xstuff->f_x2) <= 5 &&
+                    fabs(y - xstuff->f_y2) <= 5) {
+                    on_focus = 3;
+                } else
+                if (fabs(x - xstuff->f_x2) <= 5 &&
+                    fabs(y - xstuff->f_y1) <= 5) {
+                    on_focus = 4;
+                } else {
+                    on_focus = 0;
+                }
+                if (on_focus) {
+                    //set_cursor(gapp->gui, 4);
+                    setCursor(Qt::SizeAllCursor);
+                } else {
+                    //set_cursor(gapp->gui, -1);
+                    setCursor(Qt::ArrowCursor);
+                }
+            }
+        }
+
+        update_locator_lab(cg, &vp);
+}
 
 void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -1112,147 +1242,16 @@ void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
         }
 }
 
-static int zoom_sink(unsigned int npoints, const VPoint *vps, void *data)
+void CanvasWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    GraceApp *gapp = (GraceApp *) data;
-    world w;
-    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
-    WPoint wp;
+     //            ct.vp = vp;
+     //            ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
+     //            if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
+     //                raise_explorer(gapp->gui, ct.q);
+     //                ct.found = FALSE;
+     //            }
+     //        }
 
-    if (!cg || npoints != 2) {
-        return RETURN_FAILURE;
-    }
-
-    Vpoint2Wpoint(cg, &vps[0], &wp);
-    w.xg1 = wp.x;
-    w.yg1 = wp.y;
-    Vpoint2Wpoint(cg, &vps[1], &wp);
-    w.xg2 = wp.x;
-    w.yg2 = wp.y;
-
-    if (w.xg1 > w.xg2) {
-        fswap(&w.xg1, &w.xg2);
-    }
-    if (w.yg1 > w.yg2) {
-        fswap(&w.yg1, &w.yg2);
-    }
-
-    return graph_set_world(cg, &w);
-}
-
-static int zoomx_sink(unsigned int npoints, const VPoint *vps, void *data)
-{
-    GraceApp *gapp = (GraceApp *) data;
-    world w;
-    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
-    WPoint wp;
-
-    if (!cg || npoints != 2) {
-        return RETURN_FAILURE;
-    }
-
-    graph_get_world(cg, &w);
-
-    Vpoint2Wpoint(cg, &vps[0], &wp);
-    w.xg1 = wp.x;
-    Vpoint2Wpoint(cg, &vps[1], &wp);
-    w.xg2 = wp.x;
-
-    if (w.xg1 > w.xg2) {
-        fswap(&w.xg1, &w.xg2);
-    }
-
-    return graph_set_world(cg, &w);
-}
-
-static int zoomy_sink(unsigned int npoints, const VPoint *vps, void *data)
-{
-    GraceApp *gapp = (GraceApp *) data;
-    world w;
-    Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
-    WPoint wp;
-
-    if (!cg || npoints != 2) {
-        return RETURN_FAILURE;
-    }
-
-    graph_get_world(cg, &w);
-
-    Vpoint2Wpoint(cg, &vps[0], &wp);
-    w.yg1 = wp.y;
-    Vpoint2Wpoint(cg, &vps[1], &wp);
-    w.yg2 = wp.y;
-
-    if (w.yg1 > w.yg2) {
-        fswap(&w.yg1, &w.yg2);
-    }
-
-    return graph_set_world(cg, &w);
-}
-
-static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
-{
-    GraceApp *gapp = (GraceApp *) data;
-    Quark *cg = graph_get_current(gproject_get_top(gapp->gp)), *q;
-    WPoint wp;
-    APoint ap;
-
-    if (!cg || npoints != 1) {
-        return RETURN_FAILURE;
-    }
-
-    if (Vpoint2Wpoint(cg, &vps[0], &wp) == RETURN_SUCCESS &&
-        is_validWPoint(cg, &wp) == TRUE) {
-        q = atext_new(cg);
-        ap.x = wp.x; ap.y = wp.y;
-        atext_set_ap(q, &ap);
-    } else {
-        q = atext_new(gproject_get_top(gapp->gp));
-        ap.x = vps[0].x; ap.y = vps[0].y;
-        atext_set_ap(q, &ap);
-    }
-
-    //raise_explorer(gapp->gui, q);
-
-    return RETURN_SUCCESS;
-}
-
-void CanvasWidget::set_action(GUI *gui, unsigned int npoints, int seltype,
-    CanvasPointSink sink, void *data)
-{
-    xstuff->npoints = 0;
-    xstuff->npoints_requested = npoints;
-    xstuff->point_sink = sink;
-    xstuff->sink_data  = data;
-    xstuff->sel_type = seltype;
-
-    xstuff->collect_points = TRUE;
-
-//    XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
-}
-
-void CanvasWidget::actionZoom()
-{
-    setCursor(Qt::CrossCursor);
-    set_action(gapp->gui, 2, SELECTION_TYPE_RECT, zoom_sink, gapp);
-}
-
-void CanvasWidget::actionZoomY()
-{
-    setCursor(Qt::CrossCursor);
-    set_action(gapp->gui, 2, SELECTION_TYPE_HORZ, zoomy_sink, gapp);
-}
-
-void CanvasWidget::actionZoomX()
-{
-    setCursor(Qt::CrossCursor);
-    set_action(gapp->gui, 2, SELECTION_TYPE_VERT, zoomx_sink, gapp);
-}
-
-void CanvasWidget::actionAddText()
-{
-    setCursor(Qt::IBeamCursor);
-    set_action(gapp->gui, 1, SELECTION_TYPE_NONE, atext_sink, gapp);
 }
 
 void CanvasWidget::wheelEvent(QWheelEvent *event)
