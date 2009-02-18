@@ -38,14 +38,8 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <string.h>
-#include <pwd.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <sys/resource.h>
-#ifdef HAVE_SYS_SELECT_H
-#  include <sys/select.h>
-#endif
-#include <limits.h>
 
 #include "globals.h"
 #include "utils.h"
