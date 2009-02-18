@@ -48,7 +48,7 @@ int gettimeofday (tv, tz)
 struct timeval *tv;
 void *tz;
 {
-    struct _timeb tmp_time;
+    struct timeb tmp_time;
 
     ftime(&tmp_time);
 
