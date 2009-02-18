@@ -935,7 +935,7 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
                 }
             } else {
                 errmsg("move scroll");
-                //scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
+                mainWindow->scroll_pix(last_b1down_x - x, last_b1down_y - y);
             }
         } else {
             //errmsg("move");

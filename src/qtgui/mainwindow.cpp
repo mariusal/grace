@@ -8,6 +8,7 @@
 #include <QMessageBox>
 #include <QTextStream>
 #include <QBitmap>
+#include <QScrollBar>
 extern "C" {
 #include <utils.h>
 #include <files.h>
@@ -476,4 +477,29 @@ void MainWindow::sync_canvas_size(GraceApp *gapp)
     set_page_dimensions(gapp, w*72.0/d->pg.dpi, h*72.0/d->pg.dpi, TRUE);
 }
 
+static void scroll_bar_pix(QScrollBar *bar, int pix)
+{
+    int value = bar->value();
+    int maxvalue = bar->maximum();
+    int slider_size = bar->pageStep();
+
+    value += pix;
+    if (value < 0) {
+        value = 0;
+    } else
+    if (value > maxvalue + slider_size) {
+        value = maxvalue + slider_size;
+    }
+    bar->setValue(value);
+}
+
+void MainWindow::scroll_pix(int dx, int dy)
+{
+    if (dx) {
+        scroll_bar_pix(ui.scrollArea->horizontalScrollBar(), dx);
+    }
+    if (dy) {
+        scroll_bar_pix(ui.scrollArea->verticalScrollBar(), dy);
+    }
+}
 

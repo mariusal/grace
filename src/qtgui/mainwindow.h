@@ -22,6 +22,8 @@ public:
   void update_app_title(const GProject *gp);
   void update_all(void);
 
+  void scroll_pix(int dx, int dy);
+
 protected:
   void closeEvent(QCloseEvent*);
 
