@@ -141,6 +141,9 @@
 /* Define if you have the mkstemp function.  */
 #undef HAVE_MKSTEMP
 
+/* Define if you have the getlogin function.  */
+#undef HAVE_GETLOGIN
+
 /* Define if you have the fnmatch function.  */
 #undef HAVE_FNMATCH
 

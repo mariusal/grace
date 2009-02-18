@@ -95,7 +95,6 @@ struct passwd {
     char  *pw_dir;
     char  *pw_shell;
 };
-char *getlogin();
 #  endif  /* __CRTL_VER */
 #endif /* __VMS */
 
@@ -162,6 +161,10 @@ char *exe_path_translate(char *path);
 char *path_translate(const char *path);
 #else
 #  define path_translate(p) (p)
+#endif
+
+#ifndef HAVE_GETLOGIN
+char *getlogin(void);
 #endif
 
 /* Replacements for some missing libm functions */
