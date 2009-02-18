@@ -43,11 +43,12 @@ double drand48(void)
 #endif
 
 #ifndef HAVE_GETTIMEOFDAY
+#include <sys/timeb.h>
 int gettimeofday (tv, tz)
 struct timeval *tv;
 void *tz;
 {
-    timeb_t tmp_time;
+    struct _timeb tmp_time;
 
     ftime(&tmp_time);
 
