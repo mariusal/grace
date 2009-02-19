@@ -56,7 +56,7 @@
      <height>24</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_File" >
+   <widget class="QMenu" name="menuFile" >
     <property name="title" >
      <string>&amp;File</string>
     </property>
@@ -71,21 +71,70 @@
     <addaction name="separator" />
     <addaction name="actionExit" />
    </widget>
-   <widget class="QMenu" name="menu_Edit" >
+   <widget class="QMenu" name="menuEdit" >
     <property name="title" >
      <string>&amp;Edit</string>
     </property>
+    <addaction name="actionUndo" />
+    <addaction name="actionRedo" />
+    <addaction name="separator" />
+    <addaction name="actionExplorer" />
+    <addaction name="separator" />
+    <addaction name="actionArrangeFrames" />
+    <addaction name="actionAutoscaleGraphs" />
+    <addaction name="separator" />
+    <addaction name="actionPreferences" />
    </widget>
-   <widget class="QMenu" name="menu_Data" >
+   <widget class="QMenu" name="menuData" >
     <property name="title" >
      <string>&amp;Data</string>
     </property>
+    <widget class="QMenu" name="menuTransformations" >
+     <property name="title" >
+      <string>&amp;Transformations</string>
+     </property>
+     <addaction name="actionEvaluateExpression" />
+     <addaction name="separator" />
+     <addaction name="actionHistograms" />
+     <addaction name="actionFourierTransforms" />
+     <addaction name="separator" />
+     <addaction name="actionRunningProperties" />
+     <addaction name="actionDifferenciesDerivatives" />
+     <addaction name="actionIntegration" />
+     <addaction name="separator" />
+     <addaction name="actionInterpolationSplines" />
+     <addaction name="separator" />
+     <addaction name="actionCorrelationCovariance" />
+     <addaction name="actionLinearConvolution" />
+     <addaction name="separator" />
+     <addaction name="actionSamplePoints" />
+     <addaction name="actionPruneData" />
+    </widget>
+    <widget class="QMenu" name="menuImport" >
+     <property name="title" >
+      <string>&amp;Import</string>
+     </property>
+     <addaction name="actionASCII" />
+    </widget>
+    <widget class="QMenu" name="menuExport" >
+     <property name="title" >
+      <string>&amp;Export</string>
+     </property>
+     <addaction name="action_ASCII" />
+    </widget>
+    <addaction name="actionDataSetOperations" />
+    <addaction name="menuTransformations" />
+    <addaction name="actionFeatureExtraction" />
+    <addaction name="actionCumulativeProperties" />
+    <addaction name="separator" />
+    <addaction name="menuImport" />
+    <addaction name="menuExport" />
    </widget>
-   <widget class="QMenu" name="menu_View" >
+   <widget class="QMenu" name="menuView" >
     <property name="title" >
      <string>&amp;View</string>
     </property>
-    <widget class="QMenu" name="menuSho_w_Hide" >
+    <widget class="QMenu" name="menuShowHide" >
      <property name="title" >
       <string>Sho&amp;w/Hide</string>
      </property>
@@ -93,7 +142,7 @@
      <addaction name="actionStatusBar" />
      <addaction name="actionTooBar" />
     </widget>
-    <widget class="QMenu" name="menuPage_zoom" >
+    <widget class="QMenu" name="menuPageZoom" >
      <property name="title" >
       <string>Page &amp;zoom</string>
      </property>
@@ -102,8 +151,8 @@
      <addaction name="separator" />
      <addaction name="actionOriginalSize" />
     </widget>
-    <addaction name="menuSho_w_Hide" />
-    <addaction name="menuPage_zoom" />
+    <addaction name="menuShowHide" />
+    <addaction name="menuPageZoom" />
     <addaction name="separator" />
     <addaction name="actionPageRendering" />
     <addaction name="separator" />
@@ -111,22 +160,45 @@
     <addaction name="separator" />
     <addaction name="actionUpdateAll" />
    </widget>
-   <widget class="QMenu" name="menu_Tools" >
+   <widget class="QMenu" name="menuTools" >
     <property name="title" >
      <string>&amp;Tools</string>
     </property>
+    <addaction name="actionConsole" />
+    <addaction name="actionFontTool" />
+    <addaction name="actionDatasetStatistics" />
    </widget>
-   <widget class="QMenu" name="menu_Help" >
+   <widget class="QMenu" name="menuHelp" >
     <property name="title" >
      <string>&amp;Help</string>
     </property>
+    <widget class="QMenu" name="menuWebSupport" >
+     <property name="title" >
+      <string>&amp;Web support</string>
+     </property>
+     <addaction name="actionHomePage" />
+     <addaction name="actionForums" />
+     <addaction name="actionReportAnIssue" />
+    </widget>
+    <addaction name="actionOnContext" />
+    <addaction name="separator" />
+    <addaction name="actionUsersGuide" />
+    <addaction name="actionFAQ" />
+    <addaction name="actionChanges" />
+    <addaction name="separator" />
+    <addaction name="actionExamples" />
+    <addaction name="separator" />
+    <addaction name="menuWebSupport" />
+    <addaction name="separator" />
+    <addaction name="actionLicenseTerms" />
+    <addaction name="actionAbout" />
    </widget>
-   <addaction name="menu_File" />
-   <addaction name="menu_Edit" />
-   <addaction name="menu_Data" />
-   <addaction name="menu_View" />
-   <addaction name="menu_Tools" />
-   <addaction name="menu_Help" />
+   <addaction name="menuFile" />
+   <addaction name="menuEdit" />
+   <addaction name="menuData" />
+   <addaction name="menuView" />
+   <addaction name="menuTools" />
+   <addaction name="menuHelp" />
   </widget>
   <widget class="QStatusBar" name="statusbar" />
   <widget class="QToolBar" name="toolBar" >
@@ -391,6 +463,211 @@
   <action name="actionAddText" >
    <property name="text" >
     <string>AddText</string>
+   </property>
+  </action>
+  <action name="actionUndo" >
+   <property name="enabled" >
+    <bool>false</bool>
+   </property>
+   <property name="text" >
+    <string>&amp;Undo (0)</string>
+   </property>
+   <property name="iconText" >
+    <string>Undo</string>
+   </property>
+   <property name="toolTip" >
+    <string>Undo</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionRedo" >
+   <property name="enabled" >
+    <bool>false</bool>
+   </property>
+   <property name="text" >
+    <string>&amp;Redo (0)</string>
+   </property>
+   <property name="iconText" >
+    <string>Redo</string>
+   </property>
+   <property name="toolTip" >
+    <string>Redo</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+Shift+Z</string>
+   </property>
+  </action>
+  <action name="actionExplorer" >
+   <property name="text" >
+    <string>&amp;Explorer...</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionArrangeFrames" >
+   <property name="text" >
+    <string>Arrange &amp;frames...</string>
+   </property>
+  </action>
+  <action name="actionAutoscaleGraphs" >
+   <property name="text" >
+    <string>&amp;Autoscale graphs...</string>
+   </property>
+  </action>
+  <action name="actionPreferences" >
+   <property name="text" >
+    <string>&amp;Preferences...</string>
+   </property>
+  </action>
+  <action name="actionDataSetOperations" >
+   <property name="text" >
+    <string>Data set &amp;operations...</string>
+   </property>
+  </action>
+  <action name="actionFeatureExtraction" >
+   <property name="text" >
+    <string>Feature e&amp;xtraction...</string>
+   </property>
+  </action>
+  <action name="actionCumulativeProperties" >
+   <property name="text" >
+    <string>&amp;Cumulative properties...</string>
+   </property>
+  </action>
+  <action name="actionConsole" >
+   <property name="text" >
+    <string>&amp;Console</string>
+   </property>
+  </action>
+  <action name="actionFontTool" >
+   <property name="text" >
+    <string>&amp;Font tool</string>
+   </property>
+  </action>
+  <action name="actionDatasetStatistics" >
+   <property name="text" >
+    <string>&amp;Dataset statistics</string>
+   </property>
+  </action>
+  <action name="actionEvaluateExpression" >
+   <property name="text" >
+    <string>&amp;Evaluate expression...</string>
+   </property>
+  </action>
+  <action name="actionHistograms" >
+   <property name="text" >
+    <string>&amp;Histograms...</string>
+   </property>
+  </action>
+  <action name="actionFourierTransforms" >
+   <property name="text" >
+    <string>Fo&amp;urier transforms...</string>
+   </property>
+  </action>
+  <action name="actionRunningProperties" >
+   <property name="text" >
+    <string>Running propertie&amp;s...</string>
+   </property>
+  </action>
+  <action name="actionDifferenciesDerivatives" >
+   <property name="text" >
+    <string>&amp;Differencies/derivatives...</string>
+   </property>
+  </action>
+  <action name="actionIntegration" >
+   <property name="text" >
+    <string>&amp;Integration...</string>
+   </property>
+  </action>
+  <action name="actionInterpolationSplines" >
+   <property name="text" >
+    <string>In&amp;terpolation/splines...</string>
+   </property>
+  </action>
+  <action name="actionCorrelationCovariance" >
+   <property name="text" >
+    <string>&amp;Correlation/covariance...</string>
+   </property>
+  </action>
+  <action name="actionLinearConvolution" >
+   <property name="text" >
+    <string>Linear con&amp;volution...</string>
+   </property>
+  </action>
+  <action name="actionSamplePoints" >
+   <property name="text" >
+    <string>Sa&amp;mple points...</string>
+   </property>
+  </action>
+  <action name="actionPruneData" >
+   <property name="text" >
+    <string>&amp;Prune data...</string>
+   </property>
+  </action>
+  <action name="actionASCII" >
+   <property name="text" >
+    <string>&amp;ASCII...</string>
+   </property>
+  </action>
+  <action name="action_ASCII" >
+   <property name="text" >
+    <string>&amp;ASCII</string>
+   </property>
+  </action>
+  <action name="actionOnContext" >
+   <property name="text" >
+    <string>On conte&amp;xt</string>
+   </property>
+   <property name="shortcut" >
+    <string>Shift+F1</string>
+   </property>
+  </action>
+  <action name="actionUsersGuide" >
+   <property name="text" >
+    <string>User's &amp;Guide</string>
+   </property>
+  </action>
+  <action name="actionFAQ" >
+   <property name="text" >
+    <string>FA&amp;Q</string>
+   </property>
+  </action>
+  <action name="actionChanges" >
+   <property name="text" >
+    <string>&amp;Changes</string>
+   </property>
+  </action>
+  <action name="actionExamples" >
+   <property name="text" >
+    <string>&amp;Examples</string>
+   </property>
+  </action>
+  <action name="actionLicenseTerms" >
+   <property name="text" >
+    <string>&amp;License terms</string>
+   </property>
+  </action>
+  <action name="actionAbout" >
+   <property name="text" >
+    <string>&amp;About...</string>
+   </property>
+  </action>
+  <action name="actionHomePage" >
+   <property name="text" >
+    <string>&amp;Home page</string>
+   </property>
+  </action>
+  <action name="actionForums" >
+   <property name="text" >
+    <string>&amp;Forums</string>
+   </property>
+  </action>
+  <action name="actionReportAnIssue" >
+   <property name="text" >
+    <string>&amp;Report an issue</string>
    </property>
   </action>
  </widget>
