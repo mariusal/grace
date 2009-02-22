@@ -6,7 +6,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/utsname.h>
+#ifdef HAVE_UNAME
+#  include <sys/utsname.h>
+#endif
 #include <time.h>
 #ifndef NONE_GUI
 #  include <Xm/Xm.h>
@@ -35,7 +37,9 @@
 static void VersionInfo(FILE *outfile)
 {
 
+#ifdef HAVE_UNAME
     struct utsname u_info;
+#endif
     time_t time_info;
     char *ctime_string;
 
@@ -65,9 +69,13 @@ static void VersionInfo(FILE *outfile)
     fprintf(outfile, "#define BI_CCOMPILER \"%s\"\n",
         CCOMPILER);
     
+#ifdef HAVE_UNAME
     uname(&u_info);
     fprintf(outfile, "#define BI_SYSTEM \"%s %s %s\"\n",
         u_info.sysname, u_info.release, u_info.machine);
+#else
+    fprintf(outfile, "#define BI_SYSTEM \"a non-POSIX OS\"\n");
+#endif
 
     time_info = time(NULL);
     ctime_string = ctime(&time_info);
