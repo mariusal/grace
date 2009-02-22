@@ -150,6 +150,9 @@
 /* Define if you have the on_exit function.  */
 #undef HAVE_ON_EXIT
 
+/* Define if you have the select function.  */
+#undef HAVE_SELECT
+
 /* Define if you have the uname function.  */
 #undef HAVE_UNAME
 

@@ -476,6 +476,7 @@ AC_CHECK_FUNCS(getlogin)
 AC_CHECK_FUNCS(fnmatch)
 AC_CHECK_FUNCS(vsnprintf)
 AC_CHECK_FUNCS(on_exit)
+AC_CHECK_FUNCS(select)
 AC_CHECK_FUNCS(uname)
 AC_CHECK_FUNCS(strerror)
 if test "$ac_cv_func_strerror" = no; then
