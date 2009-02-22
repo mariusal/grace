@@ -60,7 +60,7 @@ grace$(EXE) : $(GROBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) $(GRACE_CORE_LIB) \
 buildinfo$(EXE) : buildinfo$(O)
 	$(CC) $(CFLAGS) $? -o $@ $(LDFLAGS) $(GUI_LIBS) $(T1_LIB) $(JPEG_LIB) $(PNG_LIB) $(Z_LIB) $(NOGUI_LIBS)
 
-buildinfo$(O) : $(TOP)/Make.conf
+buildinfo$(O) : $(TOP)/Make.conf buildinfo.c
 	$(CC) $(CFLAGS) $(PREFS) -c buildinfo.c -o $@
 
 buildinfo.h : buildinfo$(EXE) $(GRSRCS) $(GUISRCS)
