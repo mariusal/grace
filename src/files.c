@@ -465,7 +465,7 @@ int real_time_under_monitoring(void)
  */
 int monitor_input(GraceApp *gapp, Input_buffer *tbl, int tblsize, int no_wait)
 {
-
+#ifdef HAVE_SELECT
     Input_buffer *ib;
     fd_set rfds;
     int remaining;
@@ -545,6 +545,9 @@ int monitor_input(GraceApp *gapp, Input_buffer *tbl, int tblsize, int no_wait)
     }
 
     return RETURN_SUCCESS;
+#else
+    return RETURN_FAILURE;
+#endif
 }
 
 /*
