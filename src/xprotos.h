@@ -40,6 +40,21 @@
 #include "core_utils.h"
 #include "motifinc.h"
 
+#ifdef QT_GUI
+typedef int Screen;
+typedef int Pixmap;
+#ifndef __cplusplus
+typedef int Display;
+typedef int GC;
+#endif
+typedef int Window;
+typedef int Colormap;
+typedef struct {
+    double x;
+    double y;
+} XPoint;
+#endif
+
 typedef int (*CanvasPointSink) (
     unsigned int npoints,
     const VPoint *vps,

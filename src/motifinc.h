@@ -33,10 +33,22 @@
 #ifndef __MOTIFINC_H_
 #define __MOTIFINC_H_
 
+#ifndef QT_GUI
 /* for Widget */
 #include <X11/Intrinsic.h>
 /* for XmString; TODO: remove! */
 #include <Xm/Xm.h>
+#else
+typedef int Widget;
+typedef int WidgetList;
+typedef int Boolean;
+typedef union _XEvent { int type; } XEvent;
+typedef int String;
+typedef int Cardinal;
+typedef int XmString;
+typedef int XtPointer;
+typedef int Cursor;
+#endif
 
 #include "graceapp.h"
 

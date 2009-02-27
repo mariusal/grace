@@ -370,14 +370,16 @@
 /* Define if you have (and want to use) editres  */
 #undef WITH_EDITRES
 
-#if (defined(HAVE_MOTIF) && !defined(X_DISPLAY_MISSING))
-#  define MOTIF_GUI
-#else
-#  define NONE_GUI
-#endif
-
 /* Define if you use Qt GUI  */
 #undef QT_GUI
+
+#if (defined(HAVE_MOTIF) && !defined(X_DISPLAY_MISSING))
+#  define MOTIF_GUI
+#else 
+#  if !defined(QT_GUI)
+#    define NONE_GUI
+#  endif
+#endif
 
 /* Define if the GSL library is available*/
 #undef HAVE_GSL

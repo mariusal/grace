@@ -696,7 +696,9 @@ GRACE=grace
 
 AC_PATH_XTRA
 if test "$no_x" = yes; then
-  GUI="NONE_GUI"
+  if test "$qt_gui" = false; then
+    GUI="NONE_GUI"
+  fi
 else
   if test "$qt_gui" = false; then
   dnl **** Check for Motif

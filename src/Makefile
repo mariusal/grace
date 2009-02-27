@@ -39,26 +39,26 @@ all : $(GRACE)
 
 include Make.common
 
-$(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) : $(TOP)/include/config.h
+$(GROBJS) $(GUIOBJS) $(GUIIOBJS) $(PARS_O) buildinfo$(O) : $(TOP)/include/config.h
 
 include Make.dep
 
-Make.dep : $(GRSRCS) $(GUISRCS) $(PARS_C) 
+Make.dep : $(GRSRCS) $(GUISRCS) $(GUIISRCS) $(PARS_C) 
 	echo "# Generated automatically by \`make depend'" > $@
-	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) \
+	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(GUIISRCS) $(PARS_C) \
 		| sed 's/\.o:/\$$(O)\ :/g' >> $@
 
 include qtgui/Make.common
 
 qtgui/Make.common : 
 
-qtgrace$(EXE) : $(GROBJS) $(QTOBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) $(GRACE_CORE_LIB) \
+qtgrace$(EXE) : $(GROBJS) $(QTOBJS) $(GUIIOBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) $(GRACE_CORE_LIB) \
 	$(GRACE_GRAAL_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB) $(GRACE_QT_LIB)
-	$(CXX) $(CFLAGS) $(GROBJS) $(QTOBJS) -o $@ $(LDFLAGS) $(LIBS)
+	$(CXX) $(CFLAGS) $(GROBJS) $(QTOBJS) $(GUIIOBJS) -o $@ $(LDFLAGS) $(LIBS)
 
-xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) \
+xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(GUIIOBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) \
 	$(GRACE_GRAAL_LIB) $(GRACE_CORE_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB)
-	$(CC) $(CFLAGS) $(GROBJS) $(GUIOBJS) -o $@ $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(GROBJS) $(GUIOBJS) $(GUIIOBJS) -o $@ $(LDFLAGS) $(LIBS)
 
 grace$(EXE) : $(GROBJS) $(GRACE_LIB) $(GRACE_PLOT_LIB) $(GRACE_CORE_LIB) \
 	$(GRACE_GRAAL_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB)
@@ -71,7 +71,7 @@ buildinfo$(EXE) : buildinfo$(O)
 buildinfo$(O) : $(TOP)/Make.conf
 	$(CC) $(CFLAGS) $(PREFS) -c buildinfo.c -o $@
 
-buildinfo.h : buildinfo$(EXE) $(GRSRCS) $(GUISRCS)
+buildinfo.h : buildinfo$(EXE) $(GRSRCS) $(GUISRCS) $(GUIISRCS) 
 	$(RM) t.h
 	./buildinfo$(EXE) > t.h && mv t.h $@
 
@@ -101,7 +101,7 @@ links : $(DESTDIR)$(GRACE_HOME)/bin/$(GRACE)
 	cd $(DESTDIR)$(PREFIX)/bin; $(RM) $(GRACECLI); $(LN_S) $(GRACE_HOME)/bin/$(GRACEGUI) $(GRACECLI)
 
 clean : 
-	$(RM) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo.h buildinfo$(O) buildinfo$(EXE)
+	$(RM) $(GROBJS) $(GUIOBJS) $(GUIIOBJS) $(PARS_O) buildinfo.h buildinfo$(O) buildinfo$(EXE)
 
 distclean : clean
 	$(RM) $(GRACE) tags *.orig .gdb_history t1lib.log
@@ -111,8 +111,8 @@ devclean : distclean
 
 depend : Make.dep
 
-tags : $(GRSRCS) $(GUISRCS) $(PARS_Y)
-	ctags $(GRSRCS) $(GUISRCS) $(PARS_Y) *.h $(TOP)/lib/*/*.[c,h] $(TOP)/include/grace/*.h
+tags : $(GRSRCS) $(GUISRCS) $(GUIISRCS) $(PARS_Y)
+	ctags $(GRSRCS) $(GUISRCS) $(GUIISRCS) $(PARS_Y) *.h $(TOP)/lib/*/*.[c,h] $(TOP)/include/grace/*.h
 
 dummy :
 

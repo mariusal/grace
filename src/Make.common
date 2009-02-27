@@ -25,6 +25,15 @@ GROBJS = main$(O) graceapp$(O) \
 
 # The following are for a GUI
 #
+# GUI independent sources
+#
+
+GUIISRCS = 
+
+GUIIOBJS = 
+
+# The following are for a GUI
+#
 # X/MOTIF sources
 #
 

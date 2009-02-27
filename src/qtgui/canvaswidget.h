@@ -6,14 +6,10 @@
 
 extern "C" {
 #include <grace/grace.h>
-#include "qtgrace.h"
+#include <graceapp.h>
 #include <core_utils.h>
+#include <xprotos.h>
 }
-
-typedef struct {
-    double x;
-    double y;
-} XPoint;
 
 typedef int (*CanvasPointSink) (
     unsigned int npoints,

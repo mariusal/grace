@@ -48,10 +48,6 @@
 
 #include "xprotos.h"
 
-#ifdef QT_GUI
-#include "qtgui/qtgrace.h"
-#endif
-
 
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
@@ -122,7 +118,11 @@ int main(int argc, char *argv[])
         Device_entry *d;
         int pixel_size;
 
+#ifdef QT_GUI
+	rt->tdevice = register_qt_drv(canvas);
+#else
         rt->tdevice = register_x11_drv(canvas);
+#endif
         
         d = get_device_props(canvas, rt->tdevice);
         pixel_size = x11_get_pixelsize(gui);
@@ -143,11 +143,7 @@ int main(int argc, char *argv[])
     
     }
 #else
-#ifdef QT_GUI
-    rt->tdevice = register_qt_drv(canvas);
-#else
     rt->tdevice = register_dummy_drv(canvas);
-#endif
 #endif
 
     rt->hdevice = register_ps_drv(canvas);
@@ -472,15 +468,7 @@ int main(int argc, char *argv[])
             startup_gui(gapp);
         }
 #else
-#ifdef QT_GUI
-        if (cli == TRUE) {
-            cli_loop(gapp);
-        } else {
-            startup_qt_gui(gapp);
-        }
-#else
         cli_loop(gapp);
-#endif
 #endif        
     }
     /* never reaches */
