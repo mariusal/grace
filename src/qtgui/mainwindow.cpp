@@ -24,7 +24,6 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
     this->gapp = gapp;
     canvasWidget = ui.widget;
     canvasWidget->setStatic();
-    canvasWidget->setGraceApp(this->gapp);
     canvasWidget->setLocatorBar(ui.locatorBar);
     canvasWidget->setMainWindow(this);
 
@@ -370,6 +369,12 @@ void MainWindow::on_actionAddText_triggered() {
     canvasWidget->actionAddText();
     set_left_footer("Select an anchor point");
 }
+
+void MainWindow::on_actionPreferences_triggered()
+{
+    //create_props_frame(0, 0);
+}
+
 /*
  * set the message in the left footer
  */

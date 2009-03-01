@@ -63,6 +63,8 @@ private slots:
 
   void on_actionAddText_triggered();
 
+  void on_actionPreferences_triggered();
+
 private:
   GraceApp *gapp;
 

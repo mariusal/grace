@@ -17,7 +17,8 @@ CanvasWidget* CanvasWidget::instance = 0;
 CanvasWidget::CanvasWidget(QWidget *parent) :
     QWidget(parent), pixmap(0)
 {
-    xstuff.collect_points = FALSE;
+    xstuff = gapp->gui->xstuff;
+    xstuff->collect_points = FALSE;
     region_need_erasing = FALSE;
 
     setMouseTracking(true);
@@ -32,11 +33,6 @@ void CanvasWidget::setStatic()
 void CanvasWidget::setMainWindow(MainWindow *mainWindow)
 {
     this->mainWindow = mainWindow;
-}
-
-void CanvasWidget::setGraceApp(GraceApp *gapp)
-{
-    this->gapp = gapp;
 }
 
 void CanvasWidget::setLocatorBar(QLabel *locatorBar)
@@ -101,8 +97,8 @@ void CanvasWidget::xdrawgrid()
 
 void CanvasWidget::qt_VPoint2dev(const VPoint *vp, double *x, double *y)
 {
-    *x = xstuff.win_scale * vp->x;
-    *y = xstuff.win_h - xstuff.win_scale * vp->y;
+    *x = xstuff->win_scale * vp->x;
+    *y = xstuff->win_h - xstuff->win_scale * vp->y;
 }
 
 /*
@@ -111,12 +107,12 @@ void CanvasWidget::qt_VPoint2dev(const VPoint *vp, double *x, double *y)
  */
 void CanvasWidget::qt_dev2VPoint(double x, double y, VPoint *vp)
 {
-    if (xstuff.win_scale == 0) {
+    if (xstuff->win_scale == 0) {
         vp->x = 0.0;
         vp->y = 0.0;
     } else {
-        vp->x = x / xstuff.win_scale;
-        vp->y = (xstuff.win_h - y) / xstuff.win_scale;
+        vp->x = x / xstuff->win_scale;
+        vp->y = (xstuff->win_h - y) / xstuff->win_scale;
     }
 }
 
@@ -143,12 +139,12 @@ void CanvasWidget::draw_focus(Quark *gr)
         aux_XFillRectangle(gui, ix2 - 5, iy2 - 5, 10, 10);
         aux_XFillRectangle(gui, ix2 - 5, iy1 - 5, 10, 10);
 
-        xstuff.f_x1 = ix1;
-        xstuff.f_x2 = ix2;
-        xstuff.f_y1 = iy1;
-        xstuff.f_y2 = iy2;
+        xstuff->f_x1 = ix1;
+        xstuff->f_x2 = ix2;
+        xstuff->f_y1 = iy1;
+        xstuff->f_y2 = iy2;
 
-        xstuff.f_v  = v;
+        xstuff->f_v  = v;
     }
 }
 
@@ -190,9 +186,9 @@ void CanvasWidget::qtdrawgraph(const GProject *gp)
         region_need_erasing = FALSE;
 
         update();
-        //x11_redraw(xstuff.xwin, 0, 0, xstuff.win_w, xstuff.win_h);
+        //x11_redraw(xstuff->xwin, 0, 0, xstuff->win_w, xstuff->win_h);
 
-        //XFlush(xstuff.disp);
+        //XFlush(xstuff->disp);
 
         unset_wait_cursor();
     }
@@ -210,24 +206,24 @@ void CanvasWidget::resize_drawables(unsigned int w, unsigned int h)
     /* Image composition using alpha blending are faster using premultiplied ARGB32 than with plain ARGB32 */
     if (pixmap == 0) {
         pixmap = new QImage(w, h, QImage::Format_ARGB32_Premultiplied);
-    } if (xstuff.win_w != w || xstuff.win_h != h) {
+    } if (xstuff->win_w != w || xstuff->win_h != h) {
         delete pixmap;
         pixmap = new QImage(w, h, QImage::Format_ARGB32_Premultiplied);
     }
 
     if (pixmap == 0) {
         errmsg("Can't allocate buffer pixmap");
-        xstuff.win_w = 0;
-        xstuff.win_h = 0;
+        xstuff->win_w = 0;
+        xstuff->win_h = 0;
     } else {
-        xstuff.win_w = w;
-        xstuff.win_h = h;
+        xstuff->win_w = w;
+        xstuff->win_h = h;
     }
 
-    xstuff.win_scale = MIN2(xstuff.win_w, xstuff.win_h);
+    xstuff->win_scale = MIN2(xstuff->win_w, xstuff->win_h);
 
     if (!gui_is_page_free(gapp->gui)) {
-        //SetDimensions(xstuff.canvas, xstuff.win_w, xstuff.win_h);
+        //SetDimensions(xstuff->canvas, xstuff->win_w, xstuff->win_h);
         setMinimumSize(w, h);
     }
 }
@@ -450,12 +446,12 @@ void CanvasWidget::select_region(GUI *gui, double x1, double y1, double x2, doub
 
 void CanvasWidget::select_vregion(GUI *gui, double x1, double x2, int erase)
 {
-    select_region(gui, x1, xstuff.f_y1, x2, xstuff.f_y2, erase);
+    select_region(gui, x1, xstuff->f_y1, x2, xstuff->f_y2, erase);
 }
 
 void CanvasWidget::select_hregion(GUI *gui, double y1, double y2, int erase)
 {
-    select_region(gui, xstuff.f_x1, y1, xstuff.f_x2, y2, erase);
+    select_region(gui, xstuff->f_x1, y1, xstuff->f_x2, y2, erase);
 }
 
 void CanvasWidget::aux_XDrawRectangle(GUI *gui, double x, double y, double width, double height)
@@ -739,15 +735,15 @@ static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
 void CanvasWidget::set_action(GUI *gui, unsigned int npoints, int seltype,
     CanvasPointSink sink, void *data)
 {
-    xstuff.npoints = 0;
-    xstuff.npoints_requested = npoints;
-    xstuff.point_sink = sink;
-    xstuff.sink_data  = data;
-    xstuff.sel_type = seltype;
+    xstuff->npoints = 0;
+    xstuff->npoints_requested = npoints;
+    xstuff->point_sink = sink;
+    xstuff->sink_data  = data;
+    xstuff->sel_type = seltype;
 
-    xstuff.collect_points = TRUE;
+    xstuff->collect_points = TRUE;
 
-//    XmProcessTraversal(xstuff.canvas, XmTRAVERSE_CURRENT);
+//    XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
 }
 
 void CanvasWidget::actionZoom()
@@ -776,10 +772,10 @@ void CanvasWidget::actionAddText()
 
 void CanvasWidget::completeAction(double x, double y)
 {
-    if (abort_action && xstuff.collect_points) {
+    if (abort_action && xstuff->collect_points) {
         errmsg("complete action clear selection");
         /* clear selection */
-        switch (xstuff.sel_type) {
+        switch (xstuff->sel_type) {
         case SELECTION_TYPE_RECT:
             select_region(gapp->gui,
                 x, y, last_b1down_x, last_b1down_y, FALSE);
@@ -792,8 +788,8 @@ void CanvasWidget::completeAction(double x, double y)
             break;
         }
         /* abort action */
-        xstuff.npoints = 0;
-        xstuff.collect_points = FALSE;
+        xstuff->npoints = 0;
+        xstuff->collect_points = FALSE;
         //set_cursor(gapp->gui, -1);
         setCursor(Qt::ArrowCursor);
         mainWindow->set_left_footer(NULL);
@@ -802,27 +798,27 @@ void CanvasWidget::completeAction(double x, double y)
         /* previous action */
         errmsg("complete action undo");
     } else
-    if (xstuff.npoints_requested &&
-        xstuff.npoints == xstuff.npoints_requested) {
+    if (xstuff->npoints_requested &&
+        xstuff->npoints == xstuff->npoints_requested) {
         errmsg("complete action points requested");
         int ret;
         unsigned int i;
-        VPoint *vps = (VPoint*) xmalloc(xstuff.npoints*sizeof(VPoint));
-        for (i = 0; i < xstuff.npoints; i++) {
-            XPoint xp = xstuff.xps[i];
+        VPoint *vps = (VPoint*) xmalloc(xstuff->npoints*sizeof(VPoint));
+        for (i = 0; i < xstuff->npoints; i++) {
+            XPoint xp = xstuff->xps[i];
             qt_dev2VPoint(xp.x, xp.y, &vps[i]);
         }
         /* return points to caller */
-        ret = xstuff.point_sink(xstuff.npoints, vps, xstuff.sink_data);
+        ret = xstuff->point_sink(xstuff->npoints, vps, xstuff->sink_data);
         if (ret != RETURN_SUCCESS) {
-            //XBell(xstuff.disp, 50);
+            //XBell(xstuff->disp, 50);
         }
 
         xfree(vps);
 
-        xstuff.npoints_requested = 0;
-        xstuff.collect_points = FALSE;
-        xstuff.npoints = 0;
+        xstuff->npoints_requested = 0;
+        xstuff->collect_points = FALSE;
+        xstuff->npoints = 0;
         //set_cursor(gapp->gui, -1);
         setCursor(Qt::ArrowCursor);
 
@@ -851,18 +847,18 @@ void CanvasWidget::mousePressEvent(QMouseEvent *event)
             ct.vp = vp;
             ct.include_graphs = FALSE;
             if (on_focus) {
-                resize_region(gapp->gui, xstuff.f_v, on_focus, 0, 0, FALSE);
+                resize_region(gapp->gui, xstuff->f_v, on_focus, 0, 0, FALSE);
             } else if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
                 slide_region(gapp->gui, ct.bbox, 0, 0, FALSE);
             }
         } else {
-            if (xstuff.collect_points) {
+            if (xstuff->collect_points) {
                 XPoint xp;
                 xp.x = x;
                 xp.y = y;
-                xstuff.npoints++;
-                xstuff.xps = (XPoint*) xrealloc(xstuff.xps, xstuff.npoints * sizeof(XPoint));
-                xstuff.xps[xstuff.npoints - 1] = xp;
+                xstuff->npoints++;
+                xstuff->xps = (XPoint*) xrealloc(xstuff->xps, xstuff->npoints * sizeof(XPoint));
+                xstuff->xps[xstuff->npoints - 1] = xp;
                 select_region(gapp->gui, x, y, x, y, FALSE);
             } else if (gapp->gui->focus_policy == FOCUS_CLICK) {
                 cg = next_graph_containing(cg, &vp);
@@ -873,7 +869,7 @@ void CanvasWidget::mousePressEvent(QMouseEvent *event)
         last_b1down_x = x;
         last_b1down_y = y;
 
-        if (!xstuff.collect_points) {
+        if (!xstuff->collect_points) {
             //set_cursor(gapp->gui, 5);
             setCursor(Qt::ClosedHandCursor);
         }
@@ -908,9 +904,9 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
 
     qt_dev2VPoint(x, y, &vp);
 
-    if (xstuff.collect_points && xstuff.npoints) {
+    if (xstuff->collect_points && xstuff->npoints) {
         errmsg("move collect points");
-            switch (xstuff.sel_type) {
+            switch (xstuff->sel_type) {
             case SELECTION_TYPE_RECT:
                 select_region(gapp->gui, x, y, last_b1down_x, last_b1down_y, TRUE);
                 break;
@@ -926,7 +922,7 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
             if (event->modifiers() & Qt::ControlModifier) {
                 errmsg("move left and control");
                 if (on_focus) {
-                    resize_region(gapp->gui, xstuff.f_v, on_focus,
+                    resize_region(gapp->gui, xstuff->f_v, on_focus,
                         x - last_b1down_x, y - last_b1down_y, TRUE);
                 } else
                 if (ct.found) {
@@ -944,20 +940,20 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
             }
 
             if (event->modifiers() & Qt::ControlModifier) {
-                if (fabs(x - xstuff.f_x1) <= 5 &&
-                    fabs(y - xstuff.f_y1) <= 5) {
+                if (fabs(x - xstuff->f_x1) <= 5 &&
+                    fabs(y - xstuff->f_y1) <= 5) {
                     on_focus = 1;
                 } else
-                if (fabs(x - xstuff.f_x1) <= 5 &&
-                    fabs(y - xstuff.f_y2) <= 5) {
+                if (fabs(x - xstuff->f_x1) <= 5 &&
+                    fabs(y - xstuff->f_y2) <= 5) {
                     on_focus = 2;
                 } else
-                if (fabs(x - xstuff.f_x2) <= 5 &&
-                    fabs(y - xstuff.f_y2) <= 5) {
+                if (fabs(x - xstuff->f_x2) <= 5 &&
+                    fabs(y - xstuff->f_y2) <= 5) {
                     on_focus = 3;
                 } else
-                if (fabs(x - xstuff.f_x2) <= 5 &&
-                    fabs(y - xstuff.f_y1) <= 5) {
+                if (fabs(x - xstuff->f_x2) <= 5 &&
+                    fabs(y - xstuff->f_y1) <= 5) {
                     on_focus = 4;
                 } else {
                     on_focus = 0;
@@ -1023,7 +1019,7 @@ void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
 
             mainWindow->snapshot_and_update(gapp->gp, TRUE);
         }
-        if (!xstuff.collect_points) {
+        if (!xstuff->collect_points) {
             //set_cursor(gapp->gui, -1);
             setCursor(Qt::ArrowCursor);
         }
@@ -1039,12 +1035,12 @@ void CanvasWidget::contextMenuEvent(QContextMenuEvent *event)
 {
     QPointF point = QPointF(event->pos());
     errmsg("right button");
-    if (xstuff.collect_points) {
+    if (xstuff->collect_points) {
         undo_point = TRUE;
-        if (xstuff.npoints) {
-            xstuff.npoints--;
+        if (xstuff->npoints) {
+            xstuff->npoints--;
         }
-        if (xstuff.npoints == 0) {
+        if (xstuff->npoints == 0) {
             abort_action = TRUE;
         }
     }// else {
@@ -1055,7 +1051,7 @@ void CanvasWidget::contextMenuEvent(QContextMenuEvent *event)
     //                ct.found = FALSE;
     //
     //                if (!popup) {
-    //                    popup = XmCreatePopupMenu(gapp->gui->xstuff.canvas,
+    //                    popup = XmCreatePopupMenu(gapp->gui->xstuff->canvas,
     //                        "popupMenu", NULL, 0);
     //
     //                    poplab = CreateMenuLabel(popup, "");

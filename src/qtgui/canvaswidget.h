@@ -5,63 +5,12 @@
 #include <QLabel>
 
 extern "C" {
+#include <globals.h>
 #include <grace/grace.h>
 #include <graceapp.h>
 #include <core_utils.h>
 #include <xprotos.h>
 }
-
-typedef int (*CanvasPointSink) (
-    unsigned int npoints,
-    const VPoint *vps,
-    void *data
-);
-
-typedef struct {
-//    Display *disp;
-    int screennumber;
-
-//    Window root;
-//    Window xwin;
-
-//    Widget canvas;
-
-//   GC gc;
-    int depth;
-//    Colormap cmap;
-
-    double dpi;
-
-//    Pixmap bufpixmap;
-
-    double win_h;
-    double win_w;
-    double win_scale;
-
-    /* cursors */
-//    Cursor wait_cursor;
-//    Cursor line_cursor;
-//    Cursor find_cursor;
-//    Cursor move_cursor;
-//    Cursor text_cursor;
-//    Cursor kill_cursor;
-//    Cursor drag_cursor;
-    int cur_cursor;
-
-    /* coords of focus markers*/
-    double f_x1, f_y1, f_x2, f_y2;
-    view f_v;
-
-    unsigned int npoints;
-    XPoint *xps;
-
-    unsigned int npoints_requested;
-    int collect_points;
-
-    CanvasPointSink point_sink;
-    void *sink_data;
-    int sel_type;
-} QtStuff;
 
 typedef struct {
     VPoint vp;
@@ -84,7 +33,6 @@ public:
     MainWindow *mainWindow;
     void setStatic();
     void setMainWindow(MainWindow *mainWindow);
-    void setGraceApp(GraceApp *gapp);
     void setLocatorBar(QLabel *locatorBar);
     void qtdrawgraph(const GProject*);
     void set_tracker_string(char *s);
@@ -110,10 +58,9 @@ protected:
     void contextMenuEvent(QContextMenuEvent *event);
 
 private:
-    GraceApp *gapp;
     QLabel *locatorBar;
     QImage *pixmap;
-    QtStuff xstuff;
+    X11Stuff *xstuff;
 
     int region_need_erasing;
     double last_b1down_x, last_b1down_y;   /* coords of last event */

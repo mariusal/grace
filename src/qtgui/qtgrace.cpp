@@ -33,6 +33,7 @@
 #include "mainwindow.h"
 
 extern "C" {
+  #include <globals.h>
   #include <bitmaps.h>
   #include "xprotos.h"
 }
@@ -54,8 +55,8 @@ void startup_gui(GraceApp *gapp)
 
 int initialize_gui(int *argc, char **argv)
 {
-//    X11Stuff *xstuff;
-//    MainWinUI *mwui;
+    X11Stuff *xstuff;
+    MainWinUI *mwui;
 //    Screen *screen;
 //    ApplicationData rd;
 //    String *allResources, *resolResources;
@@ -63,13 +64,13 @@ int initialize_gui(int *argc, char **argv)
 //    unsigned int i, n_common, n_resol;
 //    char *display_name = NULL;
 //
-//    xstuff = xmalloc(sizeof(X11Stuff));
-//    memset(xstuff, 0, sizeof(X11Stuff));
-//    gapp->gui->xstuff = xstuff;
-//
-//    mwui = xmalloc(sizeof(MainWinUI));
-//    memset(mwui, 0, sizeof(MainWinUI));
-//    gapp->gui->mwui = mwui;
+    xstuff = (X11Stuff*) xmalloc(sizeof(X11Stuff));
+    memset(xstuff, 0, sizeof(X11Stuff));
+    gapp->gui->xstuff = xstuff;
+
+    mwui = (MainWinUI*) xmalloc(sizeof(MainWinUI));
+    memset(mwui, 0, sizeof(MainWinUI));
+    gapp->gui->mwui = mwui;
 //    
 //    installXErrorHandler();
 //    

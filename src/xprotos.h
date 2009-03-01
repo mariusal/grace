@@ -41,14 +41,7 @@
 #include "motifinc.h"
 
 #ifdef QT_GUI
-typedef int Screen;
-typedef int Pixmap;
-#ifndef __cplusplus
-typedef int Display;
-typedef int GC;
-#endif
-typedef int Window;
-typedef int Colormap;
+typedef struct Pixmap Pixmap;
 typedef struct {
     double x;
     double y;
@@ -61,27 +54,39 @@ typedef int (*CanvasPointSink) (
     void *data
 );
 
+#ifndef QT_GUI
 typedef struct {
     Screen *screen;
     Pixmap pixmap;
 } X11stream;
+#endif
 
 struct _X11Stuff {
+#ifndef QT_GUI
     Display *disp;
+#endif
     int screennumber;
     
+#ifndef QT_GUI
     Window root;
     Window xwin;
+#endif
 
     Widget canvas;
 
+#ifndef QT_GUI
     GC gc;
+#endif
     int depth;
+#ifndef QT_GUI
     Colormap cmap;
+#endif
     
     double dpi;
 
+#ifndef QT_GUI
     Pixmap bufpixmap;
+#endif
 
     unsigned int win_h;
     unsigned int win_w;
@@ -136,7 +141,9 @@ int register_x11_drv(Canvas *canvas);
 
 int x11_get_pixelsize(const GUI *gui);
 long x11_allocate_color(GUI *gui, const RGB *rgb);
+#ifndef QT_GUI
 void x11_redraw(Window window, int x, int y, int widht, int height);
+#endif
 
 int x11_init(GraceApp *gapp);
 
