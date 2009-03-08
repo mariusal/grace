@@ -15,7 +15,8 @@ QMAKE_EXTRA_TARGETS += depfile
 FORMS += mainwindow.ui
 
 HEADERS += mainwindow.h \
-	   canvaswidget.h
+	   canvaswidget.h \
+	   qtinc.h
 
 SOURCES += qtgrace.cpp \
 	   mainwindow.cpp \

@@ -372,7 +372,7 @@ void MainWindow::on_actionAddText_triggered() {
 
 void MainWindow::on_actionPreferences_triggered()
 {
-    //create_props_frame(0, 0);
+    create_props_frame(0, 0);
 }
 
 /*

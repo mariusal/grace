@@ -28,9 +28,9 @@ GROBJS = main$(O) graceapp$(O) \
 # GUI independent sources
 #
 
-GUIISRCS = 
+GUIISRCS = miscwin.c
 
-GUIIOBJS = 
+GUIIOBJS = miscwin$(O) 
 
 # The following are for a GUI
 #
@@ -41,7 +41,7 @@ GUISRCS = Tab.c ListTree.c motifutils.c \
 	compwin.c \
 	events.c fileswin.c \
 	helpwin.c \
-	miscwin.c monwin.c \
+	monwin.c \
 	printwin.c drv_ui.c \
 	setwin.c \
 	explorer.c \
@@ -53,7 +53,7 @@ GUIOBJS = Tab$(O) ListTree$(O) motifutils$(O) \
 	compwin$(O) \
 	events$(O) fileswin$(O) \
 	helpwin$(O) \
-	miscwin$(O) monwin$(O) \
+	monwin$(O) \
 	printwin$(O) drv_ui$(O) \
 	setwin$(O) \
 	explorer$(O) \
