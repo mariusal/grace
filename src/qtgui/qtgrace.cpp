@@ -38,24 +38,16 @@
 
 extern "C" {
   #include <globals.h>
-  #include <bitmaps.h>
   #include "xprotos.h"
   Widget app_shell;
 }
 
-int main_cpp(int argc, char *argv[], GraceApp *gapp)
-{
-  QApplication app(argc, argv);
-  MainWindow mainWin(gapp);
-  app_shell = &mainWin;
-  mainWin.show();
-  return app.exec();
-}
+QApplication *app;
 
 void startup_gui(GraceApp *gapp)
 {
-  char *ch[8] = {"qtgrace"};
-  main_cpp(1, ch, gapp);
+  ((QMainWindow*) app_shell)->show();
+  app->exec();
   exit(0);
 }
 
@@ -85,6 +77,7 @@ int initialize_gui(int *argc, char **argv)
 //    XtSetLanguageProc(NULL, NULL, NULL);
 //    
 //    XtToolkitInitialize();
+    app = new QApplication(*argc, argv);
 //    app_con = XtCreateApplicationContext();
 //    
 //    /* Check if we're running in the low-resolution X */
@@ -131,6 +124,7 @@ int initialize_gui(int *argc, char **argv)
 //    XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
 //    XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 //
+    app_shell = new MainWindow(gapp);
 //    app_shell = XtAppCreateShell(NULL, "XmGrace", applicationShellWidgetClass,
 //        xstuff->disp, NULL, 0);
 //
@@ -241,8 +235,7 @@ void errwin(const char *msg)
 
 int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 {
-    QMessageBox msgBox;
-    msgBox.setWindowIcon(QPixmap(gapp_icon_xpm));
+    QMessageBox msgBox((MainWindow*) app_shell);
     msgBox.setWindowTitle("Grace: Warning");
     msgBox.setIcon(QMessageBox::Question);
     if (msg != NULL) {
@@ -349,7 +342,7 @@ Widget CreateDialogForm(Widget parent, const char *s)
 //    xfree(bufp);
 
 //    w = XmCreateForm(dialog, "form", NULL, 0);
-    QDialog *w = new QDialog();
+    QDialog *w = new QDialog((MainWindow*) parent);
     w->setWindowTitle(bufp);
     xfree(bufp);
 
