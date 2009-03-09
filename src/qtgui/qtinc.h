@@ -30,10 +30,13 @@
 #define __QTINC_H_
 
 #ifdef __cplusplus
-#include <QObject>
+#   include <QObject>
+#   ifdef WIN32
+        typedef union _XEvent { int type; } XEvent;
+#   endif
 #else
-typedef struct QObject QObject;
-typedef union _XEvent { int type; } XEvent;
+    typedef struct QObject QObject;
+    typedef union _XEvent { int type; } XEvent;
 #endif
 typedef QObject *Widget;
 typedef int WidgetList;
