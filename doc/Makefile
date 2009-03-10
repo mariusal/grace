@@ -32,7 +32,7 @@ PS2PDF      = ps2pdf
 LATEX       = latex
 
 .sgml.html :
-	$(SGML2HTML) $<
+	-$(SGML2HTML) $<
 
 .sgml.dvi :
 	$(SGML2DVI) $<
@@ -41,7 +41,7 @@ LATEX       = latex
 	$(SGML2PS) $<
 	
 .sgml.pdf :
-	$(SGML2PDF) $<
+	-$(SGML2PDF) $<
 	
 .sgml.tex :
 	$(SGML2LATEX) $<
