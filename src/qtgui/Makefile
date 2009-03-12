@@ -6,14 +6,13 @@
 
 all : lib
 
+install : lib
+
 Makefile.qt : qtgrace.pro
 	qmake -o Makefile.qt qtgrace.pro
 
-library : Makefile.qt
+lib : Makefile.qt
 	$(MAKE) -f Makefile.qt
-
-lib : library
-	$(MAKE) -f Makefile.qt Make.common
 
 clean: Makefile.qt
 	$(MAKE) -f Makefile.qt clean
