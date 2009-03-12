@@ -31,33 +31,6 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
 
     QSettings settings("GraceProject", "Grace");
     restoreGeometry(settings.value("geometry").toByteArray());
-
-    /*
-     * initialize some option menus
-     */
-//    init_option_menus();
-
-    /*
-     * initialize the tool bars
-     */
-//    set_view_items();
-
-    canvasWidget->set_tracker_string(NULL);
-    set_left_footer(NULL);
-
-    /*
-     * set icon
-     */
-    setWindowIcon(QPixmap(gapp_icon_xpm));
-
-    gapp->gui->inwin = TRUE;
-
-    /*
-     * set the title
-     */
-    update_app_title(gapp->gp);
-
-    canvasWidget->qtdrawgraph(gapp->gp);
 }
 
 MainWindow::~MainWindow()

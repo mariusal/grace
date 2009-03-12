@@ -39,16 +39,228 @@
 extern "C" {
   #include <globals.h>
   #include "xprotos.h"
+  #include <bitmaps.h>
   Widget app_shell;
 }
 
+MainWindow *mainWin;
 QApplication *app;
 
+/*
+ * build the GUI
+ */
 void startup_gui(GraceApp *gapp)
 {
-  ((QMainWindow*) app_shell)->show();
-  app->exec();
-  exit(0);
+//    MainWinUI *mwui = gapp->gui->mwui;
+//    X11Stuff *xstuff = gapp->gui->xstuff;
+//    Widget main_frame, form, menu_bar, bt, rcleft;
+//    Pixmap icon, shape;
+//
+///* 
+// * Allow users to change tear off menus with X resources
+// */
+//    XmRepTypeInstallTearOffModelConverter();
+//    
+//    RegisterEditRes(app_shell);
+//
+///*
+// * We handle important WM events ourselves
+// */
+//    handle_close(app_shell);
+//    
+//    XtVaSetValues(app_shell, XmNcolormap, xstuff->cmap, NULL);
+//    
+///*
+// * build the UI here
+// */
+//    main_frame = XtVaCreateManagedWidget("mainWin",
+//        xmMainWindowWidgetClass, app_shell, NULL);
+//
+//    menu_bar = CreateMainMenuBar(main_frame);
+//    ManageChild(menu_bar);
+//
+//    form = XmCreateForm(main_frame, "form", NULL, 0);
+//
+//    mwui->frleft = CreateFrame(form, NULL);
+//    rcleft = XtVaCreateManagedWidget("toolBar", xmRowColumnWidgetClass,
+//                                     mwui->frleft,
+//				     XmNorientation, XmVERTICAL,
+//				     XmNpacking, XmPACK_TIGHT,
+//				     XmNspacing, 0,
+//				     XmNentryBorder, 0,
+//				     XmNmarginWidth, 0,
+//				     XmNmarginHeight, 0,
+//				     NULL);
+//
+//    mwui->frtop = CreateFrame(form, NULL);
+//    mwui->loclab = CreateLabel(mwui->frtop, NULL);
+//    
+//    mwui->frbot = CreateFrame(form, NULL);
+//    mwui->statlab = CreateLabel(mwui->frbot, NULL);
+//
+//    if (!gui_is_page_free(gapp->gui)) {
+//        mwui->drawing_window = XtVaCreateManagedWidget("drawing_window",
+//				     xmScrolledWindowWidgetClass, form,
+//				     XmNscrollingPolicy, XmAUTOMATIC,
+//				     XmNvisualPolicy, XmVARIABLE,
+//				     NULL);
+//        xstuff->canvas = XtVaCreateManagedWidget("canvas",
+//                                     xmDrawingAreaWidgetClass,
+//                                     mwui->drawing_window,
+//				     NULL);
+//    } else {
+//        xstuff->canvas = XtVaCreateManagedWidget("canvas",
+//                                     xmDrawingAreaWidgetClass, form,
+//				     NULL);
+//        mwui->drawing_window = xstuff->canvas;
+//    }
+//    
+//    XtAddCallback(xstuff->canvas, XmNexposeCallback, expose_resize, gapp);
+//    XtAddCallback(xstuff->canvas, XmNresizeCallback, expose_resize, gapp);
+//
+//    XtAddEventHandler(xstuff->canvas,
+//                      ButtonPressMask
+//                      | ButtonReleaseMask
+//		      | PointerMotionMask
+//		      | KeyPressMask
+//		      | KeyReleaseMask
+//		      | ColormapChangeMask,
+//		      False,
+//		      canvas_event_proc, gapp);
+//		      
+//    XtOverrideTranslations(xstuff->canvas, XtParseTranslationTable(canvas_table));
+//    
+//    AddHelpCB(xstuff->canvas, "doc/UsersGuide.html#canvas");
+//
+//    XtVaSetValues(mwui->frtop,
+//		  XmNtopAttachment, XmATTACH_FORM,
+//		  XmNleftAttachment, XmATTACH_FORM,
+//		  XmNrightAttachment, XmATTACH_FORM,
+//		  NULL);
+//    XtVaSetValues(mwui->frbot,
+//		  XmNbottomAttachment, XmATTACH_FORM,
+//		  XmNrightAttachment, XmATTACH_FORM,
+//		  XmNleftAttachment, XmATTACH_FORM,
+//		  NULL);
+//    XtVaSetValues(mwui->frleft,
+//		  XmNtopAttachment, XmATTACH_WIDGET,
+//		  XmNtopWidget, mwui->frtop,
+//		  XmNbottomAttachment, XmATTACH_WIDGET,
+//		  XmNbottomWidget, mwui->frbot,
+//		  XmNleftAttachment, XmATTACH_FORM,
+//		  NULL);
+//    XtVaSetValues(mwui->drawing_window,
+//		  XmNtopAttachment, XmATTACH_WIDGET,
+//		  XmNtopWidget, mwui->frtop,
+//		  XmNbottomAttachment, XmATTACH_WIDGET,
+//		  XmNbottomWidget, mwui->frbot,
+//		  XmNleftAttachment, XmATTACH_WIDGET,
+//		  XmNleftWidget, mwui->frleft,
+//		  XmNrightAttachment, XmATTACH_FORM,
+//		  NULL);
+//
+//    ManageChild(form);
+//
+//    XmMainWindowSetAreas(main_frame, menu_bar, NULL, NULL, NULL, form);
+//
+//    /* redraw */
+//    bt = CreateBitmapButton(rcleft, 16, 16, redraw_bits);
+//    AddButtonCB(bt, do_drawgraph, NULL);
+//    
+//    CreateSeparator(rcleft);
+//
+//    /* zoom */
+//    bt = CreateBitmapButton(rcleft, 16, 16, zoom_bits);
+//    AddButtonCB(bt, set_zoom_cb, (void *) gapp);
+//    bt = CreateBitmapButton(rcleft, 16, 16, zoom_x_bits);
+//    AddButtonCB(bt, set_zoomx_cb, (void *) gapp);
+//    bt = CreateBitmapButton(rcleft, 16, 16, zoom_y_bits);
+//    AddButtonCB(bt, set_zoomy_cb, (void *) gapp);
+//
+//    CreateSeparator(rcleft);
+//
+//    /* autoscale */
+//    bt = CreateBitmapButton(rcleft, 16, 16, auto_bits);
+//    AddButtonCB(bt, autoscale_xy_cb, (void *) gapp);
+//    bt = CreateBitmapButton(rcleft, 16, 16, auto_x_bits);
+//    AddButtonCB(bt, autoscale_x_cb, (void *) gapp);
+//    bt = CreateBitmapButton(rcleft, 16, 16, auto_y_bits);
+//    AddButtonCB(bt, autoscale_y_cb, (void *) gapp);
+//    bt = CreateBitmapButton(rcleft, 16, 16, auto_tick_bits);
+//    AddButtonCB(bt, autoticks_cb, NULL);
+//
+//    CreateSeparator(rcleft);
+//
+//    /* scrolling buttons */
+//    bt = CreateBitmapButton(rcleft, 16, 16, left_bits);
+//    AddButtonCB(bt, graph_scroll_left_cb, (void *) gapp);
+//    bt = CreateBitmapButton(rcleft, 16, 16, right_bits);
+//    AddButtonCB(bt, graph_scroll_right_cb, (void *) gapp);
+//    bt = CreateBitmapButton(rcleft, 16, 16, up_bits);
+//    AddButtonCB(bt, graph_scroll_up_cb, (void *) gapp);
+//    bt = CreateBitmapButton(rcleft, 16, 16, down_bits);
+//    AddButtonCB(bt, graph_scroll_down_cb, (void *) gapp);
+//
+//    CreateSeparator(rcleft);
+//
+//    /* expand/shrink */
+//    bt = CreateBitmapButton(rcleft, 16, 16, expand_bits);
+//    AddButtonCB(bt, graph_zoom_in_cb, (void *) gapp);
+//    bt = CreateBitmapButton(rcleft, 16, 16, shrink_bits);
+//    AddButtonCB(bt, graph_zoom_out_cb, (void *) gapp);
+//
+//    CreateSeparator(rcleft);
+//
+//    bt = CreateBitmapButton(rcleft, 16, 16, atext_bits);
+//    AddButtonCB(bt, atext_add_proc, (void *) gapp);
+//
+//    CreateSeparator(rcleft);
+//    CreateSeparator(rcleft);
+//
+//    /* exit */
+//    bt = CreateBitmapButton(rcleft, 16, 16, exit_bits);
+//    AddButtonCB(bt, exit_cb, gapp);
+//
+/*
+ * initialize some option menus
+ */
+//    init_option_menus();
+
+/*
+ * initialize the tool bars
+ */
+//    set_view_items();
+
+    mainWin->canvasWidget->set_tracker_string(NULL);
+    mainWin->set_left_footer(NULL);
+
+/*
+ * set icon
+ */
+    mainWin->setWindowIcon(QPixmap(gapp_icon_xpm));
+
+//    XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
+//        gapp_icon_xpm, &icon, &shape, NULL);
+//    XtVaSetValues(app_shell, XtNiconPixmap, icon, XtNiconMask, shape, NULL);
+
+//    XtRealizeWidget(app_shell);
+    
+//    XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
+    
+//    xstuff->xwin = XtWindow(xstuff->canvas);
+    gapp->gui->inwin = TRUE;
+
+/*
+ * set the title
+ */
+    mainWin->update_app_title(gapp->gp);
+
+    mainWin->canvasWidget->qtdrawgraph(gapp->gp);
+
+    //XtAppMainLoop(app_con);
+    ((QMainWindow*) app_shell)->show();
+    app->exec();
+    exit(0);
 }
 
 int initialize_gui(int *argc, char **argv)
@@ -124,7 +336,8 @@ int initialize_gui(int *argc, char **argv)
 //    XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
 //    XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 //
-    app_shell = new MainWindow(gapp);
+    mainWin = new MainWindow(gapp);
+    app_shell = mainWin;
 //    app_shell = XtAppCreateShell(NULL, "XmGrace", applicationShellWidgetClass,
 //        xstuff->disp, NULL, 0);
 //

@@ -23,6 +23,7 @@ public:
   void update_all(void);
 
   void scroll_pix(int dx, int dy);
+  CanvasWidget *canvasWidget;
 
 protected:
   void closeEvent(QCloseEvent*);
@@ -72,7 +73,6 @@ private:
   void sync_canvas_size(GraceApp *gapp);
 
   Ui::MainWindow ui;
-  CanvasWidget *canvasWidget;
 
   QString curFile;
 };
