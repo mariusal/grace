@@ -824,7 +824,6 @@ void CanvasWidget::completeAction(double x, double y)
 
         mainWindow->snapshot_and_update(gapp->gp, TRUE);
     }
-    qtdrawgraph(gapp->gp);
 }
 
 void CanvasWidget::mousePressEvent(QMouseEvent *event)
