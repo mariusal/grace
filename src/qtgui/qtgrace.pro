@@ -7,9 +7,10 @@ INCLUDEPATH += . ../ ../../include
 # Input
 FORMS += mainwindow.ui
 
-HEADERS += mainwindow.h \
-	   canvaswidget.h \
-	   qtinc.h
+HEADERS += qtgrace.h \
+           mainwindow.h \
+           canvaswidget.h \
+           qtinc.h
 
 SOURCES += qtgrace.cpp \
 	   mainwindow.cpp \

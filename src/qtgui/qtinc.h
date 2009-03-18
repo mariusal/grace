@@ -34,12 +34,14 @@
 #   ifdef WIN32
         typedef union _XEvent { int type; } XEvent;
 #   endif
+
 #else
     typedef struct QObject QObject;
     typedef union _XEvent { int type; } XEvent;
 #endif
+
 typedef QObject *Widget;
-typedef int WidgetList;
+typedef QObject **WidgetList;
 typedef int Boolean;
 typedef int String;
 typedef int Cardinal;
