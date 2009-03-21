@@ -3,6 +3,7 @@
 
 #include <QObject>
 extern "C" {
+#include <config.h>
 #include <motifinc.h>
 }
 
@@ -32,3 +33,4 @@ public slots:
 };
 
 #endif /* __QTGRACE_H_ */
+
