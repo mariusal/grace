@@ -4388,38 +4388,6 @@ void UndefineDialogCursor(void)
     XFlush(xstuff->disp);
 }
 
-Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l)
-{
-    int i;
-    Widget form;
-    Dimension h;
-
-    form = XtVaCreateWidget("form", xmFormWidgetClass, parent,
-			    XmNfractionBase, n,
-			    NULL);
-
-    for (i = 0; i < n; i++) {
-	buts[i] = XtVaCreateManagedWidget(l[i],
-					  xmPushButtonWidgetClass, form,
-					  XmNtopAttachment, XmATTACH_FORM,
-					  XmNbottomAttachment, XmATTACH_FORM,
-					  XmNleftAttachment, XmATTACH_POSITION,
-					  XmNleftPosition, i,
-					  XmNrightAttachment, XmATTACH_POSITION,
-					  XmNrightPosition, i + 1,
-					  XmNleftOffset, (i == 0) ? 2 : 0,
-					  XmNrightOffset, 3,
-					  XmNtopOffset, 2,
-					  XmNbottomOffset, 3,
-					  NULL);
-    }
-    XtManageChild(form);
-    XtVaGetValues(buts[0], XmNheight, &h, NULL);
-    XtVaSetValues(form, XmNpaneMaximum, h, XmNpaneMinimum, h, NULL);
-    
-    return form;
-}
-
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
 {
     int i;

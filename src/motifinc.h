@@ -453,9 +453,6 @@ Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits);
 void AddButtonCB(Widget button, Button_CBProc cbproc, void *data);
 
-WidgetList CreateAACDialog(Widget form,
-    Widget container, AACDialog_CBProc cbproc, void *data);
-
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items);
 OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...);
@@ -577,7 +574,9 @@ Widget CreateTextItem(Widget parent, int len, char *s);
 void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
 
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
-Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);
+
+WidgetList CreateAACDialog(Widget form,
+    Widget container, AACDialog_CBProc cbproc, void *data);
 
 TransformStructure *CreateTransformDialogForm(Widget parent,
     const char *s, int sel_type, int exclusive, const TD_CBProcs *cbs);
