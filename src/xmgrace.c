@@ -100,11 +100,6 @@ static XtActionsRec cstext_actions[] = {
     {"cstext_edit_action", cstext_edit_action}
 };
 
-static char canvas_table[] = "#override\n\
-	Ctrl <Key>a: autoscale()\n\
-	Ctrl <Key>u: refresh_hotlink()\n\
-	Ctrl <Key>z: enable_zoom()";
-
 /*
  * establish resource stuff
  */
@@ -970,8 +965,6 @@ void startup_gui(GraceApp *gapp)
 		      False,
 		      canvas_event_proc, gapp);
 		      
-    XtOverrideTranslations(xstuff->canvas, XtParseTranslationTable(canvas_table));
-    
     AddHelpCB(xstuff->canvas, "doc/UsersGuide.html#canvas");
 
     XtVaSetValues(mwui->frtop,
