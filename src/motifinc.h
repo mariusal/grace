@@ -612,19 +612,18 @@ Widget CreateMenuLabel(Widget parent, char *name);
 void AddHelpCB(Widget w, char *ha);
 void ContextHelpCB(Widget w, void *data);
 
+void DefineDialogCursor(Cursor c);
+void UndefineDialogCursor(void);
+
+void RaiseWindow(Widget w);
+
 char *xv_getstr(Widget w);
 int xv_evalexpr(Widget w, double *);
 int xv_evalexpri(Widget w, int *);
 void xv_setstr(Widget w, char *s);
-void handle_close(Widget w);
-void RaiseWindow(Widget w);
-void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data);
-void destroy_dialog_cb(Widget but, void *data);
-void savewidget(Widget w);
-void deletewidget(Widget w);
 
-void DefineDialogCursor(Cursor c);
-void UndefineDialogCursor(void);
+void handle_close(Widget w);
+void destroy_dialog_cb(Widget but, void *data);
 
 void undo_cb(Widget but, void *data);
 void redo_cb(Widget but, void *data);

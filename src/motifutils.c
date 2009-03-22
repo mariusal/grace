@@ -1935,6 +1935,22 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
         XmNactivateCallback, button_int_cb_proc, (XtPointer) cbdata);
 }
 
+/*
+ * generic unmanage popup routine, used elswhere
+ */
+static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    XtUnmanageChild((Widget) client_data);
+}
+
+/*
+ * same for AddButtonCB
+ */
+void destroy_dialog_cb(Widget but, void *data)
+{
+    XtUnmanageChild((Widget) data);
+}
+
 static void fsb_setcwd_cb(Widget but, void *data)
 {
     char *bufp;
@@ -4279,27 +4295,49 @@ void xv_setstr(Widget w, char *s)
     }
 }
 
-/*
- * generic unmanage popup routine, used elswhere
- */
-void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    XtUnmanageChild((Widget) client_data);
-}
-
-/*
- * same for AddButtonCB
- */
-void destroy_dialog_cb(Widget but, void *data)
-{
-    XtUnmanageChild((Widget) data);
-}
-
 /* if user tried to close from WM */
 static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     bailout(gapp);
 }
+
+static Widget *savewidgets = NULL;
+static int nsavedwidgets = 0;
+
+static void savewidget(Widget w)
+{
+    int i;
+    
+    for (i = 0; i < nsavedwidgets; i++) {
+        if (w == savewidgets[i]) {
+            return;
+        }
+    }
+    
+    savewidgets = xrealloc(savewidgets, (nsavedwidgets + 1)*sizeof(Widget));
+    savewidgets[nsavedwidgets] = w;
+    nsavedwidgets++;
+}
+
+#if 0
+static void deletewidget(Widget w)
+{
+    int i;
+    
+    for (i = 0; i < nsavedwidgets; i++) {
+        if (w == savewidgets[i]) {
+            nsavedwidgets--;
+            for (; i <  nsavedwidgets; i++) {
+                savewidgets[i] = savewidgets[i + 1];
+            }
+            savewidgets = xrealloc(savewidgets, nsavedwidgets*sizeof(Widget));
+            XtDestroyWidget(w);
+            return;
+        }
+    }
+    
+}
+#endif
 
 /*
  * handle the close item on the WM menu
@@ -4327,42 +4365,6 @@ void RaiseWindow(Widget w)
     XMapRaised(XtDisplay(w), XtWindow(w));
 }
 
-
-static Widget *savewidgets = NULL;
-static int nsavedwidgets = 0;
-
-void savewidget(Widget w)
-{
-    int i;
-    
-    for (i = 0; i < nsavedwidgets; i++) {
-        if (w == savewidgets[i]) {
-            return;
-        }
-    }
-    
-    savewidgets = xrealloc(savewidgets, (nsavedwidgets + 1)*sizeof(Widget));
-    savewidgets[nsavedwidgets] = w;
-    nsavedwidgets++;
-}
-
-void deletewidget(Widget w)
-{
-    int i;
-    
-    for (i = 0; i < nsavedwidgets; i++) {
-        if (w == savewidgets[i]) {
-            nsavedwidgets--;
-            for (; i <  nsavedwidgets; i++) {
-                savewidgets[i] = savewidgets[i + 1];
-            }
-            savewidgets = xrealloc(savewidgets, nsavedwidgets*sizeof(Widget));
-            XtDestroyWidget(w);
-            return;
-        }
-    }
-    
-}
 
 void DefineDialogCursor(Cursor c)
 {
