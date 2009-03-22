@@ -4732,24 +4732,6 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 }
 
 
-Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb)
-{
-    Widget w;
-    Widget aacbut[3];
-    static char *aaclab[3] = {"Apply", "Accept", "Close"};
-    
-    w = CreateCommandButtons(parent, 3, aacbut, aaclab);
-    AddButtonCB(aacbut[0], aac_cb, (void *) AAC_APPLY);
-    AddButtonCB(aacbut[1], aac_cb, (void *) AAC_ACCEPT);
-    AddButtonCB(aacbut[2], aac_cb, (void *) AAC_CLOSE);
-    
-    if (form != NULL) {
-        XtVaSetValues(form, XmNcancelButton, aacbut[2], NULL);
-    }
-    
-    return w;
-}
-
 void SetLabel(Widget w, char *s)
 {
     XmString str;

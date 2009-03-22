@@ -456,8 +456,6 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data);
 WidgetList CreateAACDialog(Widget form,
     Widget container, AACDialog_CBProc cbproc, void *data);
 
-Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb);
-
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items);
 OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...);
