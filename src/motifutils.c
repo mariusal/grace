@@ -1851,6 +1851,17 @@ void SetTextEditable(TextStructure *cst, int onoff)
     XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
 }
 
+static char *GetStringSimple(XmString xms)
+{
+    char *s;
+
+    if (XmStringGetLtoR(xms, charset, &s)) {
+        return s;
+    } else {
+        return NULL;
+    }
+}
+
 typedef struct {
     Widget but;
     Button_CBProc cbproc;
@@ -4760,17 +4771,6 @@ void SetFixedFont(Widget w)
     } else {
         XtVaSetValues(w, XmNfontList, xmf, NULL);
         XmFontListFree(xmf);
-    }
-}
-
-char *GetStringSimple(XmString xms)
-{
-    char *s;
-
-    if (XmStringGetLtoR(xms, charset, &s)) {
-        return s;
-    } else {
-        return NULL;
     }
 }
 

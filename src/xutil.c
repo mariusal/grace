@@ -34,6 +34,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
+#include <Xm/Xm.h>
 
 #include "defines.h"
 #include "globals.h"

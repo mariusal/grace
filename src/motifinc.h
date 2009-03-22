@@ -35,8 +35,6 @@
 
 /* for Widget */
 #include <X11/Intrinsic.h>
-/* for XmString; TODO: remove! */
-#include <Xm/Xm.h>
 
 #include "graceapp.h"
 
@@ -642,8 +640,6 @@ Widget CreateMenuLabel(Widget parent, char *name);
 
 void AddHelpCB(Widget w, char *ha);
 void ContextHelpCB(Widget w, void *data);
-
-char *GetStringSimple(XmString xms);
 
 char *xv_getstr(Widget w);
 int xv_evalexpr(Widget w, double *);
