@@ -640,22 +640,22 @@ static int list_get_selected_count(Widget list)
     return n;
 }
 
-void list_activate_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+static void list_activate_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     XtCallActionProc(w, "ListKbdActivate", NULL, NULL, 0);
 }
 
-void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+static void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     list_selectall(w);
 }
 
-void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+static void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     list_unselectall(w);
 }
 
-void list_invertselection_action(Widget w, XEvent *e, String *par,
+static void list_invertselection_action(Widget w, XEvent *e, String *par,
 				 Cardinal *npar)
 {
     list_invertselection(w);
@@ -1710,7 +1710,7 @@ void SetTextInputLength(TextStructure *cst, int len)
     XtVaSetValues(cst->text, XmNcolumns, len, NULL);
 }
 
-void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+static void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     TextStructure *cst = (TextStructure *) GetUserData(w);
     create_fonttool(cst);
@@ -4962,4 +4962,36 @@ void unlink_ssd_ui(Quark *q)
             gui->eui->ssd_ui->col_sel->anydata = NULL;
         }
     }
+}
+
+
+/*
+ * action routines, to be used with translations
+ */
+
+/* This is for buggy Motif-2.1 that crashes with Ctrl+<Btn1Down> */
+static void do_nothing_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+}
+
+static XtActionsRec dummy_actions[] = {
+    {"do_nothing", do_nothing_action}
+};
+
+static XtActionsRec list_select_actions[] = {
+    {"list_activate_action",        list_activate_action       },
+    {"list_selectall_action",       list_selectall_action      },
+    {"list_unselectall_action",     list_unselectall_action    },
+    {"list_invertselection_action", list_invertselection_action}
+};
+
+static XtActionsRec cstext_actions[] = {
+    {"cstext_edit_action", cstext_edit_action}
+};
+
+void InitWidgets(void)
+{
+    XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
+    XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
+    XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 }

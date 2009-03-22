@@ -395,6 +395,8 @@ struct _FormatStructure {
 };
 
 
+void InitWidgets(void);
+
 void ManageChild(Widget w);
 void UnmanageChild(Widget w);
 int IsManaged(Widget w);
@@ -477,12 +479,6 @@ int GetSingleListChoice(ListStructure *listp, int *value);
 int GetListSelectedCount(ListStructure *listp);
 void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata);
 
-void list_activate_action(Widget w, XEvent *e, String *par, Cardinal *npar);
-void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
-void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
-void list_invertselection_action(Widget w, XEvent *e, String *par,
-                                 Cardinal *npar);
-
 StorageStructure *CreateStorageChoice(Widget parent,
     char *labelstr, int type, int nvisible);
 void SetStorageChoiceLabeling(StorageStructure *ss, Storage_LabelingProc proc);
@@ -517,7 +513,6 @@ int GetTextCursorPos(TextStructure *cst);
 void SetTextCursorPos(TextStructure *cst, int pos);
 void TextInsert(TextStructure *cst, int pos, char *s);
 void SetTextEditable(TextStructure *cst, int onoff);
-void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s);
 void AddFileSelectionBoxCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);
