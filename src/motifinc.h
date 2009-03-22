@@ -573,35 +573,6 @@ void UpdateColChoice(ListStructure *sel, const Quark *ssd);
 SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type);
 int GetSSDColChoices(SSDColStructure *sc, Quark **ssd, int **cols);
 
-void switch_focus_proc(void *data);
-void hide_graph_proc(void *data);
-void show_graph_proc(void *data);
-void duplicate_graph_proc(void *data);
-void kill_graph_proc(void *data);
-void copy12_graph_proc(void *data);
-void copy21_graph_proc(void *data);
-void move12_graph_proc(void *data);
-void move21_graph_proc(void *data);
-void swap_graph_proc(void *data);
-void create_new_graph_proc(void *data);
-
-void hide_set_proc(void *data);
-void show_set_proc(void *data);
-void duplicate_set_proc(void *data);
-void kill_set_proc(void *data);
-void killd_set_proc(void *data);
-void copy12_set_proc(void *data);
-void copy21_set_proc(void *data);
-void move12_set_proc(void *data);
-void move21_set_proc(void *data);
-void swap_set_proc(void *data);
-void newF_set_proc(void *data);
-void newS_set_proc(void *data);
-void newE_set_proc(void *data);
-void newB_set_proc(void *data);
-void editS_set_proc(void *data);
-void editE_set_proc(void *data);
-
 SpinStructure *CreateLineWidthChoice(Widget parent, char *s);
 
 OptionStructure *CreatePanelChoice(Widget parent, char *labstr, ...);
