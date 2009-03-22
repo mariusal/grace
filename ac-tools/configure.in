@@ -156,13 +156,14 @@ AC_ARG_ENABLE(undo,
 esac],[undo=true])
 
 dnl **** use netcdf  
-AC_ARG_ENABLE(netcdf,
-[  --enable-netcdf              enable support for netCDF [[yes]]],
-[case "${enableval}" in
-  yes) netcdf=true ;;
-  no)  netcdf=false;;
-  *) AC_MSG_ERROR(bad value ${enableval} for --enable-netcdf) ;;
-esac],[netcdf=true])
+#AC_ARG_ENABLE(netcdf,
+#[  --enable-netcdf              enable support for netCDF [[yes]]],
+#[case "${enableval}" in
+#  yes) netcdf=true ;;
+#  no)  netcdf=false;;
+#  *) AC_MSG_ERROR(bad value ${enableval} for --enable-netcdf) ;;
+#esac],[netcdf=true])
+netcdf=false
 
 dnl **** use FFTW
 AC_ARG_ENABLE(fftw,
