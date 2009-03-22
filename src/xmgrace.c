@@ -89,12 +89,6 @@ static XtActionsRec dummy_actions[] = {
     {"do_nothing", do_nothing_action}
 };
 
-static XtActionsRec canvas_actions[] = {
-    {"autoscale",         autoscale_action        },     
-    {"refresh_hotlink",   refresh_hotlink_action  },
-    {"enable_zoom",       enable_zoom_action      }
-};
-
 static XtActionsRec list_select_actions[] = {
     {"list_activate_action",        list_activate_action       },
     {"list_selectall_action",       list_selectall_action      },
@@ -390,7 +384,6 @@ int initialize_gui(int *argc, char **argv)
     XtDisplayInitialize(app_con, xstuff->disp, "xmgrace", "XmGrace", NULL, 0, argc, argv);
 
     XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
-    XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
     XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
     XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 
