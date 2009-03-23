@@ -425,7 +425,7 @@ InitializeGC(ListTreeWidget w)
 static void
 InitializeScrollBars(ListTreeWidget w)
 {
-  if (XmIsScrolledWindow(XtParent(w)))
+  if (XtIsSubclass(XtParent(w), xmScrolledWindowWidgetClass))
     w->list.mom = XtParent(w);
   else
     w->list.mom = NULL;

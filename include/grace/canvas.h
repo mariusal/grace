@@ -469,7 +469,7 @@ void WriteString(Canvas *canvas,
     const VPoint *vp, double angle, int just, const char *s);
 
 void DrawRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
-void FillRectangle(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
+void DrawFilledRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void DrawLine(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void DrawEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void DrawFilledEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);

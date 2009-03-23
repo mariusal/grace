@@ -86,11 +86,6 @@ void set_zoomx_cb(Widget but, void *data);
 void set_zoomy_cb(Widget but, void *data);
 void atext_add_proc(Widget but, void *data);
 
-/* action routines */
-void enable_zoom_action( Widget, XEvent *, String *, Cardinal * );
-void autoscale_action( Widget, XEvent *, String *, Cardinal * );
-void refresh_hotlink_action( Widget, XEvent *, String *, Cardinal * );
-
 void update_point_locator(Quark *pset, int loc);
 void get_tracking_props(int *setno, int *move_dir, int *add_at);
 

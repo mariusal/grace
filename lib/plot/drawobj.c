@@ -107,7 +107,7 @@ void draw_object(Canvas *canvas, Quark *q)
                 vp2.y = anchor.y + b->height/2;
 
                 setpen(canvas, &o->fillpen);
-                FillRectangle(canvas, &vp1, &vp2);
+                DrawFilledRect(canvas, &vp1, &vp2);
 
                 setline(canvas, &o->line);
                 DrawRect(canvas, &vp1, &vp2);

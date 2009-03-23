@@ -450,7 +450,9 @@ int main(int argc, char *argv[])
 	    exit(1);
 	}
         while (real_time_under_monitoring()) {
-            monitor_input(gapp, ib_tbl, ib_tblsize, 0);
+            if (monitor_input(gapp, ib_tbl, ib_tblsize, 0) != RETURN_SUCCESS) {
+                break;
+            }
         }
 	if (!noprint) {
 	    do_hardcopy(gapp->gp);
@@ -498,7 +500,9 @@ static void cli_loop(GraceApp *gapp)
             fflush(stdout);
             previous = ib_stdin->lineno;
         }
-        monitor_input(gapp, ib_tbl, ib_tblsize, 0);
+        if (monitor_input(gapp, ib_tbl, ib_tblsize, 0) != RETURN_SUCCESS) {
+            break;
+        }
     }
 
 }

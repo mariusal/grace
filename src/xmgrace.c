@@ -77,41 +77,6 @@ static void graph_zoom_out_cb(Widget but, void *data);
 static void load_example_cb(Widget but, void *data);
 
 /*
- * action routines, to be used with translations
- */
-
-/* This is for buggy Motif-2.1 that crashes with Ctrl+<Btn1Down> */
-static void do_nothing_action(Widget w, XEvent *e, String *par, Cardinal *npar)
-{
-}
-
-static XtActionsRec dummy_actions[] = {
-    {"do_nothing", do_nothing_action}
-};
-
-static XtActionsRec canvas_actions[] = {
-    {"autoscale",         autoscale_action        },     
-    {"refresh_hotlink",   refresh_hotlink_action  },
-    {"enable_zoom",       enable_zoom_action      }
-};
-
-static XtActionsRec list_select_actions[] = {
-    {"list_activate_action",        list_activate_action       },
-    {"list_selectall_action",       list_selectall_action      },
-    {"list_unselectall_action",     list_unselectall_action    },
-    {"list_invertselection_action", list_invertselection_action}
-};
-
-static XtActionsRec cstext_actions[] = {
-    {"cstext_edit_action", cstext_edit_action}
-};
-
-static char canvas_table[] = "#override\n\
-	Ctrl <Key>a: autoscale()\n\
-	Ctrl <Key>u: refresh_hotlink()\n\
-	Ctrl <Key>z: enable_zoom()";
-
-/*
  * establish resource stuff
  */
 typedef struct {
@@ -389,11 +354,9 @@ int initialize_gui(int *argc, char **argv)
     
     XtDisplayInitialize(app_con, xstuff->disp, "xmgrace", "XmGrace", NULL, 0, argc, argv);
 
-    XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
-    XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
-    XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
-    XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
-
+    /* Widget translations etc */
+    InitWidgets();
+    
     app_shell = XtAppCreateShell(NULL, "XmGrace", applicationShellWidgetClass,
         xstuff->disp, NULL, 0);
 
@@ -977,8 +940,6 @@ void startup_gui(GraceApp *gapp)
 		      False,
 		      canvas_event_proc, gapp);
 		      
-    XtOverrideTranslations(xstuff->canvas, XtParseTranslationTable(canvas_table));
-    
     AddHelpCB(xstuff->canvas, "doc/UsersGuide.html#canvas");
 
     XtVaSetValues(mwui->frtop,

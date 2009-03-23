@@ -36,8 +36,6 @@
 #ifndef QT_GUI
 /* for Widget */
 #include <X11/Intrinsic.h>
-/* for XmString; TODO: remove! */
-#include <Xm/Xm.h>
 #else
 #include <qtgui/qtinc.h>
 #endif /* QT_GUI */
@@ -401,6 +399,8 @@ struct _FormatStructure {
 };
 
 
+void InitWidgets(void);
+
 void ManageChild(Widget w);
 void UnmanageChild(Widget w);
 int IsManaged(Widget w);
@@ -457,11 +457,6 @@ Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits);
 void AddButtonCB(Widget button, Button_CBProc cbproc, void *data);
 
-WidgetList CreateAACDialog(Widget form,
-    Widget container, AACDialog_CBProc cbproc, void *data);
-
-Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb);
-
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items);
 OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...);
@@ -482,12 +477,6 @@ int GetListChoices(ListStructure *listp, int **values);
 int GetSingleListChoice(ListStructure *listp, int *value);
 int GetListSelectedCount(ListStructure *listp);
 void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata);
-
-void list_activate_action(Widget w, XEvent *e, String *par, Cardinal *npar);
-void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
-void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
-void list_invertselection_action(Widget w, XEvent *e, String *par,
-                                 Cardinal *npar);
 
 StorageStructure *CreateStorageChoice(Widget parent,
     char *labelstr, int type, int nvisible);
@@ -523,7 +512,6 @@ int GetTextCursorPos(TextStructure *cst);
 void SetTextCursorPos(TextStructure *cst, int pos);
 void TextInsert(TextStructure *cst, int pos, char *s);
 void SetTextEditable(TextStructure *cst, int onoff);
-void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s);
 void AddFileSelectionBoxCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);
@@ -579,35 +567,6 @@ void UpdateColChoice(ListStructure *sel, const Quark *ssd);
 SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type);
 int GetSSDColChoices(SSDColStructure *sc, Quark **ssd, int **cols);
 
-void switch_focus_proc(void *data);
-void hide_graph_proc(void *data);
-void show_graph_proc(void *data);
-void duplicate_graph_proc(void *data);
-void kill_graph_proc(void *data);
-void copy12_graph_proc(void *data);
-void copy21_graph_proc(void *data);
-void move12_graph_proc(void *data);
-void move21_graph_proc(void *data);
-void swap_graph_proc(void *data);
-void create_new_graph_proc(void *data);
-
-void hide_set_proc(void *data);
-void show_set_proc(void *data);
-void duplicate_set_proc(void *data);
-void kill_set_proc(void *data);
-void killd_set_proc(void *data);
-void copy12_set_proc(void *data);
-void copy21_set_proc(void *data);
-void move12_set_proc(void *data);
-void move21_set_proc(void *data);
-void swap_set_proc(void *data);
-void newF_set_proc(void *data);
-void newS_set_proc(void *data);
-void newE_set_proc(void *data);
-void newB_set_proc(void *data);
-void editS_set_proc(void *data);
-void editE_set_proc(void *data);
-
 SpinStructure *CreateLineWidthChoice(Widget parent, char *s);
 
 OptionStructure *CreatePanelChoice(Widget parent, char *labstr, ...);
@@ -618,8 +577,8 @@ OptionStructure *CreatePaperFormatChoice(Widget parent, char *s);
 Widget CreateTextItem(Widget parent, int len, char *s);
 void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
 
-Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
-Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);
+WidgetList CreateAACDialog(Widget form,
+    Widget container, AACDialog_CBProc cbproc, void *data);
 
 TransformStructure *CreateTransformDialogForm(Widget parent,
     const char *s, int sel_type, int exclusive, const TD_CBProcs *cbs);
@@ -647,21 +606,18 @@ Widget CreateMenuLabel(Widget parent, char *name);
 void AddHelpCB(Widget w, char *ha);
 void ContextHelpCB(Widget w, void *data);
 
-char *GetStringSimple(XmString xms);
+void DefineDialogCursor(Cursor c);
+void UndefineDialogCursor(void);
+
+void RaiseWindow(Widget w);
 
 char *xv_getstr(Widget w);
 int xv_evalexpr(Widget w, double *);
 int xv_evalexpri(Widget w, int *);
 void xv_setstr(Widget w, char *s);
-void handle_close(Widget w);
-void RaiseWindow(Widget w);
-void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data);
-void destroy_dialog_cb(Widget but, void *data);
-void savewidget(Widget w);
-void deletewidget(Widget w);
 
-void DefineDialogCursor(Cursor c);
-void UndefineDialogCursor(void);
+void handle_close(Widget w);
+void destroy_dialog_cb(Widget but, void *data);
 
 void undo_cb(Widget but, void *data);
 void redo_cb(Widget but, void *data);

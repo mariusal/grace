@@ -127,7 +127,7 @@ esac
 AC_DEFUN(ACX_ANSI_TYPES,
 [
   dnl **** Check which ANSI integer type is 16 bit
-  AC_CACHE_CHECK( "which ANSI integer type is 16 bit", ac_16bit_type,
+  AC_CACHE_CHECK( "which ANSI integer type is 16 bit", ac_cv_16bit_type,
                   AC_TRY_RUN([
   int main(void) {
     if (sizeof(short)==2)
@@ -136,8 +136,8 @@ AC_DEFUN(ACX_ANSI_TYPES,
       return(1);
     else
       return(2);
-  }], ac_16bit_type="short", ac_16bit_type="int", ac_16bit_type=))
-  if test "$ac_16bit_type" = "short"
+  }], ac_cv_16bit_type="short", ac_cv_16bit_type="int", ac_cv_16bit_type=))
+  if test "$ac_cv_16bit_type" = "short"
   then
     T1_AA_TYPE16="short"
   else
@@ -145,7 +145,7 @@ AC_DEFUN(ACX_ANSI_TYPES,
   fi
 
   dnl **** Check which ANSI integer type is 32 bit
-  AC_CACHE_CHECK( "which ANSI integer type is 32 bit", ac_32bit_type,
+  AC_CACHE_CHECK( "which ANSI integer type is 32 bit", ac_cv_32bit_type,
                   AC_TRY_RUN([
   int main(void) {
     if (sizeof(int)==4)
@@ -154,8 +154,8 @@ AC_DEFUN(ACX_ANSI_TYPES,
       return(1);
     else
       return(2);
-  }], ac_32bit_type="int", ac_32bit_type="long", ac_32bit_type=))
-  if test "$ac_32bit_type" = "int"
+  }], ac_cv_32bit_type="int", ac_cv_32bit_type="long", ac_cv_32bit_type=))
+  if test "$ac_cv_32bit_type" = "int"
   then
     T1_AA_TYPE32="int"
   else
@@ -163,15 +163,15 @@ AC_DEFUN(ACX_ANSI_TYPES,
   fi
 
   dnl **** Check which ANSI integer type is 64 bit 
-  AC_CACHE_CHECK( "which ANSI integer type is 64 bit", ac_64bit_type,
+  AC_CACHE_CHECK( "which ANSI integer type is 64 bit", ac_cv_64bit_type,
                   AC_TRY_RUN([
   int main(void) {
     if (sizeof(long)==8)
       return(0);
     else
       return(1);
-  }], ac_64bit_type="long", ac_64bit_type="<none>", ac_64bit_type=))
-  if test "$ac_64bit_type" = "long"
+  }], ac_cv_64bit_type="long", ac_cv_64bit_type="<none>", ac_cv_64bit_type=))
+  if test "$ac_cv_64bit_type" = "long"
   then
     T1_AA_TYPE64="long"
   else

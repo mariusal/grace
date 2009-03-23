@@ -43,11 +43,12 @@ double drand48(void)
 #endif
 
 #ifndef HAVE_GETTIMEOFDAY
+#include <sys/timeb.h>
 int gettimeofday (tv, tz)
 struct timeval *tv;
 void *tz;
 {
-    timeb_t tmp_time;
+    struct timeb tmp_time;
 
     ftime(&tmp_time);
 
@@ -386,12 +387,16 @@ int system_spawn(const char *command)
   return retval; 
 }
 
-# if __CRTL_VER < 70000000 
+#endif  /* __VMS */
+
+#ifndef HAVE_GETLOGIN
+
+# if defined(__VMS) && __CRTL_VER < 70000000 
 
 /* Define a getlogin function for VMS before version 7. */
 
-# include <starlet.h>
-# include <jpidef.h>
+#  include <starlet.h>
+#  include <jpidef.h>
 
   typedef struct
   {
@@ -433,6 +438,21 @@ int system_spawn(const char *command)
     return username; 
   }
 
-#  endif  /* __CRTL_VER */
+# endif  /* VMS && __CRTL_VER */
 
-#endif  /* __VMS */
+/* Windows32 version */
+# ifdef __WIN32
+#  include <windows.h>
+#  include <lmcons.h>  /* for UNLEN */ 
+
+char *getlogin(void)
+{
+    static char name[UNLEN + 1];
+    DWORD namelen = sizeof (name);
+
+    GetUserName(name, &namelen);
+    return (name[0] == 0 ? NULL : name);
+}
+
+# endif /* __WIN32 */
+#endif /* HAVE_GETLOGIN */

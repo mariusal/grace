@@ -640,22 +640,22 @@ static int list_get_selected_count(Widget list)
     return n;
 }
 
-void list_activate_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+static void list_activate_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     XtCallActionProc(w, "ListKbdActivate", NULL, NULL, 0);
 }
 
-void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+static void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     list_selectall(w);
 }
 
-void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+static void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     list_unselectall(w);
 }
 
-void list_invertselection_action(Widget w, XEvent *e, String *par,
+static void list_invertselection_action(Widget w, XEvent *e, String *par,
 				 Cardinal *npar)
 {
     list_invertselection(w);
@@ -1710,7 +1710,7 @@ void SetTextInputLength(TextStructure *cst, int len)
     XtVaSetValues(cst->text, XmNcolumns, len, NULL);
 }
 
-void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+static void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     TextStructure *cst = (TextStructure *) GetUserData(w);
     create_fonttool(cst);
@@ -1851,6 +1851,17 @@ void SetTextEditable(TextStructure *cst, int onoff)
     XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
 }
 
+static char *GetStringSimple(XmString xms)
+{
+    char *s;
+
+    if (XmStringGetLtoR(xms, charset, &s)) {
+        return s;
+    } else {
+        return NULL;
+    }
+}
+
 typedef struct {
     Widget but;
     Button_CBProc cbproc;
@@ -1922,6 +1933,22 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
     cbdata->cbproc = cbproc;
     XtAddCallback(button,
         XmNactivateCallback, button_int_cb_proc, (XtPointer) cbdata);
+}
+
+/*
+ * generic unmanage popup routine, used elswhere
+ */
+static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    XtUnmanageChild((Widget) client_data);
+}
+
+/*
+ * same for AddButtonCB
+ */
+void destroy_dialog_cb(Widget but, void *data)
+{
+    XtUnmanageChild((Widget) data);
 }
 
 static void fsb_setcwd_cb(Widget but, void *data)
@@ -3768,6 +3795,36 @@ void FixateDialogFormChild(Widget w)
         NULL);
 }
 
+static Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
+{
+    int i;
+    Widget form;
+    Dimension h;
+
+    form = XtVaCreateWidget("form", xmFormWidgetClass, parent,
+			    XmNfractionBase, n,
+			    NULL);
+
+    for (i = 0; i < n; i++) {
+	buts[i] = XtVaCreateManagedWidget(l[i],
+					  xmPushButtonWidgetClass, form,
+					  XmNtopAttachment, XmATTACH_FORM,
+					  XmNbottomAttachment, XmATTACH_FORM,
+					  XmNleftAttachment, XmATTACH_POSITION,
+					  XmNleftPosition, i,
+					  XmNrightAttachment, XmATTACH_POSITION,
+					  XmNrightPosition, i + 1,
+					  XmNdefaultButtonShadowThickness, 1,
+					  XmNshowAsDefault, (i == 0) ? True : False,
+					  NULL);
+    }
+    XtManageChild(form);
+    XtVaGetValues(buts[0], XmNheight, &h, NULL);
+    XtVaSetValues(form, XmNpaneMaximum, h, XmNpaneMinimum, h, NULL);
+    
+    return form;
+}
+
 typedef struct {
     Widget form;
     int close;
@@ -3984,14 +4041,20 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
     }
 
     if (nsdest == 0) {
+        ssd_set_indexed(destssd, TRUE);
+        if (!ssd_is_indexed(destssd)) {
+            if (!ssd_add_col(destssd, FFORMAT_NUMBER)) {
+	        return RETURN_FAILURE;
+            }
+        }
+        
         *destsets = xmalloc((*nssrc)*sizeof(Quark *));
         for (i = 0; i < *nssrc; i++) {
-            if (ssd_add_col(destssd, FFORMAT_NUMBER) &&
-                ssd_add_col(destssd, FFORMAT_NUMBER)) {
+            if (ssd_add_col(destssd, FFORMAT_NUMBER)) {
                 Dataset *dsp;
                 (*destsets)[i] = gapp_set_new(destssd);
                 dsp = set_get_dataset((*destsets)[i]);
-                dsp->cols[0] = ssd_get_ncols(destssd) - 2;
+                dsp->cols[0] = 0;
                 dsp->cols[1] = ssd_get_ncols(destssd) - 1;
             }
         }
@@ -4262,27 +4325,49 @@ void xv_setstr(Widget w, char *s)
     }
 }
 
-/*
- * generic unmanage popup routine, used elswhere
- */
-void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    XtUnmanageChild((Widget) client_data);
-}
-
-/*
- * same for AddButtonCB
- */
-void destroy_dialog_cb(Widget but, void *data)
-{
-    XtUnmanageChild((Widget) data);
-}
-
 /* if user tried to close from WM */
 static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     bailout(gapp);
 }
+
+static Widget *savewidgets = NULL;
+static int nsavedwidgets = 0;
+
+static void savewidget(Widget w)
+{
+    int i;
+    
+    for (i = 0; i < nsavedwidgets; i++) {
+        if (w == savewidgets[i]) {
+            return;
+        }
+    }
+    
+    savewidgets = xrealloc(savewidgets, (nsavedwidgets + 1)*sizeof(Widget));
+    savewidgets[nsavedwidgets] = w;
+    nsavedwidgets++;
+}
+
+#if 0
+static void deletewidget(Widget w)
+{
+    int i;
+    
+    for (i = 0; i < nsavedwidgets; i++) {
+        if (w == savewidgets[i]) {
+            nsavedwidgets--;
+            for (; i <  nsavedwidgets; i++) {
+                savewidgets[i] = savewidgets[i + 1];
+            }
+            savewidgets = xrealloc(savewidgets, nsavedwidgets*sizeof(Widget));
+            XtDestroyWidget(w);
+            return;
+        }
+    }
+    
+}
+#endif
 
 /*
  * handle the close item on the WM menu
@@ -4311,42 +4396,6 @@ void RaiseWindow(Widget w)
 }
 
 
-static Widget *savewidgets = NULL;
-static int nsavedwidgets = 0;
-
-void savewidget(Widget w)
-{
-    int i;
-    
-    for (i = 0; i < nsavedwidgets; i++) {
-        if (w == savewidgets[i]) {
-            return;
-        }
-    }
-    
-    savewidgets = xrealloc(savewidgets, (nsavedwidgets + 1)*sizeof(Widget));
-    savewidgets[nsavedwidgets] = w;
-    nsavedwidgets++;
-}
-
-void deletewidget(Widget w)
-{
-    int i;
-    
-    for (i = 0; i < nsavedwidgets; i++) {
-        if (w == savewidgets[i]) {
-            nsavedwidgets--;
-            for (; i <  nsavedwidgets; i++) {
-                savewidgets[i] = savewidgets[i + 1];
-            }
-            savewidgets = xrealloc(savewidgets, nsavedwidgets*sizeof(Widget));
-            XtDestroyWidget(w);
-            return;
-        }
-    }
-    
-}
-
 void DefineDialogCursor(Cursor c)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
@@ -4367,68 +4416,6 @@ void UndefineDialogCursor(void)
 	XUndefineCursor(xstuff->disp, XtWindow(savewidgets[i]));
     }
     XFlush(xstuff->disp);
-}
-
-Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l)
-{
-    int i;
-    Widget form;
-    Dimension h;
-
-    form = XtVaCreateWidget("form", xmFormWidgetClass, parent,
-			    XmNfractionBase, n,
-			    NULL);
-
-    for (i = 0; i < n; i++) {
-	buts[i] = XtVaCreateManagedWidget(l[i],
-					  xmPushButtonWidgetClass, form,
-					  XmNtopAttachment, XmATTACH_FORM,
-					  XmNbottomAttachment, XmATTACH_FORM,
-					  XmNleftAttachment, XmATTACH_POSITION,
-					  XmNleftPosition, i,
-					  XmNrightAttachment, XmATTACH_POSITION,
-					  XmNrightPosition, i + 1,
-					  XmNleftOffset, (i == 0) ? 2 : 0,
-					  XmNrightOffset, 3,
-					  XmNtopOffset, 2,
-					  XmNbottomOffset, 3,
-					  NULL);
-    }
-    XtManageChild(form);
-    XtVaGetValues(buts[0], XmNheight, &h, NULL);
-    XtVaSetValues(form, XmNpaneMaximum, h, XmNpaneMinimum, h, NULL);
-    
-    return form;
-}
-
-Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
-{
-    int i;
-    Widget form;
-    Dimension h;
-
-    form = XtVaCreateWidget("form", xmFormWidgetClass, parent,
-			    XmNfractionBase, n,
-			    NULL);
-
-    for (i = 0; i < n; i++) {
-	buts[i] = XtVaCreateManagedWidget(l[i],
-					  xmPushButtonWidgetClass, form,
-					  XmNtopAttachment, XmATTACH_FORM,
-					  XmNbottomAttachment, XmATTACH_FORM,
-					  XmNleftAttachment, XmATTACH_POSITION,
-					  XmNleftPosition, i,
-					  XmNrightAttachment, XmATTACH_POSITION,
-					  XmNrightPosition, i + 1,
-					  XmNdefaultButtonShadowThickness, 1,
-					  XmNshowAsDefault, (i == 0) ? True : False,
-					  NULL);
-    }
-    XtManageChild(form);
-    XtVaGetValues(buts[0], XmNheight, &h, NULL);
-    XtVaSetValues(form, XmNpaneMaximum, h, XmNpaneMinimum, h, NULL);
-    
-    return form;
 }
 
 Widget CreateSeparator(Widget parent)
@@ -4713,24 +4700,6 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 }
 
 
-Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb)
-{
-    Widget w;
-    Widget aacbut[3];
-    static char *aaclab[3] = {"Apply", "Accept", "Close"};
-    
-    w = CreateCommandButtons(parent, 3, aacbut, aaclab);
-    AddButtonCB(aacbut[0], aac_cb, (void *) AAC_APPLY);
-    AddButtonCB(aacbut[1], aac_cb, (void *) AAC_ACCEPT);
-    AddButtonCB(aacbut[2], aac_cb, (void *) AAC_CLOSE);
-    
-    if (form != NULL) {
-        XtVaSetValues(form, XmNcancelButton, aacbut[2], NULL);
-    }
-    
-    return w;
-}
-
 void SetLabel(Widget w, char *s)
 {
     XmString str;
@@ -4754,17 +4723,6 @@ void SetFixedFont(Widget w)
     } else {
         XtVaSetValues(w, XmNfontList, xmf, NULL);
         XmFontListFree(xmf);
-    }
-}
-
-char *GetStringSimple(XmString xms)
-{
-    char *s;
-
-    if (XmStringGetLtoR(xms, charset, &s)) {
-        return s;
-    } else {
-        return NULL;
     }
 }
 
@@ -4954,4 +4912,36 @@ void unlink_ssd_ui(Quark *q)
             gui->eui->ssd_ui->col_sel->anydata = NULL;
         }
     }
+}
+
+
+/*
+ * action routines, to be used with translations
+ */
+
+/* This is for buggy Motif-2.1 that crashes with Ctrl+<Btn1Down> */
+static void do_nothing_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+}
+
+static XtActionsRec dummy_actions[] = {
+    {"do_nothing", do_nothing_action}
+};
+
+static XtActionsRec list_select_actions[] = {
+    {"list_activate_action",        list_activate_action       },
+    {"list_selectall_action",       list_selectall_action      },
+    {"list_unselectall_action",     list_unselectall_action    },
+    {"list_invertselection_action", list_invertselection_action}
+};
+
+static XtActionsRec cstext_actions[] = {
+    {"cstext_edit_action", cstext_edit_action}
+};
+
+void InitWidgets(void)
+{
+    XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
+    XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
+    XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 }

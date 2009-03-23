@@ -81,7 +81,6 @@ struct _AMem {
 #    include <builtins.h>
 #  endif
 #  if __CRTL_VER < 70000000 
-#    define O_NONBLOCK O_NDELAY
 struct passwd {
     char  *pw_name;
     char  *pw_passwd;
@@ -95,7 +94,6 @@ struct passwd {
     char  *pw_dir;
     char  *pw_shell;
 };
-char *getlogin();
 #  endif  /* __CRTL_VER */
 #endif /* __VMS */
 
@@ -162,6 +160,18 @@ char *exe_path_translate(char *path);
 char *path_translate(const char *path);
 #else
 #  define path_translate(p) (p)
+#endif
+
+#ifndef HAVE_GETLOGIN
+char *getlogin(void);
+#endif
+
+#ifndef O_NONBLOCK
+# ifdef O_NDELAY
+#  define O_NONBLOCK O_NDELAY
+# else
+#  define O_NONBLOCK 0
+# endif
 #endif
 
 /* Replacements for some missing libm functions */

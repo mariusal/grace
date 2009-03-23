@@ -156,13 +156,14 @@ AC_ARG_ENABLE(undo,
 esac],[undo=true])
 
 dnl **** use netcdf  
-AC_ARG_ENABLE(netcdf,
-[  --enable-netcdf              enable support for netCDF [[yes]]],
-[case "${enableval}" in
-  yes) netcdf=true ;;
-  no)  netcdf=false;;
-  *) AC_MSG_ERROR(bad value ${enableval} for --enable-netcdf) ;;
-esac],[netcdf=true])
+#AC_ARG_ENABLE(netcdf,
+#[  --enable-netcdf              enable support for netCDF [[yes]]],
+#[case "${enableval}" in
+#  yes) netcdf=true ;;
+#  no)  netcdf=false;;
+#  *) AC_MSG_ERROR(bad value ${enableval} for --enable-netcdf) ;;
+#esac],[netcdf=true])
+netcdf=false
 
 dnl **** use FFTW
 AC_ARG_ENABLE(fftw,
@@ -323,10 +324,6 @@ AC_CANONICAL_HOST
 dnl Checks for C compiler
 AC_PROG_CC
 
-AC_ISC_POSIX
-AC_AIX
-AC_MINIX
-
 if test "x${CFLAGS}" = "x"
 then
   if test "x${GCC}" = "xyes"
@@ -485,9 +482,12 @@ AC_CHECK_FUNCS(popen)
 AC_CHECK_FUNCS(fdopen)
 AC_CHECK_FUNCS(mkstemp)
 AC_CHECK_FUNCS(gettimeofday)
+AC_CHECK_FUNCS(getlogin)
 AC_CHECK_FUNCS(fnmatch)
 AC_CHECK_FUNCS(vsnprintf)
 AC_CHECK_FUNCS(on_exit)
+AC_CHECK_FUNCS(select)
+AC_CHECK_FUNCS(uname)
 AC_CHECK_FUNCS(strerror)
 if test "$ac_cv_func_strerror" = no; then
   AC_CACHE_CHECK([for sys_errlist declaration in stdio.h], ac_cv_sys_errlist_decl,
@@ -602,14 +602,14 @@ mdw_CHECK_MANYLIBS(dlopen, dl, [DL_LIB=$mdw_cv_lib_dlopen; AC_DEFINE(HAVE_DLOPEN
 
 if test "${DL_LIB}" != "NONE"; then
   dnl **** Old implementations of dlopen() don't have RTLD_NOW
-  AC_CACHE_CHECK([whether RTLD_NOW is defined in dlfcn.h], ac_rtld_now_in_dlfcn_h,  
+  AC_CACHE_CHECK([whether RTLD_NOW is defined in dlfcn.h], ac_cv_rtld_now_in_dlfcn_h,  
     AC_EGREP_CPP(yes,
         [#include <dlfcn.h>
          #ifdef RTLD_NOW
             yes
          #endif
-        ], ac_rtld_now_in_dlfcn_h="yes"; AC_DEFINE(HAVE_RTLD_NOW),
-           ac_rtld_now_in_dlfcn_h="no")
+        ], ac_cv_rtld_now_in_dlfcn_h="yes"; AC_DEFINE(HAVE_RTLD_NOW),
+           ac_cv_rtld_now_in_dlfcn_h="no")
   )
 else
   dnl **** Check for shl_load() interface (HP/UX)

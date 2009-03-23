@@ -37,6 +37,7 @@
 #include "globals.h"
 #include "utils.h"
 
+#include <Xm/Xm.h>
 #include "motifinc.h"
 #include "xprotos.h"
 
