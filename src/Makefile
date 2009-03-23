@@ -108,7 +108,7 @@ devclean : distclean
 depend : Make.dep
 
 tags : $(GRSRCS) $(GUISRCS) $(GUIISRCS) $(PARS_Y)
-	ctags $(GRSRCS) $(GUISRCS) $(GUIISRCS) $(PARS_Y) *.h $(TOP)/lib/*/*.[c,h] $(TOP)/include/grace/*.h
+	ctags $(GRSRCS) $(GUISRCS) $(GUIISRCS) $(PARS_Y) *.h qtgui/*.{cpp,h} $(TOP)/lib/*/*.[c,h] $(TOP)/include/grace/*.h
 
 dummy :
 
