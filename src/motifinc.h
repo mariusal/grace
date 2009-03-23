@@ -573,8 +573,6 @@ OptionStructure *CreatePaperFormatChoice(Widget parent, char *s);
 Widget CreateTextItem(Widget parent, int len, char *s);
 void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
 
-Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
-
 WidgetList CreateAACDialog(Widget form,
     Widget container, AACDialog_CBProc cbproc, void *data);
 

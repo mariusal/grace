@@ -3795,6 +3795,36 @@ void FixateDialogFormChild(Widget w)
         NULL);
 }
 
+static Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
+{
+    int i;
+    Widget form;
+    Dimension h;
+
+    form = XtVaCreateWidget("form", xmFormWidgetClass, parent,
+			    XmNfractionBase, n,
+			    NULL);
+
+    for (i = 0; i < n; i++) {
+	buts[i] = XtVaCreateManagedWidget(l[i],
+					  xmPushButtonWidgetClass, form,
+					  XmNtopAttachment, XmATTACH_FORM,
+					  XmNbottomAttachment, XmATTACH_FORM,
+					  XmNleftAttachment, XmATTACH_POSITION,
+					  XmNleftPosition, i,
+					  XmNrightAttachment, XmATTACH_POSITION,
+					  XmNrightPosition, i + 1,
+					  XmNdefaultButtonShadowThickness, 1,
+					  XmNshowAsDefault, (i == 0) ? True : False,
+					  NULL);
+    }
+    XtManageChild(form);
+    XtVaGetValues(buts[0], XmNheight, &h, NULL);
+    XtVaSetValues(form, XmNpaneMaximum, h, XmNpaneMinimum, h, NULL);
+    
+    return form;
+}
+
 typedef struct {
     Widget form;
     int close;
@@ -4386,36 +4416,6 @@ void UndefineDialogCursor(void)
 	XUndefineCursor(xstuff->disp, XtWindow(savewidgets[i]));
     }
     XFlush(xstuff->disp);
-}
-
-Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
-{
-    int i;
-    Widget form;
-    Dimension h;
-
-    form = XtVaCreateWidget("form", xmFormWidgetClass, parent,
-			    XmNfractionBase, n,
-			    NULL);
-
-    for (i = 0; i < n; i++) {
-	buts[i] = XtVaCreateManagedWidget(l[i],
-					  xmPushButtonWidgetClass, form,
-					  XmNtopAttachment, XmATTACH_FORM,
-					  XmNbottomAttachment, XmATTACH_FORM,
-					  XmNleftAttachment, XmATTACH_POSITION,
-					  XmNleftPosition, i,
-					  XmNrightAttachment, XmATTACH_POSITION,
-					  XmNrightPosition, i + 1,
-					  XmNdefaultButtonShadowThickness, 1,
-					  XmNshowAsDefault, (i == 0) ? True : False,
-					  NULL);
-    }
-    XtManageChild(form);
-    XtVaGetValues(buts[0], XmNheight, &h, NULL);
-    XtVaSetValues(form, XmNpaneMaximum, h, XmNpaneMinimum, h, NULL);
-    
-    return form;
 }
 
 Widget CreateSeparator(Widget parent)
