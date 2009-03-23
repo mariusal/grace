@@ -52,6 +52,16 @@ extern "C" {
 MainWindow *mainWin;
 QApplication *app;
 
+void set_wait_cursor()
+{
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+}
+
+void unset_wait_cursor()
+{
+    QApplication::restoreOverrideCursor();
+}
+
 /*
  * build the GUI
  */

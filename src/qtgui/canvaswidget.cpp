@@ -50,16 +50,6 @@ void CanvasWidget::paintEvent(QPaintEvent *)
     }
 }
 
-void set_wait_cursor()
-{
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-}
-
-void unset_wait_cursor()
-{
-    QApplication::restoreOverrideCursor();
-}
-
 void CanvasWidget::xdrawgrid()
 {
     int i, j;
