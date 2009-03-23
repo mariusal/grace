@@ -261,11 +261,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing argument for named pipe\n");
 		    usage(stderr, argv[0]);
 		} else {
-#ifdef WIN32
-                    fd = open(argv[i], O_RDONLY); /* TODO: windows port O_NONBLOCK */
-#else
                     fd = open(argv[i], O_RDONLY | O_NONBLOCK);
-#endif
                     if (fd < 0) {
                         fprintf(stderr, "Can't open fifo\n");
                     } else {

@@ -31,21 +31,13 @@
 
 #ifdef __cplusplus
 #   include <QObject>
-#   ifdef WIN32
-        typedef union _XEvent { int type; } XEvent;
-#   endif
-
 #else
     typedef struct QObject QObject;
-    typedef union _XEvent { int type; } XEvent;
 #endif
 
 typedef QObject *Widget;
 typedef QObject **WidgetList;
 typedef int Boolean;
-typedef int String;
-typedef int Cardinal;
-typedef int XmString;
 typedef int XtPointer;
 typedef int Cursor;
 
