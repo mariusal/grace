@@ -214,7 +214,7 @@ void CanvasWidget::resize_drawables(unsigned int w, unsigned int h)
 
     if (!gui_is_page_free(gapp->gui)) {
         //SetDimensions(xstuff->canvas, xstuff->win_w, xstuff->win_h);
-        setMinimumSize(w, h);
+        setMinimumSize(xstuff->win_w, xstuff->win_h);
     }
 }
 
