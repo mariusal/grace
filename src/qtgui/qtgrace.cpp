@@ -410,6 +410,10 @@ int attach_eps_drv_setup(Canvas *canvas, int device_id)
 {
 }
 
+int attach_pdf_drv_setup(Canvas *canvas, int device_id)
+{
+}
+
 int attach_pnm_drv_setup(Canvas *canvas, int device_id)
 {
 }
