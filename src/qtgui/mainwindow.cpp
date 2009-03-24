@@ -21,6 +21,7 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
 {
     ui.setupUi(this);
 
+    ui.scrollArea->setWidget(ui.widget);
     this->gapp = gapp;
     canvasWidget = ui.widget;
     canvasWidget->setStatic();
