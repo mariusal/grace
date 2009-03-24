@@ -818,9 +818,9 @@ void CanvasWidget::completeAction(double x, double y)
 
 void CanvasWidget::mousePressEvent(QMouseEvent *event)
 {
-    QPointF point = event->posF();
-    double x = point.x();
-    double y = point.y();
+    QPoint point = event->pos();
+    int x = point.x();
+    int y = point.y();
 
     VPoint vp;
     Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
@@ -879,9 +879,9 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
 {
     Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
 
-    QPointF point = event->posF();
-    double x = point.x();
-    double y = point.y();
+    QPoint point = event->pos();
+    int x = point.x();
+    int y = point.y();
 
     VPoint vp;
 
@@ -965,9 +965,9 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
 
 void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    QPointF point = event->posF();
-    double x = point.x();
-    double y = point.y();
+    QPoint point = event->pos();
+    int x = point.x();
+    int y = point.y();
 
     VPoint vp;
 
