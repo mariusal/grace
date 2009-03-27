@@ -378,6 +378,7 @@ int initialize_gui(int *argc, char **argv)
     return RETURN_SUCCESS;
 }
 
+// FOR main.c
 int x11_get_pixelsize(const GUI *gui)
 {
 //    Screen *screen = DefaultScreenOfDisplay(gui->xstuff->disp);
@@ -513,34 +514,6 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 
     return yesno_retval;
 }
-
-//static char *label_to_resname(const char *s, const char *suffix)
-//{
-//    char *retval, *rs;
-//    int capitalize = FALSE;
-//
-//    retval = copy_string(NULL, s);
-//    rs = retval;
-//    while (*s) {
-//        if (isalnum(*s)) {
-//            if (capitalize == TRUE) {
-//                *rs = toupper(*s);
-//                capitalize = FALSE;
-//            } else {
-//                *rs = tolower(*s);
-//            }
-//            rs++;
-//        } else {
-//            capitalize = TRUE;
-//        }
-//        s++;
-//    }
-//    *rs = '\0';
-//    if (suffix != NULL) {
-//        retval = concat_strings(retval, suffix);
-//    }
-//    return retval;
-//}
 
 Widget CreateDialogForm(Widget parent, const char *s)
 {
@@ -1219,10 +1192,102 @@ int GetScaleValue(Widget w)
     return value;
 }
 
-/*
- * redraw all
- */
-void xdrawgraph(const GProject *gp)
+void set_title(char *title, char *icon_name)
 {
-  qDebug("xdrawgraph");
 }
+
+/*
+ *  Auxiliary routines for simultaneous drawing on display and pixmap
+ */
+void aux_XDrawLine(GUI *gui, int x1, int y1, int x2, int y2)
+{
+    X11Stuff *xstuff = gui->xstuff;
+//    XDrawLine(xstuff->disp, xstuff->xwin, gcxor, x1, y1, x2, y2);
+//    if (xstuff->bufpixmap != (Pixmap) NULL) {
+//        XDrawLine(xstuff->disp, xstuff->bufpixmap, gcxor, x1, y1, x2, y2);
+//    }
+}
+
+void aux_XDrawRectangle(GUI *gui, int x1, int y1, int x2, int y2)
+{
+    X11Stuff *xstuff = gui->xstuff;
+//    XDrawRectangle(xstuff->disp, xstuff->xwin, gcxor, x1, y1, x2, y2);
+//    if (xstuff->bufpixmap != (Pixmap) NULL) {
+//        XDrawRectangle(xstuff->disp, xstuff->bufpixmap, gcxor, x1, y1, x2, y2);
+//    }
+}
+
+void aux_XFillRectangle(GUI *gui, int x, int y, unsigned int width, unsigned int height)
+{
+    X11Stuff *xstuff = gui->xstuff;
+//    XFillRectangle(xstuff->disp, xstuff->xwin, gcxor, x, y, width, height);
+//    if (xstuff->bufpixmap != (Pixmap) NULL) {
+//        XFillRectangle(xstuff->disp, xstuff->bufpixmap, gcxor, x, y, width, height);
+//    }
+}
+
+void SetDimensions(Widget w, unsigned int width, unsigned int height)
+{
+//    XtVaSetValues(w,
+//        XmNwidth, (Dimension) width,
+//        XmNheight, (Dimension) height,
+//        NULL);
+}
+
+void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
+{
+//    Dimension ww, wh;
+//
+//    XtVaGetValues(w,
+//        XmNwidth, &ww,
+//        XmNheight, &wh,
+//        NULL);
+//
+//    *width  = (unsigned int) ww;
+//    *height = (unsigned int) wh;
+}
+
+void init_xstream(X11stream *xstream)
+{
+//    xstream->screen = DefaultScreenOfDisplay(xstuff->disp);
+//    xstream->pixmap = xstuff->bufpixmap;
+}
+
+void create_pixmap(unsigned int w, unsigned int h)
+{
+//    X11Stuff *xstuff = gapp->gui->xstuff;
+//
+//    xstuff->bufpixmap = XCreatePixmap(xstuff->disp, xstuff->root, w, h, xstuff->depth);
+}
+
+void recreate_pixmap(unsigned int w, unsigned int h)
+{
+//    X11Stuff *xstuff = gapp->gui->xstuff;
+//
+//    XFreePixmap(xstuff->disp, xstuff->bufpixmap);
+//    create_pixmap(w, h);
+}
+
+void xdrawgrid(X11Stuff *xstuff)
+{
+}
+
+void x11_redraw_all()
+{
+//    X11Stuff *xstuff = gapp->gui->xstuff;
+//    if (gapp->gui->inwin == TRUE && xstuff->bufpixmap != (Pixmap) NULL) {
+//        XCopyArea(xstuff->disp, xstuff->bufpixmap, window, xstuff->gc, x, y, width, height, x, y);
+//    }
+}
+
+void set_left_footer(char *s)
+{
+}
+
+void move_pointer(short x, short y)
+{
+ //   X11Stuff *xstuff = gapp->gui->xstuff;
+
+//    XWarpPointer(xstuff->disp, None, xstuff->xwin, 0, 0, 0, 0, x, y);
+}
+

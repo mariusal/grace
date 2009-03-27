@@ -4945,3 +4945,9 @@ void InitWidgets(void)
     XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
     XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 }
+
+void set_title(char *title, char *icon_name)
+{
+    XtVaSetValues(app_shell, XtNtitle, title, XtNiconName, icon_name, NULL);
+}
+

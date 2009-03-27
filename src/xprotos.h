@@ -41,7 +41,8 @@
 #include "motifinc.h"
 
 #ifdef QT_GUI
-typedef struct Pixmap Pixmap;
+typedef struct _Pixmap _Pixmap;
+typedef _Pixmap *Pixmap;
 typedef struct {
     double x;
     double y;
@@ -54,12 +55,12 @@ typedef int (*CanvasPointSink) (
     void *data
 );
 
-#ifndef QT_GUI
 typedef struct {
+#ifndef QT_GUI
     Screen *screen;
+#endif
     Pixmap pixmap;
 } X11stream;
-#endif
 
 struct _X11Stuff {
 #ifndef QT_GUI
@@ -84,9 +85,7 @@ struct _X11Stuff {
     
     double dpi;
 
-#ifndef QT_GUI
     Pixmap bufpixmap;
-#endif
 
     unsigned int win_h;
     unsigned int win_w;
@@ -144,6 +143,7 @@ long x11_allocate_color(GUI *gui, const RGB *rgb);
 #ifndef QT_GUI
 void x11_redraw(Window window, int x, int y, int widht, int height);
 #endif
+void x11_redraw_all();
 
 int x11_init(GraceApp *gapp);
 
@@ -172,6 +172,8 @@ char *display_name(GUI *gui);
 
 void xregister_rti(Input_buffer *ib);
 void xunregister_rti(const Input_buffer *ib);
+
+void move_pointer(short x, short y);
 
 void errwin(const char *s);
 int yesnowin(char *msg1, char *msg2, char *s1, char *help_anchor);
@@ -270,6 +272,16 @@ int attach_pnm_drv_setup(Canvas *canvas, int device_id);
 int attach_png_drv_setup(Canvas *canvas, int device_id);
 int attach_jpg_drv_setup(Canvas *canvas, int device_id);
 int attach_pdf_drv_setup(Canvas *canvas, int device_id);
+
+void aux_XDrawLine(GUI *gui, int x1, int y1, int x2, int y2);
+void aux_XDrawRectangle(GUI *gui, int x1, int y1, int x2, int y2);
+void aux_XFillRectangle(GUI *gui, int x, int y, unsigned int width, unsigned int height);
+
+void xdrawgrid(X11Stuff *xstuff);
+void init_xstream(X11stream *xstream);
+
+void create_pixmap(unsigned int w, unsigned int h);
+void recreate_pixmap(unsigned int w, unsigned int h);
 
 #endif /* NONE_GUI */
 

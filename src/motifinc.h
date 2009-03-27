@@ -624,4 +624,6 @@ void redo_cb(Widget but, void *data);
 
 void unlink_ssd_ui(Quark *q);
 
+void set_title(char *title, char *icon_name);
+
 #endif /* __MOTIFINC_H_ */
