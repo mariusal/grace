@@ -520,6 +520,8 @@ Pixmap char_to_pixmap(Widget w, int font, char c, int csize)
 
 void init_xstream(X11stream *xstream)
 {
+    X11Stuff *xstuff = gapp->gui->xstuff;
+
     xstream->screen = DefaultScreenOfDisplay(xstuff->disp);
     xstream->pixmap = xstuff->bufpixmap;
 }
