@@ -18,12 +18,12 @@ public:
   ~MainWindow();
 
   void snapshot_and_update(GProject *gp, int all);
-  void set_left_footer(char *s);
-  void update_app_title(const GProject *gp);
   void update_all(void);
 
   void scroll_pix(int dx, int dy);
   CanvasWidget *canvasWidget;
+
+  Ui::MainWindow ui;
 
 protected:
   void closeEvent(QCloseEvent*);
@@ -71,8 +71,6 @@ private:
 
   void setToolBarIcons();
   void sync_canvas_size(GraceApp *gapp);
-
-  Ui::MainWindow ui;
 
   QString curFile;
 };

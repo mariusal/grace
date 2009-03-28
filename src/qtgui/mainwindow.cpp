@@ -67,7 +67,7 @@ void MainWindow::setToolBarIcons()
 void MainWindow::on_actionNew_triggered()
 {
     new_project(gapp, NULL);
-    canvasWidget->qtdrawgraph(gapp->gp);
+    xdrawgraph(gapp->gp);
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -79,7 +79,7 @@ void MainWindow::on_actionOpen_triggered()
                                                    );
     if (!fileName.isEmpty()) {
         if (load_project(gapp, fileName.toUtf8().data()) == RETURN_SUCCESS) {
-            canvasWidget->qtdrawgraph(gapp->gp);
+            xdrawgraph(gapp->gp);
             update_all();
             //statusBar()->showMessage(tr("File loaded"), 2000);
         } else {
@@ -130,7 +130,7 @@ void MainWindow::on_actionRevertToSaved_triggered()
     } else {
         new_project(gapp, NULL);
     }
-    canvasWidget->qtdrawgraph(gapp->gp);
+    xdrawgraph(gapp->gp);
     //    unset_wait_cursor();
 }
 
@@ -195,7 +195,7 @@ void MainWindow::page_zoom_inout(int inout)
         } else {
             gapp->gui->zoom = 1.0;
         }
-        canvasWidget->qtdrawgraph(gapp->gp);
+        xdrawgraph(gapp->gp);
         set_left_footer(NULL);
     }
 }
@@ -217,7 +217,7 @@ void MainWindow::on_actionOriginalSize_triggered()
 
 void MainWindow::on_actionRedraw_triggered()
 {
-    canvasWidget->qtdrawgraph(gapp->gp);
+    xdrawgraph(gapp->gp);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -251,7 +251,7 @@ void MainWindow::snapshot_and_update(GProject *gp, int all)
     //amem = quark_get_amem(pr);
     //amem_snapshot(amem);
 
-    canvasWidget->qtdrawgraph(gp);
+    xdrawgraph(gp);
 
     if (all) {
         update_all();
@@ -347,67 +347,6 @@ void MainWindow::on_actionAddText_triggered() {
 void MainWindow::on_actionPreferences_triggered()
 {
     create_props_frame(0, 0);
-}
-
-/*
- * set the message in the left footer
- */
-void MainWindow::set_left_footer(char *s)
-{
-    if (s == NULL) {
-        char hbuf[64], buf[GR_MAXPATHLEN + 100], *prname;
-        gethostname(hbuf, 63);
-        prname = gproject_get_docname(gapp->gp);
-        if (prname) {
-            sprintf(buf, "%s, %s, %d%%", hbuf,
-                prname, (int) rint(100*gapp->gui->zoom));
-        } else {
-            sprintf(buf, "%s", hbuf);
-        }
-        statusBar()->showMessage(buf);
-    } else {
-        statusBar()->showMessage(s);
-    }
-}
-
-/*
- * put a string in the title bar
- */
-void MainWindow::update_app_title(const GProject *gp)
-{
-    Quark *pr = gproject_get_top(gp);
-    GUI *gui = gui_from_quark(pr);
-    static char *ts_save = NULL;
-    char *ts, *docname;
-    static int dstate_save = 0;
-    int dstate;
-
-    if (!pr || !gui->inwin) {
-        return;
-    }
-
-    dstate = quark_dirtystate_get(pr);
-    docname = gproject_get_docname(gp);
-    if (!docname) {
-        docname = NONAME;
-    }
-    ts = mybasename(docname);
-    if (ts_save == NULL || !strings_are_equal(ts_save, ts) ||
-        dstate != dstate_save) {
-        char *buf1, *buf2;
-        ts_save = copy_string(ts_save, ts);
-        dstate_save = dstate;
-        buf1 = copy_string(NULL, "Grace: ");
-        buf1 = concat_strings(buf1, ts);
-        buf2 = copy_string(NULL, ts);
-        if (dstate) {
-            buf2 = concat_strings(buf2, "*");
-            buf1 = concat_strings(buf1, " (modified)");
-        }
-        setWindowTitle(buf1); //TODO: Where use buf2?
-        xfree(buf1);
-        xfree(buf2);
-    }
 }
 
 void MainWindow::update_all(void)

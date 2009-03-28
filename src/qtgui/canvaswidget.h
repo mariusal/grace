@@ -34,9 +34,6 @@ public:
     void setStatic();
     void setMainWindow(MainWindow *mainWindow);
     void setLocatorBar(QLabel *locatorBar);
-    void qtdrawgraph(const GProject*);
-    void set_tracker_string(char *s);
-    void update_locator_lab(Quark *cg, VPoint *vpp);
     void draw_focus(Quark *gr);
     void set_action(GUI *gui, unsigned int npoints, int seltype,
         CanvasPointSink sink, void *data);
@@ -45,6 +42,8 @@ public:
     void actionZoomY();
     void actionZoomX();
     void actionAddText();
+
+    QImage *pixmap;
 
 
 protected:
@@ -59,7 +58,6 @@ protected:
 
 private:
     QLabel *locatorBar;
-    QImage *pixmap;
     X11Stuff *xstuff;
 
     int region_need_erasing;
@@ -71,7 +69,6 @@ private:
     int on_focus;
 
     void xdrawgrid();
-    void resize_drawables(unsigned int w, unsigned int h);
     void qt_VPoint2dev(const VPoint *vp, double *x, double *y);
     void qt_dev2VPoint(double x, double y, VPoint *vp);
     Quark* next_graph_containing(Quark *q, VPoint *vp);

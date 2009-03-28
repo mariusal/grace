@@ -67,7 +67,7 @@ void unset_wait_cursor()
  */
 void startup_gui(GraceApp *gapp)
 {
-//    MainWinUI *mwui = gapp->gui->mwui;
+    MainWinUI *mwui = gapp->gui->mwui;
 //    X11Stuff *xstuff = gapp->gui->xstuff;
 //    Widget main_frame, form, menu_bar, bt, rcleft;
 //    Pixmap icon, shape;
@@ -110,9 +110,12 @@ void startup_gui(GraceApp *gapp)
 //
 //    mwui->frtop = CreateFrame(form, NULL);
 //    mwui->loclab = CreateLabel(mwui->frtop, NULL);
+    mwui->loclab = mainWin->ui.locatorBar;
 //    
 //    mwui->frbot = CreateFrame(form, NULL);
 //    mwui->statlab = CreateLabel(mwui->frbot, NULL);
+    mwui->statlab = CreateLabel(mainWin, NULL);
+    mainWin->statusBar()->addWidget((QLabel*)mwui->statlab);
 //
 //    if (!gui_is_page_free(gapp->gui)) {
 //        mwui->drawing_window = XtVaCreateManagedWidget("drawing_window",
@@ -247,8 +250,8 @@ void startup_gui(GraceApp *gapp)
  */
 //    set_view_items();
 
-    mainWin->canvasWidget->set_tracker_string(NULL);
-    mainWin->set_left_footer(NULL);
+    set_tracker_string(NULL);
+    set_left_footer(NULL);
 
 /*
  * set icon
@@ -269,12 +272,12 @@ void startup_gui(GraceApp *gapp)
 /*
  * set the title
  */
-    mainWin->update_app_title(gapp->gp);
+    update_app_title(gapp->gp);
 
-    mainWin->canvasWidget->qtdrawgraph(gapp->gp);
+    xdrawgraph(gapp->gp);
 
     //XtAppMainLoop(app_con);
-    ((QMainWindow*) app_shell)->show();
+    mainWin->show();
     app->exec();
     exit(0);
 }
@@ -370,10 +373,66 @@ int initialize_gui(int *argc, char **argv)
 //    gapp->gui->statusbar = rd.statusbar;
 //    gapp->gui->locbar = rd.locatorbar;
 //
-//    x11_init(gapp);
+    x11_init(gapp);
 //
 //    /* initialize cursors */
 //    init_cursors(gapp->gui);
+
+    return RETURN_SUCCESS;
+}
+
+int x11_init(GraceApp *gapp)
+{
+    X11Stuff *xstuff = gapp->gui->xstuff;
+//    XGCValues gc_val;
+//    long mrsize;
+//    int max_path_limit;
+//    
+//    xstuff->screennumber = DefaultScreen(xstuff->disp);
+//    xstuff->root = RootWindow(xstuff->disp, xstuff->screennumber);
+// 
+//    xstuff->gc = DefaultGC(xstuff->disp, xstuff->screennumber);
+//    
+//    xstuff->depth = DisplayPlanes(xstuff->disp, xstuff->screennumber);
+//
+//    /* init colormap */
+//    xstuff->cmap = DefaultColormap(xstuff->disp, xstuff->screennumber);
+//    /* redefine colormap, if needed */
+//    if (gapp->gui->install_cmap == CMAP_INSTALL_ALWAYS) {
+//        xstuff->cmap = XCopyColormapAndFree(xstuff->disp, xstuff->cmap);
+//        gapp->gui->private_cmap = TRUE;
+//    }
+//    
+//    /* set GCs */
+//    if (gapp->gui->invert) {
+//        gc_val.function = GXinvert;
+//    } else {
+//        gc_val.function = GXxor;
+//    }
+//    gcxor = XCreateGC(xstuff->disp, xstuff->root, GCFunction, &gc_val);
+//
+//    /* XExtendedMaxRequestSize() appeared in X11R6 */
+//#if XlibSpecificationRelease > 5
+//    mrsize = XExtendedMaxRequestSize(xstuff->disp);
+//#else
+//    mrsize = 0;
+//#endif
+//    if (mrsize <= 0) {
+//        mrsize = XMaxRequestSize(xstuff->disp);
+//    }
+//    max_path_limit = (mrsize - 3)/2;
+//    if (max_path_limit < get_max_path_limit(grace_get_canvas(gapp->grace))) {
+//        char buf[128];
+//        sprintf(buf,
+//            "Setting max drawing path length to %d (limited by the X server)",
+//            max_path_limit);
+//        errmsg(buf);
+//        set_max_path_limit(grace_get_canvas(gapp->grace), max_path_limit);
+//    }
+//    
+//    xstuff->dpi = rint(MM_PER_INCH*DisplayWidth(xstuff->disp, xstuff->screennumber)/
+//        DisplayWidthMM(xstuff->disp, xstuff->screennumber));
+    xstuff->dpi = mainWin->canvasWidget->physicalDpiX();
 
     return RETURN_SUCCESS;
 }
@@ -1194,6 +1253,7 @@ int GetScaleValue(Widget w)
 
 void set_title(char *title, char *icon_name)
 {
+    mainWin->setWindowTitle(title);
 }
 
 /*
@@ -1249,23 +1309,33 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
 
 void init_xstream(X11stream *xstream)
 {
+    X11Stuff *xstuff = gapp->gui->xstuff;
+
 //    xstream->screen = DefaultScreenOfDisplay(xstuff->disp);
-//    xstream->pixmap = xstuff->bufpixmap;
+    xstream->pixmap = xstuff->bufpixmap;
 }
 
 void create_pixmap(unsigned int w, unsigned int h)
 {
-//    X11Stuff *xstuff = gapp->gui->xstuff;
+    qDebug("create_pixmap");
+    X11Stuff *xstuff = gapp->gui->xstuff;
 //
 //    xstuff->bufpixmap = XCreatePixmap(xstuff->disp, xstuff->root, w, h, xstuff->depth);
+    /* 8 bits per color channel (i.e., 256^3 colors) */
+    /* are defined in CANVAS_BPCC canvas.h file. */
+    /* Use alpha channel to be able to use QPainter::setCompositionMode(CompositionMode mode)*/
+    /* Image composition using alpha blending are faster using premultiplied ARGB32 than with plain ARGB32 */
+    xstuff->bufpixmap = new QImage(w, h, QImage::Format_ARGB32_Premultiplied);
 }
 
 void recreate_pixmap(unsigned int w, unsigned int h)
 {
-//    X11Stuff *xstuff = gapp->gui->xstuff;
+    qDebug("recreate_pixmap");
+    X11Stuff *xstuff = gapp->gui->xstuff;
 //
 //    XFreePixmap(xstuff->disp, xstuff->bufpixmap);
-//    create_pixmap(w, h);
+    delete (QImage*)xstuff->bufpixmap;
+    create_pixmap(w, h);
 }
 
 void xdrawgrid(X11Stuff *xstuff)
@@ -1274,14 +1344,14 @@ void xdrawgrid(X11Stuff *xstuff)
 
 void x11_redraw_all()
 {
+    X11Stuff *xstuff = gapp->gui->xstuff;
+
+    mainWin->canvasWidget->pixmap = (QImage*) xstuff->bufpixmap;
+    mainWin->canvasWidget->update();
 //    X11Stuff *xstuff = gapp->gui->xstuff;
 //    if (gapp->gui->inwin == TRUE && xstuff->bufpixmap != (Pixmap) NULL) {
 //        XCopyArea(xstuff->disp, xstuff->bufpixmap, window, xstuff->gc, x, y, width, height, x, y);
 //    }
-}
-
-void set_left_footer(char *s)
-{
 }
 
 void move_pointer(short x, short y)
@@ -1289,5 +1359,30 @@ void move_pointer(short x, short y)
  //   X11Stuff *xstuff = gapp->gui->xstuff;
 
 //    XWarpPointer(xstuff->disp, None, xstuff->xwin, 0, 0, 0, 0, x, y);
+}
+
+Widget CreateLabel(Widget parent, char *s)
+{
+    qDebug("CreateLabel");
+    QWidget *p = (QWidget*) parent;
+    Widget label;
+    
+    label = new QLabel(s ? s:"", p);
+
+    return label;
+}
+
+void SetLabel(Widget w, char *s)
+{
+    //qDebug("SetLabel %s", s);
+    QLabel *label = (QLabel*) w;
+
+    label->setText(s);
+}
+
+char *display_name(GUI *gui)
+{
+    //return DisplayString(gui->xstuff->disp);
+    return "0:0";
 }
 

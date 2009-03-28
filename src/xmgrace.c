@@ -426,41 +426,6 @@ static void autoticks_cb(Widget but, void *data)
 }
 
 /*
- * set the message in the left footer
- */
-void set_left_footer(char *s)
-{
-    Widget statlab = gapp->gui->mwui->statlab;
-
-    if (s == NULL) {
-        char hbuf[64], buf[GR_MAXPATHLEN + 100], *prname;
-        gethostname(hbuf, 63);
-        prname = gproject_get_docname(gapp->gp);
-        if (prname) {
-            sprintf(buf, "%s, %s, %s, %d%%", hbuf, display_name(gapp->gui),
-                prname, (int) rint(100*gapp->gui->zoom));
-        } else {
-            sprintf(buf, "%s, %s", hbuf, display_name(gapp->gui));
-        }
-        SetLabel(statlab, buf);
-    } else {
-        SetLabel(statlab, s);
-    }
-    XmUpdateDisplay(statlab);
-}
-
-void set_tracker_string(char *s)
-{
-    Widget loclab = gapp->gui->mwui->loclab;
-    
-    if (s == NULL) {
-        SetLabel(loclab, "[Out of frame]");
-    } else {
-        SetLabel(loclab, s);
-    }
-}
-
-/*
  * set visibility of the toolbars
  */
 static void set_view_items(void)

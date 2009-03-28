@@ -138,161 +138,6 @@ void CanvasWidget::draw_focus(Quark *gr)
     }
 }
 
-void CanvasWidget::qtdrawgraph(const GProject *gp)
-{
-    Quark *project = gproject_get_top(gp);
-    GraceApp *gapp = gapp_from_quark(project);
-
-    if (gapp && gapp->gui->inwin) {
-        Quark *gr = graph_get_current(project);
-        Device_entry *d = get_device_props(grace_get_canvas(gapp->grace),  gapp->rt->tdevice);
-        Page_geometry *pg = &d->pg;
-        float dpi = gapp->gui->zoom * physicalDpiX();
-
-        set_wait_cursor();
-
-        if (dpi != pg->dpi) {
-            int wpp, hpp;
-            project_get_page_dimensions(project, &wpp, &hpp);
-
-            pg->width  = (unsigned long) (wpp*dpi/72);
-            pg->height = (unsigned long) (hpp*dpi/72);
-            pg->dpi = dpi;
-        }
-
-        resize_drawables(pg->width, pg->height);
-
-        xdrawgrid();
-
-        canvas_set_prstream(grace_get_canvas(gapp->grace), pixmap);
-
-        select_device(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
-        gproject_render(gp);
-
-        if (quark_is_active(gr)) {
-            draw_focus(gr);
-        }
-        //reset_crosshair(gapp->gui, FALSE);
-        region_need_erasing = FALSE;
-
-        update();
-        //x11_redraw(xstuff->xwin, 0, 0, xstuff->win_w, xstuff->win_h);
-
-        //XFlush(xstuff->disp);
-
-        unset_wait_cursor();
-    }
-}
-
-void CanvasWidget::resize_drawables(unsigned int w, unsigned int h)
-{
-    if (w == 0 || h == 0) {
-        return;
-    }
-
-    /* 8 bits per color channel (i.e., 256^3 colors) */
-    /* are defined in CANVAS_BPCC canvas.h file. */
-    /* Use alpha channel to be able to use QPainter::setCompositionMode(CompositionMode mode)*/
-    /* Image composition using alpha blending are faster using premultiplied ARGB32 than with plain ARGB32 */
-    if (pixmap == 0) {
-        pixmap = new QImage(w, h, QImage::Format_ARGB32_Premultiplied);
-    } if (xstuff->win_w != w || xstuff->win_h != h) {
-        delete pixmap;
-        pixmap = new QImage(w, h, QImage::Format_ARGB32_Premultiplied);
-    }
-
-    if (pixmap == 0) {
-        errmsg("Can't allocate buffer pixmap");
-        xstuff->win_w = 0;
-        xstuff->win_h = 0;
-    } else {
-        xstuff->win_w = w;
-        xstuff->win_h = h;
-    }
-
-    xstuff->win_scale = MIN2(xstuff->win_w, xstuff->win_h);
-
-    if (!gui_is_page_free(gapp->gui)) {
-        //SetDimensions(xstuff->canvas, xstuff->win_w, xstuff->win_h);
-        setMinimumSize(xstuff->win_w, xstuff->win_h);
-    }
-}
-
-void CanvasWidget::set_tracker_string(char *s)
-{
-    if (s == NULL) {
-        locatorBar->setText("[Out of frame]");
-    } else {
-        locatorBar->setText(s);
-    }
-}
-
-/*
- * locator on main_panel
- */
-void CanvasWidget::update_locator_lab(Quark *cg, VPoint *vpp)
-{
-    static VPoint vp = {0.0, 0.0};
-    view v;
-    GLocator *locator;
-    char buf[256];
-
-    if (vpp != NULL) {
-        vp = *vpp;
-    }
-
-    if (quark_is_active(cg) == TRUE                  &&
-        graph_get_viewport(cg, &v) == RETURN_SUCCESS &&
-        is_vpoint_inside(&v, &vp, 0.0) == TRUE       &&
-        (locator = graph_get_locator(cg)) != NULL    &&
-        locator->type != GLOCATOR_TYPE_NONE) {
-        char bufx[64], bufy[64], *s, *prefix, *sx, *sy;
-        WPoint wp;
-        double wx, wy, xtmp, ytmp;
-
-        Vpoint2Wpoint(cg, &vp, &wp);
-        wx = wp.x;
-        wy = wp.y;
-
-        if (locator->pointset) {
-        wx -= locator->origin.x;
-        wy -= locator->origin.y;
-            prefix = "d";
-        } else {
-            prefix = "";
-        }
-
-        switch (locator->type) {
-        case GLOCATOR_TYPE_XY:
-            xtmp = wx;
-            ytmp = wy;
-            sx = "X";
-            sy = "Y";
-            break;
-        case GLOCATOR_TYPE_POLAR:
-            xy2polar(wx, wy, &xtmp, &ytmp);
-            sx = "Phi";
-            sy = "Rho";
-            break;
-        default:
-            return;
-        }
-        s = create_fstring(get_parent_project(cg),
-            &locator->fx, xtmp, LFORMAT_TYPE_PLAIN);
-        strcpy(bufx, s);
-        s = create_fstring(get_parent_project(cg),
-            &locator->fy, ytmp, LFORMAT_TYPE_PLAIN);
-        strcpy(bufy, s);
-
-        sprintf(buf, "%s: %s%s, %s%s = (%s, %s)", QIDSTR(cg),
-            prefix, sx, prefix, sy, bufx, bufy);
-    } else {
-        sprintf(buf, "VX, VY = (%.4f, %.4f)", vp.x, vp.y);
-    }
-
-    set_tracker_string(buf);
-}
-
 void switch_current_graph(Quark *gr)
 {
     if (quark_is_active(gr)) {
@@ -305,7 +150,7 @@ void switch_current_graph(Quark *gr)
         cw->draw_focus(gr);
         cw->mainWindow->update_all();
         //graph_set_selectors(gr);
-        cw->update_locator_lab(cg, NULL);
+        update_locator_lab(cg, NULL);
     }
 }
 
@@ -782,7 +627,7 @@ void CanvasWidget::completeAction(double x, double y)
         xstuff->collect_points = FALSE;
         //set_cursor(gapp->gui, -1);
         setCursor(Qt::ArrowCursor);
-        mainWindow->set_left_footer(NULL);
+        set_left_footer(NULL);
     } else
     if (undo_point) {
         /* previous action */

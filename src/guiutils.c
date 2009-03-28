@@ -431,3 +431,106 @@ void setpointer(VPoint vp)
     move_pointer(x, y);
 }
 
+/*
+ * set the message in the left footer
+ */
+void set_left_footer(char *s)
+{
+    Widget statlab = gapp->gui->mwui->statlab;
+
+    if (s == NULL) {
+        char hbuf[64], buf[GR_MAXPATHLEN + 100], *prname;
+        gethostname(hbuf, 63);
+        prname = gproject_get_docname(gapp->gp);
+        if (prname) {
+            sprintf(buf, "%s, %s, %s, %d%%", hbuf, display_name(gapp->gui),
+                prname, (int) rint(100*gapp->gui->zoom));
+        } else {
+            sprintf(buf, "%s, %s", hbuf, display_name(gapp->gui));
+        }
+        SetLabel(statlab, buf);
+    } else {
+        SetLabel(statlab, s);
+    }
+#ifndef QT_GUI
+    XmUpdateDisplay(statlab);
+#endif
+}
+
+void set_tracker_string(char *s)
+{
+    Widget loclab = gapp->gui->mwui->loclab;
+    
+    if (s == NULL) {
+        SetLabel(loclab, "[Out of frame]");
+    } else {
+        SetLabel(loclab, s);
+    }
+}
+
+/*
+ * locator on main_panel
+ */
+void update_locator_lab(Quark *cg, VPoint *vpp)
+{
+    static VPoint vp = {0.0, 0.0};
+    view v;
+    GLocator *locator;
+    char buf[256];
+    
+    if (vpp != NULL) {
+        vp = *vpp;
+    }
+
+    if (quark_is_active(cg) == TRUE                  &&
+        graph_get_viewport(cg, &v) == RETURN_SUCCESS &&
+        is_vpoint_inside(&v, &vp, 0.0) == TRUE       &&
+        (locator = graph_get_locator(cg)) != NULL    &&
+        locator->type != GLOCATOR_TYPE_NONE) {
+        char bufx[64], bufy[64], *s, *prefix, *sx, *sy;
+        WPoint wp;
+        double wx, wy, xtmp, ytmp;
+
+        Vpoint2Wpoint(cg, &vp, &wp);
+        wx = wp.x;
+        wy = wp.y;
+
+        if (locator->pointset) {
+	    wx -= locator->origin.x;
+	    wy -= locator->origin.y;
+            prefix = "d";
+        } else {
+            prefix = "";
+        }
+
+        switch (locator->type) {
+        case GLOCATOR_TYPE_XY:
+            xtmp = wx;
+            ytmp = wy;
+            sx = "X";
+            sy = "Y";
+            break;
+        case GLOCATOR_TYPE_POLAR:
+            xy2polar(wx, wy, &xtmp, &ytmp);
+            sx = "Phi";
+            sy = "Rho";
+            break;
+        default:
+            return;
+        }
+        s = create_fstring(get_parent_project(cg),
+            &locator->fx, xtmp, LFORMAT_TYPE_PLAIN);
+        strcpy(bufx, s);
+        s = create_fstring(get_parent_project(cg),
+            &locator->fy, ytmp, LFORMAT_TYPE_PLAIN);
+        strcpy(bufy, s);
+
+        sprintf(buf, "%s: %s%s, %s%s = (%s, %s)", QIDSTR(cg),
+            prefix, sx, prefix, sy, bufx, bufy);
+    } else {
+        sprintf(buf, "VX, VY = (%.4f, %.4f)", vp.x, vp.y);
+    }
+    
+    set_tracker_string(buf);
+}
+

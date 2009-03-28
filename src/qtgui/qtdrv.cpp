@@ -97,6 +97,12 @@ static QColor Color2QColor(const Canvas *canvas, const int color)
     return QColor(rgb.red, rgb.green, rgb.blue);
 }
 
+// TODO: folowing is defined in xprotos.h
+typedef void *Pixmap;
+typedef struct {
+    Pixmap pixmap;
+} X11stream;
+
 static int qt_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
@@ -108,7 +114,8 @@ static int qt_initgraphics(const Canvas *canvas, void *data,
     qtdata->height = pg->height;
     qtdata->page_scale = MIN2(pg->width, pg->height);
 
-    qtdata->pixmap = (QImage *) canvas_get_prstream(canvas);
+    X11stream *xstream = (X11stream *) canvas_get_prstream(canvas);
+    qtdata->pixmap = (QImage *) xstream->pixmap;
     qtdata->painter = new QPainter(qtdata->pixmap);
 
     /* init settings specific to Qt driver */
