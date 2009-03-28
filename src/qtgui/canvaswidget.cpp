@@ -44,41 +44,6 @@ void CanvasWidget::paintEvent(QPaintEvent *event)
     }
 }
 
-void CanvasWidget::xdrawgrid()
-{
-    int i, j;
-    double step;
-    double x, y;
-
-    double w = width();
-    double h = height();
-
-    QPainter painter(pixmap);
-
-    QPen pen;
-    pen.setColor(Qt::black);
-    pen.setWidth(1);
-    pen.setStyle(Qt::SolidLine);
-    pen.setCapStyle(Qt::FlatCap);
-    pen.setJoinStyle(Qt::MiterJoin);
-    painter.setPen(pen);
-
-    QBrush brush;
-    brush.setColor(Qt::white);
-    painter.setBrush(brush);
-
-    painter.drawRect(rect());
-
-    step = MIN2(w, h)/10;
-    for (i = 0; i < w/step; i++) {
-        for (j = 0; j < h/step; j++) {
-            x = i*step;
-            y = h - j*step;
-            painter.drawPoint(QPointF(x, y));
-        }
-    }
-}
-
 void CanvasWidget::qt_VPoint2dev(const VPoint *vp, double *x, double *y)
 {
     *x = xstuff->win_scale * vp->x;

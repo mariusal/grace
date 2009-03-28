@@ -1358,6 +1358,39 @@ void recreate_pixmap(unsigned int w, unsigned int h)
 
 void xdrawgrid(X11Stuff *xstuff)
 {
+    int i, j;
+    double step;
+    double x, y;
+
+    double w = mainWin->canvasWidget->width();
+    double h = mainWin->canvasWidget->height();
+
+    QImage *pixmap = (QImage*) xstuff->bufpixmap;
+
+    QPainter painter(pixmap);
+
+    QPen pen;
+    pen.setColor(Qt::black);
+    pen.setWidth(1);
+    pen.setStyle(Qt::SolidLine);
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setJoinStyle(Qt::MiterJoin);
+    painter.setPen(pen);
+
+    QBrush brush;
+    brush.setColor(Qt::white);
+    painter.setBrush(brush);
+
+    painter.drawRect(mainWin->canvasWidget->rect());
+
+    step = MIN2(w, h)/10;
+    for (i = 0; i < w/step; i++) {
+        for (j = 0; j < h/step; j++) {
+            x = i*step;
+            y = h - j*step;
+            painter.drawPoint(QPointF(x, y));
+        }
+    }
 }
 
 void x11_redraw_all()

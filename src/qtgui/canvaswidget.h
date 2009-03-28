@@ -66,7 +66,6 @@ private:
     canvas_target ct;
     int on_focus;
 
-    void xdrawgrid();
     void qt_VPoint2dev(const VPoint *vp, double *x, double *y);
     void qt_dev2VPoint(double x, double y, VPoint *vp);
     Quark* next_graph_containing(Quark *q, VPoint *vp);
