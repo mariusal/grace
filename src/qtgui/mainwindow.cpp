@@ -25,7 +25,6 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
     this->gapp = gapp;
     canvasWidget = ui.widget;
     canvasWidget->setStatic();
-    canvasWidget->setLocatorBar(ui.locatorBar);
     canvasWidget->setMainWindow(this);
 
     setToolBarIcons();
@@ -238,30 +237,6 @@ void MainWindow::on_actionExit_triggered()
     close();
 }
 
-void MainWindow::snapshot_and_update(GProject *gp, int all)
-{
-    Quark *pr = gproject_get_top(gp);
-    //GUI *gui = gui_from_quark(pr);
-    //AMem *amem;
-
-    if (!pr) {
-        return;
-    }
-
-    //amem = quark_get_amem(pr);
-    //amem_snapshot(amem);
-
-    xdrawgraph(gp);
-
-    if (all) {
-        update_all();
-    } else {
-        //update_undo_buttons(gp);
-        //update_explorer(gui->eui, FALSE);
-        update_app_title(gp);
-    }
-}
-
 int scroll_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     if (quark_fid_get(q) == QFlavorGraph) {
@@ -347,40 +322,6 @@ void MainWindow::on_actionAddText_triggered() {
 void MainWindow::on_actionPreferences_triggered()
 {
     create_props_frame(0, 0);
-}
-
-void MainWindow::update_all(void)
-{
-    if (!gapp->gui->inwin) {
-        return;
-    }
-
-    if (gui_is_page_free(gapp->gui)) {
-        sync_canvas_size(gapp);
-    }
-
-    //update_ssd_selectors(gproject_get_top(gapp->gp));
-    //update_frame_selectors(gproject_get_top(gapp->gp));
-    //update_graph_selectors(gproject_get_top(gapp->gp));
-    //update_set_selectors(NULL);
-
-    if (gapp->gui->need_colorsel_update == TRUE) {
-        //init_xvlibcolors();
-        //update_color_selectors();
-        gapp->gui->need_colorsel_update = FALSE;
-    }
-
-    if (gapp->gui->need_fontsel_update == TRUE) {
-        //update_font_selectors();
-        gapp->gui->need_fontsel_update = FALSE;
-    }
-
-    //update_undo_buttons(gapp->gp);
-    //update_props_items();
-    //update_explorer(gapp->gui->eui, TRUE);
-    set_left_footer(NULL);
-    update_app_title(gapp->gp);
-    canvasWidget->update();
 }
 
 void MainWindow::sync_canvas_size(GraceApp *gapp)

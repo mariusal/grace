@@ -36,6 +36,7 @@
 #include <QPushButton>
 #include <QSignalMapper>
 #include <QComboBox>
+#include <QPainter>
 #include <qtinc.h>
 
 #include "mainwindow.h"
@@ -483,11 +484,6 @@ int attach_jpg_drv_setup(Canvas *canvas, int device_id)
 }
 
 int attach_png_drv_setup(Canvas *canvas, int device_id)
-{
-}
-
-// src/motifutils.c
-void update_all(void)
 {
 }
 
@@ -1261,7 +1257,7 @@ void set_title(char *title, char *icon_name)
  */
 void aux_XDrawLine(GUI *gui, int x1, int y1, int x2, int y2)
 {
-    X11Stuff *xstuff = gui->xstuff;
+//    X11Stuff *xstuff = gui->xstuff;
 //    XDrawLine(xstuff->disp, xstuff->xwin, gcxor, x1, y1, x2, y2);
 //    if (xstuff->bufpixmap != (Pixmap) NULL) {
 //        XDrawLine(xstuff->disp, xstuff->bufpixmap, gcxor, x1, y1, x2, y2);
@@ -1270,7 +1266,14 @@ void aux_XDrawLine(GUI *gui, int x1, int y1, int x2, int y2)
 
 void aux_XDrawRectangle(GUI *gui, int x1, int y1, int x2, int y2)
 {
-    X11Stuff *xstuff = gui->xstuff;
+    QImage *pixmap = (QImage*) gui->xstuff->bufpixmap;
+
+    QPainter painter(pixmap);
+    painter.setPen(QPen(Qt::white));
+    painter.setBrush(QBrush(Qt::NoBrush));
+    painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
+    painter.drawRect(QRectF(x1, y1, x2, y2));
+    mainWin->canvasWidget->repaint(); // TODO: repaint just drawn rectangle
 //    XDrawRectangle(xstuff->disp, xstuff->xwin, gcxor, x1, y1, x2, y2);
 //    if (xstuff->bufpixmap != (Pixmap) NULL) {
 //        XDrawRectangle(xstuff->disp, xstuff->bufpixmap, gcxor, x1, y1, x2, y2);
@@ -1279,7 +1282,13 @@ void aux_XDrawRectangle(GUI *gui, int x1, int y1, int x2, int y2)
 
 void aux_XFillRectangle(GUI *gui, int x, int y, unsigned int width, unsigned int height)
 {
-    X11Stuff *xstuff = gui->xstuff;
+    QImage *pixmap = (QImage*) gui->xstuff->bufpixmap;
+
+    QPainter painter(pixmap);
+    painter.setPen(QPen(Qt::NoPen));
+    painter.setBrush(QBrush(Qt::white));
+    painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
+    painter.drawRect(QRectF(x, y, width, height));
 //    XFillRectangle(xstuff->disp, xstuff->xwin, gcxor, x, y, width, height);
 //    if (xstuff->bufpixmap != (Pixmap) NULL) {
 //        XFillRectangle(xstuff->disp, xstuff->bufpixmap, gcxor, x, y, width, height);
@@ -1288,6 +1297,7 @@ void aux_XFillRectangle(GUI *gui, int x, int y, unsigned int width, unsigned int
 
 void SetDimensions(Widget w, unsigned int width, unsigned int height)
 {
+    mainWin->canvasWidget->setMinimumSize(width, height);
 //    XtVaSetValues(w,
 //        XmNwidth, (Dimension) width,
 //        XmNheight, (Dimension) height,
@@ -1296,6 +1306,14 @@ void SetDimensions(Widget w, unsigned int width, unsigned int height)
 
 void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
 {
+    unsigned int ww, wh;
+
+    ww = mainWin->canvasWidget->width();
+    wh = mainWin->canvasWidget->height();
+
+    *width  = (unsigned int) ww;
+    *height = (unsigned int) wh;
+
 //    Dimension ww, wh;
 //
 //    XtVaGetValues(w,
@@ -1384,5 +1402,65 @@ char *display_name(GUI *gui)
 {
     //return DisplayString(gui->xstuff->disp);
     return "0:0";
+}
+
+// TODO: remove this function, use global one
+void snapshot_and_update(GProject *gp, int all)
+{
+    Quark *pr = gproject_get_top(gp);
+    //GUI *gui = gui_from_quark(pr);
+    //AMem *amem;
+
+    if (!pr) {
+        return;
+    }
+
+    //amem = quark_get_amem(pr);
+    //amem_snapshot(amem);
+
+    xdrawgraph(gp);
+
+    if (all) {
+        update_all();
+    } else {
+        //update_undo_buttons(gp);
+        //update_explorer(gui->eui, FALSE);
+        update_app_title(gp);
+    }
+}
+
+// TODO: remove this function, use global one
+void update_all(void)
+{
+    if (!gapp->gui->inwin) {
+        return;
+    }
+
+    if (gui_is_page_free(gapp->gui)) {
+        sync_canvas_size(gapp);
+    }
+
+    //update_ssd_selectors(gproject_get_top(gapp->gp));
+    //update_frame_selectors(gproject_get_top(gapp->gp));
+    //update_graph_selectors(gproject_get_top(gapp->gp));
+    //update_set_selectors(NULL);
+
+    if (gapp->gui->need_colorsel_update == TRUE) {
+        //init_xvlibcolors();
+        //update_color_selectors();
+        gapp->gui->need_colorsel_update = FALSE;
+    }
+
+    if (gapp->gui->need_fontsel_update == TRUE) {
+        //update_font_selectors();
+        gapp->gui->need_fontsel_update = FALSE;
+    }
+
+    //update_undo_buttons(gapp->gp);
+    //update_props_items();
+    //update_explorer(gapp->gui->eui, TRUE);
+    set_left_footer(NULL);
+    update_app_title(gapp->gp);
+    mainWin->canvasWidget->update();
 }
 

@@ -17,9 +17,6 @@ public:
   MainWindow(GraceApp *gapp, QMainWindow *parent = 0);
   ~MainWindow();
 
-  void snapshot_and_update(GProject *gp, int all);
-  void update_all(void);
-
   void scroll_pix(int dx, int dy);
   CanvasWidget *canvasWidget;
 

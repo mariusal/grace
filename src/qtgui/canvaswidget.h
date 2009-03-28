@@ -33,7 +33,6 @@ public:
     MainWindow *mainWindow;
     void setStatic();
     void setMainWindow(MainWindow *mainWindow);
-    void setLocatorBar(QLabel *locatorBar);
     void draw_focus(Quark *gr);
     void set_action(GUI *gui, unsigned int npoints, int seltype,
         CanvasPointSink sink, void *data);
@@ -57,7 +56,6 @@ protected:
     void contextMenuEvent(QContextMenuEvent *event);
 
 private:
-    QLabel *locatorBar;
     X11Stuff *xstuff;
 
     int region_need_erasing;
@@ -74,13 +72,6 @@ private:
     Quark* next_graph_containing(Quark *q, VPoint *vp);
     void paintEvent(QPaintEvent *event);
 
-    void slide_region(GUI *gui, view bb, double shift_x, double shift_y, int erase);
-    void resize_region(GUI *gui, view bb, int on_focus, double shift_x, double shift_y, int erase);
-    void select_region(GUI *gui, double x1, double y1, double x2, double y2, int erase);
-    void select_vregion(GUI *gui, double x1, double x2, int erase);
-    void select_hregion(GUI *gui, double y1, double y2, int erase);
-    void aux_XDrawRectangle(GUI *gui, double x, double y, double width, double height);
-    void aux_XFillRectangle(GUI *gui, double x, double y, double width, double height);
     void completeAction(double x, double y);
 
     Grace *grace;

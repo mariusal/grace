@@ -35,18 +35,12 @@ void CanvasWidget::setMainWindow(MainWindow *mainWindow)
     this->mainWindow = mainWindow;
 }
 
-void CanvasWidget::setLocatorBar(QLabel *locatorBar)
+void CanvasWidget::paintEvent(QPaintEvent *event)
 {
-    this->locatorBar = locatorBar;
-}
-
-void CanvasWidget::paintEvent(QPaintEvent *)
-{
+    QRect r = event->rect();
     if (pixmap != 0) {
         QPainter painter(this);
-        painter.drawImage(0, 0, *pixmap);
-        // TODO: draw just what you see
-        //void QPainter::drawImage ( int x, int y, const QImage & image, int sx = 0, int sy = 0, int sw = -1, int sh = -1, Qt::ImageConversionFlags flags = Qt::AutoColor )
+        painter.drawImage(r, *pixmap, r);
     }
 }
 
@@ -148,7 +142,7 @@ void switch_current_graph(Quark *gr)
         select_graph(gr);
         cw->draw_focus(cg);
         cw->draw_focus(gr);
-        cw->mainWindow->update_all();
+        update_all();
         //graph_set_selectors(gr);
         update_locator_lab(cg, NULL);
     }
@@ -189,123 +183,6 @@ Quark* CanvasWidget::next_graph_containing(Quark *q, VPoint *vp)
     quark_traverse(pr, hook, vp);
 
     return graph_get_current(pr);
-}
-
-/*
- * slide an xor'ed bbox shifted by shift_*, (optionally erasing previous one)
- */
-void CanvasWidget::slide_region(GUI *gui, view bb, double shift_x, double shift_y, int erase)
-{
-    double x1, x2, y1, y2;
-    VPoint vp;
-
-    vp.x = bb.xv1;
-    vp.y = bb.yv1;
-    qt_VPoint2dev(&vp, &x1, &y1);
-    x1 += shift_x;
-    y1 += shift_y;
-
-    vp.x = bb.xv2;
-    vp.y = bb.yv2;
-    qt_VPoint2dev(&vp, &x2, &y2);
-    x2 += shift_x;
-    y2 += shift_y;
-
-    select_region(gui, x1, y1, x2, y2, erase);
-}
-
-void CanvasWidget::resize_region(GUI *gui, view bb, int on_focus,
-    double shift_x, double shift_y, int erase)
-{
-    double x1, x2, y1, y2;
-    VPoint vp;
-
-    vp.x = bb.xv1;
-    vp.y = bb.yv1;
-    qt_VPoint2dev(&vp, &x1, &y1);
-    vp.x = bb.xv2;
-    vp.y = bb.yv2;
-    qt_VPoint2dev(&vp, &x2, &y2);
-
-    switch (on_focus) {
-    case 1:
-        x1 += shift_x;
-        y1 += shift_y;
-        break;
-    case 2:
-        x1 += shift_x;
-        y2 += shift_y;
-        break;
-    case 3:
-        x2 += shift_x;
-        y2 += shift_y;
-        break;
-    case 4:
-        x2 += shift_x;
-        y1 += shift_y;
-        break;
-    default:
-        return;
-    }
-
-    select_region(gui, x1, y1, x2, y2, erase);
-}
-
-/*
- * draw an xor'ed box (optionally erasing previous one)
- */
-void CanvasWidget::select_region(GUI *gui, double x1, double y1, double x2, double y2, int erase)
-{
-    static double x1_old, y1_old, dx_old, dy_old;
-    double dx = x2 - x1;
-    double dy = y2 - y1;
-
-    if (dx < 0) {
-    fswap(&x1, &x2);
-    dx = -dx;
-    }
-    if (dy < 0) {
-    fswap(&y1, &y2);
-    dy = -dy;
-    }
-    if (erase && region_need_erasing) {
-        aux_XDrawRectangle(gui, x1_old, y1_old, dx_old, dy_old);
-    }
-    x1_old = x1;
-    y1_old = y1;
-    dx_old = dx;
-    dy_old = dy;
-    aux_XDrawRectangle(gui, x1, y1, dx, dy);
-    region_need_erasing = TRUE;
-}
-
-void CanvasWidget::select_vregion(GUI *gui, double x1, double x2, int erase)
-{
-    select_region(gui, x1, xstuff->f_y1, x2, xstuff->f_y2, erase);
-}
-
-void CanvasWidget::select_hregion(GUI *gui, double y1, double y2, int erase)
-{
-    select_region(gui, xstuff->f_x1, y1, xstuff->f_x2, y2, erase);
-}
-
-void CanvasWidget::aux_XDrawRectangle(GUI *gui, double x, double y, double width, double height)
-{
-    QPainter painter(pixmap);
-    painter.setPen(QPen(Qt::white));
-    painter.setBrush(QBrush(Qt::NoBrush));
-    painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
-    painter.drawRect(QRectF(x, y, width, height));
-    repaint(); // TODO: repaint just drawn rectangle
-}
-
-void CanvasWidget::aux_XFillRectangle(GUI *gui, double x, double y, double width, double height)
-{
-    QPainter painter(pixmap);
-    painter.setPen(QPen(Qt::NoPen));
-    painter.setBrush(QBrush(Qt::white));
-    painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
-    painter.drawRect(QRectF(x, y, width, height));
 }
 
 static void target_consider(canvas_target *ct, Quark *q, int part,
@@ -657,7 +534,7 @@ void CanvasWidget::completeAction(double x, double y)
         //set_cursor(gapp->gui, -1);
         setCursor(Qt::ArrowCursor);
 
-        mainWindow->snapshot_and_update(gapp->gp, TRUE);
+        snapshot_and_update(gapp->gp, TRUE);
     }
 }
 
@@ -851,7 +728,7 @@ void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
             }
             ct.found = FALSE;
 
-            mainWindow->snapshot_and_update(gapp->gp, TRUE);
+            snapshot_and_update(gapp->gp, TRUE);
         }
         if (!xstuff->collect_points) {
             //set_cursor(gapp->gui, -1);
