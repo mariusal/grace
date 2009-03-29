@@ -39,12 +39,15 @@
 #include "core_utils.h"
 #include "events.h"
 
+#ifndef QT_GUI
 #include <X11/X.h>
 #include <X11/Xatom.h>
 #include <X11/Intrinsic.h>
 #include <X11/keysym.h>
 #include <Xm/ScrollBar.h>
 #include <Xm/RowColumn.h>
+#endif
+#include <string.h>
 
 #include "motifinc.h"
 #include "xprotos.h"
@@ -54,11 +57,13 @@ static void scroll_bar_pix(Widget bar, int pix)
 {
     int value, slider_size, maxvalue;
 
+#ifndef QT_GUI
     XtVaGetValues(bar,
         XmNvalue,      &value,
         XmNmaximum,    &maxvalue,
         XmNsliderSize, &slider_size,
         NULL);
+#endif
     value += pix;
     if (value < 0) {
         value = 0;
@@ -66,50 +71,62 @@ static void scroll_bar_pix(Widget bar, int pix)
     if (value > maxvalue - slider_size) {
         value = maxvalue - slider_size;
     }
+#ifndef QT_GUI
     XmScrollBarSetValues(bar, value, 0, 0, 0, True);
+#endif
 }
 
 static void scroll_pix(Widget w, int dx, int dy)
 {
     Widget bar;
     
+#ifndef QT_GUI
     if (dx && (bar = XtNameToWidget(w, "HorScrollBar"))) {
         scroll_bar_pix(bar, dx);
     }
     if (dy && (bar = XtNameToWidget(w, "VertScrollBar"))) {
         scroll_bar_pix(bar, dy);
     }
+#endif
 }
 static void scroll(Widget w, int up, int horiz)
 {
     int value, slider_size, increment, page_increment, maxvalue;
     Widget vbar;
     
+#ifndef QT_GUI
     if (horiz) {
         vbar = XtNameToWidget(w, "HorScrollBar");
     } else {
         vbar = XtNameToWidget(w, "VertScrollBar");
     }
+#endif
     
     if (!vbar) {
         return;
     }
     
+#ifndef QT_GUI
     XmScrollBarGetValues(vbar, &value, &slider_size,
         &increment, &page_increment);
+#endif
     if (up) {
         value -= increment;
         if (value < 0) {
             value = 0;
         }
     } else {
+#ifndef QT_GUI
         XtVaGetValues(vbar, XmNmaximum, &maxvalue, NULL);
+#endif
         value += increment;
         if (value > maxvalue - slider_size) {
             value = maxvalue - slider_size;
         }
     }
+#ifndef QT_GUI
     XmScrollBarSetValues(vbar, value, 0, 0, 0, True);
+#endif
 }
 
 typedef struct {
@@ -439,6 +456,7 @@ static void set_locator_cb(Widget but, void *udata)
 
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 {
+#ifndef QT_GUI
     int x, y;                /* pointer coordinates */
     VPoint vp;
     KeySym keybuf;
@@ -864,6 +882,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 
         snapshot_and_update(gapp->gp, TRUE);
     }
+#endif
 }
 
 static int hook(Quark *q, void *udata, QTraverseClosure *closure)
@@ -1103,7 +1122,9 @@ void set_action(GUI *gui, unsigned int npoints, int seltype,
     
     xstuff->collect_points = TRUE;
 
+#ifndef QT_GUI
     XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
+#endif
 }
 
 /* -------------------------------------------------------------- */

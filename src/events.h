@@ -40,9 +40,12 @@
 #include "graceapp.h"
 #include "xprotos.h"
 
+#ifndef QT_GUI
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
-
+#else
+typedef union _XEvent { int type; } XEvent;
+#endif
 
 /* add points at */
 #define ADD_POINT_BEGINNING 0

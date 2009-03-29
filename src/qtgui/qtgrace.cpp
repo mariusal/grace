@@ -1497,3 +1497,53 @@ void update_all(void)
     mainWin->canvasWidget->update();
 }
 
+void set_cursor(GUI *gui, int c)
+{
+    X11Stuff *xstuff = gui->xstuff;
+//    if (xstuff->disp == NULL || xstuff->cur_cursor == c) {
+    if (xstuff->cur_cursor == c) {
+        return;
+    }
+
+//    XUndefineCursor(xstuff->disp, xstuff->xwin);
+    xstuff->cur_cursor = c;
+    switch (c) {
+    case 0:
+//        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->line_cursor);
+        break;
+    case 1:
+//        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->find_cursor);
+        break;
+    case 2:
+//        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->text_cursor);
+        break;
+    case 3:
+//        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->kill_cursor);
+        break;
+    case 4:
+//        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->move_cursor);
+        break;
+    case 5:
+//        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->drag_cursor);
+        break;
+    default:
+        xstuff->cur_cursor = -1;
+        break;
+    }
+//    XFlush(xstuff->disp);
+}
+
+// TODO: remove this function, use global one
+void graph_set_selectors(Quark *gr)
+{
+    int i;
+    
+//    for (i = 0; i < ngraph_selectors; i++) {
+//        SelectStorageChoice(graph_selectors[i], gr);
+//    }
+}
+
+// TODO: remove this function, use global one
+void raise_explorer(GUI *gui, Quark *q)
+{
+}

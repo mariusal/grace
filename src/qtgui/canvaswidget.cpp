@@ -70,21 +70,6 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
 {
 }
 
-void switch_current_graph(Quark *gr)
-{
-    if (quark_is_active(gr)) {
-        GraceApp *gapp = gapp_from_quark(gr);
-        Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
-
-        select_graph(gr);
-        draw_focus(cg);
-        draw_focus(gr);
-        update_all();
-        //graph_set_selectors(gr);
-        update_locator_lab(cg, NULL);
-    }
-}
-
 static int hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     if (quark_fid_get(q) == QFlavorGraph) {
