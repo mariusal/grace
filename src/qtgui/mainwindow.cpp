@@ -324,18 +324,6 @@ void MainWindow::on_actionPreferences_triggered()
     create_props_frame(0, 0);
 }
 
-void MainWindow::sync_canvas_size(GraceApp *gapp)
-{
-    unsigned int w, h;
-
-    Device_entry *d = get_device_props(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
-
-    w = canvasWidget->width();
-    h = canvasWidget->height();
-
-    set_page_dimensions(gapp, w*72.0/d->pg.dpi, h*72.0/d->pg.dpi, TRUE);
-}
-
 static void scroll_bar_pix(QScrollBar *bar, int pix)
 {
     int value = bar->value();

@@ -65,48 +65,15 @@ void CanvasWidget::qt_dev2VPoint(double x, double y, VPoint *vp)
     }
 }
 
-/*
- * draw the graph focus indicators
- */
-void CanvasWidget::draw_focus(Quark *gr)
-{
-    double ix1, iy1, ix2, iy2;
-    view v;
-    VPoint vp;
-    GUI *gui = gui_from_quark(gr);
-
-    if (gui->draw_focus_flag == TRUE) {
-        graph_get_viewport(gr, &v);
-        vp.x = v.xv1;
-        vp.y = v.yv1;
-        qt_VPoint2dev(&vp, &ix1, &iy1);
-        vp.x = v.xv2;
-        vp.y = v.yv2;
-        qt_VPoint2dev(&vp, &ix2, &iy2);
-        aux_XFillRectangle(gui, ix1 - 5, iy1 - 5, 10, 10);
-        aux_XFillRectangle(gui, ix1 - 5, iy2 - 5, 10, 10);
-        aux_XFillRectangle(gui, ix2 - 5, iy2 - 5, 10, 10);
-        aux_XFillRectangle(gui, ix2 - 5, iy1 - 5, 10, 10);
-
-        xstuff->f_x1 = ix1;
-        xstuff->f_x2 = ix2;
-        xstuff->f_y1 = iy1;
-        xstuff->f_y2 = iy2;
-
-        xstuff->f_v  = v;
-    }
-}
-
 void switch_current_graph(Quark *gr)
 {
     if (quark_is_active(gr)) {
         GraceApp *gapp = gapp_from_quark(gr);
         Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
-        CanvasWidget *cw = CanvasWidget::instance;
 
         select_graph(gr);
-        cw->draw_focus(cg);
-        cw->draw_focus(gr);
+        draw_focus(cg);
+        draw_focus(gr);
         update_all();
         //graph_set_selectors(gr);
         update_locator_lab(cg, NULL);
@@ -447,7 +414,7 @@ void CanvasWidget::actionAddText()
     set_action(gapp->gui, 1, SELECTION_TYPE_NONE, atext_sink, gapp);
 }
 
-void CanvasWidget::completeAction(double x, double y)
+void CanvasWidget::completeAction(int x, int y)
 {
     if (abort_action && xstuff->collect_points) {
         errmsg("complete action clear selection");
@@ -709,8 +676,8 @@ void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void CanvasWidget::contextMenuEvent(QContextMenuEvent *event)
 {
-    QPointF point = QPointF(event->pos());
-    errmsg("right button");
+    QPoint point = QPoint(event->pos());
+    qDebug("right button");
     if (xstuff->collect_points) {
         undo_point = TRUE;
         if (xstuff->npoints) {

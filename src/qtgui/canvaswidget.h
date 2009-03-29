@@ -33,7 +33,6 @@ public:
     MainWindow *mainWindow;
     void setStatic();
     void setMainWindow(MainWindow *mainWindow);
-    void draw_focus(Quark *gr);
     void set_action(GUI *gui, unsigned int npoints, int seltype,
         CanvasPointSink sink, void *data);
 
@@ -59,8 +58,8 @@ private:
     X11Stuff *xstuff;
 
     int region_need_erasing;
-    double last_b1down_x, last_b1down_y;   /* coords of last event */
-    double last_mouse_move_x, last_mouse_move_y;
+    int last_b1down_x, last_b1down_y;   /* coords of last event */
+    int last_mouse_move_x, last_mouse_move_y;
     int undo_point;
     int abort_action;
     canvas_target ct;
@@ -71,7 +70,7 @@ private:
     Quark* next_graph_containing(Quark *q, VPoint *vp);
     void paintEvent(QPaintEvent *event);
 
-    void completeAction(double x, double y);
+    void completeAction(int x, int y);
 
     Grace *grace;
     Canvas *canvas;

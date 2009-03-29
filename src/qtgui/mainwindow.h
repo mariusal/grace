@@ -67,7 +67,6 @@ private:
   GraceApp *gapp;
 
   void setToolBarIcons();
-  void sync_canvas_size(GraceApp *gapp);
 
   QString curFile;
 };
