@@ -75,6 +75,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont);
 void set_action(GUI *gui, unsigned int npoints, int seltype,
     CanvasPointSink sink, void *data);
 void track_point(Quark *pset, int *loc, int shift);
+void update_locator_lab(Quark *cg, VPoint *vpp);
 void do_select_area(void);
 void do_select_peri(void);
 void do_select_region(void);

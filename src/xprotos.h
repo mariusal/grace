@@ -282,8 +282,6 @@ void init_xstream(X11stream *xstream);
 void create_pixmap(unsigned int w, unsigned int h);
 void recreate_pixmap(unsigned int w, unsigned int h);
 
-void update_locator_lab(Quark *cg, VPoint *vpp);
-
 #endif /* NONE_GUI */
 
 #endif /* __XPROTOS_H_ */

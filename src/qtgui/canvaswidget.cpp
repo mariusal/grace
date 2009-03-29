@@ -65,6 +65,11 @@ void CanvasWidget::qt_dev2VPoint(double x, double y, VPoint *vp)
     }
 }
 
+// TODO: remove this dummy function
+void update_locator_lab(Quark *cg, VPoint *vpp)
+{
+}
+
 void switch_current_graph(Quark *gr)
 {
     if (quark_is_active(gr)) {
