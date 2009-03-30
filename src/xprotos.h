@@ -282,6 +282,10 @@ void init_xstream(X11stream *xstream);
 void create_pixmap(unsigned int w, unsigned int h);
 void recreate_pixmap(unsigned int w, unsigned int h);
 
+Widget CreateMainMenuBar(Widget parent);
+void CreateToolBar(Widget parent);
+void set_view_items(void);
+
 #endif /* NONE_GUI */
 
 #endif /* __XPROTOS_H_ */

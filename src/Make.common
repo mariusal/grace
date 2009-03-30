@@ -28,9 +28,9 @@ GROBJS = main$(O) graceapp$(O) \
 # GUI independent sources
 #
 
-GUIISRCS = events.c guiutils.c miscwin.c
+GUIISRCS = guiactions.c events.c guiutils.c miscwin.c
 
-GUIIOBJS = events$(O) guiutils$(O) miscwin$(O) 
+GUIIOBJS = guiactions$(O) events$(O) guiutils$(O) miscwin$(O) 
 
 # The following are for a GUI
 #

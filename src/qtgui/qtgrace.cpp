@@ -1547,3 +1547,185 @@ void graph_set_selectors(Quark *gr)
 void raise_explorer(GUI *gui, Quark *q)
 {
 }
+
+Widget CreateMenuBar(Widget parent)
+{
+}
+
+Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
+{
+}
+
+Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
+	Button_CBProc cb, void *data)
+{
+}
+
+Widget CreateSeparator(Widget parent)
+{
+}
+
+void create_file_popup(Widget but, void *data)
+{
+}
+
+void create_netcdfs_popup(Widget but, void *data)
+{
+}
+
+void create_saveproject_popup(void)
+{
+}
+
+void define_explorer_popup(Widget but, void *data)
+{
+}
+void create_openproject_popup(void)
+{
+}
+
+void create_write_popup(Widget but, void *data)
+{
+}
+
+
+void create_printer_setup(Widget but, void *data)
+{
+}
+
+
+void create_eval_frame(Widget but, void *data)
+{
+}
+
+void create_load_frame(Widget but, void *data)
+{
+}
+
+void create_histo_frame(Widget but, void *data)
+{
+}
+
+void create_fourier_frame(Widget but, void *data)
+{
+}
+
+void create_run_frame(Widget but, void *data)
+{
+}
+
+void create_reg_frame(Widget but, void *data)
+{
+}
+
+void create_diff_frame(Widget but, void *data)
+{
+}
+
+void create_interp_frame(Widget but, void *data)
+{
+}
+
+void create_int_frame(Widget but, void *data)
+{
+}
+
+void create_xcor_frame(Widget but, void *data)
+{
+}
+
+void create_samp_frame(Widget but, void *data)
+{
+}
+
+void create_prune_frame(Widget but, void *data)
+{
+}
+
+void create_lconv_frame(Widget but, void *data)
+{
+}
+
+void create_leval_frame(Widget but, void *data)
+{
+}
+
+
+void create_points_frame(Widget but, void *data)
+{
+}
+
+
+void create_arrange_frame(Widget but, void *data)
+{
+}
+
+void create_autos_frame(Widget but, void *data)
+{
+}
+
+void create_nonl_frame(Widget but, void *data)
+{
+}
+
+
+void create_fonttool(TextStructure *cstext_parent)
+{
+}
+
+void create_fonttool_cb(Widget but, void *data)
+{
+}
+
+
+void create_datasetprop_popup(Widget but, void *data)
+{
+}
+
+void create_datasetop_popup(Widget but, void *data)
+{
+}
+
+
+void create_featext_frame(Widget but, void *data)
+{
+}
+
+void create_cumulative_frame(Widget but, void *data)
+{
+}
+
+Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
+	TB_CBProc cb, void *data)
+{
+}
+
+void create_monitor_frame_cb(Widget but, void *data)
+{
+}
+
+void update_all_cb(Widget but, void *data)
+{
+}
+
+void HelpCB(Widget w, void *data)
+{
+}
+
+//void create_props_frame(Widget but, void *data)
+//{
+//}
+
+void create_about_grtool(Widget but, void *data)
+{
+}
+
+Widget CreateBitmapButton(Widget parent,
+    int width, int height, const unsigned char *bits)
+{
+}
+
+void set_view_items(void)
+{
+}
+

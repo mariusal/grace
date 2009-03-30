@@ -4878,28 +4878,6 @@ int clean_set_selectors(Quark *gr, int etype, void *data)
     return RETURN_SUCCESS;
 }
 
-void undo_cb(Widget but, void *data)
-{
-    GraceApp *gapp = (GraceApp *) data;
-    AMem *amem = quark_get_amem(gproject_get_top(gapp->gp));
-    
-    amem_undo(amem);
-    
-    xdrawgraph(gapp->gp);
-    update_all();
-}
-
-void redo_cb(Widget but, void *data)
-{
-    GraceApp *gapp = (GraceApp *) data;
-    AMem *amem = quark_get_amem(gproject_get_top(gapp->gp));
-    
-    amem_redo(amem);
-    
-    xdrawgraph(gapp->gp);
-    update_all();
-}
-
 /* what a mess... */
 void unlink_ssd_ui(Quark *q)
 {
