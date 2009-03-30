@@ -15,6 +15,7 @@ extern "C" {
 #include <bitmaps.h>
 #include <core_utils.h>
 #include <xprotos.h>
+#include <events.h>
 }
 
 MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent)
@@ -135,17 +136,17 @@ void MainWindow::on_actionRevertToSaved_triggered()
 
 void MainWindow::on_actionZoom_triggered()
 {
-    canvasWidget->actionZoom();
+    set_zoom_cb(0, gapp);
 }
 
 void MainWindow::on_actionZoomX_triggered()
 {
-    canvasWidget->actionZoomX();
+    set_zoomx_cb(0, gapp);
 }
 
 void MainWindow::on_actionZoomY_triggered()
 {
-    canvasWidget->actionZoomY();
+    set_zoomy_cb(0, gapp);
 }
 
 void MainWindow::autoscale_proc(int type)
@@ -314,9 +315,7 @@ void MainWindow::on_actionZoomOut_triggered()
 }
 
 void MainWindow::on_actionAddText_triggered() {
-    //set_cursor(gapp->gui, 2);
-    canvasWidget->actionAddText();
-    set_left_footer("Select an anchor point");
+    atext_add_proc(0, gapp);
 }
 
 void MainWindow::on_actionPreferences_triggered()

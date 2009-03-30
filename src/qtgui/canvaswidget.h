@@ -36,11 +36,6 @@ public:
     void set_action(GUI *gui, unsigned int npoints, int seltype,
         CanvasPointSink sink, void *data);
 
-    void actionZoom();
-    void actionZoomY();
-    void actionZoomX();
-    void actionAddText();
-
     QImage *pixmap;
 
 
