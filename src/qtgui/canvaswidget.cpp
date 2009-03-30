@@ -4,6 +4,9 @@
 #include <QMouseEvent>
 #include "mainwindow.h"
 #include "canvaswidget.h"
+extern "C" {
+#include "events.h"
+}
 
 /* selection type */
 #define SELECTION_TYPE_NONE 0
@@ -56,11 +59,6 @@ void CanvasWidget::qt_dev2VPoint(double x, double y, VPoint *vp)
         vp->x = x / xstuff->win_scale;
         vp->y = (xstuff->win_h - y) / xstuff->win_scale;
     }
-}
-
-// TODO: remove this dummy function
-void update_locator_lab(Quark *cg, VPoint *vpp)
-{
 }
 
 static int hook(Quark *q, void *udata, QTraverseClosure *closure)
