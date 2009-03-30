@@ -12,8 +12,6 @@
 #define SELECTION_TYPE_HORZ 3
 /* #define SELECTION_TYPE_POLY 4 */
 
-CanvasWidget* CanvasWidget::instance = 0;
-
 CanvasWidget::CanvasWidget(QWidget *parent) :
     QWidget(parent), pixmap(0)
 {
@@ -23,11 +21,6 @@ CanvasWidget::CanvasWidget(QWidget *parent) :
 
     setMouseTracking(true);
     setFocusPolicy(Qt::ClickFocus);
-}
-
-void CanvasWidget::setStatic()
-{
-    instance = this;
 }
 
 void CanvasWidget::setMainWindow(MainWindow *mainWindow)

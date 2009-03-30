@@ -25,7 +25,6 @@ MainWindow::MainWindow(GraceApp *gapp, QMainWindow *parent) : QMainWindow(parent
     ui.scrollArea->setWidget(ui.widget);
     this->gapp = gapp;
     canvasWidget = ui.widget;
-    canvasWidget->setStatic();
     canvasWidget->setMainWindow(this);
 
     setToolBarIcons();

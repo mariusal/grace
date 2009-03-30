@@ -31,7 +31,6 @@ public:
     CanvasWidget(QWidget *parent = 0);
     static CanvasWidget *instance;
     MainWindow *mainWindow;
-    void setStatic();
     void setMainWindow(MainWindow *mainWindow);
     void set_action(GUI *gui, unsigned int npoints, int seltype,
         CanvasPointSink sink, void *data);
