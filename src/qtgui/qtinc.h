@@ -30,13 +30,13 @@
 #define __QTINC_H_
 
 #ifdef __cplusplus
-#   include <QObject>
+#   include <QWidget>
 #else
-    typedef struct QObject QObject;
+    typedef struct QWidget QWidget;
 #endif
 
-typedef QObject *Widget;
-typedef QObject **WidgetList;
+typedef QWidget *Widget;
+typedef QWidget **WidgetList;
 typedef int Boolean;
 typedef int XtPointer;
 typedef int Cursor;

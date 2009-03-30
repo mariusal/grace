@@ -70,7 +70,7 @@ void startup_gui(GraceApp *gapp)
 {
     MainWinUI *mwui = gapp->gui->mwui;
 //    X11Stuff *xstuff = gapp->gui->xstuff;
-//    Widget main_frame, form, menu_bar, bt, rcleft;
+    Widget main_frame, form, menu_bar, bt, rcleft;
 //    Pixmap icon, shape;
 //
 ///* 
@@ -94,6 +94,7 @@ void startup_gui(GraceApp *gapp)
 //        xmMainWindowWidgetClass, app_shell, NULL);
 //
 //    menu_bar = CreateMainMenuBar(main_frame);
+    menu_bar = CreateMainMenuBar(mainWin);
 //    ManageChild(menu_bar);
 //
 //    form = XmCreateForm(main_frame, "form", NULL, 0);
@@ -688,13 +689,13 @@ void AddDialogFormChild(Widget form, Widget child)
 
 Widget CreateVContainer(Widget parent)
 {
-    Widget rc;
+    void *rc;
 
-    rc = new QVBoxLayout((QWidget*)parent);
+    rc = new QVBoxLayout(parent);
     //rc = XmCreateRowColumn(parent, "VContainer", NULL, 0);
     //XtManageChild(rc);
 
-    return rc;
+    return (QWidget*)rc;
 }
 
 Widget CreateToggleButton(Widget parent, char *s)
@@ -1550,19 +1551,41 @@ void raise_explorer(GUI *gui, Quark *q)
 
 Widget CreateMenuBar(Widget parent)
 {
+    return new QMenuBar(parent);
 }
 
 Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
 {
+    QMenuBar *menuBar = (QMenuBar*)parent;
+
+    QMenu *menu = new QMenu(menuBar);
+    menu->setTitle(label);
+
+    menuBar->addAction(menu->menuAction());
+
+    return menu;
 }
 
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
 	Button_CBProc cb, void *data)
 {
+    QMenu *menu = (QMenu*)parent;
+
+    QAction *action = new QAction(parent);
+    action->setText(label);
+
+    menu->addAction(action);
+
+    return (QWidget*)action;
 }
 
 Widget CreateSeparator(Widget parent)
 {
+    QMenu *menu = (QMenu*)parent;
+
+    QAction *action = menu->addSeparator();
+
+    return (QWidget*)action;
 }
 
 void create_file_popup(Widget but, void *data)
