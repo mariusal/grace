@@ -27,6 +27,7 @@ class ButtonCallback : public QObject
 
 public slots:
     void buttonClicked(QObject* data) {
+        qDebug("ButtonCallback buttonClicked");
         Button_CBdata *cbdata = (Button_CBdata *) ((Callback_Data*)data)->cbdata;
         cbdata->cbproc(cbdata->but, cbdata->anydata);
     };

@@ -29,10 +29,8 @@
 #ifndef __QTINC_H_
 #define __QTINC_H_
 
-#ifdef __cplusplus
-#   include <QWidget>
-#else
-    typedef struct QWidget QWidget;
+#ifndef __cplusplus
+typedef struct QWidget QWidget;
 #endif
 
 typedef QWidget *Widget;

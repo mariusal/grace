@@ -26,11 +26,6 @@ CanvasWidget::CanvasWidget(QWidget *parent) :
     setFocusPolicy(Qt::ClickFocus);
 }
 
-void CanvasWidget::setMainWindow(MainWindow *mainWindow)
-{
-    this->mainWindow = mainWindow;
-}
-
 void CanvasWidget::paintEvent(QPaintEvent *event)
 {
     QRect r = event->rect();
@@ -107,6 +102,11 @@ static void target_consider(canvas_target *ct, Quark *q, int part,
         ct->bbox = *v;
         ct->found = TRUE;
     }
+}
+
+// TODO: remove this function
+static void scroll_pix(int dx, int dy)
+{
 }
 
 static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
@@ -412,7 +412,7 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
                 }
             } else {
                 errmsg("move scroll");
-                mainWindow->scroll_pix(last_b1down_x - x, last_b1down_y - y);
+                scroll_pix(last_b1down_x - x, last_b1down_y - y);
             }
         } else {
             //errmsg("move");

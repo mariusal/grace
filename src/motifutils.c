@@ -4427,6 +4427,11 @@ Widget CreateSeparator(Widget parent)
     return sep;
 }
 
+Widget CreateMenuSeparator(Widget parent)
+{
+    return CreateSeparator(parent);
+}
+
 Widget CreateMenuBar(Widget parent)
 {
     Widget menubar;

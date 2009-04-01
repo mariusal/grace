@@ -1,7 +1,8 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow" >
-  <property name="geometry" >
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -9,207 +10,63 @@
     <height>600</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Grace</string>
   </property>
-  <widget class="QWidget" name="centralwidget" >
-   <layout class="QGridLayout" name="gridLayout" >
-    <item row="1" column="0" >
-     <widget class="QScrollArea" name="scrollArea" >
-      <property name="widgetResizable" >
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QScrollArea" name="scrollArea">
+      <property name="widgetResizable">
        <bool>true</bool>
       </property>
-      <property name="alignment" >
+      <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
       </property>
-      <widget class="CanvasWidget" name="widget" >
-       <property name="geometry" >
+      <widget class="CanvasWidget" name="canvasWidget">
+       <property name="geometry">
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>708</width>
-         <height>521</height>
+         <width>764</width>
+         <height>520</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout_2" />
       </widget>
      </widget>
     </item>
-    <item row="0" column="0" >
-     <widget class="QLabel" name="locatorBar" >
-      <property name="text" >
+    <item row="0" column="0">
+     <widget class="QLabel" name="locatorBar">
+      <property name="text">
        <string/>
       </property>
-      <property name="textFormat" >
+      <property name="textFormat">
        <enum>Qt::PlainText</enum>
       </property>
      </widget>
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar" >
-   <property name="geometry" >
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>24</height>
+     <height>19</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile" >
-    <property name="title" >
-     <string>&amp;File</string>
-    </property>
-    <addaction name="actionNew" />
-    <addaction name="actionOpen" />
-    <addaction name="actionSave" />
-    <addaction name="actionSaveAs" />
-    <addaction name="actionRevertToSaved" />
-    <addaction name="separator" />
-    <addaction name="actionPrintSetup" />
-    <addaction name="actionPrint" />
-    <addaction name="separator" />
-    <addaction name="actionExit" />
-   </widget>
-   <widget class="QMenu" name="menuEdit" >
-    <property name="title" >
-     <string>&amp;Edit</string>
-    </property>
-    <addaction name="actionUndo" />
-    <addaction name="actionRedo" />
-    <addaction name="separator" />
-    <addaction name="actionExplorer" />
-    <addaction name="separator" />
-    <addaction name="actionArrangeFrames" />
-    <addaction name="actionAutoscaleGraphs" />
-    <addaction name="separator" />
-    <addaction name="actionPreferences" />
-   </widget>
-   <widget class="QMenu" name="menuData" >
-    <property name="title" >
-     <string>&amp;Data</string>
-    </property>
-    <widget class="QMenu" name="menuTransformations" >
-     <property name="title" >
-      <string>&amp;Transformations</string>
-     </property>
-     <addaction name="actionEvaluateExpression" />
-     <addaction name="separator" />
-     <addaction name="actionHistograms" />
-     <addaction name="actionFourierTransforms" />
-     <addaction name="separator" />
-     <addaction name="actionRunningProperties" />
-     <addaction name="actionDifferenciesDerivatives" />
-     <addaction name="actionIntegration" />
-     <addaction name="separator" />
-     <addaction name="actionInterpolationSplines" />
-     <addaction name="separator" />
-     <addaction name="actionCorrelationCovariance" />
-     <addaction name="actionLinearConvolution" />
-     <addaction name="separator" />
-     <addaction name="actionSamplePoints" />
-     <addaction name="actionPruneData" />
-    </widget>
-    <widget class="QMenu" name="menuImport" >
-     <property name="title" >
-      <string>&amp;Import</string>
-     </property>
-     <addaction name="actionASCII" />
-    </widget>
-    <widget class="QMenu" name="menuExport" >
-     <property name="title" >
-      <string>&amp;Export</string>
-     </property>
-     <addaction name="action_ASCII" />
-    </widget>
-    <addaction name="actionDataSetOperations" />
-    <addaction name="menuTransformations" />
-    <addaction name="actionFeatureExtraction" />
-    <addaction name="actionCumulativeProperties" />
-    <addaction name="separator" />
-    <addaction name="menuImport" />
-    <addaction name="menuExport" />
-   </widget>
-   <widget class="QMenu" name="menuView" >
-    <property name="title" >
-     <string>&amp;View</string>
-    </property>
-    <widget class="QMenu" name="menuShowHide" >
-     <property name="title" >
-      <string>Sho&amp;w/Hide</string>
-     </property>
-     <addaction name="actionLocatorBar" />
-     <addaction name="actionStatusBar" />
-     <addaction name="actionTooBar" />
-    </widget>
-    <widget class="QMenu" name="menuPageZoom" >
-     <property name="title" >
-      <string>Page &amp;zoom</string>
-     </property>
-     <addaction name="actionSmaller" />
-     <addaction name="actionLarger" />
-     <addaction name="separator" />
-     <addaction name="actionOriginalSize" />
-    </widget>
-    <addaction name="menuShowHide" />
-    <addaction name="menuPageZoom" />
-    <addaction name="separator" />
-    <addaction name="actionPageRendering" />
-    <addaction name="separator" />
-    <addaction name="actionRedraw" />
-    <addaction name="separator" />
-    <addaction name="actionUpdateAll" />
-   </widget>
-   <widget class="QMenu" name="menuTools" >
-    <property name="title" >
-     <string>&amp;Tools</string>
-    </property>
-    <addaction name="actionConsole" />
-    <addaction name="actionFontTool" />
-    <addaction name="actionDatasetStatistics" />
-   </widget>
-   <widget class="QMenu" name="menuHelp" >
-    <property name="title" >
-     <string>&amp;Help</string>
-    </property>
-    <widget class="QMenu" name="menuWebSupport" >
-     <property name="title" >
-      <string>&amp;Web support</string>
-     </property>
-     <addaction name="actionHomePage" />
-     <addaction name="actionForums" />
-     <addaction name="actionReportAnIssue" />
-    </widget>
-    <addaction name="actionOnContext" />
-    <addaction name="separator" />
-    <addaction name="actionUsersGuide" />
-    <addaction name="actionFAQ" />
-    <addaction name="actionChanges" />
-    <addaction name="separator" />
-    <addaction name="actionExamples" />
-    <addaction name="separator" />
-    <addaction name="menuWebSupport" />
-    <addaction name="separator" />
-    <addaction name="actionLicenseTerms" />
-    <addaction name="actionAbout" />
-   </widget>
-   <addaction name="menuFile" />
-   <addaction name="menuEdit" />
-   <addaction name="menuData" />
-   <addaction name="menuView" />
-   <addaction name="menuTools" />
-   <addaction name="menuHelp" />
   </widget>
-  <widget class="QStatusBar" name="statusbar" />
-  <widget class="QToolBar" name="toolBar" >
-   <property name="contextMenuPolicy" >
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="contextMenuPolicy">
     <enum>Qt::CustomContextMenu</enum>
    </property>
-   <property name="windowTitle" >
+   <property name="windowTitle">
     <string>toolBar</string>
    </property>
-   <property name="styleSheet" >
-    <string notr="true" > QToolButton {
+   <property name="styleSheet">
+    <string notr="true"> QToolButton {
     border: 1px solid #8f8f91;
     border-radius: 2px;
     background-color: #b0c4de;
@@ -220,456 +77,25 @@
                                                            stop: 0 #dadbde, stop: 1 #f6f7fa);
  }</string>
    </property>
-   <property name="movable" >
+   <property name="movable">
     <bool>false</bool>
    </property>
-   <property name="iconSize" >
+   <property name="iconSize">
     <size>
      <width>16</width>
      <height>16</height>
     </size>
    </property>
-   <property name="floatable" >
+   <property name="floatable">
     <bool>false</bool>
    </property>
-   <attribute name="toolBarArea" >
+   <attribute name="toolBarArea">
     <enum>LeftToolBarArea</enum>
    </attribute>
-   <attribute name="toolBarBreak" >
+   <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionRedraw" />
-   <addaction name="separator" />
-   <addaction name="actionZoom" />
-   <addaction name="actionZoomX" />
-   <addaction name="actionZoomY" />
-   <addaction name="separator" />
-   <addaction name="actionAutoScale" />
-   <addaction name="actionAutoScaleX" />
-   <addaction name="actionAutoScaleY" />
-   <addaction name="actionAutoTick" />
-   <addaction name="separator" />
-   <addaction name="actionScrollLeft" />
-   <addaction name="actionScrollRight" />
-   <addaction name="actionScrollUp" />
-   <addaction name="actionScrollDown" />
-   <addaction name="separator" />
-   <addaction name="actionZoomIn" />
-   <addaction name="actionZoomOut" />
-   <addaction name="separator" />
-   <addaction name="actionAddText" />
-   <addaction name="separator" />
-   <addaction name="separator" />
-   <addaction name="actionExit" />
   </widget>
-  <action name="actionNew" >
-   <property name="text" >
-    <string>&amp;New</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+N</string>
-   </property>
-  </action>
-  <action name="actionOpen" >
-   <property name="text" >
-    <string>&amp;Open...</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+O</string>
-   </property>
-  </action>
-  <action name="actionSave" >
-   <property name="text" >
-    <string>&amp;Save</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+S</string>
-   </property>
-  </action>
-  <action name="actionSaveAs" >
-   <property name="text" >
-    <string>S&amp;ave as...</string>
-   </property>
-  </action>
-  <action name="actionRevertToSaved" >
-   <property name="text" >
-    <string>Re&amp;vert to saved</string>
-   </property>
-  </action>
-  <action name="actionPrintSetup" >
-   <property name="text" >
-    <string>Prin&amp;t setup...</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+P</string>
-   </property>
-  </action>
-  <action name="actionPrint" >
-   <property name="text" >
-    <string>&amp;Print</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+Alt+P</string>
-   </property>
-  </action>
-  <action name="actionExit" >
-   <property name="text" >
-    <string>E&amp;xit</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+Q</string>
-   </property>
-  </action>
-  <action name="actionPageRendering" >
-   <property name="text" >
-    <string>&amp;Page rendering...</string>
-   </property>
-  </action>
-  <action name="actionRedraw" >
-   <property name="text" >
-    <string>&amp;Redraw</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+L</string>
-   </property>
-  </action>
-  <action name="actionUpdateAll" >
-   <property name="text" >
-    <string>&amp;Update all</string>
-   </property>
-  </action>
-  <action name="actionSmaller" >
-   <property name="text" >
-    <string>&amp;Smaller</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+-</string>
-   </property>
-  </action>
-  <action name="actionLarger" >
-   <property name="text" >
-    <string>&amp;Larger</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl++</string>
-   </property>
-  </action>
-  <action name="actionOriginalSize" >
-   <property name="text" >
-    <string>&amp;Original size</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+1</string>
-   </property>
-  </action>
-  <action name="actionLocatorBar" >
-   <property name="checkable" >
-    <bool>true</bool>
-   </property>
-   <property name="checked" >
-    <bool>true</bool>
-   </property>
-   <property name="text" >
-    <string>&amp;Locator bar</string>
-   </property>
-  </action>
-  <action name="actionStatusBar" >
-   <property name="checkable" >
-    <bool>true</bool>
-   </property>
-   <property name="checked" >
-    <bool>true</bool>
-   </property>
-   <property name="text" >
-    <string>&amp;Status bar</string>
-   </property>
-  </action>
-  <action name="actionTooBar" >
-   <property name="checkable" >
-    <bool>true</bool>
-   </property>
-   <property name="checked" >
-    <bool>true</bool>
-   </property>
-   <property name="text" >
-    <string>&amp;Tool bar</string>
-   </property>
-  </action>
-  <action name="actionZoom" >
-   <property name="text" >
-    <string>Zoom</string>
-   </property>
-  </action>
-  <action name="actionZoomX" >
-   <property name="text" >
-    <string>ZoomX</string>
-   </property>
-  </action>
-  <action name="actionZoomY" >
-   <property name="text" >
-    <string>ZoomY</string>
-   </property>
-  </action>
-  <action name="actionAutoScale" >
-   <property name="text" >
-    <string>AutoScale</string>
-   </property>
-  </action>
-  <action name="actionAutoScaleX" >
-   <property name="text" >
-    <string>AutoScaleX</string>
-   </property>
-  </action>
-  <action name="actionAutoScaleY" >
-   <property name="text" >
-    <string>AutoScaleY</string>
-   </property>
-  </action>
-  <action name="actionAutoTick" >
-   <property name="text" >
-    <string>AutoTick</string>
-   </property>
-  </action>
-  <action name="actionScrollLeft" >
-   <property name="text" >
-    <string>ScrollLeft</string>
-   </property>
-  </action>
-  <action name="actionScrollRight" >
-   <property name="text" >
-    <string>ScrollRight</string>
-   </property>
-  </action>
-  <action name="actionScrollUp" >
-   <property name="text" >
-    <string>ScrollUp</string>
-   </property>
-  </action>
-  <action name="actionScrollDown" >
-   <property name="text" >
-    <string>ScrollDown</string>
-   </property>
-  </action>
-  <action name="actionZoomIn" >
-   <property name="text" >
-    <string>ZoomIn</string>
-   </property>
-  </action>
-  <action name="actionZoomOut" >
-   <property name="text" >
-    <string>ZoomOut</string>
-   </property>
-  </action>
-  <action name="actionAddText" >
-   <property name="text" >
-    <string>AddText</string>
-   </property>
-  </action>
-  <action name="actionUndo" >
-   <property name="enabled" >
-    <bool>false</bool>
-   </property>
-   <property name="text" >
-    <string>&amp;Undo (0)</string>
-   </property>
-   <property name="iconText" >
-    <string>Undo</string>
-   </property>
-   <property name="toolTip" >
-    <string>Undo</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+Z</string>
-   </property>
-  </action>
-  <action name="actionRedo" >
-   <property name="enabled" >
-    <bool>false</bool>
-   </property>
-   <property name="text" >
-    <string>&amp;Redo (0)</string>
-   </property>
-   <property name="iconText" >
-    <string>Redo</string>
-   </property>
-   <property name="toolTip" >
-    <string>Redo</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+Shift+Z</string>
-   </property>
-  </action>
-  <action name="actionExplorer" >
-   <property name="text" >
-    <string>&amp;Explorer...</string>
-   </property>
-   <property name="shortcut" >
-    <string>Ctrl+E</string>
-   </property>
-  </action>
-  <action name="actionArrangeFrames" >
-   <property name="text" >
-    <string>Arrange &amp;frames...</string>
-   </property>
-  </action>
-  <action name="actionAutoscaleGraphs" >
-   <property name="text" >
-    <string>&amp;Autoscale graphs...</string>
-   </property>
-  </action>
-  <action name="actionPreferences" >
-   <property name="text" >
-    <string>&amp;Preferences...</string>
-   </property>
-  </action>
-  <action name="actionDataSetOperations" >
-   <property name="text" >
-    <string>Data set &amp;operations...</string>
-   </property>
-  </action>
-  <action name="actionFeatureExtraction" >
-   <property name="text" >
-    <string>Feature e&amp;xtraction...</string>
-   </property>
-  </action>
-  <action name="actionCumulativeProperties" >
-   <property name="text" >
-    <string>&amp;Cumulative properties...</string>
-   </property>
-  </action>
-  <action name="actionConsole" >
-   <property name="text" >
-    <string>&amp;Console</string>
-   </property>
-  </action>
-  <action name="actionFontTool" >
-   <property name="text" >
-    <string>&amp;Font tool</string>
-   </property>
-  </action>
-  <action name="actionDatasetStatistics" >
-   <property name="text" >
-    <string>&amp;Dataset statistics</string>
-   </property>
-  </action>
-  <action name="actionEvaluateExpression" >
-   <property name="text" >
-    <string>&amp;Evaluate expression...</string>
-   </property>
-  </action>
-  <action name="actionHistograms" >
-   <property name="text" >
-    <string>&amp;Histograms...</string>
-   </property>
-  </action>
-  <action name="actionFourierTransforms" >
-   <property name="text" >
-    <string>Fo&amp;urier transforms...</string>
-   </property>
-  </action>
-  <action name="actionRunningProperties" >
-   <property name="text" >
-    <string>Running propertie&amp;s...</string>
-   </property>
-  </action>
-  <action name="actionDifferenciesDerivatives" >
-   <property name="text" >
-    <string>&amp;Differencies/derivatives...</string>
-   </property>
-  </action>
-  <action name="actionIntegration" >
-   <property name="text" >
-    <string>&amp;Integration...</string>
-   </property>
-  </action>
-  <action name="actionInterpolationSplines" >
-   <property name="text" >
-    <string>In&amp;terpolation/splines...</string>
-   </property>
-  </action>
-  <action name="actionCorrelationCovariance" >
-   <property name="text" >
-    <string>&amp;Correlation/covariance...</string>
-   </property>
-  </action>
-  <action name="actionLinearConvolution" >
-   <property name="text" >
-    <string>Linear con&amp;volution...</string>
-   </property>
-  </action>
-  <action name="actionSamplePoints" >
-   <property name="text" >
-    <string>Sa&amp;mple points...</string>
-   </property>
-  </action>
-  <action name="actionPruneData" >
-   <property name="text" >
-    <string>&amp;Prune data...</string>
-   </property>
-  </action>
-  <action name="actionASCII" >
-   <property name="text" >
-    <string>&amp;ASCII...</string>
-   </property>
-  </action>
-  <action name="action_ASCII" >
-   <property name="text" >
-    <string>&amp;ASCII</string>
-   </property>
-  </action>
-  <action name="actionOnContext" >
-   <property name="text" >
-    <string>On conte&amp;xt</string>
-   </property>
-   <property name="shortcut" >
-    <string>Shift+F1</string>
-   </property>
-  </action>
-  <action name="actionUsersGuide" >
-   <property name="text" >
-    <string>User's &amp;Guide</string>
-   </property>
-  </action>
-  <action name="actionFAQ" >
-   <property name="text" >
-    <string>FA&amp;Q</string>
-   </property>
-  </action>
-  <action name="actionChanges" >
-   <property name="text" >
-    <string>&amp;Changes</string>
-   </property>
-  </action>
-  <action name="actionExamples" >
-   <property name="text" >
-    <string>&amp;Examples</string>
-   </property>
-  </action>
-  <action name="actionLicenseTerms" >
-   <property name="text" >
-    <string>&amp;License terms</string>
-   </property>
-  </action>
-  <action name="actionAbout" >
-   <property name="text" >
-    <string>&amp;About...</string>
-   </property>
-  </action>
-  <action name="actionHomePage" >
-   <property name="text" >
-    <string>&amp;Home page</string>
-   </property>
-  </action>
-  <action name="actionForums" >
-   <property name="text" >
-    <string>&amp;Forums</string>
-   </property>
-  </action>
-  <action name="actionReportAnIssue" >
-   <property name="text" >
-    <string>&amp;Report an issue</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>

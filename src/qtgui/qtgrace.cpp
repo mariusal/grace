@@ -28,6 +28,15 @@
 
 #include <QtGlobal>
 #include <QApplication>
+#include <QMainWindow>
+#include <QToolBar>
+#include <QGridLayout>
+#include <QScrollArea>
+#include <QStatusBar>
+#include <QMenuBar>
+#include <QMenu>
+#include <QLabel>
+#include <QBitmap>
 #include <QAbstractButton>
 #include <QMessageBox>
 #include <QDialog>
@@ -37,9 +46,9 @@
 #include <QSignalMapper>
 #include <QComboBox>
 #include <QPainter>
+#include <mainwindow.h>
+#include <canvaswidget.h>
 #include <qtinc.h>
-
-#include "mainwindow.h"
 
 extern "C" {
   #include <globals.h>
@@ -50,8 +59,12 @@ extern "C" {
 
 #include <qtgrace.h>
 
-MainWindow *mainWin;
-QApplication *app;
+static MainWindow *mainWin;
+static CanvasWidget *canvasWidget;
+static QApplication *app;
+static ButtonCallback *buttonCallback = new ButtonCallback();
+static QSignalMapper *signalMapper = new QSignalMapper(mainWin);
+
 
 void set_wait_cursor()
 {
@@ -68,180 +81,28 @@ void unset_wait_cursor()
  */
 void startup_gui(GraceApp *gapp)
 {
+    qDebug("startup_gui start");
+
     MainWinUI *mwui = gapp->gui->mwui;
-//    X11Stuff *xstuff = gapp->gui->xstuff;
-    Widget main_frame, form, menu_bar, bt, rcleft;
-//    Pixmap icon, shape;
-//
-///* 
-// * Allow users to change tear off menus with X resources
-// */
-//    XmRepTypeInstallTearOffModelConverter();
-//    
-//    RegisterEditRes(app_shell);
-//
-///*
-// * We handle important WM events ourselves
-// */
-//    handle_close(app_shell);
-//    
-//    XtVaSetValues(app_shell, XmNcolormap, xstuff->cmap, NULL);
-//    
-///*
-// * build the UI here
-// */
-//    main_frame = XtVaCreateManagedWidget("mainWin",
-//        xmMainWindowWidgetClass, app_shell, NULL);
-//
-//    menu_bar = CreateMainMenuBar(main_frame);
-    menu_bar = CreateMainMenuBar(mainWin);
-//    ManageChild(menu_bar);
-//
-//    form = XmCreateForm(main_frame, "form", NULL, 0);
-//
-//    mwui->frleft = CreateFrame(form, NULL);
-//    rcleft = XtVaCreateManagedWidget("toolBar", xmRowColumnWidgetClass,
-//                                     mwui->frleft,
-//				     XmNorientation, XmVERTICAL,
-//				     XmNpacking, XmPACK_TIGHT,
-//				     XmNspacing, 0,
-//				     XmNentryBorder, 0,
-//				     XmNmarginWidth, 0,
-//				     XmNmarginHeight, 0,
-//				     NULL);
-//
-//    mwui->frtop = CreateFrame(form, NULL);
-//    mwui->loclab = CreateLabel(mwui->frtop, NULL);
+
     mwui->loclab = mainWin->ui.locatorBar;
-//    
-//    mwui->frbot = CreateFrame(form, NULL);
-//    mwui->statlab = CreateLabel(mwui->frbot, NULL);
+
     mwui->statlab = CreateLabel(mainWin, NULL);
-    mainWin->statusBar()->addWidget((QLabel*)mwui->statlab);
-//
-//    if (!gui_is_page_free(gapp->gui)) {
-//        mwui->drawing_window = XtVaCreateManagedWidget("drawing_window",
-//				     xmScrolledWindowWidgetClass, form,
-//				     XmNscrollingPolicy, XmAUTOMATIC,
-//				     XmNvisualPolicy, XmVARIABLE,
-//				     NULL);
-//        xstuff->canvas = XtVaCreateManagedWidget("canvas",
-//                                     xmDrawingAreaWidgetClass,
-//                                     mwui->drawing_window,
-//				     NULL);
-//    } else {
-//        xstuff->canvas = XtVaCreateManagedWidget("canvas",
-//                                     xmDrawingAreaWidgetClass, form,
-//				     NULL);
-//        mwui->drawing_window = xstuff->canvas;
-//    }
-//    
-//    XtAddCallback(xstuff->canvas, XmNexposeCallback, expose_resize, gapp);
-//    XtAddCallback(xstuff->canvas, XmNresizeCallback, expose_resize, gapp);
-//
-//    XtAddEventHandler(xstuff->canvas,
-//                      ButtonPressMask
-//                      | ButtonReleaseMask
-//		      | PointerMotionMask
-//		      | KeyPressMask
-//		      | KeyReleaseMask
-//		      | ColormapChangeMask,
-//		      False,
-//		      canvas_event_proc, gapp);
-//		      
-//    XtOverrideTranslations(xstuff->canvas, XtParseTranslationTable(canvas_table));
-//    
-//    AddHelpCB(xstuff->canvas, "doc/UsersGuide.html#canvas");
-//
-//    XtVaSetValues(mwui->frtop,
-//		  XmNtopAttachment, XmATTACH_FORM,
-//		  XmNleftAttachment, XmATTACH_FORM,
-//		  XmNrightAttachment, XmATTACH_FORM,
-//		  NULL);
-//    XtVaSetValues(mwui->frbot,
-//		  XmNbottomAttachment, XmATTACH_FORM,
-//		  XmNrightAttachment, XmATTACH_FORM,
-//		  XmNleftAttachment, XmATTACH_FORM,
-//		  NULL);
-//    XtVaSetValues(mwui->frleft,
-//		  XmNtopAttachment, XmATTACH_WIDGET,
-//		  XmNtopWidget, mwui->frtop,
-//		  XmNbottomAttachment, XmATTACH_WIDGET,
-//		  XmNbottomWidget, mwui->frbot,
-//		  XmNleftAttachment, XmATTACH_FORM,
-//		  NULL);
-//    XtVaSetValues(mwui->drawing_window,
-//		  XmNtopAttachment, XmATTACH_WIDGET,
-//		  XmNtopWidget, mwui->frtop,
-//		  XmNbottomAttachment, XmATTACH_WIDGET,
-//		  XmNbottomWidget, mwui->frbot,
-//		  XmNleftAttachment, XmATTACH_WIDGET,
-//		  XmNleftWidget, mwui->frleft,
-//		  XmNrightAttachment, XmATTACH_FORM,
-//		  NULL);
-//
-//    ManageChild(form);
-//
-//    XmMainWindowSetAreas(main_frame, menu_bar, NULL, NULL, NULL, form);
-//
-//    /* redraw */
-//    bt = CreateBitmapButton(rcleft, 16, 16, redraw_bits);
-//    AddButtonCB(bt, do_drawgraph, NULL);
-//    
-//    CreateSeparator(rcleft);
-//
-//    /* zoom */
-//    bt = CreateBitmapButton(rcleft, 16, 16, zoom_bits);
-//    AddButtonCB(bt, set_zoom_cb, (void *) gapp);
-//    bt = CreateBitmapButton(rcleft, 16, 16, zoom_x_bits);
-//    AddButtonCB(bt, set_zoomx_cb, (void *) gapp);
-//    bt = CreateBitmapButton(rcleft, 16, 16, zoom_y_bits);
-//    AddButtonCB(bt, set_zoomy_cb, (void *) gapp);
-//
-//    CreateSeparator(rcleft);
-//
-//    /* autoscale */
-//    bt = CreateBitmapButton(rcleft, 16, 16, auto_bits);
-//    AddButtonCB(bt, autoscale_xy_cb, (void *) gapp);
-//    bt = CreateBitmapButton(rcleft, 16, 16, auto_x_bits);
-//    AddButtonCB(bt, autoscale_x_cb, (void *) gapp);
-//    bt = CreateBitmapButton(rcleft, 16, 16, auto_y_bits);
-//    AddButtonCB(bt, autoscale_y_cb, (void *) gapp);
-//    bt = CreateBitmapButton(rcleft, 16, 16, auto_tick_bits);
-//    AddButtonCB(bt, autoticks_cb, NULL);
-//
-//    CreateSeparator(rcleft);
-//
-//    /* scrolling buttons */
-//    bt = CreateBitmapButton(rcleft, 16, 16, left_bits);
-//    AddButtonCB(bt, graph_scroll_left_cb, (void *) gapp);
-//    bt = CreateBitmapButton(rcleft, 16, 16, right_bits);
-//    AddButtonCB(bt, graph_scroll_right_cb, (void *) gapp);
-//    bt = CreateBitmapButton(rcleft, 16, 16, up_bits);
-//    AddButtonCB(bt, graph_scroll_up_cb, (void *) gapp);
-//    bt = CreateBitmapButton(rcleft, 16, 16, down_bits);
-//    AddButtonCB(bt, graph_scroll_down_cb, (void *) gapp);
-//
-//    CreateSeparator(rcleft);
-//
-//    /* expand/shrink */
-//    bt = CreateBitmapButton(rcleft, 16, 16, expand_bits);
-//    AddButtonCB(bt, graph_zoom_in_cb, (void *) gapp);
-//    bt = CreateBitmapButton(rcleft, 16, 16, shrink_bits);
-//    AddButtonCB(bt, graph_zoom_out_cb, (void *) gapp);
-//
-//    CreateSeparator(rcleft);
-//
-//    bt = CreateBitmapButton(rcleft, 16, 16, atext_bits);
-//    AddButtonCB(bt, atext_add_proc, (void *) gapp);
-//
-//    CreateSeparator(rcleft);
-//    CreateSeparator(rcleft);
-//
-//    /* exit */
-//    bt = CreateBitmapButton(rcleft, 16, 16, exit_bits);
-//    AddButtonCB(bt, exit_cb, gapp);
-//
+    mainWin->ui.statusBar->addWidget(mwui->statlab);
+
+    //toolBar->setStyleSheet(QString::fromUtf8(" QToolButton {\n"
+    //            "    border: 1px solid #8f8f91;\n"
+    //            "    border-radius: 2px;\n"
+    //            "    background-color: #b0c4de;\n"
+    //            " }\n"
+    //            "\n"
+    //            " QToolButton:pressed {\n"
+    //            "    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
+    //            "                                                           stop: 0 #dadbde, stop: 1 #f6f7fa);\n"
+    //            " }"));
+
+    CreateMainMenuBar(mainWin);
+    CreateToolBar(mainWin->ui.toolBar);
 /*
  * initialize some option menus
  */
@@ -260,15 +121,6 @@ void startup_gui(GraceApp *gapp)
  */
     mainWin->setWindowIcon(QPixmap(gapp_icon_xpm));
 
-//    XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
-//        gapp_icon_xpm, &icon, &shape, NULL);
-//    XtVaSetValues(app_shell, XtNiconPixmap, icon, XtNiconMask, shape, NULL);
-
-//    XtRealizeWidget(app_shell);
-    
-//    XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
-    
-//    xstuff->xwin = XtWindow(xstuff->canvas);
     gapp->gui->inwin = TRUE;
 
 /*
@@ -278,14 +130,18 @@ void startup_gui(GraceApp *gapp)
 
     xdrawgraph(gapp->gp);
 
+    QObject::connect(signalMapper, SIGNAL(mapped(QObject*)),
+                     buttonCallback, SLOT(buttonClicked(QObject*))); 
     //XtAppMainLoop(app_con);
     mainWin->show();
+    qDebug("startup_gui end");
     app->exec();
     exit(0);
 }
 
 int initialize_gui(int *argc, char **argv)
 {
+    qDebug("initialize_gui start");
     X11Stuff *xstuff;
     MainWinUI *mwui;
 //    Screen *screen;
@@ -310,7 +166,6 @@ int initialize_gui(int *argc, char **argv)
 //    XtSetLanguageProc(NULL, NULL, NULL);
 //    
 //    XtToolkitInitialize();
-    app = new QApplication(*argc, argv);
 //    app_con = XtCreateApplicationContext();
 //    
 //    /* Check if we're running in the low-resolution X */
@@ -357,8 +212,7 @@ int initialize_gui(int *argc, char **argv)
 //    XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
 //    XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 //
-    mainWin = new MainWindow(gapp);
-    app_shell = mainWin;
+    app = new QApplication(*argc, argv);
 //    app_shell = XtAppCreateShell(NULL, "XmGrace", applicationShellWidgetClass,
 //        xstuff->disp, NULL, 0);
 //
@@ -380,6 +234,7 @@ int initialize_gui(int *argc, char **argv)
 //    /* initialize cursors */
 //    init_cursors(gapp->gui);
 
+    qDebug("initialize_gui end");
     return RETURN_SUCCESS;
 }
 
@@ -431,10 +286,12 @@ int x11_init(GraceApp *gapp)
 //        errmsg(buf);
 //        set_max_path_limit(grace_get_canvas(gapp->grace), max_path_limit);
 //    }
-//    
+//   
 //    xstuff->dpi = rint(MM_PER_INCH*DisplayWidth(xstuff->disp, xstuff->screennumber)/
 //        DisplayWidthMM(xstuff->disp, xstuff->screennumber));
-    xstuff->dpi = mainWin->canvasWidget->physicalDpiX();
+    mainWin = new MainWindow();
+    canvasWidget = mainWin->ui.canvasWidget;
+    xstuff->dpi = canvasWidget->physicalDpiX();
 
     return RETURN_SUCCESS;
 }
@@ -525,7 +382,7 @@ void errwin(const char *msg)
 
 int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 {
-    QMessageBox msgBox((MainWindow*) app_shell);
+    QMessageBox msgBox(mainWin);
     msgBox.setWindowTitle("Grace: Warning");
     msgBox.setIcon(QMessageBox::Question);
     if (msg != NULL) {
@@ -604,7 +461,7 @@ Widget CreateDialogForm(Widget parent, const char *s)
 //    xfree(bufp);
 
 //    w = XmCreateForm(dialog, "form", NULL, 0);
-    QDialog *w = new QDialog((MainWindow*) parent);
+    QDialog *w = new QDialog((QMainWindow*) parent);
     w->setWindowTitle(bufp);
     xfree(bufp);
 
@@ -1004,9 +861,6 @@ Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
 //    return form;
 }
 
-ButtonCallback *buttonCallback = new ButtonCallback();
-QSignalMapper *signalMapper = new QSignalMapper(mainWin);
-
 void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
 {
     Button_CBdata *cbdata;
@@ -1019,7 +873,13 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
     Callback_Data *callbackData = new Callback_Data();
     callbackData->cbdata = cbdata;
     signalMapper->setMapping(button, callbackData);
-    QObject::connect(button, SIGNAL(clicked()), signalMapper, SLOT (map()));
+
+    if ((QAction*)button) {
+        qDebug("AddButtonCB connect QAction");
+        QObject::connect(button, SIGNAL(triggered()), signalMapper, SLOT (map()));
+    } else {
+        QObject::connect(button, SIGNAL(clicked()), signalMapper, SLOT (map()));
+    }
     
 //    XtAddCallback(button,
 //        XmNactivateCallback, button_int_cb_proc, (XtPointer) cbdata);
@@ -1096,8 +956,6 @@ WidgetList CreateAACDialog(Widget form,
     cbdata_apply->cbproc   = cbproc;
     cbdata_apply->close    = FALSE;
 
-    QObject::connect(signalMapper, SIGNAL(mapped(QObject*)),
-                     buttonCallback, SLOT(buttonClicked(QObject*))); 
     AddButtonCB(aacbut[0], aacdialog_int_cb_proc, cbdata_apply);
     AddButtonCB(aacbut[1], aacdialog_int_cb_proc, cbdata_accept);
 //    AddButtonCB(aacbut[2], destroy_dialog_cb, XtParent(form));
@@ -1274,7 +1132,7 @@ void aux_XDrawRectangle(GUI *gui, int x1, int y1, int x2, int y2)
     painter.setBrush(QBrush(Qt::NoBrush));
     painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
     painter.drawRect(QRectF(x1, y1, x2, y2));
-    mainWin->canvasWidget->repaint(); // TODO: repaint just drawn rectangle
+    canvasWidget->repaint(); // TODO: repaint just drawn rectangle
 //    XDrawRectangle(xstuff->disp, xstuff->xwin, gcxor, x1, y1, x2, y2);
 //    if (xstuff->bufpixmap != (Pixmap) NULL) {
 //        XDrawRectangle(xstuff->disp, xstuff->bufpixmap, gcxor, x1, y1, x2, y2);
@@ -1298,7 +1156,7 @@ void aux_XFillRectangle(GUI *gui, int x, int y, unsigned int width, unsigned int
 
 void SetDimensions(Widget w, unsigned int width, unsigned int height)
 {
-    mainWin->canvasWidget->setMinimumSize(width, height);
+    canvasWidget->setMinimumSize(width, height);
 //    XtVaSetValues(w,
 //        XmNwidth, (Dimension) width,
 //        XmNheight, (Dimension) height,
@@ -1309,8 +1167,8 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
 {
     unsigned int ww, wh;
 
-    ww = mainWin->canvasWidget->width();
-    wh = mainWin->canvasWidget->height();
+    ww = canvasWidget->width();
+    wh = canvasWidget->height();
 
     *width  = (unsigned int) ww;
     *height = (unsigned int) wh;
@@ -1363,8 +1221,8 @@ void xdrawgrid(X11Stuff *xstuff)
     double step;
     double x, y;
 
-    double w = mainWin->canvasWidget->width();
-    double h = mainWin->canvasWidget->height();
+    double w = canvasWidget->width();
+    double h = canvasWidget->height();
 
     QImage *pixmap = (QImage*) xstuff->bufpixmap;
 
@@ -1382,7 +1240,7 @@ void xdrawgrid(X11Stuff *xstuff)
     brush.setColor(Qt::white);
     painter.setBrush(brush);
 
-    painter.drawRect(mainWin->canvasWidget->rect());
+    painter.drawRect(canvasWidget->rect());
 
     step = MIN2(w, h)/10;
     for (i = 0; i < w/step; i++) {
@@ -1398,8 +1256,8 @@ void x11_redraw_all()
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
 
-    mainWin->canvasWidget->pixmap = (QImage*) xstuff->bufpixmap;
-    mainWin->canvasWidget->update();
+    canvasWidget->pixmap = (QImage*) xstuff->bufpixmap;
+    canvasWidget->update();
 //    X11Stuff *xstuff = gapp->gui->xstuff;
 //    if (gapp->gui->inwin == TRUE && xstuff->bufpixmap != (Pixmap) NULL) {
 //        XCopyArea(xstuff->disp, xstuff->bufpixmap, window, xstuff->gc, x, y, width, height, x, y);
@@ -1495,7 +1353,7 @@ void update_all(void)
     //update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
     update_app_title(gapp->gp);
-    mainWin->canvasWidget->update();
+    canvasWidget->update();
 }
 
 void set_cursor(GUI *gui, int c)
@@ -1551,7 +1409,9 @@ void raise_explorer(GUI *gui, Quark *q)
 
 Widget CreateMenuBar(Widget parent)
 {
-    return new QMenuBar(parent);
+    QMenuBar *menuBar = new QMenuBar(parent);
+    mainWin->setMenuBar(menuBar);
+    return menuBar;
 }
 
 Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
@@ -1574,12 +1434,23 @@ Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
     QAction *action = new QAction(parent);
     action->setText(label);
 
+    AddButtonCB((QWidget*)action, cb, data);
+
     menu->addAction(action);
 
     return (QWidget*)action;
 }
 
 Widget CreateSeparator(Widget parent)
+{
+    QToolBar *toolBar = (QToolBar*) parent;
+
+    QAction *action = toolBar->addSeparator();
+
+    return (QWidget*)action;
+}
+
+Widget CreateMenuSeparator(Widget parent)
 {
     QMenu *menu = (QMenu*)parent;
 
@@ -1746,9 +1617,20 @@ void create_about_grtool(Widget but, void *data)
 Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits)
 {
+    QToolBar *toolBar = (QToolBar*) parent;
+
+    QAction *action = new QAction(parent);
+
+    action->setIcon(QIcon(QBitmap::fromData(QSize(width, height),
+                    bits,
+                    QImage::Format_MonoLSB)));
+    toolBar->addAction(action);
+
+    return (QWidget*)action;
 }
 
 void set_view_items(void)
 {
 }
+
 

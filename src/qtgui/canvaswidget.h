@@ -21,17 +21,12 @@ typedef struct {
     int found;
 } canvas_target;
 
-class MainWindow;
-
 class CanvasWidget : public QWidget
 {
    Q_OBJECT
 
 public:
     CanvasWidget(QWidget *parent = 0);
-    static CanvasWidget *instance;
-    MainWindow *mainWindow;
-    void setMainWindow(MainWindow *mainWindow);
     void set_action(GUI *gui, unsigned int npoints, int seltype,
         CanvasPointSink sink, void *data);
 

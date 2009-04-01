@@ -59,8 +59,6 @@
 #define ALIGN_CENTER        1
 #define ALIGN_END           2
 
-#define CreateMenuSeparator(w) CreateSeparator(w)
-
 extern Widget app_shell;        /* defined in xmgapp.c */
 
 typedef struct {
@@ -424,6 +422,7 @@ void FixateDialogFormChild(Widget w);
 Widget CreateFrame(Widget parent, char *s);
 
 Widget CreateSeparator(Widget parent);
+Widget CreateMenuSeparator(Widget parent);
 
 Widget CreateVContainer(Widget parent);
 Widget CreateHContainer(Widget parent);
