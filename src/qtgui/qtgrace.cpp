@@ -461,7 +461,7 @@ Widget CreateDialogForm(Widget parent, const char *s)
 //    xfree(bufp);
 
 //    w = XmCreateForm(dialog, "form", NULL, 0);
-    QDialog *w = new QDialog((QMainWindow*) parent);
+    QDialog *w = new QDialog(parent);
     w->setWindowTitle(bufp);
     xfree(bufp);
 
@@ -484,10 +484,10 @@ Widget GetParent(Widget w)
  */
 void RaiseWindow(Widget w)
 {
-    QDialog *d = (QDialog* ) w;
+//    QDialog *d = (QDialog* ) w;
 //    XtManageChild(w);
 //    XMapRaised(XtDisplay(w), XtWindow(w));
-    d->show();
+    w->show();
 }
 
 Widget CreateFrame(Widget parent, char *s)
@@ -495,7 +495,7 @@ Widget CreateFrame(Widget parent, char *s)
     //Widget fr;
 
 //    fr = XtVaCreateManagedWidget("frame", xmFrameWidgetClass, parent, NULL);
-    QGroupBox *groupBox = new QGroupBox((QWidget*) parent);
+    QGroupBox *groupBox = new QGroupBox(parent);
     
     if (s != NULL) {
         groupBox->setTitle(s);
@@ -509,16 +509,13 @@ Widget CreateFrame(Widget parent, char *s)
 
 void AddDialogFormChild(Widget form, Widget child)
 {
-    QWidget *f = (QWidget*) form;
-    QWidget *c = (QWidget*) child;
-    
-    QLayout *layout = f->layout();
+    QLayout *layout = form->layout();
 
     if (layout == 0) {
         layout = new QVBoxLayout();
-        f->setLayout(layout);
+        form->setLayout(layout);
     }
-    layout->addWidget(c);
+    layout->addWidget(child);
 
 //    Widget last_widget;
 //
@@ -546,23 +543,29 @@ void AddDialogFormChild(Widget form, Widget child)
 
 Widget CreateVContainer(Widget parent)
 {
-    void *rc;
+    QLayout *layout = parent->layout();
 
-    rc = new QVBoxLayout(parent);
+    if (layout == 0) {
+        layout = new QVBoxLayout();
+        parent->setLayout(layout);
+    }
+    //layout->addWidget(child);
     //rc = XmCreateRowColumn(parent, "VContainer", NULL, 0);
     //XtManageChild(rc);
 
-    return (QWidget*)rc;
+    return parent;
 }
 
 Widget CreateToggleButton(Widget parent, char *s)
 {
 //    return (XtVaCreateManagedWidget(s, xmToggleButtonWidgetClass, parent, NULL));
-    QCheckBox *cb = new QCheckBox(s);
-    QLayout* l = dynamic_cast<QLayout*>(parent);
-    if (l) {
-        l->addWidget(cb);
+    QCheckBox *cb = new QCheckBox(s, parent);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(cb);
     }
+
     return cb;
 }
 
