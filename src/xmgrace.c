@@ -375,7 +375,7 @@ int initialize_gui(int *argc, char **argv)
 /*
  * set visibility of the toolbars
  */
-static void set_view_items(void)
+void set_view_items(void)
 {
     MainWinUI *mwui = gapp->gui->mwui;
     
