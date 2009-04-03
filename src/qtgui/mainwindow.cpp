@@ -49,6 +49,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     QSettings settings("GraceProject", "Grace");
     settings.setValue("geometry", saveGeometry());
+    event->ignore();
     bailout(gapp);
 }
 
