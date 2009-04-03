@@ -461,7 +461,7 @@ Widget CreateDialogForm(Widget parent, const char *s)
 //    xfree(bufp);
 
 //    w = XmCreateForm(dialog, "form", NULL, 0);
-    QDialog *w = new QDialog(parent);
+    QDialog *w = new QDialog(mainWin);
     w->setWindowTitle(bufp);
     xfree(bufp);
 
@@ -877,12 +877,9 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
     callbackData->cbdata = cbdata;
     signalMapper->setMapping(button, callbackData);
 
-    if ((QAction*)button) {
-        qDebug("AddButtonCB connect QAction");
-        QObject::connect(button, SIGNAL(triggered()), signalMapper, SLOT (map()));
-    } else {
-        QObject::connect(button, SIGNAL(clicked()), signalMapper, SLOT (map()));
-    }
+    // TODO: remove this HACK, one connect for QPushButton other for QAction
+    QObject::connect(button, SIGNAL(clicked()), signalMapper, SLOT (map()));
+    QObject::connect(button, SIGNAL(triggered()), signalMapper, SLOT (map()));
     
 //    XtAddCallback(button,
 //        XmNactivateCallback, button_int_cb_proc, (XtPointer) cbdata);
@@ -924,7 +921,7 @@ WidgetList CreateAACDialog(Widget form,
     char *aaclab[3] = {"Apply", "Accept", "Close"};
 
     //aacbut = (WidgetList) XtMalloc(3*sizeof(Widget));
-    aacbut = (WidgetList) xmalloc(sizeof(Widget));
+    aacbut = (WidgetList) xmalloc(3*sizeof(Widget));
 
 //    fr = CreateFrame(form, NULL);
 //    XtVaSetValues(fr,
@@ -933,7 +930,7 @@ WidgetList CreateAACDialog(Widget form,
 //        XmNrightAttachment, XmATTACH_FORM,
 //        XmNbottomAttachment, XmATTACH_FORM,
 //        NULL);
-    fr = new QFrame((QWidget*) form);
+    fr = new QFrame(form);
     fr->setFrameShape(QFrame::StyledPanel);
     fr->setFrameShadow(QFrame::Raised);
     CreateCommandButtons(fr, 3, aacbut, aaclab);
@@ -967,7 +964,7 @@ WidgetList CreateAACDialog(Widget form,
 //    XtManageChild(container);
 //    XtManageChild(form);
 //
-//    return aacbut;
+    return aacbut;
 }
 
 void SetToggleButtonState(Widget w, int value)
