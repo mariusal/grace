@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2007 Grace Development Team
+ * Copyright (c) 1996-2009 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -521,15 +521,20 @@ int main(int argc, char *argv[])
 		    } else {
 			if (!strcmp("xy", argv[i])) {
 			    set_graph_type(cur_graph, GRAPH_XY);
-			} else if (!strcmp("polar", argv[i])) {
+			} else
+                        if (!strcmp("polar", argv[i])) {
 			    set_graph_type(cur_graph, GRAPH_POLAR);
-			} else if (!strcmp("bar", argv[i])) {
+			} else
+                        if (!strcmp("bar", argv[i]) || !strcmp("chart", argv[i])) {
 			    set_graph_type(cur_graph, GRAPH_CHART);
-			} else if (!strcmp("smith", argv[i])) {
+			} else
+                        if (!strcmp("smith", argv[i])) {
 			    set_graph_type(cur_graph, GRAPH_SMITH);
-			} else if (!strcmp("fixed", argv[i])) {
+			} else
+                        if (!strcmp("fixed", argv[i])) {
 			    set_graph_type(cur_graph, GRAPH_FIXED);
-			} else if (!strcmp("pie", argv[i])) {
+			} else
+                        if (!strcmp("pie", argv[i])) {
 			    set_graph_type(cur_graph, GRAPH_PIE);
 			} else {
 			    fprintf(stderr, "%s: Improper argument for -graphtype\n", argv[0]);
@@ -797,7 +802,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-free                                 Use free page layout\n");
 #endif
     fprintf(stream, "-graph     [graph_number]             Set the current graph number\n");
-    fprintf(stream, "-graphtype [graph_type]               Set the type of the current graph\n");
+    fprintf(stream, "-graphtype [xy|chart|fixed|polar|pie] Set the type of the current graph\n");
     fprintf(stream, "-hardcopy                             No interactive session, just print and\n");
     fprintf(stream, "                                        quit\n");
     fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device\n");
