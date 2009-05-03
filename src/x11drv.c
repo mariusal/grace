@@ -70,7 +70,6 @@ static int private_cmap = FALSE;
 unsigned long xvlibcolors[MAXCOLORS];
 Colormap cmap;
 
-static Pixmap curtile;
 static Pixmap displaybuff = (Pixmap) NULL;
 
 static int xlibcolor;
@@ -183,14 +182,6 @@ int xlibinit(void)
     gcxor = XCreateGC(disp, root, GCFunction | GCForeground, &gc_val);
 
     displaybuff = resize_bufpixmap(win_w, win_h);
-/* 
- * tile pixmap for patterns
- */    
-    curtile = XCreatePixmap(disp, root, 16, 16, depth);
-    if (curtile == (Pixmap) NULL) {
-        errmsg("Error allocating tile pixmap");
-	return RETURN_FAILURE;
-    }
     
 /*
  * disable font AA in mono mode
@@ -374,7 +365,6 @@ int xlibinitgraphics(void)
 void xlib_setpen(void)
 {
     int fg, bg, p;
-    Pixmap ptmp;
     
     fg = getcolor();
     bg = getbgcolor();
@@ -406,16 +396,16 @@ void xlib_setpen(void)
         XSetFillStyle(disp, gc, FillSolid);
     } else {
         /* TODO: implement cache ? */
-        ptmp = XCreateBitmapFromData(disp, root, (char *) pat_bits[p], 16, 16);
-        XCopyPlane(disp, ptmp, curtile, gc, 0, 0, 16, 16, 0, 0, 1);
+        Pixmap ptmp = XCreatePixmapFromBitmapData(disp, root,
+            (char *) pat_bits[p], 16, 16,
+            xvlibcolors[fg], xvlibcolors[bg],
+            PlanesOfScreen(DefaultScreenOfDisplay(disp)));
+        
+        XSetFillStyle(disp, gc, FillTiled);
+        XSetTile(disp, gc, ptmp);
+        
         XFreePixmap(disp, ptmp);
         
-/*
- *      XSetFillStyle(disp, gc, FillStippled);
- *      XSetStipple(disp, gc, curstipple);
- */
-        XSetFillStyle(disp, gc, FillTiled);
-        XSetTile(disp, gc, curtile);
         return;
     }
 }
