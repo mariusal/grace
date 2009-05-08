@@ -46,6 +46,7 @@
 #include <QSignalMapper>
 #include <QComboBox>
 #include <QPainter>
+#include <QStandardItemModel>
 #include <mainwindow.h>
 #include <canvaswidget.h>
 #include <qtinc.h>
@@ -569,84 +570,10 @@ Widget CreateToggleButton(Widget parent, char *s)
     return cb;
 }
 
-void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
-{
-//    int i, nold, ncols, nw;
-//    Widget *wlist;
-//    
-//    nold = optp->nchoices;
-//
-//    if (optp->ncols == 0) {
-//        ncols = 1;
-//    } else {
-//        ncols = optp->ncols;
-//    }
-//    
-//    /* Don't create too tall pulldowns */
-//    if (nchoices > MAX_PULLDOWN_LENGTH*ncols) {
-//        ncols = (nchoices + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
-//    }
-//    
-//    XtVaSetValues(optp->pulldown, XmNnumColumns, ncols, NULL);
-//
-//    nw = nold - nchoices;
-//    if (nw > 0) {
-//        /* Unmanage extra items before destroying to speed the things up */
-//        wlist = xmalloc(nw*sizeof(Widget));
-//        for (i = nchoices; i < nold; i++) {
-//            wlist[i - nchoices] = optp->options[i].widget;
-//        }
-//        XtUnmanageChildren(wlist, nw);
-//        xfree(wlist);
-//        
-//        for (i = nchoices; i < nold; i++) {
-//            XtDestroyWidget(optp->options[i].widget);
-//        }
-//    }
-//
-//    optp->options = xrealloc(optp->options, nchoices*sizeof(OptionWidgetItem));
-//    optp->nchoices = nchoices;
-//
-//    for (i = nold; i < nchoices; i++) {
-//        unsigned int j;
-//        optp->options[i].widget = 
-//                  XmCreatePushButton(optp->pulldown, "button", NULL, 0);
-//        for (j = 0; j < optp->cbnum; j++) {
-//            OC_CBdata *cbdata = optp->cblist[j];
-//            XtAddCallback(optp->options[i].widget, XmNactivateCallback, 
-//                                    oc_int_cb_proc, (XtPointer) cbdata);
-//        }
-//    }
-//    
-//    for (i = 0; i < nchoices; i++) {
-//	optp->options[i].value = items[i].value;
-//	if (items[i].label != NULL) {
-//            XmString str, ostr;
-//            XtVaGetValues(optp->options[i].widget, XmNlabelString, &ostr, NULL);
-//            str = XmStringCreateLocalized(items[i].label);
-//            if (XmStringCompare(str, ostr) != True) {
-//                XtVaSetValues(optp->options[i].widget, XmNlabelString, str, NULL);
-//            }
-//            XmStringFree(str);
-//        }
-//    }
-//    
-//    nw = nchoices - nold;
-//    if (nw > 0) {
-//        wlist = xmalloc(nw*sizeof(Widget));
-//        for (i = nold; i < nchoices; i++) {
-//            wlist[i - nold] = optp->options[i].widget;
-//        }
-//        XtManageChildren(wlist, nw);
-//        xfree(wlist);
-//    }
-}
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     int ncols, int nchoices, OptionItem *items)
 {
-//    Arg args[2];
-//    XmString str;
     OptionStructure *retval;
 
     retval = (OptionStructure*) xcalloc(1, sizeof(OptionStructure));
@@ -654,35 +581,26 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
         return NULL;
     }
 
-//    XtSetArg(args[0], XmNpacking, XmPACK_COLUMN);
-//    retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", args, 1);
-    retval->ncols = ncols;
+    QComboBox *comboBox = new QComboBox();
+    retval->pulldown = comboBox;
 
-    UpdateOptionChoice(retval, nchoices, items);
+    for (int i = 0; i < nchoices; i++) {
+        comboBox->addItem(items[i].label);
+    }
 
     QLabel *label = new QLabel();
     label->setText(labelstr);
 
-    QComboBox *comboBox = new QComboBox();
+    QWidget *widget = new QWidget();
 
-    QHBoxLayout *horizontalLayout = new QHBoxLayout();
+    QHBoxLayout *horizontalLayout = new QHBoxLayout(widget);
     horizontalLayout->addWidget(label);
-    horizontalLayout->addWidget(comboBox);
+    horizontalLayout->addWidget(retval->pulldown);
 
-    QBoxLayout* l = dynamic_cast<QBoxLayout*>(parent);
-    if (l) {
-        l->addLayout(horizontalLayout);
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
     }
-
-//    str = XmStringCreateLocalized(labelstr);
-//    XtSetArg(args[0], XmNlabelString, str);
-//    XtSetArg(args[1], XmNsubMenuId, retval->pulldown);
-//
-//    retval->menu = XmCreateOptionMenu(parent, "optionMenu", args, 2);
-//
-//    XmStringFree(str);
-//
-//    XtManageChild(retval->menu);
 
     return retval;
 }
@@ -980,22 +898,8 @@ void SetToggleButtonState(Widget w, int value)
 
 void SetOptionChoice(OptionStructure *opt, int value)
 {
-    int i;
-//   Arg a;
-
-    if (opt->options == NULL || opt->nchoices <= 0) {
-        return;
-    }
-
-    for (i = 0; i < opt->nchoices; i++) {
-        if (opt->options[i].value == value) {
-//            XtSetArg(a, XmNmenuHistory, opt->options[i].widget);
-//            XtSetValues(opt->menu, &a, 1);
-            return;
-        }
-    }
-
-    errmsg("Value not found in SetOptionChoice()");
+    QComboBox *comboBox = (QComboBox*) opt->pulldown;
+    comboBox->setCurrentIndex(value);
 }
 
 void SetSpinChoice(SpinStructure *spinp, double value)
@@ -1038,25 +942,8 @@ int GetToggleButtonState(Widget w)
 
 int GetOptionChoice(OptionStructure *opt)
 {
-//    Arg a;
-    Widget warg;
-    int i;
-
-    if (opt->options == NULL || opt->nchoices <= 0) {
-        errmsg("Internal error in GetOptionChoice()");
-        return 0;
-    }
-
-//    XtSetArg(a, XmNmenuHistory, &warg);
-//    XtGetValues(opt->menu, &a, 1);
-
-    for (i = 0; i < opt->nchoices; i++) {
-        if (opt->options[i].widget == warg) {
-            return(opt->options[i].value);
-        }
-    }
-    errmsg("Internal error in GetOptionChoice()");
-    return 0;
+    QComboBox *comboBox = (QComboBox*) opt->pulldown;
+    return comboBox->currentIndex();
 }
 
 /*
