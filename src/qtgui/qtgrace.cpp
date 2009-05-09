@@ -712,41 +712,22 @@ Widget CreateScale(Widget parent, char *s, int min, int max, int delta)
 
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
 {
-    QWidget *frame = (QWidget *) parent;
     int i;
-//    Widget form;
-//    Dimension h;
-//
-    QHBoxLayout *horizontalLayout;
+    Widget form;
+
     QPushButton *pushButton;
 
-    horizontalLayout = new QHBoxLayout(frame);
+    form = new QWidget(parent);
 
-//    form = XtVaCreateWidget("form", xmFormWidgetClass, parent,
-//                            XmNfractionBase, n,
-//                            NULL);
-//
+    QHBoxLayout *horizontalLayout = new QHBoxLayout(form);
+
     for (i = 0; i < n; i++) {
-        pushButton = new QPushButton(l[i], frame);
+        pushButton = new QPushButton(l[i], form);
         horizontalLayout->addWidget(pushButton);
         buts[i] = pushButton;
-//        buts[i] = XtVaCreateManagedWidget(l[i],
-//                                          xmPushButtonWidgetClass, form,
-//                                          XmNtopAttachment, XmATTACH_FORM,
-//                                          XmNbottomAttachment, XmATTACH_FORM,
-//                                          XmNleftAttachment, XmATTACH_POSITION,
-//                                          XmNleftPosition, i,
-//                                          XmNrightAttachment, XmATTACH_POSITION,
-//                                          XmNrightPosition, i + 1,
-//                                          XmNdefaultButtonShadowThickness, 1,
-//                                          XmNshowAsDefault, (i == 0) ? True : False,
-//                                          NULL);
     }
-//    XtManageChild(form);
-//    XtVaGetValues(buts[0], XmNheight, &h, NULL);
-//    XtVaSetValues(form, XmNpaneMaximum, h, XmNpaneMinimum, h, NULL);
-//
-//    return form;
+
+    return form;
 }
 
 void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
@@ -789,7 +770,7 @@ void aacdialog_int_cb_proc(Widget but, void *data)
     retval = cbdata->cbproc(cbdata->anydata);
 
     if (cbdata->close && retval == RETURN_SUCCESS) {
-//        XtUnmanageChild(XtParent(cbdata->form));
+        cbdata->form->close();
     }
 
     unset_wait_cursor();
@@ -798,37 +779,18 @@ void aacdialog_int_cb_proc(Widget but, void *data)
 WidgetList CreateAACDialog(Widget form,
     Widget container, AACDialog_CBProc cbproc, void *data)
 {
-    
-    //Widget fr;
-    QFrame *fr;
+    Widget fr;
     WidgetList aacbut;
     AACDialog_CBdata *cbdata_accept, *cbdata_apply;
     char *aaclab[3] = {"Apply", "Accept", "Close"};
 
-    //aacbut = (WidgetList) XtMalloc(3*sizeof(Widget));
     aacbut = (WidgetList) xmalloc(3*sizeof(Widget));
 
-//    fr = CreateFrame(form, NULL);
-//    XtVaSetValues(fr,
-//        XmNtopAttachment, XmATTACH_NONE,
-//        XmNleftAttachment, XmATTACH_FORM,
-//        XmNrightAttachment, XmATTACH_FORM,
-//        XmNbottomAttachment, XmATTACH_FORM,
-//        NULL);
-    fr = new QFrame(form);
-    fr->setFrameShape(QFrame::StyledPanel);
-    fr->setFrameShadow(QFrame::Raised);
-    CreateCommandButtons(fr, 3, aacbut, aaclab);
+    fr = CreateCommandButtons(form, 3, aacbut, aaclab);
 
     AddDialogFormChild(form, container);
     AddDialogFormChild(form, fr);
-//    XtVaSetValues(container,
-//        XmNbottomAttachment, XmATTACH_WIDGET,
-//        XmNbottomWidget, fr,
-//        NULL);
-//
-//    XtVaSetValues(form, XmNcancelButton, aacbut[2], NULL);
-//
+
     cbdata_accept = (AACDialog_CBdata*) xmalloc(sizeof(AACDialog_CBdata));
     cbdata_accept->form    = form;
     cbdata_accept->anydata = data;
@@ -845,10 +807,7 @@ WidgetList CreateAACDialog(Widget form,
     AddButtonCB(aacbut[1], aacdialog_int_cb_proc, cbdata_accept);
 //    AddButtonCB(aacbut[2], destroy_dialog_cb, XtParent(form));
     QObject::connect(aacbut[2], SIGNAL(clicked()), form, SLOT(close()));
-//
-//    XtManageChild(container);
-//    XtManageChild(form);
-//
+
     return aacbut;
 }
 
