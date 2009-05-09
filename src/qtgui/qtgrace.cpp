@@ -47,6 +47,7 @@
 #include <QComboBox>
 #include <QPainter>
 #include <QDoubleSpinBox>
+#include <QLCDNumber>
 #include <mainwindow.h>
 #include <canvaswidget.h>
 #include <qtinc.h>
@@ -678,36 +679,35 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
         layout->addWidget(widget);
     }
 
-
     return retval;
 }
 
 Widget CreateScale(Widget parent, char *s, int min, int max, int delta)
 {
-//    Widget w;
-//    XmString str;
-//
-//    str = XmStringCreateLocalized(s);
-//
-//    w = XtVaCreateManagedWidget("scroll",
-//        xmScaleWidgetClass, parent,
-//        XmNtitleString, str,
-//        XmNminimum, min,
-//        XmNmaximum, max,
-//        XmNscaleMultiple, delta,
-//        XmNvalue, 0,
-//        XmNshowValue, True,
-//        XmNprocessingDirection, XmMAX_ON_RIGHT,
-//        XmNorientation, XmHORIZONTAL,
-//#if XmVersion >= 2000
-//        XmNsliderMark, XmROUND_MARK,
-//#endif
-//        NULL);
-//
-//    XmStringFree(str);
-//
-//    return w;
-    return parent;
+    QSlider *slider = new QSlider(Qt::Horizontal, parent);
+
+    slider->setRange(min, max);
+    slider->setPageStep(delta);
+
+    QLCDNumber *lcd = new QLCDNumber(parent);
+    QObject::connect(slider, SIGNAL(valueChanged(int)), lcd, SLOT(display(int)));
+
+    QLabel *label = new QLabel(parent);
+    label->setText(s);
+
+    QWidget *widget = new QWidget(parent);
+
+    QHBoxLayout *horizontalLayout = new QHBoxLayout(widget);
+    horizontalLayout->addWidget(label);
+    horizontalLayout->addWidget(lcd);
+    horizontalLayout->addWidget(slider);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
+
+    return slider;
 }
 
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
@@ -878,6 +878,8 @@ void SetSpinChoice(SpinStructure *spinp, double value)
 
 void SetScaleValue(Widget w, int value)
 {
+    QSlider *slider = (QSlider*) w;
+    slider->setValue(value);
 //    XtVaSetValues(w, XmNvalue, value, NULL);
 }
 
@@ -926,9 +928,8 @@ double GetSpinChoice(SpinStructure *spinp)
 
 int GetScaleValue(Widget w)
 {
-    int value;
-//    XtVaGetValues(w, XmNvalue, &value, NULL);
-    return value;
+    QSlider *slider = (QSlider*) w;
+    return slider->value();
 }
 
 void set_title(char *title, char *icon_name)
