@@ -46,7 +46,7 @@
 #include <QSignalMapper>
 #include <QComboBox>
 #include <QPainter>
-#include <QStandardItemModel>
+#include <QDoubleSpinBox>
 #include <mainwindow.h>
 #include <canvaswidget.h>
 #include <qtinc.h>
@@ -588,10 +588,10 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
         comboBox->addItem(items[i].label);
     }
 
-    QLabel *label = new QLabel();
+    QLabel *label = new QLabel(parent);
     label->setText(labelstr);
 
-    QWidget *widget = new QWidget();
+    QWidget *widget = new QWidget(parent);
 
     QHBoxLayout *horizontalLayout = new QHBoxLayout(widget);
     horizontalLayout->addWidget(label);
@@ -639,79 +639,46 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
                         int type, double min, double max, double incr)
 {
     SpinStructure *retval;
-//    Widget fr, form;
-//    XmString str;
-//
-//    if (min >= max) {
-//        errmsg("min >= max in CreateSpinChoice()!");
-//        return NULL;
-//    }
-//
+    QDoubleSpinBox *spinBox;
+
+    if (min >= max) {
+        errmsg("min >= max in CreateSpinChoice()!");
+        return NULL;
+    }
+
     retval = (SpinStructure*) xmalloc(sizeof(SpinStructure));
-//
-//    retval->type = type;
-//    retval->min = min;
-//    retval->max = max;
-//    retval->incr = incr;
-//
-//    retval->rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, parent,
-//        XmNorientation, XmHORIZONTAL,
-//        NULL);
-//    str = XmStringCreateLocalized(s);
-//    XtVaCreateManagedWidget("label", xmLabelWidgetClass, retval->rc,
-//        XmNlabelString, str,
-//        NULL);
-//    XmStringFree(str);
-//    fr = XtVaCreateWidget("fr", xmFrameWidgetClass, retval->rc,
-//        XmNshadowType, XmSHADOW_ETCHED_OUT,
-//        NULL);
-//    form = XtVaCreateWidget("form", xmFormWidgetClass, fr,
-//        NULL);
-//    retval->text = XtVaCreateWidget("text", xmTextWidgetClass, form,
-//        XmNtraversalOn, True,
-//        XmNcolumns, len,
-//        NULL);
-//
-//    XtAddEventHandler(retval->text, ButtonPressMask, False, spin_updown, retval);
-//
-//    retval->arrow_up = XtVaCreateWidget("form", xmArrowButtonGadgetClass, form,
-//        XmNarrowDirection, XmARROW_UP,
-//        NULL);
-//    XtAddCallback(retval->arrow_up, XmNactivateCallback,
-//        spin_arrow_cb, (XtPointer) retval);
-//    retval->arrow_down = XtVaCreateWidget("form", xmArrowButtonGadgetClass, form,
-//        XmNarrowDirection, XmARROW_DOWN,
-//        NULL);
-//    XtAddCallback(retval->arrow_down, XmNactivateCallback,
-//        spin_arrow_cb, (XtPointer) retval);
-//    XtVaSetValues(retval->text,
-//        XmNtopAttachment, XmATTACH_FORM,
-//        XmNleftAttachment, XmATTACH_FORM,
-//        XmNbottomAttachment, XmATTACH_FORM,
-//        XmNrightAttachment, XmATTACH_NONE,
-//        NULL);
-//    XtVaSetValues(retval->arrow_down,
-//        XmNtopAttachment, XmATTACH_FORM,
-//        XmNbottomAttachment, XmATTACH_FORM,
-//        XmNleftAttachment, XmATTACH_WIDGET,
-//        XmNleftWidget, retval->text,
-//        XmNrightAttachment, XmATTACH_NONE,
-//        NULL);
-//    XtVaSetValues(retval->arrow_up,
-//        XmNtopAttachment, XmATTACH_FORM,
-//        XmNbottomAttachment, XmATTACH_FORM,
-//        XmNrightAttachment, XmATTACH_FORM,
-//        XmNleftAttachment, XmATTACH_WIDGET,
-//        XmNleftWidget, retval->arrow_down,
-//        NULL);
-//
-//    XtManageChild(retval->text);
-//    XtManageChild(retval->arrow_up);
-//    XtManageChild(retval->arrow_down);
-//    XtManageChild(form);
-//    XtManageChild(fr);
-//    XtManageChild(retval->rc);
-//
+
+    retval->type = type;
+    retval->min = min;
+    retval->max = max;
+    retval->incr = incr;
+
+    spinBox = new QDoubleSpinBox(parent);
+
+    if (retval->type == SPIN_TYPE_INT) {
+        spinBox->setDecimals(0);
+    }
+
+    spinBox->setRange(retval->min, retval->max);
+    spinBox->setSingleStep(retval->incr);
+
+    retval->rc = spinBox;
+
+    QLabel *label = new QLabel(parent);
+    label->setText(s);
+
+    QWidget *widget = new QWidget(parent);
+
+    QHBoxLayout *horizontalLayout = new QHBoxLayout(widget);
+    horizontalLayout->addWidget(label);
+    horizontalLayout->addWidget(retval->rc);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
+
+
     return retval;
 }
 
@@ -904,23 +871,9 @@ void SetOptionChoice(OptionStructure *opt, int value)
 
 void SetSpinChoice(SpinStructure *spinp, double value)
 {
-//    X11Stuff *xstuff = gapp->gui->xstuff;
-//    char buf[64];
-//
-//    if (value < spinp->min) {
-//        XBell(xstuff->disp, 50);
-//        value = spinp->min;
-//    } else if (value > spinp->max) {
-//        XBell(xstuff->disp, 50);
-//        value = spinp->max;
-//    }
-//
-//    if (spinp->type == SPIN_TYPE_FLOAT) {
-//        sprintf(buf, "%g", value);
-//    } else {
-//        sprintf(buf, "%d", (int) rint(value));
-//    }
-//    XmTextSetString(spinp->text, buf);
+    QDoubleSpinBox *spinBox = (QDoubleSpinBox*) spinp->rc;
+    
+    spinBox->setValue(value);
 }
 
 void SetScaleValue(Widget w, int value)
@@ -966,24 +919,9 @@ int xv_evalexpr(Widget w, double *answer)
 
 double GetSpinChoice(SpinStructure *spinp)
 {
-    double retval;
-
-    xv_evalexpr(spinp->text, &retval);
-    if (retval < spinp->min) {
-        errmsg("Input value below min limit in GetSpinChoice()");
-        retval = spinp->min;
-        SetSpinChoice(spinp, retval);
-    } else if (retval > spinp->max) {
-        errmsg("Input value above max limit in GetSpinChoice()");
-        retval = spinp->max;
-        SetSpinChoice(spinp, retval);
-    }
-
-    if (spinp->type == SPIN_TYPE_INT) {
-        return rint(retval);
-    } else {
-        return retval;
-    }
+    QDoubleSpinBox *spinBox = (QDoubleSpinBox*) spinp->rc;
+    
+    return spinBox->value();
 }
 
 int GetScaleValue(Widget w)

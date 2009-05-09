@@ -165,9 +165,11 @@ typedef struct {
     double max;
     double incr;
     Widget rc;
+#ifndef QT_GUI
     Widget text;
     Widget arrow_up;
     Widget arrow_down;
+#endif /* QT_GUI */
 } SpinStructure;
 
 typedef struct {
