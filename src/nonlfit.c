@@ -342,7 +342,7 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
         sprintf(buf, "Correlation coefficient: %f\n", cor);
         stufftext(buf);
         if (rms_ok) {
-            sprintf(buf, "RMS per cent error: %g\n", rms_pe);
+            sprintf(buf, "RMS relative error: %g\n", rms_pe);
             stufftext(buf);
         }
         sprintf(buf, "Theil U coefficent: %g\n", theil);
