@@ -4511,6 +4511,12 @@ Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
     return button;
 }
 
+Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
+	char *accelerator, Button_CBProc cb, void *data)
+{
+    return CreateMenuButton(parent, label, mnemonic, cb, data);
+}
+
 Widget CreateMenuCloseButton(Widget parent, Widget form)
 {
     Widget wbut;

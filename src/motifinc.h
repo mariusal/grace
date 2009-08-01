@@ -597,6 +597,8 @@ void ManageMenu(Widget menupane);
 void UnmanageMenu(Widget menupane);
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
 	Button_CBProc cb, void *data);
+Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
+        char *accelerator, Button_CBProc cb, void *data);
 Widget CreateMenuCloseButton(Widget parent, Widget shell);
 Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
     Widget form, char *ha);

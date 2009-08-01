@@ -507,8 +507,8 @@ void create_helper_frame(char *URL)
         CreateMenuCloseButton(menupane, ui->top);
         
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
-        CreateMenuButton(menupane, "Find", 'F', create_find_dialog, ui);
-        CreateMenuButton(menupane, "Find again", 'g', find_again_cb, ui);
+        CreateMenuButtonA(menupane, "Find", 'F', "Ctrl+F", create_find_dialog, ui);
+        CreateMenuButtonA(menupane, "Find again", 'g', "Ctrl+G", find_again_cb, ui);
 
         menupane = CreateMenu(menubar, "View", 'V', FALSE);
         CreateMenuButton(menupane, "Refresh", 'R', refresh_cb, ui);

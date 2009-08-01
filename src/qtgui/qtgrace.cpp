@@ -1232,6 +1232,17 @@ Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
     return (QWidget*)action;
 }
 
+Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
+	char *accelerator, Button_CBProc cb, void *data)
+{
+    QAction *action = (QAction*)
+        CreateMenuButton(parent, label, mnemonic, cb, data);
+
+    action->setShortcut( QKeySequence(accelerator) );
+
+    return (QWidget*)action;
+}
+
 Widget CreateSeparator(Widget parent)
 {
     QToolBar *toolBar = (QToolBar*) parent;
