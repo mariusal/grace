@@ -1203,8 +1203,11 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
 {
     QMenuBar *menuBar = (QMenuBar*)parent;
 
-    QMenu *menu = new QMenu(menuBar);
-    menu->setTitle(label);
+    QString l(label);
+    int index = l.indexOf(mnemonic);
+    l.insert(index, "&");
+
+    QMenu *menu = new QMenu(l, menuBar);
 
     menuBar->addAction(menu->menuAction());
 
@@ -1216,8 +1219,11 @@ Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
 {
     QMenu *menu = (QMenu*)parent;
 
-    QAction *action = new QAction(parent);
-    action->setText(label);
+    QString l(label);
+    int index = l.indexOf(mnemonic);
+    l.insert(index, "&");
+
+    QAction *action = new QAction(l, parent);
 
     AddButtonCB((QWidget*)action, cb, data);
 
