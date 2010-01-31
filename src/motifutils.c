@@ -1621,6 +1621,11 @@ GraphPopupMenu *CreateGraphPopupEntries(ListStructure *listp)
     graph_popup_menu = xmalloc(sizeof(GraphPopupMenu));
 
     popup = XmCreatePopupMenu(listp->list, "graphPopupMenu", NULL, 0);
+#if XmVersion >= 2000    
+    XtVaSetValues(popup, XmNpopupEnabled, XmPOPUP_DISABLED, NULL);
+#else
+    XtVaSetValues(popup, XmNpopupEnabled, False, NULL);
+#endif
     graph_popup_menu->popup = popup;
     
     graph_popup_menu->label_item = CreateMenuLabel(popup, "Selection:");
@@ -2243,6 +2248,11 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     
     set_popup_menu = xmalloc(sizeof(SetPopupMenu));
     popup = XmCreatePopupMenu(listp->list, "setPopupMenu", NULL, 0);
+#if XmVersion >= 2000    
+    XtVaSetValues(popup, XmNpopupEnabled, XmPOPUP_DISABLED, NULL);
+#else
+    XtVaSetValues(popup, XmNpopupEnabled, False, NULL);
+#endif
     set_popup_menu->popup = popup;
     
     set_popup_menu->label_item = CreateMenuLabel(popup, "Selection:");
