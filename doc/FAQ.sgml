@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.22)
+  <title>Grace FAQ (for Grace-5.1.23)
   <author>by the Grace Team
-  <date>20.05.2008
+  <date>12.06.2010
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -722,7 +722,7 @@ XMgrace*XmMessageBox.translations: #override\n\
       <p>
 
         You can read in several kinds of files where data is
-        arranged in columns separated by spaces or tabs. Lines beginnig
+        arranged in columns separated by spaces or tabs. Lines beginning
         with "#" are ignored.
 
     <sect1>What is block data?
@@ -757,7 +757,7 @@ XMgrace*XmMessageBox.translations: #override\n\
         This numbering scheme is in wide use, especially in
         astronomy, and is used for the internal representation of
         dates in Grace. Some further explanations are given on
-        <url url="http://www.magnet.ch/serendipity/hermetic/cal_stud/jdn.htm"
+        <url url="http://en.wikipedia.org/wiki/Julian_day"
         name="this page">.
 
         The <tt>convcal</tt> utility in <tt>$GRACE_HOME/auxiliary/</tt> can
@@ -932,7 +932,7 @@ XMgrace*background: ...
         save a project for the first time (or use "File/Save as"), there is
         a relevant "Data format" field in the popup you are presented with.
 
-    <sect1>When I save a project and then re-open it, the julian date values
+    <sect1>When I save a project and then re-open it, the Julian date values
            appear to be rounded to the nearest half day.
       <p>
         
