@@ -168,7 +168,7 @@ void create_about_grtool(void *data)
 	fr = CreateFrame(about_panel, "Legal stuff");
         rc = CreateVContainer(fr);
 	CreateLabel(rc, "Copyright (c) 1991-1995 Paul J Turner");
-	CreateLabel(rc, "Copyright (c) 1996-2008 Grace Development Team");
+	CreateLabel(rc, "Copyright (c) 1996-2010 Grace Development Team");
 	CreateLabel(rc, "Maintained by Evgeny Stambulchik");
 	CreateLabel(rc, "All rights reserved");
 	CreateLabel(rc,
