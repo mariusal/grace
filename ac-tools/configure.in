@@ -474,7 +474,27 @@ AC_STRUCT_TM
 dnl **** Checks for library functions.
 AC_TYPE_SIGNAL
 AC_FUNC_ALLOCA
-AC_CHECK_FUNCS(getcwd gethostname)
+AC_CHECK_FUNCS(getcwd)
+
+case "$host_os" in
+  *cygwin* | *mingw*)
+    AC_CACHE_CHECK([for gethostname], ac_cv_gethostname,
+      gethostname_save_LIBS="$LIBS"
+      LIBS="$LIBS -lws2_32"
+      AC_TRY_LINK([#include <windows.h>],
+        [gethostname(NULL, 0);],
+        ac_cv_gethostname="yes",
+        ac_cv_gethostname="no") 
+      LIBS="$gethostname_save_LIBS")
+    if test "$ac_cv_gethostname" = "yes"; then
+      AC_DEFINE(HAVE_GETHOSTNAME)
+    fi
+  ;;
+  *)
+    AC_CHECK_FUNCS(gethostname)
+  ;;
+esac
+
 AC_CHECK_FUNCS(strstr)
 AC_CHECK_FUNCS(memcpy memmove bcopy)
 AC_CHECK_FUNCS(fcntl)
