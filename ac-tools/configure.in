@@ -23,6 +23,7 @@ AC_SUBST(GUI_FLAGS)
 AC_SUBST(FC)
 AC_SUBST(GUI_LIBS)
 AC_SUBST(NOGUI_LIBS)
+AC_SUBST(WINDOWS_LIBS)
 AC_SUBST(NETCDF_LIBS)
 AC_SUBST(XDR_LIB)
 AC_SUBST(DL_LIB)
@@ -807,6 +808,7 @@ then
   case "$host_os" in
       *cygwin* | *mingw*)
       LDFLAGS="$LDFLAGS -L$QTDIR/lib -lQtGui4 -lQtCore4"
+      WINDOWS_LIBS="-lws2_32"
       ;;
       *)
       LDFLAGS="$LDFLAGS -L$QTDIR/lib -lQtGui -lQtCore -lpthread"

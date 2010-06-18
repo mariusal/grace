@@ -139,6 +139,9 @@ NOGUI_LIBS=@NOGUI_LIBS@
 # GUI libraries
 GUI_LIBS=@X_LIBS@ @GUI_LIBS@
 
+# Windows libraries
+WINDOWS_LIBS=@WINDOWS_LIBS@
+
 # Default paper size
 PAPERSIZE=@PAPERSIZE@
 
