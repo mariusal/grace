@@ -36,15 +36,21 @@
 
 #include <stdio.h>
 
+#ifndef QT_GUI
 #include <Xm/Xm.h>
 #include <Xm/Text.h>
+#else
+#include <string.h>
+#endif
 
 #include "globals.h"
 #include "files.h"
 #include "motifinc.h"
 #include "xprotos.h"
 
+#ifndef QT_GUI
 extern XtAppContext app_con;
+#endif
 
 static void clear_results(Widget but, void *data);
 static void popup_on(Widget tbut, int onoff, void *data);
@@ -67,6 +73,7 @@ typedef struct _console_ui
     int auto_update;
 } console_ui;
 
+#ifndef QT_GUI
 static void command_hist_prev(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     char *s;
@@ -105,6 +112,7 @@ static XtActionsRec command_hist_actions[] = {
     {"command_hist_prev", command_hist_prev},
     {"command_hist_next", command_hist_next}
 };
+#endif
 
 static void *wrap_str_copy(AMem *amem, void *data)
 {
@@ -168,10 +176,13 @@ static void create_monitor_frame(int force, char *msg)
         ui->cmd = CreateTextInput(fr, "Command:");
         SetUserData(ui->cmd->text, ui);
         AddTextInputCB(ui->cmd, cmd_cb, ui);
+
+#ifndef QT_GUI
 	XtOverrideTranslations(ui->cmd->text,
             XtParseTranslationTable(command_hist_table));
         XtAppAddActions(app_con,
             command_hist_actions, XtNumber(command_hist_actions));
+#endif
         AddDialogFormChild(ui->mon_frame, fr);
         FixateDialogFormChild(fr);
 
@@ -179,8 +190,12 @@ static void create_monitor_frame(int force, char *msg)
     }
     
     if (msg != NULL) {
+#ifndef QT_GUI
         XmTextPosition pos;
         pos = XmTextGetLastPosition(ui->monText->text);
+#else
+        int pos;
+#endif
         TextInsert(ui->monText, pos, msg);
     }
     

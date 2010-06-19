@@ -48,6 +48,8 @@
 #include <QPainter>
 #include <QDoubleSpinBox>
 #include <QLCDNumber>
+#include <QPlainTextEdit>
+#include <QLineEdit>
 #include <mainwindow.h>
 #include <canvaswidget.h>
 #include <qtinc.h>
@@ -369,16 +371,6 @@ void xregister_rti(Input_buffer *ib)
 
 // src/motifutils.c
 void unlink_ssd_ui(Quark *q)
-{
-}
-
-// src/monwin.c
-void stufftextwin(char *msg)
-{
-}
-
-// src/monwin.c
-void errwin(const char *msg)
 {
 }
 
@@ -816,8 +808,16 @@ void SetToggleButtonState(Widget w, int value)
     if (w == NULL) {
         return;
     }
-    QCheckBox *cb = (QCheckBox*)(w);
-    cb->setChecked(value ? true : false);
+    
+    QCheckBox *cb = qobject_cast<QCheckBox *>(w);
+    if (cb != 0) {
+        cb->setChecked(value ? true : false);
+    }
+
+    QAction *ac = qobject_cast<QAction *>(w);
+    if (ac != 0) {
+        ac->setChecked(value ? true : false);
+    }
 
     return;
 }
@@ -1394,10 +1394,46 @@ void create_cumulative_frame(Widget but, void *data)
 Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 	TB_CBProc cb, void *data)
 {
-}
+    QMenu *menu = (QMenu*)parent;
 
-void create_monitor_frame_cb(Widget but, void *data)
-{
+    QString l(label);
+    int index = l.indexOf(mnemonic);
+    l.insert(index, "&");
+
+    QAction *action = new QAction(l, parent);
+    action->setCheckable(true);
+
+//    AddButtonCB((QWidget*)action, cb, data);
+
+    menu->addAction(action);
+
+    return (QWidget*)action;
+
+//    Widget button;
+//    XmString str;
+//    char *name, ms[2];
+//
+//    ms[0] = mnemonic;
+//    ms[1] = '\0';
+//
+//    str = XmStringCreateLocalized(label);
+//    name = label_to_resname(label, NULL);
+//    button = XtVaCreateManagedWidget(name,
+//        xmToggleButtonWidgetClass, parent,
+//        XmNlabelString, str,
+//        XmNmnemonic, XStringToKeysym(ms),
+//        XmNvisibleWhenOff, True,
+//        XmNindicatorOn, True,
+//        NULL);
+//    xfree(name);
+//    XmStringFree(str);
+//
+//    if (cb) {
+//        AddToggleButtonCB(button, cb, data);
+//    }
+//
+//    return button;
+
 }
 
 void update_all_cb(Widget but, void *data)
@@ -1435,4 +1471,313 @@ void set_view_items(void)
 {
 }
 
+void ManageChild(Widget w)
+{
+//    XtManageChild(w);
+}
+
+void TextInsert(TextStructure *cst, int pos, char *s)
+{
+ //   XmTextInsert(cst->text, pos, s);
+    QPlainTextEdit *text = (QPlainTextEdit*) cst->text;
+    text->appendPlainText(s);
+}
+
+/*
+ * same for AddButtonCB
+ */
+void destroy_dialog_cb(Widget but, void *data)
+{
+    ((Widget) data)->close();
+}
+
+Widget CreateMenuCloseButton(Widget parent, Widget form)
+{
+    Widget wbut;
+//    XmString str;
+
+    wbut = CreateMenuButton(parent,
+        "Close", 'C', destroy_dialog_cb, form);
+//    wbut = CreateMenuButton(parent,
+//        "Close", 'C', destroy_dialog_cb, XtParent(form));
+//    str = XmStringCreateLocalized("Esc");
+//    XtVaSetValues(wbut, XmNacceleratorText, str, NULL);
+//    XmStringFree(str);
+//    XtVaSetValues(form, XmNcancelButton, wbut, NULL);
+
+    return wbut;
+}
+
+void AddHelpCB(Widget w, char *ha)
+{
+ //   if (XtHasCallbacks(w, XmNhelpCallback) == XtCallbackHasSome) {
+        /* allow only one help callback */
+  //      XtRemoveAllCallbacks(w, XmNhelpCallback);
+ //   }
+
+//    XtAddCallback(w, XmNhelpCallback, help_int_cb, (XtPointer) ha);
+}
+
+Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
+    Widget form, char *ha)
+{
+    Widget wbut;
+
+    wbut = CreateMenuButton(parent, label, mnemonic, HelpCB, ha);
+    AddHelpCB(form, ha);
+
+    return wbut;
+}
+
+TextStructure *CreateTextInput(Widget parent, char *s)
+{
+    TextStructure *retval;
+//    XmString str;
+
+    retval = (TextStructure*) xmalloc(sizeof(TextStructure));
+    //retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL);
+    retval->form = CreateFrame(parent, NULL);
+
+    QLabel *label = new QLabel(retval->form);
+    label->setText(s);
+    retval->label = label;
+
+    QLayout *layout = new QHBoxLayout();
+    layout->addWidget(retval->label);
+    //str = XmStringCreateLocalized(s);
+    //retval->label = XtVaCreateManagedWidget("label",
+        //xmLabelWidgetClass, retval->form,
+//        XmNlabelString, str,
+//        XmNtopAttachment, XmATTACH_FORM,
+//        XmNbottomAttachment, XmATTACH_FORM,
+//        XmNleftAttachment, XmATTACH_FORM,
+//        XmNrightAttachment, XmATTACH_NONE,
+//        NULL);
+//    XmStringFree(str);
+//
+    retval->text = new QLineEdit(retval->form);
+//    retval->text = XtVaCreateManagedWidget("cstext",
+//        xmTextWidgetClass, retval->form,
+//        XmNtraversalOn, True,
+//        XmNtopAttachment, XmATTACH_FORM,
+//        XmNbottomAttachment, XmATTACH_FORM,
+//        XmNleftAttachment, XmATTACH_WIDGET,
+//        XmNleftWidget, retval->label,
+//        XmNrightAttachment, XmATTACH_FORM,
+//        NULL);
+//
+//    XtManageChild(retval->form);
+    layout->addWidget(retval->text);
+    retval->form->setLayout(layout);
+
+    return retval;
+}
+
+/* 
+ * create a multiline editable window
+ * parent = parent widget
+ * nrows  = number of lines in the window
+ * s      = label for window
+ */
+TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
+{
+    TextStructure *retval;
+//    XmString str;
+    //Arg args[3];
+    //int ac;
+
+    retval = (TextStructure*) xmalloc(sizeof(TextStructure));
+//    retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL);
+    retval->form = CreateFrame(parent, NULL);
+
+//    str = XmStringCreateLocalized(s);
+    QLabel *label = new QLabel(retval->form);
+    label->setText(s);
+    retval->label = label;
+
+    QLayout *layout = new QVBoxLayout();
+    layout->addWidget(retval->label);
+//    retval->label = XtVaCreateManagedWidget("label",
+//        xmLabelWidgetClass, retval->form,
+//        XmNlabelString, str,
+//        XmNtopAttachment, XmATTACH_FORM,
+//        XmNleftAttachment, XmATTACH_FORM,
+//        XmNrightAttachment, XmATTACH_FORM,
+//        NULL);
+//    XmStringFree(str);
+
+    retval->text = new QPlainTextEdit(retval->form);
+//    ac = 0;
+    if (nrows > 0) { //TODO: what does nrows mean?
+//        XtSetArg(args[ac], XmNrows, nrows); ac++;
+    }
+//    XtSetArg(args[ac], XmNeditMode, XmMULTI_LINE_EDIT); ac++;
+//    XtSetArg(args[ac], XmNvisualPolicy, XmVARIABLE); ac++;
+//    retval->text = XmCreateScrolledText(retval->form, "text", args, ac);
+    layout->addWidget(retval->text);
+//    XtVaSetValues(XtParent(retval->text),
+//        XmNtopAttachment, XmATTACH_WIDGET,
+//        XmNtopWidget, retval->label,
+//        XmNleftAttachment, XmATTACH_FORM,
+//        XmNrightAttachment, XmATTACH_FORM,
+//        XmNbottomAttachment, XmATTACH_FORM,
+//        NULL);
+//    XtManageChild(retval->text);
+
+//    XtManageChild(retval->form);
+    retval->form->setLayout(layout);
+    return retval;
+}
+
+void SetTextEditable(TextStructure *cst, int onoff)
+{
+    //XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
+    QPlainTextEdit *text = (QPlainTextEdit*) cst->text;
+    text->setReadOnly(onoff? true:false);
+}
+
+void SetUserData(Widget w, void *udata)
+{
+//    XtVaSetValues(w, XmNuserData, udata, NULL);
+}
+
+void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
+{
+//    Text_CBdata *cbdata;
+//
+//    cbdata = xmalloc(sizeof(Text_CBdata));
+//    cbdata->cst = cst;
+//    cbdata->anydata = data;
+//    cbdata->cbproc = cbproc;
+//    cbdata->timeout_id = (XtIntervalId) 0;
+//    cbdata->cst->locked = FALSE;
+//
+//    XtAddCallback(cst->text,
+//        XmNactivateCallback, text_int_cb_proc, (XtPointer) cbdata);
+//    XtAddCallback(cst->text,
+//        XmNmodifyVerifyCallback, text_int_mv_cb_proc, (XtPointer) cbdata);
+}
+
+FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
+{
+    FSBStructure *retval;
+//    OptionStructure *opt;
+//    Widget fr, form, button;
+//    XmString xmstr;
+//    char *bufp, *resname;
+//
+    retval = (FSBStructure*) xmalloc(sizeof(FSBStructure));
+//    resname = label_to_resname(s, "FSB");
+//    retval->FSB = XmCreateFileSelectionDialog(parent, resname, NULL, 0);
+//    xfree(resname);
+//    retval->dialog = XtParent(retval->FSB);
+//    handle_close(retval->dialog);
+//    bufp = copy_string(NULL, "Grace: ");
+//    bufp = concat_strings(bufp, s);
+//    XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
+//    xfree(bufp);
+//
+//    xmstr = XmStringCreateLocalized(get_workingdir(gapp));
+//    XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);
+//    XmStringFree(xmstr);
+//
+//    XtAddCallback(retval->FSB,
+//        XmNcancelCallback, destroy_dialog, retval->dialog);
+//    AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
+//
+//    retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
+//#if XmVersion >= 2000    
+//    button = CreateToggleButton(retval->rc, "Show hidden files");
+//    AddToggleButtonCB(button, show_hidden_cb, retval);
+//    XtVaSetValues(retval->FSB, XmNfileFilterStyle, XmFILTER_HIDDEN_FILES, NULL);
+//#endif
+//    fr = CreateFrame(retval->rc, NULL);
+//    form = XtVaCreateWidget("form", xmFormWidgetClass, fr, NULL);
+//    opt = CreateOptionChoice(form, "Chdir to:", 1, FSB_ITEMS_NUM, fsb_items);
+//    AddOptionChoiceCB(opt, fsb_cd_cb, (void *) retval->FSB);
+//    button = CreateButton(form, "Set as cwd");
+//    AddButtonCB(button, fsb_setcwd_cb, (void *) retval->FSB);
+//
+//    XtVaSetValues(opt->menu,
+//        XmNleftAttachment, XmATTACH_FORM,
+//        XmNtopAttachment, XmATTACH_FORM,
+//        XmNbottomAttachment, XmATTACH_FORM,
+//        XmNrightAttachment, XmATTACH_NONE,
+//        NULL);
+//    XtVaSetValues(button,
+//        XmNleftAttachment, XmATTACH_NONE,
+//        XmNtopAttachment, XmATTACH_FORM,
+//        XmNbottomAttachment, XmATTACH_FORM,
+//        XmNrightAttachment, XmATTACH_FORM,
+//        NULL);
+//    XtManageChild(form);
+//
+//    XtManageChild(retval->rc);
+
+    return retval;
+}
+
+void AddFileSelectionBoxCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
+{
+//    FSB_CBdata *cbdata;
+//
+//    cbdata = xmalloc(sizeof(FSB_CBdata));
+//    cbdata->fsb = fsb;
+//    cbdata->cbproc = (FSB_CBProc) cbproc;
+//    cbdata->anydata = anydata;
+//    XtAddCallback(fsb->FSB,
+//        XmNokCallback, fsb_int_cb_proc, (XtPointer) cbdata);
+}
+
+char *GetTextString(TextStructure *cst)
+{
+    char *buf;
+//    char *s, *buf;
+
+    QPlainTextEdit *plainText = (QPlainTextEdit*) cst->text;
+    if (plainText != 0) {
+        QByteArray ba = plainText->toPlainText().toLatin1();
+        buf = ba.data(); 
+    }
+
+    QLineEdit *text = (QLineEdit*) cst->text;
+    if (text != 0) {
+        QByteArray ba = text->text().toLatin1();
+        buf = ba.data(); 
+    }
+
+//    s = XmTextGetString(cst->text);
+//    buf = copy_string(NULL, s);
+//    XtFree(s);
+
+    return buf;
+}
+
+void SetTextString(TextStructure *cst, char *s)
+{
+    cst->locked = TRUE;
+
+    QPlainTextEdit *plainText = (QPlainTextEdit*) cst->text;
+    if (plainText != 0) {
+        plainText->setPlainText(s); 
+    }
+
+    QLineEdit *text = (QLineEdit*) cst->text;
+    if (text != 0) {
+        text->setText(s); 
+    }
+//    XmTextSetString(cst->text, s ? s : "");
+//    XmTextSetInsertionPosition(cst->text, s ? strlen(s):0);
+}
+
+void FixateDialogFormChild(Widget w)
+{
+
+//    Widget prev;
+//    XtVaGetValues(w, XmNtopWidget, &prev, NULL);
+//    XtVaSetValues(w, XmNtopAttachment, XmATTACH_NONE, NULL);
+//    XtVaSetValues(prev, XmNbottomAttachment, XmATTACH_WIDGET,
+//        XmNbottomWidget, w,
+//        NULL);
+}
 
