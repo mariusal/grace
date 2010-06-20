@@ -1542,14 +1542,15 @@ TextStructure *CreateTextInput(Widget parent, char *s)
 
     retval = (TextStructure*) xmalloc(sizeof(TextStructure));
     //retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL);
-    retval->form = CreateFrame(parent, NULL);
+    QLayout *layout = new QHBoxLayout(parent);
+
+    retval->form = parent;
 
     QLabel *label = new QLabel(retval->form);
     label->setText(s);
+    layout->addWidget(label);
     retval->label = label;
 
-    QLayout *layout = new QHBoxLayout();
-    layout->addWidget(retval->label);
     //str = XmStringCreateLocalized(s);
     //retval->label = XtVaCreateManagedWidget("label",
         //xmLabelWidgetClass, retval->form,
@@ -1561,7 +1562,9 @@ TextStructure *CreateTextInput(Widget parent, char *s)
 //        NULL);
 //    XmStringFree(str);
 //
-    retval->text = new QLineEdit(retval->form);
+    QLineEdit *lineEdit = new QLineEdit(retval->form);
+    layout->addWidget(lineEdit);
+    retval->text = lineEdit;
 //    retval->text = XtVaCreateManagedWidget("cstext",
 //        xmTextWidgetClass, retval->form,
 //        XmNtraversalOn, True,
@@ -1573,8 +1576,6 @@ TextStructure *CreateTextInput(Widget parent, char *s)
 //        NULL);
 //
 //    XtManageChild(retval->form);
-    layout->addWidget(retval->text);
-    retval->form->setLayout(layout);
 
     return retval;
 }
@@ -1593,16 +1594,16 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
     //int ac;
 
     retval = (TextStructure*) xmalloc(sizeof(TextStructure));
+    retval->form = parent;
 //    retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL);
-    retval->form = CreateFrame(parent, NULL);
+    QLayout *layout = new QVBoxLayout(parent);
 
 //    str = XmStringCreateLocalized(s);
     QLabel *label = new QLabel(retval->form);
     label->setText(s);
+    layout->addWidget(label);
     retval->label = label;
 
-    QLayout *layout = new QVBoxLayout();
-    layout->addWidget(retval->label);
 //    retval->label = XtVaCreateManagedWidget("label",
 //        xmLabelWidgetClass, retval->form,
 //        XmNlabelString, str,
@@ -1612,15 +1613,16 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 //        NULL);
 //    XmStringFree(str);
 
-    retval->text = new QPlainTextEdit(retval->form);
+    QPlainTextEdit *pTextEdit = new QPlainTextEdit(retval->form);
+    layout->addWidget(pTextEdit);
+    retval->text = pTextEdit;
 //    ac = 0;
-    if (nrows > 0) { //TODO: what does nrows mean?
+//    if (nrows > 0) { //TODO: what does nrows mean?
 //        XtSetArg(args[ac], XmNrows, nrows); ac++;
-    }
+//    }
 //    XtSetArg(args[ac], XmNeditMode, XmMULTI_LINE_EDIT); ac++;
 //    XtSetArg(args[ac], XmNvisualPolicy, XmVARIABLE); ac++;
 //    retval->text = XmCreateScrolledText(retval->form, "text", args, ac);
-    layout->addWidget(retval->text);
 //    XtVaSetValues(XtParent(retval->text),
 //        XmNtopAttachment, XmATTACH_WIDGET,
 //        XmNtopWidget, retval->label,
@@ -1631,7 +1633,7 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 //    XtManageChild(retval->text);
 
 //    XtManageChild(retval->form);
-    retval->form->setLayout(layout);
+    //retval->form->setLayout(layout);
     return retval;
 }
 
