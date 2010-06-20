@@ -66,8 +66,6 @@ extern "C" {
 static MainWindow *mainWin;
 static CanvasWidget *canvasWidget;
 static QApplication *app;
-static ButtonCallback *buttonCallback = new ButtonCallback();
-static QSignalMapper *signalMapper = new QSignalMapper(mainWin);
 
 
 void set_wait_cursor()
@@ -136,8 +134,6 @@ void startup_gui(GraceApp *gapp)
 
     xdrawgraph(gapp->gp);
 
-    QObject::connect(signalMapper, SIGNAL(mapped(QObject*)),
-                     buttonCallback, SLOT(buttonClicked(QObject*))); 
     //XtAppMainLoop(app_con);
     mainWin->show();
     qDebug("startup_gui end");
@@ -422,6 +418,19 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
     }
 
     return yesno_retval;
+}
+
+//    XtAddCallback(retval->FSB,
+//        XmNcancelCallback, destroy_dialog, retval->dialog);
+//static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void AddCallback(const QObject *sender,
+                 const char *signal,
+                 void (*callback)(Widget, XtPointer, XtPointer),
+                 void *data)
+{
+    CallBack *callBack = new CallBack();
+    callBack->setCallBack(callback, data);
+    QObject::connect(sender, signal, callBack, SLOT(callBack()));
 }
 
 Widget CreateDialogForm(Widget parent, const char *s)
@@ -729,6 +738,18 @@ Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
     return form;
 }
 
+typedef struct {
+    Widget but;
+    Button_CBProc cbproc;
+    void *anydata;
+} Button_CBdata;
+
+static void button_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Button_CBdata *cbdata = (Button_CBdata *) client_data;
+    cbdata->cbproc(cbdata->but, cbdata->anydata);
+}
+
 void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
 {
     Button_CBdata *cbdata;
@@ -738,15 +759,13 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
 
-    Callback_Data *callbackData = new Callback_Data();
-    callbackData->cbdata = cbdata;
-    signalMapper->setMapping(button, callbackData);
-
     if (QPushButton *pb = qobject_cast<QPushButton *>(button)) {
-       QObject::connect(pb, SIGNAL(clicked()), signalMapper, SLOT (map()));
+        AddCallback(button, SIGNAL(clicked()),
+                    button_int_cb_proc, (XtPointer) cbdata);
     }
     if (QAction *ac = qobject_cast<QAction *>(button)) {
-       QObject::connect(ac, SIGNAL(triggered()), signalMapper, SLOT (map()));
+        AddCallback(button, SIGNAL(triggered()),
+                    button_int_cb_proc, (XtPointer) cbdata);
     }
 }
 

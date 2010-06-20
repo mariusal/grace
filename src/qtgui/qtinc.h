@@ -36,7 +36,7 @@ typedef struct QWidget QWidget;
 typedef QWidget *Widget;
 typedef QWidget **WidgetList;
 typedef int Boolean;
-typedef int XtPointer;
+typedef void *XtPointer;
 typedef int Cursor;
 
 #endif /* __QTINC_H_ */

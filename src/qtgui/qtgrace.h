@@ -7,29 +7,23 @@ extern "C" {
 #include <motifinc.h>
 }
 
-typedef struct {
-    Widget but;
-    Button_CBProc cbproc;
-    void *anydata;
-} Button_CBdata;
-
-class Callback_Data : public QObject
+class CallBack : public QObject
 {
     Q_OBJECT
 
 public:
-    Button_CBdata *cbdata;
-};
+    void (*callback)(Widget, XtPointer, XtPointer);
+    void *data;
 
-class ButtonCallback : public QObject
-{
-    Q_OBJECT
+    void setCallBack(void (*callback)(Widget, XtPointer, XtPointer),
+                     void *data) {
+        this->callback = callback;
+        this->data = data;
+    };
 
 public slots:
-    void buttonClicked(QObject* data) {
-        qDebug("ButtonCallback buttonClicked");
-        Button_CBdata *cbdata = (Button_CBdata *) ((Callback_Data*)data)->cbdata;
-        cbdata->cbproc(cbdata->but, cbdata->anydata);
+    void callBack() {
+        callback(NULL, (XtPointer) data, NULL);
     };
 };
 
