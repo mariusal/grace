@@ -1710,17 +1710,18 @@ typedef struct {
 //            TEXT_TIMEOUT, text_timer_proc, client_data);
 //    }
 //}
-//
-//static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-//{
-//    char *s;
-//    Text_CBdata *cbdata = (Text_CBdata *) client_data;
-//    s = XmTextGetString(w);
-//    cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
-//    XtFree(s);
-//}
-//
-//
+
+static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    char *s;
+    Text_CBdata *cbdata = (Text_CBdata *) client_data;
+    //s = XmTextGetString(w);
+    //cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
+    cbdata->cbproc(cbdata->cst, "xxx", cbdata->anydata);
+    //XtFree(s);
+    qDebug("press enter");
+}
+
 void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
 {
     Text_CBdata *cbdata;
@@ -1732,11 +1733,13 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
    // cbdata->timeout_id = (XtIntervalId) 0;
     cbdata->cst->locked = FALSE;
 
-//    QLineEdit *text = (QLineEdit*) cst->text;
+    QLineEdit *text = (QLineEdit*) cst->text;
 //    QObject::connect(text, SIGNAL(returnPressed()),
 //                     signalMapper, SLOT (map()));
 //    QObject::connect(text, SIGNAL(textChanged(QString&)),
 //                     signalMapper, SLOT (map()));
+    AddCallback(text, SIGNAL(returnPressed()),
+                text_int_cb_proc, (XtPointer) cbdata);
 //    XtAddCallback(cst->text,
 //        XmNactivateCallback, text_int_cb_proc, (XtPointer) cbdata);
 //    XtAddCallback(cst->text,
