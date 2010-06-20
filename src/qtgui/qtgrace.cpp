@@ -105,7 +105,9 @@ void startup_gui(GraceApp *gapp)
     //            "                                                           stop: 0 #dadbde, stop: 1 #f6f7fa);\n"
     //            " }"));
 
-    CreateMainMenuBar(mainWin);
+    QMenuBar *menuBar = (QMenuBar *) CreateMainMenuBar(mainWin);
+    mainWin->setMenuBar(menuBar);
+
     CreateToolBar(mainWin->ui.toolBar);
 /*
  * initialize some option menus
@@ -510,7 +512,11 @@ void AddDialogFormChild(Widget form, Widget child)
     // It is created in CreateDialogForm
     QLayout *layout = form->layout();
 
-    layout->addWidget(child);
+    if (QMenuBar *menuBar = qobject_cast<QMenuBar *>(child)) {
+        layout->setMenuBar(menuBar); 
+    } else {
+        layout->addWidget(child);
+    }
 
 //    Widget last_widget;
 //
@@ -1195,13 +1201,6 @@ void raise_explorer(GUI *gui, Quark *q)
 Widget CreateMenuBar(Widget parent)
 {
     QMenuBar *menuBar = new QMenuBar(parent);
-
-    if (QMainWindow *mw = qobject_cast<QMainWindow *>(parent)) {
-        mw->setMenuBar(menuBar);
-    } else {
-        QLayout *layout = parent->layout();
-        layout->setMenuBar(menuBar); 
-    }
 
     return menuBar;
 }
