@@ -735,12 +735,12 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
     callbackData->cbdata = cbdata;
     signalMapper->setMapping(button, callbackData);
 
-    // TODO: remove this HACK, one connect for QPushButton other for QAction
-    QObject::connect(button, SIGNAL(clicked()), signalMapper, SLOT (map()));
-    QObject::connect(button, SIGNAL(triggered()), signalMapper, SLOT (map()));
-    
-//    XtAddCallback(button,
-//        XmNactivateCallback, button_int_cb_proc, (XtPointer) cbdata);
+    if (QPushButton *pb = qobject_cast<QPushButton *>(button)) {
+       QObject::connect(pb, SIGNAL(clicked()), signalMapper, SLOT (map()));
+    }
+    if (QAction *ac = qobject_cast<QAction *>(button)) {
+       QObject::connect(ac, SIGNAL(triggered()), signalMapper, SLOT (map()));
+    }
 }
 
 typedef struct {
@@ -797,8 +797,7 @@ WidgetList CreateAACDialog(Widget form,
 
     AddButtonCB(aacbut[0], aacdialog_int_cb_proc, cbdata_apply);
     AddButtonCB(aacbut[1], aacdialog_int_cb_proc, cbdata_accept);
-//    AddButtonCB(aacbut[2], destroy_dialog_cb, XtParent(form));
-    QObject::connect(aacbut[2], SIGNAL(clicked()), form, SLOT(close()));
+    AddButtonCB(aacbut[2], destroy_dialog_cb, form);
 
     return aacbut;
 }
