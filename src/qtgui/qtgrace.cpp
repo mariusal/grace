@@ -459,6 +459,9 @@ Widget CreateDialogForm(Widget parent, const char *s)
     w->setWindowTitle(bufp);
     xfree(bufp);
 
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    w->setLayout(mainLayout);
+
     return w;
 }
 
@@ -503,12 +506,10 @@ Widget CreateFrame(Widget parent, char *s)
 
 void AddDialogFormChild(Widget form, Widget child)
 {
+    // DialogForm allways has layout.
+    // It is created in CreateDialogForm
     QLayout *layout = form->layout();
 
-    if (layout == 0) {
-        layout = new QVBoxLayout();
-        form->setLayout(layout);
-    }
     layout->addWidget(child);
 
 //    Widget last_widget;
@@ -1194,7 +1195,14 @@ void raise_explorer(GUI *gui, Quark *q)
 Widget CreateMenuBar(Widget parent)
 {
     QMenuBar *menuBar = new QMenuBar(parent);
-    mainWin->setMenuBar(menuBar);
+
+    if (QMainWindow *mw = qobject_cast<QMainWindow *>(parent)) {
+        mw->setMenuBar(menuBar);
+    } else {
+        QLayout *layout = parent->layout();
+        layout->setMenuBar(menuBar); 
+    }
+
     return menuBar;
 }
 
