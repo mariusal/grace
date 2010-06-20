@@ -1649,17 +1649,75 @@ void SetUserData(Widget w, void *udata)
 //    XtVaSetValues(w, XmNuserData, udata, NULL);
 }
 
+typedef struct {
+    TextStructure *cst;
+    Text_CBProc cbproc;
+    void *anydata;
+    Widget w;
+    //XtIntervalId timeout_id;
+} Text_CBdata;
+
+//static void text_timer_proc(XtPointer client_data, XtIntervalId *id)
+//{
+//    char *s;
+//    Text_CBdata *cbdata = (Text_CBdata *) client_data;
+//
+//    s = XmTextGetString(cbdata->w);
+//    cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
+//    XtFree(s);
+//    cbdata->timeout_id = (XtIntervalId) 0;
+//}
+//
+///* Text input timeout [ms] */
+//#define TEXT_TIMEOUT    0
+//
+//static void text_int_mv_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+//{
+//    Text_CBdata *cbdata = (Text_CBdata *) client_data;
+//
+//    if (cbdata->cst->locked) {
+//        cbdata->cst->locked = FALSE;
+//        return;
+//    }
+//    cbdata->w = w;
+//    /* we count elapsed time since the last event, so first remove
+//       an existing timeout, if there is one */
+//    if (cbdata->timeout_id) {
+//        XtRemoveTimeOut(cbdata->timeout_id);
+//    }
+//    
+//    if (TEXT_TIMEOUT) {
+//        cbdata->timeout_id = XtAppAddTimeOut(app_con,
+//            TEXT_TIMEOUT, text_timer_proc, client_data);
+//    }
+//}
+//
+//static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+//{
+//    char *s;
+//    Text_CBdata *cbdata = (Text_CBdata *) client_data;
+//    s = XmTextGetString(w);
+//    cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
+//    XtFree(s);
+//}
+//
+//
 void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
 {
-//    Text_CBdata *cbdata;
-//
-//    cbdata = xmalloc(sizeof(Text_CBdata));
-//    cbdata->cst = cst;
-//    cbdata->anydata = data;
-//    cbdata->cbproc = cbproc;
-//    cbdata->timeout_id = (XtIntervalId) 0;
-//    cbdata->cst->locked = FALSE;
-//
+    Text_CBdata *cbdata;
+
+    cbdata = (Text_CBdata*) xmalloc(sizeof(Text_CBdata));
+    cbdata->cst = cst;
+    cbdata->anydata = data;
+    cbdata->cbproc = cbproc;
+   // cbdata->timeout_id = (XtIntervalId) 0;
+    cbdata->cst->locked = FALSE;
+
+//    QLineEdit *text = (QLineEdit*) cst->text;
+//    QObject::connect(text, SIGNAL(returnPressed()),
+//                     signalMapper, SLOT (map()));
+//    QObject::connect(text, SIGNAL(textChanged(QString&)),
+//                     signalMapper, SLOT (map()));
 //    XtAddCallback(cst->text,
 //        XmNactivateCallback, text_int_cb_proc, (XtPointer) cbdata);
 //    XtAddCallback(cst->text,
