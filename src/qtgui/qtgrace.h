@@ -12,6 +12,8 @@ class CallBack : public QObject
     Q_OBJECT
 
 public:
+    CallBack(QObject *parent = 0);
+
     Widget sender;
     void (*callback)(Widget, XtPointer, XtPointer);
     void *data;

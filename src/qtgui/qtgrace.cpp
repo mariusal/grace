@@ -63,6 +63,8 @@ extern "C" {
 
 #include <qtgrace.h>
 
+CallBack::CallBack(QObject *parent) : QObject(parent) {}
+
 static MainWindow *mainWin;
 static CanvasWidget *canvasWidget;
 static QApplication *app;
@@ -428,7 +430,7 @@ void AddCallback(const QObject *sender,
                  void (*callback)(Widget, XtPointer, XtPointer),
                  void *data)
 {
-    CallBack *callBack = new CallBack();
+    CallBack *callBack = new CallBack(mainWin);
     callBack->setCallBack(sender, callback, data);
     QObject::connect(sender, signal, callBack, SLOT(callBack()));
 }
