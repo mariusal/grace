@@ -3,6 +3,7 @@
 *.dep
 Make.conf
 auxiliary/convcal
+auxiliary/convcal.exe
 config.log
 config.status
 configure
@@ -21,7 +22,10 @@ src/qtgui/Makefile.qt
 src/qtgui/Make.common
 src/qtgui/moc_mainwindow.cpp
 src/qtgui/moc_canvaswidget.cpp
+src/qtgui/moc_qtgrace.cpp
+src/qtgui/moc_fileselectiondialog.cpp
 src/qtgui/ui_mainwindow.h
+src/qtgui/ui_fileselectiondialog.h
 src/buildinfo
 src/buildinfo.exe
 src/buildinfo.h
