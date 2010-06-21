@@ -1696,7 +1696,7 @@ void SetTextEditable(TextStructure *cst, int onoff)
 {
     //XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
     QPlainTextEdit *text = (QPlainTextEdit*) cst->text;
-    text->setReadOnly(onoff? true:false);
+    text->setReadOnly(onoff ? false : true);
 }
 
 void SetUserData(Widget w, void *udata)
@@ -1709,53 +1709,16 @@ typedef struct {
     Text_CBProc cbproc;
     void *anydata;
     Widget w;
-    //XtIntervalId timeout_id;
 } Text_CBdata;
-
-//static void text_timer_proc(XtPointer client_data, XtIntervalId *id)
-//{
-//    char *s;
-//    Text_CBdata *cbdata = (Text_CBdata *) client_data;
-//
-//    s = XmTextGetString(cbdata->w);
-//    cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
-//    XtFree(s);
-//    cbdata->timeout_id = (XtIntervalId) 0;
-//}
-//
-///* Text input timeout [ms] */
-//#define TEXT_TIMEOUT    0
-//
-//static void text_int_mv_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-//{
-//    Text_CBdata *cbdata = (Text_CBdata *) client_data;
-//
-//    if (cbdata->cst->locked) {
-//        cbdata->cst->locked = FALSE;
-//        return;
-//    }
-//    cbdata->w = w;
-//    /* we count elapsed time since the last event, so first remove
-//       an existing timeout, if there is one */
-//    if (cbdata->timeout_id) {
-//        XtRemoveTimeOut(cbdata->timeout_id);
-//    }
-//    
-//    if (TEXT_TIMEOUT) {
-//        cbdata->timeout_id = XtAppAddTimeOut(app_con,
-//            TEXT_TIMEOUT, text_timer_proc, client_data);
-//    }
-//}
 
 static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     char *s;
     Text_CBdata *cbdata = (Text_CBdata *) client_data;
-    //s = XmTextGetString(w);
-    //cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
-    cbdata->cbproc(cbdata->cst, "xxx", cbdata->anydata);
-    //XtFree(s);
-    qDebug("press enter");
+    QLineEdit *text = (QLineEdit*) w;
+    QByteArray ba = text->text().toLatin1();
+    s = ba.data(); 
+    cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
 }
 
 void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
@@ -1766,20 +1729,12 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     cbdata->cst = cst;
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
-   // cbdata->timeout_id = (XtIntervalId) 0;
     cbdata->cst->locked = FALSE;
 
     QLineEdit *text = (QLineEdit*) cst->text;
-//    QObject::connect(text, SIGNAL(returnPressed()),
-//                     signalMapper, SLOT (map()));
-//    QObject::connect(text, SIGNAL(textChanged(QString&)),
-//                     signalMapper, SLOT (map()));
+
     AddCallback(text, SIGNAL(returnPressed()),
                 text_int_cb_proc, (XtPointer) cbdata);
-//    XtAddCallback(cst->text,
-//        XmNactivateCallback, text_int_cb_proc, (XtPointer) cbdata);
-//    XtAddCallback(cst->text,
-//        XmNmodifyVerifyCallback, text_int_mv_cb_proc, (XtPointer) cbdata);
 }
 
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
@@ -1881,17 +1836,13 @@ void SetTextString(TextStructure *cst, char *s)
 {
     cst->locked = TRUE;
 
-    QPlainTextEdit *plainText = (QPlainTextEdit*) cst->text;
-    if (plainText != 0) {
-        plainText->setPlainText(s); 
+    if (QPlainTextEdit *plainText = qobject_cast<QPlainTextEdit *>(cst->text)) {
+        plainText->setPlainText(s ? s : ""); 
     }
 
-    QLineEdit *text = (QLineEdit*) cst->text;
-    if (text != 0) {
-        text->setText(s); 
+    if (QLineEdit *text = qobject_cast<QLineEdit *>(cst->text)) {
+        text->setText(s ? s : ""); 
     }
-//    XmTextSetString(cst->text, s ? s : "");
-//    XmTextSetInsertionPosition(cst->text, s ? strlen(s):0);
 }
 
 void FixateDialogFormChild(Widget w)
