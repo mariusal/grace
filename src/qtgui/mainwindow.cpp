@@ -47,9 +47,10 @@ MainWindow::MainWindow(QMainWindow *parent) : QMainWindow(parent)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    //TODO: save geometry even if bailout is called inside app
     QSettings settings("GraceProject", "Grace");
     settings.setValue("geometry", saveGeometry());
-    event->ignore();
     bailout(gapp);
+    event->ignore();
 }
 
