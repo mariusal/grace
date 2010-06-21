@@ -1539,9 +1539,14 @@ void ManageChild(Widget w)
 
 void TextInsert(TextStructure *cst, int pos, char *s)
 {
- //   XmTextInsert(cst->text, pos, s);
     QPlainTextEdit *text = (QPlainTextEdit*) cst->text;
-    text->appendPlainText(s);
+    
+    QTextCursor textCursor = text->textCursor();
+    if (pos == -1) {
+        textCursor.movePosition(QTextCursor::End);
+    }
+    textCursor.insertText(s);
+    text->setTextCursor(textCursor);
 }
 
 /*

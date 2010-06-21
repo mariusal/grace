@@ -194,7 +194,7 @@ static void create_monitor_frame(int force, char *msg)
         XmTextPosition pos;
         pos = XmTextGetLastPosition(ui->monText->text);
 #else
-        int pos;
+        int pos = -1;
 #endif
         TextInsert(ui->monText, pos, msg);
     }
