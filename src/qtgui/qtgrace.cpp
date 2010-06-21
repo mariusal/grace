@@ -429,8 +429,38 @@ void AddCallback(const QObject *sender,
                  void *data)
 {
     CallBack *callBack = new CallBack();
-    callBack->setCallBack(callback, data);
+    callBack->setCallBack(sender, callback, data);
     QObject::connect(sender, signal, callBack, SLOT(callBack()));
+}
+
+typedef struct {
+    Widget tbut;
+    TB_CBProc cbproc;
+    void *anydata;
+} TB_CBdata;
+
+static void tb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int onoff;
+    
+    TB_CBdata *cbdata = (TB_CBdata *) client_data;
+
+    onoff = GetToggleButtonState(w);
+    cbdata->cbproc(cbdata->tbut, onoff, cbdata->anydata);
+}
+
+void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
+{
+    TB_CBdata *cbdata;
+    
+    cbdata = (TB_CBdata*) xmalloc(sizeof(TB_CBdata));
+    
+    cbdata->tbut = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    AddCallback(w, SIGNAL(toggled(bool)),
+                tb_int_cb_proc, (XtPointer) cbdata);
 }
 
 Widget CreateDialogForm(Widget parent, const char *s)
@@ -873,9 +903,15 @@ int GetToggleButtonState(Widget w)
         errmsg("Internal error: GetToggleButtonState() called with NULL widget");
         return 0;
     } else {
-	QCheckBox *cb = (QCheckBox*)(w);
-	return cb->isChecked();
-//        return XmToggleButtonGetState(w);
+        if (QCheckBox *checkBox = qobject_cast<QCheckBox *>(w)) {
+            return checkBox->isChecked();
+        }
+
+        if (QAction *action = qobject_cast<QAction *>(w)) {
+            return action->isChecked();
+        }
+    
+        return 0;
     }
 }
 
@@ -1430,10 +1466,6 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 
 //    AddButtonCB((QWidget*)action, cb, data);
 
-    menu->addAction(action);
-
-    return (QWidget*)action;
-
 //    Widget button;
 //    XmString str;
 //    char *name, ms[2];
@@ -1453,10 +1485,14 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 //    xfree(name);
 //    XmStringFree(str);
 //
-//    if (cb) {
-//        AddToggleButtonCB(button, cb, data);
-//    }
-//
+    if (cb) {
+        AddToggleButtonCB((QWidget*)action, cb, data);
+    }
+
+    menu->addAction(action);
+
+    return (QWidget*)action;
+
 //    return button;
 
 }
