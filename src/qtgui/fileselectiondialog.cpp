@@ -33,6 +33,29 @@ FileSelectionDialog::FileSelectionDialog(QWidget *parent)
     : QDialog(parent)
 {
     ui.setupUi(this);
+
+    dirModel = new QFileSystemModel;
+    //The call to setRootPath() tell the model which drive on the file system
+    //to expose to the views.
+    dirModel->setRootPath(QDir::currentPath());
+    dirModel->setFilter(QDir::AllDirs);
+    
+    ui.dirListView->setModel(dirModel);
+    //We filter the data supplied by the model by calling the setRootIndex()
+    //function on each view, passing a suitable model index from the file
+    //system model for the current directory
+    ui.dirListView->setRootIndex(dirModel->index(QDir::currentPath()));
+
+    connect(ui.dirListView, SIGNAL(doubleClicked(const QModelIndex)),
+            this, SLOT(dirDoubleClicked(const QModelIndex)));
+
+    fileModel = new QFileSystemModel;
+    fileModel->setRootPath(QDir::currentPath());
+    fileModel->setFilter(QDir::Files);
+    
+    ui.filesListView->setModel(fileModel);
+    ui.filesListView->setRootIndex(fileModel->index(QDir::currentPath()));
+
 }
 
 void FileSelectionDialog::closeEvent(QCloseEvent *event)
@@ -40,3 +63,16 @@ void FileSelectionDialog::closeEvent(QCloseEvent *event)
     //event->ignore();
 }
 
+void FileSelectionDialog::dirDoubleClicked(const QModelIndex index)
+{
+    QString path = dirModel->filePath(index);
+    QByteArray ba = path.toLatin1();
+    qDebug(ba.data());
+    //dirModel->setRootPath(path);
+    ui.dirListView->setRootIndex(dirModel->index(path));
+    ui.filesListView->setRootIndex(fileModel->index(path));
+
+    //dirModel->setRootPath(QDir::currentPath());
+    //ui.dirListView->setRootIndex(model);
+    //ui.filesListView->setRootIndex(model);
+}
