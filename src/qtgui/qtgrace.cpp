@@ -52,6 +52,7 @@
 #include <QLineEdit>
 #include <mainwindow.h>
 #include <canvaswidget.h>
+#include <fileselectiondialog.h>
 #include <qtinc.h>
 
 extern "C" {
@@ -1750,7 +1751,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 //    OptionStructure *opt;
 //    Widget fr, form, button;
 //    XmString xmstr;
-//    char *bufp, *resname;
+    char *bufp, *resname;
 //
     retval = (FSBStructure*) xmalloc(sizeof(FSBStructure));
 //    resname = label_to_resname(s, "FSB");
@@ -1758,10 +1759,15 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 //    xfree(resname);
 //    retval->dialog = XtParent(retval->FSB);
 //    handle_close(retval->dialog);
-//    bufp = copy_string(NULL, "Grace: ");
-//    bufp = concat_strings(bufp, s);
+    QDialog *fileSelectionDialog = new FileSelectionDialog(mainWin);
+    retval->dialog = fileSelectionDialog;
+    bufp = copy_string(NULL, "Grace: ");
+    bufp = concat_strings(bufp, s);
+    fileSelectionDialog->setWindowTitle(bufp);
 //    XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
-//    xfree(bufp);
+    xfree(bufp);
+
+
 //
 //    xmstr = XmStringCreateLocalized(get_workingdir(gapp));
 //    XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);

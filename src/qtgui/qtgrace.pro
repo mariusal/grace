@@ -5,15 +5,18 @@ CONFIG += staticlib
 INCLUDEPATH += . ../ ../../include
 
 # Input
-FORMS += mainwindow.ui
+FORMS += mainwindow.ui \
+         fileselectiondialog.ui
 
 HEADERS += qtgrace.h \
            mainwindow.h \
            canvaswidget.h \
-           qtinc.h
+           qtinc.h \
+           fileselectiondialog.h
 
 SOURCES += qtgrace.cpp \
 	   mainwindow.cpp \
 	   canvaswidget.cpp \
-	   qtdrv.cpp
+	   qtdrv.cpp \
+           fileselectiondialog.cpp
 
