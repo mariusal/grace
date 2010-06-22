@@ -57,8 +57,9 @@
 
 extern "C" {
   #include <globals.h>
-  #include "xprotos.h"
   #include <bitmaps.h>
+  #include "xprotos.h"
+  #include "utils.h"
   Widget app_shell;
 }
 
@@ -412,7 +413,7 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
             yesno_retval = FALSE;
             break;
         case QMessageBox::Help:
-            // HelpCB(help_anchor); // TODO: implement help viewer
+            HelpCB(NULL, help_anchor); 
             // help was clicked
             break;
         default:
@@ -1504,8 +1505,10 @@ void update_all_cb(Widget but, void *data)
 {
 }
 
+// TODO: src/helpwin.c
 void HelpCB(Widget w, void *data)
 {
+    qDebug("HelpCB");
 }
 
 //void create_props_frame(Widget but, void *data)
@@ -1567,6 +1570,7 @@ Widget CreateMenuCloseButton(Widget parent, Widget form)
 
     wbut = CreateMenuButton(parent,
         "Close", 'C', destroy_dialog_cb, form);
+    //TODO: add esc button to accelerator
 //    wbut = CreateMenuButton(parent,
 //        "Close", 'C', destroy_dialog_cb, XtParent(form));
 //    str = XmStringCreateLocalized("Esc");
@@ -1577,6 +1581,11 @@ Widget CreateMenuCloseButton(Widget parent, Widget form)
     return wbut;
 }
 
+static void help_int_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    HelpCB(w, client_data);
+}
+
 void AddHelpCB(Widget w, char *ha)
 {
  //   if (XtHasCallbacks(w, XmNhelpCallback) == XtCallbackHasSome) {
@@ -1585,6 +1594,15 @@ void AddHelpCB(Widget w, char *ha)
  //   }
 
 //    XtAddCallback(w, XmNhelpCallback, help_int_cb, (XtPointer) ha);
+    //if (QPushButton *pb = qobject_cast<QPushButton *>(button)) {
+    //    AddCallback(button, SIGNAL(clicked()),
+    //                button_int_cb_proc, (XtPointer) cbdata);
+   // }
+   // if (QAction *ac = qobject_cast<QAction *>(button)) {
+   //     AddCallback(button, SIGNAL(triggered()),
+   //                 button_int_cb_proc, (XtPointer) cbdata);
+   // }
+    AddCallback(w, SIGNAL(clicked()), help_int_cb, (XtPointer) ha);
 }
 
 Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
@@ -1593,7 +1611,6 @@ Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
     Widget wbut;
 
     wbut = CreateMenuButton(parent, label, mnemonic, HelpCB, ha);
-    AddHelpCB(form, ha);
 
     return wbut;
 }
@@ -1745,6 +1762,17 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
                 text_int_cb_proc, (XtPointer) cbdata);
 }
 
+static void show_hidden_cb(Widget but, int onoff, void *data)
+{
+    FSBStructure *fsb = (FSBStructure *) data;
+    
+    FileSelectionDialog *fileSelectionDialog = (FileSelectionDialog*) fsb->FSB;
+    
+    fileSelectionDialog->showHidden(onoff ? true : false);
+    //XtVaSetValues(fsb->FSB, XmNfileFilterStyle,
+        //onoff ? XmFILTER_NONE:XmFILTER_HIDDEN_FILES, NULL);
+}
+
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 {
     FSBStructure *retval;
@@ -1759,7 +1787,8 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 //    xfree(resname);
 //    retval->dialog = XtParent(retval->FSB);
 //    handle_close(retval->dialog);
-    QDialog *fileSelectionDialog = new FileSelectionDialog(mainWin);
+    FileSelectionDialog *fileSelectionDialog = new FileSelectionDialog(mainWin);
+    retval->FSB = fileSelectionDialog;
     retval->dialog = fileSelectionDialog;
     bufp = copy_string(NULL, "Grace: ");
     bufp = concat_strings(bufp, s);
@@ -1767,20 +1796,23 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 //    XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
     xfree(bufp);
 
-
-//
+    fileSelectionDialog->setDirectory(get_workingdir(gapp));
 //    xmstr = XmStringCreateLocalized(get_workingdir(gapp));
 //    XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);
 //    XmStringFree(xmstr);
 //
+      //Implemented inside dialog
 //    XtAddCallback(retval->FSB,
 //        XmNcancelCallback, destroy_dialog, retval->dialog);
-//    AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
+
+    AddHelpCB(fileSelectionDialog->ui.helpPushButton,
+              "doc/UsersGuide.html#FS-dialog");
 //
 //    retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
 //#if XmVersion >= 2000    
 //    button = CreateToggleButton(retval->rc, "Show hidden files");
-//    AddToggleButtonCB(button, show_hidden_cb, retval);
+    AddToggleButtonCB(fileSelectionDialog->ui.showHiddenFilesCheckBox,
+                      show_hidden_cb, retval);
 //    XtVaSetValues(retval->FSB, XmNfileFilterStyle, XmFILTER_HIDDEN_FILES, NULL);
 //#endif
 //    fr = CreateFrame(retval->rc, NULL);

@@ -18,8 +18,14 @@ public:
   QFileSystemModel *dirModel;
   QFileSystemModel *fileModel;
 
+  void setDirectory(QString);
+  void showHidden(bool);
+
 private slots:
   void dirDoubleClicked(const QModelIndex);
+
+private:
+  void reapplyFilter();
 
 protected:
   void closeEvent(QCloseEvent*);

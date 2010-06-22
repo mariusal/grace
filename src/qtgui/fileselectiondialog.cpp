@@ -35,29 +35,24 @@ FileSelectionDialog::FileSelectionDialog(QWidget *parent)
     ui.setupUi(this);
 
     dirModel = new QFileSystemModel(this);
+    fileModel = new QFileSystemModel(this);
     //The call to setRootPath() tell the model which drive on the file system
     //to expose to the views.
     dirModel->setRootPath(QDir::currentPath());
-    dirModel->setFilter(QDir::AllDirs);
+    fileModel->setRootPath(QDir::currentPath());
+
+    showHidden(false);
     
     ui.dirListView->setModel(dirModel);
+    ui.filesListView->setModel(fileModel);
     //We filter the data supplied by the model by calling the setRootIndex()
     //function on each view, passing a suitable model index from the file
     //system model for the current directory
     ui.dirListView->setRootIndex(dirModel->index(QDir::currentPath()));
+    ui.filesListView->setRootIndex(fileModel->index(QDir::currentPath()));
 
     connect(ui.dirListView, SIGNAL(doubleClicked(const QModelIndex)),
             this, SLOT(dirDoubleClicked(const QModelIndex)));
-
-    fileModel = new QFileSystemModel(this);
-    fileModel->setRootPath(QDir::currentPath());
-    //TODO: http://bugreports.qt.nokia.com/browse/QTBUG-9811
-    // maybe they are related http://bugreports.qt.nokia.com/browse/QTBUG-8632
-    fileModel->setFilter(QDir::Files);
-    
-    ui.filesListView->setModel(fileModel);
-    ui.filesListView->setRootIndex(fileModel->index(QDir::currentPath()));
-
 }
 
 void FileSelectionDialog::closeEvent(QCloseEvent *event)
@@ -67,13 +62,50 @@ void FileSelectionDialog::closeEvent(QCloseEvent *event)
 
 void FileSelectionDialog::dirDoubleClicked(const QModelIndex index)
 {
-    QString path = dirModel->filePath(index);
-    path = QDir::cleanPath(path);
-    QByteArray ba = path.toLatin1();
-    qDebug(ba.data());
-    dirModel->setRootPath(path);
-    ui.dirListView->setRootIndex(dirModel->index(path));
-
-    fileModel->setRootPath(path);
-    ui.filesListView->setRootIndex(fileModel->index(path));
+    setDirectory(dirModel->filePath(index));
 }
+
+void FileSelectionDialog::setDirectory(QString dir)
+{
+    dir = QDir::cleanPath(dir);
+
+    QByteArray ba = dir.toLatin1();
+    qDebug(ba.data());
+
+    dirModel->setRootPath(dir);
+    ui.dirListView->setRootIndex(dirModel->index(dir));
+
+    fileModel->setRootPath(dir);
+    ui.filesListView->setRootIndex(fileModel->index(dir));
+    
+    reapplyFilter();
+}
+
+void FileSelectionDialog::showHidden(bool onoff)
+{
+    if (onoff) {
+       qDebug("show hidden");
+       dirModel->setFilter(QDir::AllDirs | QDir::Hidden | QDir::System);
+       fileModel->setFilter(QDir::Files | QDir::Hidden | QDir::System);
+    } else {
+       qDebug("hide hidden");
+       dirModel->setFilter(QDir::AllDirs | QDir::NoSymLinks);
+       fileModel->setFilter(QDir::Files | QDir::NoSymLinks);
+    }
+}
+
+void FileSelectionDialog::reapplyFilter()
+{
+    //TODO: this function exists only to fix a buggy behavior
+    // http://bugreports.qt.nokia.com/browse/QTBUG-9811
+    // maybe they are related http://bugreports.qt.nokia.com/browse/QTBUG-8632
+    QFlags<QDir::Filter> dirFilter = dirModel->filter();
+    QFlags<QDir::Filter> fileFilter = fileModel->filter();
+
+    dirModel->setFilter(QDir::System);
+    fileModel->setFilter(QDir::System);
+
+    dirModel->setFilter(dirFilter);
+    fileModel->setFilter(fileFilter);
+}
+
