@@ -81,28 +81,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="chDirComboBox">
-        <item>
-         <property name="text">
-          <string>Cwd</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Home</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>/</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>My Computer</string>
-         </property>
-        </item>
-       </widget>
+       <widget class="QComboBox" name="chDirComboBox"/>
       </item>
       <item>
        <spacer name="horizontalSpacer">

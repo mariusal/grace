@@ -19,13 +19,15 @@ public:
   QFileSystemModel *fileModel;
 
   void setDirectory(QString);
-  void showHidden(bool);
 
 private slots:
   void dirDoubleClicked(const QModelIndex);
+  void showHidden(bool);
+  void cdToDir(int value);
 
 private:
   void reapplyFilter();
+  void showDrives();
 
 protected:
   void closeEvent(QCloseEvent*);

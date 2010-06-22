@@ -28,6 +28,10 @@
 
 #include "fileselectiondialog.h"
 #include <QCloseEvent>
+extern "C" {
+  #include <globals.h>
+  #include "utils.h"
+}
 
 FileSelectionDialog::FileSelectionDialog(QWidget *parent) 
     : QDialog(parent)
@@ -53,6 +57,25 @@ FileSelectionDialog::FileSelectionDialog(QWidget *parent)
 
     connect(ui.dirListView, SIGNAL(doubleClicked(const QModelIndex)),
             this, SLOT(dirDoubleClicked(const QModelIndex)));
+
+    connect(ui.showHiddenFilesCheckBox, SIGNAL(toggled(bool)),
+            this, SLOT(showHidden(bool)));
+   
+    ui.chDirComboBox->addItem("Cwd");
+    ui.chDirComboBox->addItem("Home");
+    ui.chDirComboBox->addItem("/");
+#ifdef __WIN32
+    ui.chDirComboBox->addItem("My Computer");
+#endif
+
+    connect(ui.chDirComboBox, SIGNAL(activated(int)),
+            this, SLOT(cdToDir(int)));
+}
+
+char* qstring_to_char(QString s)
+{
+    QByteArray ba = s.toLatin1();
+    return ba.data();
 }
 
 void FileSelectionDialog::closeEvent(QCloseEvent *event)
@@ -92,6 +115,56 @@ void FileSelectionDialog::showHidden(bool onoff)
        dirModel->setFilter(QDir::AllDirs | QDir::NoSymLinks);
        fileModel->setFilter(QDir::Files | QDir::NoSymLinks);
     }
+}
+
+#define FSB_CWD     0
+#define FSB_HOME    1
+#define FSB_ROOT    2
+#define FSB_CYGDRV  3
+
+void FileSelectionDialog::cdToDir(int value)
+{
+    char *bufp;
+    bool show_drives = false;
+
+    switch (value) {
+    case FSB_CWD:
+        bufp = get_workingdir(gapp);
+        break;
+    case FSB_HOME:
+#ifdef __WIN32
+        bufp = qstring_to_char(QDir::homePath());
+#else
+        bufp = grace_get_userhome(gapp->grace);
+#endif
+        break;
+    case FSB_ROOT:
+#ifdef __WIN32
+        bufp = qstring_to_char(QDir::rootPath());
+#else
+        bufp = "/";
+#endif
+        break;
+    case FSB_CYGDRV:
+#ifndef __CYGWIN__
+        show_drives = true;
+#else
+        bufp = "/cygdrive/";
+#endif
+        break;
+    default:
+        return;
+    }
+
+    if (show_drives) {
+        showDrives();
+    } else {
+        setDirectory(bufp);
+    }
+}
+
+void FileSelectionDialog::showDrives()
+{
 }
 
 void FileSelectionDialog::reapplyFilter()

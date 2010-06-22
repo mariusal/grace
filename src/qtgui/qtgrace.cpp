@@ -1762,17 +1762,6 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
                 text_int_cb_proc, (XtPointer) cbdata);
 }
 
-static void show_hidden_cb(Widget but, int onoff, void *data)
-{
-    FSBStructure *fsb = (FSBStructure *) data;
-    
-    FileSelectionDialog *fileSelectionDialog = (FileSelectionDialog*) fsb->FSB;
-    
-    fileSelectionDialog->showHidden(onoff ? true : false);
-    //XtVaSetValues(fsb->FSB, XmNfileFilterStyle,
-        //onoff ? XmFILTER_NONE:XmFILTER_HIDDEN_FILES, NULL);
-}
-
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 {
     FSBStructure *retval;
@@ -1811,8 +1800,8 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 //    retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
 //#if XmVersion >= 2000    
 //    button = CreateToggleButton(retval->rc, "Show hidden files");
-    AddToggleButtonCB(fileSelectionDialog->ui.showHiddenFilesCheckBox,
-                      show_hidden_cb, retval);
+//    AddToggleButtonCB(fileSelectionDialog->ui.showHiddenFilesCheckBox,
+//                      show_hidden_cb, retval);
 //    XtVaSetValues(retval->FSB, XmNfileFilterStyle, XmFILTER_HIDDEN_FILES, NULL);
 //#endif
 //    fr = CreateFrame(retval->rc, NULL);
