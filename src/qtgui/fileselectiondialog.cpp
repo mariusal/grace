@@ -51,6 +51,8 @@ FileSelectionDialog::FileSelectionDialog(QWidget *parent)
 
     fileModel = new QFileSystemModel(this);
     fileModel->setRootPath(QDir::currentPath());
+    //TODO: http://bugreports.qt.nokia.com/browse/QTBUG-9811
+    // maybe they are related http://bugreports.qt.nokia.com/browse/QTBUG-8632
     fileModel->setFilter(QDir::Files);
     
     ui.filesListView->setModel(fileModel);
@@ -74,10 +76,4 @@ void FileSelectionDialog::dirDoubleClicked(const QModelIndex index)
 
     fileModel->setRootPath(path);
     ui.filesListView->setRootIndex(fileModel->index(path));
-    //ui.filesListView->setModel(fileModel);
-   // ui.filesListView->update(fileModel->index(path));
-
-    //dirModel->setRootPath(QDir::currentPath());
-    //ui.dirListView->setRootIndex(model);
-    //ui.filesListView->setRootIndex(model);
 }
