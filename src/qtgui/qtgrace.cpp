@@ -1566,17 +1566,9 @@ void destroy_dialog_cb(Widget but, void *data)
 Widget CreateMenuCloseButton(Widget parent, Widget form)
 {
     Widget wbut;
-//    XmString str;
 
-    wbut = CreateMenuButton(parent,
-        "Close", 'C', destroy_dialog_cb, form);
-    //TODO: add esc button to accelerator
-//    wbut = CreateMenuButton(parent,
-//        "Close", 'C', destroy_dialog_cb, XtParent(form));
-//    str = XmStringCreateLocalized("Esc");
-//    XtVaSetValues(wbut, XmNacceleratorText, str, NULL);
-//    XmStringFree(str);
-//    XtVaSetValues(form, XmNcancelButton, wbut, NULL);
+    wbut = CreateMenuButtonA(parent,
+        "Close", 'C', "Esc", destroy_dialog_cb, form);
 
     return wbut;
 }

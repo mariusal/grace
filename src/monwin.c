@@ -148,7 +148,7 @@ static void create_monitor_frame(int force, char *msg)
         AddDialogFormChild(ui->mon_frame, menubar);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
-        CreateMenuButton(menupane, "Save...", 'S', create_wmon_frame, ui);
+        CreateMenuButtonA(menupane, "Save...", 'S', "Ctrl+S", create_wmon_frame, ui);
         CreateMenuSeparator(menupane);
         CreateMenuCloseButton(menupane, ui->mon_frame);
         
