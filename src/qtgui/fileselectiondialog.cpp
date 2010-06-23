@@ -112,8 +112,8 @@ void FileSelectionDialog::showHidden(bool onoff)
        fileModel->setFilter(QDir::Files | QDir::Hidden | QDir::System);
     } else {
        qDebug("hide hidden");
-       dirModel->setFilter(QDir::AllDirs | QDir::NoSymLinks);
-       fileModel->setFilter(QDir::Files | QDir::NoSymLinks);
+       dirModel->setFilter(QDir::AllDirs);
+       fileModel->setFilter(QDir::Files);
     }
 }
 
@@ -165,6 +165,9 @@ void FileSelectionDialog::cdToDir(int value)
 
 void FileSelectionDialog::showDrives()
 {
+    ui.dirListView->setRootIndex(QModelIndex());
+    // TODO: show empty view
+    ui.filesListView->setRootIndex(QModelIndex());
 }
 
 void FileSelectionDialog::reapplyFilter()
