@@ -191,9 +191,9 @@ void FileSelectionDialog::showDrives()
 {
     setDirectory("");
 
-    ui.dirListView->setRootIndex(QModelIndex());
+    //ui.dirListView->setRootIndex(QModelIndex());
     // TODO: show empty view
-    ui.filesListView->setRootIndex(QModelIndex());
+    //ui.filesListView->setRootIndex(QModelIndex());
 }
 
 void FileSelectionDialog::setAsCwd()
