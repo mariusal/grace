@@ -24,7 +24,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="filterLineEdit"/>
+      <widget class="FilterLineEdit" name="filterLineEdit"/>
      </item>
     </layout>
    </item>
@@ -193,6 +193,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>FilterLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>filterlineedit.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>selectioLineEdit</tabstop>
   <tabstop>okPushButton</tabstop>

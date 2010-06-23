@@ -12,11 +12,13 @@ HEADERS += qtgrace.h \
            mainwindow.h \
            canvaswidget.h \
            qtinc.h \
-           fileselectiondialog.h
+           fileselectiondialog.h \
+           filterlineedit.h
 
 SOURCES += qtgrace.cpp \
-	   mainwindow.cpp \
-	   canvaswidget.cpp \
-	   qtdrv.cpp \
-           fileselectiondialog.cpp
+           mainwindow.cpp \
+           canvaswidget.cpp \
+           qtdrv.cpp \
+           fileselectiondialog.cpp \
+           filterlineedit.cpp
 

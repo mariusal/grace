@@ -18,16 +18,20 @@ public:
   QFileSystemModel *dirModel;
   QFileSystemModel *fileModel;
 
+  void setNameFilter(QString);
   void setDirectory(QString);
 
 private slots:
   void dirDoubleClicked(const QModelIndex);
   void showHidden(bool);
-  void fileClicked(const QModelIndex index);
-  void cdToDir(int value);
+  void fileClicked(const QModelIndex);
+  void cdToDir(int);
   void setAsCwd();
+  void filterFileNames();
 
 private:
+  QString nameFilter;
+
   void reapplyFilter();
   void showDrives();
 
