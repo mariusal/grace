@@ -70,12 +70,15 @@ FileSelectionDialog::FileSelectionDialog(QWidget *parent)
 
     connect(ui.chDirComboBox, SIGNAL(activated(int)),
             this, SLOT(cdToDir(int)));
+
+    connect(ui.setAsCwdPushButton, SIGNAL(clicked()),
+            this, SLOT(setAsCwd()));
 }
 
 char* qstring_to_char(QString s)
 {
-    QByteArray ba = s.toLatin1();
-    return ba.data();
+    QByteArray *ba = new QByteArray(s.toLatin1());
+    return ba->data();
 }
 
 void FileSelectionDialog::closeEvent(QCloseEvent *event)
@@ -102,6 +105,21 @@ void FileSelectionDialog::setDirectory(QString dir)
     ui.filesListView->setRootIndex(fileModel->index(dir));
     
     reapplyFilter();
+}
+
+void FileSelectionDialog::reapplyFilter()
+{
+    //TODO: this function exists only to fix a buggy behavior
+    // http://bugreports.qt.nokia.com/browse/QTBUG-9811
+    // maybe they are related http://bugreports.qt.nokia.com/browse/QTBUG-8632
+    QFlags<QDir::Filter> dirFilter = dirModel->filter();
+    QFlags<QDir::Filter> fileFilter = fileModel->filter();
+
+    dirModel->setFilter(QDir::System);
+    fileModel->setFilter(QDir::System);
+
+    dirModel->setFilter(dirFilter);
+    fileModel->setFilter(fileFilter);
 }
 
 void FileSelectionDialog::showHidden(bool onoff)
@@ -170,18 +188,14 @@ void FileSelectionDialog::showDrives()
     ui.filesListView->setRootIndex(QModelIndex());
 }
 
-void FileSelectionDialog::reapplyFilter()
+void FileSelectionDialog::setAsCwd()
 {
-    //TODO: this function exists only to fix a buggy behavior
-    // http://bugreports.qt.nokia.com/browse/QTBUG-9811
-    // maybe they are related http://bugreports.qt.nokia.com/browse/QTBUG-8632
-    QFlags<QDir::Filter> dirFilter = dirModel->filter();
-    QFlags<QDir::Filter> fileFilter = fileModel->filter();
+    char *bufp;
 
-    dirModel->setFilter(QDir::System);
-    fileModel->setFilter(QDir::System);
-
-    dirModel->setFilter(dirFilter);
-    fileModel->setFilter(fileFilter);
+    QString dir = dirModel->filePath(ui.dirListView->rootIndex());
+    dir = QDir::cleanPath(dir);
+    bufp = qstring_to_char(dir);
+    qDebug(bufp);
+    set_workingdir(gapp, bufp);
 }
 

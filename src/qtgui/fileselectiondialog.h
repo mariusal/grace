@@ -24,6 +24,7 @@ private slots:
   void dirDoubleClicked(const QModelIndex);
   void showHidden(bool);
   void cdToDir(int value);
+  void setAsCwd();
 
 private:
   void reapplyFilter();
