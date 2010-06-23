@@ -1830,38 +1830,65 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
     return retval;
 }
 
+typedef struct {
+    FSBStructure *fsb;
+    FSB_CBProc cbproc;
+    void *anydata;
+} FSB_CBdata;
+
+static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    char *s;
+    int ok;
+
+    FSB_CBdata *cbdata = (FSB_CBdata *) client_data;
+    FileSelectionDialog *fileSelectionDialog = (FileSelectionDialog*) cbdata->fsb->FSB;
+    QLineEdit *lineEdit = fileSelectionDialog->ui.selectioLineEdit;
+    QString str = lineEdit->text();
+
+    QByteArray ba = str.toLatin1();
+    s = ba.data();
+    qDebug(s);
+ 
+    set_wait_cursor();
+
+    ok = cbdata->cbproc(cbdata->fsb, s, cbdata->anydata);
+
+    if (!ok) {
+        fileSelectionDialog->close();
+    }
+    unset_wait_cursor();
+}
+
 void AddFileSelectionBoxCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
 {
-//    FSB_CBdata *cbdata;
-//
-//    cbdata = xmalloc(sizeof(FSB_CBdata));
-//    cbdata->fsb = fsb;
-//    cbdata->cbproc = (FSB_CBProc) cbproc;
-//    cbdata->anydata = anydata;
-//    XtAddCallback(fsb->FSB,
-//        XmNokCallback, fsb_int_cb_proc, (XtPointer) cbdata);
+    FSB_CBdata *cbdata;
+
+    cbdata = (FSB_CBdata*) xmalloc(sizeof(FSB_CBdata));
+    cbdata->fsb = fsb;
+    cbdata->cbproc = (FSB_CBProc) cbproc;
+    cbdata->anydata = anydata;
+
+    FileSelectionDialog *fileSelectionDialog = (FileSelectionDialog*) fsb->FSB;
+    QPushButton *pushButton = fileSelectionDialog->ui.okPushButton;
+
+    AddCallback(pushButton, SIGNAL(clicked()),
+                fsb_int_cb_proc, (XtPointer) cbdata);
 }
 
 char *GetTextString(TextStructure *cst)
 {
     char *buf;
-//    char *s, *buf;
 
-    QPlainTextEdit *plainText = (QPlainTextEdit*) cst->text;
-    if (plainText != 0) {
+    if (QPlainTextEdit *plainText = qobject_cast<QPlainTextEdit *>(cst->text)) {
         QByteArray ba = plainText->toPlainText().toLatin1();
-        buf = ba.data(); 
+        buf = copy_string(NULL, ba.data());
     }
 
-    QLineEdit *text = (QLineEdit*) cst->text;
-    if (text != 0) {
+    if (QLineEdit *text = qobject_cast<QLineEdit *>(cst->text)) {
         QByteArray ba = text->text().toLatin1();
-        buf = ba.data(); 
+        buf = copy_string(NULL, ba.data());
     }
-
-//    s = XmTextGetString(cst->text);
-//    buf = copy_string(NULL, s);
-//    XtFree(s);
 
     return buf;
 }

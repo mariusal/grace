@@ -58,6 +58,9 @@ FileSelectionDialog::FileSelectionDialog(QWidget *parent)
     connect(ui.dirListView, SIGNAL(doubleClicked(const QModelIndex)),
             this, SLOT(dirDoubleClicked(const QModelIndex)));
 
+    connect(ui.filesListView, SIGNAL(clicked(const QModelIndex)),
+            this, SLOT(fileClicked(const QModelIndex)));
+
     connect(ui.showHiddenFilesCheckBox, SIGNAL(toggled(bool)),
             this, SLOT(showHidden(bool)));
    
@@ -81,11 +84,6 @@ char* qstring_to_char(QString s)
     return ba->data();
 }
 
-void FileSelectionDialog::closeEvent(QCloseEvent *event)
-{
-    //event->ignore();
-}
-
 void FileSelectionDialog::dirDoubleClicked(const QModelIndex index)
 {
     setDirectory(dirModel->filePath(index));
@@ -105,6 +103,8 @@ void FileSelectionDialog::setDirectory(QString dir)
     ui.filesListView->setRootIndex(fileModel->index(dir));
     
     reapplyFilter();
+
+    ui.selectioLineEdit->setText(dir);
 }
 
 void FileSelectionDialog::reapplyFilter()
@@ -120,6 +120,12 @@ void FileSelectionDialog::reapplyFilter()
 
     dirModel->setFilter(dirFilter);
     fileModel->setFilter(fileFilter);
+}
+
+void FileSelectionDialog::fileClicked(const QModelIndex index)
+{
+    QString dir = fileModel->filePath(index);
+    ui.selectioLineEdit->setText(dir);
 }
 
 void FileSelectionDialog::showHidden(bool onoff)
@@ -183,6 +189,8 @@ void FileSelectionDialog::cdToDir(int value)
 
 void FileSelectionDialog::showDrives()
 {
+    setDirectory("");
+
     ui.dirListView->setRootIndex(QModelIndex());
     // TODO: show empty view
     ui.filesListView->setRootIndex(QModelIndex());

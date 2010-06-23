@@ -23,15 +23,13 @@ public:
 private slots:
   void dirDoubleClicked(const QModelIndex);
   void showHidden(bool);
+  void fileClicked(const QModelIndex index);
   void cdToDir(int value);
   void setAsCwd();
 
 private:
   void reapplyFilter();
   void showDrives();
-
-protected:
-  void closeEvent(QCloseEvent*);
 
 };
 

@@ -193,6 +193,19 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>selectioLineEdit</tabstop>
+  <tabstop>okPushButton</tabstop>
+  <tabstop>filterLineEdit</tabstop>
+  <tabstop>dirListView</tabstop>
+  <tabstop>filesListView</tabstop>
+  <tabstop>showHiddenFilesCheckBox</tabstop>
+  <tabstop>chDirComboBox</tabstop>
+  <tabstop>setAsCwdPushButton</tabstop>
+  <tabstop>filterPushButton</tabstop>
+  <tabstop>cancelPushButton</tabstop>
+  <tabstop>helpPushButton</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -203,22 +216,6 @@
    <hints>
     <hint type="sourcelabel">
      <x>250</x>
-     <y>457</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>239</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>okPushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>FileSelectionDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>48</x>
      <y>457</y>
     </hint>
     <hint type="destinationlabel">
