@@ -138,6 +138,7 @@ grconvert/grconvert.h \
 grconvert/readbin.c \
 grconvert/util.c \
 grconvert/writeasc.c \
+include/config.h \
 include/grace/base.h \
 include/grace/baseP.h \
 include/grace/canvas.h \

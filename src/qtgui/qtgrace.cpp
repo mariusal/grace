@@ -1760,7 +1760,8 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 //    OptionStructure *opt;
 //    Widget fr, form, button;
 //    XmString xmstr;
-    char *bufp, *resname;
+//    char *bufp, *resname;
+    char *bufp;
 //
     retval = (FSBStructure*) xmalloc(sizeof(FSBStructure));
 //    resname = label_to_resname(s, "FSB");
@@ -1866,6 +1867,15 @@ void AddFileSelectionBoxCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
 
     AddCallback(pushButton, SIGNAL(clicked()),
                 fsb_int_cb_proc, (XtPointer) cbdata);
+}
+
+void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern)
+{
+    FileSelectionDialog *fileSelectionDialog = (FileSelectionDialog*) fsb->FSB;
+
+    if (pattern != NULL) {
+        fileSelectionDialog->setNameFilter(pattern);
+    }
 }
 
 char *GetTextString(TextStructure *cst)

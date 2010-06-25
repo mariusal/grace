@@ -245,7 +245,8 @@ static void create_wmon_frame(Widget but, void *data)
 
     if (ui->save_logs_fsb == NULL) {
         ui->save_logs_fsb = CreateFileSelectionBox(app_shell, "Save logs");
-	AddFileSelectionBoxCB(ui->save_logs_fsb, save_logs_proc, ui);
+        AddFileSelectionBoxCB(ui->save_logs_fsb, save_logs_proc, ui);
+        SetFileSelectionBoxPattern(ui->save_logs_fsb, "*.log");
         ManageChild(ui->save_logs_fsb->FSB);
     }
     

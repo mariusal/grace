@@ -89,6 +89,7 @@ void FileSelectionDialog::dirDoubleClicked(const QModelIndex index)
 void FileSelectionDialog::setNameFilter(QString nameFilter)
 {
     this->nameFilter = nameFilter;
+    setDirectory(ui.selectionLineEdit->text());
 }
 
 void FileSelectionDialog::setDirectory(QString dir)
@@ -108,7 +109,11 @@ void FileSelectionDialog::setDirectory(QString dir)
     reapplyFilter();
 
     ui.selectionLineEdit->setText(dir);
-    ui.filterLineEdit->setText(dir + "/" + nameFilter);
+    if (dir.isEmpty() || dir.endsWith(":/")) {
+        ui.filterLineEdit->setText(dir + nameFilter);
+    } else {
+        ui.filterLineEdit->setText(dir + "/" + nameFilter);
+    }
 }
 
 void FileSelectionDialog::reapplyFilter()
