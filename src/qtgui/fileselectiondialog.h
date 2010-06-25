@@ -33,7 +33,6 @@ private:
   QString nameFilter;
 
   void reapplyFilter();
-  void showDrives();
 
 };
 

@@ -116,7 +116,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="selectioLineEdit"/>
+      <widget class="QLineEdit" name="selectionLineEdit"/>
      </item>
     </layout>
    </item>
@@ -194,7 +194,7 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>selectioLineEdit</tabstop>
+  <tabstop>selectionLineEdit</tabstop>
   <tabstop>okPushButton</tabstop>
   <tabstop>filterLineEdit</tabstop>
   <tabstop>dirListView</tabstop>

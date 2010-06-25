@@ -1835,7 +1835,7 @@ static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data
 
     FSB_CBdata *cbdata = (FSB_CBdata *) client_data;
     FileSelectionDialog *fileSelectionDialog = (FileSelectionDialog*) cbdata->fsb->FSB;
-    QLineEdit *lineEdit = fileSelectionDialog->ui.selectioLineEdit;
+    QLineEdit *lineEdit = fileSelectionDialog->ui.selectionLineEdit;
     QString str = lineEdit->text();
 
     QByteArray ba = str.toLatin1();

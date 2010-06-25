@@ -40,6 +40,7 @@ FileSelectionDialog::FileSelectionDialog(QWidget *parent)
 
     dirModel = new QFileSystemModel(this);
     fileModel = new QFileSystemModel(this);
+    fileModel->setNameFilterDisables(false);
 
     showHidden(false);
     
@@ -68,13 +69,10 @@ FileSelectionDialog::FileSelectionDialog(QWidget *parent)
     connect(ui.setAsCwdPushButton, SIGNAL(clicked()),
             this, SLOT(setAsCwd()));
 
-    connect(ui.filterLineEdit, SIGNAL(returnPressed()),
-            this, SLOT(filterFileNames()));
-
     connect(ui.filterPushButton, SIGNAL(clicked()),
             this, SLOT(filterFileNames()));
-    
-    filterFileNames();
+
+    setNameFilter("*");
 }
 
 char* qstring_to_char(QString s)
@@ -104,12 +102,13 @@ void FileSelectionDialog::setDirectory(QString dir)
     ui.dirListView->setRootIndex(dirModel->index(dir));
 
     fileModel->setRootPath(dir);
+    fileModel->setNameFilters(QStringList(nameFilter));
     ui.filesListView->setRootIndex(fileModel->index(dir));
     
     reapplyFilter();
 
-    ui.selectioLineEdit->setText(dir);
-    ui.filterLineEdit->setText(dir + nameFilter); 
+    ui.selectionLineEdit->setText(dir);
+    ui.filterLineEdit->setText(dir + "/" + nameFilter);
 }
 
 void FileSelectionDialog::reapplyFilter()
@@ -130,7 +129,7 @@ void FileSelectionDialog::reapplyFilter()
 void FileSelectionDialog::fileClicked(const QModelIndex index)
 {
     QString dir = fileModel->filePath(index);
-    ui.selectioLineEdit->setText(dir);
+    ui.selectionLineEdit->setText(dir);
 }
 
 void FileSelectionDialog::showHidden(bool onoff)
@@ -186,19 +185,10 @@ void FileSelectionDialog::cdToDir(int value)
     }
 
     if (show_drives) {
-        showDrives();
+        setDirectory("");
     } else {
         setDirectory(bufp);
     }
-}
-
-void FileSelectionDialog::showDrives()
-{
-    setDirectory("");
-
-    //ui.dirListView->setRootIndex(QModelIndex());
-    // TODO: show empty view
-    //ui.filesListView->setRootIndex(QModelIndex());
 }
 
 void FileSelectionDialog::setAsCwd()
@@ -214,20 +204,10 @@ void FileSelectionDialog::setAsCwd()
 
 void FileSelectionDialog::filterFileNames()
 {
-    ui.filterPushButton->setDefault(true);
-    QFileInfo directory(ui.filterLineEdit->text()); 
-    qDebug(qstring_to_char("ABS path " + directory.absoluteFilePath())); 
-    qDebug(qstring_to_char("ABS filename " + directory.fileName())); 
-
-    //QStringList list = directory.nameFilters();
-    //QString str;
-    //foreach (str, list)
-        //qDebug(qstring_to_char("FILTER " + str)); 
-   // QString filterWithDir = ui.filterLineEdit.text(); 
-   // QString dir = 
-   // QString filter = 
-
-   // setDirectory(dir);
-    ui.okPushButton->setDefault(true);
+    QFileInfo filter(ui.filterLineEdit->text());
+    setNameFilter(filter.fileName());
+    setDirectory(ui.selectionLineEdit->text());
+//    qDebug(qstring_to_char("ABS filter: " + filter.fileName()));
+//    qDebug(qstring_to_char("ABS path  : " + filter.absoluteFilePath()));
 }
 
