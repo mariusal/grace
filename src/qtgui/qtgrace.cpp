@@ -565,29 +565,13 @@ void raise_explorer(GUI *gui, Quark *q)
 {
 }
 
-void create_file_popup(Widget but, void *data)
-{
-}
-
 void create_netcdfs_popup(Widget but, void *data)
-{
-}
-
-void create_saveproject_popup(void)
 {
 }
 
 void define_explorer_popup(Widget but, void *data)
 {
 }
-void create_openproject_popup(void)
-{
-}
-
-void create_write_popup(Widget but, void *data)
-{
-}
-
 
 void create_printer_setup(Widget but, void *data)
 {
@@ -829,12 +813,16 @@ void ManageChild(Widget w)
 //{
 //    return (XtIsManaged(w) == True) ? TRUE:FALSE;
 //}
-//
+
 //void SetSensitive(Widget w, int onoff)
 //{
 //    XtSetSensitive(w, onoff ? True : False);
 //}
-//
+void SetSensitive(Widget w, int onoff)
+{
+//    XtSetSensitive(w, onoff ? True : False);
+}
+
 //Widget GetParent(Widget w)
 //{
 //    if (w) {
@@ -1040,16 +1028,16 @@ OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...)
     return retval;
 }
 
-//static void oc_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-//{
-//    int value;
-//    
-//    OC_CBdata *cbdata = (OC_CBdata *) client_data;
-//
-//    value = GetOptionChoice(cbdata->opt);
-//    cbdata->cbproc(cbdata->opt, value, cbdata->anydata);
-//}
-//
+static void oc_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int value;
+
+    OC_CBdata *cbdata = (OC_CBdata *) client_data;
+
+    value = GetOptionChoice(cbdata->opt);
+    cbdata->cbproc(cbdata->opt, value, cbdata->anydata);
+}
+
 //void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
 //{
 //    OC_CBdata *cbdata;
@@ -1070,7 +1058,27 @@ OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...)
 //                                    oc_int_cb_proc, (XtPointer) cbdata);
 //    }
 //}
-//
+void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
+{
+    OC_CBdata *cbdata;
+    unsigned int i;
+
+    cbdata = (OC_CBdata*) xmalloc(sizeof(OC_CBdata));
+
+    cbdata->opt = opt;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    opt->cblist = (OC_CBdata**) xrealloc(opt->cblist, (opt->cbnum + 1)*sizeof(OC_CBdata *));
+    opt->cblist[opt->cbnum] = cbdata;
+    opt->cbnum++;
+
+    for (i = 0; i < opt->nchoices; i++) {
+  //      XtAddCallback(opt->options[i].widget, XmNactivateCallback,
+  //                                  oc_int_cb_proc, (XtPointer) cbdata);
+    }
+}
+
 //void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 //{
 //    int i, nold, ncols, nw;
@@ -1383,12 +1391,20 @@ int GetOptionChoice(OptionStructure *opt)
 //{
 //    XtCallActionProc(list, "ListKbdSelectAll", NULL, NULL, 0);
 //}
-//
+static void list_selectall(Widget list)
+{
+//    XtCallActionProc(list, "ListKbdSelectAll", NULL, NULL, 0);
+}
+
 //static void list_unselectall(Widget list)
 //{
 //    XmListDeselectAllItems(list);
 //}
-//
+static void list_unselectall(Widget list)
+{
+//    XmListDeselectAllItems(list);
+}
+
 //static void list_invertselection(Widget list)
 //{
 //    X11Stuff *xstuff = gapp->gui->xstuff;
@@ -1410,7 +1426,28 @@ int GetOptionChoice(OptionStructure *opt)
 //    }
 //    XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
 //}
-//
+static void list_invertselection(Widget list)
+{
+    X11Stuff *xstuff = gapp->gui->xstuff;
+    int i, n;
+    unsigned char selection_type_save;
+    
+//    XtVaGetValues(list,
+//        XmNselectionPolicy, &selection_type_save,
+//        XmNitemCount, &n,
+//        NULL);
+//    if (selection_type_save == XmSINGLE_SELECT) {
+//        XBell(xstuff->disp, 50);
+//        return;
+//    }
+    
+//    XtVaSetValues(list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
+    for (i = 0; i < n; i++) {
+//        XmListSelectPos(list, i, False);
+    }
+//    XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
+}
+
 //static int list_get_selected_count(Widget list)
 //{
 //    int n;
@@ -1484,7 +1521,43 @@ int GetOptionChoice(OptionStructure *opt)
 //    
 //    return retval;
 //}
-//
+ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
+                                int nvisible, int nchoices, OptionItem *items)
+{
+    //Arg args[4];
+    Widget lab;
+    ListStructure *retval;
+
+    retval = (ListStructure*) xmalloc(sizeof(ListStructure));
+    //retval->rc = XmCreateRowColumn(parent, "rcList", NULL, 0);
+    AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
+
+    //lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
+    //XtManageChild(lab);
+    
+    //XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
+    //XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
+    if (type == LIST_TYPE_SINGLE) {
+      //  XtSetArg(args[2], XmNselectionPolicy, XmSINGLE_SELECT);
+    } else {
+      //  XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
+    }
+    //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
+    //retval->list = XmCreateScrolledList(retval->rc, "listList", args, 4);
+    retval->values = NULL;
+
+    //XtOverrideTranslations(retval->list,
+      //                       XtParseTranslationTable(list_translation_table));
+    
+    UpdateListChoice(retval, nchoices, items);
+
+    //XtManageChild(retval->list);
+    
+    //XtManageChild(retval->rc);
+    
+    return retval;
+}
+
 //void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
 //{
 //    int i, nsel;
@@ -1514,7 +1587,36 @@ int GetOptionChoice(OptionStructure *opt)
 //        xfree(selvalues);
 //    }
 //}
-//
+void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
+{
+    int i, nsel;
+    int *selvalues;
+    //XmString str;
+
+    if (listp == NULL) {
+        return;
+    }
+
+    nsel = GetListChoices(listp, &selvalues);
+
+    listp->nchoices = nchoices;
+    listp->values = (int*) xrealloc(listp->values, nchoices*SIZEOF_INT);
+    for (i = 0; i < nchoices; i++) {
+        listp->values[i] = items[i].value;
+    }
+
+    //XmListDeleteAllItems(listp->list);
+    for (i = 0; i < nchoices; i++) {
+        //str = XmStringCreateLocalized(items[i].label);
+    //    XmListAddItemUnselected(listp->list, str, 0);
+    //    XmStringFree(str);
+    }
+    SelectListChoices(listp, nsel, selvalues);
+    if (nsel > 0) {
+        xfree(selvalues);
+    }
+}
+
 //int SelectListChoice(ListStructure *listp, int choice)
 //{
 //    int top, visible;
@@ -1577,7 +1679,42 @@ int GetOptionChoice(OptionStructure *opt)
 //
 //    XtVaSetValues(listp->list, XmNselectionPolicy, selection_type_save, NULL);
 //}
-//
+void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
+{
+    int i = 0, j;
+    unsigned char selection_type_save;
+    int bottom, visible;
+
+    //XtVaGetValues(listp->list, XmNselectionPolicy, &selection_type_save, NULL);
+    //XtVaSetValues(listp->list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
+
+    //XmListDeselectAllItems(listp->list);
+    for (j = 0; j < nchoices; j++) {
+        i = 0;
+        while (i < listp->nchoices && listp->values[i] != choices[j]) {
+            i++;
+        }
+        if (i < listp->nchoices) {
+            i++;
+            //XmListSelectPos(listp->list, i, True);
+        }
+    }
+
+    if (nchoices > 0) {
+        /* Rewind list so the last choice is always visible */
+        //XtVaGetValues(listp->list, XmNtopItemPosition, &bottom,
+        //                         XmNvisibleItemCount, &visible,
+        //                         NULL);
+        if (i > bottom) {
+        //    XmListSetBottomPos(listp->list, i);
+        } else if (i <= bottom - visible) {
+         //   XmListSetPos(listp->list, i);
+        }
+    }
+
+    //XtVaSetValues(listp->list, XmNselectionPolicy, selection_type_save, NULL);
+}
+
 //int GetListChoices(ListStructure *listp, int **values)
 //{
 //    int i, n;
@@ -1592,7 +1729,21 @@ int GetOptionChoice(OptionStructure *opt)
 //    
 //    return n;
 //}
-//
+int GetListChoices(ListStructure *listp, int **values)
+{
+    int i, n;
+
+    //if (XmListGetSelectedPos(listp->list, values, &n) != True) {
+    //    return 0;
+    //}
+
+    for (i = 0; i < n; i++) {
+        (*values)[i] = listp->values[(*values)[i] - 1];
+    }
+
+    return n;
+}
+
 //int GetSingleListChoice(ListStructure *listp, int *value)
 //{
 //    int n, *values, retval;
@@ -1653,34 +1804,34 @@ int GetOptionChoice(OptionStructure *opt)
 //    XtAddCallback(listp->list,
 //        XmNextendedSelectionCallback, list_int_cb_proc, (XtPointer) cbdata);
 //}
-//
-//
-//
-//#define SS_HIDE_CB           0
-//#define SS_SHOW_CB           1
-//#define SS_DELETE_CB         2
-//#define SS_DUPLICATE_CB      3
-//#define SS_BRING_TO_FRONT_CB 4
-//#define SS_SEND_TO_BACK_CB   5
-//#define SS_MOVE_UP_CB        6
-//#define SS_MOVE_DOWN_CB      7
-//
-//static char *default_storage_labeling_proc(Quark *q, unsigned int *rid)
-//{
-//    char buf[128];
-//    
-//    sprintf(buf, "Quark \"%s\"", QIDSTR(q));
-//    
-//    (*rid)++;
-//    
-//    return copy_string(NULL, buf);
-//}
-//
-//typedef struct {
-//    StorageStructure *ss;
-//    unsigned int rid;
-//} storage_traverse_data;
-//
+
+
+
+#define SS_HIDE_CB           0
+#define SS_SHOW_CB           1
+#define SS_DELETE_CB         2
+#define SS_DUPLICATE_CB      3
+#define SS_BRING_TO_FRONT_CB 4
+#define SS_SEND_TO_BACK_CB   5
+#define SS_MOVE_UP_CB        6
+#define SS_MOVE_DOWN_CB      7
+
+static char *default_storage_labeling_proc(Quark *q, unsigned int *rid)
+{
+    char buf[128];
+
+    sprintf(buf, "Quark \"%s\"", QIDSTR(q));
+
+    (*rid)++;
+
+    return copy_string(NULL, buf);
+}
+
+typedef struct {
+    StorageStructure *ss;
+    unsigned int rid;
+} storage_traverse_data;
+
 //static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
 //{
 //    char *s;
@@ -1709,7 +1860,35 @@ int GetOptionChoice(OptionStructure *opt)
 //    
 //    return TRUE;
 //}
-//
+static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    char *s;
+    storage_traverse_data *stdata = (storage_traverse_data *) udata;
+    StorageStructure *ss = stdata->ss;
+    
+    s = ss->labeling_proc(q, &stdata->rid);
+    if (s) {
+        char buf[16], *sbuf;
+        //XmString str;
+        
+        ss->values = (Quark**) xrealloc(ss->values, SIZEOF_VOID_P*(ss->nchoices + 1));
+        ss->values[ss->nchoices++] = q;
+
+        sprintf(buf, "(%c) ", quark_is_active(q) ? '+':'-');
+        sbuf = copy_string(NULL, buf);
+        sbuf = concat_strings(sbuf, s);
+        xfree(s);
+
+        //str = XmStringCreateLocalized(sbuf);
+        xfree(sbuf);
+
+        //XmListAddItemUnselected(ss->list, str, 0);
+        //XmStringFree(str);
+    }
+    
+    return TRUE;
+}
+
 //static void storage_popup(Widget parent,
 //    XtPointer closure, XEvent *event, Boolean *cont)
 //{
@@ -1753,140 +1932,140 @@ int GetOptionChoice(OptionStructure *opt)
 //    XmMenuPosition(popup, e);
 //    XtManageChild(popup);
 //}
-//
-//static void ss_any_cb(StorageStructure *ss, int type)
-//{
-//    int i, n;
-//    Quark **values;
-//    
-//    n = GetStorageChoices(ss, &values);
-//    
-//    for (i = 0; i < n; i ++) {
-//        Quark *q;
-//        
-//        switch (type) {
-//        case SS_SEND_TO_BACK_CB:
-//        case SS_MOVE_UP_CB:
-//            q = values[n - i - 1];
-//            break;
-//        default:
-//            q = values[i];
-//            break;
-//        }
-//        
-//        switch (type) {
-//        case SS_HIDE_CB:
-//            quark_set_active(q, FALSE);
-//            break;
-//        case SS_SHOW_CB:
-//            quark_set_active(q, TRUE);
-//            break;
-//        case SS_DELETE_CB:
-//            quark_free(q);
-//            break;
-//        case SS_BRING_TO_FRONT_CB:
-//            quark_push(q, TRUE);
-//            break;
-//        case SS_SEND_TO_BACK_CB:
-//            quark_push(q, FALSE);
-//            break;
-//        case SS_MOVE_UP_CB:
-//            quark_move(q, TRUE);
-//            break;
-//        case SS_MOVE_DOWN_CB:
-//            quark_move(q, FALSE);
-//            break;
-//        case SS_DUPLICATE_CB:
-//            quark_copy(q);
-//            break;
-//        }
-//    }
-//    
-//    if (n > 0) {
-//        xfree(values);
-//        snapshot_and_update(gapp->gp, TRUE);
-//    }
-//}
-//
-//static void ss_hide_cb(Widget but, void *udata)
-//{
-//    ss_any_cb((StorageStructure *) udata, SS_HIDE_CB);
-//}
-//
-//static void ss_show_cb(Widget but, void *udata)
-//{
-//    ss_any_cb((StorageStructure *) udata, SS_SHOW_CB);
-//}
-//
-//static void ss_delete_cb(Widget but, void *udata)
-//{
-//    if (yesno("Really delete selected item(s)?", NULL, NULL, NULL)) {
-//        ss_any_cb((StorageStructure *) udata, SS_DELETE_CB);
-//    }
-//}
-//
-//static void ss_duplicate_cb(Widget but, void *udata)
-//{
-//    ss_any_cb((StorageStructure *) udata, SS_DUPLICATE_CB);
-//}
-//
-//static void ss_bring_to_front_cb(Widget but, void *udata)
-//{
-//    ss_any_cb((StorageStructure *) udata, SS_BRING_TO_FRONT_CB);
-//}
-//
-//static void ss_send_to_back_cb(Widget but, void *udata)
-//{
-//    ss_any_cb((StorageStructure *) udata, SS_SEND_TO_BACK_CB);
-//}
-//
-//static void ss_move_up_cb(Widget but, void *udata)
-//{
-//    ss_any_cb((StorageStructure *) udata, SS_MOVE_UP_CB);
-//}
-//
-//static void ss_move_down_cb(Widget but, void *udata)
-//{
-//    ss_any_cb((StorageStructure *) udata, SS_MOVE_DOWN_CB);
-//}
-//
-//static void ss_properties_cb(Widget but, void *udata)
-//{
-//    StorageStructure *ss = (StorageStructure *) udata;
-//    Quark *q;
-//    
-//    if (GetSingleStorageChoice(ss, &q) == RETURN_SUCCESS) {
-//        raise_explorer(gapp->gui, q);
-//    }
-//}
-//
-//static void ss_select_all_cb(Widget but, void *udata)
-//{
-//    list_selectall(((StorageStructure *) udata)->list);
-//}
-//
-//static void ss_unselect_all_cb(Widget but, void *udata)
-//{
-//    list_unselectall(((StorageStructure *) udata)->list);
-//}
-//
-//static void ss_invert_selection_cb(Widget but, void *udata)
-//{
-//    list_invertselection(((StorageStructure *) udata)->list);
-//}
-//
-//static void ss_update_cb(Widget but, void *udata)
-//{
-//    StorageStructure *ss = (StorageStructure *) udata;
-//    
-//    UpdateStorageChoice(ss);
-//}
-//
-//static void s_dc_cb(StorageStructure *ss, Quark *q, void *data)
-//{
-//    raise_explorer(gapp->gui, q);
-//}
-//
+
+static void ss_any_cb(StorageStructure *ss, int type)
+{
+    int i, n;
+    Quark **values;
+    
+    n = GetStorageChoices(ss, &values);
+    
+    for (i = 0; i < n; i ++) {
+        Quark *q;
+        
+        switch (type) {
+        case SS_SEND_TO_BACK_CB:
+        case SS_MOVE_UP_CB:
+            q = values[n - i - 1];
+            break;
+        default:
+            q = values[i];
+            break;
+        }
+        
+        switch (type) {
+        case SS_HIDE_CB:
+            quark_set_active(q, FALSE);
+            break;
+        case SS_SHOW_CB:
+            quark_set_active(q, TRUE);
+            break;
+        case SS_DELETE_CB:
+            quark_free(q);
+            break;
+        case SS_BRING_TO_FRONT_CB:
+            quark_push(q, TRUE);
+            break;
+        case SS_SEND_TO_BACK_CB:
+            quark_push(q, FALSE);
+            break;
+        case SS_MOVE_UP_CB:
+            quark_move(q, TRUE);
+            break;
+        case SS_MOVE_DOWN_CB:
+            quark_move(q, FALSE);
+            break;
+        case SS_DUPLICATE_CB:
+            quark_copy(q);
+            break;
+        }
+    }
+    
+    if (n > 0) {
+        xfree(values);
+        snapshot_and_update(gapp->gp, TRUE);
+    }
+}
+
+static void ss_hide_cb(Widget but, void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_HIDE_CB);
+}
+
+static void ss_show_cb(Widget but, void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_SHOW_CB);
+}
+
+static void ss_delete_cb(Widget but, void *udata)
+{
+    if (yesno("Really delete selected item(s)?", NULL, NULL, NULL)) {
+        ss_any_cb((StorageStructure *) udata, SS_DELETE_CB);
+    }
+}
+
+static void ss_duplicate_cb(Widget but, void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_DUPLICATE_CB);
+}
+
+static void ss_bring_to_front_cb(Widget but, void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_BRING_TO_FRONT_CB);
+}
+
+static void ss_send_to_back_cb(Widget but, void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_SEND_TO_BACK_CB);
+}
+
+static void ss_move_up_cb(Widget but, void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_MOVE_UP_CB);
+}
+
+static void ss_move_down_cb(Widget but, void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_MOVE_DOWN_CB);
+}
+
+static void ss_properties_cb(Widget but, void *udata)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+    Quark *q;
+    
+    if (GetSingleStorageChoice(ss, &q) == RETURN_SUCCESS) {
+        raise_explorer(gapp->gui, q);
+    }
+}
+
+static void ss_select_all_cb(Widget but, void *udata)
+{
+    list_selectall(((StorageStructure *) udata)->list);
+}
+
+static void ss_unselect_all_cb(Widget but, void *udata)
+{
+    list_unselectall(((StorageStructure *) udata)->list);
+}
+
+static void ss_invert_selection_cb(Widget but, void *udata)
+{
+    list_invertselection(((StorageStructure *) udata)->list);
+}
+
+static void ss_update_cb(Widget but, void *udata)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+    
+    UpdateStorageChoice(ss);
+}
+
+static void s_dc_cb(StorageStructure *ss, Quark *q, void *data)
+{
+    raise_explorer(gapp->gui, q);
+}
+
 //static void CreateStorageChoicePopup(StorageStructure *ss)
 //{
 //    Widget popup, submenupane;
@@ -1942,7 +2121,62 @@ int GetOptionChoice(OptionStructure *opt)
 //
 //    AddStorageChoiceDblClickCB(ss, s_dc_cb, NULL);
 //}
-//
+static void CreateStorageChoicePopup(StorageStructure *ss)
+{
+    Widget popup, submenupane;
+
+    //popup = XmCreatePopupMenu(ss->list, "popupMenu", NULL, 0);
+    ss->popup = popup;
+#if XmVersion >= 2000
+//    XtVaSetValues(popup, XmNpopupEnabled, XmPOPUP_DISABLED, NULL);
+#else
+ //   XtVaSetValues(popup, XmNpopupEnabled, False, NULL);
+#endif
+
+    ss->popup_properties_bt =
+        CreateMenuButton(popup, "Properties...", '\0', ss_properties_cb, ss);
+
+    CreateMenuSeparator(popup);
+
+    ss->popup_hide_bt = CreateMenuButton(popup, "Hide", '\0', ss_hide_cb, ss);
+    ss->popup_show_bt = CreateMenuButton(popup, "Show", '\0', ss_show_cb, ss);
+    CreateMenuSeparator(popup);
+
+    ss->popup_delete_bt =
+        CreateMenuButton(popup, "Delete", '\0', ss_delete_cb, ss);
+    ss->popup_duplicate_bt =
+        CreateMenuButton(popup, "Duplicate", '\0', ss_duplicate_cb, ss);
+
+    CreateMenuSeparator(popup);
+
+    ss->popup_bring_to_front_bt = CreateMenuButton(popup,
+        "Bring to front", '\0', ss_bring_to_front_cb, ss);
+    ss->popup_move_up_bt =
+        CreateMenuButton(popup, "Move up", '\0', ss_move_up_cb, ss);
+    ss->popup_move_down_bt =
+        CreateMenuButton(popup, "Move down", '\0', ss_move_down_cb, ss);
+    ss->popup_send_to_back_bt =
+        CreateMenuButton(popup, "Send to back", '\0', ss_send_to_back_cb, ss);
+
+    CreateMenuSeparator(popup);
+
+    submenupane = CreateMenu(popup, "Selector operations", 'o', FALSE);
+    ss->selpopup = submenupane;
+
+    ss->popup_select_all_bt =
+        CreateMenuButton(submenupane, "Select all", '\0', ss_select_all_cb, ss);
+    ss->popup_unselect_all_bt =
+        CreateMenuButton(submenupane, "Unselect all", '\0', ss_unselect_all_cb, ss);
+    ss->popup_invert_selection_bt = CreateMenuButton(submenupane,
+        "Invert selection", '\0', ss_invert_selection_cb, ss);
+
+    CreateMenuSeparator(submenupane);
+
+    CreateMenuButton(submenupane, "Update list", '\0', ss_update_cb, ss);
+
+    AddStorageChoiceDblClickCB(ss, s_dc_cb, NULL);
+}
+
 //StorageStructure *CreateStorageChoice(Widget parent,
 //    char *labelstr, int type, int nvisible)
 //{
@@ -1984,19 +2218,66 @@ int GetOptionChoice(OptionStructure *opt)
 //    
 //    return retval;
 //}
-//
-//void SetStorageChoiceLabeling(StorageStructure *ss, Storage_LabelingProc proc)
-//{
-//    ss->labeling_proc = proc;
-//}
-//
+StorageStructure *CreateStorageChoice(Widget parent,
+    char *labelstr, int type, int nvisible)
+{
+    //Arg args[4];
+    Widget lab;
+    StorageStructure *retval;
+
+    retval = (StorageStructure*) xmalloc(sizeof(StorageStructure));
+    memset(retval, 0, sizeof(StorageStructure));
+    
+    retval->labeling_proc = default_storage_labeling_proc;
+    //retval->rc = XmCreateRowColumn(parent, "rc", NULL, 0);
+    AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
+
+    //lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
+    //XtManageChild(lab);
+    
+    //XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
+    //XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
+    if (type == LIST_TYPE_SINGLE) {
+        //XtSetArg(args[2], XmNselectionPolicy, XmSINGLE_SELECT);
+    } else {
+        //XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
+    }
+    //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
+    //retval->list = XmCreateScrolledList(retval->rc, "list", args, 4);
+    retval->values = NULL;
+
+    CreateStorageChoicePopup(retval);
+    //XtAddEventHandler(retval->list,
+      //  ButtonPressMask, False, storage_popup, retval);
+
+    //XtOverrideTranslations(retval->list,
+     //                        XtParseTranslationTable(list_translation_table));
+
+    //XtManageChild(retval->list);
+    
+    //XtManageChild(retval->rc);
+    
+    return retval;
+}
+
+void SetStorageChoiceLabeling(StorageStructure *ss, Storage_LabelingProc proc)
+{
+    ss->labeling_proc = proc;
+}
+
 //int GetStorageSelectedCount(StorageStructure *ss)
 //{
 //    int count;
 //    XtVaGetValues(ss->list, XmNselectedItemCount, &count, NULL);
 //    return count;
 //}
-//
+int GetStorageSelectedCount(StorageStructure *ss)
+{
+    int count;
+//    XtVaGetValues(ss->list, XmNselectedItemCount, &count, NULL);
+    return count;
+}
+
 //int GetStorageChoices(StorageStructure *ss, Quark ***values)
 //{
 //    int i, n;
@@ -2017,28 +2298,48 @@ int GetOptionChoice(OptionStructure *opt)
 //    
 //    return n;
 //}
-//
-//int GetSingleStorageChoice(StorageStructure *ss, Quark **value)
-//{
-//    int n, retval;
-//    Quark **values;
-//    
-//    n = GetStorageChoices(ss, &values);
-//    if (n == 1) {
-//        *value = values[0];
-//        retval = RETURN_SUCCESS;
-//    } else {
-//        retval = RETURN_FAILURE;
-//    }
-//    
-//    if (n) {
-//        xfree(values);
-//    }
-//    
-//    return retval;
-//}
-//
-//
+int GetStorageChoices(StorageStructure *ss, Quark ***values)
+{
+    int i, n;
+    int *selected;
+    
+    //if (XmListGetSelectedPos(ss->list, &selected, &n) != True) {
+   //     return 0;
+  //  }
+    
+    *values = (Quark**) xmalloc(n*SIZEOF_VOID_P);
+    for (i = 0; i < n; i++) {
+        (*values)[i] = ss->values[selected[i] - 1];
+    }
+    
+    if (n) {
+//        XtFree((char *) selected);
+    }
+    
+    return n;
+}
+
+int GetSingleStorageChoice(StorageStructure *ss, Quark **value)
+{
+    int n, retval;
+    Quark **values;
+
+    n = GetStorageChoices(ss, &values);
+    if (n == 1) {
+        *value = values[0];
+        retval = RETURN_SUCCESS;
+    } else {
+        retval = RETURN_FAILURE;
+    }
+
+    if (n) {
+        xfree(values);
+    }
+
+    return retval;
+}
+
+
 //int SelectStorageChoices(StorageStructure *ss, int nchoices, Quark **choices)
 //{
 //    int i = 0, j;
@@ -2076,7 +2377,44 @@ int GetOptionChoice(OptionStructure *opt)
 //    
 //    return RETURN_SUCCESS;
 //}
-//
+int SelectStorageChoices(StorageStructure *ss, int nchoices, Quark **choices)
+{
+    int i = 0, j;
+    unsigned char selection_type_save;
+    int bottom, visible;
+
+    //XtVaGetValues(ss->list, XmNselectionPolicy, &selection_type_save, NULL);
+    //XtVaSetValues(ss->list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
+
+    //XmListDeselectAllItems(ss->list);
+    for (j = 0; j < nchoices; j++) {
+        i = 0;
+        while (i < ss->nchoices && ss->values[i] != choices[j]) {
+            i++;
+        }
+        if (i < ss->nchoices) {
+            i++;
+            //XmListSelectPos(ss->list, i, True);
+        }
+    }
+
+    if (nchoices > 0) {
+        /* Rewind list so the last choice is always visible */
+        //XtVaGetValues(ss->list, XmNtopItemPosition, &bottom,
+       //                         XmNvisibleItemCount, &visible,
+       //                         NULL);
+        if (i > bottom) {
+            //XmListSetBottomPos(ss->list, i);
+        } else if (i <= bottom - visible) {
+            //XmListSetPos(ss->list, i);
+        }
+    }
+
+    //XtVaSetValues(ss->list, XmNselectionPolicy, selection_type_save, NULL);
+
+    return RETURN_SUCCESS;
+}
+
 //int SelectStorageChoice(StorageStructure *ss, Quark *choice)
 //{
 //    return SelectStorageChoices(ss, 1, &choice);
@@ -2112,42 +2450,72 @@ int GetOptionChoice(OptionStructure *opt)
 //        XtCallCallbacks(ss->list, XmNsingleSelectionCallback, NULL);
 //    }
 //}   
-//
-//void SetStorageChoiceQuark(StorageStructure *ss, Quark *q)
-//{
-//    ss->q = q;
-//    UpdateStorageChoice(ss);
-//}   
-//
-//
-//typedef struct {
-//    StorageStructure *ss;
-//    Storage_CBProc cbproc;
-//    void *anydata;
-//} Storage_CBdata;
-//
-//typedef struct {
-//    StorageStructure *ss;
-//    Storage_DCCBProc cbproc;
-//    void *anydata;
-//} Storage_DCCBdata;
-//
-//static void storage_int_cb_proc(Widget w,
-//    XtPointer client_data, XtPointer call_data)
-//{
-//    int n;
-//    Quark **values;
-//    Storage_CBdata *cbdata = (Storage_CBdata *) client_data;
-// 
-//    n = GetStorageChoices(cbdata->ss, &values);
-//    
-//    cbdata->cbproc(cbdata->ss, n, values, cbdata->anydata);
-//
-//    if (n > 0) {
-//        xfree(values);
-//    }
-//}
-//
+void UpdateStorageChoice(StorageStructure *ss)
+{
+    Quark **selvalues;
+    storage_traverse_data stdata;
+    int nsel;
+
+    nsel = GetStorageChoices(ss, &selvalues);
+
+    //XmListDeleteAllItems(ss->list);
+    
+    ss->nchoices = 0;
+    stdata.rid = 0;
+    stdata.ss = ss;
+    if (ss->q) {
+        quark_traverse(ss->q, traverse_hook, &stdata);
+
+        SelectStorageChoices(ss, nsel, selvalues);
+    }
+    
+    if (nsel > 0) {
+        xfree(selvalues);
+    }
+    
+    nsel = GetStorageSelectedCount(ss);
+    //if (!nsel && XtHasCallbacks(ss->list, XmNsingleSelectionCallback) ==
+  //          XtCallbackHasSome) {
+  //      /* invoke callbacks to make any dependent GUI control to sync */
+  //      XtCallCallbacks(ss->list, XmNsingleSelectionCallback, NULL);
+  //  }
+}   
+
+void SetStorageChoiceQuark(StorageStructure *ss, Quark *q)
+{
+    ss->q = q;
+    UpdateStorageChoice(ss);
+}   
+
+
+typedef struct {
+    StorageStructure *ss;
+    Storage_CBProc cbproc;
+    void *anydata;
+} Storage_CBdata;
+
+typedef struct {
+    StorageStructure *ss;
+    Storage_DCCBProc cbproc;
+    void *anydata;
+} Storage_DCCBdata;
+
+static void storage_int_cb_proc(Widget w,
+    XtPointer client_data, XtPointer call_data)
+{
+    int n;
+    Quark **values;
+    Storage_CBdata *cbdata = (Storage_CBdata *) client_data;
+ 
+    n = GetStorageChoices(cbdata->ss, &values);
+    
+    cbdata->cbproc(cbdata->ss, n, values, cbdata->anydata);
+
+    if (n > 0) {
+        xfree(values);
+    }
+}
+
 //void AddStorageChoiceCB(StorageStructure *ss,
 //    Storage_CBProc cbproc, void *anydata)
 //{
@@ -2164,7 +2532,23 @@ int GetOptionChoice(OptionStructure *opt)
 //    XtAddCallback(ss->list,
 //        XmNextendedSelectionCallback, storage_int_cb_proc, (XtPointer) cbdata);
 //}
-//
+void AddStorageChoiceCB(StorageStructure *ss,
+    Storage_CBProc cbproc, void *anydata)
+{
+    Storage_CBdata *cbdata;
+    
+    cbdata = (Storage_CBdata*) xmalloc(sizeof(Storage_CBdata));
+    cbdata->ss = ss;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+//    XtAddCallback(ss->list,
+//        XmNsingleSelectionCallback,   storage_int_cb_proc, (XtPointer) cbdata);
+//    XtAddCallback(ss->list,
+//        XmNmultipleSelectionCallback, storage_int_cb_proc, (XtPointer) cbdata);
+//    XtAddCallback(ss->list,
+//        XmNextendedSelectionCallback, storage_int_cb_proc, (XtPointer) cbdata);
+}
+
 //static void storage_int_dc_cb_proc(Widget w,
 //    XtPointer client_data, XtPointer call_data)
 //{
@@ -2176,7 +2560,18 @@ int GetOptionChoice(OptionStructure *opt)
 //    
 //    cbdata->cbproc(cbdata->ss, value, cbdata->anydata);
 //}
-//
+static void storage_int_dc_cb_proc(Widget w,
+    XtPointer client_data, XtPointer call_data)
+{
+    void *value;
+    //XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
+    Storage_DCCBdata *cbdata = (Storage_DCCBdata *) client_data;
+ 
+    //value = cbdata->ss->values[cbs->item_position - 1];
+    
+    //cbdata->cbproc(cbdata->ss, value, cbdata->anydata);
+}
+
 //void AddStorageChoiceDblClickCB(StorageStructure *ss,
 //    Storage_DCCBProc cbproc, void *anydata)
 //{
@@ -2189,8 +2584,20 @@ int GetOptionChoice(OptionStructure *opt)
 //    XtAddCallback(ss->list,
 //        XmNdefaultActionCallback, storage_int_dc_cb_proc, (XtPointer) cbdata);
 //}
-//
-//
+void AddStorageChoiceDblClickCB(StorageStructure *ss,
+    Storage_DCCBProc cbproc, void *anydata)
+{
+    Storage_DCCBdata *cbdata;
+    
+    cbdata = (Storage_DCCBdata*) xmalloc(sizeof(Storage_DCCBdata));
+    cbdata->ss = ss;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+//    XtAddCallback(ss->list,
+//        XmNdefaultActionCallback, storage_int_dc_cb_proc, (XtPointer) cbdata);
+}
+
+
 //static void spin_arrow_cb(Widget w, XtPointer client_data, XtPointer call_data)
 //{
 //    SpinStructure *spinp;
@@ -3245,7 +3652,7 @@ Widget CreateLabel(Widget parent, char *s)
 //        NULL);
 //}
 //
-//static OptionItem *settype_option_items;
+static OptionItem *settype_option_items;
 //static OptionItem *fmt_option_items;
 //static OptionItem *frametype_option_items;
 //static BitmapOptionItem *pattern_option_items;
@@ -3435,13 +3842,13 @@ Widget CreateLabel(Widget parent, char *s)
 //    return (CreateBitmapOptionChoice(parent, s, 0, number_of_linestyles(canvas), 
 //                        LINES_BM_WIDTH, LINES_BM_HEIGHT, lines_option_items));
 //}
-//
-//OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
-//{
-//    return (CreateOptionChoice(parent,
-//        s, 0, NUMBER_OF_SETTYPES, settype_option_items));
-//}
-//
+
+OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
+{
+    return (CreateOptionChoice(parent,
+        s, 0, NUMBER_OF_SETTYPES, settype_option_items));
+}
+
 //OptionStructure *CreateFrameTypeChoice(Widget parent, char *s)
 //{
 //    return (CreateOptionChoice(parent,
@@ -3854,47 +4261,47 @@ Widget CreateLabel(Widget parent, char *s)
 //{
 //    return CreateSpinChoice(parent, s, 6, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.05);
 //}
-//
-//static StorageStructure **ssd_selectors = NULL;
-//static int nssd_selectors = 0;
-//
-//static char *ssd_labeling(Quark *q, unsigned int *rid)
-//{
-//    char buf[128];
-//    
-//    if (quark_fid_get(q) == QFlavorSSD) {
-//        sprintf(buf, "SSD \"%s\" (%d x %d)", QIDSTR(q),
-//            ssd_get_ncols(q), ssd_get_nrows(q));
-//
-//        (*rid)++;
-//
-//        return copy_string(NULL, buf);
-//    } else {
-//        return NULL;
-//    }
-//}
-//
-//StorageStructure *CreateSSDChoice(Widget parent, char *labelstr, int type)
-//{
-//    StorageStructure *ss;
-//    int nvisible;
-//    
-//    nvisible = (type == LIST_TYPE_SINGLE) ? 4 : 6; 
-//
-//    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
-//    SetStorageChoiceLabeling(ss, ssd_labeling);
-//    SetStorageChoiceQuark(ss, gproject_get_top(gapp->gp));
-//
-//    nssd_selectors++;
-//    ssd_selectors =
-//        xrealloc(ssd_selectors, nssd_selectors*sizeof(StorageStructure *));
-//    ssd_selectors[nssd_selectors - 1] = ss;
-//
-//    AddHelpCB(ss->rc, "doc/UsersGuide.html#ssd-selector");
-//
-//    return ss;
-//}
-//
+
+static StorageStructure **ssd_selectors = NULL;
+static int nssd_selectors = 0;
+
+static char *ssd_labeling(Quark *q, unsigned int *rid)
+{
+    char buf[128];
+    
+    if (quark_fid_get(q) == QFlavorSSD) {
+        sprintf(buf, "SSD \"%s\" (%d x %d)", QIDSTR(q),
+            ssd_get_ncols(q), ssd_get_nrows(q));
+
+        (*rid)++;
+
+        return copy_string(NULL, buf);
+    } else {
+        return NULL;
+    }
+}
+
+StorageStructure *CreateSSDChoice(Widget parent, char *labelstr, int type)
+{
+    StorageStructure *ss;
+    int nvisible;
+    
+    nvisible = (type == LIST_TYPE_SINGLE) ? 4 : 6; 
+
+    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
+    SetStorageChoiceLabeling(ss, ssd_labeling);
+    SetStorageChoiceQuark(ss, gproject_get_top(gapp->gp));
+
+    nssd_selectors++;
+    ssd_selectors =
+        (StorageStructure**) xrealloc(ssd_selectors, nssd_selectors*sizeof(StorageStructure *));
+    ssd_selectors[nssd_selectors - 1] = ss;
+
+    AddHelpCB(ss->rc, "doc/UsersGuide.html#ssd-selector");
+
+    return ss;
+}
+
 //int GetSSDColChoices(SSDColStructure *sc, Quark **ssd, int **cols)
 //{
 //    if (GetSingleStorageChoice(sc->ssd_sel, ssd) != RETURN_SUCCESS) {
@@ -3903,7 +4310,15 @@ Widget CreateLabel(Widget parent, char *s)
 //        return GetListChoices(sc->col_sel, cols);
 //    }
 //}
-//
+int GetSSDColChoices(SSDColStructure *sc, Quark **ssd, int **cols)
+{
+    if (GetSingleStorageChoice(sc->ssd_sel, ssd) != RETURN_SUCCESS) {
+        return -1;
+    } else {
+        return GetListChoices(sc->col_sel, cols);
+    }
+}
+
 //void update_ssd_selectors(Quark *pr)
 //{
 //    int i;
@@ -3918,64 +4333,64 @@ Widget CreateLabel(Widget parent, char *s)
 //        UpdateStorageChoice(ss);
 //    }
 //}
-//
-//
-//static StorageStructure **graph_selectors = NULL;
-//static int ngraph_selectors = 0;
-//
-//#define GSS_FOCUS_CB         0
-//
-//typedef struct {
-//    Widget focus_bt;
-//} GSSData;
-//
-//static void gss_any_cb(void *udata, int cbtype)
-//{
-//    StorageStructure *ss = (StorageStructure *) udata;
-//    int i, n;
-//    Quark **values;
-//    
-//    n = GetStorageChoices(ss, &values);
-//    
-//    for (i = 0; i < n; i ++) {
-//        Quark *gr = values[i];
-//        
-//        switch (cbtype) {
-//        case GSS_FOCUS_CB:
-//            switch_current_graph(gr);
-//            break;
-//        }
-//    }
-//    
-//    if (n > 0) {
-//        xfree(values);
-//        update_all();
-//        xdrawgraph(gapp->gp);
-//    }
-//}
-//
-//static void g_focus_cb(Widget but, void *udata)
-//{
-//    gss_any_cb(udata, GSS_FOCUS_CB);
-//}
-//
-//static void g_popup_cb(StorageStructure *ss, int nselected)
-//{
-//    GSSData *gssdata = (GSSData *) ss->data;
-//    
-//    SetSensitive(gssdata->focus_bt, (nselected == 1));
-//}
-//
-//static void g_new_cb(Widget but, void *udata)
-//{
-//    graph_next(gproject_get_top(gapp->gp));
-//    snapshot_and_update(gapp->gp, TRUE);
-//}
-//
+
+
+static StorageStructure **graph_selectors = NULL;
+static int ngraph_selectors = 0;
+
+#define GSS_FOCUS_CB         0
+
+typedef struct {
+    Widget focus_bt;
+} GSSData;
+
+static void gss_any_cb(void *udata, int cbtype)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+    int i, n;
+    Quark **values;
+
+    n = GetStorageChoices(ss, &values);
+
+    for (i = 0; i < n; i ++) {
+        Quark *gr = values[i];
+
+        switch (cbtype) {
+        case GSS_FOCUS_CB:
+            switch_current_graph(gr);
+            break;
+        }
+    }
+
+    if (n > 0) {
+        xfree(values);
+        update_all();
+        xdrawgraph(gapp->gp);
+    }
+}
+
+static void g_focus_cb(Widget but, void *udata)
+{
+    gss_any_cb(udata, GSS_FOCUS_CB);
+}
+
+static void g_popup_cb(StorageStructure *ss, int nselected)
+{
+    GSSData *gssdata = (GSSData *) ss->data;
+
+    SetSensitive(gssdata->focus_bt, (nselected == 1));
+}
+
+static void g_new_cb(Widget but, void *udata)
+{
+    graph_next(gproject_get_top(gapp->gp));
+    snapshot_and_update(gapp->gp, TRUE);
+}
+
 //static char *graph_labeling(Quark *q, unsigned int *rid)
 //{
 //    char buf[128];
-//    
+//
 //    if (quark_fid_get(q) == QFlavorGraph) {
 //        sprintf(buf, "Graph \"%s\" (type: %s, sets: %d)",
 //            QIDSTR(q),
@@ -3988,7 +4403,24 @@ Widget CreateLabel(Widget parent, char *s)
 //        return NULL;
 //    }
 //}
-//
+static char *graph_labeling(Quark *q, unsigned int *rid)
+{
+    char buf[128];
+
+    if (quark_fid_get(q) == QFlavorGraph) {
+        sprintf(buf, "Graph \"%s\" (type: %s, sets: %d)",
+            QIDSTR(q),
+            graph_types(gapp->grace, (GraphType) graph_get_type(q)),
+                        quark_get_number_of_descendant_sets(q));
+
+        (*rid)++;
+
+        return copy_string(NULL, buf);
+    } else {
+        return NULL;
+    }
+}
+
 //StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
 //{
 //    StorageStructure *ss;
@@ -4024,7 +4456,43 @@ Widget CreateLabel(Widget parent, char *s)
 //    
 //    return ss;
 //}
-//
+StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
+{
+    StorageStructure *ss;
+    GSSData *gssdata;
+    Widget popup;
+    int nvisible;
+
+    nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4;
+    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
+    SetStorageChoiceLabeling(ss, graph_labeling);
+    SetStorageChoiceQuark(ss, gproject_get_top(gapp->gp));
+    AddHelpCB(ss->rc, "doc/UsersGuide.html#graph-selector");
+
+    ngraph_selectors++;
+    graph_selectors =
+        (StorageStructure**) xrealloc(graph_selectors,
+                                      ngraph_selectors*sizeof(StorageStructure *));
+    graph_selectors[ngraph_selectors - 1] = ss;
+
+    gssdata = (GSSData*) xmalloc(sizeof(GSSData));
+    ss->data = gssdata;
+    ss->popup_cb = g_popup_cb;
+
+    popup = ss->popup;
+
+    CreateMenuSeparator(popup);
+
+    CreateMenuButton(popup, "Create new", '\0', g_new_cb, ss);
+
+    CreateMenuSeparator(popup);
+
+    gssdata->focus_bt =
+        CreateMenuButton(popup, "Focus to selected", '\0', g_focus_cb, ss);
+
+    return ss;
+}
+
 //void update_graph_selectors(Quark *pr)
 //{
 //    int i;
@@ -4291,18 +4759,18 @@ void graph_set_selectors(Quark *gr)
 //
 //
 //
-//ListStructure *CreateColChoice(Widget parent, char *labelstr, int type)
-//{
-//    int nvisible;
-//    ListStructure *retval;
-//    
-//    nvisible = 6; 
-//
-//    retval = CreateListChoice(parent, labelstr, type, nvisible, 0, NULL);
-//    
-//    return retval;
-//}
-//
+ListStructure *CreateColChoice(Widget parent, char *labelstr, int type)
+{
+    int nvisible;
+    ListStructure *retval;
+    
+    nvisible = 6; 
+
+    retval = CreateListChoice(parent, labelstr, type, nvisible, 0, NULL);
+    
+    return retval;
+}
+
 //void UpdateColChoice(ListStructure *sel, const Quark *ssd)
 //{
 //    unsigned int i, ncols;
@@ -4328,29 +4796,63 @@ void graph_set_selectors(Quark *gr)
 //        items = NULL;
 //    }
 //    UpdateListChoice(sel, ncols, items);
-//    
+//
 //    for (i = 0; i < ncols; i++) {
 //        xfree(items[i].label);
 //    }
 //    xfree(items);
-//    
+//
 //    sel->anydata = (void *) ssd;
 //}
 //
-//static void update_ssd_cb(StorageStructure *ss, int n, Quark **values, void *data)
-//{
-//    SSDColStructure *gs = (SSDColStructure *) data;
-//    Quark *ssd;
-//    
-//    if (n == 1) {
-//        ssd = values[0];
-//    } else {
-//        ssd = NULL;
-//    }
-//    
-//    UpdateColChoice(gs->col_sel, ssd);
-//}
-//
+void UpdateColChoice(ListStructure *sel, const Quark *ssd)
+{
+    unsigned int i, ncols;
+    OptionItem *items;
+
+    if (ssd) {
+        ncols = ssd_get_ncols(ssd);
+        items = (OptionItem*) xmalloc(ncols*sizeof(OptionItem));
+        for (i = 0; i < ncols; i++) {
+            char *label, *s, buf[32];
+            items[i].value = i;
+            label = ssd_get_col_label(ssd, i);
+            if (string_is_empty(label)) {
+                sprintf(buf, "#%d", i + 1);
+                s = copy_string(NULL, buf);
+            } else {
+                s = copy_string(NULL, label);
+            }
+            items[i].label = s;
+        }
+    } else {
+        ncols = 0;
+        items = NULL;
+    }
+    UpdateListChoice(sel, ncols, items);
+
+    for (i = 0; i < ncols; i++) {
+        xfree(items[i].label);
+    }
+    xfree(items);
+
+    sel->anydata = (void *) ssd;
+}
+
+static void update_ssd_cb(StorageStructure *ss, int n, Quark **values, void *data)
+{
+    SSDColStructure *gs = (SSDColStructure *) data;
+    Quark *ssd;
+
+    if (n == 1) {
+        ssd = values[0];
+    } else {
+        ssd = NULL;
+    }
+
+    UpdateColChoice(gs->col_sel, ssd);
+}
+
 //SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 //{
 //    SSDColStructure *retval;
@@ -4368,9 +4870,32 @@ void graph_set_selectors(Quark *gr)
 //
 //    return retval;
 //}
-//
-//
-//
+SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
+{
+    SSDColStructure *retval;
+    Widget rc;
+    char *str;
+
+    retval = (SSDColStructure*) xmalloc(sizeof(SSDColStructure));
+    retval->frame = CreateFrame(parent, s);
+    //rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, retval->frame, NULL);
+    retval->ssd_sel = CreateSSDChoice(rc, "SSData:", LIST_TYPE_SINGLE);
+
+    if (sel_type == LIST_TYPE_SINGLE) {
+        str = "Column:";
+    } else {
+        str = "Column(s):";
+    }
+    retval->col_sel = CreateColChoice(rc, str, sel_type);
+    AddStorageChoiceCB(retval->ssd_sel, update_ssd_cb, (void *) retval);
+
+//    XtManageChild(rc);
+
+    return retval;
+}
+
+
+
 //SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
 //{
 //    SrcDestStructure *retval;
@@ -4596,27 +5121,27 @@ void graph_set_selectors(Quark *gr)
 //    fstr->cb_proc = cbproc;
 //    fstr->cb_data = data;
 //}
-//
-//
-//static OptionItem as_option_items[4] = 
-//{
-//    {AUTOSCALE_NONE, "None"},
-//    {AUTOSCALE_X,    "X"},
-//    {AUTOSCALE_Y,    "Y"},
-//    {AUTOSCALE_XY,   "XY"}
-//};
-//
-//OptionStructure *CreateASChoice(Widget parent, char *s)
-//{
-//    OptionStructure *retval;
-//    
-//    retval = CreateOptionChoice(parent, s, 1, 4, as_option_items);
-//    /* As init value, use this */
-//    SetOptionChoice(retval, gapp->rt->autoscale_onread);
-//    
-//    return(retval);
-//}
-//
+
+
+static OptionItem as_option_items[4] =
+{
+    {AUTOSCALE_NONE, "None"},
+    {AUTOSCALE_X,    "X"},
+    {AUTOSCALE_Y,    "Y"},
+    {AUTOSCALE_XY,   "XY"}
+};
+
+OptionStructure *CreateASChoice(Widget parent, char *s)
+{
+    OptionStructure *retval;
+
+    retval = CreateOptionChoice(parent, s, 1, 4, as_option_items);
+    /* As init value, use this */
+    SetOptionChoice(retval, gapp->rt->autoscale_onread);
+
+    return(retval);
+}
+
 //OptionStructure *CreatePrecisionChoice(Widget parent, char *s)
 //{
 //    return CreateOptionChoiceVA(parent, s,
@@ -5383,8 +5908,19 @@ Widget CreateVContainer(Widget parent)
 //    
 //    return rc;
 //}
-//
-//
+Widget CreateHContainer(Widget parent)
+{
+    QLayout *layout = parent->layout();
+
+    if (layout == 0) {
+        layout = new QHBoxLayout();
+        parent->setLayout(layout);
+    }
+
+    return parent;
+}
+
+
 //Widget CreateFrame(Widget parent, char *s)
 //{
 //    Widget fr;

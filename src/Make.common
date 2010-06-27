@@ -29,10 +29,12 @@ GROBJS = main$(O) graceapp$(O) \
 #
 
 GUIISRCS = guiactions.c events.c guiutils.c \
+           fileswin.c \
            miscwin.c \
            monwin.c 
 
 GUIIOBJS = guiactions$(O) events$(O) guiutils$(O) \
+           fileswin$(O) \
            miscwin$(O) \
            monwin$(O)
 
@@ -43,7 +45,6 @@ GUIIOBJS = guiactions$(O) events$(O) guiutils$(O) \
 
 GUISRCS = Tab.c ListTree.c motifutils.c \
 	compwin.c \
-	fileswin.c \
 	helpwin.c \
 	printwin.c drv_ui.c \
 	setwin.c \
@@ -54,7 +55,6 @@ GUISRCS = Tab.c ListTree.c motifutils.c \
 
 GUIOBJS = Tab$(O) ListTree$(O) motifutils$(O) \
 	compwin$(O) \
-	fileswin$(O) \
 	helpwin$(O) \
 	printwin$(O) drv_ui$(O) \
 	setwin$(O) \
