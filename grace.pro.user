@@ -31,14 +31,14 @@
      <value key="ProjectExplorer.ProjectConfiguration.Id" type="QString">Qt4ProjectManager.MakeStep</value>
      <value key="Qt4ProjectManager.MakeStep.Clean" type="bool">true</value>
      <valuelist key="Qt4ProjectManager.MakeStep.MakeArguments" type="QVariantList">
-      <value type="QString">clean</value>
+      <value type="QString">distclean</value>
      </valuelist>
      <value key="Qt4ProjectManager.MakeStep.MakeCommand" type="QString"></value>
     </valuemap>
     <value key="ProjectExplorer.BuildConfiguration.CleanStepsCount" type="int">1</value>
     <value key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment" type="bool">true</value>
     <valuelist key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges" type="QVariantList">
-     <value type="QString">PATH=C:\Qt\2010.01\mingw\bin;C:\Qt\2010.01\qt\bin;c:\cygwin\bin;C:\cygwin\home\img\xccbin\bin</value>
+     <value type="QString">PATH=C:\Qt\2010.04\mingw\bin;C:\Qt\2010.04\qt\bin;c:\cygwin\bin;C:\cygwin\home\img\xccbin\bin</value>
      <value type="QString">TMP=C:\DOCUME~1\img\LOCALS~1\Temp</value>
      <value type="QString">MAKE=mingw32-make</value>
     </valuelist>
@@ -46,7 +46,7 @@
     <value key="ProjectExplorer.ProjectConfiguration.Id" type="QString">Qt4ProjectManager.Qt4BuildConfiguration</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.BuildConfiguration" type="int">0</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.BuildDirectory" type="QString">C:/cygwin/home/img/grace-build-desktop</value>
-    <value key="Qt4ProjectManager.Qt4BuildConfiguration.QtVersionId" type="int">4</value>
+    <value key="Qt4ProjectManager.Qt4BuildConfiguration.QtVersionId" type="int">6</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.ToolChain" type="int">2</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.UseShadowBuild" type="bool">false</value>
    </valuemap>
@@ -66,7 +66,7 @@
     <value key="ProjectExplorer.BuildConfiguration.CleanStepsCount" type="int">0</value>
     <value key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment" type="bool">true</value>
     <valuelist key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges" type="QVariantList">
-     <value type="QString">PATH=C:\Qt\2010.01\mingw\bin;C:\Qt\2010.01\qt\bin;c:\cygwin\bin</value>
+     <value type="QString">PATH=C:\Qt\2010.04\mingw\bin;C:\Qt\2010.04\qt\bin;c:\cygwin\bin</value>
      <value type="QString">TMP=C:\DOCUME~1\img\LOCALS~1\Temp</value>
      <value type="QString">MAKE=mingw32-make</value>
     </valuelist>
@@ -74,7 +74,7 @@
     <value key="ProjectExplorer.ProjectConfiguration.Id" type="QString">Qt4ProjectManager.Qt4BuildConfiguration</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.BuildConfiguration" type="int">0</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.BuildDirectory" type="QString">C:/cygwin/home/img/grace-build-desktop</value>
-    <value key="Qt4ProjectManager.Qt4BuildConfiguration.QtVersionId" type="int">4</value>
+    <value key="Qt4ProjectManager.Qt4BuildConfiguration.QtVersionId" type="int">6</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.ToolChain" type="int">2</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.UseShadowBuild" type="bool">false</value>
    </valuemap>
