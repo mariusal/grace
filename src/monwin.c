@@ -263,7 +263,7 @@ static int save_logs_proc(FSBStructure *fsb, char *filename, void *data)
     pp = gapp_openw(gapp, filename);
 
     if (pp == NULL) {
-        return RETURN_FAILURE;
+        return FALSE;
     } else {
         char *text = GetTextString(ui->monText);
         
@@ -274,7 +274,7 @@ static int save_logs_proc(FSBStructure *fsb, char *filename, void *data)
         
         gapp_close(pp);
         
-        return RETURN_SUCCESS;
+        return TRUE;
     }
 }
 

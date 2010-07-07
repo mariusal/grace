@@ -3554,7 +3554,7 @@ static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data
 
     ok = cbdata->cbproc(cbdata->fsb, s, cbdata->anydata);
 
-    if (!ok) {
+    if (ok) {
         fileSelectionDialog->close();
     }
     unset_wait_cursor();
