@@ -56,6 +56,7 @@
 #include <QLCDNumber>
 #include <QPlainTextEdit>
 #include <QLineEdit>
+#include <QListWidget>
 #include <mainwindow.h>
 #include <canvaswidget.h>
 #include <fileselectiondialog.h>
@@ -1530,11 +1531,17 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
 
     retval = (ListStructure*) xmalloc(sizeof(ListStructure));
     //retval->rc = XmCreateRowColumn(parent, "rcList", NULL, 0);
+    retval->rc = new QWidget(parent);
     AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
 
+    QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->rc);
+
+    QLabel *label = new QLabel(retval->rc);
+    label->setText(labelstr);
+    vBoxLayout->addWidget(label);
     //lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
     //XtManageChild(lab);
-    
+
     //XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
     //XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
     if (type == LIST_TYPE_SINGLE) {
@@ -1544,6 +1551,8 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     }
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "listList", args, 4);
+    retval->list = new QListWidget(retval->rc);
+    vBoxLayout->addWidget(retval->list);
     retval->values = NULL;
 
     //XtOverrideTranslations(retval->list,
@@ -2126,6 +2135,7 @@ static void CreateStorageChoicePopup(StorageStructure *ss)
     Widget popup, submenupane;
 
     //popup = XmCreatePopupMenu(ss->list, "popupMenu", NULL, 0);
+    popup = new QMenu(ss->list);
     ss->popup = popup;
 #if XmVersion >= 2000
 //    XtVaSetValues(popup, XmNpopupEnabled, XmPOPUP_DISABLED, NULL);
@@ -2222,16 +2232,22 @@ StorageStructure *CreateStorageChoice(Widget parent,
     char *labelstr, int type, int nvisible)
 {
     //Arg args[4];
-    Widget lab;
+    //Widget lab;
     StorageStructure *retval;
 
     retval = (StorageStructure*) xmalloc(sizeof(StorageStructure));
     memset(retval, 0, sizeof(StorageStructure));
-    
+
     retval->labeling_proc = default_storage_labeling_proc;
     //retval->rc = XmCreateRowColumn(parent, "rc", NULL, 0);
+    retval->rc = new QWidget(parent);
     AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
 
+    QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->rc);
+
+    QLabel *label = new QLabel(retval->rc);
+    label->setText(labelstr);
+    vBoxLayout->addWidget(label);
     //lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
     //XtManageChild(lab);
     
@@ -2244,6 +2260,8 @@ StorageStructure *CreateStorageChoice(Widget parent,
     }
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "list", args, 4);
+    retval->list = new QListWidget(retval->rc);
+    vBoxLayout->addWidget(retval->list);
     retval->values = NULL;
 
     CreateStorageChoicePopup(retval);
@@ -3493,6 +3511,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 
     retval->FSB = fileSelectionDialog;
     retval->dialog = fileSelectionDialog;
+    retval->rc = fileSelectionDialog;
 
     bufp = copy_string(NULL, "Grace: ");
     bufp = concat_strings(bufp, s);
@@ -4878,8 +4897,17 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 
     retval = (SSDColStructure*) xmalloc(sizeof(SSDColStructure));
     retval->frame = CreateFrame(parent, s);
+
+    QBoxLayout *layout = (QBoxLayout*) parent->layout();
+    if (layout != 0) {
+        layout->insertWidget(4, retval->frame);
+    }
     //rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, retval->frame, NULL);
-    retval->ssd_sel = CreateSSDChoice(rc, "SSData:", LIST_TYPE_SINGLE);
+    QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->frame);
+    vBoxLayout->setContentsMargins(0,0,0,0);
+    //retval->ssd_sel = CreateSSDChoice(rc, "SSData:", LIST_TYPE_SINGLE);
+    retval->ssd_sel = CreateSSDChoice(retval->frame, "SSData:", LIST_TYPE_SINGLE);
+    vBoxLayout->addWidget(retval->ssd_sel->rc);
 
     if (sel_type == LIST_TYPE_SINGLE) {
         str = "Column:";
@@ -4887,6 +4915,7 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
         str = "Column(s):";
     }
     retval->col_sel = CreateColChoice(rc, str, sel_type);
+    vBoxLayout->addWidget(retval->col_sel->rc);
     AddStorageChoiceCB(retval->ssd_sel, update_ssd_cb, (void *) retval);
 
 //    XtManageChild(rc);
