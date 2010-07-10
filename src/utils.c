@@ -437,13 +437,13 @@ char *mybasename(const char *s)
 
 int set_workingdir(GraceApp *gapp, const char *wd)
 {
-    char buf[GR_MAXPATHLEN], *epath;
+    char *epath;
     int retval;
     
     epath = grace_path(gapp->grace, wd);
     
     if (chdir(epath) >= 0) {
-        gapp->rt->workingdir = copy_string(gapp->rt->workingdir, buf);
+        gapp->rt->workingdir = copy_string(gapp->rt->workingdir, epath);
         if (gapp->rt->workingdir[strlen(gapp->rt->workingdir) - 1] != '/') {
             gapp->rt->workingdir = concat_strings(gapp->rt->workingdir, "/");
         }
