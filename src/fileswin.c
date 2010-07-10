@@ -75,6 +75,9 @@ void create_saveproject_popup(void)
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell, "Save project");
 	AddFileSelectionBoxCB(fsb, save_proc, NULL);
+#ifdef QT_GUI
+        SetFileSelectionBoxPattern(fsb, "*.xgr");
+#endif
         ManageChild(fsb->FSB);
     }
     
@@ -225,6 +228,9 @@ void create_openproject_popup(void)
 #endif
         ui->fsb = CreateFileSelectionBox(app_shell, "Open project");
 	AddFileSelectionBoxCB(ui->fsb, open_proc, NULL);
+#ifdef QT_GUI
+        SetFileSelectionBoxPattern(ui->fsb, "*.*gr");
+#endif
 
         fr = CreateFrame(ui->fsb->rc, "Preview");
 #ifndef QT_GUI
@@ -293,6 +299,9 @@ void create_file_popup(Widget but, void *data)
         
 	rdata_dialog = CreateFileSelectionBox(app_shell, "Read sets");
 	AddFileSelectionBoxCB(rdata_dialog, read_sets_proc, (void *) gui);
+#ifdef QT_GUI
+        SetFileSelectionBoxPattern(rdata_dialog, "*.dat");
+#endif
 
 	fr = CreateFrame(rdata_dialog->rc, NULL);
 	rc = CreateVContainer(fr);
@@ -396,8 +405,11 @@ void create_write_popup(Widget but, void *data)
 	
         fsb = CreateFileSelectionBox(app_shell, "Export data");
 	AddFileSelectionBoxCB(fsb, write_ssd_proc, (void *) gui);
+#ifdef QT_GUI
+        SetFileSelectionBoxPattern(fsb, "*.dat");
+#endif
 	
-	gui->sel = CreateSSDColSelector(fsb->rc, NULL, LIST_TYPE_MULTIPLE);
+        gui->sel = CreateSSDColSelector(fsb->rc, NULL, LIST_TYPE_MULTIPLE);
 
         ManageChild(fsb->FSB);
     }
