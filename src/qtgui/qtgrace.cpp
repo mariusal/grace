@@ -5493,6 +5493,7 @@ Widget CreateDialogForm(Widget parent, const char *s)
     xfree(bufp);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
+    mainLayout->setContentsMargins(4,4,4,4);
     w->setLayout(mainLayout);
 
     return w;
@@ -5598,6 +5599,7 @@ Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
     form = new QWidget(parent);
 
     QHBoxLayout *horizontalLayout = new QHBoxLayout(form);
+    horizontalLayout->setContentsMargins(4,4,4,4);
 
     for (i = 0; i < n; i++) {
         pushButton = new QPushButton(l[i], form);
