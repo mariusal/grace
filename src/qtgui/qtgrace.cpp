@@ -821,7 +821,8 @@ void ManageChild(Widget w)
 //}
 void SetSensitive(Widget w, int onoff)
 {
-//    XtSetSensitive(w, onoff ? True : False);
+    QAction *action = (QAction*) w;
+    action->setEnabled(onoff ? true : false);
 }
 
 //Widget GetParent(Widget w)
@@ -1075,6 +1076,8 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
     opt->cbnum++;
 
     for (i = 0; i < opt->nchoices; i++) {
+        AddCallback(opt->pulldown, SIGNAL(activated(int)),
+                    oc_int_cb_proc, (XtPointer) cbdata);
   //      XtAddCallback(opt->options[i].widget, XmNactivateCallback,
   //                                  oc_int_cb_proc, (XtPointer) cbdata);
     }
@@ -1394,7 +1397,8 @@ int GetOptionChoice(OptionStructure *opt)
 //}
 static void list_selectall(Widget list)
 {
-//    XtCallActionProc(list, "ListKbdSelectAll", NULL, NULL, 0);
+     QListWidget *listWidget = (QListWidget*) list;
+     listWidget->selectAll();
 }
 
 //static void list_unselectall(Widget list)
@@ -1403,7 +1407,8 @@ static void list_selectall(Widget list)
 //}
 static void list_unselectall(Widget list)
 {
-//    XmListDeselectAllItems(list);
+    QListWidget *listWidget = (QListWidget*) list;
+    listWidget->clearSelection();
 }
 
 //static void list_invertselection(Widget list)
@@ -1429,24 +1434,24 @@ static void list_unselectall(Widget list)
 //}
 static void list_invertselection(Widget list)
 {
-    X11Stuff *xstuff = gapp->gui->xstuff;
     int i, n;
-    unsigned char selection_type_save;
+    QListWidget *listWidget = (QListWidget*) list;
+    QAbstractItemView::SelectionMode selection_type_save;
     
-//    XtVaGetValues(list,
-//        XmNselectionPolicy, &selection_type_save,
-//        XmNitemCount, &n,
-//        NULL);
-//    if (selection_type_save == XmSINGLE_SELECT) {
-//        XBell(xstuff->disp, 50);
-//        return;
-//    }
-    
-//    XtVaSetValues(list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
-    for (i = 0; i < n; i++) {
-//        XmListSelectPos(list, i, False);
+    selection_type_save = listWidget->selectionMode();
+    n = listWidget->count();
+
+    if (selection_type_save == QAbstractItemView::SingleSelection) {
+        QApplication::beep();
+        qDebug("beep");
+        return;
     }
-//    XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
+    
+    listWidget->setSelectionMode(QAbstractItemView::MultiSelection);
+    for (i = 0; i < n; i++) {
+        listWidget->setCurrentRow(i);
+    }
+    listWidget->setSelectionMode(selection_type_save);
 }
 
 //static int list_get_selected_count(Widget list)
@@ -1464,7 +1469,13 @@ static void list_invertselection(Widget list)
 //#endif    
 //    return n;
 //}
-//
+static int list_get_selected_count(Widget list)
+{
+    QListWidget *listWidget = (QListWidget*) list;
+
+    return listWidget->selectedItems().size();
+}
+
 //static void list_activate_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 //{
 //    XtCallActionProc(w, "ListKbdActivate", NULL, NULL, 0);
@@ -1526,7 +1537,7 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items)
 {
     //Arg args[4];
-    Widget lab;
+    //Widget lab;
     ListStructure *retval;
 
     retval = (ListStructure*) xmalloc(sizeof(ListStructure));
@@ -1535,6 +1546,7 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
 
     QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->rc);
+    vBoxLayout->setContentsMargins(4,4,4,4);
 
     QLabel *label = new QLabel(retval->rc);
     label->setText(labelstr);
@@ -1542,19 +1554,26 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     //lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
     //XtManageChild(lab);
 
+    QListWidget *listWidget = new QListWidget(retval->rc);
+
     //XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
     //XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
     if (type == LIST_TYPE_SINGLE) {
+        listWidget->setSelectionMode(QAbstractItemView::SingleSelection);
       //  XtSetArg(args[2], XmNselectionPolicy, XmSINGLE_SELECT);
     } else {
+        listWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
       //  XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
     }
+    // TODO: listWidget->setItemsVisible(nvisible);
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "listList", args, 4);
-    retval->list = new QListWidget(retval->rc);
-    vBoxLayout->addWidget(retval->list);
+
+    vBoxLayout->addWidget(listWidget);
+    retval->list = listWidget;
     retval->values = NULL;
 
+    //TODO: add acelerators
     //XtOverrideTranslations(retval->list,
       //                       XtParseTranslationTable(list_translation_table));
     
@@ -1600,11 +1619,12 @@ void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
 {
     int i, nsel;
     int *selvalues;
-    //XmString str;
 
     if (listp == NULL) {
         return;
     }
+
+    QListWidget *listWidget = (QListWidget*) listp->list;
 
     nsel = GetListChoices(listp, &selvalues);
 
@@ -1614,11 +1634,9 @@ void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
         listp->values[i] = items[i].value;
     }
 
-    //XmListDeleteAllItems(listp->list);
+    listWidget->clear();
     for (i = 0; i < nchoices; i++) {
-        //str = XmStringCreateLocalized(items[i].label);
-    //    XmListAddItemUnselected(listp->list, str, 0);
-    //    XmStringFree(str);
+        listWidget->insertItem(0, items[i].label);
     }
     SelectListChoices(listp, nsel, selvalues);
     if (nsel > 0) {
@@ -1691,12 +1709,17 @@ void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
 void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
 {
     int i = 0, j;
-    unsigned char selection_type_save;
+    QAbstractItemView::SelectionMode selection_type_save;
     int bottom, visible;
 
+    QListWidget *listWidget = (QListWidget*) listp->list;
+
+    selection_type_save = listWidget->selectionMode();
+    listWidget->setSelectionMode(QAbstractItemView::MultiSelection);
     //XtVaGetValues(listp->list, XmNselectionPolicy, &selection_type_save, NULL);
     //XtVaSetValues(listp->list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
 
+    listWidget->clearSelection();
     //XmListDeselectAllItems(listp->list);
     for (j = 0; j < nchoices; j++) {
         i = 0;
@@ -1704,23 +1727,26 @@ void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
             i++;
         }
         if (i < listp->nchoices) {
+            listWidget->setCurrentRow(i);
             i++;
+
             //XmListSelectPos(listp->list, i, True);
         }
     }
 
-    if (nchoices > 0) {
+    //if (nchoices > 0) {
         /* Rewind list so the last choice is always visible */
         //XtVaGetValues(listp->list, XmNtopItemPosition, &bottom,
         //                         XmNvisibleItemCount, &visible,
         //                         NULL);
-        if (i > bottom) {
+     //   if (i > bottom) {
         //    XmListSetBottomPos(listp->list, i);
-        } else if (i <= bottom - visible) {
+     //   } else if (i <= bottom - visible) {
          //   XmListSetPos(listp->list, i);
-        }
-    }
+    //    }
+   // }
 
+    listWidget->setSelectionMode(selection_type_save);
     //XtVaSetValues(listp->list, XmNselectionPolicy, selection_type_save, NULL);
 }
 
@@ -1740,14 +1766,16 @@ void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
 //}
 int GetListChoices(ListStructure *listp, int **values)
 {
-    int i, n;
+    int i, n, nrow;
 
-    //if (XmListGetSelectedPos(listp->list, values, &n) != True) {
-    //    return 0;
-    //}
+    QListWidget *listWidget = (QListWidget*) listp->list;
+    QList<QListWidgetItem *> list = listWidget->selectedItems();
+
+    n = list.size();
 
     for (i = 0; i < n; i++) {
-        (*values)[i] = listp->values[(*values)[i] - 1];
+        nrow = listWidget->row(list.at(i));
+        (*values)[i] = listp->values[nrow];
     }
 
     return n;
@@ -1827,6 +1855,7 @@ int GetListChoices(ListStructure *listp, int **values)
 
 static char *default_storage_labeling_proc(Quark *q, unsigned int *rid)
 {
+    qDebug("labeling_proc");
     char buf[128];
 
     sprintf(buf, "Quark \"%s\"", QIDSTR(q));
@@ -1877,6 +1906,7 @@ static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
     
     s = ss->labeling_proc(q, &stdata->rid);
     if (s) {
+         qDebug("yyy");
         char buf[16], *sbuf;
         //XmString str;
         
@@ -1888,6 +1918,8 @@ static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
         sbuf = concat_strings(sbuf, s);
         xfree(s);
 
+        QListWidget *listWidget = (QListWidget*) ss->list;
+        listWidget->insertItem(0, sbuf);
         //str = XmStringCreateLocalized(sbuf);
         xfree(sbuf);
 
@@ -1941,6 +1973,49 @@ static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
 //    XmMenuPosition(popup, e);
 //    XtManageChild(popup);
 //}
+static void storage_popup(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    StorageStructure *ss = (StorageStructure *) client_data;
+    QMenu *popup = (QMenu*) ss->popup;
+    int n, selected;
+
+    //if (e->button != 3) {
+    //    return;
+    //}
+
+    /* don't post menu if governor selection isn't single */
+    if (ss->governor && list_get_selected_count(ss->governor->list) != 1) {
+        return;
+    }
+
+    n = list_get_selected_count(ss->list);
+
+    if (n != 0) {
+        selected = TRUE;
+    } else {
+        selected = FALSE;
+    }
+
+    SetSensitive(ss->popup_hide_bt, selected);
+    SetSensitive(ss->popup_show_bt, selected);
+    SetSensitive(ss->popup_delete_bt, selected);
+    SetSensitive(ss->popup_duplicate_bt, selected);
+    SetSensitive(ss->popup_bring_to_front_bt, selected);
+    SetSensitive(ss->popup_send_to_back_bt, selected);
+    SetSensitive(ss->popup_move_up_bt, selected);
+    SetSensitive(ss->popup_move_down_bt, selected);
+
+    SetSensitive(ss->popup_properties_bt, n == 1);
+
+    if (ss->popup_cb) {
+        ss->popup_cb(ss, n);
+    }
+
+    //XmMenuPosition(popup, e);
+    //XtManageChild(popup);
+    popup->exec(QCursor::pos());
+
+}
 
 static void ss_any_cb(StorageStructure *ss, int type)
 {
@@ -2244,6 +2319,7 @@ StorageStructure *CreateStorageChoice(Widget parent,
     AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
 
     QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->rc);
+    vBoxLayout->setContentsMargins(4,4,4,4);
 
     QLabel *label = new QLabel(retval->rc);
     label->setText(labelstr);
@@ -2251,23 +2327,35 @@ StorageStructure *CreateStorageChoice(Widget parent,
     //lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
     //XtManageChild(lab);
     
+    QListWidget *listWidget = new QListWidget(retval->rc);
+
     //XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
     //XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
     if (type == LIST_TYPE_SINGLE) {
+        listWidget->setSelectionMode(QAbstractItemView::SingleSelection);
         //XtSetArg(args[2], XmNselectionPolicy, XmSINGLE_SELECT);
     } else {
+        listWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
         //XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
     }
+    // TODO: listWidget->setItemsVisible(nvisible);
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "list", args, 4);
-    retval->list = new QListWidget(retval->rc);
-    vBoxLayout->addWidget(retval->list);
+
+    vBoxLayout->addWidget(listWidget);
+    retval->list = listWidget;
     retval->values = NULL;
 
     CreateStorageChoicePopup(retval);
+
+    retval->list->setContextMenuPolicy(Qt::CustomContextMenu);
+    AddCallback(retval->list, SIGNAL(customContextMenuRequested(const QPoint)),
+                storage_popup, retval);
+
     //XtAddEventHandler(retval->list,
       //  ButtonPressMask, False, storage_popup, retval);
 
+    //TODO: add acelerators
     //XtOverrideTranslations(retval->list,
      //                        XtParseTranslationTable(list_translation_table));
 
@@ -2289,12 +2377,6 @@ void SetStorageChoiceLabeling(StorageStructure *ss, Storage_LabelingProc proc)
 //    XtVaGetValues(ss->list, XmNselectedItemCount, &count, NULL);
 //    return count;
 //}
-int GetStorageSelectedCount(StorageStructure *ss)
-{
-    int count;
-//    XtVaGetValues(ss->list, XmNselectedItemCount, &count, NULL);
-    return count;
-}
 
 //int GetStorageChoices(StorageStructure *ss, Quark ***values)
 //{
@@ -2318,20 +2400,21 @@ int GetStorageSelectedCount(StorageStructure *ss)
 //}
 int GetStorageChoices(StorageStructure *ss, Quark ***values)
 {
-    int i, n;
-    int *selected;
+    int i, n, nrow;
     
-    //if (XmListGetSelectedPos(ss->list, &selected, &n) != True) {
-   //     return 0;
-  //  }
-    
+    QListWidget *listWidget = (QListWidget*) ss->list;
+    QList<QListWidgetItem *> list = listWidget->selectedItems();
+
+    n = list.size();
+
+    if (n == 0) {
+        return 0;
+    }
+
     *values = (Quark**) xmalloc(n*SIZEOF_VOID_P);
     for (i = 0; i < n; i++) {
-        (*values)[i] = ss->values[selected[i] - 1];
-    }
-    
-    if (n) {
-//        XtFree((char *) selected);
+        nrow = listWidget->row(list.at(i));
+        (*values)[i] = ss->values[nrow];
     }
     
     return n;
@@ -2398,12 +2481,17 @@ int GetSingleStorageChoice(StorageStructure *ss, Quark **value)
 int SelectStorageChoices(StorageStructure *ss, int nchoices, Quark **choices)
 {
     int i = 0, j;
-    unsigned char selection_type_save;
+    QAbstractItemView::SelectionMode selection_type_save;
     int bottom, visible;
 
+    QListWidget *listWidget = (QListWidget*) ss->list;
+
+    selection_type_save = listWidget->selectionMode();
+    listWidget->setSelectionMode(QAbstractItemView::MultiSelection);
     //XtVaGetValues(ss->list, XmNselectionPolicy, &selection_type_save, NULL);
     //XtVaSetValues(ss->list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
 
+    listWidget->clearSelection();
     //XmListDeselectAllItems(ss->list);
     for (j = 0; j < nchoices; j++) {
         i = 0;
@@ -2411,33 +2499,35 @@ int SelectStorageChoices(StorageStructure *ss, int nchoices, Quark **choices)
             i++;
         }
         if (i < ss->nchoices) {
+            listWidget->setCurrentRow(i);
             i++;
             //XmListSelectPos(ss->list, i, True);
         }
     }
 
-    if (nchoices > 0) {
+   // if (nchoices > 0) {
         /* Rewind list so the last choice is always visible */
         //XtVaGetValues(ss->list, XmNtopItemPosition, &bottom,
        //                         XmNvisibleItemCount, &visible,
        //                         NULL);
-        if (i > bottom) {
+   //     if (i > bottom) {
             //XmListSetBottomPos(ss->list, i);
-        } else if (i <= bottom - visible) {
+   //     } else if (i <= bottom - visible) {
             //XmListSetPos(ss->list, i);
-        }
-    }
+   //     }
+   // }
 
+    listWidget->setSelectionMode(selection_type_save);
     //XtVaSetValues(ss->list, XmNselectionPolicy, selection_type_save, NULL);
 
     return RETURN_SUCCESS;
 }
 
-//int SelectStorageChoice(StorageStructure *ss, Quark *choice)
-//{
-//    return SelectStorageChoices(ss, 1, &choice);
-//}
-//
+int SelectStorageChoice(StorageStructure *ss, Quark *choice)
+{
+    return SelectStorageChoices(ss, 1, &choice);
+}
+
 //void UpdateStorageChoice(StorageStructure *ss)
 //{
 //    Quark **selvalues;
@@ -2476,6 +2566,9 @@ void UpdateStorageChoice(StorageStructure *ss)
 
     nsel = GetStorageChoices(ss, &selvalues);
 
+    QListWidget *listWidget = (QListWidget*) ss->list;
+
+    listWidget->clear();
     //XmListDeleteAllItems(ss->list);
     
     ss->nchoices = 0;
@@ -2491,7 +2584,7 @@ void UpdateStorageChoice(StorageStructure *ss)
         xfree(selvalues);
     }
     
-    nsel = GetStorageSelectedCount(ss);
+    //nsel = GetStorageSelectedCount(ss);
     //if (!nsel && XtHasCallbacks(ss->list, XmNsingleSelectionCallback) ==
   //          XtCallbackHasSome) {
   //      /* invoke callbacks to make any dependent GUI control to sync */
@@ -2559,6 +2652,10 @@ void AddStorageChoiceCB(StorageStructure *ss,
     cbdata->ss = ss;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
+
+    AddCallback(ss->list, SIGNAL(itemSelectionChanged()),
+                storage_int_cb_proc, (XtPointer) cbdata);
+
 //    XtAddCallback(ss->list,
 //        XmNsingleSelectionCallback,   storage_int_cb_proc, (XtPointer) cbdata);
 //    XtAddCallback(ss->list,
@@ -2581,13 +2678,15 @@ void AddStorageChoiceCB(StorageStructure *ss,
 static void storage_int_dc_cb_proc(Widget w,
     XtPointer client_data, XtPointer call_data)
 {
-    void *value;
+    Quark *value;
+    QListWidget *listWidget = (QListWidget*) w;
     //XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
     Storage_DCCBdata *cbdata = (Storage_DCCBdata *) client_data;
  
-    //value = cbdata->ss->values[cbs->item_position - 1];
+    value = cbdata->ss->values[listWidget->currentRow()];
     
-    //cbdata->cbproc(cbdata->ss, value, cbdata->anydata);
+    cbdata->cbproc(cbdata->ss, value, cbdata->anydata);
+    qDebug("double click");
 }
 
 //void AddStorageChoiceDblClickCB(StorageStructure *ss,
@@ -2611,8 +2710,9 @@ void AddStorageChoiceDblClickCB(StorageStructure *ss,
     cbdata->ss = ss;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
-//    XtAddCallback(ss->list,
-//        XmNdefaultActionCallback, storage_int_dc_cb_proc, (XtPointer) cbdata);
+
+    AddCallback(ss->list, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+                storage_int_dc_cb_proc, (XtPointer) cbdata);
 }
 
 
@@ -4289,6 +4389,7 @@ static char *ssd_labeling(Quark *q, unsigned int *rid)
     char buf[128];
     
     if (quark_fid_get(q) == QFlavorSSD) {
+        qDebug("zzzssd");
         sprintf(buf, "SSD \"%s\" (%d x %d)", QIDSTR(q),
             ssd_get_ncols(q), ssd_get_nrows(q));
 
@@ -4321,14 +4422,6 @@ StorageStructure *CreateSSDChoice(Widget parent, char *labelstr, int type)
     return ss;
 }
 
-//int GetSSDColChoices(SSDColStructure *sc, Quark **ssd, int **cols)
-//{
-//    if (GetSingleStorageChoice(sc->ssd_sel, ssd) != RETURN_SUCCESS) {
-//        return -1;
-//    } else {
-//        return GetListChoices(sc->col_sel, cols);
-//    }
-//}
 int GetSSDColChoices(SSDColStructure *sc, Quark **ssd, int **cols)
 {
     if (GetSingleStorageChoice(sc->ssd_sel, ssd) != RETURN_SUCCESS) {
@@ -4338,20 +4431,20 @@ int GetSSDColChoices(SSDColStructure *sc, Quark **ssd, int **cols)
     }
 }
 
-//void update_ssd_selectors(Quark *pr)
-//{
-//    int i;
-//    for (i = 0; i < nssd_selectors; i++) {
-//        StorageStructure *ss = ssd_selectors[i];
-//        if (!ss->q && pr) {
-//            ss->q = pr;
-//        } else 
-//        if (!pr) {
-//            ss->q = NULL;
-//        }
-//        UpdateStorageChoice(ss);
-//    }
-//}
+void update_ssd_selectors(Quark *pr)
+{
+    int i;
+    for (i = 0; i < nssd_selectors; i++) {
+        StorageStructure *ss = ssd_selectors[i];
+        if (!ss->q && pr) {
+            ss->q = pr;
+        } else
+        if (!pr) {
+            ss->q = NULL;
+        }
+        UpdateStorageChoice(ss);
+    }
+}
 
 
 static StorageStructure **graph_selectors = NULL;
@@ -4512,42 +4605,33 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     return ss;
 }
 
-//void update_graph_selectors(Quark *pr)
-//{
-//    int i;
-//    for (i = 0; i < ngraph_selectors; i++) {
-//        StorageStructure *ss = graph_selectors[i];
-//        if (!ss->q && pr) {
-//            ss->q = pr;
-//        } else 
-//        if (!pr) {
-//            ss->q = NULL;
-//        }
-//        UpdateStorageChoice(ss);
-//    }
-//}
-
-//void graph_set_selectors(Quark *gr)
-//{
-//    int i;
-//    
-//    for (i = 0; i < ngraph_selectors; i++) {
-//        SelectStorageChoice(graph_selectors[i], gr);
-//    }
-//}
-void graph_set_selectors(Quark *gr)
+void update_graph_selectors(Quark *pr)
 {
-// TODO: remove this function, use global one
     int i;
-    
-//    for (i = 0; i < ngraph_selectors; i++) {
-//        SelectStorageChoice(graph_selectors[i], gr);
-//    }
+    for (i = 0; i < ngraph_selectors; i++) {
+        StorageStructure *ss = graph_selectors[i];
+        if (!ss->q && pr) {
+            ss->q = pr;
+        } else
+        if (!pr) {
+            ss->q = NULL;
+        }
+        UpdateStorageChoice(ss);
+    }
 }
 
-//static StorageStructure **frame_selectors = NULL;
-//static int nframe_selectors = 0;
-//
+void graph_set_selectors(Quark *gr)
+{
+    int i;
+
+    for (i = 0; i < ngraph_selectors; i++) {
+        SelectStorageChoice(graph_selectors[i], gr);
+    }
+}
+
+static StorageStructure **frame_selectors = NULL;
+static int nframe_selectors = 0;
+
 //static char *frame_labeling(Quark *q, unsigned int *rid)
 //{
 //    char buf[128];
@@ -4590,49 +4674,49 @@ void graph_set_selectors(Quark *gr)
 //
 //    return ss;
 //}
-//
-//void update_frame_selectors(Quark *pr)
-//{
-//    int i;
-//    for (i = 0; i < nframe_selectors; i++) {
-//        StorageStructure *ss = frame_selectors[i];
-//        if (!ss->q && pr) {
-//            ss->q = pr;
-//        } else 
-//        if (!pr) {
-//            ss->q = NULL;
-//        }
-//        UpdateStorageChoice(ss);
-//    }
-//}
-//
-///* Set selectors */
-//static StorageStructure **set_selectors = NULL;
-//static int nset_selectors = 0;
-//
-//
+
+void update_frame_selectors(Quark *pr)
+{
+    int i;
+    for (i = 0; i < nframe_selectors; i++) {
+        StorageStructure *ss = frame_selectors[i];
+        if (!ss->q && pr) {
+            ss->q = pr;
+        } else
+        if (!pr) {
+            ss->q = NULL;
+        }
+        UpdateStorageChoice(ss);
+    }
+}
+
+/* Set selectors */
+static StorageStructure **set_selectors = NULL;
+static int nset_selectors = 0;
+
+
 //#define SSS_NEWF_CB          1
-//
-//typedef struct {
-//    StorageStructure *graphss;
-//} SSSData;
-//
-//Quark *get_set_choice_gr(StorageStructure *ss)
-//{
-//    Quark *gr;
-//    SSSData *sdata = (SSSData *) ss->data;
-//    
-//    if (sdata->graphss) {
-//        if (GetSingleStorageChoice(sdata->graphss, &gr) != RETURN_SUCCESS) {
-//            gr = NULL;
-//        }
-//    } else {
-//        gr = NULL;
-//    }
-//    
-//    return gr;
-//}
-//
+
+typedef struct {
+    StorageStructure *graphss;
+} SSSData;
+
+Quark *get_set_choice_gr(StorageStructure *ss)
+{
+    Quark *gr;
+    SSSData *sdata = (SSSData *) ss->data;
+
+    if (sdata->graphss) {
+        if (GetSingleStorageChoice(sdata->graphss, &gr) != RETURN_SUCCESS) {
+            gr = NULL;
+        }
+    } else {
+        gr = NULL;
+    }
+
+    return gr;
+}
+
 //static void sss_any_cb(void *udata, int cbtype)
 //{
 //    StorageStructure *ss = (StorageStructure *) udata;
@@ -4704,34 +4788,34 @@ void graph_set_selectors(Quark *gr)
 //    return ss;
 //}
 //
-//void UpdateSetChoice(StorageStructure *ss)
-//{
-//    Quark *gr;
-//    
-//    gr = get_set_choice_gr(ss);
-//    
-//    SetStorageChoiceQuark(ss, gr);
-//}
-//
-//
-//void update_set_selectors(Quark *gr)
-//{
-//    int i;
-//    
-//    if (gr) {
-//        update_graph_selectors(get_parent_project(gr));
-//    }
-//    
-//    for (i = 0; i < nset_selectors; i++) {
-//        Quark *cg;
-//        
-//        cg = get_set_choice_gr(set_selectors[i]);
-//        if (!gr || cg == gr) {
-//            UpdateSetChoice(set_selectors[i]);
-//        }
-//    }
-//}
-//
+void UpdateSetChoice(StorageStructure *ss)
+{
+    Quark *gr;
+
+    gr = get_set_choice_gr(ss);
+
+    SetStorageChoiceQuark(ss, gr);
+}
+
+
+void update_set_selectors(Quark *gr)
+{
+    int i;
+
+    if (gr) {
+        update_graph_selectors(get_parent_project(gr));
+    }
+
+    for (i = 0; i < nset_selectors; i++) {
+        Quark *cg;
+
+        cg = get_set_choice_gr(set_selectors[i]);
+        if (!gr || cg == gr) {
+            UpdateSetChoice(set_selectors[i]);
+        }
+    }
+}
+
 //static void update_sets_cb(StorageStructure *ss, int n, Quark **values, void *data)
 //{
 //    GraphSetStructure *gs = (GraphSetStructure *) data;
@@ -4914,7 +4998,7 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
     } else {
         str = "Column(s):";
     }
-    retval->col_sel = CreateColChoice(rc, str, sel_type);
+    retval->col_sel = CreateColChoice(retval->frame, str, sel_type);
     vBoxLayout->addWidget(retval->col_sel->rc);
     AddStorageChoiceCB(retval->ssd_sel, update_ssd_cb, (void *) retval);
 
@@ -6860,10 +6944,10 @@ void update_all(void)
         sync_canvas_size(gapp);
     }
 
-    //update_ssd_selectors(gproject_get_top(gapp->gp));
-    //update_frame_selectors(gproject_get_top(gapp->gp));
-    //update_graph_selectors(gproject_get_top(gapp->gp));
-    //update_set_selectors(NULL);
+    update_ssd_selectors(gproject_get_top(gapp->gp));
+    update_frame_selectors(gproject_get_top(gapp->gp));
+    update_graph_selectors(gproject_get_top(gapp->gp));
+    update_set_selectors(NULL);
 
     if (gapp->gui->need_colorsel_update == TRUE) {
         //init_xvlibcolors();
@@ -6877,7 +6961,7 @@ void update_all(void)
     }
 
     //update_undo_buttons(gapp->gp);
-    //update_props_items();
+    update_props_items();
     //update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
     update_app_title(gapp->gp);
@@ -6956,6 +7040,20 @@ void snapshot_and_update(GProject *gp, int all)
 //}
 int clean_graph_selectors(Quark *pr, int etype, void *data)
 {
+    if (etype == QUARK_ETYPE_DELETE) {
+        int i;
+        for (i = 0; i < ngraph_selectors; i++) {
+            SetStorageChoiceQuark(graph_selectors[i], NULL);
+        }
+        for (i = 0; i < nssd_selectors; i++) {
+            SetStorageChoiceQuark(ssd_selectors[i], NULL);
+        }
+    } else
+    if (etype == QUARK_ETYPE_MODIFY) {
+        /* update_graph_selectors(pr); */
+    }
+
+    return RETURN_SUCCESS;
 }
 
 //int clean_frame_selectors(Quark *pr, int etype, void *data)
@@ -6974,6 +7072,17 @@ int clean_graph_selectors(Quark *pr, int etype, void *data)
 //}
 int clean_frame_selectors(Quark *pr, int etype, void *data)
 {
+    if (etype == QUARK_ETYPE_DELETE) {
+        int i;
+        for (i = 0; i < nframe_selectors; i++) {
+            SetStorageChoiceQuark(frame_selectors[i], NULL);
+        }
+    } else
+    if (etype == QUARK_ETYPE_MODIFY) {
+        /* update_frame_selectors(pr); */
+    }
+
+    return RETURN_SUCCESS;
 }
 
 //int clean_set_selectors(Quark *gr, int etype, void *data)
