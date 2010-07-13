@@ -1436,6 +1436,7 @@ static void list_invertselection(Widget list)
 {
     int i, n;
     QListWidget *listWidget = (QListWidget*) list;
+    QListWidgetItem *item;
     QAbstractItemView::SelectionMode selection_type_save;
     
     selection_type_save = listWidget->selectionMode();
@@ -1449,7 +1450,8 @@ static void list_invertselection(Widget list)
     
     listWidget->setSelectionMode(QAbstractItemView::MultiSelection);
     for (i = 0; i < n; i++) {
-        listWidget->setCurrentRow(i);
+        item = listWidget->item(i);
+        item->setSelected(true);
     }
     listWidget->setSelectionMode(selection_type_save);
 }
@@ -1710,6 +1712,7 @@ void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
 {
     int i = 0, j;
     QAbstractItemView::SelectionMode selection_type_save;
+    QListWidgetItem *item;
     int bottom, visible;
 
     QListWidget *listWidget = (QListWidget*) listp->list;
@@ -1727,7 +1730,8 @@ void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
             i++;
         }
         if (i < listp->nchoices) {
-            listWidget->setCurrentRow(i);
+            item = listWidget->item(i);
+            item->setSelected(true);
             i++;
 
             //XmListSelectPos(listp->list, i, True);
@@ -1772,6 +1776,10 @@ int GetListChoices(ListStructure *listp, int **values)
     QList<QListWidgetItem *> list = listWidget->selectedItems();
 
     n = list.size();
+
+    if (n > 0) {
+        *values = (int*) xmalloc(n*SIZEOF_INT);
+    }
 
     for (i = 0; i < n; i++) {
         nrow = listWidget->row(list.at(i));
@@ -2482,6 +2490,7 @@ int SelectStorageChoices(StorageStructure *ss, int nchoices, Quark **choices)
 {
     int i = 0, j;
     QAbstractItemView::SelectionMode selection_type_save;
+    QListWidgetItem *item;
     int bottom, visible;
 
     QListWidget *listWidget = (QListWidget*) ss->list;
@@ -2499,7 +2508,8 @@ int SelectStorageChoices(StorageStructure *ss, int nchoices, Quark **choices)
             i++;
         }
         if (i < ss->nchoices) {
-            listWidget->setCurrentRow(i);
+            item = listWidget->item(i);
+            item->setSelected(true);
             i++;
             //XmListSelectPos(ss->list, i, True);
         }
