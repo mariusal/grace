@@ -1636,7 +1636,7 @@ void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
 
     listWidget->clear();
     for (i = 0; i < nchoices; i++) {
-        listWidget->insertItem(0, items[i].label);
+        listWidget->addItem(items[i].label);
     }
     SelectListChoices(listp, nsel, selvalues);
     if (nsel > 0) {
@@ -1919,7 +1919,7 @@ static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
         xfree(s);
 
         QListWidget *listWidget = (QListWidget*) ss->list;
-        listWidget->insertItem(0, sbuf);
+        listWidget->addItem(sbuf);
         //str = XmStringCreateLocalized(sbuf);
         xfree(sbuf);
 
