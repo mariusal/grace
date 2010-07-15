@@ -2663,7 +2663,7 @@ void AddStorageChoiceCB(StorageStructure *ss,
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    AddCallback(ss->list, SIGNAL(itemSelectionChanged()),
+    AddCallback(ss->list, SIGNAL(itemClicked(QListWidgetItem*)),
                 storage_int_cb_proc, (XtPointer) cbdata);
 
 //    XtAddCallback(ss->list,
