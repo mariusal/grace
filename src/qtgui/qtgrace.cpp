@@ -1557,6 +1557,9 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     //XtManageChild(lab);
 
     QListWidget *listWidget = new QListWidget(retval->rc);
+    listWidget->setUniformItemSizes(true);
+    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    listWidget->setSizePolicy(sizePolicy);
 
     //XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
     //XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
@@ -1567,7 +1570,8 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
         listWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
       //  XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
     }
-    // TODO: listWidget->setItemsVisible(nvisible);
+
+    listWidget->setMaximumHeight(nvisible * 15 + 1);
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "listList", args, 4);
 
@@ -1638,7 +1642,9 @@ void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
 
     listWidget->clear();
     for (i = 0; i < nchoices; i++) {
-        listWidget->addItem(items[i].label);
+        QListWidgetItem *item = new QListWidgetItem(items[i].label);
+        item->setSizeHint(QSize(0,14));
+        listWidget->addItem(item);
     }
     SelectListChoices(listp, nsel, selvalues);
     if (nsel > 0) {
@@ -1914,7 +1920,6 @@ static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
     
     s = ss->labeling_proc(q, &stdata->rid);
     if (s) {
-         qDebug("yyy");
         char buf[16], *sbuf;
         //XmString str;
         
@@ -1927,7 +1932,9 @@ static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
         xfree(s);
 
         QListWidget *listWidget = (QListWidget*) ss->list;
-        listWidget->addItem(sbuf);
+        QListWidgetItem *item = new QListWidgetItem(sbuf);
+        item->setSizeHint(QSize(0,14));
+        listWidget->addItem(item);
         //str = XmStringCreateLocalized(sbuf);
         xfree(sbuf);
 
@@ -2336,6 +2343,9 @@ StorageStructure *CreateStorageChoice(Widget parent,
     //XtManageChild(lab);
     
     QListWidget *listWidget = new QListWidget(retval->rc);
+    listWidget->setUniformItemSizes(true);
+    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    listWidget->setSizePolicy(sizePolicy);
 
     //XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
     //XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
@@ -2346,7 +2356,8 @@ StorageStructure *CreateStorageChoice(Widget parent,
         listWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
         //XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
     }
-    // TODO: listWidget->setItemsVisible(nvisible);
+
+    listWidget->setMaximumHeight(nvisible * 15 + 1);
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "list", args, 4);
 
@@ -4399,7 +4410,6 @@ static char *ssd_labeling(Quark *q, unsigned int *rid)
     char buf[128];
     
     if (quark_fid_get(q) == QFlavorSSD) {
-        qDebug("zzzssd");
         sprintf(buf, "SSD \"%s\" (%d x %d)", QIDSTR(q),
             ssd_get_ncols(q), ssd_get_nrows(q));
 
