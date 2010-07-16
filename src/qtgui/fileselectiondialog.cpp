@@ -108,10 +108,11 @@ void FileSelectionDialog::setDirectory(QString dir)
     
     reapplyFilter();
 
-    ui.selectionLineEdit->setText(dir);
     if (dir.isEmpty() || dir.endsWith(":/")) {
+        ui.selectionLineEdit->setText(dir);
         ui.filterLineEdit->setText(dir + nameFilter);
     } else {
+        ui.selectionLineEdit->setText(dir + "/");
         ui.filterLineEdit->setText(dir + "/" + nameFilter);
     }
 }
