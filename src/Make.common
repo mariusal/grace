@@ -30,6 +30,9 @@ GROBJS = main$(O) graceapp$(O) \
 
 GUIISRCS = guiactions.c events.c guiutils.c \
            drv_ui.c \
+           explorer.c \
+           project_ui.c ssd_ui.c frame_ui.c graph_ui.c set_ui.c axis_ui.c \
+           dobject_ui.c atext_ui.c region_ui.c \
            printwin.c \
            fileswin.c \
            miscwin.c \
@@ -37,6 +40,9 @@ GUIISRCS = guiactions.c events.c guiutils.c \
 
 GUIIOBJS = guiactions$(O) events$(O) guiutils$(O) \
            drv_ui$(O) \
+           explorer$(O) \
+           project_ui$(O) ssd_ui$(O) frame_ui$(O) graph_ui$(O) set_ui$(O) axis_ui$(O) \
+           dobject_ui$(O) atext_ui$(O) region_ui$(O) \
            printwin$(O) \
            fileswin$(O) \
            miscwin$(O) \
@@ -51,16 +57,10 @@ GUISRCS = Tab.c ListTree.c motifutils.c \
 	compwin.c \
 	helpwin.c \
 	setwin.c \
-	explorer.c \
-	project_ui.c ssd_ui.c frame_ui.c graph_ui.c set_ui.c axis_ui.c \
-	dobject_ui.c atext_ui.c region_ui.c \
 	worldwin.c fontwin.c xutil.c x11drv.c xmgrace.c
 
 GUIOBJS = Tab$(O) ListTree$(O) motifutils$(O) \
 	compwin$(O) \
 	helpwin$(O) \
 	setwin$(O) \
-	explorer$(O) \
-	project_ui$(O) ssd_ui$(O) frame_ui$(O) graph_ui$(O) set_ui$(O) axis_ui$(O) \
-	dobject_ui$(O) atext_ui$(O) region_ui$(O) \
 	worldwin$(O) fontwin$(O) xutil$(O) x11drv$(O) xmgrace$(O)

@@ -34,7 +34,9 @@
 #include <config.h>
 
 #include "core_utils.h"
+#ifndef QT_GUI
 #include <Xm/ScrolledW.h>
+#endif
 #include "explorer.h"
 #include "xprotos.h"
 
@@ -247,11 +249,13 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->nspec, sp_explorer_cb, eui);
     CreateLabel(ui->special_tp, "Tick location - Label:");
 
+#ifndef QT_GUI
     ui->sw = XtVaCreateManagedWidget("ui->sw",
         xmScrolledWindowWidgetClass, ui->special_tp,
         XmNheight, 320,
         XmNscrollingPolicy, XmAUTOMATIC,
         NULL);
+#endif
     rc = CreateVContainer(ui->sw);
 
     for (i = 0; i < MAX_TICKS; i++) {
@@ -379,6 +383,7 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
         }
 
 
+#ifndef QT_GUI
         /* set reasonable scrolling */
         vbar = XtNameToWidget(ui->sw, "VertScrollBar");
         if (vbar) {
@@ -386,6 +391,7 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
             XtVaGetValues(vbar, XmNmaximum, &maxval, NULL);
             XtVaSetValues(vbar, XmNincrement, (int) rint(maxval/MAX_TICKS), NULL);
         }
+#endif
     }
 }
 

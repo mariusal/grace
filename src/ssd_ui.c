@@ -29,13 +29,15 @@
 
 #include <stdlib.h>
 
-#include <Xbae/Matrix.h>
-#include <Xm/RowColumn.h>
-
 #include "utils.h"
 #include "explorer.h"
 #include "xprotos.h"
 #include "globals.h"
+
+#ifndef QT_GUI
+#include <Xbae/Matrix.h>
+#include <Xm/RowColumn.h>
+#endif
 
 /* default cell value precision */
 #define CELL_PREC 8
@@ -128,6 +130,7 @@ static char *get_cell_content(SSDataUI *ui, int row, int column, int *format)
     return s;
 }
 
+#ifndef QT_GUI
 static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     SSDataUI *ui = (SSDataUI *) client_data;
@@ -303,6 +306,7 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     }
 }
+#endif
 
 static void col_delete_cb(Widget but, void *udata)
 {
@@ -383,12 +387,15 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     }
     for (i = 0; i < EXTRA_SS_COLS; i++) {
         collabels[i] = "";
+#ifndef QT_GUI
         clab_alignments[i] = XmALIGNMENT_CENTER;
+#endif
     }
     for (i = 0; i < EXTRA_SS_COLS; i++) {
         widths[i] = CELL_WIDTH;
     }
 
+#ifndef QT_GUI
     ui->mw = XtVaCreateManagedWidget("SSD",
         xbaeMatrixWidgetClass, ui->main_tp,
 #if 0
@@ -418,17 +425,19 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
 
     tfield = XtNameToWidget(ui->mw, "textField");
     XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
-
+#endif
     for (i = 0; i < EXTRA_SS_ROWS; i++) {
         xfree(rowlabels[i]);
     }
 
+#ifndef QT_GUI
     XtAddCallback(ui->mw, XmNdrawCellCallback, drawcellCB, ui); 
     XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
     XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
     XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
 
     ui->popup = XmCreatePopupMenu(ui->mw, "popupMenu", NULL, 0);
+#endif
     ui->delete_btn  = CreateMenuButton(ui->popup, "Delete column", '\0', col_delete_cb, ui);
     ui->index_btn   = CreateMenuButton(ui->popup, "Set as index", '\0', index_cb, ui);
     ui->unindex_btn = CreateMenuButton(ui->popup, "Unset index", '\0', unindex_cb, ui);
@@ -492,7 +501,9 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             nfixed_cols = 0;
         }
 
+#ifndef QT_GUI
         XtVaGetValues(ui->mw, XmNrows, &nr, XmNcolumns, &nc, NULL);
+#endif
 
         delta_nr = new_nr - nr;
         delta_nc = new_nc - nc;
@@ -543,9 +554,12 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
                 
                 collabels[i] = copy_string(NULL, buf);
             }
+#ifndef QT_GUI
             clab_alignments[i] = XmALIGNMENT_CENTER;
+#endif
         }
 
+#ifndef QT_GUI
         if (delta_nc > 0) {
             XbaeMatrixAddColumns(ui->mw, nc, NULL, NULL, widths, maxlengths, 
                 NULL, NULL, NULL, delta_nc);
@@ -573,6 +587,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         XbaeMatrixSetCell(ui->mw, cur_row, cur_col,
             get_cell_content(ui, cur_row, cur_col, &format));
 #endif
+#endif /* QT_GUI */
 
         xfree(widths);
         xfree(maxlengths);
@@ -593,7 +608,9 @@ int set_ssd_data(SSDataUI *ui, Quark *q, void *caller)
     if (ui && q) {
         if (!caller) {
             /* commit the last entered cell changes */
+#ifndef QT_GUI
             XbaeMatrixCommitEdit(ui->mw, False);
+#endif
         }
         
         if (!caller || caller == ui->col_label) {

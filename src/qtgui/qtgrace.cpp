@@ -535,16 +535,7 @@ void set_cursor(GUI *gui, int c)
 }
 
 
-// TODO: remove this function, use global one
-void raise_explorer(GUI *gui, Quark *q)
-{
-}
-
 void create_netcdfs_popup(Widget but, void *data)
-{
-}
-
-void define_explorer_popup(Widget but, void *data)
 {
 }
 

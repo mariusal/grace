@@ -28,12 +28,15 @@
 /* Project UI */
 
 #include <stdlib.h>
-
-#include <Xm/Text.h>
        
 #include "explorer.h"
 #include "utils.h"
 #include "xprotos.h"
+
+#ifndef QT_GUI
+#include <Xm/Text.h>
+#endif
+
 
 static void wrap_year_cb(Widget but, int onoff, void *data)
 {

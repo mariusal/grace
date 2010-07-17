@@ -26,9 +26,11 @@
 #ifndef _ListTree_H
 #define _ListTree_H
 
+#ifndef QT_GUI
 #include <X11/Core.h>
 #include <Xm/Xm.h>
 #include <Xm/XmP.h>
+#endif
 
 #define _ListTree_WIDGET_VERSION	3.0
 
@@ -63,10 +65,12 @@
 extern "C" {
 #endif
 
+#ifndef QT_GUI
 extern WidgetClass listtreeWidgetClass;
 
 typedef struct _ListTreeClassRec *ListTreeWidgetClass;
 typedef struct _ListTreeRec      *ListTreeWidget;
+#endif
 
 typedef enum _ListTreeItemType {
     ItemDetermineType = 0,
@@ -81,7 +85,9 @@ typedef struct _ListTreeItem {
   int		length;
   int		x,y,ytext;
   int		count;
+#ifndef QT_GUI
   Dimension	height;
+#endif
   ListTreeItemType type;
   struct _ListTreeItem 	*parent,*firstchild,*prevsibling,*nextsibling;
   Pixmap	openPixmap,closedPixmap;
@@ -112,7 +118,9 @@ typedef struct _ListTreeActivateStruct {
 typedef struct _ListTreeItemReturnStruct {
   int		reason;
   ListTreeItem	*item;
+#ifndef QT_GUI
   XEvent	*event;
+#endif
 } ListTreeItemReturnStruct;
 
 typedef struct _ListTreeDropStruct {
@@ -157,7 +165,9 @@ void ListTreeSetHighlighted(Widget w,ListTreeItem **items,
 void ListTreeSetPos(Widget w, ListTreeItem *item);
 void ListTreeSetBottomPos(Widget aw, ListTreeItem *item);
 
+#ifndef QT_GUI
 Widget XmCreateScrolledListTree (Widget parent, char *name, Arg *args, Cardinal count);
+#endif
 
 #ifdef __cplusplus
 };

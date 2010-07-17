@@ -41,7 +41,6 @@
 #include "motifinc.h"
 
 #ifdef QT_GUI
-typedef void *Pixmap;
 typedef struct {
     double x;
     double y;

@@ -35,6 +35,7 @@ typedef struct QWidget QWidget;
 
 typedef QWidget *Widget;
 typedef QWidget **WidgetList;
+typedef void *Pixmap;
 typedef int Boolean;
 typedef void *XtPointer;
 typedef int Cursor;
