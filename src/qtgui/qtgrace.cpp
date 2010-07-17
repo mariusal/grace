@@ -121,7 +121,7 @@ void startup_gui(GraceApp *gapp)
 /*
  * initialize some option menus
  */
-//    init_option_menus();
+    init_option_menus();
 
 /*
  * initialize the tool bars
@@ -947,26 +947,27 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
         return NULL;
     }
 
-    QComboBox *comboBox = new QComboBox();
+    QWidget *widget = new QWidget(parent);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
+
+    QComboBox *comboBox = new QComboBox(widget);
     retval->pulldown = comboBox;
 
     for (int i = 0; i < nchoices; i++) {
         comboBox->addItem(items[i].label);
     }
 
-    QLabel *label = new QLabel(parent);
+    QLabel *label = new QLabel(widget);
     label->setText(labelstr);
 
-    QWidget *widget = new QWidget(parent);
-
     QHBoxLayout *horizontalLayout = new QHBoxLayout(widget);
+    horizontalLayout->setContentsMargins(0,0,0,0);
     horizontalLayout->addWidget(label);
     horizontalLayout->addWidget(retval->pulldown);
-
-    QLayout *layout = parent->layout();
-    if (layout != 0) {
-        layout->addWidget(widget);
-    }
 
     return retval;
 }
@@ -2331,6 +2332,11 @@ StorageStructure *CreateStorageChoice(Widget parent,
     retval->labeling_proc = default_storage_labeling_proc;
     //retval->rc = XmCreateRowColumn(parent, "rc", NULL, 0);
     retval->rc = new QWidget(parent);
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(retval->rc);
+    }
+
     AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
 
     QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->rc);
@@ -2357,7 +2363,7 @@ StorageStructure *CreateStorageChoice(Widget parent,
         //XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
     }
 
-    listWidget->setMaximumHeight(nvisible * 15 + 1);
+    listWidget->setMaximumHeight(nvisible * 15 + 2);
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "list", args, 4);
 
@@ -3632,7 +3638,15 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 
     retval->FSB = fileSelectionDialog;
     retval->dialog = fileSelectionDialog;
-    retval->rc = fileSelectionDialog;
+    retval->rc = new QWidget(fileSelectionDialog);
+
+    QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->rc);
+    vBoxLayout->setContentsMargins(0,0,0,0);
+
+    QBoxLayout *layout = (QBoxLayout*) fileSelectionDialog->layout();
+    if (layout != 0) {
+        layout->insertWidget(4, retval->rc);
+    }
 
     bufp = copy_string(NULL, "Grace: ");
     bufp = concat_strings(bufp, s);
@@ -3924,7 +3938,101 @@ static OptionItem *settype_option_items;
 //
 //    return RETURN_SUCCESS;
 //}
+int init_option_menus(void) {
+    unsigned int i, j, k, l, n;
 //
+//    init_xvlibcolors();
+//
+//    n = number_of_patterns(canvas);
+//    if (n) {
+//        pattern_option_items = xmalloc(n*sizeof(BitmapOptionItem));
+//        if (pattern_option_items == NULL) {
+//            errmsg("Malloc error in init_option_menus()");
+//            return RETURN_FAILURE;
+//        }
+//        for (i = 0; i < n; i++) {
+//            pattern_option_items[i].value = i;
+//            if (i == 0) {
+//                pattern_option_items[i].bitmap = NULL;
+//            } else {
+//                Pattern *pat = canvas_get_pattern(canvas, i);
+//                pattern_option_items[i].bitmap = pat->bits;
+//            }
+//        }
+//    }
+//
+//    n = number_of_linestyles(canvas);
+//    if (n) {
+//        lines_option_items = xmalloc(n*sizeof(BitmapOptionItem));
+//        if (lines_option_items == NULL) {
+//            errmsg("Malloc error in init_option_menus()");
+//            xfree(pattern_option_items);
+//            return RETURN_FAILURE;
+//        }
+//        for (i = 0; i < n; i++) {
+//            LineStyle *linestyle = canvas_get_linestyle(canvas, i);
+//            lines_option_items[i].value = i;
+//            if (i == 0) {
+//                lines_option_items[i].bitmap = NULL;
+//                continue;
+//            }
+//
+//            lines_option_items[i].bitmap =
+//                  xcalloc(LINES_BM_HEIGHT*LINES_BM_WIDTH/8/SIZEOF_CHAR, SIZEOF_CHAR);
+//
+//            k = LINES_BM_WIDTH*(LINES_BM_HEIGHT/2);
+//            while (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
+//                for (j = 0; j < linestyle->length; j++) {
+//                    for (l = 0; l < linestyle->array[j]; l++) {
+//                        if (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
+//                            if (j % 2 == 0) {
+//                                /* black */
+//                                lines_option_items[i].bitmap[k/8] |= 1 << k % 8;
+//                            }
+//                            k++;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+    settype_option_items = (OptionItem*) xmalloc(NUMBER_OF_SETTYPES*sizeof(OptionItem));
+    if (settype_option_items == NULL) {
+        errmsg("Malloc error in init_option_menus()");
+        return RETURN_FAILURE;
+    }
+    for (i = 0; i < NUMBER_OF_SETTYPES; i++) {
+        settype_option_items[i].value = i;
+        settype_option_items[i].label = copy_string(NULL,
+            set_type_descr(gapp->grace, (SetType) i));
+    }
+
+//    fmt_option_items = xmalloc(NUMBER_OF_FORMATTYPES*sizeof(OptionItem));
+//    if (fmt_option_items == NULL) {
+//        errmsg("Malloc error in init_option_menus()");
+//        return RETURN_FAILURE;
+//    }
+//    for (i = 0; i < NUMBER_OF_FORMATTYPES; i++) {
+//        fmt_option_items[i].value = i;
+//        fmt_option_items[i].label = copy_string(NULL,
+//            format_type_descr(gapp->grace, i));
+//    }
+//
+//    frametype_option_items = xmalloc(NUMBER_OF_FRAMETYPES*sizeof(OptionItem));
+//    if (frametype_option_items == NULL) {
+//        errmsg("Malloc error in init_option_menus()");
+//        return RETURN_FAILURE;
+//    }
+//    for (i = 0; i < NUMBER_OF_FRAMETYPES; i++) {
+//        frametype_option_items[i].value = i;
+//        frametype_option_items[i].label = copy_string(NULL,
+//            frame_type_descr(gapp->grace, i));
+//    }
+//
+    return RETURN_SUCCESS;
+}
+
 //static OptionItem *font_option_items = NULL;
 //static unsigned int nfont_option_items = 0;
 //static OptionStructure **font_selectors = NULL;
@@ -5002,10 +5110,6 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
     retval = (SSDColStructure*) xmalloc(sizeof(SSDColStructure));
     retval->frame = CreateFrame(parent, s);
 
-    QBoxLayout *layout = (QBoxLayout*) parent->layout();
-    if (layout != 0) {
-        layout->insertWidget(4, retval->frame);
-    }
     //rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, retval->frame, NULL);
     QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->frame);
     vBoxLayout->setContentsMargins(0,0,0,0);
@@ -6023,14 +6127,19 @@ WidgetList CreateAACDialog(Widget form,
 //}
 Widget CreateVContainer(Widget parent)
 {
+    QLayout *vlayout = new QVBoxLayout;
+    vlayout->setContentsMargins(4,4,4,4);
+
     QLayout *layout = parent->layout();
-
-    if (layout == 0) {
-        layout = new QVBoxLayout();
-        parent->setLayout(layout);
+    if (layout != 0) {
+        QWidget *widget = new QWidget(parent);
+        widget->setLayout(vlayout);
+        layout->addWidget(widget);
+        return widget;
+    } else {
+        parent->setLayout(vlayout);
+        return parent;
     }
-
-    return parent;
 }
 
 //Widget CreateHContainer(Widget parent)
@@ -6045,14 +6154,19 @@ Widget CreateVContainer(Widget parent)
 //}
 Widget CreateHContainer(Widget parent)
 {
+    QLayout *hlayout = new QHBoxLayout;
+    hlayout->setContentsMargins(4,4,4,4);
+
     QLayout *layout = parent->layout();
-
-    if (layout == 0) {
-        layout = new QHBoxLayout();
-        parent->setLayout(layout);
+    if (layout != 0) {
+        QWidget *widget = new QWidget(parent);
+        widget->setLayout(hlayout);
+        layout->addWidget(widget);
+        return widget;
+    } else {
+        parent->setLayout(hlayout);
+        return parent;
     }
-
-    return parent;
 }
 
 
@@ -6075,6 +6189,11 @@ Widget CreateFrame(Widget parent, char *s)
     
     if (s != NULL) {
         groupBox->setTitle(s);
+    }
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(groupBox);
     }
 
     return groupBox;
