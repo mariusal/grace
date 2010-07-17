@@ -332,32 +332,6 @@ int x11_get_pixelsize(const GUI *gui)
     return 8;
 }
 
-// All these funtions are implemented in drv_ui.c
-
-int attach_ps_drv_setup(Canvas *canvas, int device_id)
-{
-}
-
-int attach_eps_drv_setup(Canvas *canvas, int device_id)
-{
-}
-
-int attach_pdf_drv_setup(Canvas *canvas, int device_id)
-{
-}
-
-int attach_pnm_drv_setup(Canvas *canvas, int device_id)
-{
-}
-
-int attach_jpg_drv_setup(Canvas *canvas, int device_id)
-{
-}
-
-int attach_png_drv_setup(Canvas *canvas, int device_id)
-{
-}
-
 // src/xutil.c
 void xunregister_rti(const Input_buffer *ib)
 {
@@ -573,11 +547,6 @@ void create_netcdfs_popup(Widget but, void *data)
 void define_explorer_popup(Widget but, void *data)
 {
 }
-
-void create_printer_setup(Widget but, void *data)
-{
-}
-
 
 void create_eval_frame(Widget but, void *data)
 {
@@ -803,13 +772,20 @@ void set_view_items(void)
 //}
 void ManageChild(Widget w)
 {
+    qDebug("show");
+    w->show();
 }
 
 //void UnmanageChild(Widget w)
 //{
 //    XtUnmanageChild(w);
 //}
-//
+void UnmanageChild(Widget w)
+{
+    qDebug("hide");
+    w->hide();
+}
+
 //int IsManaged(Widget w)
 //{
 //    return (XtIsManaged(w) == True) ? TRUE:FALSE;
@@ -821,8 +797,11 @@ void ManageChild(Widget w)
 //}
 void SetSensitive(Widget w, int onoff)
 {
-    QAction *action = (QAction*) w;
-    action->setEnabled(onoff ? true : false);
+    if (QAction *action = qobject_cast<QAction *>(w)) {
+        action->setEnabled(onoff ? true : false);
+    } else {
+        w->setEnabled(onoff ? true : false);
+    }
 }
 
 //Widget GetParent(Widget w)
@@ -956,6 +935,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
 
     QComboBox *comboBox = new QComboBox(widget);
     retval->pulldown = comboBox;
+    retval->menu = comboBox;
 
     for (int i = 0; i < nchoices; i++) {
         comboBox->addItem(items[i].label);
@@ -1064,7 +1044,6 @@ static void oc_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
 {
     OC_CBdata *cbdata;
-    unsigned int i;
 
     cbdata = (OC_CBdata*) xmalloc(sizeof(OC_CBdata));
 
@@ -1076,12 +1055,8 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
     opt->cblist[opt->cbnum] = cbdata;
     opt->cbnum++;
 
-    for (i = 0; i < opt->nchoices; i++) {
-        AddCallback(opt->pulldown, SIGNAL(activated(int)),
-                    oc_int_cb_proc, (XtPointer) cbdata);
-  //      XtAddCallback(opt->options[i].widget, XmNactivateCallback,
-  //                                  oc_int_cb_proc, (XtPointer) cbdata);
-    }
+    AddCallback(opt->pulldown, SIGNAL(activated(int)),
+                oc_int_cb_proc, (XtPointer) cbdata);
 }
 
 //void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
@@ -1156,7 +1131,11 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
 //        xfree(wlist);
 //    }
 //}
-//
+void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
+{
+    //TODO:
+}
+
 //OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
 //                int nchoices, int width, int height, BitmapOptionItem *items)
 //{
@@ -3399,6 +3378,19 @@ typedef struct {
 //
 //    return button;
 //}
+Widget CreateButton(Widget parent, char *label)
+{
+    Widget button;
+
+    button = new QPushButton(label, parent);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(button);
+    }
+
+    return button;
+}
 
 //Widget CreateBitmapButton(Widget parent,
 //    int width, int height, const unsigned char *bits)
@@ -5395,24 +5387,24 @@ OptionStructure *CreateASChoice(Widget parent, char *s)
 //        NULL);
 //}
 //
-//OptionStructure *CreatePaperOrientationChoice(Widget parent, char *s)
-//{
-//    return CreateOptionChoiceVA(parent, s,
-//        "Landscape", PAGE_ORIENT_LANDSCAPE,
-//        "Portrait",  PAGE_ORIENT_PORTRAIT,
-//        NULL);
-//}
-//
-//OptionStructure *CreatePaperFormatChoice(Widget parent, char *s)
-//{
-//    return CreateOptionChoiceVA(parent, s,
-//        "Custom", PAGE_FORMAT_CUSTOM,
-//        "Letter", PAGE_FORMAT_USLETTER,
-//        "A4",     PAGE_FORMAT_A4,
-//        NULL);
-//}
-//
-//
+OptionStructure *CreatePaperOrientationChoice(Widget parent, char *s)
+{
+    return CreateOptionChoiceVA(parent, s,
+        "Landscape", PAGE_ORIENT_LANDSCAPE,
+        "Portrait",  PAGE_ORIENT_PORTRAIT,
+        NULL);
+}
+
+OptionStructure *CreatePaperFormatChoice(Widget parent, char *s)
+{
+    return CreateOptionChoiceVA(parent, s,
+        "Custom", PAGE_FORMAT_CUSTOM,
+        "Letter", PAGE_FORMAT_USLETTER,
+        "A4",     PAGE_FORMAT_A4,
+        NULL);
+}
+
+
 //Widget CreateScale(Widget parent, char *s, int min, int max, int delta)
 //{
 //    Widget w;
@@ -5716,7 +5708,11 @@ Widget CreateDialogForm(Widget parent, const char *s)
 //        XmNallowShellResize, onoff ? True:False,
 //        NULL);
 //}
-//
+void SetDialogFormResizable(Widget form, int onoff)
+{
+    //TODO
+}
+
 //void AddDialogFormChild(Widget form, Widget child)
 //{
 //    Widget last_widget;
@@ -6283,7 +6279,15 @@ Widget CreateFrame(Widget parent, char *s)
 //    
 //    return (tab);
 //}
-//
+Widget CreateTab(Widget parent)
+{
+    Widget tab;
+
+    tab = new QTabWidget(parent);
+
+    return (tab);
+}
+
 //Widget CreateTabPage(Widget parent, char *s)
 //{
 //    Widget w;
@@ -6297,12 +6301,28 @@ Widget CreateFrame(Widget parent, char *s)
 //    
 //    return (w);
 //}
-//
+Widget CreateTabPage(Widget parent, char *s)
+{
+    QTabWidget *tabWidget = (QTabWidget*) parent;
+
+    Widget widget = new QWidget;
+
+    tabWidget->addTab(widget, s);
+
+    return widget;
+}
+
 //void SelectTabPage(Widget tab, Widget w)
 //{
 //    XmTabSetTabWidget(tab, w, True);
 //}
-//
+void SelectTabPage(Widget tab, Widget w)
+{
+    QTabWidget *tabWidget = (QTabWidget*) tab;
+
+    tabWidget->setCurrentWidget(w);
+}
+
 //Widget CreateTextItem(Widget parent, int len, char *s)
 //{
 //    Widget w;
@@ -6322,7 +6342,29 @@ Widget CreateFrame(Widget parent, char *s)
 //    XtManageChild(rc);
 //    return w;
 //}
-//
+Widget CreateTextItem(Widget parent, int len, char *s)
+{
+    QWidget *widget = new QWidget(parent);
+
+    QLabel *label = new QLabel(widget);
+    label->setText(s);
+
+    // TODO: len?
+    QLineEdit *lineEdit = new QLineEdit(widget);
+
+    QHBoxLayout *hBoxLayout = new QHBoxLayout;
+    hBoxLayout->addWidget(label);
+    hBoxLayout->addWidget(lineEdit);
+    widget->setLayout(hBoxLayout);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
+
+    return lineEdit;
+}
+
 //typedef struct {
 //    TItem_CBProc cbproc;
 //    void *anydata;
@@ -6372,6 +6414,23 @@ Widget CreateFrame(Widget parent, char *s)
 //    }
 //    return buf;
 //}
+char *xv_getstr(Widget w)
+/*
+ * return the string from a text widget
+ *
+ * NB - newlines are converted to spaces
+ */
+{
+    //TODO: do I need convert new lines to spaces?
+    static char *buf;
+
+    QLineEdit *lineEdit = (QLineEdit*) w;
+    QString str = lineEdit->text();
+    QByteArray ba = str.toLatin1();
+    buf = copy_string(buf, ba.data());
+
+    return buf;
+}
 
 
 /*
@@ -6393,8 +6452,16 @@ Widget CreateFrame(Widget parent, char *s)
 //}
 int xv_evalexpr(Widget w, double *answer)
 {
-//  TODO:
     int retval;
+    char *s;
+
+    QLineEdit *lineEdit = (QLineEdit*) w;
+    QString str = lineEdit->text();
+    QByteArray ba = str.toLatin1();
+    s = ba.data();
+
+    retval = graal_eval_expr(grace_get_graal(gapp->grace),
+        s, answer, gproject_get_top(gapp->gp));
 
     return retval;
 }
@@ -6421,7 +6488,15 @@ int xv_evalexpr(Widget w, double *answer)
 //        XmTextSetString(w, s ? s : "");
 //    }
 //}
-//
+void xv_setstr(Widget w, char *s)
+{
+    QLineEdit *lineEdit = (QLineEdit*) w;
+
+    if (w != NULL) {
+        lineEdit->setText(s ? s : "");
+    }
+}
+
 ///* if user tried to close from WM */
 //static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
 //{

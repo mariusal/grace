@@ -36,8 +36,11 @@
 
 #include "globals.h"
 #include "utils.h"
-
-#include <Xm/Xm.h>
+#ifndef QT_GUI
+    #include <Xm/Xm.h>
+#else
+    #include <string.h>
+#endif
 #include "motifinc.h"
 #include "xprotos.h"
 
@@ -300,9 +303,9 @@ static void update_device_setup(PrintUI *ui, int device_id)
         setup_data = (dev_gui_setup *) device_get_udata(canvas, device_id);
         
         if (setup_data == NULL) {
-            SetSensitive(ui->device_opts, False);
+            SetSensitive(ui->device_opts, FALSE);
         } else {
-            SetSensitive(ui->device_opts, True);
+            SetSensitive(ui->device_opts, TRUE);
         }
 
         if (string_is_empty(gapp->rt->print_file)) {
@@ -340,21 +343,21 @@ static void update_device_setup(PrintUI *ui, int device_id)
             ManageChild(ui->output_frame);
             ManageChild(ui->page_frame);
             SetToggleButtonState(ui->printto, TRUE);
-            SetSensitive(ui->printto, False);
-            SetSensitive(ui->rc_printsel, False);
-            SetSensitive(ui->rc_filesel, True);
+            SetSensitive(ui->printto, FALSE);
+            SetSensitive(ui->rc_printsel, FALSE);
+            SetSensitive(ui->rc_filesel, TRUE);
             break;
         case DEVICE_PRINT:
             ManageChild(ui->output_frame);
             ManageChild(ui->page_frame);
             SetToggleButtonState(ui->printto, get_ptofile(gapp));
-            SetSensitive(ui->printto, True);
+            SetSensitive(ui->printto, TRUE);
             if (get_ptofile(gapp) == TRUE) {
-                SetSensitive(ui->rc_filesel, True);
-                SetSensitive(ui->rc_printsel, False);
+                SetSensitive(ui->rc_filesel, TRUE);
+                SetSensitive(ui->rc_printsel, FALSE);
             } else {
-                SetSensitive(ui->rc_filesel, False);
-                SetSensitive(ui->rc_printsel, True);
+                SetSensitive(ui->rc_filesel, FALSE);
+                SetSensitive(ui->rc_printsel, TRUE);
             }
             break;
         }
@@ -365,13 +368,13 @@ static void update_device_setup(PrintUI *ui, int device_id)
         pf = get_page_format(canvas, device_id);
         SetOptionChoice(ui->page_format, pf); 
         if (pf == PAGE_FORMAT_CUSTOM) {
-            SetSensitive(ui->page_x, True);
-            SetSensitive(ui->page_y, True);
-            SetSensitive(ui->page_orient->menu, False);
+            SetSensitive(ui->page_x, TRUE);
+            SetSensitive(ui->page_y, TRUE);
+            SetSensitive(ui->page_orient->menu, FALSE);
         } else {
-            SetSensitive(ui->page_x, False);
-            SetSensitive(ui->page_y, False);
-            SetSensitive(ui->page_orient->menu, True);
+            SetSensitive(ui->page_x, FALSE);
+            SetSensitive(ui->page_y, FALSE);
+            SetSensitive(ui->page_orient->menu, TRUE);
         }
         
         sprintf (buf, "%.0f", pg.dpi); 
@@ -511,11 +514,11 @@ static void do_pr_toggle(Widget tbut, int onoff, void *data)
     PrintUI *ui = (PrintUI *) data;
     
     if (onoff == TRUE) {
-        SetSensitive(ui->rc_filesel, True);
-        SetSensitive(ui->rc_printsel, False);
+        SetSensitive(ui->rc_filesel, TRUE);
+        SetSensitive(ui->rc_printsel, FALSE);
     } else {
-        SetSensitive(ui->rc_filesel, False);
-        SetSensitive(ui->rc_printsel, True);
+        SetSensitive(ui->rc_filesel, FALSE);
+        SetSensitive(ui->rc_printsel, TRUE);
     }
 }
 
@@ -530,13 +533,13 @@ static void do_format_toggle(OptionStructure *opt, int value, void *data)
     char buf[32];
     
     if (value == PAGE_FORMAT_CUSTOM) {
-        SetSensitive(ui->page_x, True);
-        SetSensitive(ui->page_y, True);
-        SetSensitive(ui->page_orient->menu, False);
+        SetSensitive(ui->page_x, TRUE);
+        SetSensitive(ui->page_y, TRUE);
+        SetSensitive(ui->page_orient->menu, FALSE);
     } else {
-        SetSensitive(ui->page_x, False);
-        SetSensitive(ui->page_y, False);
-        SetSensitive(ui->page_orient->menu, True);
+        SetSensitive(ui->page_x, FALSE);
+        SetSensitive(ui->page_y, FALSE);
+        SetSensitive(ui->page_orient->menu, TRUE);
     }
     
     
@@ -628,7 +631,9 @@ static int do_prfilesel_proc(FSBStructure *fsb, char *filename, void *data)
     
     xv_setstr(ui->printfile, filename);
     strcpy(gapp->rt->print_file, filename);
+#ifndef QT_GUI
     XtVaSetValues(ui->printfile, XmNcursorPosition, strlen(filename), NULL);
+#endif
     return TRUE;
 }
 
@@ -722,6 +727,7 @@ void create_destopts_popup(Widget but, void *data)
         for (i = 0; i < pd->nogroups; i++) {
             PrintOptGroup *og = &pd->ogroups[i];
             Widget page = CreateTabPage(tab, og->text);
+#ifndef QT_GUI
             XtVaSetValues(page, XmNpacking, XmPACK_COLUMN,
                                 XmNnumColumns, og->nopts,
                                 XmNorientation, XmHORIZONTAL,
@@ -729,6 +735,7 @@ void create_destopts_popup(Widget but, void *data)
                                 XmNadjustLast, False,
                                 XmNisAligned, True,
                                 NULL);
+#endif
             
             for (j = 0; j < og->nopts; j++) {
                 PrintOption *po = &og->opts[j];
