@@ -245,7 +245,7 @@ src/mbitmaps.h \
 src/miscwin.c \
 src/monwin.c \
 src/motifinc.h \
-src/motifutils.c \
+#src/motifutils.c \
 src/nonlfit.c \
 src/nonlwin.c \
 src/numerics.h \
