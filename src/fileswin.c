@@ -99,11 +99,14 @@ static int save_proc(FSBStructure *fsb, char *filename, void *data)
     }
 }
 
+#ifndef QT_GUI
+
 #define PREVIEW_WIDTH   250
 #define PREVIEW_HEIGHT  200
-
+#endif
 typedef struct {
     FSBStructure *fsb;
+#ifndef QT_GUI
     Widget canvasw;
     Pixmap pixmap;
 
@@ -111,21 +114,18 @@ typedef struct {
 
     int preview_ok;
     int x_offset, y_offset;
+#endif
 } openGUI;
-
+#ifndef QT_GUI
 static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     openGUI *ui = (openGUI *) client_data;
-#ifndef QT_GUI
     char *filename = XmTextGetString(w);
-#else
-    char *filename;
-#endif
     struct stat statb;
     Canvas *canvas = grace_get_canvas(gapp->grace);
-#ifndef QT_GUI
+
     XClearWindow(XtDisplay(ui->canvasw), XtWindow(ui->canvasw));
-#endif
+
     ui->preview_ok = FALSE;
     
     if (stat(filename, &statb) == 0 && !S_ISDIR(statb.st_mode)) {
@@ -155,7 +155,7 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
             ui->y_offset = (PREVIEW_HEIGHT - pg->height)/2;
 
             select_device(canvas, ui->idevice);
-#ifndef QT_GUI
+
             xstream.screen = XtScreen(ui->canvasw);
             xstream.pixmap = ui->pixmap;
             canvas_set_prstream(canvas, &xstream);
@@ -168,23 +168,21 @@ static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
             XFillRectangle(XtDisplay(ui->canvasw), ui->pixmap,
                 DefaultGCOfScreen(xstream.screen), 0, 0,
                 PREVIEW_WIDTH, PREVIEW_HEIGHT);
-#endif
+
 	    gproject_render(gp);
-#ifndef QT_GUI
+
             XCopyArea(XtDisplay(ui->canvasw), ui->pixmap, XtWindow(ui->canvasw),
                 DefaultGCOfScreen(XtScreen(ui->canvasw)),
                 0, 0, pg->width, pg->height, ui->x_offset, ui->y_offset);
-#endif
+
             ui->preview_ok = TRUE;
             
             gproject_free(gp);
         }
     }
-#ifndef QT_GUI
     XtFree(filename);
-#endif
 }
-#ifndef QT_GUI
+
 void exposeCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     openGUI *ui = (openGUI *) client_data;
@@ -209,20 +207,19 @@ void create_openproject_popup(void)
     set_wait_cursor();
 
     if (ui == NULL) {
+#ifndef QT_GUI
         X11Stuff *xstuff = gapp->gui->xstuff;
         Widget fr, text;
         Canvas *canvas = grace_get_canvas(gapp->grace);
-        
+#endif
         ui = xmalloc(sizeof(openGUI));
         memset(ui, 0, sizeof(openGUI));
 
 #ifndef QT_GUI
         ui->idevice = register_x11_drv(canvas);
-#else
-        ui->idevice = register_qt_drv(canvas);
-#endif
+
         device_set_aux(canvas, ui->idevice);
-#ifndef QT_GUI
+
         ui->pixmap = XCreatePixmap(xstuff->disp, xstuff->root,
             PREVIEW_WIDTH, PREVIEW_HEIGHT, xstuff->depth);
 #endif
@@ -231,9 +228,9 @@ void create_openproject_popup(void)
 #ifdef QT_GUI
         SetFileSelectionBoxPattern(ui->fsb, "*.*gr");
 #endif
-
-        fr = CreateFrame(ui->fsb->rc, "Preview");
 #ifndef QT_GUI
+        fr = CreateFrame(ui->fsb->rc, "Preview");
+
         ui->canvasw = XtVaCreateManagedWidget("canvas",
             xmDrawingAreaWidgetClass, fr,
             XmNwidth, PREVIEW_WIDTH,
