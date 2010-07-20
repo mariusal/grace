@@ -416,12 +416,16 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height);
 void *GetUserData(Widget w);
 void SetUserData(Widget w, void *udata);
 
+Widget CreateForm(Widget parent, const char *s);
+
 Widget CreateDialogForm(Widget parent, const char *s);
 void SetDialogFormResizable(Widget form, int onoff);
 void AddDialogFormChild(Widget form, Widget child);
 void FixateDialogFormChild(Widget w);
 
 Widget CreateFrame(Widget parent, char *s);
+
+Widget CreateScrolledListTree(Widget parent);
 
 Widget CreateSeparator(Widget parent);
 Widget CreateMenuSeparator(Widget parent);
@@ -591,6 +595,7 @@ void SetLabel(Widget w, char *s);
 void AlignLabel(Widget w, int alignment);
 void SetFixedFont(Widget w);
 
+Widget CreatePopupMenu(Widget parent, const char *s);
 Widget CreateMenuBar(Widget parent);
 Widget CreateMenu(Widget parent, char *label, char mnemonic, int help);
 void ManageMenu(Widget menupane);

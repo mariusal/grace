@@ -3712,6 +3712,11 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
         XmNvalueChangedCallback, tb_int_cb_proc, (XtPointer) cbdata);
 }
 
+Widget CreateForm(Widget parent, const char *s)
+{
+    return XmCreateForm(parent, s, NULL, 0);
+}
+
 Widget CreateDialogForm(Widget parent, const char *s)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
@@ -4109,6 +4114,10 @@ Widget CreateFrame(Widget parent, char *s)
     return (fr);   
 }
 
+Widget CreateScrolledListTree(Widget parent)
+{
+    return XmCreateScrolledListTree(parent, "tree", NULL, 0);
+}
 
 typedef struct {
     int ncols;
@@ -4430,6 +4439,11 @@ Widget CreateSeparator(Widget parent)
 Widget CreateMenuSeparator(Widget parent)
 {
     return CreateSeparator(parent);
+}
+
+Widget CreatePopupMenu(Widget parent, const char *s)
+{
+    return XmCreatePopupMenu(parent, s, NULL, 0);
 }
 
 Widget CreateMenuBar(Widget parent)

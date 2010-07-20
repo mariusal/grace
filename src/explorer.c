@@ -506,12 +506,11 @@ static void drop_cb(Widget w, XtPointer client, XtPointer call)
     }
 }
 #endif
-
 static int explorer_apply(ExplorerUI *ui, void *caller)
 {
     ListTreeMultiReturnStruct ret;
     int count, i, res = RETURN_SUCCESS;
-    
+#ifndef QT_GUI
     if (caller && !GetToggleButtonState(ui->instantupdate)) {
         return RETURN_FAILURE;
     }
@@ -588,7 +587,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     }
     
     snapshot_and_update(gapp->gp, FALSE);
-
+#endif
     return res;
 }
 
@@ -968,10 +967,10 @@ void raise_explorer(GUI *gui, Quark *q)
 #else
         panel = CreateGrid(eui->top, 2, 1);
 #endif
+        form = CreateForm(panel, "form");
 
+        eui->tree = CreateScrolledListTree(form);
 #ifndef QT_GUI
-        form = XmCreateForm(panel, "form", NULL, 0);
-        eui->tree = XmCreateScrolledListTree(form, "tree", NULL, 0);
         XtAddCallback(eui->tree, XtNhighlightCallback, highlight_cb, eui);
         XtAddCallback(eui->tree, XtNmenuCallback, menu_cb, eui);
         XtAddCallback(eui->tree, XtNdestroyItemCallback, destroy_cb, eui);
@@ -1009,6 +1008,8 @@ void raise_explorer(GUI *gui, Quark *q)
             xmScrolledWindowWidgetClass, panel,
             XmNscrollingPolicy, XmAUTOMATIC,
 	    NULL);
+#else
+        eui->scrolled_window = CreateForm(panel, "form");
 #endif
 
 #if USE_PANEDW
@@ -1032,7 +1033,6 @@ void raise_explorer(GUI *gui, Quark *q)
         /* A dirty workaround */
         eui->scrolled_window = CreateVContainer(eui->scrolled_window);
 # endif
-#endif
 #endif
 
         eui->project_ui = create_project_ui(eui);
@@ -1064,20 +1064,19 @@ void raise_explorer(GUI *gui, Quark *q)
 
 	eui->region_ui = create_region_ui(eui);
         UnmanageChild(eui->region_ui->top);
-
+#endif
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
-        eui->project = CreateQuarkTree(eui->tree, NULL,
-            gproject_get_top(gapp->gp), NULL, q_labeling);
+//        eui->project = CreateQuarkTree(eui->tree, NULL,
+//            gproject_get_top(gapp->gp), NULL, q_labeling);
         
         ManageChild(eui->tree);
         ListTreeRefreshOn(eui->tree);
         ListTreeRefresh(eui->tree);
 
         /* Menu popup */
-#ifndef QT_GUI
-        eui->popup = XmCreatePopupMenu(eui->tree, "explorerPopupMenu", NULL, 0);
-#endif
+        eui->popup = CreatePopupMenu(eui->tree, "explorerPopupMenu");
+
         eui->popup_hide_bt = CreateMenuButton(eui->popup,
             "Hide", '\0', hide_cb, eui);
         eui->popup_show_bt = CreateMenuButton(eui->popup,
@@ -1110,7 +1109,7 @@ void raise_explorer(GUI *gui, Quark *q)
     RaiseWindow(GetParent(gui->eui->top));
     
     if (q) {
-        SelectQuarkTreeItem(gui->eui->tree, gui->eui->project, q);
+//        SelectQuarkTreeItem(gui->eui->tree, gui->eui->project, q);
     }
 
     update_undo_buttons(gapp->gp);

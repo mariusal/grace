@@ -57,6 +57,7 @@
 #include <QPlainTextEdit>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QTreeWidget>
 #include <mainwindow.h>
 #include <canvaswidget.h>
 #include <fileselectiondialog.h>
@@ -67,6 +68,7 @@ extern "C" {
   #include <bitmaps.h>
   #include "xprotos.h"
   #include "utils.h"
+  #include "explorer.h"
   Widget app_shell;
 }
 
@@ -655,6 +657,179 @@ void set_view_items(void)
 {
 }
 
+Widget CreateScrolledListTree(Widget parent)
+{
+    QTreeWidget *treeWidget = new QTreeWidget(parent);
+
+    treeWidget->setHeaderHidden(true);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(treeWidget);
+    }
+
+    return treeWidget;
+}
+
+void
+ListTreeGetHighlighted(Widget w, ListTreeMultiReturnStruct *ret)
+{
+
+}
+
+void
+ListTreeClearHighlighted(Widget w)
+{
+    QTreeWidget *treeWidget = (QTreeWidget*) w;
+
+    treeWidget->clearSelection();
+}
+
+ListTreeItem *
+ListTreeAdd(Widget w, ListTreeItem *parent, char *string)
+{
+    ListTreeItem *item;
+
+    QTreeWidget *treeWidget = (QTreeWidget*) w;
+
+    QTreeWidgetItem *child_widget = new QTreeWidgetItem;
+    child_widget->setText(0, string);
+
+    item = (ListTreeItem *) xmalloc(sizeof(ListTreeItem));
+
+    item->open = FALSE;
+    item->highlighted = FALSE;
+    item->openPixmap = item->closedPixmap = (Pixmap)NULL;
+
+    if (parent == NULL) {
+        treeWidget->addTopLevelItem(child_widget);
+    } else {
+       // QTreeWidgetItem *parent_widget = (QTreeWidgetItem*) parent->widget;
+        //parent_widget->addChild(child_widget);
+    }
+
+    return item;
+}
+
+int
+ListTreeDeleteChildren(Widget w, ListTreeItem * item)
+{
+    QTreeWidget *treeWidget = (QTreeWidget*) w;
+
+    if (item->parent == NULL) {
+        //int i = indexOfTopLevelItem(item->widget);
+        //treeWidget->takeTopLevelItem(i);
+    } else {
+        //QTreeWidgetItem *parent_widget = (QTreeWidgetItem*) item->parent;
+        //parent_widget->takeChildren();
+    }
+
+    return 1;
+}
+
+void
+ListTreeSetItemPixmaps (Widget w, ListTreeItem *item,
+                        Pixmap openPixmap, Pixmap closedPixmap)
+{
+    item->openPixmap   = openPixmap;
+    item->closedPixmap = closedPixmap;
+}
+
+void
+ListTreeHighlightItemMultiple(Widget w, ListTreeItem * item)
+{
+//  HighlightItem((ListTreeWidget)w, item, True, False);
+//  ListTreeRefresh(w);
+}
+
+void ListTreeSetBottomPos(Widget aw, ListTreeItem *item)
+{/*
+  ListTreeWidget w = (ListTreeWidget) aw;
+  w->list.topItemPos = item->count - w->list.visibleCount + 1;
+  GotoPosition(w);
+  DrawAll(w);
+  SetScrollbars(w);*/
+}
+
+void ListTreeSetPos(Widget aw, ListTreeItem *item)
+{
+//  ListTreeWidget w = (ListTreeWidget) aw;
+//  w->list.topItemPos = item->count;
+//  GotoPosition(w);
+//  DrawAll(w);
+//  SetScrollbars(w);
+}
+
+void
+ListTreeRefresh(Widget w)
+{
+//  if (XtIsRealized((Widget) w) && ((ListTreeWidget)w)->list.Refresh) {
+//    DrawChanged((ListTreeWidget)w);
+//    XmUpdateDisplay(w);
+//  }
+}
+
+void
+ListTreeRefreshOff(Widget w)
+{
+//  ((ListTreeWidget)w)->list.Refresh = False;
+}
+
+void
+ListTreeRefreshOn(Widget w)
+{
+//  ((ListTreeWidget)w)->list.Refresh = True;
+//  ListTreeRefresh(w);
+}
+
+int
+ListTreeDelete(Widget w, ListTreeItem * item)
+{
+//  if (item->firstchild)
+//    DeleteChildren((ListTreeWidget)w, item->firstchild);
+//  item->firstchild = NULL;
+
+//  RemoveReference((ListTreeWidget)w, item);
+
+//  XtFree((char *) item->text);
+//  XtFree((char *) item);
+
+//  ListTreeRefresh(w);
+
+//  return 1;
+}
+
+void
+ListTreeRenameItem(Widget w, ListTreeItem * item, char *string)
+{
+//  int len;
+//  char *copy;
+
+//  TreeCheck(w, "in ListTreeRename");
+//  XtFree(item->text);
+//  len = strlen(string);
+//  copy = (char *) XtMalloc(len + 1);
+//  strcpy(copy, string);
+//  item->text = copy;
+//  item->length = len;
+
+//  ListTreeRefresh(w);
+}
+
+Widget CreateForm(Widget parent, const char *s)
+{
+    QWidget *widget = new QWidget(parent);
+
+    QVBoxLayout *verticalLayout = new QVBoxLayout;
+    widget->setLayout(verticalLayout);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
+
+    return widget;
+}
 
 /*
  *
@@ -6222,7 +6397,22 @@ Widget CreateFrame(Widget parent, char *s)
 //    XtManageChild(w);
 //    return w;
 //}
-//
+Widget CreateGrid(Widget parent, int ncols, int nrows)
+{
+    QWidget *widget = new QWidget(parent);
+
+    QGridLayout *gridLayout = new QGridLayout;
+    gridLayout->setContentsMargins(4,4,4,4);
+    widget->setLayout(gridLayout);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
+
+    return widget;
+}
+
 //void PlaceGridChild(Widget grid, Widget w, int col, int row)
 //{
 //    int nfractions, w1, h1;
@@ -6260,8 +6450,14 @@ Widget CreateFrame(Widget parent, char *s)
 //        XmNbottomPosition  , (row + 1)*h1     ,
 //        NULL);
 //}
-//
-//
+void PlaceGridChild(Widget grid, Widget w, int col, int row)
+{
+    QGridLayout *gridLayout = (QGridLayout*) grid->layout();
+
+    gridLayout->addWidget(w, row, col);
+}
+
+
 //Widget CreateTab(Widget parent)
 //{
 //    Widget tab;
@@ -6615,6 +6811,10 @@ Widget CreateMenuSeparator(Widget parent)
     return (QWidget*)action;
 }
 
+Widget CreatePopupMenu(Widget parent, const char *s)
+{
+    return new QMenu(parent);
+}
 //Widget CreateMenuBar(Widget parent)
 //{
 //    Widget menubar;
@@ -7045,9 +7245,12 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 void SetLabel(Widget w, char *s)
 {
     //qDebug("SetLabel %s", s);
-    QLabel *label = (QLabel*) w;
-
-    label->setText(s);
+    if (QAction *action = qobject_cast<QAction *>(w)) {
+        action->setText(s);
+    } else {
+        QLabel *label = (QLabel*) w;
+        label->setText(s);
+    }
 }
 
 //void SetFixedFont(Widget w)
@@ -7074,37 +7277,37 @@ void SetLabel(Widget w, char *s)
 //    snapshot_and_update(gapp->gp, FALSE);
 //}
 //
-//void update_undo_buttons(GProject *gp)
-//{
-//    Quark *project = gproject_get_top(gp);
-//    GUI *gui = gui_from_quark(project);
-//    unsigned int undo_count, redo_count;
-//    char buf[64];
-//    
-//    AMem *amem = quark_get_amem(project);
-//    if (!gui || !amem) {
-//        return;
-//    }
-//
-//    undo_count = amem_get_undo_count(amem);
-//    redo_count = amem_get_redo_count(amem);
-//    
-//    sprintf(buf, "Undo (%d)", undo_count);
-//    SetLabel(gui->mwui->undo_button, buf);
-//    SetSensitive(gui->mwui->undo_button, undo_count);
-//    if (gui->eui) {
-//        SetLabel(gui->eui->edit_undo_bt, buf);
-//        SetSensitive(gui->eui->edit_undo_bt, undo_count);
-//    }
-//    
-//    sprintf(buf, "Redo (%d)", redo_count);
-//    SetLabel(gui->mwui->redo_button, buf);
-//    SetSensitive(gui->mwui->redo_button, redo_count);
-//    if (gui->eui) {
-//        SetLabel(gui->eui->edit_redo_bt, buf);
-//        SetSensitive(gui->eui->edit_redo_bt, redo_count);
-//    }
-//}
+void update_undo_buttons(GProject *gp)
+{
+    Quark *project = gproject_get_top(gp);
+    GUI *gui = gui_from_quark(project);
+    unsigned int undo_count, redo_count;
+    char buf[64];
+
+    AMem *amem = quark_get_amem(project);
+    if (!gui || !amem) {
+        return;
+    }
+
+    undo_count = amem_get_undo_count(amem);
+    redo_count = amem_get_redo_count(amem);
+
+    sprintf(buf, "Undo (%d)", undo_count);
+    SetLabel(gui->mwui->undo_button, buf);
+    SetSensitive(gui->mwui->undo_button, undo_count);
+    if (gui->eui) {
+        SetLabel(gui->eui->edit_undo_bt, buf);
+        SetSensitive(gui->eui->edit_undo_bt, undo_count);
+    }
+
+    sprintf(buf, "Redo (%d)", redo_count);
+    SetLabel(gui->mwui->redo_button, buf);
+    SetSensitive(gui->mwui->redo_button, redo_count);
+    if (gui->eui) {
+        SetLabel(gui->eui->edit_redo_bt, buf);
+        SetSensitive(gui->eui->edit_redo_bt, redo_count);
+    }
+}
 
 //void update_all(void)
 //{
