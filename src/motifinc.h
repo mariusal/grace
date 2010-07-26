@@ -408,6 +408,11 @@ void SetSensitive(Widget w, int onoff);
 
 Widget GetParent(Widget w);
 
+void CallCallbacks(Widget w, const char *callback_name, XtPointer call_data);
+void AddCallback(Widget w, const char *callback_name,
+                 void (*callback)(Widget, XtPointer, XtPointer),
+                 XtPointer client_data);
+
 void RegisterEditRes(Widget shell);
 
 void SetDimensions(Widget w, unsigned int width, unsigned int height);
@@ -415,6 +420,8 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height);
 
 void *GetUserData(Widget w);
 void SetUserData(Widget w, void *udata);
+
+void CreatePixmaps();
 
 Widget CreateForm(Widget parent, const char *s);
 
@@ -633,5 +640,7 @@ void redo_cb(Widget but, void *data);
 void unlink_ssd_ui(Quark *q);
 
 void set_title(char *title, char *icon_name);
+
+void explorer_menu_cb(Widget w, XtPointer client, XtPointer call);
 
 #endif /* __MOTIFINC_H_ */

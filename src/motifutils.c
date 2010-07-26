@@ -157,6 +157,29 @@ Widget GetParent(Widget w)
     }
 }
 
+void CallCallbacks(Widget w, const char *callback_name, XtPointer call_data)
+{
+    if (!strcmp(callback_name, "XtNhighlightCallback"))
+        XtCallCallbacks(w, XtNhighlightCallback, call_data);
+}
+
+void AddCallback(Widget w, const char *callback_name,
+                 void (*callback)(Widget, XtPointer, XtPointer),
+                 XtPointer client_data)
+{
+    if (!strcmp(callback_name, "XtNhighlightCallback")) {
+        XtAddCallback(w, XtNhighlightCallback, callback, client_data);
+    } else if (!strcmp(callback_name, "XtNmenuCallback")) {
+        XtAddCallback(w, XtNmenuCallback, callback, client_data);
+    } else if (!strcmp(callback_name, "XtNdestroyItemCallback")) {
+        XtAddCallback(w, XtNdestroyItemCallback, callback, client_data);
+    } else if (!strcmp(callback_name, "XtNdropCallback")) {
+        XtAddCallback(w, XtNdropCallback, callback, client_data);
+    } else {
+        printf("%s: %s", "A missing Callback", callback_name);
+    }
+}
+
 void RegisterEditRes(Widget shell)
 {
 #ifdef WITH_EDITRES    
@@ -3712,6 +3735,25 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
         XmNvalueChangedCallback, tb_int_cb_proc, (XtPointer) cbdata);
 }
 
+void CreatePixmaps()
+{
+    Pixel bg;
+    XpmColorSymbol transparent;
+    XpmAttributes attrib;
+
+    XtVaGetValues(app_shell, XtNbackground, &bg, NULL);
+    transparent.name  = NULL;
+    transparent.value = "None";
+    transparent.pixel = bg;
+    attrib.colorsymbols = &transparent;
+    attrib.valuemask    = XpmColorSymbols;
+    attrib.numsymbols   = 1;
+    XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
+        active_xpm, &eui->a_icon, NULL, &attrib);
+    XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
+        hidden_xpm, &eui->h_icon, NULL, &attrib);
+}
+
 Widget CreateForm(Widget parent, const char *s)
 {
     return XmCreateForm(parent, s, NULL, 0);
@@ -4953,4 +4995,15 @@ void set_title(char *title, char *icon_name)
 {
     XtVaSetValues(app_shell, XtNtitle, title, XtNiconName, icon_name, NULL);
 }
+
+void explorer_menu_cb(Widget w, XtPointer client, XtPointer call)
+{
+    ListTreeItemReturnStruct *ret = (ListTreeItemReturnStruct *) call;
+    XButtonEvent *xbe = (XButtonEvent *) ret->event;
+    ExplorerUI *ui = (ExplorerUI *) client;
+
+    XmMenuPosition(ui->popup, xbe);
+    XtManageChild(ui->popup);
+}
+
 

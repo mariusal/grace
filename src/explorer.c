@@ -50,8 +50,8 @@
 # define USE_PANEDW 0
 #endif
 #else /* QT_GUI */
-#define USE_PANEDW 0
-#endif
+# define USE_PANEDW 0
+#endif /* QT_GUI */
 
 #include "xprotos.h"
 
@@ -181,19 +181,17 @@ void SelectQuarkTreeItem(Widget w, ListTreeItem *parent, Quark *q)
     highlight_selected(w, parent, 1, &q);
     
     ListTreeGetHighlighted(w, &ret);
+    CallCallbacks(w, "XtNhighlightCallback", (XtPointer) &ret);
 #ifndef QT_GUI
-    XtCallCallbacks(w, XtNhighlightCallback, (XtPointer) &ret);
-#endif
-
     if (ret.count > 0) {
         ListTreeItem *item = ret.items[0];
         int top, visible;
-#ifndef QT_GUI
+
         XtVaGetValues(w,
             XtNtopItemPosition, &top,
             XtNvisibleItemCount, &visible,
             NULL);
-#endif
+
         if (item->count < top) {
             ListTreeSetPos(w, item);
         } else
@@ -201,6 +199,7 @@ void SelectQuarkTreeItem(Widget w, ListTreeItem *parent, Quark *q)
             ListTreeSetBottomPos(w, item);
         }
     }
+#endif
 }
 
 static int explorer_apply(ExplorerUI *ui, void *caller);
@@ -444,18 +443,6 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
     }
 }
 
-#ifndef QT_GUI
-static void menu_cb(Widget w, XtPointer client, XtPointer call)
-{
-    ListTreeItemReturnStruct *ret = (ListTreeItemReturnStruct *) call;
-    XButtonEvent *xbe = (XButtonEvent *) ret->event;
-    ExplorerUI *ui = (ExplorerUI *) client;
-
-    XmMenuPosition(ui->popup, xbe);
-    XtManageChild(ui->popup);
-}
-#endif
-
 static void destroy_cb(Widget w, XtPointer client, XtPointer call)
 {
     ListTreeItemReturnStruct *ret;
@@ -506,11 +493,12 @@ static void drop_cb(Widget w, XtPointer client, XtPointer call)
     }
 }
 #endif
+
 static int explorer_apply(ExplorerUI *ui, void *caller)
 {
     ListTreeMultiReturnStruct ret;
     int count, i, res = RETURN_SUCCESS;
-#ifndef QT_GUI
+    
     if (caller && !GetToggleButtonState(ui->instantupdate)) {
         return RETURN_FAILURE;
     }
@@ -587,7 +575,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     }
     
     snapshot_and_update(gapp->gp, FALSE);
-#endif
+
     return res;
 }
 
@@ -654,9 +642,7 @@ void update_explorer(ExplorerUI *ui, int reselect)
 
     if (reselect) {
         ListTreeGetHighlighted(ui->tree, &ret);
-#ifndef QT_GUI
-        XtCallCallbacks(ui->tree, XtNhighlightCallback, (XtPointer) &ret);
-#endif
+        CallCallbacks(ui->tree, XtNhighlightCallback, (XtPointer) &ret);
     } else {
         ui->homogeneous_selection = FALSE;
         ui->all_siblings = FALSE;
@@ -880,31 +866,13 @@ void raise_explorer(GUI *gui, Quark *q)
         ExplorerUI *eui;
         Widget menubar, menupane, panel, form, fr;
         X11Stuff *xstuff = gapp->gui->xstuff;
-#ifndef QT_GUI
-        Pixel bg;
-        XpmColorSymbol transparent;
-        XpmAttributes attrib;
-#endif
 
         eui = xmalloc(sizeof(ExplorerUI));
         gui->eui = eui;
 
-#ifndef QT_GUI
         /* Create pixmaps */
-        XtVaGetValues(app_shell, XtNbackground, &bg, NULL);
-        transparent.name  = NULL;
-        transparent.value = "None";
-        transparent.pixel = bg;
-        attrib.colorsymbols = &transparent;
-        attrib.valuemask    = XpmColorSymbols;
-        attrib.numsymbols   = 1;
-        XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
-            active_xpm, &eui->a_icon, NULL, &attrib);
-        XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
-            hidden_xpm, &eui->h_icon, NULL, &attrib);
-#endif
-        
-        
+        CreatePixmaps();
+
         eui->top = CreateDialogForm(app_shell, "Explorer");
         menubar = CreateMenuBar(eui->top);
         ManageChild(menubar);
@@ -967,20 +935,20 @@ void raise_explorer(GUI *gui, Quark *q)
 #else
         panel = CreateGrid(eui->top, 2, 1);
 #endif
+
         form = CreateForm(panel, "form");
 
         eui->tree = CreateScrolledListTree(form);
+        AddCallback(eui->tree, "XtNhighlightCallback", highlight_cb, eui);
+        AddCallback(eui->tree, "XtNmenuCallback", explorer_menu_cb, eui);
+        AddCallback(eui->tree, "XtNdestroyItemCallback", destroy_cb, eui);
 #ifndef QT_GUI
-        XtAddCallback(eui->tree, XtNhighlightCallback, highlight_cb, eui);
-        XtAddCallback(eui->tree, XtNmenuCallback, menu_cb, eui);
-        XtAddCallback(eui->tree, XtNdestroyItemCallback, destroy_cb, eui);
-        XtAddCallback(eui->tree, XtNdropCallback, drop_cb, eui);
+        AddCallback(eui->tree, "XtNdropCallback", drop_cb, eui);
 #endif
 
         fr = CreateFrame(form, NULL);
         eui->idstr = CreateTextInput(fr, "ID string:");
         AddTextInputCB(eui->idstr, text_explorer_cb, eui);
-
 #ifndef QT_GUI
         XtVaSetValues(GetParent(eui->tree),
             XmNleftAttachment, XmATTACH_FORM,
@@ -996,7 +964,6 @@ void raise_explorer(GUI *gui, Quark *q)
             XmNbottomAttachment, XmATTACH_FORM,
             NULL);
 #endif
-        
 	ManageChild(form);
         
 #if !USE_PANEDW
@@ -1022,7 +989,6 @@ void raise_explorer(GUI *gui, Quark *q)
         PlaceGridChild(panel, eui->scrolled_window, 1, 0);
 #endif
 
-#ifndef QT_GUI
 #ifdef HAVE_LESSTIF
 # if !defined(SF_BUG_993209_FIXED) && !defined(SF_BUG_993209_NOT_FIXED)
 #  error "You should check whether SF bug #993209 is fixed in your version of LessTif."
@@ -1064,11 +1030,11 @@ void raise_explorer(GUI *gui, Quark *q)
 
 	eui->region_ui = create_region_ui(eui);
         UnmanageChild(eui->region_ui->top);
-#endif
+
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
-//        eui->project = CreateQuarkTree(eui->tree, NULL,
-//            gproject_get_top(gapp->gp), NULL, q_labeling);
+        eui->project = CreateQuarkTree(eui->tree, NULL,
+            gproject_get_top(gapp->gp), NULL, q_labeling);
         
         ManageChild(eui->tree);
         ListTreeRefreshOn(eui->tree);
@@ -1076,7 +1042,6 @@ void raise_explorer(GUI *gui, Quark *q)
 
         /* Menu popup */
         eui->popup = CreatePopupMenu(eui->tree, "explorerPopupMenu");
-
         eui->popup_hide_bt = CreateMenuButton(eui->popup,
             "Hide", '\0', hide_cb, eui);
         eui->popup_show_bt = CreateMenuButton(eui->popup,
@@ -1109,7 +1074,7 @@ void raise_explorer(GUI *gui, Quark *q)
     RaiseWindow(GetParent(gui->eui->top));
     
     if (q) {
-//        SelectQuarkTreeItem(gui->eui->tree, gui->eui->project, q);
+        SelectQuarkTreeItem(gui->eui->tree, gui->eui->project, q);
     }
 
     update_undo_buttons(gapp->gp);

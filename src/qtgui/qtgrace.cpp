@@ -344,11 +344,7 @@ void xregister_rti(Input_buffer *ib)
 {
 }
 
-
-//    XtAddCallback(retval->FSB,
-//        XmNcancelCallback, destroy_dialog, retval->dialog);
-//static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-void AddCallback(const QObject *sender,
+void QtAddCallback(const QObject *sender,
                  const char *signal,
                  void (*callback)(Widget, XtPointer, XtPointer),
                  void *data)
@@ -662,6 +658,7 @@ Widget CreateScrolledListTree(Widget parent)
     QTreeWidget *treeWidget = new QTreeWidget(parent);
 
     treeWidget->setHeaderHidden(true);
+    treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
@@ -816,21 +813,6 @@ ListTreeRenameItem(Widget w, ListTreeItem * item, char *string)
 //  ListTreeRefresh(w);
 }
 
-Widget CreateForm(Widget parent, const char *s)
-{
-    QWidget *widget = new QWidget(parent);
-
-    QVBoxLayout *verticalLayout = new QVBoxLayout;
-    widget->setLayout(verticalLayout);
-
-    QLayout *layout = parent->layout();
-    if (layout != 0) {
-        layout->addWidget(widget);
-    }
-
-    return widget;
-}
-
 /*
  *
  * utilities for Qt
@@ -967,6 +949,50 @@ void SetSensitive(Widget w, int onoff)
         action->setEnabled(onoff ? true : false);
     } else {
         w->setEnabled(onoff ? true : false);
+    }
+}
+
+//void CallCallbacks(Widget w, const char *callback_name, XtPointer call_data)
+//{
+//    if (!strcmp(callback_name, "XtNhighlightCallback"))
+//        XtCallCallbacks(w, XtNhighlightCallback, call_data);
+//}
+void CallCallbacks(Widget w, const char *callback_name, XtPointer call_data)
+{
+    //if (!strcmp(callback_name, "XtNhighlightCallback"))
+        //XtCallCallbacks(w, XtNhighlightCallback, call_data);
+}
+
+//void AddCallback(Widget w, const char *callback_name,
+//                 void (*callback)(Widget, XtPointer, XtPointer),
+//                 XtPointer client_data)
+//{
+//    if (!strcmp(callback_name, "XtNhighlightCallback")) {
+//        XtAddCallback(w, XtNhighlightCallback, callback, client_data);
+//    } else if (!strcmp(callback_name, "XtNmenuCallback")) {
+//        XtAddCallback(w, XtNmenuCallback, callback, client_data);
+//    } else if (!strcmp(callback_name, "XtNdestroyItemCallback")) {
+//        XtAddCallback(w, XtNdestroyItemCallback, callback, client_data);
+//    } else if (!strcmp(callback_name, "XtNdropCallback")) {
+//        XtAddCallback(w, XtNdropCallback, callback, client_data);
+//    } else {
+//        printf("%s: %s", "A missing Callback", callback_name);
+//    }
+//}
+void AddCallback(Widget w, const char *callback_name,
+                 void (*callback)(Widget, XtPointer, XtPointer),
+                 XtPointer client_data)
+{
+    if (!strcmp(callback_name, "XtNhighlightCallback")) {
+        printf("%s: %s", "AddCallback", callback_name);
+    } else if (!strcmp(callback_name, "XtNmenuCallback")) {
+        printf("%s: %s", "AddCallback", callback_name);
+    } else if (!strcmp(callback_name, "XtNdestroyItemCallback")) {
+        printf("%s: %s", "AddCallback", callback_name);
+    } else if (!strcmp(callback_name, "XtNdropCallback")) {
+        printf("%s: %s", "AddCallback", callback_name);
+    } else {
+        printf("%s: %s", "A missing Callback", callback_name);
     }
 }
 
@@ -1221,7 +1247,7 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
     opt->cblist[opt->cbnum] = cbdata;
     opt->cbnum++;
 
-    AddCallback(opt->pulldown, SIGNAL(activated(int)),
+    QtAddCallback(opt->pulldown, SIGNAL(activated(int)),
                 oc_int_cb_proc, (XtPointer) cbdata);
 }
 
@@ -2519,7 +2545,7 @@ StorageStructure *CreateStorageChoice(Widget parent,
     CreateStorageChoicePopup(retval);
 
     retval->list->setContextMenuPolicy(Qt::CustomContextMenu);
-    AddCallback(retval->list, SIGNAL(customContextMenuRequested(const QPoint)),
+    QtAddCallback(retval->list, SIGNAL(customContextMenuRequested(const QPoint)),
                 storage_popup, retval);
 
     //XtAddEventHandler(retval->list,
@@ -2825,7 +2851,7 @@ void AddStorageChoiceCB(StorageStructure *ss,
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    AddCallback(ss->list, SIGNAL(itemClicked(QListWidgetItem*)),
+    QtAddCallback(ss->list, SIGNAL(itemClicked(QListWidgetItem*)),
                 storage_int_cb_proc, (XtPointer) cbdata);
 
 //    XtAddCallback(ss->list,
@@ -2883,7 +2909,7 @@ void AddStorageChoiceDblClickCB(StorageStructure *ss,
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    AddCallback(ss->list, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+    QtAddCallback(ss->list, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
                 storage_int_dc_cb_proc, (XtPointer) cbdata);
 }
 
@@ -3466,7 +3492,7 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
 
     QLineEdit *text = (QLineEdit*) cst->text;
 
-    AddCallback(text, SIGNAL(returnPressed()),
+    QtAddCallback(text, SIGNAL(returnPressed()),
                 text_int_cb_proc, (XtPointer) cbdata);
 }
 
@@ -3626,11 +3652,11 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
     cbdata->cbproc = cbproc;
 
     if (QPushButton *pb = qobject_cast<QPushButton *>(button)) {
-        AddCallback(button, SIGNAL(clicked()),
+        QtAddCallback(button, SIGNAL(clicked()),
                     button_int_cb_proc, (XtPointer) cbdata);
     }
     if (QAction *ac = qobject_cast<QAction *>(button)) {
-        AddCallback(button, SIGNAL(triggered()),
+        QtAddCallback(button, SIGNAL(triggered()),
                     button_int_cb_proc, (XtPointer) cbdata);
     }
 }
@@ -3895,7 +3921,7 @@ void AddFileSelectionBoxCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
     FileSelectionDialog *fileSelectionDialog = (FileSelectionDialog*) fsb->FSB;
     QPushButton *pushButton = fileSelectionDialog->ui.okPushButton;
 
-    AddCallback(pushButton, SIGNAL(clicked()),
+    QtAddCallback(pushButton, SIGNAL(clicked()),
                 fsb_int_cb_proc, (XtPointer) cbdata);
 }
 
@@ -5807,8 +5833,50 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    AddCallback(w, SIGNAL(toggled(bool)),
+    QtAddCallback(w, SIGNAL(toggled(bool)),
                 tb_int_cb_proc, (XtPointer) cbdata);
+}
+
+//void CreatePixmaps()
+//{
+//    Pixel bg;
+//    XpmColorSymbol transparent;
+//    XpmAttributes attrib;
+
+//    XtVaGetValues(app_shell, XtNbackground, &bg, NULL);
+//    transparent.name  = NULL;
+//    transparent.value = "None";
+//    transparent.pixel = bg;
+//    attrib.colorsymbols = &transparent;
+//    attrib.valuemask    = XpmColorSymbols;
+//    attrib.numsymbols   = 1;
+//    XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
+//        active_xpm, &eui->a_icon, NULL, &attrib);
+//    XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
+//        hidden_xpm, &eui->h_icon, NULL, &attrib);
+//}
+void CreatePixmaps()
+{
+    //TODO:
+}
+
+//Widget CreateForm(Widget parent, const char *s)
+//{
+//    return XmCreateForm(parent, s, NULL, 0);
+//}
+Widget CreateForm(Widget parent, const char *s)
+{
+    QWidget *widget = new QWidget(parent);
+
+    QVBoxLayout *verticalLayout = new QVBoxLayout;
+    widget->setLayout(verticalLayout);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
+
+    return widget;
 }
 
 //Widget CreateDialogForm(Widget parent, const char *s)
@@ -7069,7 +7137,7 @@ static void help_int_cb(Widget w, XtPointer client_data, XtPointer call_data)
 //}
 void AddHelpCB(Widget w, char *ha)
 {
-    AddCallback(w, SIGNAL(clicked()), help_int_cb, (XtPointer) ha);
+    QtAddCallback(w, SIGNAL(clicked()), help_int_cb, (XtPointer) ha);
 }
 
 //void ContextHelpCB(Widget but, void *data)
@@ -7567,5 +7635,23 @@ void unlink_ssd_ui(Quark *q)
 void set_title(char *title, char *icon_name)
 {
     mainWin->setWindowTitle(title);
+}
+
+//void explorer_menu_cb(Widget w, XtPointer client, XtPointer call)
+//{
+//    ListTreeItemReturnStruct *ret = (ListTreeItemReturnStruct *) call;
+//    XButtonEvent *xbe = (XButtonEvent *) ret->event;
+//    ExplorerUI *ui = (ExplorerUI *) client;
+
+//    XmMenuPosition(ui->popup, xbe);
+//    XtManageChild(ui->popup);
+//}
+
+void explorer_menu_cb(Widget w, XtPointer client, XtPointer call)
+{
+    ExplorerUI *ui = (ExplorerUI *) client;
+    QMenu *popup = (QMenu*) ui->popup;
+
+    popup->exec(QCursor::pos());
 }
 
