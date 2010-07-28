@@ -4161,6 +4161,15 @@ Widget CreateScrolledListTree(Widget parent)
     return XmCreateScrolledListTree(parent, "tree", NULL, 0);
 }
 
+Widget CreateScrolledWidget(Widget parent)
+{
+    return XtVaCreateManagedWidget("ui->sw",
+            xmScrolledWindowWidgetClass, parent,
+            XmNheight, 320,
+            XmNscrollingPolicy, XmAUTOMATIC,
+            NULL);
+}
+
 typedef struct {
     int ncols;
     int nrows;

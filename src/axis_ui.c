@@ -249,13 +249,8 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->nspec, sp_explorer_cb, eui);
     CreateLabel(ui->special_tp, "Tick location - Label:");
 
-#ifndef QT_GUI
-    ui->sw = XtVaCreateManagedWidget("ui->sw",
-        xmScrolledWindowWidgetClass, ui->special_tp,
-        XmNheight, 320,
-        XmNscrollingPolicy, XmAUTOMATIC,
-        NULL);
-#endif
+    ui->sw = CreateScrolledWidget(ui->special_tp);
+
     rc = CreateVContainer(ui->sw);
 
     for (i = 0; i < MAX_TICKS; i++) {

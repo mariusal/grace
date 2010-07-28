@@ -435,9 +435,8 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
     XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
     XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
-
-    ui->popup = XmCreatePopupMenu(ui->mw, "popupMenu", NULL, 0);
 #endif
+    ui->popup = CreatePopupMenu(ui->mw, "popupMenu");
     ui->delete_btn  = CreateMenuButton(ui->popup, "Delete column", '\0', col_delete_cb, ui);
     ui->index_btn   = CreateMenuButton(ui->popup, "Set as index", '\0', index_cb, ui);
     ui->unindex_btn = CreateMenuButton(ui->popup, "Unset index", '\0', unindex_cb, ui);
@@ -484,7 +483,9 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         int cur_row, cur_col, format;
         
         if (ui->q != q) {
+#ifndef QT_GUI
             XbaeMatrixDeselectAll(ui->mw);
+#endif
         }
         
         ui->q = q;
@@ -515,13 +516,17 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
                 sprintf(buf, "%d", nr + i + 1);
                 rowlabels[i] = copy_string(NULL, buf);
             }
+#ifndef QT_GUI
             XbaeMatrixAddRows(ui->mw, nr, NULL, rowlabels, NULL, delta_nr);
+#endif
             for (i = 0; i < delta_nr; i++) {
                 xfree(rowlabels[i]);
             }
             xfree(rowlabels);
         } else if (delta_nr < 0) {
+#ifndef QT_GUI
             XbaeMatrixDeleteRows(ui->mw, new_nr, -delta_nr);
+#endif
         }
 
 

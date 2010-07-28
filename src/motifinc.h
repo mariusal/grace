@@ -433,6 +433,7 @@ void FixateDialogFormChild(Widget w);
 Widget CreateFrame(Widget parent, char *s);
 
 Widget CreateScrolledListTree(Widget parent);
+Widget CreateScrolledWidget(Widget parent);
 
 Widget CreateSeparator(Widget parent);
 Widget CreateMenuSeparator(Widget parent);

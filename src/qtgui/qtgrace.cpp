@@ -58,6 +58,8 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QTreeWidget>
+#include <QStandardItemModel>
+#include <QTableView>
 #include <mainwindow.h>
 #include <canvaswidget.h>
 #include <fileselectiondialog.h>
@@ -66,11 +68,14 @@
 extern "C" {
   #include <globals.h>
   #include <bitmaps.h>
+  #include "jbitmaps.h"
   #include "xprotos.h"
   #include "utils.h"
   #include "explorer.h"
   Widget app_shell;
 }
+
+#define canvas grace_get_canvas(gapp->grace)
 
 #include <qtgrace.h>
 
@@ -668,6 +673,26 @@ Widget CreateScrolledListTree(Widget parent)
     return treeWidget;
 }
 
+//Widget CreateScrolledWidget(Widget parent)
+//{
+//    return XtVaCreateManagedWidget("ui->sw",
+//            xmScrolledWindowWidgetClass, parent,
+//            XmNheight, 320,
+//            XmNscrollingPolicy, XmAUTOMATIC,
+//            NULL);
+//}
+Widget CreateScrolledWidget(Widget parent)
+{
+    QScrollArea *scrollArea = new QScrollArea(parent);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(scrollArea);
+    }
+
+    return scrollArea;
+}
+
 void
 ListTreeGetHighlighted(Widget w, ListTreeMultiReturnStruct *ret)
 {
@@ -878,10 +903,10 @@ ListTreeRenameItem(Widget w, ListTreeItem * item, char *string)
 //static unsigned long *xvlibcolors;
 //
 //
-//static OptionItem *color_option_items = NULL;
-//static unsigned int ncolor_option_items = 0;
-//static OptionStructure **color_selectors = NULL;
-//static unsigned int ncolor_selectors = 0;
+static OptionItem *color_option_items = NULL;
+static unsigned int ncolor_option_items = 0;
+static OptionStructure **color_selectors = NULL;
+static unsigned int ncolor_selectors = 0;
 //
 //static Widget color_choice_popup = NULL;
 //
@@ -938,6 +963,10 @@ void UnmanageChild(Widget w)
 //{
 //    return (XtIsManaged(w) == True) ? TRUE:FALSE;
 //}
+int IsManaged(Widget w)
+{
+    return TRUE;
+}
 
 //void SetSensitive(Widget w, int onoff)
 //{
@@ -1065,6 +1094,13 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
 //    
 //    return udata;
 //}
+void *GetUserData(Widget w)
+{
+    void *udata = NULL;
+    udata = w->userData(0);
+
+    return udata;
+}
 
 //void SetUserData(Widget w, void *udata)
 //{
@@ -1072,6 +1108,7 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
 //}
 void SetUserData(Widget w, void *udata)
 {
+    w->setUserData(0, (QObjectUserData *) udata);
 }
 
 
@@ -1126,6 +1163,17 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     }
 
     QComboBox *comboBox = new QComboBox(widget);
+
+    QStandardItemModel *model = new QStandardItemModel(comboBox);
+    model->setColumnCount(ncols);
+
+    QTableView *tableView = new QTableView(comboBox);
+    tableView->setModel(model);
+    tableView->horizontalHeader()->setVisible(false);
+    tableView->verticalHeader()->setVisible(false);
+    tableView->resizeColumnsToContents();
+    comboBox->setView(tableView);
+
     retval->pulldown = comboBox;
     retval->menu = comboBox;
 
@@ -1401,6 +1449,26 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 //    
 //    return retval;
 //}
+OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
+                int nchoices, int width, int height, BitmapOptionItem *items)
+{
+    //TODO:
+    OptionStructure *retval;
+
+    retval = (OptionStructure *) xcalloc(1, sizeof(OptionStructure));
+    if (!retval) {
+        return NULL;
+    }
+    retval->nchoices = nchoices;
+    retval->options = (OptionWidgetItem *) xmalloc(nchoices*sizeof(OptionWidgetItem));
+    if (retval->options == NULL) {
+        errmsg("Malloc error in CreateBitmapOptionChoice()");
+        XCFREE(retval);
+        return retval;
+    }
+
+    return retval;
+}
 //
 //void UpdateCharOptionChoice(OptionStructure *opt, int font)
 //{
@@ -1417,6 +1485,21 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 //        *old_font = font;
 //    }
 //}
+void UpdateCharOptionChoice(OptionStructure *opt, int font)
+{
+    int *old_font;
+    old_font = (int *) GetUserData(opt->menu);
+    if (*old_font != font) {
+        int i, csize = 24;
+        for (i = 0; i < opt->nchoices; i++) {
+            Widget w = opt->options[i].widget;
+//            Pixmap ptmp = char_to_pixmap(opt->pulldown, font, (char) i, csize);
+//            XtVaSetValues(w, XmNlabelPixmap, ptmp, NULL);
+//            SetSensitive(w, ptmp ? TRUE:FALSE);
+        }
+        *old_font = font;
+    }
+}
 //
 //static unsigned char dummy_bits[] = {
 //   0x00, 0x00, 0x00, 0x00, 0xec, 0x2e, 0x04, 0x20, 0x00, 0x20, 0x04, 0x00,
@@ -1489,6 +1572,26 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 //    
 //    return retval;
 //}
+OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
+{
+    //TODO:
+    OptionStructure *retval;
+    int ncols = 16, nchoices = 256;
+
+    retval = (OptionStructure *) xcalloc(1, sizeof(OptionStructure));
+    if (retval == NULL) {
+        errmsg("Malloc error in CreateBitmapOptionChoice()");
+    }
+    retval->nchoices = nchoices;
+    retval->options = (OptionWidgetItem *) xmalloc(nchoices*sizeof(OptionWidgetItem));
+    if (retval->options == NULL) {
+        errmsg("Malloc error in CreateBitmapOptionChoice()");
+        XCFREE(retval);
+        return retval;
+    }
+
+    return retval;
+}
 
 //void SetOptionChoice(OptionStructure *opt, int value)
 //{
@@ -1549,6 +1652,11 @@ int GetOptionChoice(OptionStructure *opt)
 //    void *anydata;
 //    XtIntervalId timeout_id;
 //} Spin_CBdata;
+typedef struct {
+    SpinStructure *spin;
+    Spin_CBProc cbproc;
+    void *anydata;
+} Spin_CBdata;
 //
 //typedef struct {
 //    Widget scale;
@@ -1967,22 +2075,22 @@ int GetListChoices(ListStructure *listp, int **values)
     return n;
 }
 
-//int GetSingleListChoice(ListStructure *listp, int *value)
-//{
-//    int n, *values, retval;
-// 
-//    n = GetListChoices(listp, &values);
-//    if (n == 1) {
-//        *value = values[0];
-//        retval = RETURN_SUCCESS;
-//    } else {
-//        retval = RETURN_FAILURE;
-//    }
-//    if (n > 0) {
-//        xfree(values);
-//    }
-//    return retval;
-//}
+int GetSingleListChoice(ListStructure *listp, int *value)
+{
+    int n, *values, retval;
+
+    n = GetListChoices(listp, &values);
+    if (n == 1) {
+        *value = values[0];
+        retval = RETURN_SUCCESS;
+    } else {
+        retval = RETURN_FAILURE;
+    }
+    if (n > 0) {
+        xfree(values);
+    }
+    return retval;
+}
 //
 //int GetListSelectedCount(ListStructure *listp)
 //{
@@ -1990,28 +2098,28 @@ int GetListChoices(ListStructure *listp, int **values)
 //    XtVaGetValues(listp->list, XmNselectedItemCount, &count, NULL);
 //    return count;
 //}
-//
-//
-//typedef struct {
-//    ListStructure *listp;
-//    List_CBProc cbproc;
-//    void *anydata;
-//} List_CBdata;
-//
-//static void list_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-//{
-//    int n, *values;
-//    List_CBdata *cbdata = (List_CBdata *) client_data;
-// 
-//    n = GetListChoices(cbdata->listp, &values);
-//    
-//    cbdata->cbproc(cbdata->listp, n, values, cbdata->anydata);
-//
-//    if (n > 0) {
-//        xfree(values);
-//    }
-//}
-//
+
+
+typedef struct {
+    ListStructure *listp;
+    List_CBProc cbproc;
+    void *anydata;
+} List_CBdata;
+
+static void list_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int n, *values;
+    List_CBdata *cbdata = (List_CBdata *) client_data;
+
+    n = GetListChoices(cbdata->listp, &values);
+
+    cbdata->cbproc(cbdata->listp, n, values, cbdata->anydata);
+
+    if (n > 0) {
+        xfree(values);
+    }
+}
+
 //void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata)
 //{
 //    List_CBdata *cbdata;
@@ -2027,6 +2135,18 @@ int GetListChoices(ListStructure *listp, int **values)
 //    XtAddCallback(listp->list,
 //        XmNextendedSelectionCallback, list_int_cb_proc, (XtPointer) cbdata);
 //}
+void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata)
+{
+    List_CBdata *cbdata;
+
+    cbdata = (List_CBdata *) xmalloc(sizeof(List_CBdata));
+    cbdata->listp = listp;
+    cbdata->cbproc = (List_CBProc) cbproc;
+    cbdata->anydata = anydata;
+
+    QtAddCallback(listp->list, SIGNAL(itemClicked(QListWidgetItem *)),
+                  list_int_cb_proc, (XtPointer) cbdata);
+}
 
 
 
@@ -2946,7 +3066,13 @@ void AddStorageChoiceDblClickCB(StorageStructure *ss,
 //        cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
 //    }
 //}
-//
+static void sp_double_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
+
+    cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
+}
+
 //static void sp_timer_proc(XtPointer client_data, XtIntervalId *id)
 //{
 //    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
@@ -2991,6 +3117,19 @@ void AddStorageChoiceDblClickCB(StorageStructure *ss,
 //    XtAddEventHandler(spinp->text,
 //        ButtonPressMask, False, sp_ev_proc, (XtPointer) cbdata);
 //}
+void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
+{
+    Spin_CBdata *cbdata;
+
+    cbdata = (Spin_CBdata *) xmalloc(sizeof(Spin_CBdata));
+
+    cbdata->spin = spinp;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    QtAddCallback(spinp->rc, SIGNAL(valueChanged(double)),
+                  sp_double_cb_proc, (XtPointer) cbdata);
+}
 //
 //static void spin_updown(Widget parent,
 //    XtPointer closure, XEvent *event, Boolean *cont)
@@ -3316,7 +3455,12 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 //{
 //    XtVaSetValues(cst->text, XmNcolumns, len, NULL);
 //}
-//
+void SetTextInputLength(TextStructure *cst, int len)
+{
+    //XtVaSetValues(cst->text, XmNcolumns, len, NULL);
+    //TODO:
+}
+
 //static void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 //{
 //    TextStructure *cst = (TextStructure *) GetUserData(w);
@@ -3337,7 +3481,16 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 //        
 //    return retval;
 //}
-//
+TextStructure *CreateCSText(Widget parent, char *s)
+{
+    TextStructure *retval;
+
+    retval = CreateTextInput(parent, s);
+    SetUserData(retval->text, retval);
+
+    return retval;
+}
+
 //TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows)
 //{
 //    TextStructure *retval;
@@ -3349,6 +3502,15 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 //        
 //    return retval;
 //}
+TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows)
+{
+    TextStructure *retval;
+
+    retval = CreateScrolledTextInput(parent, s, nrows);
+    SetUserData(retval->text, retval);
+
+    return retval;
+}
 
 //char *GetTextString(TextStructure *cst)
 //{
@@ -3653,11 +3815,11 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
 
     if (QPushButton *pb = qobject_cast<QPushButton *>(button)) {
         QtAddCallback(button, SIGNAL(clicked()),
-                    button_int_cb_proc, (XtPointer) cbdata);
+                      button_int_cb_proc, (XtPointer) cbdata);
     }
     if (QAction *ac = qobject_cast<QAction *>(button)) {
         QtAddCallback(button, SIGNAL(triggered()),
-                    button_int_cb_proc, (XtPointer) cbdata);
+                      button_int_cb_proc, (XtPointer) cbdata);
     }
 }
 
@@ -3991,14 +4153,14 @@ Widget CreateLabel(Widget parent, char *s)
 //}
 //
 static OptionItem *settype_option_items;
-//static OptionItem *fmt_option_items;
-//static OptionItem *frametype_option_items;
-//static BitmapOptionItem *pattern_option_items;
-//static BitmapOptionItem *lines_option_items;
-//
-//#define LINES_BM_HEIGHT 15
-//#define LINES_BM_WIDTH  64
-//
+static OptionItem *fmt_option_items;
+static OptionItem *frametype_option_items;
+static BitmapOptionItem *pattern_option_items;
+static BitmapOptionItem *lines_option_items;
+
+#define LINES_BM_HEIGHT 15
+#define LINES_BM_WIDTH  64
+
 //static void init_xvlibcolors(void)
 //{
 //    X11Stuff *xstuff = gapp->gui->xstuff;
@@ -4127,59 +4289,59 @@ int init_option_menus(void) {
 //
 //    init_xvlibcolors();
 //
-//    n = number_of_patterns(canvas);
-//    if (n) {
-//        pattern_option_items = xmalloc(n*sizeof(BitmapOptionItem));
-//        if (pattern_option_items == NULL) {
-//            errmsg("Malloc error in init_option_menus()");
-//            return RETURN_FAILURE;
-//        }
-//        for (i = 0; i < n; i++) {
-//            pattern_option_items[i].value = i;
-//            if (i == 0) {
-//                pattern_option_items[i].bitmap = NULL;
-//            } else {
-//                Pattern *pat = canvas_get_pattern(canvas, i);
-//                pattern_option_items[i].bitmap = pat->bits;
-//            }
-//        }
-//    }
-//
-//    n = number_of_linestyles(canvas);
-//    if (n) {
-//        lines_option_items = xmalloc(n*sizeof(BitmapOptionItem));
-//        if (lines_option_items == NULL) {
-//            errmsg("Malloc error in init_option_menus()");
-//            xfree(pattern_option_items);
-//            return RETURN_FAILURE;
-//        }
-//        for (i = 0; i < n; i++) {
-//            LineStyle *linestyle = canvas_get_linestyle(canvas, i);
-//            lines_option_items[i].value = i;
-//            if (i == 0) {
-//                lines_option_items[i].bitmap = NULL;
-//                continue;
-//            }
-//
-//            lines_option_items[i].bitmap =
-//                  xcalloc(LINES_BM_HEIGHT*LINES_BM_WIDTH/8/SIZEOF_CHAR, SIZEOF_CHAR);
-//
-//            k = LINES_BM_WIDTH*(LINES_BM_HEIGHT/2);
-//            while (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
-//                for (j = 0; j < linestyle->length; j++) {
-//                    for (l = 0; l < linestyle->array[j]; l++) {
-//                        if (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
-//                            if (j % 2 == 0) {
-//                                /* black */
-//                                lines_option_items[i].bitmap[k/8] |= 1 << k % 8;
-//                            }
-//                            k++;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+    n = number_of_patterns(canvas);
+    if (n) {
+        pattern_option_items = (BitmapOptionItem *) xmalloc(n*sizeof(BitmapOptionItem));
+        if (pattern_option_items == NULL) {
+            errmsg("Malloc error in init_option_menus()");
+            return RETURN_FAILURE;
+        }
+        for (i = 0; i < n; i++) {
+            pattern_option_items[i].value = i;
+            if (i == 0) {
+                pattern_option_items[i].bitmap = NULL;
+            } else {
+                Pattern *pat = canvas_get_pattern(canvas, i);
+                pattern_option_items[i].bitmap = pat->bits;
+            }
+        }
+    }
+
+    n = number_of_linestyles(canvas);
+    if (n) {
+        lines_option_items = (BitmapOptionItem *) xmalloc(n*sizeof(BitmapOptionItem));
+        if (lines_option_items == NULL) {
+            errmsg("Malloc error in init_option_menus()");
+            xfree(pattern_option_items);
+            return RETURN_FAILURE;
+        }
+        for (i = 0; i < n; i++) {
+            LineStyle *linestyle = canvas_get_linestyle(canvas, i);
+            lines_option_items[i].value = i;
+            if (i == 0) {
+                lines_option_items[i].bitmap = NULL;
+                continue;
+            }
+
+            lines_option_items[i].bitmap =
+                  (unsigned char *) xcalloc(LINES_BM_HEIGHT*LINES_BM_WIDTH/8/SIZEOF_CHAR, SIZEOF_CHAR);
+
+            k = LINES_BM_WIDTH*(LINES_BM_HEIGHT/2);
+            while (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
+                for (j = 0; j < linestyle->length; j++) {
+                    for (l = 0; l < linestyle->array[j]; l++) {
+                        if (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
+                            if (j % 2 == 0) {
+                                /* black */
+                                lines_option_items[i].bitmap[k/8] |= 1 << k % 8;
+                            }
+                            k++;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     settype_option_items = (OptionItem*) xmalloc(NUMBER_OF_SETTYPES*sizeof(OptionItem));
     if (settype_option_items == NULL) {
@@ -4192,36 +4354,36 @@ int init_option_menus(void) {
             set_type_descr(gapp->grace, (SetType) i));
     }
 
-//    fmt_option_items = xmalloc(NUMBER_OF_FORMATTYPES*sizeof(OptionItem));
-//    if (fmt_option_items == NULL) {
-//        errmsg("Malloc error in init_option_menus()");
-//        return RETURN_FAILURE;
-//    }
-//    for (i = 0; i < NUMBER_OF_FORMATTYPES; i++) {
-//        fmt_option_items[i].value = i;
-//        fmt_option_items[i].label = copy_string(NULL,
-//            format_type_descr(gapp->grace, i));
-//    }
-//
-//    frametype_option_items = xmalloc(NUMBER_OF_FRAMETYPES*sizeof(OptionItem));
-//    if (frametype_option_items == NULL) {
-//        errmsg("Malloc error in init_option_menus()");
-//        return RETURN_FAILURE;
-//    }
-//    for (i = 0; i < NUMBER_OF_FRAMETYPES; i++) {
-//        frametype_option_items[i].value = i;
-//        frametype_option_items[i].label = copy_string(NULL,
-//            frame_type_descr(gapp->grace, i));
-//    }
-//
+    fmt_option_items = (OptionItem *) xmalloc(NUMBER_OF_FORMATTYPES*sizeof(OptionItem));
+    if (fmt_option_items == NULL) {
+        errmsg("Malloc error in init_option_menus()");
+        return RETURN_FAILURE;
+    }
+    for (i = 0; i < NUMBER_OF_FORMATTYPES; i++) {
+        fmt_option_items[i].value = i;
+        fmt_option_items[i].label = copy_string(NULL,
+            format_type_descr(gapp->grace, (FormatType) i));
+    }
+
+    frametype_option_items = (OptionItem *) xmalloc(NUMBER_OF_FRAMETYPES*sizeof(OptionItem));
+    if (frametype_option_items == NULL) {
+        errmsg("Malloc error in init_option_menus()");
+        return RETURN_FAILURE;
+    }
+    for (i = 0; i < NUMBER_OF_FRAMETYPES; i++) {
+        frametype_option_items[i].value = i;
+        frametype_option_items[i].label = copy_string(NULL,
+            frame_type_descr(gapp->grace, (FrameType) i));
+    }
+
     return RETURN_SUCCESS;
 }
 
-//static OptionItem *font_option_items = NULL;
-//static unsigned int nfont_option_items = 0;
-//static OptionStructure **font_selectors = NULL;
-//static unsigned int nfont_selectors = 0;
-//
+static OptionItem *font_option_items = NULL;
+static unsigned int nfont_option_items = 0;
+static OptionStructure **font_selectors = NULL;
+static unsigned int nfont_selectors = 0;
+
 //void update_font_selectors(void)
 //{
 //    unsigned int i;
@@ -4262,18 +4424,37 @@ int init_option_menus(void) {
 //    
 //    return retvalp;
 //}
-//
-//OptionStructure *CreatePatternChoice(Widget parent, char *s)
-//{
-//    return (CreateBitmapOptionChoice(parent, s, 4, number_of_patterns(canvas), 
-//                                     16, 16, pattern_option_items));
-//}
-//
-//OptionStructure *CreateLineStyleChoice(Widget parent, char *s)
-//{
-//    return (CreateBitmapOptionChoice(parent, s, 0, number_of_linestyles(canvas), 
-//                        LINES_BM_WIDTH, LINES_BM_HEIGHT, lines_option_items));
-//}
+OptionStructure *CreateFontChoice(Widget parent, char *s)
+{
+    OptionStructure *retvalp = NULL;
+
+    nfont_selectors++;
+    font_selectors = (OptionStructure **) xrealloc(font_selectors,
+                                    nfont_selectors*sizeof(OptionStructure *));
+    if (font_selectors == NULL) {
+        errmsg("Malloc failed in CreateFontChoice()");
+        return retvalp;
+    }
+
+    retvalp = CreateOptionChoice(parent, s, 0,
+                                nfont_option_items, font_option_items);
+
+    font_selectors[nfont_selectors - 1] = retvalp;
+
+    return retvalp;
+}
+
+OptionStructure *CreatePatternChoice(Widget parent, char *s)
+{
+    return (CreateBitmapOptionChoice(parent, s, 4, number_of_patterns(canvas),
+                                     16, 16, pattern_option_items));
+}
+
+OptionStructure *CreateLineStyleChoice(Widget parent, char *s)
+{
+    return (CreateBitmapOptionChoice(parent, s, 0, number_of_linestyles(canvas),
+                        LINES_BM_WIDTH, LINES_BM_HEIGHT, lines_option_items));
+}
 
 OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 {
@@ -4281,53 +4462,53 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
         s, 0, NUMBER_OF_SETTYPES, settype_option_items));
 }
 
-//OptionStructure *CreateFrameTypeChoice(Widget parent, char *s)
-//{
-//    return (CreateOptionChoice(parent,
-//        s, 0, NUMBER_OF_FRAMETYPES, frametype_option_items));
-//}
-//
-//static BitmapOptionItem text_just_option_items[12] =
-//{
-//    {JUST_LEFT  |JUST_BLINE , j_lm_o_bits},
-//    {JUST_CENTER|JUST_BLINE , j_cm_o_bits},
-//    {JUST_RIGHT |JUST_BLINE , j_rm_o_bits},
-//    {JUST_LEFT  |JUST_BOTTOM, j_lb_b_bits},
-//    {JUST_CENTER|JUST_BOTTOM, j_cb_b_bits},
-//    {JUST_RIGHT |JUST_BOTTOM, j_rb_b_bits},
-//    {JUST_LEFT  |JUST_MIDDLE, j_lm_b_bits},
-//    {JUST_CENTER|JUST_MIDDLE, j_cm_b_bits},
-//    {JUST_RIGHT |JUST_MIDDLE, j_rm_b_bits},
-//    {JUST_LEFT  |JUST_TOP   , j_lt_b_bits},
-//    {JUST_CENTER|JUST_TOP   , j_ct_b_bits},
-//    {JUST_RIGHT |JUST_TOP   , j_rt_b_bits}
-//};
-//
-//OptionStructure *CreateTextJustChoice(Widget parent, char *s)
-//{
-//    return (CreateBitmapOptionChoice(parent, s, 4,
-//        12, JBITMAP_WIDTH, JBITMAP_HEIGHT, text_just_option_items));
-//}
-//
-//static BitmapOptionItem just_option_items[9] =
-//{
-//    {JUST_LEFT  |JUST_BOTTOM, j_lb_b_bits},
-//    {JUST_CENTER|JUST_BOTTOM, j_cb_b_bits},
-//    {JUST_RIGHT |JUST_BOTTOM, j_rb_b_bits},
-//    {JUST_LEFT  |JUST_MIDDLE, j_lm_b_bits},
-//    {JUST_CENTER|JUST_MIDDLE, j_cm_b_bits},
-//    {JUST_RIGHT |JUST_MIDDLE, j_rm_b_bits},
-//    {JUST_LEFT  |JUST_TOP   , j_lt_b_bits},
-//    {JUST_CENTER|JUST_TOP   , j_ct_b_bits},
-//    {JUST_RIGHT |JUST_TOP   , j_rt_b_bits}
-//};
-//
-//OptionStructure *CreateJustChoice(Widget parent, char *s)
-//{
-//    return (CreateBitmapOptionChoice(parent, s, 3,
-//        9, JBITMAP_WIDTH, JBITMAP_HEIGHT, just_option_items));
-//}
-//
+OptionStructure *CreateFrameTypeChoice(Widget parent, char *s)
+{
+    return (CreateOptionChoice(parent,
+        s, 0, NUMBER_OF_FRAMETYPES, frametype_option_items));
+}
+
+static BitmapOptionItem text_just_option_items[12] =
+{
+    {JUST_LEFT  |JUST_BLINE , j_lm_o_bits},
+    {JUST_CENTER|JUST_BLINE , j_cm_o_bits},
+    {JUST_RIGHT |JUST_BLINE , j_rm_o_bits},
+    {JUST_LEFT  |JUST_BOTTOM, j_lb_b_bits},
+    {JUST_CENTER|JUST_BOTTOM, j_cb_b_bits},
+    {JUST_RIGHT |JUST_BOTTOM, j_rb_b_bits},
+    {JUST_LEFT  |JUST_MIDDLE, j_lm_b_bits},
+    {JUST_CENTER|JUST_MIDDLE, j_cm_b_bits},
+    {JUST_RIGHT |JUST_MIDDLE, j_rm_b_bits},
+    {JUST_LEFT  |JUST_TOP   , j_lt_b_bits},
+    {JUST_CENTER|JUST_TOP   , j_ct_b_bits},
+    {JUST_RIGHT |JUST_TOP   , j_rt_b_bits}
+};
+
+OptionStructure *CreateTextJustChoice(Widget parent, char *s)
+{
+    return (CreateBitmapOptionChoice(parent, s, 4,
+        12, JBITMAP_WIDTH, JBITMAP_HEIGHT, text_just_option_items));
+}
+
+static BitmapOptionItem just_option_items[9] =
+{
+    {JUST_LEFT  |JUST_BOTTOM, j_lb_b_bits},
+    {JUST_CENTER|JUST_BOTTOM, j_cb_b_bits},
+    {JUST_RIGHT |JUST_BOTTOM, j_rb_b_bits},
+    {JUST_LEFT  |JUST_MIDDLE, j_lm_b_bits},
+    {JUST_CENTER|JUST_MIDDLE, j_cm_b_bits},
+    {JUST_RIGHT |JUST_MIDDLE, j_rm_b_bits},
+    {JUST_LEFT  |JUST_TOP   , j_lt_b_bits},
+    {JUST_CENTER|JUST_TOP   , j_ct_b_bits},
+    {JUST_RIGHT |JUST_TOP   , j_rt_b_bits}
+};
+
+OptionStructure *CreateJustChoice(Widget parent, char *s)
+{
+    return (CreateBitmapOptionChoice(parent, s, 3,
+        9, JBITMAP_WIDTH, JBITMAP_HEIGHT, just_option_items));
+}
+
 //RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)
 //{
 //    RestrictionStructure *retval;
@@ -4368,15 +4549,15 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 //#define PEN_CHOICE_WIDTH  64
 //#define PEN_CHOICE_HEIGHT 16
 //
-//typedef struct {
-//    Pen pen;
-//    Widget color_popup;
-//    Widget pattern_popup;
-//    
-//    Pen_CBProc cb_proc;
-//    void *cb_data;
-//} Button_PData;
-//
+typedef struct {
+    Pen pen;
+    Widget color_popup;
+    Widget pattern_popup;
+
+    Pen_CBProc cb_proc;
+    void *cb_data;
+} Button_PData;
+
 //static GC gc_pen;
 //
 //static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
@@ -4422,12 +4603,62 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 //        pdata->cb_proc(button, pen, pdata->cb_data);
 //    }
 //}
-//
-//void SetPenChoice(Widget button, Pen *pen)
-//{
-//    SetPenChoice_int(button, pen, FALSE);
-//}
-//
+static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
+{
+//    X11Stuff *xstuff = gapp->gui->xstuff;
+    QPushButton *pushButton = (QPushButton *) button;
+    int fg;
+//    Pixmap pixtile, pixmap;
+    Button_PData *pdata;
+    Pattern *pat;
+
+    /* Safety checks */
+    if (!button || !pen ||
+        (pen->pattern < 0 || pen->pattern >= number_of_patterns(canvas)) ||
+        (pen->color < 0   || pen->color   >= number_of_colors(canvas))) {
+        return;
+    }
+
+    pdata = (Button_PData *) GetUserData(button);
+    pdata->pen = *pen;
+
+//    if (!gc_pen) {
+//        gc_pen = XCreateGC(xstuff->disp, xstuff->root, 0, NULL);
+//        XSetFillStyle(xstuff->disp, gc_pen, FillTiled);
+//    }
+
+    fg = pen->color;
+//    bg = getbgcolor(canvas);
+
+    pat = canvas_get_pattern(canvas, pen->pattern);
+
+    QBitmap bitmap = QBitmap::fromData(QSize(pat->width, pat->height),
+            pat->bits, QImage::Format_MonoLSB);
+
+    pushButton->setIcon(QIcon(bitmap));
+
+//    pixtile = XCreatePixmapFromBitmapData(xstuff->disp, xstuff->root,
+//        (char *) pat->bits, pat->width, pat->height, fg, bg, xstuff->depth);
+
+//    XSetTile(xstuff->disp, gc_pen, pixtile);
+
+//    pixmap = XCreatePixmap(xstuff->disp, xstuff->root, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT, xstuff->depth);
+//    XFillRectangle(xstuff->disp, pixmap, gc_pen, 0, 0, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT);
+
+//    XtVaSetValues(button, XmNlabelPixmap, pixmap, NULL);
+
+//    XFreePixmap(xstuff->disp, pixtile);
+
+    if (call_cb && pdata->cb_proc) {
+        pdata->cb_proc(button, pen, pdata->cb_data);
+    }
+}
+
+void SetPenChoice(Widget button, Pen *pen)
+{
+    SetPenChoice_int(button, pen, FALSE);
+}
+
 //static void pen_popup(Widget parent,
 //    XtPointer closure, XEvent *event, Boolean *cont)
 //{
@@ -4569,29 +4800,29 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 //    return popup;
 //}
 //
-//typedef struct {
-//    Widget top;
-//    OptionStructure *color;
-//    OptionStructure *pattern;
-//    
-//    Widget pen_button;
-//} PenChoiceDialog;
-//
-//static int pen_choice_aac(void *data)
-//{
-//    PenChoiceDialog *ui = (PenChoiceDialog *) data;
-//    
-//    if (ui->pen_button) {
-//        Pen pen;
-//        pen.color   = GetOptionChoice(ui->color);
-//        pen.pattern = GetOptionChoice(ui->pattern);
-//        
-//        SetPenChoice_int(ui->pen_button, &pen, TRUE);
-//    }
-//    
-//    return RETURN_SUCCESS;
-//}
-//
+typedef struct {
+    Widget top;
+    OptionStructure *color;
+    OptionStructure *pattern;
+
+    Widget pen_button;
+} PenChoiceDialog;
+
+static int pen_choice_aac(void *data)
+{
+    PenChoiceDialog *ui = (PenChoiceDialog *) data;
+
+    if (ui->pen_button) {
+        Pen pen;
+        pen.color   = GetOptionChoice(ui->color);
+        pen.pattern = GetOptionChoice(ui->pattern);
+
+        SetPenChoice_int(ui->pen_button, &pen, TRUE);
+    }
+
+    return RETURN_SUCCESS;
+}
+
 //static void define_pen_choice_dialog(Widget but, void *data)
 //{
 //    static PenChoiceDialog *ui = NULL;
@@ -4630,7 +4861,45 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 //    RaiseWindow(GetParent(ui->top));
 //    unset_wait_cursor();
 //}
-//
+static void define_pen_choice_dialog(Widget but, void *data)
+{
+    static PenChoiceDialog *ui = NULL;
+
+    set_wait_cursor();
+
+    if (!ui) {
+        Widget fr, rc;
+
+        ui = (PenChoiceDialog *) xmalloc(sizeof(PenChoiceDialog));
+
+        ui->top = CreateDialogForm(app_shell, "Pen properties");
+
+        fr = CreateFrame(ui->top, "Pen");
+        rc = CreateVContainer(fr);
+        ui->color   = CreateColorChoice(rc, "Color");
+        ui->pattern = CreatePatternChoice(rc, "Pattern");
+
+        CreateAACDialog(ui->top, fr, pen_choice_aac, ui);
+    }
+
+    ui->pen_button = (Widget) data;
+
+    if (ui->pen_button) {
+        Button_PData *pdata;
+        Pen pen;
+
+        pdata = (Button_PData *) GetUserData(ui->pen_button);
+
+        pen = pdata->pen;
+
+        SetOptionChoice(ui->color, pen.color);
+        SetOptionChoice(ui->pattern, pen.pattern);
+    }
+
+    RaiseWindow(GetParent(ui->top));
+    unset_wait_cursor();
+}
+
 //Widget CreatePenChoice(Widget parent, char *s)
 //{
 //    Widget rc, button;
@@ -4665,7 +4934,44 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 //    
 //    return button;
 //}
-//
+Widget CreatePenChoice(Widget parent, char *s)
+{
+    Widget rc, button;
+    Button_PData *pdata;
+    Pen pen;
+
+    pdata = (Button_PData *) xmalloc(sizeof(Button_PData));
+    memset(pdata, 0, sizeof(Button_PData));
+
+    rc = CreateHContainer(parent);
+    CreateLabel(rc, s);
+    button = new QPushButton(rc);
+    SetUserData(button, pdata);
+//    button = XtVaCreateWidget("penButton",
+//        xmPushButtonWidgetClass, rc,
+//        XmNlabelType, XmPIXMAP,
+//        XmNuserData, pdata,
+//        NULL);
+
+    AddHelpCB(button, "doc/UsersGuide.html#pen-chooser");
+
+    AddButtonCB(button, define_pen_choice_dialog, button);
+
+    //TODO:
+//    pdata->color_popup   = CreateColorChoicePopup(button);
+//    pdata->pattern_popup = CreatePatternChoicePopup(button);
+
+//    XtAddEventHandler(button, ButtonPressMask, False, pen_popup, NULL);
+
+    pen.color   = 0;
+    pen.pattern = 0;
+    SetPenChoice_int(button, &pen, FALSE);
+
+//    XtManageChild(button);
+
+    return button;
+}
+
 //int GetPenChoice(Widget pen_button, Pen *pen)
 //{
 //    Button_PData *pdata = GetUserData(pen_button);
@@ -4676,7 +4982,17 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 //        return RETURN_FAILURE;
 //    }
 //}
-//
+int GetPenChoice(Widget pen_button, Pen *pen)
+{
+    Button_PData *pdata = (Button_PData *) GetUserData(pen_button);
+    if (pdata) {
+        *pen = pdata->pen;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 //void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata)
 //{
 //    Button_PData *pdata = GetUserData(button);
@@ -4688,11 +5004,22 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 //        pdata->cb_data = anydata;
 //    }
 //}
-//
-//SpinStructure *CreateViewCoordInput(Widget parent, char *s)
-//{
-//    return CreateSpinChoice(parent, s, 6, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.05);
-//}
+void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata)
+{
+    Button_PData *pdata = (Button_PData *) GetUserData(button);
+
+    if (pdata->cb_proc) {
+        errmsg("AddPenChoiceCB: only one callback is supported");
+    } else {
+        pdata->cb_proc = cbproc;
+        pdata->cb_data = anydata;
+    }
+}
+
+SpinStructure *CreateViewCoordInput(Widget parent, char *s)
+{
+    return CreateSpinChoice(parent, s, 6, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.05);
+}
 
 static StorageStructure **ssd_selectors = NULL;
 static int nssd_selectors = 0;
@@ -5375,6 +5702,31 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 //            NULL);
 //    }
 //}
+void paint_color_selector(OptionStructure *optp)
+{
+    X11Stuff *xstuff = gapp->gui->xstuff;
+    unsigned int i;
+    long bg, fg;
+    Project *pr = project_get_data(gproject_get_top(gapp->gp));
+
+    if (!pr) {
+        return;
+    }
+
+    for (i = 0; i < pr->ncolors; i++) {
+        Colordef *c = &pr->colormap[i];
+//        bg = xvlibcolors[c->id];
+        if (get_rgb_intensity(&c->rgb) < 0.5) {
+//	    fg = WhitePixel(xstuff->disp, xstuff->screennumber);
+        } else {
+//	    fg = BlackPixel(xstuff->disp, xstuff->screennumber);
+        }
+//	XtVaSetValues(optp->options[i].widget,
+//            XmNbackground, bg,
+//            XmNforeground, fg,
+//            NULL);
+    }
+}
 //
 //
 //void update_color_selectors(void)
@@ -5401,34 +5753,34 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 //    update_color_choice_popup();
 //}
 //
-//OptionStructure *CreateColorChoice(Widget parent, char *s)
-//{
-//    OptionStructure *retvalp = NULL;
-//
-//    ncolor_selectors++;
-//    color_selectors = xrealloc(color_selectors, 
-//                                    ncolor_selectors*sizeof(OptionStructure *));
-//    if (color_selectors == NULL) {
-//        errmsg("Malloc failed in CreateColorChoice()");
-//        return retvalp;
-//    }
-//    
-//    retvalp = CreateOptionChoice(parent, s, 4, 
-//                                ncolor_option_items, color_option_items);
-//
-//    color_selectors[ncolor_selectors - 1] = retvalp;
-//    
-//    paint_color_selector(retvalp);
-//    
-//    return retvalp;
-//}
-//
-//SpinStructure *CreateLineWidthChoice(Widget parent, char *s)
-//{
-//    return CreateSpinChoice(parent, s, 3, SPIN_TYPE_FLOAT, 0.0, MAX_LINEWIDTH, 0.5);
-//}
-//
-//
+OptionStructure *CreateColorChoice(Widget parent, char *s)
+{
+    OptionStructure *retvalp = NULL;
+
+    ncolor_selectors++;
+    color_selectors = (OptionStructure **) xrealloc(color_selectors,
+                                    ncolor_selectors*sizeof(OptionStructure *));
+    if (color_selectors == NULL) {
+        errmsg("Malloc failed in CreateColorChoice()");
+        return retvalp;
+    }
+
+    retvalp = CreateOptionChoice(parent, s, 4,
+                                ncolor_option_items, color_option_items);
+
+    color_selectors[ncolor_selectors - 1] = retvalp;
+
+    paint_color_selector(retvalp);
+
+    return retvalp;
+}
+
+SpinStructure *CreateLineWidthChoice(Widget parent, char *s)
+{
+    return CreateSpinChoice(parent, s, 3, SPIN_TYPE_FLOAT, 0.0, MAX_LINEWIDTH, 0.5);
+}
+
+
 //OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, ...)
 //{
 //    OptionStructure *retval;
@@ -5456,6 +5808,33 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 //    
 //    return retval;
 //}
+OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, ...)
+{
+    OptionStructure *retval;
+    int nchoices = 0;
+    OptionItem *oi = NULL;
+    va_list var;
+    char *s;
+
+    va_start(var, labelstr);
+    while ((s = va_arg(var, char *)) != NULL) {
+        nchoices++;
+        oi = (OptionItem *) xrealloc(oi, nchoices*sizeof(OptionItem));
+        oi[nchoices - 1].value = nchoices - 1;
+        oi[nchoices - 1].label = copy_string(NULL, s);
+    }
+    va_end(var);
+
+    retval = CreateOptionChoice(parent, labelstr, 1, nchoices, oi);
+
+    while (nchoices) {
+        nchoices--;
+        xfree(oi[nchoices].label);
+    }
+    xfree(oi);
+
+    return retval;
+}
 //
 //static void format_call_cb(FormatStructure *fstr)
 //{
@@ -5464,38 +5843,51 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 //        format.type    = GetOptionChoice(fstr->type);
 //        format.prec   = GetOptionChoice(fstr->prec);
 //        format.fstring = GetTextString(fstr->fstring);
-//        
+//
 //        fstr->cb_proc(fstr, &format, fstr->cb_data);
-//        
+//
 //        xfree(format.fstring);
 //    }
 //}
-//
-//static void format_oc_cb(OptionStructure *opt, int a, void *data)
-//{
-//    FormatStructure *fstr = (FormatStructure *) data;
-//    if (!fstr) {
-//        return;
-//    }
-//    
-//    if (opt == fstr->type) {
-//        SetSensitive(fstr->fstring->form,
-//            a == FORMAT_DATETIME || a == FORMAT_GEOGRAPHIC);
-//    }
-//    
-//    format_call_cb(fstr);
-//}
-//
-//static void format_text_cb(TextStructure *cst, char *s, void *data)
-//{
-//    FormatStructure *fstr = (FormatStructure *) data;
-//    if (!fstr) {
-//        return;
-//    }
-//    
-//    format_call_cb(fstr);
-//}
-//
+static void format_call_cb(FormatStructure *fstr)
+{
+    if (fstr->cb_proc) {
+        Format format;
+        format.type    = (FormatType) GetOptionChoice(fstr->type);
+        format.prec   = GetOptionChoice(fstr->prec);
+        format.fstring = GetTextString(fstr->fstring);
+
+        fstr->cb_proc(fstr, &format, fstr->cb_data);
+
+        xfree(format.fstring);
+    }
+}
+
+static void format_oc_cb(OptionStructure *opt, int a, void *data)
+{
+    FormatStructure *fstr = (FormatStructure *) data;
+    if (!fstr) {
+        return;
+    }
+
+    if (opt == fstr->type) {
+        SetSensitive(fstr->fstring->form,
+            a == FORMAT_DATETIME || a == FORMAT_GEOGRAPHIC);
+    }
+
+    format_call_cb(fstr);
+}
+
+static void format_text_cb(TextStructure *cst, char *s, void *data)
+{
+    FormatStructure *fstr = (FormatStructure *) data;
+    if (!fstr) {
+        return;
+    }
+
+    format_call_cb(fstr);
+}
+
 //FormatStructure *CreateFormatChoice(Widget parent)
 //{
 //    FormatStructure *retval;
@@ -5515,16 +5907,35 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 //    
 //    return retval;
 //}
-//
-//void SetFormatChoice(FormatStructure *fstr, const Format *format)
-//{
-//    SetOptionChoice(fstr->type, format->type);
-//    SetOptionChoice(fstr->prec, format->prec);
-//    SetTextString(fstr->fstring, format->fstring);
-//    SetSensitive(fstr->fstring->form,
-//        format->type == FORMAT_DATETIME || format->type == FORMAT_GEOGRAPHIC);
-//}
-//
+FormatStructure *CreateFormatChoice(Widget parent)
+{
+    FormatStructure *retval;
+    Widget rc, rc1;
+
+    retval = (FormatStructure *) xmalloc(sizeof(FormatStructure));
+
+    rc = CreateVContainer(parent);
+    rc1 = CreateHContainer(rc);
+    retval->type = CreateOptionChoice(rc1, "Type:",
+        1, NUMBER_OF_FORMATTYPES, fmt_option_items);
+    AddOptionChoiceCB(retval->type, format_oc_cb, retval);
+    retval->prec = CreatePrecisionChoice(rc1, "Precision:");
+    AddOptionChoiceCB(retval->prec, format_oc_cb, retval);
+    retval->fstring = CreateTextInput(rc, "Format string:");
+    AddTextInputCB(retval->fstring, format_text_cb, retval);
+
+    return retval;
+}
+
+void SetFormatChoice(FormatStructure *fstr, const Format *format)
+{
+    SetOptionChoice(fstr->type, format->type);
+    SetOptionChoice(fstr->prec, format->prec);
+    SetTextString(fstr->fstring, format->fstring);
+    SetSensitive(fstr->fstring->form,
+        format->type == FORMAT_DATETIME || format->type == FORMAT_GEOGRAPHIC);
+}
+
 //Format *GetFormatChoice(FormatStructure *fstr)
 //{
 //    Format *format = format_new();
@@ -5533,15 +5944,26 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 //        format->prec   = GetOptionChoice(fstr->prec);
 //        format->fstring = GetTextString(fstr->fstring);
 //    }
-//    
+//
 //    return format;
 //}
-//
-//void AddFormatChoiceCB(FormatStructure *fstr, Format_CBProc cbproc, void *data)
-//{
-//    fstr->cb_proc = cbproc;
-//    fstr->cb_data = data;
-//}
+Format *GetFormatChoice(FormatStructure *fstr)
+{
+    Format *format = format_new();
+    if (format) {
+        format->type    = (FormatType) GetOptionChoice(fstr->type);
+        format->prec   = GetOptionChoice(fstr->prec);
+        format->fstring = GetTextString(fstr->fstring);
+    }
+
+    return format;
+}
+
+void AddFormatChoiceCB(FormatStructure *fstr, Format_CBProc cbproc, void *data)
+{
+    fstr->cb_proc = cbproc;
+    fstr->cb_data = data;
+}
 
 
 static OptionItem as_option_items[4] =
@@ -5563,22 +5985,22 @@ OptionStructure *CreateASChoice(Widget parent, char *s)
     return(retval);
 }
 
-//OptionStructure *CreatePrecisionChoice(Widget parent, char *s)
-//{
-//    return CreateOptionChoiceVA(parent, s,
-//        "0", 0,
-//        "1", 1,
-//        "2", 2,
-//        "3", 3,
-//        "4", 4,
-//        "5", 5,
-//        "6", 6,
-//        "7", 7,
-//        "8", 8,
-//        "9", 9,
-//        NULL);
-//}
-//
+OptionStructure *CreatePrecisionChoice(Widget parent, char *s)
+{
+    return CreateOptionChoiceVA(parent, s,
+        "0", 0,
+        "1", 1,
+        "2", 2,
+        "3", 3,
+        "4", 4,
+        "5", 5,
+        "6", 6,
+        "7", 7,
+        "8", 8,
+        "9", 9,
+        NULL);
+}
+
 OptionStructure *CreatePaperOrientationChoice(Widget parent, char *s)
 {
     return CreateOptionChoiceVA(parent, s,
@@ -5700,30 +6122,30 @@ int GetScaleValue(Widget w)
 //    XtVaSetValues(w, XmNscaleWidth, (Dimension) width, NULL);
 //}
 //
-//SpinStructure *CreateAngleChoice(Widget parent, char *s)
-//{
-//    return CreateSpinChoice(parent, s, 5, SPIN_TYPE_FLOAT, -360.0, 360.0, 10.0);
-//}
-//
-//double GetAngleChoice(SpinStructure *sp)
-//{
-//    return GetSpinChoice(sp);
-//}
-//
-//void SetAngleChoice(SpinStructure *sp, double angle)
-//{
-//    if (angle < -360.0 || angle > 360.0) {
-//        angle = fmod(angle, 360.0);
-//    }
-//    SetSpinChoice(sp, angle);
-//}
-//
-//SpinStructure *CreateCharSizeChoice(Widget parent, char *s)
-//{
-//    return CreateSpinChoice(parent, s, 4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
-//}
-//
-//
+SpinStructure *CreateAngleChoice(Widget parent, char *s)
+{
+    return CreateSpinChoice(parent, s, 5, SPIN_TYPE_FLOAT, -360.0, 360.0, 10.0);
+}
+
+double GetAngleChoice(SpinStructure *sp)
+{
+    return GetSpinChoice(sp);
+}
+
+void SetAngleChoice(SpinStructure *sp, double angle)
+{
+    if (angle < -360.0 || angle > 360.0) {
+        angle = fmod(angle, 360.0);
+    }
+    SetSpinChoice(sp, angle);
+}
+
+SpinStructure *CreateCharSizeChoice(Widget parent, char *s)
+{
+    return CreateSpinChoice(parent, s, 4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
+}
+
+
 //Widget CreateToggleButton(Widget parent, char *s)
 //{
 //    return (XtVaCreateManagedWidget(s, xmToggleButtonWidgetClass, parent, NULL));
@@ -6624,7 +7046,7 @@ Widget CreateTextItem(Widget parent, int len, char *s)
 //    TItem_CBProc cbproc;
 //    void *anydata;
 //} TItem_CBdata;
-//
+
 //static void titem_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 //{
 //    char *s;
@@ -6633,8 +7055,8 @@ Widget CreateTextItem(Widget parent, int len, char *s)
 //    cbdata->cbproc(w, s, cbdata->anydata);
 //    XtFree(s);
 //}
-//
-//
+
+
 //void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
 //{
 //    TItem_CBdata *cbdata;
@@ -6644,7 +7066,11 @@ Widget CreateTextItem(Widget parent, int len, char *s)
 //    cbdata->cbproc = cbproc;
 //    XtAddCallback(ti, XmNactivateCallback, titem_int_cb_proc, (XtPointer) cbdata);
 //}
-//
+void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
+{
+    //TODO:
+}
+
 ///* FIXME: get rid of xv_getstr()!!! */
 //#define MAX_STRING_LENGTH 512
 //char *xv_getstr(Widget w)
