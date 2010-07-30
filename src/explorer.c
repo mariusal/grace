@@ -31,16 +31,8 @@
 #include "utils.h"
 
 #include "explorer.h"
-#include "qbitmaps.h"
 
 #ifndef QT_GUI
-#if defined(HAVE_XPM_H)
-#  include <xpm.h>
-#else
-#  include <X11/xpm.h>
-#endif
-
-#include <Xm/ScrolledW.h>
 #include <Xm/Form.h>
 #include <Xm/RowColumn.h>
 #if XmVersion >= 2000
@@ -865,13 +857,12 @@ void raise_explorer(GUI *gui, Quark *q)
     if (!gui->eui) {
         ExplorerUI *eui;
         Widget menubar, menupane, panel, form, fr;
-        X11Stuff *xstuff = gapp->gui->xstuff;
 
         eui = xmalloc(sizeof(ExplorerUI));
         gui->eui = eui;
 
         /* Create pixmaps */
-        CreatePixmaps();
+        CreatePixmaps(eui);
 
         eui->top = CreateDialogForm(app_shell, "Explorer");
         menubar = CreateMenuBar(eui->top);
@@ -936,7 +927,7 @@ void raise_explorer(GUI *gui, Quark *q)
         panel = CreateGrid(eui->top, 2, 1);
 #endif
 
-        form = CreateForm(panel, "form");
+        form = CreateForm(panel);
 
         eui->tree = CreateScrolledListTree(form);
         AddCallback(eui->tree, "XtNhighlightCallback", highlight_cb, eui);
@@ -970,14 +961,7 @@ void raise_explorer(GUI *gui, Quark *q)
         PlaceGridChild(panel, form, 0, 0);
 #endif
 
-#ifndef QT_GUI
-        eui->scrolled_window = XtVaCreateManagedWidget("scrolled_window",
-            xmScrolledWindowWidgetClass, panel,
-            XmNscrollingPolicy, XmAUTOMATIC,
-	    NULL);
-#else
-        eui->scrolled_window = CreateForm(panel, "form");
-#endif
+        eui->scrolled_window = CreateScrolledWindow(panel);
 
 #if USE_PANEDW
 	ManageChild(panel);
@@ -1041,7 +1025,7 @@ void raise_explorer(GUI *gui, Quark *q)
         ListTreeRefresh(eui->tree);
 
         /* Menu popup */
-        eui->popup = CreatePopupMenu(eui->tree, "explorerPopupMenu");
+        eui->popup = CreatePopupMenu(eui->tree);
         eui->popup_hide_bt = CreateMenuButton(eui->popup,
             "Hide", '\0', hide_cb, eui);
         eui->popup_show_bt = CreateMenuButton(eui->popup,

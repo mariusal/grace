@@ -436,7 +436,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
     XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
 #endif
-    ui->popup = CreatePopupMenu(ui->mw, "popupMenu");
+    ui->popup = CreatePopupMenu(ui->mw);
     ui->delete_btn  = CreateMenuButton(ui->popup, "Delete column", '\0', col_delete_cb, ui);
     ui->index_btn   = CreateMenuButton(ui->popup, "Set as index", '\0', index_cb, ui);
     ui->unindex_btn = CreateMenuButton(ui->popup, "Unset index", '\0', unindex_cb, ui);

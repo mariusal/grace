@@ -34,9 +34,6 @@
 #include <config.h>
 
 #include "core_utils.h"
-#ifndef QT_GUI
-#include <Xm/ScrolledW.h>
-#endif
 #include "explorer.h"
 #include "xprotos.h"
 
@@ -249,7 +246,10 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->nspec, sp_explorer_cb, eui);
     CreateLabel(ui->special_tp, "Tick location - Label:");
 
-    ui->sw = CreateScrolledWidget(ui->special_tp);
+    ui->sw = CreateScrolledWindow(ui->special_tp);
+#ifndef QT_GUI
+    XtVaSetValues(ui->sw, XmNheight, 320, NULL);
+#endif
 
     rc = CreateVContainer(ui->sw);
 

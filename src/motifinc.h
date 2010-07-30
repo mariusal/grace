@@ -421,9 +421,9 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height);
 void *GetUserData(Widget w);
 void SetUserData(Widget w, void *udata);
 
-void CreatePixmaps();
+void CreatePixmaps(ExplorerUI *eui);
 
-Widget CreateForm(Widget parent, const char *s);
+Widget CreateForm(Widget parent);
 
 Widget CreateDialogForm(Widget parent, const char *s);
 void SetDialogFormResizable(Widget form, int onoff);
@@ -433,7 +433,7 @@ void FixateDialogFormChild(Widget w);
 Widget CreateFrame(Widget parent, char *s);
 
 Widget CreateScrolledListTree(Widget parent);
-Widget CreateScrolledWidget(Widget parent);
+Widget CreateScrolledWindow(Widget parent);
 
 Widget CreateSeparator(Widget parent);
 Widget CreateMenuSeparator(Widget parent);
@@ -603,7 +603,7 @@ void SetLabel(Widget w, char *s);
 void AlignLabel(Widget w, int alignment);
 void SetFixedFont(Widget w);
 
-Widget CreatePopupMenu(Widget parent, const char *s);
+Widget CreatePopupMenu(Widget parent);
 Widget CreateMenuBar(Widget parent);
 Widget CreateMenu(Widget parent, char *label, char mnemonic, int help);
 void ManageMenu(Widget menupane);

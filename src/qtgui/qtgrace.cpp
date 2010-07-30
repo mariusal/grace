@@ -673,7 +673,7 @@ Widget CreateScrolledListTree(Widget parent)
     return treeWidget;
 }
 
-//Widget CreateScrolledWidget(Widget parent)
+//Widget CreateScrolledWindow(Widget parent)
 //{
 //    return XtVaCreateManagedWidget("ui->sw",
 //            xmScrolledWindowWidgetClass, parent,
@@ -681,7 +681,7 @@ Widget CreateScrolledListTree(Widget parent)
 //            XmNscrollingPolicy, XmAUTOMATIC,
 //            NULL);
 //}
-Widget CreateScrolledWidget(Widget parent)
+Widget CreateScrolledWindow(Widget parent)
 {
     QScrollArea *scrollArea = new QScrollArea(parent);
 
@@ -6259,7 +6259,7 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
                 tb_int_cb_proc, (XtPointer) cbdata);
 }
 
-//void CreatePixmaps()
+//void CreatePixmaps(ExplorerUI *eui)
 //{
 //    Pixel bg;
 //    XpmColorSymbol transparent;
@@ -6277,16 +6277,16 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
 //    XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
 //        hidden_xpm, &eui->h_icon, NULL, &attrib);
 //}
-void CreatePixmaps()
+void CreatePixmaps(ExplorerUI *eui)
 {
     //TODO:
 }
 
-//Widget CreateForm(Widget parent, const char *s)
+//Widget CreateForm(Widget parent)
 //{
 //    return XmCreateForm(parent, s, NULL, 0);
 //}
-Widget CreateForm(Widget parent, const char *s)
+Widget CreateForm(Widget parent)
 {
     QWidget *widget = new QWidget(parent);
 
@@ -7305,10 +7305,15 @@ Widget CreateMenuSeparator(Widget parent)
     return (QWidget*)action;
 }
 
-Widget CreatePopupMenu(Widget parent, const char *s)
+//Widget CreatePopupMenu(Widget parent)
+//{
+//    return XmCreatePopupMenu(parent, "popupMenu", NULL, 0);
+//}
+Widget CreatePopupMenu(Widget parent)
 {
     return new QMenu(parent);
 }
+
 //Widget CreateMenuBar(Widget parent)
 //{
 //    Widget menubar;

@@ -42,6 +42,12 @@
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
 
+#if defined(HAVE_XPM_H)
+#  include <xpm.h>
+#else
+#  include <X11/xpm.h>
+#endif
+
 #include <Xm/Xm.h>
 #include <Xm/Protocols.h>
 #include <Xm/BulletinB.h>
@@ -57,6 +63,7 @@
 #include <Xm/PushB.h>
 #include <Xm/CascadeBG.h>
 #include <Xm/RowColumn.h>
+#include <Xm/ScrolledW.h>
 #include <Xm/Separator.h>
 #include <Xm/Text.h>
 #include <Xm/ToggleB.h>
@@ -78,6 +85,7 @@
 #include "globals.h"
 #include "grace/canvas.h"
 #include "jbitmaps.h"
+#include "qbitmaps.h"
 #include "core_utils.h"
 #include "utils.h"
 #include "xprotos.h"
@@ -3735,8 +3743,9 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
         XmNvalueChangedCallback, tb_int_cb_proc, (XtPointer) cbdata);
 }
 
-void CreatePixmaps()
+void CreatePixmaps(ExplorerUI *eui)
 {
+    X11Stuff *xstuff = gapp->gui->xstuff;
     Pixel bg;
     XpmColorSymbol transparent;
     XpmAttributes attrib;
@@ -3754,9 +3763,9 @@ void CreatePixmaps()
         hidden_xpm, &eui->h_icon, NULL, &attrib);
 }
 
-Widget CreateForm(Widget parent, const char *s)
+Widget CreateForm(Widget parent)
 {
-    return XmCreateForm(parent, s, NULL, 0);
+    return XmCreateForm(parent, "form", NULL, 0);
 }
 
 Widget CreateDialogForm(Widget parent, const char *s)
@@ -4161,13 +4170,12 @@ Widget CreateScrolledListTree(Widget parent)
     return XmCreateScrolledListTree(parent, "tree", NULL, 0);
 }
 
-Widget CreateScrolledWidget(Widget parent)
+Widget CreateScrolledWindow(Widget parent)
 {
-    return XtVaCreateManagedWidget("ui->sw",
-            xmScrolledWindowWidgetClass, parent,
-            XmNheight, 320,
-            XmNscrollingPolicy, XmAUTOMATIC,
-            NULL);
+    return XtVaCreateManagedWidget("scrolledWindow",
+        xmScrolledWindowWidgetClass, parent, 
+        XmNscrollingPolicy, XmAUTOMATIC,
+        NULL);
 }
 
 typedef struct {
@@ -4492,9 +4500,9 @@ Widget CreateMenuSeparator(Widget parent)
     return CreateSeparator(parent);
 }
 
-Widget CreatePopupMenu(Widget parent, const char *s)
+Widget CreatePopupMenu(Widget parent)
 {
-    return XmCreatePopupMenu(parent, s, NULL, 0);
+    return XmCreatePopupMenu(parent, "popupMenu", NULL, 0);
 }
 
 Widget CreateMenuBar(Widget parent)
