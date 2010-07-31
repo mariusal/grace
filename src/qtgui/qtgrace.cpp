@@ -719,6 +719,7 @@ ListTreeAdd(Widget w, ListTreeItem *parent, char *string)
 
     item = (ListTreeItem *) xmalloc(sizeof(ListTreeItem));
 
+    item->widget = (QWidget *) child_widget;
     item->open = FALSE;
     item->highlighted = FALSE;
     item->openPixmap = item->closedPixmap = (Pixmap)NULL;
@@ -726,8 +727,8 @@ ListTreeAdd(Widget w, ListTreeItem *parent, char *string)
     if (parent == NULL) {
         treeWidget->addTopLevelItem(child_widget);
     } else {
-       // QTreeWidgetItem *parent_widget = (QTreeWidgetItem*) parent->widget;
-        //parent_widget->addChild(child_widget);
+        QTreeWidgetItem *parent_widget = (QTreeWidgetItem *) parent->widget;
+        parent_widget->addChild(child_widget);
     }
 
     return item;
@@ -1013,15 +1014,15 @@ void AddCallback(Widget w, const char *callback_name,
                  XtPointer client_data)
 {
     if (!strcmp(callback_name, "XtNhighlightCallback")) {
-        printf("%s: %s", "AddCallback", callback_name);
+        printf("\n%s: %s", "AddCallback", callback_name);
     } else if (!strcmp(callback_name, "XtNmenuCallback")) {
-        printf("%s: %s", "AddCallback", callback_name);
+        printf("\n%s: %s", "AddCallback", callback_name);
     } else if (!strcmp(callback_name, "XtNdestroyItemCallback")) {
-        printf("%s: %s", "AddCallback", callback_name);
+        printf("\n%s: %s", "AddCallback", callback_name);
     } else if (!strcmp(callback_name, "XtNdropCallback")) {
-        printf("%s: %s", "AddCallback", callback_name);
+        printf("\n%s: %s", "AddCallback", callback_name);
     } else {
-        printf("%s: %s", "A missing Callback", callback_name);
+        printf("\n%s: %s", "A missing Callback", callback_name);
     }
 }
 
@@ -7867,9 +7868,9 @@ void update_all(void)
         gapp->gui->need_fontsel_update = FALSE;
     }
 
-    //update_undo_buttons(gapp->gp);
+    update_undo_buttons(gapp->gp);
     update_props_items();
-    //update_explorer(gapp->gui->eui, TRUE);
+    update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
     update_app_title(gapp->gp);
     canvasWidget->update();

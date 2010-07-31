@@ -87,6 +87,8 @@ typedef struct _ListTreeItem {
   int		count;
 #ifndef QT_GUI
   Dimension	height;
+#else
+  Widget widget;
 #endif
   ListTreeItemType type;
   struct _ListTreeItem 	*parent,*firstchild,*prevsibling,*nextsibling;
