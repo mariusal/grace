@@ -7893,50 +7893,26 @@ void update_all_cb(Widget but, void *data)
     update_all();
 }
 
-//void snapshot_and_update(GProject *gp, int all)
-//{
-//    Quark *pr = gproject_get_top(gp);
-//    GUI *gui = gui_from_quark(pr);
-//    AMem *amem;
-//    
-//    if (!pr) {
-//        return;
-//    }
-//    
-//    amem = quark_get_amem(pr);
-//    amem_snapshot(amem);
-//
-//    xdrawgraph(gp);
-//    
-//    if (all) {
-//        update_all();
-//    } else {
-//        update_undo_buttons(gp);
-//        update_explorer(gui->eui, FALSE);
-//        update_app_title(gp);
-//    }
-//}
 void snapshot_and_update(GProject *gp, int all)
 {
-// TODO: remove this function, use global one
     Quark *pr = gproject_get_top(gp);
-    //GUI *gui = gui_from_quark(pr);
-    //AMem *amem;
+    GUI *gui = gui_from_quark(pr);
+    AMem *amem;
 
     if (!pr) {
         return;
     }
 
-    //amem = quark_get_amem(pr);
-    //amem_snapshot(amem);
+    amem = quark_get_amem(pr);
+    amem_snapshot(amem);
 
     xdrawgraph(gp);
 
     if (all) {
         update_all();
     } else {
-        //update_undo_buttons(gp);
-        //update_explorer(gui->eui, FALSE);
+        update_undo_buttons(gp);
+        update_explorer(gui->eui, FALSE);
         update_app_title(gp);
     }
 }
