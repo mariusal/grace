@@ -3619,11 +3619,17 @@ typedef struct {
 //}
 static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    QByteArray ba;
     char *s;
     Text_CBdata *cbdata = (Text_CBdata *) client_data;
-    QLineEdit *text = (QLineEdit*) w;
-    QByteArray ba = text->text().toLatin1();
-    s = ba.data(); 
+
+    if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(w)) {
+        ba = lineEdit->text().toLatin1();
+    }
+    if (QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit *>(w)) {
+        ba = plainTextEdit->toPlainText().toLatin1();
+    }
+
     cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
 }
 
@@ -3653,10 +3659,16 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     cbdata->cbproc = cbproc;
     cbdata->cst->locked = FALSE;
 
-    QLineEdit *text = (QLineEdit*) cst->text;
-
-    QtAddCallback(text, SIGNAL(returnPressed()),
-                text_int_cb_proc, (XtPointer) cbdata);
+    if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(cst->text)) {
+        QtAddCallback(lineEdit, SIGNAL(returnPressed()),
+                      text_int_cb_proc, (XtPointer) cbdata);
+        QtAddCallback(lineEdit, SIGNAL(textChanged(const QString &)),
+                      text_int_cb_proc, (XtPointer) cbdata);
+    }
+    if (QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit *>(cst->text)) {
+        QtAddCallback(plainTextEdit, SIGNAL(textChanged()),
+                      text_int_cb_proc, (XtPointer) cbdata);
+    }
 }
 
 //int GetTextCursorPos(TextStructure *cst)
