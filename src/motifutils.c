@@ -5023,4 +5023,8 @@ void explorer_menu_cb(Widget w, XtPointer client, XtPointer call)
     XtManageChild(ui->popup);
 }
 
-
+void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointer),
+                                    ExplorerUI *eui)
+{
+    XtAddCallback(eui->tree, XtNmenuCallback, callback, eui);
+}

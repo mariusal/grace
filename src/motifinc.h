@@ -642,6 +642,9 @@ void unlink_ssd_ui(Quark *q);
 
 void set_title(char *title, char *icon_name);
 
+/* explorer.c */
 void explorer_menu_cb(Widget w, XtPointer client, XtPointer call);
+void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointer),
+                                    ExplorerUI *eui);
 
 #endif /* __MOTIFINC_H_ */

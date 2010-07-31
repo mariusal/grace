@@ -8071,8 +8071,19 @@ void set_title(char *title, char *icon_name)
 void explorer_menu_cb(Widget w, XtPointer client, XtPointer call)
 {
     ExplorerUI *ui = (ExplorerUI *) client;
-    QMenu *popup = (QMenu*) ui->popup;
+    QMenu *popup = (QMenu *) ui->popup;
 
     popup->exec(QCursor::pos());
 }
 
+//void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointer),
+//                                    ExplorerUI *eui)
+//{
+//    XtAddCallback(eui->tree, XtNmenuCallback, callback, eui);
+//}
+void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointer),
+                                    ExplorerUI *eui)
+{
+    QtAddCallback(eui->tree, SIGNAL(customContextMenuRequested(const QPoint &)),
+                  callback, (XtPointer) eui);
+}

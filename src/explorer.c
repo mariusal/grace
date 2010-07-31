@@ -931,7 +931,7 @@ void raise_explorer(GUI *gui, Quark *q)
 
         eui->tree = CreateScrolledListTree(form);
         AddCallback(eui->tree, "XtNhighlightCallback", highlight_cb, eui);
-        AddCallback(eui->tree, "XtNmenuCallback", explorer_menu_cb, eui);
+        ExplorerAddContextMenuCallback(explorer_menu_cb, eui);
         AddCallback(eui->tree, "XtNdestroyItemCallback", destroy_cb, eui);
 #ifndef QT_GUI
         AddCallback(eui->tree, "XtNdropCallback", drop_cb, eui);
