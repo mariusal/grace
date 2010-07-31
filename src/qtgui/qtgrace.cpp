@@ -1167,20 +1167,21 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
 
     QStandardItemModel *model = new QStandardItemModel(comboBox);
     model->setColumnCount(ncols);
+    comboBox->setModel(model);
 
     QTableView *tableView = new QTableView(comboBox);
-    tableView->setModel(model);
     tableView->horizontalHeader()->setVisible(false);
     tableView->verticalHeader()->setVisible(false);
-    tableView->resizeColumnsToContents();
     comboBox->setView(tableView);
 
     retval->pulldown = comboBox;
     retval->menu = comboBox;
 
     for (int i = 0; i < nchoices; i++) {
-        comboBox->addItem(items[i].label);
+        model->insertRow(i, new QStandardItem(items[i].label));
     }
+    tableView->resizeColumnsToContents();
+    tableView->resizeRowsToContents();
 
     QLabel *label = new QLabel(widget);
     label->setText(labelstr);
