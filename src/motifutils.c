@@ -5028,3 +5028,8 @@ void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointe
 {
     XtAddCallback(eui->tree, XtNmenuCallback, callback, eui);
 }
+
+void ListTreeSetItemOpen(ListTreeItem *item, Boolean open)
+{
+    item->open = open;
+}

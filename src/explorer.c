@@ -151,7 +151,7 @@ ListTreeItem *CreateQuarkTree(Widget tree, ListTreeItem *parent,
     item->user_data = data;
 
     if (quark_is_active(q) && quark_count_children(q) > 0) {
-        item->open = TRUE;
+        ListTreeSetItemOpen(item, TRUE);
     }
     
     if (quark_is_active(q)) {

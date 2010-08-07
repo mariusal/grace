@@ -694,9 +694,19 @@ Widget CreateScrolledWindow(Widget parent)
 }
 
 void
+ListTreeSetItemOpen(ListTreeItem *item, Boolean open)
+{
+    QTreeWidgetItem *widget = (QTreeWidgetItem *) item->widget;
+    widget->setExpanded(open);
+    item->open = open;
+}
+
+void
 ListTreeGetHighlighted(Widget w, ListTreeMultiReturnStruct *ret)
 {
-
+    //TODO:
+    ret->items = NULL;
+    ret->count = 0;
 }
 
 void
@@ -712,7 +722,7 @@ ListTreeAdd(Widget w, ListTreeItem *parent, char *string)
 {
     ListTreeItem *item;
 
-    QTreeWidget *treeWidget = (QTreeWidget*) w;
+    QTreeWidget *treeWidget = (QTreeWidget *) w;
 
     QTreeWidgetItem *child_widget = new QTreeWidgetItem;
     child_widget->setText(0, string);
@@ -723,29 +733,69 @@ ListTreeAdd(Widget w, ListTreeItem *parent, char *string)
     item->open = FALSE;
     item->highlighted = FALSE;
     item->openPixmap = item->closedPixmap = (Pixmap)NULL;
+    item->firstchild = item->prevsibling = item->nextsibling = NULL;
 
-    if (parent == NULL) {
-        treeWidget->addTopLevelItem(child_widget);
-    } else {
+    ListTreeItem *i;
+
+    item->parent = parent;
+    if (parent) {
+        if (parent->firstchild) {
+            i = parent->firstchild;
+            while (i->nextsibling) {
+                i = i->nextsibling;
+            }
+            i->nextsibling = item;
+            item->prevsibling = i;
+        } else {
+            parent->firstchild = item;
+        }
         QTreeWidgetItem *parent_widget = (QTreeWidgetItem *) parent->widget;
         parent_widget->addChild(child_widget);
+    } else {			/* if parent==NULL, this is a top level entry */
+        treeWidget->addTopLevelItem(child_widget);
     }
 
     return item;
 }
 
-int
-ListTreeDeleteChildren(Widget w, ListTreeItem * item)
+static void
+DeleteChildren(Widget w, ListTreeItem *item)
 {
-    QTreeWidget *treeWidget = (QTreeWidget*) w;
+  ListTreeItem *sibling;
+  ListTreeItemReturnStruct ret;
 
-    if (item->parent == NULL) {
-        //int i = indexOfTopLevelItem(item->widget);
-        //treeWidget->takeTopLevelItem(i);
-    } else {
-        //QTreeWidgetItem *parent_widget = (QTreeWidgetItem*) item->parent;
-        //parent_widget->takeChildren();
+  while (item) {
+    if (item->firstchild) {
+      DeleteChildren(w, item->firstchild);
+      item->firstchild = NULL;
     }
+    sibling = item->nextsibling;
+
+//    if (w->list.DestroyItemCallback) {
+//      ret.reason = XtDESTROY;
+//      ret.item = item;
+//      ret.event = NULL;
+//      XtCallCallbacks((Widget) w, XtNdestroyItemCallback, &ret);
+//    }
+
+//    xfree((char *) item->text);
+    qDebug("delete");
+    delete item->widget;
+    xfree((char *) item);
+    item = sibling;
+  }
+}
+
+int
+ListTreeDeleteChildren(Widget w, ListTreeItem *item)
+{
+    //delete item->widget;
+    qDebug("delete tree children");
+    if (item->firstchild)
+      DeleteChildren(w, item->firstchild);
+    item->firstchild = NULL;
+
+//    ListTreeRefresh(w);
 
     return 1;
 }
@@ -786,6 +836,7 @@ void ListTreeSetPos(Widget aw, ListTreeItem *item)
 void
 ListTreeRefresh(Widget w)
 {
+
 //  if (XtIsRealized((Widget) w) && ((ListTreeWidget)w)->list.Refresh) {
 //    DrawChanged((ListTreeWidget)w);
 //    XmUpdateDisplay(w);
@@ -825,6 +876,10 @@ ListTreeDelete(Widget w, ListTreeItem * item)
 void
 ListTreeRenameItem(Widget w, ListTreeItem * item, char *string)
 {
+    QTreeWidgetItem *widget = (QTreeWidgetItem *) item->widget;
+
+    widget->setText(0, string);
+
 //  int len;
 //  char *copy;
 
@@ -7582,7 +7637,8 @@ static void help_int_cb(Widget w, XtPointer client_data, XtPointer call_data)
 //}
 void AddHelpCB(Widget w, char *ha)
 {
-    QtAddCallback(w, SIGNAL(clicked()), help_int_cb, (XtPointer) ha);
+    //TODO:
+    //QtAddCallback(w, SIGNAL(clicked()), help_int_cb, (XtPointer) ha);
 }
 
 //void ContextHelpCB(Widget but, void *data)
