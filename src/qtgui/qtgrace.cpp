@@ -762,7 +762,7 @@ static void
 DeleteChildren(Widget w, ListTreeItem *item)
 {
   ListTreeItem *sibling;
-  ListTreeItemReturnStruct ret;
+//  ListTreeItemReturnStruct ret;
 
   while (item) {
     if (item->firstchild) {
@@ -780,7 +780,7 @@ DeleteChildren(Widget w, ListTreeItem *item)
 
 //    xfree((char *) item->text);
     qDebug("delete");
-    delete item->widget;
+//    delete item->widget;
     xfree((char *) item);
     item = sibling;
   }
@@ -859,18 +859,12 @@ ListTreeRefreshOn(Widget w)
 int
 ListTreeDelete(Widget w, ListTreeItem * item)
 {
-//  if (item->firstchild)
-//    DeleteChildren((ListTreeWidget)w, item->firstchild);
-//  item->firstchild = NULL;
+  ListTreeDeleteChildren(w, item);
 
-//  RemoveReference((ListTreeWidget)w, item);
+  QTreeWidget *treeWidget = (QTreeWidget *) w;
+  treeWidget->clear();
 
-//  XtFree((char *) item->text);
-//  XtFree((char *) item);
-
-//  ListTreeRefresh(w);
-
-//  return 1;
+  return 1;
 }
 
 void
