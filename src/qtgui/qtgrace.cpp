@@ -664,6 +664,7 @@ Widget CreateScrolledListTree(Widget parent)
 
     treeWidget->setHeaderHidden(true);
     treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    treeWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
@@ -704,9 +705,22 @@ ListTreeSetItemOpen(ListTreeItem *item, Boolean open)
 void
 ListTreeGetHighlighted(Widget w, ListTreeMultiReturnStruct *ret)
 {
-    //TODO:
+    QTreeWidget *treeWidget = (QTreeWidget*) w;
+
+    QList<QTreeWidgetItem *> list = treeWidget->selectedItems();
+    int count = list.count();
+
     ret->items = NULL;
     ret->count = 0;
+
+    ret->items = (ListTreeItem **) xmalloc(count * sizeof(ListTreeItem *));
+
+    foreach (QTreeWidgetItem *item, list) {
+        QVariant v = item->data(1, Qt::UserRole);
+        ListTreeItem *litem = reinterpret_cast<ListTreeItem *>(v.value<void *>());
+        ret->items[ret->count] = litem;
+        ret->count++;
+    }
 }
 
 void
@@ -734,6 +748,9 @@ ListTreeAdd(Widget w, ListTreeItem *parent, char *string)
     item->highlighted = FALSE;
     item->openPixmap = item->closedPixmap = (Pixmap)NULL;
     item->firstchild = item->prevsibling = item->nextsibling = NULL;
+
+    QVariant v = QVariant::fromValue<void *>(item);
+    child_widget->setData(1, Qt::UserRole, v);
 
     ListTreeItem *i;
 
@@ -8135,5 +8152,12 @@ void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointe
                                     ExplorerUI *eui)
 {
     QtAddCallback(eui->tree, SIGNAL(customContextMenuRequested(const QPoint &)),
+                  callback, (XtPointer) eui);
+}
+
+void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer),
+                                  ExplorerUI *eui)
+{
+    QtAddCallback(eui->tree, SIGNAL(itemSelectionChanged()),
                   callback, (XtPointer) eui);
 }

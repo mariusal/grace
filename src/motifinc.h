@@ -647,6 +647,8 @@ void set_title(char *title, char *icon_name);
 void explorer_menu_cb(Widget w, XtPointer client, XtPointer call);
 void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointer),
                                     ExplorerUI *eui);
+void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer),
+                                  ExplorerUI *eui);
 void ListTreeSetItemOpen(ListTreeItem *item, Boolean open);
 
 #endif /* __MOTIFINC_H_ */

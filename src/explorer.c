@@ -265,22 +265,22 @@ static void manage_plugin(ExplorerUI *ui, Widget managed_top)
 static void highlight_cb(Widget w, XtPointer client, XtPointer call)
 {
     ExplorerUI *ui = (ExplorerUI *) client;
-    ListTreeMultiReturnStruct *ret;
+    ListTreeMultiReturnStruct ret;
     int count;
     Quark *q = NULL;
     int fid = -1;
     int all_shown = TRUE;
     int all_hidden = TRUE;
 
-    ret = (ListTreeMultiReturnStruct *) call;
-    count = ret->count;
+    ListTreeGetHighlighted(w, &ret);
+    count = ret.count;
     
     ui->homogeneous_selection = TRUE;
     ui->all_siblings = TRUE;
 
     if (count > 0) {
         int i;
-        ListTreeItem *item = ret->items[0];
+        ListTreeItem *item = ret.items[0];
         TreeItemData *ti_data = (TreeItemData *) item->user_data;
         Quark *parent;
         
@@ -291,7 +291,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         all_hidden = !all_shown;
         
         for (i = 1; i < count; i++) {
-            item = ret->items[i];
+            item = ret.items[i];
             ti_data = (TreeItemData *) item->user_data;
             
             if ((int) quark_fid_get(ti_data->q) != fid) {
@@ -930,7 +930,7 @@ void raise_explorer(GUI *gui, Quark *q)
         form = CreateForm(panel);
 
         eui->tree = CreateScrolledListTree(form);
-        AddCallback(eui->tree, "XtNhighlightCallback", highlight_cb, eui);
+        ExplorerAddHighlightCallback(highlight_cb, eui);
         ExplorerAddContextMenuCallback(explorer_menu_cb, eui);
         AddCallback(eui->tree, "XtNdestroyItemCallback", destroy_cb, eui);
 #ifndef QT_GUI
