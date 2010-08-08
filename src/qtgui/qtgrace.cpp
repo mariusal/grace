@@ -705,7 +705,7 @@ ListTreeSetItemOpen(ListTreeItem *item, Boolean open)
 void
 ListTreeGetHighlighted(Widget w, ListTreeMultiReturnStruct *ret)
 {
-    QTreeWidget *treeWidget = (QTreeWidget*) w;
+    QTreeWidget *treeWidget = (QTreeWidget *) w;
 
     QList<QTreeWidgetItem *> list = treeWidget->selectedItems();
     int count = list.count();
@@ -718,6 +718,7 @@ ListTreeGetHighlighted(Widget w, ListTreeMultiReturnStruct *ret)
     foreach (QTreeWidgetItem *item, list) {
         QVariant v = item->data(1, Qt::UserRole);
         ListTreeItem *litem = reinterpret_cast<ListTreeItem *>(v.value<void *>());
+        litem->highlighted = TRUE;
         ret->items[ret->count] = litem;
         ret->count++;
     }
@@ -726,7 +727,15 @@ ListTreeGetHighlighted(Widget w, ListTreeMultiReturnStruct *ret)
 void
 ListTreeClearHighlighted(Widget w)
 {
-    QTreeWidget *treeWidget = (QTreeWidget*) w;
+    QTreeWidget *treeWidget = (QTreeWidget *) w;
+
+    QList<QTreeWidgetItem *> list = treeWidget->selectedItems();
+
+    foreach (QTreeWidgetItem *item, list) {
+        QVariant v = item->data(1, Qt::UserRole);
+        ListTreeItem *litem = reinterpret_cast<ListTreeItem *>(v.value<void *>());
+        litem->highlighted = FALSE;
+    }
 
     treeWidget->clearSelection();
 }
@@ -826,10 +835,15 @@ ListTreeSetItemPixmaps (Widget w, ListTreeItem *item,
 }
 
 void
-ListTreeHighlightItemMultiple(Widget w, ListTreeItem * item)
+ListTreeHighlightItemMultiple(Widget w, ListTreeItem *item)
 {
-//  HighlightItem((ListTreeWidget)w, item, True, False);
-//  ListTreeRefresh(w);
+    qDebug("Highlight multiple");
+    QTreeWidget *treeWidget = (QTreeWidget *) w;
+
+    QTreeWidgetItem *widget = (QTreeWidgetItem *) item->widget;
+    widget->setSelected(true);
+
+    item->highlighted = TRUE;
 }
 
 void ListTreeSetBottomPos(Widget aw, ListTreeItem *item)
@@ -853,7 +867,6 @@ void ListTreeSetPos(Widget aw, ListTreeItem *item)
 void
 ListTreeRefresh(Widget w)
 {
-
 //  if (XtIsRealized((Widget) w) && ((ListTreeWidget)w)->list.Refresh) {
 //    DrawChanged((ListTreeWidget)w);
 //    XmUpdateDisplay(w);
@@ -887,22 +900,10 @@ ListTreeDelete(Widget w, ListTreeItem * item)
 void
 ListTreeRenameItem(Widget w, ListTreeItem * item, char *string)
 {
+    qDebug("rename Item");
     QTreeWidgetItem *widget = (QTreeWidgetItem *) item->widget;
 
     widget->setText(0, string);
-
-//  int len;
-//  char *copy;
-
-//  TreeCheck(w, "in ListTreeRename");
-//  XtFree(item->text);
-//  len = strlen(string);
-//  copy = (char *) XtMalloc(len + 1);
-//  strcpy(copy, string);
-//  item->text = copy;
-//  item->length = len;
-
-//  ListTreeRefresh(w);
 }
 
 /*
@@ -1682,8 +1683,9 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
 //}
 void SetOptionChoice(OptionStructure *opt, int value)
 {
-    QComboBox *comboBox = (QComboBox*) opt->pulldown;
-    comboBox->setCurrentIndex(value);
+    if (QComboBox *comboBox = qobject_cast<QComboBox *>(opt->pulldown)) {
+        comboBox->setCurrentIndex(value);
+    }
 }
 
 //int GetOptionChoice(OptionStructure *opt)
@@ -1710,8 +1712,11 @@ void SetOptionChoice(OptionStructure *opt, int value)
 //}
 int GetOptionChoice(OptionStructure *opt)
 {
-    QComboBox *comboBox = (QComboBox*) opt->pulldown;
-    return comboBox->currentIndex();
+    if (QComboBox *comboBox = qobject_cast<QComboBox *>(opt->pulldown)) {
+        return comboBox->currentIndex();
+    } else {
+        return 0;
+    }
 }
 
 //typedef struct {
