@@ -68,6 +68,7 @@
 extern "C" {
   #include <globals.h>
   #include <bitmaps.h>
+  #include "qbitmaps.h"
   #include "jbitmaps.h"
   #include "xprotos.h"
   #include "utils.h"
@@ -830,8 +831,13 @@ void
 ListTreeSetItemPixmaps (Widget w, ListTreeItem *item,
                         Pixmap openPixmap, Pixmap closedPixmap)
 {
-    item->openPixmap   = openPixmap;
-    item->closedPixmap = closedPixmap;
+    QTreeWidgetItem *widget = (QTreeWidgetItem *) item->widget;
+
+    QIcon *icon = (QIcon *) openPixmap;
+
+    widget->setIcon(0, *icon);
+//    item->openPixmap   = openPixmap;
+//    item->closedPixmap = closedPixmap;
 }
 
 void
@@ -6364,7 +6370,8 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
 //}
 void CreatePixmaps(ExplorerUI *eui)
 {
-    //TODO:
+    eui->a_icon = (Pixmap) new QIcon(active_xpm);
+    eui->h_icon = (Pixmap) new QIcon(hidden_xpm);
 }
 
 //Widget CreateForm(Widget parent)
