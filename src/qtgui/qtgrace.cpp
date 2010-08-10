@@ -686,11 +686,15 @@ Widget CreateScrolledListTree(Widget parent)
 Widget CreateScrolledWindow(Widget parent)
 {
     QScrollArea *scrollArea = new QScrollArea(parent);
+    scrollArea->setMinimumHeight(320);
 
-    QLayout *layout = parent->layout();
-    if (layout != 0) {
-        layout->addWidget(scrollArea);
-    }
+    scrollArea->setWidgetResizable(true);
+
+    QWidget *scrollAreaWidgetContents = new QWidget;
+    QVBoxLayout *vLayout = new QVBoxLayout;
+    scrollAreaWidgetContents->setLayout(vLayout);
+
+    scrollArea->setWidget(scrollAreaWidgetContents);
 
     return scrollArea;
 }
@@ -6381,6 +6385,9 @@ void CreatePixmaps(ExplorerUI *eui)
 Widget CreateForm(Widget parent)
 {
     QWidget *widget = new QWidget(parent);
+    // width for explorer
+    widget->setMaximumWidth(250);
+    widget->setMinimumWidth(250);
 
     QVBoxLayout *verticalLayout = new QVBoxLayout;
     widget->setLayout(verticalLayout);
@@ -6871,6 +6878,11 @@ WidgetList CreateAACDialog(Widget form,
 //}
 Widget CreateVContainer(Widget parent)
 {
+    // scrollArea for explorer
+    if (QScrollArea *scrollArea = qobject_cast<QScrollArea *>(parent)) {
+        parent = scrollArea->widget();
+    }
+
     QLayout *vlayout = new QVBoxLayout;
     vlayout->setContentsMargins(4,4,4,4);
 
@@ -7034,7 +7046,7 @@ Widget CreateGrid(Widget parent, int ncols, int nrows)
 //}
 void PlaceGridChild(Widget grid, Widget w, int col, int row)
 {
-    QGridLayout *gridLayout = (QGridLayout*) grid->layout();
+    QGridLayout *gridLayout = (QGridLayout *) grid->layout();
 
     gridLayout->addWidget(w, row, col);
 }
@@ -7050,11 +7062,19 @@ void PlaceGridChild(Widget grid, Widget w, int col, int row)
 //}
 Widget CreateTab(Widget parent)
 {
-    Widget tab;
+    // scrollArea for explorer
+    if (QScrollArea *scrollArea = qobject_cast<QScrollArea *>(parent)) {
+        parent = scrollArea->widget();
+    }
 
-    tab = new QTabWidget(parent);
+    QTabWidget *tab = new QTabWidget(parent);
 
-    return (tab);
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(tab);
+    }
+
+    return tab;
 }
 
 //Widget CreateTabPage(Widget parent, char *s)
@@ -7072,7 +7092,7 @@ Widget CreateTab(Widget parent)
 //}
 Widget CreateTabPage(Widget parent, char *s)
 {
-    QTabWidget *tabWidget = (QTabWidget*) parent;
+    QTabWidget *tabWidget = (QTabWidget *) parent;
 
     Widget widget = new QWidget;
 
@@ -7087,7 +7107,7 @@ Widget CreateTabPage(Widget parent, char *s)
 //}
 void SelectTabPage(Widget tab, Widget w)
 {
-    QTabWidget *tabWidget = (QTabWidget*) tab;
+    QTabWidget *tabWidget = (QTabWidget *) tab;
 
     tabWidget->setCurrentWidget(w);
 }
