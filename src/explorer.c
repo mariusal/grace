@@ -33,8 +33,6 @@
 #include "explorer.h"
 
 #ifndef QT_GUI
-#include <Xm/Form.h>
-#include <Xm/RowColumn.h>
 #if XmVersion >= 2000
 # define USE_PANEDW 1
 #  include <Xm/PanedW.h>

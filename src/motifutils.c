@@ -5029,6 +5029,12 @@ void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointe
     XtAddCallback(eui->tree, XtNmenuCallback, callback, eui);
 }
 
+void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer),
+                                  ExplorerUI *eui)
+{
+    XtAddCallback(eui->tree, XtNhighlightCallback, callback, eui);
+}
+
 void ListTreeSetItemOpen(ListTreeItem *item, Boolean open)
 {
     item->open = open;
