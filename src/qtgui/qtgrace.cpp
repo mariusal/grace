@@ -249,6 +249,12 @@ int initialize_gui(int *argc, char **argv)
 //    gapp->gui->toolbar = rd.toolbar;
 //    gapp->gui->statusbar = rd.statusbar;
 //    gapp->gui->locbar = rd.locatorbar;
+    gapp->gui->invert = TRUE;
+    gapp->gui->instant_update = TRUE;
+    gapp->gui->toolbar = TRUE;
+    gapp->gui->statusbar = TRUE;
+    gapp->gui->locbar = TRUE;
+
 //
     x11_init(gapp);
 //
@@ -3690,6 +3696,15 @@ typedef struct {
 //            TEXT_TIMEOUT, text_timer_proc, client_data);
 //    }
 //}
+static void text_int_mv_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Text_CBdata *cbdata = (Text_CBdata *) client_data;
+
+    if (cbdata->cst->locked) {
+        cbdata->cst->locked = FALSE;
+        return;
+    }
+}
 
 //static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 //{
@@ -3711,6 +3726,8 @@ static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_dat
     if (QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit *>(w)) {
         ba = plainTextEdit->toPlainText().toLatin1();
     }
+
+    s = ba.data();
 
     cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
 }
@@ -3745,11 +3762,11 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
         QtAddCallback(lineEdit, SIGNAL(returnPressed()),
                       text_int_cb_proc, (XtPointer) cbdata);
         QtAddCallback(lineEdit, SIGNAL(textChanged(const QString &)),
-                      text_int_cb_proc, (XtPointer) cbdata);
+                      text_int_mv_cb_proc, (XtPointer) cbdata);
     }
     if (QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit *>(cst->text)) {
         QtAddCallback(plainTextEdit, SIGNAL(textChanged()),
-                      text_int_cb_proc, (XtPointer) cbdata);
+                      text_int_mv_cb_proc, (XtPointer) cbdata);
     }
 }
 
@@ -6273,11 +6290,20 @@ int GetToggleButtonState(Widget w)
         return 0;
     } else {
         if (QCheckBox *checkBox = qobject_cast<QCheckBox *>(w)) {
-            return checkBox->isChecked();
+            if (checkBox->isChecked()) {
+                return TRUE;
+            } else {
+                return FALSE;
+            }
+
         }
 
         if (QAction *action = qobject_cast<QAction *>(w)) {
-            return action->isChecked();
+            if (action->isChecked()) {
+                return TRUE;
+            } else {
+                return FALSE;
+            }
         }
     
         return 0;
@@ -6351,7 +6377,7 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
     cbdata->anydata = anydata;
 
     QtAddCallback(w, SIGNAL(toggled(bool)),
-                tb_int_cb_proc, (XtPointer) cbdata);
+                  tb_int_cb_proc, (XtPointer) cbdata);
 }
 
 //void CreatePixmaps(ExplorerUI *eui)
