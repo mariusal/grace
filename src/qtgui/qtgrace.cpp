@@ -690,13 +690,13 @@ Widget CreateScrolledWindow(Widget parent)
 
     scrollArea->setWidgetResizable(true);
 
-    QWidget *scrollAreaWidgetContents = new QWidget;
+    QWidget *widget = new QWidget;
     QVBoxLayout *vLayout = new QVBoxLayout;
-    scrollAreaWidgetContents->setLayout(vLayout);
+    widget->setLayout(vLayout);
 
-    scrollArea->setWidget(scrollAreaWidgetContents);
+    scrollArea->setWidget(widget);
 
-    return scrollArea;
+    return widget;
 }
 
 void
@@ -6878,11 +6878,6 @@ WidgetList CreateAACDialog(Widget form,
 //}
 Widget CreateVContainer(Widget parent)
 {
-    // scrollArea for explorer
-    if (QScrollArea *scrollArea = qobject_cast<QScrollArea *>(parent)) {
-        parent = scrollArea->widget();
-    }
-
     QLayout *vlayout = new QVBoxLayout;
     vlayout->setContentsMargins(4,4,4,4);
 
@@ -7048,7 +7043,12 @@ void PlaceGridChild(Widget grid, Widget w, int col, int row)
 {
     QGridLayout *gridLayout = (QGridLayout *) grid->layout();
 
-    gridLayout->addWidget(w, row, col);
+    // scrollArea for explorer
+    if (QScrollArea *scrollArea = qobject_cast<QScrollArea *>(w->parent()->parent())) {
+        gridLayout->addWidget(scrollArea, row, col);
+    } else {
+        gridLayout->addWidget(w, row, col);
+    }
 }
 
 
@@ -7062,11 +7062,6 @@ void PlaceGridChild(Widget grid, Widget w, int col, int row)
 //}
 Widget CreateTab(Widget parent)
 {
-    // scrollArea for explorer
-    if (QScrollArea *scrollArea = qobject_cast<QScrollArea *>(parent)) {
-        parent = scrollArea->widget();
-    }
-
     QTabWidget *tab = new QTabWidget(parent);
 
     QLayout *layout = parent->layout();
