@@ -35,7 +35,7 @@ static void axis_scale_cb(OptionStructure *opt, int value, void *data);
 GraphUI *create_graph_ui(ExplorerUI *eui)
 {
     GraphUI *ui;
-    Widget tab, form, fr, rc, rc1;
+    Widget tab, fr, rc, rc1;
 
     OptionItem opitems[4] = {
         {SCALE_NORMAL, "Linear"     },
@@ -44,8 +44,6 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
         {SCALE_LOGIT,  "Logit"      }
     };
     
-    form = eui->scrolled_window;
-
     ui = xmalloc(sizeof(GraphUI));
 
     /* ------------ Tabs -------------- */
