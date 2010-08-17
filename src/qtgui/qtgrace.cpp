@@ -702,6 +702,11 @@ Widget CreateScrolledWindow(Widget parent)
 
     scrollArea->setWidget(widget);
 
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(scrollArea);
+    }
+
     return widget;
 }
 
@@ -1241,11 +1246,6 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
 
     QWidget *widget = new QWidget(parent);
 
-    QLayout *layout = parent->layout();
-    if (layout != 0) {
-        layout->addWidget(widget);
-    }
-
     QComboBox *comboBox = new QComboBox(widget);
 
     QStandardItemModel *model = new QStandardItemModel(comboBox);
@@ -1269,10 +1269,15 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     QLabel *label = new QLabel(widget);
     label->setText(labelstr);
 
-    QHBoxLayout *horizontalLayout = new QHBoxLayout(widget);
-    horizontalLayout->setContentsMargins(0,0,0,0);
-    horizontalLayout->addWidget(label);
-    horizontalLayout->addWidget(retval->pulldown);
+    QHBoxLayout *hLayout = new QHBoxLayout(widget);
+    hLayout->setContentsMargins(0,0,0,0);
+    hLayout->addWidget(label);
+    hLayout->addWidget(comboBox);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
 
     return retval;
 }
@@ -3459,18 +3464,27 @@ TextStructure *CreateTextInput(Widget parent, char *s)
 
     retval = (TextStructure*) xmalloc(sizeof(TextStructure));
 
-    QLayout *layout = new QHBoxLayout(parent);
-
     retval->form = parent;
 
-    QLabel *label = new QLabel(retval->form);
+    QWidget *widget = new QWidget(parent);
+
+    QLabel *label = new QLabel(widget);
     label->setText(s);
-    layout->addWidget(label);
     retval->label = label;
 
-    QLineEdit *lineEdit = new QLineEdit(retval->form);
-    layout->addWidget(lineEdit);
+    QLineEdit *lineEdit = new QLineEdit(widget);
     retval->text = lineEdit;
+
+    QVBoxLayout *vLayout = new QVBoxLayout;
+    vLayout->addWidget(label);
+    vLayout->addWidget(lineEdit);
+
+    widget->setLayout(vLayout);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
 
     return retval;
 }
@@ -3525,17 +3539,28 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
     TextStructure *retval;
 
     retval = (TextStructure*) xmalloc(sizeof(TextStructure));
-    retval->form = parent;
-    QLayout *layout = new QVBoxLayout(parent);
 
-    QLabel *label = new QLabel(retval->form);
+    retval->form = parent;
+
+    QWidget *widget = new QWidget(parent);
+
+    QLabel *label = new QLabel(widget);
     label->setText(s);
-    layout->addWidget(label);
     retval->label = label;
 
-    QPlainTextEdit *pTextEdit = new QPlainTextEdit(retval->form);
-    layout->addWidget(pTextEdit);
+    QPlainTextEdit *pTextEdit = new QPlainTextEdit(widget);
     retval->text = pTextEdit;
+
+    QVBoxLayout *vLayout = new QVBoxLayout;
+    vLayout->addWidget(label);
+    vLayout->addWidget(pTextEdit);
+
+    widget->setLayout(vLayout);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
 
     return retval;
 }
@@ -4231,11 +4256,12 @@ void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern)
 //}
 Widget CreateLabel(Widget parent, char *s)
 {
-    qDebug("CreateLabel");
-    QWidget *p = (QWidget*) parent;
-    Widget label;
-    
-    label = new QLabel(s ? s:"", p);
+    QLabel *label = new QLabel(s ? s:"", parent);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(label);
+    }
 
     return label;
 }
@@ -6963,6 +6989,8 @@ Widget CreateHContainer(Widget parent)
 Widget CreateFrame(Widget parent, char *s)
 {
     QGroupBox *groupBox = new QGroupBox(parent);
+    QVBoxLayout *vlayout = new QVBoxLayout;
+    groupBox->setLayout(vlayout);
     
     if (s != NULL) {
         groupBox->setTitle(s);
@@ -7116,6 +7144,9 @@ Widget CreateTabPage(Widget parent, char *s)
     QTabWidget *tabWidget = (QTabWidget *) parent;
 
     Widget widget = new QWidget;
+    QLayout *vlayout = new QVBoxLayout;
+    vlayout->setContentsMargins(4,4,4,4);
+    widget->setLayout(vlayout);
 
     tabWidget->addTab(widget, s);
 
