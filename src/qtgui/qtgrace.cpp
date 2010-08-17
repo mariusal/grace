@@ -1945,6 +1945,7 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
       //  XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
     }
 
+    //TODO: fix spacing of nvisible
     listWidget->setMaximumHeight(nvisible * 15 + 1);
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "listList", args, 4);
@@ -2748,6 +2749,7 @@ StorageStructure *CreateStorageChoice(Widget parent,
         //XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
     }
 
+    //TODO: fix spacing of nvisible
     listWidget->setMaximumHeight(nvisible * 15 + 2);
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "list", args, 4);
@@ -3549,6 +3551,12 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
     retval->label = label;
 
     QPlainTextEdit *pTextEdit = new QPlainTextEdit(widget);
+    if (nrows > 0) {
+        int height = (nrows + 1) * pTextEdit->fontMetrics().lineSpacing();
+        pTextEdit->setMinimumHeight(height);
+        pTextEdit->setMaximumHeight(height);
+    }
+
     retval->text = pTextEdit;
 
     QVBoxLayout *vLayout = new QVBoxLayout;
@@ -3571,8 +3579,11 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 //}
 void SetTextInputLength(TextStructure *cst, int len)
 {
-    //XtVaSetValues(cst->text, XmNcolumns, len, NULL);
-    //TODO:
+    if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(cst->text)) {
+        lineEdit->setMaxLength(len);
+    } else {
+        qDebug("this should not happen SetTextInputLength");
+    }
 }
 
 //static void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
