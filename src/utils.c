@@ -368,7 +368,7 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor)
     if (gapp->gui->noask) {
 	return TRUE;
     }
-#if defined(NONE_GUI) && !defined(QT_GUI) 
+#ifdef NONE_GUI
     return (yesnoterm(msg));
 #else
     if (gapp->gui->inwin) {
@@ -441,7 +441,7 @@ int set_workingdir(GraceApp *gapp, const char *wd)
     int retval;
     
     epath = grace_path(gapp->grace, wd);
-
+    
     if (chdir(epath) >= 0) {
         gapp->rt->workingdir = copy_string(gapp->rt->workingdir, epath);
         if (gapp->rt->workingdir[strlen(gapp->rt->workingdir) - 1] != '/') {
