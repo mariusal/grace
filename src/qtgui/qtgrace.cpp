@@ -693,12 +693,14 @@ Widget CreateScrolledWindow(Widget parent)
 {
     QScrollArea *scrollArea = new QScrollArea(parent);
     scrollArea->setMinimumHeight(320);
-
     scrollArea->setWidgetResizable(true);
 
     QWidget *widget = new QWidget;
     QVBoxLayout *vLayout = new QVBoxLayout;
+    vLayout->setContentsMargins(3,3,3,3);
+    vLayout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     widget->setLayout(vLayout);
+
 
     scrollArea->setWidget(widget);
 
@@ -1949,7 +1951,7 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     UpdateListChoice(retval, nchoices, items);
 
     QVBoxLayout *vBoxLayout = new QVBoxLayout;
-    vBoxLayout->setContentsMargins(4,4,4,4);
+    vBoxLayout->setContentsMargins(0,0,0,0);
     vBoxLayout->addWidget(label);
     vBoxLayout->addWidget(listWidget);
     widget->setLayout(vBoxLayout);
@@ -2748,7 +2750,7 @@ StorageStructure *CreateStorageChoice(Widget parent,
      //                        XtParseTranslationTable(list_translation_table));
 
     QVBoxLayout *vBoxLayout = new QVBoxLayout;
-    vBoxLayout->setContentsMargins(4,4,4,4);
+    vBoxLayout->setContentsMargins(0,0,0,0);
     vBoxLayout->addWidget(label);
     vBoxLayout->addWidget(listWidget);
     widget->setLayout(vBoxLayout);
@@ -3342,9 +3344,11 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 
     QWidget *widget = new QWidget(parent);
 
-    QHBoxLayout *horizontalLayout = new QHBoxLayout(widget);
-    horizontalLayout->addWidget(label);
-    horizontalLayout->addWidget(retval->rc);
+    QHBoxLayout *hLayout = new QHBoxLayout;
+    hLayout->setContentsMargins(0,0,0,0);
+    hLayout->addWidget(label);
+    hLayout->addWidget(spinBox);
+    widget->setLayout(hLayout);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
@@ -3461,6 +3465,7 @@ TextStructure *CreateTextInput(Widget parent, char *s)
     retval->text = lineEdit;
 
     QVBoxLayout *vLayout = new QVBoxLayout;
+    vLayout->setContentsMargins(0,0,0,0);
     vLayout->addWidget(label);
     vLayout->addWidget(lineEdit);
 
@@ -3543,6 +3548,7 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
     retval->text = pTextEdit;
 
     QVBoxLayout *vLayout = new QVBoxLayout;
+    vLayout->setContentsMargins(0,0,0,0);
     vLayout->addWidget(label);
     vLayout->addWidget(pTextEdit);
 
@@ -6185,10 +6191,12 @@ Widget CreateScale(Widget parent, char *s, int min, int max, int delta)
 
     QWidget *widget = new QWidget(parent);
 
-    QHBoxLayout *horizontalLayout = new QHBoxLayout(widget);
-    horizontalLayout->addWidget(label);
-    horizontalLayout->addWidget(lcd);
-    horizontalLayout->addWidget(slider);
+    QHBoxLayout *hLayout = new QHBoxLayout;
+    hLayout->setContentsMargins(0,0,0,0);
+    hLayout->addWidget(label);
+    hLayout->addWidget(lcd);
+    hLayout->addWidget(slider);
+    widget->setLayout(hLayout);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
@@ -6428,8 +6436,9 @@ Widget CreateForm(Widget parent)
     widget->setMaximumWidth(250);
     widget->setMinimumWidth(250);
 
-    QVBoxLayout *verticalLayout = new QVBoxLayout;
-    widget->setLayout(verticalLayout);
+    QVBoxLayout *vLayout = new QVBoxLayout;
+    vLayout->setContentsMargins(3,3,3,3);
+    widget->setLayout(vLayout);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
@@ -6487,7 +6496,7 @@ Widget CreateDialogForm(Widget parent, const char *s)
     xfree(bufp);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->setContentsMargins(4,4,4,4);
+    mainLayout->setContentsMargins(3,3,3,3);
     w->setLayout(mainLayout);
 
     return w;
@@ -6587,21 +6596,21 @@ void FixateDialogFormChild(Widget w)
 //    
 //    return form;
 //}
-Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
+Widget CreateCommandButtons(Widget parent, int n, Widget *buts, char **l)
 {
     int i;
-    Widget form;
 
     QPushButton *pushButton;
 
-    form = new QWidget(parent);
+    QWidget *form = new QWidget(parent);
 
-    QHBoxLayout *horizontalLayout = new QHBoxLayout(form);
-    horizontalLayout->setContentsMargins(4,4,4,4);
+    QHBoxLayout *hLayout = new QHBoxLayout;
+    hLayout->setContentsMargins(3,3,3,3);
+    form->setLayout(hLayout);
 
     for (i = 0; i < n; i++) {
         pushButton = new QPushButton(l[i], form);
-        horizontalLayout->addWidget(pushButton);
+        hLayout->addWidget(pushButton);
         buts[i] = pushButton;
     }
 
@@ -6917,17 +6926,19 @@ WidgetList CreateAACDialog(Widget form,
 //}
 Widget CreateVContainer(Widget parent)
 {
-    QLayout *vlayout = new QVBoxLayout;
-    vlayout->setContentsMargins(4,4,4,4);
+    QLayout *vLayout = new QVBoxLayout;
+    vLayout->setContentsMargins(3,3,3,3);
+    vLayout->setSizeConstraint(QLayout::SetFixedSize);
+    vLayout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
         QWidget *widget = new QWidget(parent);
-        widget->setLayout(vlayout);
+        widget->setLayout(vLayout);
         layout->addWidget(widget);
         return widget;
     } else {
-        parent->setLayout(vlayout);
+        parent->setLayout(vLayout);
         return parent;
     }
 }
@@ -6944,17 +6955,19 @@ Widget CreateVContainer(Widget parent)
 //}
 Widget CreateHContainer(Widget parent)
 {
-    QLayout *hlayout = new QHBoxLayout;
-    hlayout->setContentsMargins(4,4,4,4);
+    QLayout *hLayout = new QHBoxLayout;
+    hLayout->setContentsMargins(3,3,3,3);
+    hLayout->setSizeConstraint(QLayout::SetFixedSize);
+    hLayout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
         QWidget *widget = new QWidget(parent);
-        widget->setLayout(hlayout);
+        widget->setLayout(hLayout);
         layout->addWidget(widget);
         return widget;
     } else {
-        parent->setLayout(hlayout);
+        parent->setLayout(hLayout);
         return parent;
     }
 }
@@ -7033,7 +7046,7 @@ Widget CreateGrid(Widget parent, int ncols, int nrows)
     QWidget *widget = new QWidget(parent);
 
     QGridLayout *gridLayout = new QGridLayout;
-    gridLayout->setContentsMargins(4,4,4,4);
+    gridLayout->setContentsMargins(3,3,3,3);
     widget->setLayout(gridLayout);
 
     QLayout *layout = parent->layout();
@@ -7105,6 +7118,7 @@ void PlaceGridChild(Widget grid, Widget w, int col, int row)
 Widget CreateTab(Widget parent)
 {
     QTabWidget *tab = new QTabWidget(parent);
+    tab->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
@@ -7131,9 +7145,9 @@ Widget CreateTabPage(Widget parent, char *s)
 {
     QTabWidget *tabWidget = (QTabWidget *) parent;
 
-    Widget widget = new QWidget;
+    QWidget *widget = new QWidget(parent);
     QLayout *vlayout = new QVBoxLayout;
-    vlayout->setContentsMargins(4,4,4,4);
+    vlayout->setContentsMargins(3,3,3,3);
     widget->setLayout(vlayout);
 
     tabWidget->addTab(widget, s);
@@ -7178,10 +7192,13 @@ Widget CreateTextItem(Widget parent, int len, char *s)
     QLabel *label = new QLabel(widget);
     label->setText(s);
 
-    // TODO: len?
     QLineEdit *lineEdit = new QLineEdit(widget);
+    int width = (len + 1) * lineEdit->fontMetrics().charWidth("0", 0);
+    lineEdit->setMinimumWidth(width);
+    lineEdit->setMaximumWidth(width);
 
     QHBoxLayout *hBoxLayout = new QHBoxLayout;
+    hBoxLayout->setContentsMargins(0,0,0,0);
     hBoxLayout->addWidget(label);
     hBoxLayout->addWidget(lineEdit);
     widget->setLayout(hBoxLayout);
