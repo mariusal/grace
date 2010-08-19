@@ -1912,37 +1912,26 @@ static int list_get_selected_count(Widget list)
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items)
 {
-    //Arg args[4];
-    //Widget lab;
     ListStructure *retval;
 
     retval = (ListStructure*) xmalloc(sizeof(ListStructure));
-    //retval->rc = XmCreateRowColumn(parent, "rcList", NULL, 0);
-    retval->rc = new QWidget(parent);
+
+    QWidget *widget = new QWidget(parent);
+    retval->rc = widget;
     AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
 
-    QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->rc);
-    vBoxLayout->setContentsMargins(4,4,4,4);
-
-    QLabel *label = new QLabel(retval->rc);
+    QLabel *label = new QLabel(widget);
     label->setText(labelstr);
-    vBoxLayout->addWidget(label);
-    //lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
-    //XtManageChild(lab);
 
-    QListWidget *listWidget = new QListWidget(retval->rc);
+    QListWidget *listWidget = new QListWidget(widget);
     listWidget->setUniformItemSizes(true);
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     listWidget->setSizePolicy(sizePolicy);
 
-    //XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
-    //XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
     if (type == LIST_TYPE_SINGLE) {
         listWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-      //  XtSetArg(args[2], XmNselectionPolicy, XmSINGLE_SELECT);
     } else {
         listWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
-      //  XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
     }
 
     //TODO: fix spacing of nvisible
@@ -1950,7 +1939,6 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "listList", args, 4);
 
-    vBoxLayout->addWidget(listWidget);
     retval->list = listWidget;
     retval->values = NULL;
 
@@ -1960,10 +1948,17 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     
     UpdateListChoice(retval, nchoices, items);
 
-    //XtManageChild(retval->list);
-    
-    //XtManageChild(retval->rc);
-    
+    QVBoxLayout *vBoxLayout = new QVBoxLayout;
+    vBoxLayout->setContentsMargins(4,4,4,4);
+    vBoxLayout->addWidget(label);
+    vBoxLayout->addWidget(listWidget);
+    widget->setLayout(vBoxLayout);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
+
     return retval;
 }
 
@@ -2708,45 +2703,30 @@ static void CreateStorageChoicePopup(StorageStructure *ss)
 StorageStructure *CreateStorageChoice(Widget parent,
     char *labelstr, int type, int nvisible)
 {
-    //Arg args[4];
-    //Widget lab;
     StorageStructure *retval;
 
     retval = (StorageStructure*) xmalloc(sizeof(StorageStructure));
     memset(retval, 0, sizeof(StorageStructure));
 
     retval->labeling_proc = default_storage_labeling_proc;
-    //retval->rc = XmCreateRowColumn(parent, "rc", NULL, 0);
-    retval->rc = new QWidget(parent);
-    QLayout *layout = parent->layout();
-    if (layout != 0) {
-        layout->addWidget(retval->rc);
-    }
 
-    AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
+    QWidget *widget = new QWidget(parent);
+    retval->rc = widget;
 
-    QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->rc);
-    vBoxLayout->setContentsMargins(4,4,4,4);
+    AddHelpCB(widget, "doc/UsersGuide.html#list-selector");
 
-    QLabel *label = new QLabel(retval->rc);
+    QLabel *label = new QLabel(widget);
     label->setText(labelstr);
-    vBoxLayout->addWidget(label);
-    //lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
-    //XtManageChild(lab);
-    
-    QListWidget *listWidget = new QListWidget(retval->rc);
+
+    QListWidget *listWidget = new QListWidget(widget);
     listWidget->setUniformItemSizes(true);
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     listWidget->setSizePolicy(sizePolicy);
 
-    //XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
-    //XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
     if (type == LIST_TYPE_SINGLE) {
         listWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-        //XtSetArg(args[2], XmNselectionPolicy, XmSINGLE_SELECT);
     } else {
         listWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
-        //XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
     }
 
     //TODO: fix spacing of nvisible
@@ -2754,26 +2734,29 @@ StorageStructure *CreateStorageChoice(Widget parent,
     //XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     //retval->list = XmCreateScrolledList(retval->rc, "list", args, 4);
 
-    vBoxLayout->addWidget(listWidget);
     retval->list = listWidget;
     retval->values = NULL;
 
     CreateStorageChoicePopup(retval);
 
-    retval->list->setContextMenuPolicy(Qt::CustomContextMenu);
-    QtAddCallback(retval->list, SIGNAL(customContextMenuRequested(const QPoint)),
-                storage_popup, retval);
-
-    //XtAddEventHandler(retval->list,
-      //  ButtonPressMask, False, storage_popup, retval);
+    listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    QtAddCallback(listWidget, SIGNAL(customContextMenuRequested(const QPoint)),
+                  storage_popup, retval);
 
     //TODO: add acelerators
     //XtOverrideTranslations(retval->list,
      //                        XtParseTranslationTable(list_translation_table));
 
-    //XtManageChild(retval->list);
-    
-    //XtManageChild(retval->rc);
+    QVBoxLayout *vBoxLayout = new QVBoxLayout;
+    vBoxLayout->setContentsMargins(4,4,4,4);
+    vBoxLayout->addWidget(label);
+    vBoxLayout->addWidget(listWidget);
+    widget->setLayout(vBoxLayout);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
     
     return retval;
 }
@@ -4132,14 +4115,15 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 
     retval->FSB = fileSelectionDialog;
     retval->dialog = fileSelectionDialog;
-    retval->rc = new QWidget(fileSelectionDialog);
+    QWidget *widget = new QWidget(fileSelectionDialog);
+    retval->rc = widget;
 
-    QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->rc);
+    QVBoxLayout *vBoxLayout = new QVBoxLayout;
     vBoxLayout->setContentsMargins(0,0,0,0);
+    widget->setLayout(vBoxLayout);
 
-    QBoxLayout *layout = (QBoxLayout*) fileSelectionDialog->layout();
-    if (layout != 0) {
-        layout->insertWidget(4, retval->rc);
+    if (QBoxLayout *layout = qobject_cast<QBoxLayout *>(fileSelectionDialog->layout())) {
+        layout->insertWidget(4, widget);
     }
 
     bufp = copy_string(NULL, "Grace: ");
@@ -5764,29 +5748,21 @@ static void update_ssd_cb(StorageStructure *ss, int n, Quark **values, void *dat
 SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 {
     SSDColStructure *retval;
-    Widget rc;
     char *str;
 
     retval = (SSDColStructure*) xmalloc(sizeof(SSDColStructure));
-    retval->frame = CreateFrame(parent, s);
+    QWidget *frame = CreateFrame(parent, s);
+    retval->frame = frame;
 
-    //rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, retval->frame, NULL);
-    QVBoxLayout *vBoxLayout = new QVBoxLayout(retval->frame);
-    vBoxLayout->setContentsMargins(0,0,0,0);
-    //retval->ssd_sel = CreateSSDChoice(rc, "SSData:", LIST_TYPE_SINGLE);
-    retval->ssd_sel = CreateSSDChoice(retval->frame, "SSData:", LIST_TYPE_SINGLE);
-    vBoxLayout->addWidget(retval->ssd_sel->rc);
+    retval->ssd_sel = CreateSSDChoice(frame, "SSData:", LIST_TYPE_SINGLE);
 
     if (sel_type == LIST_TYPE_SINGLE) {
         str = "Column:";
     } else {
         str = "Column(s):";
     }
-    retval->col_sel = CreateColChoice(retval->frame, str, sel_type);
-    vBoxLayout->addWidget(retval->col_sel->rc);
+    retval->col_sel = CreateColChoice(frame, str, sel_type);
     AddStorageChoiceCB(retval->ssd_sel, update_ssd_cb, (void *) retval);
-
-//    XtManageChild(rc);
 
     return retval;
 }
@@ -7000,8 +6976,9 @@ Widget CreateHContainer(Widget parent)
 Widget CreateFrame(Widget parent, char *s)
 {
     QGroupBox *groupBox = new QGroupBox(parent);
-    QVBoxLayout *vlayout = new QVBoxLayout;
-    groupBox->setLayout(vlayout);
+    QVBoxLayout *vLayout = new QVBoxLayout;
+    vLayout->setContentsMargins(0,0,0,0);
+    groupBox->setLayout(vLayout);
     
     if (s != NULL) {
         groupBox->setTitle(s);
