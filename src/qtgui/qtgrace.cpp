@@ -5085,6 +5085,10 @@ Widget CreatePenChoice(Widget parent, char *s)
     rc = CreateHContainer(parent);
     CreateLabel(rc, s);
     button = new QPushButton(rc);
+    QLayout *layout = rc->layout();
+    if (layout != 0) {
+        layout->addWidget(button);
+    }
     SetUserData(button, pdata);
 //    button = XtVaCreateWidget("penButton",
 //        xmPushButtonWidgetClass, rc,
