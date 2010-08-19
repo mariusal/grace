@@ -6720,6 +6720,8 @@ WidgetList CreateAACDialog(Widget form,
     fr = CreateCommandButtons(form, 3, aacbut, aaclab);
 
     AddDialogFormChild(form, container);
+    QBoxLayout *layout = (QBoxLayout *) form->layout();
+    layout->addStretch();
     AddDialogFormChild(form, fr);
 
     cbdata_accept = (AACDialog_CBdata*) xmalloc(sizeof(AACDialog_CBdata));
