@@ -151,6 +151,7 @@ void startup_gui(GraceApp *gapp)
  */
     update_app_title(gapp->gp);
 
+    update_all();
     xdrawgraph(gapp->gp);
 
     //XtAppMainLoop(app_con);
