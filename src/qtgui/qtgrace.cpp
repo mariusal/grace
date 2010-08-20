@@ -1204,8 +1204,8 @@ void SetUserData(Widget w, void *udata)
 }
 
 
-//#define MAX_PULLDOWN_LENGTH 30
-//
+#define MAX_PULLDOWN_LENGTH 30
+
 //OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
 //    int ncols, int nchoices, OptionItem *items)
 //{
@@ -1242,7 +1242,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
 {
     OptionStructure *retval;
 
-    retval = (OptionStructure*) xcalloc(1, sizeof(OptionStructure));
+    retval = (OptionStructure *) xcalloc(1, sizeof(OptionStructure));
     if (!retval) {
         return NULL;
     }
@@ -1252,7 +1252,6 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     QComboBox *comboBox = new QComboBox(widget);
 
     QStandardItemModel *model = new QStandardItemModel(comboBox);
-    model->setColumnCount(ncols);
     comboBox->setModel(model);
 
     QTableView *tableView = new QTableView(comboBox);
@@ -1263,11 +1262,9 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     retval->pulldown = comboBox;
     retval->menu = comboBox;
 
-    for (int i = 0; i < nchoices; i++) {
-        model->insertRow(i, new QStandardItem(items[i].label));
-    }
-    tableView->resizeColumnsToContents();
-    tableView->resizeRowsToContents();
+    retval->ncols = ncols;
+
+    UpdateOptionChoice(retval, nchoices, items);
 
     QLabel *label = new QLabel(widget);
     label->setText(labelstr);
@@ -1327,7 +1324,7 @@ OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...)
     while ((s = va_arg(var, char *)) != NULL) {
         value = va_arg(var, int);
         nchoices++;
-        oi = (OptionItem*) xrealloc(oi, nchoices*sizeof(OptionItem));
+        oi = (OptionItem *) xrealloc(oi, nchoices*sizeof(OptionItem));
         oi[nchoices - 1].value = value;
         oi[nchoices - 1].label = copy_string(NULL, s);
     }
@@ -1389,7 +1386,7 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
     opt->cbnum++;
 
     QtAddCallback(opt->pulldown, SIGNAL(activated(int)),
-                oc_int_cb_proc, (XtPointer) cbdata);
+                  oc_int_cb_proc, (XtPointer) cbdata);
 }
 
 //void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
@@ -1466,7 +1463,50 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
 //}
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 {
-    //TODO:
+    int nold, ncols;
+    QComboBox *pulldown = (QComboBox *) optp->pulldown;
+    QStandardItemModel *model = (QStandardItemModel *) pulldown->model();
+    QTableView *tableView = (QTableView *) pulldown->view();
+
+    nold = optp->nchoices;
+
+    if (optp->ncols == 0) {
+        ncols = 1;
+    } else {
+        ncols = optp->ncols;
+    }
+
+    /* Don't create too tall pulldowns */
+    if (nchoices > MAX_PULLDOWN_LENGTH*ncols) {
+        ncols = (nchoices + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
+    }
+
+    optp->nchoices = nchoices;
+
+    int row = 0;
+    int col = 0;
+    int nrows = (int) ceil(nchoices/ncols);
+    for (int i = 0; i < nchoices; i++) {
+        QStandardItem *item = new QStandardItem(items[i].label);
+        item->setData(QVariant(items[i].value));
+        model->setItem(row, col, item);
+        row++;
+        if (row == nrows) {
+            row = 0;
+            col++;
+        }
+    }
+
+    tableView->resizeColumnsToContents();
+    tableView->resizeRowsToContents();
+    //tableView->setMinimumSize(tableView->maximumViewportSize());
+    //tableView->setMinimumSize(tableView->wi->wisize());
+    tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    tableView->setMinimumWidth(tableView->columnViewportPosition(ncols - 1));
+//    QScrollArea *sa = (QScrollArea *) tableView->viewport();
+    //tableView->setMinimumSize(sa->widget()->size());
+
+    printf("%d\n", tableView->viewport()->size().height());
 }
 
 //OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
@@ -1708,8 +1748,28 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
 void SetOptionChoice(OptionStructure *opt, int value)
 {
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(opt->pulldown)) {
-        comboBox->setCurrentIndex(value);
+        QTableView *tableView = (QTableView *) comboBox->view();
+        QStandardItemModel *model = (QStandardItemModel *) comboBox->model();
+
+        int row = 0;
+        int col = 0;
+        int nrows = (int) ceil(opt->nchoices/opt->ncols);
+        for (int i = 0; i < opt->nchoices; i++) {
+            QModelIndex index = model->index(row, col);
+            QVariant v = index.data(Qt::UserRole + 1);
+            if (v.toInt() == value) {
+                tableView->setCurrentIndex(index);
+                return;
+            }
+            row++;
+            if (row == nrows) {
+                row = 0;
+                col++;
+            }
+        }
     }
+
+    errmsg("Value not found in SetOptionChoice()");
 }
 
 //int GetOptionChoice(OptionStructure *opt)
@@ -1737,10 +1797,13 @@ void SetOptionChoice(OptionStructure *opt, int value)
 int GetOptionChoice(OptionStructure *opt)
 {
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(opt->pulldown)) {
-        return comboBox->currentIndex();
-    } else {
-        return 0;
+        QTableView *tableView = (QTableView *) comboBox->view();
+        QVariant v = tableView->currentIndex().data(Qt::UserRole + 1);
+        return v.toInt();
     }
+
+    errmsg("Internal error in GetOptionChoice()");
+    return 0;
 }
 
 //typedef struct {
@@ -5869,7 +5932,7 @@ void paint_color_selector(OptionStructure *optp)
 //{
 //    unsigned int i;
 //    Project *pr = project_get_data(gproject_get_top(gapp->gp));
-//    
+//
 //    ncolor_option_items = pr->ncolors;
 //
 //    color_option_items = xrealloc(color_option_items,
@@ -5879,30 +5942,53 @@ void paint_color_selector(OptionStructure *optp)
 //        color_option_items[i].value = c->id;
 //        color_option_items[i].label = c->cname;
 //    }
-//    
+//
 //    for (i = 0; i < ncolor_selectors; i++) {
-//        UpdateOptionChoice(color_selectors[i], 
+//        UpdateOptionChoice(color_selectors[i],
 //                            ncolor_option_items, color_option_items);
 //        paint_color_selector(color_selectors[i]);
 //    }
-//    
+//
 //    update_color_choice_popup();
 //}
-//
+void update_color_selectors(void)
+{
+    unsigned int i;
+    Project *pr = project_get_data(gproject_get_top(gapp->gp));
+
+    ncolor_option_items = pr->ncolors;
+
+    color_option_items = (OptionItem *) xrealloc(color_option_items,
+                                                 ncolor_option_items*sizeof(OptionItem));
+    for (i = 0; i < pr->ncolors; i++) {
+        Colordef *c = &pr->colormap[i];
+        color_option_items[i].value = c->id;
+        color_option_items[i].label = c->cname;
+    }
+
+    for (i = 0; i < ncolor_selectors; i++) {
+        UpdateOptionChoice(color_selectors[i],
+                           ncolor_option_items, color_option_items);
+        paint_color_selector(color_selectors[i]);
+    }
+
+//    update_color_choice_popup();
+}
+
 OptionStructure *CreateColorChoice(Widget parent, char *s)
 {
     OptionStructure *retvalp = NULL;
 
     ncolor_selectors++;
     color_selectors = (OptionStructure **) xrealloc(color_selectors,
-                                    ncolor_selectors*sizeof(OptionStructure *));
+                                                    ncolor_selectors*sizeof(OptionStructure *));
     if (color_selectors == NULL) {
         errmsg("Malloc failed in CreateColorChoice()");
         return retvalp;
     }
 
     retvalp = CreateOptionChoice(parent, s, 4,
-                                ncolor_option_items, color_option_items);
+                                 ncolor_option_items, color_option_items);
 
     color_selectors[ncolor_selectors - 1] = retvalp;
 
@@ -8033,7 +8119,7 @@ void update_all(void)
 
     if (gapp->gui->need_colorsel_update == TRUE) {
         //init_xvlibcolors();
-        //update_color_selectors();
+        update_color_selectors();
         gapp->gui->need_colorsel_update = FALSE;
     }
 
