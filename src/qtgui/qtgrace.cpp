@@ -1499,14 +1499,11 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 
     tableView->resizeColumnsToContents();
     tableView->resizeRowsToContents();
-    //tableView->setMinimumSize(tableView->maximumViewportSize());
-    //tableView->setMinimumSize(tableView->wi->wisize());
-    tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    tableView->setMinimumWidth(tableView->columnViewportPosition(ncols - 1));
-//    QScrollArea *sa = (QScrollArea *) tableView->viewport();
-    //tableView->setMinimumSize(sa->widget()->size());
 
-    printf("%d\n", tableView->viewport()->size().height());
+    tableView->setMinimumWidth(tableView->columnViewportPosition(ncols - 1) +
+                               tableView->columnWidth(ncols - 1));
+    tableView->setMinimumHeight(tableView->rowViewportPosition(nrows - 1) +
+                                tableView->rowHeight(nrows - 1));
 }
 
 //OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
