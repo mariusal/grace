@@ -1744,13 +1744,21 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
 //}
 void SetOptionChoice(OptionStructure *opt, int value)
 {
+    int ncols;
+
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(opt->pulldown)) {
         QTableView *tableView = (QTableView *) comboBox->view();
         QStandardItemModel *model = (QStandardItemModel *) comboBox->model();
 
+        if (opt->ncols == 0) {
+            ncols = 1;
+        } else {
+            ncols = opt->ncols;
+        }
+
         int row = 0;
         int col = 0;
-        int nrows = (int) ceil(opt->nchoices/opt->ncols);
+        int nrows = (int) ceil(opt->nchoices/ncols);
         for (int i = 0; i < opt->nchoices; i++) {
             QModelIndex index = model->index(row, col);
             QVariant v = index.data(Qt::UserRole + 1);
