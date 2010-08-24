@@ -1763,7 +1763,8 @@ void SetOptionChoice(OptionStructure *opt, int value)
             QModelIndex index = model->index(row, col);
             QVariant v = index.data(Qt::UserRole + 1);
             if (v.toInt() == value) {
-                tableView->setCurrentIndex(index);
+                comboBox->setModelColumn(col);
+                comboBox->setCurrentIndex(row);
                 return;
             }
             row++;
