@@ -693,7 +693,8 @@ Widget CreateScrolledListTree(Widget parent)
 Widget CreateScrolledWindow(Widget parent)
 {
     QScrollArea *scrollArea = new QScrollArea(parent);
-    scrollArea->setMinimumHeight(320);
+    scrollArea->setMinimumHeight(500);
+    scrollArea->setMinimumWidth(320);
     scrollArea->setWidgetResizable(true);
 
     QWidget *widget = new QWidget;
@@ -4613,7 +4614,27 @@ static unsigned int nfont_selectors = 0;
 //                            nfont_option_items, font_option_items);
 //    }
 //}
-//
+void update_font_selectors(void)
+{
+    unsigned int i;
+    Project *pr = project_get_data(gproject_get_top(gapp->gp));
+
+    nfont_option_items = pr->nfonts;
+    font_option_items =
+        (OptionItem *) xrealloc(font_option_items, nfont_option_items*sizeof(OptionItem));
+
+    for (i = 0; i < nfont_option_items; i++) {
+        Fontdef *f = &pr->fontmap[i];
+        font_option_items[i].value = f->id;
+        font_option_items[i].label = f->fontname;
+    }
+
+    for (i = 0; i < nfont_selectors; i++) {
+        UpdateOptionChoice(font_selectors[i],
+                            nfont_option_items, font_option_items);
+    }
+}
+
 //OptionStructure *CreateFontChoice(Widget parent, char *s)
 //{
 //    OptionStructure *retvalp = NULL;
@@ -8130,7 +8151,7 @@ void update_all(void)
     }
 
     if (gapp->gui->need_fontsel_update == TRUE) {
-        //update_font_selectors();
+        update_font_selectors();
         gapp->gui->need_fontsel_update = FALSE;
     }
 
