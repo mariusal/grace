@@ -4837,7 +4837,7 @@ static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
 {
 //    X11Stuff *xstuff = gapp->gui->xstuff;
     QPushButton *pushButton = (QPushButton *) button;
-    int fg;
+    unsigned int fg;
 //    Pixmap pixtile, pixmap;
     Button_PData *pdata;
     Pattern *pat;
@@ -4863,9 +4863,22 @@ static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
     pat = canvas_get_pattern(canvas, pen->pattern);
 
     QBitmap bitmap = QBitmap::fromData(QSize(pat->width, pat->height),
-            pat->bits, QImage::Format_MonoLSB);
+            (char *) pat->bits, QImage::Format_MonoLSB);
 
-    pushButton->setIcon(QIcon(bitmap));
+    RGB rgb;
+    rgb.red = 10;
+    rgb.green = 10;
+    rgb.blue = 10;
+
+    QBrush brush(QColor(rgb.red, rgb.green, rgb.blue));
+    brush.setTexture(bitmap);
+
+    QPixmap pixmap(pat->width, pat->height);
+    QPainter painter(&pixmap);
+    painter.setBrush(brush);
+    painter.drawPixmap(0, 0, pat->width, pat->height, bitmap);
+
+    pushButton->setIcon(QIcon(pixmap));
 
 //    pixtile = XCreatePixmapFromBitmapData(xstuff->disp, xstuff->root,
 //        (char *) pat->bits, pat->width, pat->height, fg, bg, xstuff->depth);
