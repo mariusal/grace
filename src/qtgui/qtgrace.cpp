@@ -1507,6 +1507,59 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
                                 tableView->rowHeight(nrows - 1));
 }
 
+void UpdateBitmapOptionChoice(OptionStructure *optp, int nchoices,
+                              int width, int height, BitmapOptionItem *items)
+{
+    int nold, ncols;
+    QComboBox *pulldown = (QComboBox *) optp->pulldown;
+    QStandardItemModel *model = (QStandardItemModel *) pulldown->model();
+    QTableView *tableView = (QTableView *) pulldown->view();
+
+    nold = optp->nchoices;
+
+    if (optp->ncols == 0) {
+        ncols = 1;
+    } else {
+        ncols = optp->ncols;
+    }
+
+    /* Don't create too tall pulldowns */
+    if (nchoices > MAX_PULLDOWN_LENGTH*ncols) {
+        ncols = (nchoices + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
+    }
+
+    optp->nchoices = nchoices;
+
+    int row = 0;
+    int col = 0;
+    int nrows = (int) ceil(nchoices/ncols);
+    QStandardItem *item;
+    for (int i = 0; i < nchoices; i++) {
+        if (items[i].bitmap != NULL) {
+            QBitmap bitmap = QBitmap::fromData(QSize(width, height),
+                                               items[i].bitmap, QImage::Format_MonoLSB);
+            item = new QStandardItem;
+            item->setIcon(QIcon(bitmap));
+        } else {
+            item = new QStandardItem("None");
+        }
+        item->setData(QVariant(items[i].value));
+        model->setItem(row, col, item);
+        row++;
+        if (row == nrows) {
+            row = 0;
+            col++;
+        }
+    }
+
+    tableView->resizeColumnsToContents();
+    tableView->resizeRowsToContents();
+
+    tableView->setMinimumWidth(tableView->columnViewportPosition(ncols - 1) +
+                               tableView->columnWidth(ncols - 1));
+    tableView->setMinimumHeight(tableView->rowViewportPosition(nrows - 1) +
+                                tableView->rowHeight(nrows - 1));
+}
 //OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
 //                int nchoices, int width, int height, BitmapOptionItem *items)
 //{
@@ -1583,7 +1636,6 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items)
 {
-    //TODO:
     OptionStructure *retval;
 
     retval = (OptionStructure *) xcalloc(1, sizeof(OptionStructure));
@@ -1591,11 +1643,39 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
         return NULL;
     }
     retval->nchoices = nchoices;
-    retval->options = (OptionWidgetItem *) xmalloc(nchoices*sizeof(OptionWidgetItem));
-    if (retval->options == NULL) {
-        errmsg("Malloc error in CreateBitmapOptionChoice()");
-        XCFREE(retval);
-        return retval;
+
+    QWidget *widget = new QWidget(parent);
+
+    QComboBox *comboBox = new QComboBox(widget);
+
+    QStandardItemModel *model = new QStandardItemModel(comboBox);
+    comboBox->setModel(model);
+
+    QTableView *tableView = new QTableView(comboBox);
+    tableView->horizontalHeader()->setVisible(false);
+    tableView->verticalHeader()->setVisible(false);
+    comboBox->setView(tableView);
+
+    comboBox->setIconSize(QSize(width, height));
+
+    retval->pulldown = comboBox;
+    retval->menu = comboBox;
+
+    retval->ncols = ncols;
+
+    UpdateBitmapOptionChoice(retval, nchoices, width, height, items);
+
+    QLabel *label = new QLabel(widget);
+    label->setText(labelstr);
+
+    QHBoxLayout *hLayout = new QHBoxLayout(widget);
+    hLayout->setContentsMargins(0,0,0,0);
+    hLayout->addWidget(label);
+    hLayout->addWidget(comboBox);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
     }
 
     return retval;
