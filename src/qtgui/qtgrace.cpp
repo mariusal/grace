@@ -7465,12 +7465,23 @@ Widget CreateTabPage(Widget parent, char *s)
 {
     QTabWidget *tabWidget = (QTabWidget *) parent;
 
-    QWidget *widget = new QWidget(parent);
-    QLayout *vlayout = new QVBoxLayout;
-    vlayout->setContentsMargins(3,3,3,3);
-    widget->setLayout(vlayout);
+    QWidget *widget2 = new QWidget(parent);
+    QLayout *vLayout2 = new QVBoxLayout;
+    vLayout2->setContentsMargins(0,0,0,0);
 
-    tabWidget->addTab(widget, s);
+    QWidget *widget = new QWidget(widget2);
+    QLayout *vLayout = new QVBoxLayout;
+    vLayout->setContentsMargins(3,3,3,3);
+    widget->setLayout(vLayout);
+
+    vLayout2->addWidget(widget);
+
+    QSpacerItem *vSpacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    vLayout2->addItem(vSpacer);
+    widget2->setLayout(vLayout2);
+
+    tabWidget->addTab(widget2, s);
 
     return widget;
 }
