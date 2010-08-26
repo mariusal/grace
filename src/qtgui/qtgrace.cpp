@@ -32,6 +32,8 @@
  *
  */
 
+#define CANVAS_BACKEND_API
+
 #include <QtGlobal>
 #include <QApplication>
 #include <QMainWindow>
@@ -41,6 +43,7 @@
 #include <QStatusBar>
 #include <QMenuBar>
 #include <QMenu>
+#include <QWidgetAction>
 #include <QLabel>
 #include <QBitmap>
 #include <QAbstractButton>
@@ -58,6 +61,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QTreeWidget>
+#include <QTableWidget>
 #include <QStandardItemModel>
 #include <QTableView>
 #include <mainwindow.h>
@@ -1000,9 +1004,9 @@ static OptionItem *color_option_items = NULL;
 static unsigned int ncolor_option_items = 0;
 static OptionStructure **color_selectors = NULL;
 static unsigned int ncolor_selectors = 0;
-//
-//static Widget color_choice_popup = NULL;
-//
+
+static Widget color_choice_popup = NULL;
+
 //static char *label_to_resname(const char *s, const char *suffix)
 //{
 //    char *retval, *rs;
@@ -1828,7 +1832,6 @@ void SetOptionChoice(OptionStructure *opt, int value)
     int ncols;
 
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(opt->pulldown)) {
-        QTableView *tableView = (QTableView *) comboBox->view();
         QStandardItemModel *model = (QStandardItemModel *) comboBox->model();
 
         if (opt->ncols == 0) {
@@ -4856,9 +4859,9 @@ OptionStructure *CreateJustChoice(Widget parent, char *s)
 //    return retval;
 //}
 //
-//#define PEN_CHOICE_WIDTH  64
-//#define PEN_CHOICE_HEIGHT 16
-//
+#define PEN_CHOICE_WIDTH  64
+#define PEN_CHOICE_HEIGHT 16
+
 typedef struct {
     Pen pen;
     Widget color_popup;
@@ -4915,10 +4918,8 @@ typedef struct {
 //}
 static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
 {
-//    X11Stuff *xstuff = gapp->gui->xstuff;
     QPushButton *pushButton = (QPushButton *) button;
-    unsigned int fg;
-//    Pixmap pixtile, pixmap;
+    RGB bg_rgb, fg_rgb;
     Button_PData *pdata;
     Pattern *pat;
 
@@ -4932,45 +4933,23 @@ static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
     pdata = (Button_PData *) GetUserData(button);
     pdata->pen = *pen;
 
-//    if (!gc_pen) {
-//        gc_pen = XCreateGC(xstuff->disp, xstuff->root, 0, NULL);
-//        XSetFillStyle(xstuff->disp, gc_pen, FillTiled);
-//    }
-
-    fg = pen->color;
-//    bg = getbgcolor(canvas);
+    get_rgb(canvas, pen->color, &fg_rgb);
+    get_rgb(canvas, getbgcolor(canvas), &bg_rgb);
 
     pat = canvas_get_pattern(canvas, pen->pattern);
 
     QBitmap bitmap = QBitmap::fromData(QSize(pat->width, pat->height),
-            (char *) pat->bits, QImage::Format_MonoLSB);
+                                       pat->bits, QImage::Format_MonoLSB);
 
-    RGB rgb;
-    rgb.red = 10;
-    rgb.green = 10;
-    rgb.blue = 10;
+    QPixmap pixmap(PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT);
+    pixmap.fill(QColor(bg_rgb.red, bg_rgb.green, bg_rgb.blue));
 
-    QBrush brush(QColor(rgb.red, rgb.green, rgb.blue));
-    brush.setTexture(bitmap);
-
-    QPixmap pixmap(pat->width, pat->height);
     QPainter painter(&pixmap);
-    painter.setBrush(brush);
-    painter.drawPixmap(0, 0, pat->width, pat->height, bitmap);
+    painter.setPen(QColor(fg_rgb.red, fg_rgb.green, fg_rgb.blue));
+    painter.drawTiledPixmap(0, 0, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT, bitmap);
 
     pushButton->setIcon(QIcon(pixmap));
-
-//    pixtile = XCreatePixmapFromBitmapData(xstuff->disp, xstuff->root,
-//        (char *) pat->bits, pat->width, pat->height, fg, bg, xstuff->depth);
-
-//    XSetTile(xstuff->disp, gc_pen, pixtile);
-
-//    pixmap = XCreatePixmap(xstuff->disp, xstuff->root, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT, xstuff->depth);
-//    XFillRectangle(xstuff->disp, pixmap, gc_pen, 0, 0, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT);
-
-//    XtVaSetValues(button, XmNlabelPixmap, pixmap, NULL);
-
-//    XFreePixmap(xstuff->disp, pixtile);
+    pushButton->setIconSize(QSize(PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT));
 
     if (call_cb && pdata->cb_proc) {
         pdata->cb_proc(button, pen, pdata->cb_data);
@@ -5006,7 +4985,33 @@ void SetPenChoice(Widget button, Pen *pen)
 //    XmMenuPosition(popup, e);
 //    XtManageChild(popup);
 //}
-//
+static void pen_popup(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    qDebug("Button pressed");
+    Button_PData *pdata;
+    Widget popup;
+
+//    if (e->button != 3) {
+//        return;
+//    }
+
+     pdata = (Button_PData *) GetUserData(w);
+
+//    if (e->state & ShiftMask) {
+//        popup = pdata->pattern_popup;
+//    } else {
+        popup = pdata->color_popup;
+//    }
+
+      QMenu *menu = (QMenu *) GetUserData(popup);
+//    SetUserData(popup, w);
+
+      menu->popup(QCursor::pos());
+
+//    XmMenuPosition(popup, e);
+//    XtManageChild(popup);
+}
+
 //static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 //{
 //    Pen pen;
@@ -5019,6 +5024,26 @@ void SetPenChoice(Widget button, Pen *pen)
 //    
 //    SetPenChoice_int(button, &pen, TRUE);
 //}
+static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    QTableWidget *tableWidget = (QTableWidget *) w;
+
+    QTableWidgetItem *item = tableWidget->currentItem();
+
+//    Pen pen;
+//    Widget button = GetUserData(GetParent(w));
+//    Button_PData *pdata;
+
+//    pdata = GetUserData(button);
+//    pen = pdata->pen;
+//    pen.color = (long) client_data;
+
+//    SetPenChoice_int(button, &pen, TRUE);
+
+    QMenu *menu = (QMenu *) GetUserData(w);
+    menu->hide();
+
+}
 //
 //void update_color_choice_popup(void)
 //{
@@ -5098,7 +5123,62 @@ void SetPenChoice(Widget button, Pen *pen)
 //        }
 //    }
 //}
-//
+void update_color_choice_popup(void)
+{
+    Project *pr = project_get_data(gproject_get_top(gapp->gp));
+    unsigned int ci;
+
+    if (pr && color_choice_popup) {
+        QTableWidget *tableWidget = (QTableWidget *) color_choice_popup;
+        int ncols = 4;
+
+        tableWidget->clear();
+
+        /* Don't create too tall pulldowns */
+        if (pr->ncolors > MAX_PULLDOWN_LENGTH*ncols) {
+            ncols = (pr->ncolors + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
+        }
+
+        int row = 0;
+        int col = 0;
+        int nrows = (int) ceil(pr->ncolors/ncols);
+
+        tableWidget->setRowCount(nrows);
+        tableWidget->setColumnCount(ncols);
+
+        for (ci = 0; ci < pr->ncolors; ci++) {
+            Colordef *c = &pr->colormap[ci];
+            QTableWidgetItem *item = new QTableWidgetItem(c->cname);
+            item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+
+            QColor bg_color(c->rgb.red, c->rgb.green, c->rgb.blue);
+            item->setBackground(QBrush(bg_color));
+
+            if (get_rgb_intensity(&c->rgb) < 0.5) {
+                item->setForeground(Qt::white);
+            } else {
+                item->setForeground(Qt::black);
+            }
+
+            tableWidget->setItem(row, col, item);
+            row++;
+            if (row == nrows) {
+                row = 0;
+                col++;
+            }
+        }
+
+        //TODO: resize to biggest item
+        tableWidget->resizeColumnsToContents();
+        tableWidget->resizeRowsToContents();
+
+//        tableWidget->setMinimumWidth(tableWidget->columnViewportPosition(ncols - 1) +
+//                                     tableWidget->columnWidth(ncols - 1));
+//        tableWidget->setMinimumHeight(tableWidget->rowViewportPosition(nrows - 1) +
+//                                      tableWidget->rowHeight(nrows - 1));
+    }
+}
+
 //static Widget CreateColorChoicePopup(Widget button)
 //{
 //    if (!color_choice_popup) {
@@ -5111,7 +5191,32 @@ void SetPenChoice(Widget button, Pen *pen)
 //    
 //    return color_choice_popup;
 //}
-//
+static Widget CreateColorChoicePopup(Widget button)
+{
+    if (!color_choice_popup) {
+        QMenu *menu = new QMenu(button);
+
+        QTableWidget *tableWidget = new QTableWidget(menu);
+        tableWidget->horizontalHeader()->setVisible(false);
+        tableWidget->verticalHeader()->setVisible(false);
+        QtAddCallback(tableWidget, SIGNAL(cellClicked(int, int)),
+                      cc_cb, (XtPointer) NULL);
+
+        QWidgetAction *action = new QWidgetAction(menu);
+        action->setDefaultWidget(tableWidget);
+
+        menu->addAction(action);
+
+        SetUserData(tableWidget, menu);
+
+        color_choice_popup = tableWidget;
+
+        update_color_choice_popup();
+    }
+
+    return color_choice_popup;
+}
+
 //static Widget CreatePatternChoicePopup(Widget button)
 //{
 //    Widget popup;
@@ -5259,42 +5364,46 @@ static void define_pen_choice_dialog(Widget but, void *data)
 //}
 Widget CreatePenChoice(Widget parent, char *s)
 {
-    Widget rc, button;
     Button_PData *pdata;
     Pen pen;
 
     pdata = (Button_PData *) xmalloc(sizeof(Button_PData));
     memset(pdata, 0, sizeof(Button_PData));
 
-    rc = CreateHContainer(parent);
-    CreateLabel(rc, s);
-    button = new QPushButton(rc);
-    QLayout *layout = rc->layout();
-    if (layout != 0) {
-        layout->addWidget(button);
-    }
+    QLabel *label = new QLabel(parent);
+    label->setText(s);
+
+    QPushButton *button = new QPushButton(parent);
+
     SetUserData(button, pdata);
-//    button = XtVaCreateWidget("penButton",
-//        xmPushButtonWidgetClass, rc,
-//        XmNlabelType, XmPIXMAP,
-//        XmNuserData, pdata,
-//        NULL);
 
     AddHelpCB(button, "doc/UsersGuide.html#pen-chooser");
 
     AddButtonCB(button, define_pen_choice_dialog, button);
 
-    //TODO:
-//    pdata->color_popup   = CreateColorChoicePopup(button);
+    pdata->color_popup   = CreateColorChoicePopup(button);
 //    pdata->pattern_popup = CreatePatternChoicePopup(button);
 
-//    XtAddEventHandler(button, ButtonPressMask, False, pen_popup, NULL);
+    button->setContextMenuPolicy(Qt::CustomContextMenu);
+    QtAddCallback(button, SIGNAL(customContextMenuRequested(const QPoint)),
+                  pen_popup, NULL);
 
     pen.color   = 0;
     pen.pattern = 0;
     SetPenChoice_int(button, &pen, FALSE);
 
-//    XtManageChild(button);
+    QWidget *widget = new QWidget(parent);
+
+    QHBoxLayout *hLayout = new QHBoxLayout;
+    hLayout->setContentsMargins(0,0,0,0);
+    hLayout->addWidget(label);
+    hLayout->addWidget(button);
+    widget->setLayout(hLayout);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
 
     return button;
 }
@@ -6092,7 +6201,7 @@ void update_color_selectors(void)
         paint_color_selector(color_selectors[i]);
     }
 
-//    update_color_choice_popup();
+    update_color_choice_popup();
 }
 
 OptionStructure *CreateColorChoice(Widget parent, char *s)
