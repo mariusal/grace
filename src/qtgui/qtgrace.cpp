@@ -5083,25 +5083,18 @@ static void pen_popup(Widget w, XtPointer client_data, XtPointer call_data)
     Button_PData *pdata;
     Widget popup;
 
-//    if (e->button != 3) {
-//        return;
-//    }
+    pdata = (Button_PData *) GetUserData(w);
 
-     pdata = (Button_PData *) GetUserData(w);
+    //    if (e->state & ShiftMask) {
+    //        popup = pdata->pattern_popup;
+    //    } else {
+    popup = pdata->color_popup;
+    //    }
 
-//    if (e->state & ShiftMask) {
-//        popup = pdata->pattern_popup;
-//    } else {
-        popup = pdata->color_popup;
-//    }
+    QMenu *menu = (QMenu *) popup->parentWidget();
+    SetUserData(popup, w);
 
-      QMenu *menu = (QMenu *) GetUserData(popup);
-//    SetUserData(popup, w);
-
-      menu->popup(QCursor::pos());
-
-//    XmMenuPosition(popup, e);
-//    XtManageChild(popup);
+    menu->popup(QCursor::pos());
 }
 
 //static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
@@ -5119,22 +5112,19 @@ static void pen_popup(Widget w, XtPointer client_data, XtPointer call_data)
 static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     QTableWidget *tableWidget = (QTableWidget *) w;
-
     QTableWidgetItem *item = tableWidget->currentItem();
+    QPushButton *button = (QPushButton *) GetUserData(tableWidget);
+    QMenu *menu = (QMenu *) tableWidget->parentWidget();
+    Pen pen;
+    Button_PData *pdata;
 
-//    Pen pen;
-//    Widget button = GetUserData(GetParent(w));
-//    Button_PData *pdata;
+    pdata = (Button_PData *) GetUserData(button);
+    pen = pdata->pen;
+    pen.color = item->data(Qt::UserRole).toInt();
 
-//    pdata = GetUserData(button);
-//    pen = pdata->pen;
-//    pen.color = (long) client_data;
+    SetPenChoice_int(button, &pen, TRUE);
 
-//    SetPenChoice_int(button, &pen, TRUE);
-
-    QMenu *menu = (QMenu *) GetUserData(w);
     menu->hide();
-
 }
 //
 //void update_color_choice_popup(void)
@@ -5252,6 +5242,7 @@ void update_color_choice_popup(void)
                 item->setForeground(Qt::black);
             }
 
+            item->setData(Qt::UserRole, QVariant(c->id));
             tableWidget->setItem(row, col, item);
             row++;
             if (row == nrows) {
@@ -5261,13 +5252,15 @@ void update_color_choice_popup(void)
         }
 
         //TODO: resize to biggest item
+//        tableWidget->horizontalHeader()->setDefaultSectionSize();
+//        tableWidget->horizontalHeader()->sectionSize()
         tableWidget->resizeColumnsToContents();
         tableWidget->resizeRowsToContents();
 
-//        tableWidget->setMinimumWidth(tableWidget->columnViewportPosition(ncols - 1) +
-//                                     tableWidget->columnWidth(ncols - 1));
-//        tableWidget->setMinimumHeight(tableWidget->rowViewportPosition(nrows - 1) +
-//                                      tableWidget->rowHeight(nrows - 1));
+        tableWidget->setMaximumWidth(tableWidget->columnViewportPosition(ncols - 1) +
+                                     tableWidget->columnWidth(ncols - 1));
+        tableWidget->setMaximumHeight(tableWidget->rowViewportPosition(nrows - 1) +
+                                      tableWidget->rowHeight(nrows - 1));
     }
 }
 
@@ -5289,8 +5282,12 @@ static Widget CreateColorChoicePopup(Widget button)
         QMenu *menu = new QMenu(button);
 
         QTableWidget *tableWidget = new QTableWidget(menu);
+        tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
         tableWidget->horizontalHeader()->setVisible(false);
         tableWidget->verticalHeader()->setVisible(false);
+        tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        tableWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        tableWidget->setFrameStyle(QFrame::NoFrame);
         QtAddCallback(tableWidget, SIGNAL(cellClicked(int, int)),
                       cc_cb, (XtPointer) NULL);
 
@@ -5298,8 +5295,6 @@ static Widget CreateColorChoicePopup(Widget button)
         action->setDefaultWidget(tableWidget);
 
         menu->addAction(action);
-
-        SetUserData(tableWidget, menu);
 
         color_choice_popup = tableWidget;
 
