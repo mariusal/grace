@@ -111,9 +111,13 @@ void startup_gui(GraceApp *gapp)
     MainWinUI *mwui = gapp->gui->mwui;
 
     mwui->loclab = mainWin->ui.locatorBar;
+    mwui->frtop = mwui->loclab;
 
     mwui->statlab = CreateLabel(mainWin, NULL);
+    mwui->frbot = mwui->statlab;
     mainWin->ui.statusBar->addWidget(mwui->statlab);
+
+    mwui->frleft = mainWin->ui.toolBar;
 
     //toolBar->setStyleSheet(QString::fromUtf8(" QToolButton {\n"
     //            "    border: 1px solid #8f8f91;\n"
@@ -138,7 +142,7 @@ void startup_gui(GraceApp *gapp)
 /*
  * initialize the tool bars
  */
-//    set_view_items();
+    set_view_items();
 
     set_tracker_string(NULL);
     set_left_footer(NULL);
@@ -668,6 +672,29 @@ void create_about_grtool(Widget but, void *data)
 
 void set_view_items(void)
 {
+    MainWinUI *mwui = gapp->gui->mwui;
+
+    if (gapp->gui->statusbar) {
+        SetToggleButtonState(mwui->windowbarw[1], TRUE);
+        ManageChild(mwui->frbot);
+    } else {
+        SetToggleButtonState(mwui->windowbarw[1], FALSE);
+        UnmanageChild(mwui->frbot);
+    }
+    if (gapp->gui->toolbar) {
+        SetToggleButtonState(mwui->windowbarw[2], TRUE);
+        ManageChild(mwui->frleft);
+    } else {
+        SetToggleButtonState(mwui->windowbarw[2], FALSE);
+        UnmanageChild(mwui->frleft);
+    }
+    if (gapp->gui->locbar) {
+        SetToggleButtonState(mwui->windowbarw[0], TRUE);
+        ManageChild(mwui->frtop);
+    } else {
+        SetToggleButtonState(mwui->windowbarw[0], FALSE);
+        UnmanageChild(mwui->frtop);
+    }
 }
 
 Widget CreateScrolledListTree(Widget parent)
