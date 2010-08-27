@@ -1486,6 +1486,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
         ncols = (nchoices + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
     }
 
+    optp->options = (OptionWidgetItem *) xrealloc(optp->options, nchoices*sizeof(OptionWidgetItem));
     optp->nchoices = nchoices;
 
     int row = 0;
@@ -1493,7 +1494,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
     int nrows = (int) ceil(nchoices/ncols);
     for (int i = 0; i < nchoices; i++) {
         QStandardItem *item = new QStandardItem(items[i].label);
-        //optp->options[i].widget = (void *) item;
+        optp->options[i].widget = (QWidget *) item;
         item->setData(QVariant(items[i].value));
         model->setItem(row, col, item);
         row++;
@@ -1708,7 +1709,7 @@ void UpdateCharOptionChoice(OptionStructure *opt, int font)
     if (*old_font != font) {
         int i, csize = 24;
         for (i = 0; i < opt->nchoices; i++) {
-            Widget w = opt->options[i].widget;
+            //Widget w = opt->options[i].widget;
 //            Pixmap ptmp = char_to_pixmap(opt->pulldown, font, (char) i, csize);
 //            XtVaSetValues(w, XmNlabelPixmap, ptmp, NULL);
 //            SetSensitive(w, ptmp ? TRUE:FALSE);
@@ -6140,19 +6141,19 @@ void paint_color_selector(OptionStructure *optp)
         return;
     }
 
-//    for (i = 0; i < pr->ncolors; i++) {
-//        Colordef *c = &pr->colormap[i];
-//        QStandardItem *item = (QStandardItem *) optp->options[i].widget;
+    for (i = 0; i < pr->ncolors; i++) {
+        Colordef *c = &pr->colormap[i];
+        QStandardItem *item = (QStandardItem *) optp->options[i].widget;
 
-//        QColor bg_color(c->rgb.red, c->rgb.green, c->rgb.blue);
-//        item->setBackground(QBrush(bg_color));
+        QColor bg_color(c->rgb.red, c->rgb.green, c->rgb.blue);
+        item->setBackground(QBrush(bg_color));
 
-//        if (get_rgb_intensity(&c->rgb) < 0.5) {
-//            item->setForeground(Qt::white);
-//        } else {
-//            item->setForeground(Qt::black);
-//        }
-//    }
+        if (get_rgb_intensity(&c->rgb) < 0.5) {
+            item->setForeground(Qt::white);
+        } else {
+            item->setForeground(Qt::black);
+        }
+    }
 }
 //
 //
