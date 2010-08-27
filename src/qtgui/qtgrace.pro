@@ -1,6 +1,6 @@
 TEMPLATE = lib
 CONFIG -= debug_and_release debug release
-CONFIG += release
+CONFIG += debug
 CONFIG += staticlib
 INCLUDEPATH += . ../ ../../include
 
@@ -15,6 +15,7 @@ HEADERS += qtgrace.h \
            fileselectiondialog.h 
 
 SOURCES += qtgrace.cpp \
+           qtutil.cpp \
            mainwindow.cpp \
            canvaswidget.cpp \
            qtdrv.cpp \

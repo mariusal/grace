@@ -264,6 +264,7 @@ src/qtgui/qtdrv.cpp \
 src/qtgui/qtgrace.cpp \
 src/qtgui/qtgrace.h \
 src/qtgui/qtinc.h \
+src/qtgui/qtutil.cpp \
 src/region_ui.c \
 src/set_ui.c \
 src/set_utils.c \

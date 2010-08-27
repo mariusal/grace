@@ -41,4 +41,3 @@ typedef void *XtPointer;
 typedef int Cursor;
 
 #endif /* __QTINC_H_ */
-

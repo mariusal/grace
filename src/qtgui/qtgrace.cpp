@@ -1709,20 +1709,20 @@ void UpdateCharOptionChoice(OptionStructure *opt, int font)
     if (*old_font != font) {
         int i, csize = 24;
         for (i = 0; i < opt->nchoices; i++) {
-            //Widget w = opt->options[i].widget;
-//            Pixmap ptmp = char_to_pixmap(opt->pulldown, font, (char) i, csize);
-//            XtVaSetValues(w, XmNlabelPixmap, ptmp, NULL);
-//            SetSensitive(w, ptmp ? TRUE:FALSE);
+            QStandardItem *item = (QStandardItem *) opt->options[i].widget;
+            QPixmap *pixmap = (QPixmap *) char_to_pixmap(opt->pulldown, font, (char) i, csize);
+            item->setIcon(QIcon(*pixmap));
+            item->setEnabled(pixmap ? true:false);
         }
         *old_font = font;
     }
 }
-//
-//static unsigned char dummy_bits[] = {
-//   0x00, 0x00, 0x00, 0x00, 0xec, 0x2e, 0x04, 0x20, 0x00, 0x20, 0x04, 0x00,
-//   0x04, 0x20, 0x04, 0x20, 0x00, 0x20, 0x04, 0x00, 0x04, 0x20, 0x04, 0x20,
-//   0x00, 0x20, 0xdc, 0x1d, 0x00, 0x00, 0x00, 0x00};
-//
+
+static unsigned char dummy_bits[] = {
+   0x00, 0x00, 0x00, 0x00, 0xec, 0x2e, 0x04, 0x20, 0x00, 0x20, 0x04, 0x00,
+   0x04, 0x20, 0x04, 0x20, 0x00, 0x20, 0x04, 0x00, 0x04, 0x20, 0x04, 0x20,
+   0x00, 0x20, 0xdc, 0x1d, 0x00, 0x00, 0x00, 0x00};
+
 //OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
 //{
 //    X11Stuff *xstuff = gapp->gui->xstuff;
@@ -1791,9 +1791,9 @@ void UpdateCharOptionChoice(OptionStructure *opt, int font)
 //}
 OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
 {
-    //TODO:
-    OptionStructure *retval;
     int ncols = 16, nchoices = 256;
+    OptionStructure *retval;
+    int *fontid;
 
     retval = (OptionStructure *) xcalloc(1, sizeof(OptionStructure));
     if (retval == NULL) {
@@ -1806,6 +1806,69 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
         XCFREE(retval);
         return retval;
     }
+
+    QWidget *widget = new QWidget(parent);
+
+    QComboBox *comboBox = new QComboBox(widget);
+
+    QStandardItemModel *model = new QStandardItemModel(comboBox);
+    comboBox->setModel(model);
+
+    QTableView *tableView = new QTableView(comboBox);
+    tableView->horizontalHeader()->setVisible(false);
+    tableView->verticalHeader()->setVisible(false);
+    tableView->horizontalHeader()->setDefaultSectionSize(24);
+    tableView->verticalHeader()->setDefaultSectionSize(24);
+    comboBox->setView(tableView);
+
+    comboBox->setIconSize(QSize(24, 24));
+
+    retval->pulldown = comboBox;
+    retval->menu = comboBox;
+
+    retval->ncols = ncols;
+
+    int row = 0;
+    int col = 0;
+    int nrows = (int) ceil(nchoices/ncols);
+    QStandardItem *item;
+    for (int i = 0; i < nchoices; i++) {
+        retval->options[i].value = i;
+        QBitmap bitmap = QBitmap::fromData(QSize(16, 16),
+                                           dummy_bits, QImage::Format_MonoLSB);
+        item = new QStandardItem;
+        item->setIcon(QIcon(bitmap));
+        item->setData(QVariant(i));
+        model->setItem(row, col, item);
+        retval->options[i].widget = (QWidget *) item;
+        row++;
+        if (row == nrows) {
+            row = 0;
+            col++;
+        }
+    }
+
+    tableView->setMinimumWidth(tableView->columnViewportPosition(ncols - 1) +
+                               tableView->columnWidth(ncols - 1));
+    tableView->setMinimumHeight(tableView->rowViewportPosition(nrows - 1) +
+                                tableView->rowHeight(nrows - 1));
+
+    QLabel *label = new QLabel(widget);
+    label->setText(s);
+
+    QHBoxLayout *hLayout = new QHBoxLayout(widget);
+    hLayout->setContentsMargins(0,0,0,0);
+    hLayout->addWidget(label);
+    hLayout->addWidget(comboBox);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(widget);
+    }
+
+    fontid = (int *) xmalloc(SIZEOF_INT);
+    *fontid = -1;
+    SetUserData(retval->menu, fontid);
 
     return retval;
 }
