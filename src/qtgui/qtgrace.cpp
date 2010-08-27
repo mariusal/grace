@@ -1493,6 +1493,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
     int nrows = (int) ceil(nchoices/ncols);
     for (int i = 0; i < nchoices; i++) {
         QStandardItem *item = new QStandardItem(items[i].label);
+        //optp->options[i].widget = (void *) item;
         item->setData(QVariant(items[i].value));
         model->setItem(row, col, item);
         row++;
@@ -6132,28 +6133,26 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 //}
 void paint_color_selector(OptionStructure *optp)
 {
-    X11Stuff *xstuff = gapp->gui->xstuff;
-    unsigned int i;
-    long bg, fg;
     Project *pr = project_get_data(gproject_get_top(gapp->gp));
+    unsigned int i;
 
     if (!pr) {
         return;
     }
 
-    for (i = 0; i < pr->ncolors; i++) {
-        Colordef *c = &pr->colormap[i];
-//        bg = xvlibcolors[c->id];
-        if (get_rgb_intensity(&c->rgb) < 0.5) {
-//	    fg = WhitePixel(xstuff->disp, xstuff->screennumber);
-        } else {
-//	    fg = BlackPixel(xstuff->disp, xstuff->screennumber);
-        }
-//	XtVaSetValues(optp->options[i].widget,
-//            XmNbackground, bg,
-//            XmNforeground, fg,
-//            NULL);
-    }
+//    for (i = 0; i < pr->ncolors; i++) {
+//        Colordef *c = &pr->colormap[i];
+//        QStandardItem *item = (QStandardItem *) optp->options[i].widget;
+
+//        QColor bg_color(c->rgb.red, c->rgb.green, c->rgb.blue);
+//        item->setBackground(QBrush(bg_color));
+
+//        if (get_rgb_intensity(&c->rgb) < 0.5) {
+//            item->setForeground(Qt::white);
+//        } else {
+//            item->setForeground(Qt::black);
+//        }
+//    }
 }
 //
 //
