@@ -3628,7 +3628,9 @@ void SetSpinChoice(SpinStructure *spinp, double value)
 {
     QDoubleSpinBox *spinBox = (QDoubleSpinBox*) spinp->rc;
     
+    spinBox->blockSignals(true);
     spinBox->setValue(value);
+    spinBox->blockSignals(false);
 }
 
 //double GetSpinChoice(SpinStructure *spinp)
@@ -6753,12 +6755,16 @@ void SetToggleButtonState(Widget w, int value)
     
     QCheckBox *cb = qobject_cast<QCheckBox *>(w);
     if (cb != 0) {
+        cb->blockSignals(true);
         cb->setChecked(value ? true : false);
+        cb->blockSignals(false);
     }
 
     QAction *ac = qobject_cast<QAction *>(w);
     if (ac != 0) {
+        ac->blockSignals(true);
         ac->setChecked(value ? true : false);
+        ac->blockSignals(false);
     }
 
     return;
