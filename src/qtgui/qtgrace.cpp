@@ -3575,9 +3575,13 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
     retval->incr = incr;
 
     spinBox = new QDoubleSpinBox(parent);
+    spinBox->setKeyboardTracking(false);
 
     if (retval->type == SPIN_TYPE_INT) {
         spinBox->setDecimals(0);
+    } else {
+        //TODO: decimals set to inf and don't show leading zeroes
+        spinBox->setDecimals(4);
     }
 
     spinBox->setRange(retval->min, retval->max);
