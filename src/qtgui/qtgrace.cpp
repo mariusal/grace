@@ -1979,9 +1979,14 @@ void SetOptionChoice(OptionStructure *opt, int value)
 int GetOptionChoice(OptionStructure *opt)
 {
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(opt->pulldown)) {
-        QTableView *tableView = (QTableView *) comboBox->view();
-        QVariant v = tableView->currentIndex().data(Qt::UserRole + 1);
-        return v.toInt();
+        QStandardItemModel *model = (QStandardItemModel *) comboBox->model();
+        int row = comboBox->currentIndex();
+        int col = comboBox->modelColumn();
+
+        QModelIndex index = model->index(row, col);
+        QVariant v = index.data(Qt::UserRole + 1);
+        int i = v.toInt();
+        return i;
     }
 
     errmsg("Internal error in GetOptionChoice()");
