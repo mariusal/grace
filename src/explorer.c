@@ -163,35 +163,6 @@ ListTreeItem *CreateQuarkTree(Widget tree, ListTreeItem *parent,
     return item;
 }
 
-void SelectQuarkTreeItem(Widget w, ListTreeItem *parent, Quark *q)
-{
-    ListTreeMultiReturnStruct ret;
-
-    ListTreeClearHighlighted(w);
-    highlight_selected(w, parent, 1, &q);
-    
-    ListTreeGetHighlighted(w, &ret);
-    CallCallbacks(w, "XtNhighlightCallback", (XtPointer) &ret);
-#ifndef QT_GUI
-    if (ret.count > 0) {
-        ListTreeItem *item = ret.items[0];
-        int top, visible;
-
-        XtVaGetValues(w,
-            XtNtopItemPosition, &top,
-            XtNvisibleItemCount, &visible,
-            NULL);
-
-        if (item->count < top) {
-            ListTreeSetPos(w, item);
-        } else
-        if (item->count >= top + visible) {
-            ListTreeSetBottomPos(w, item);
-        }
-    }
-#endif
-}
-
 static int explorer_apply(ExplorerUI *ui, void *caller);
 
 static ListTreeItem *q_create(Widget w,
@@ -484,6 +455,38 @@ static void drop_cb(Widget w, XtPointer client, XtPointer call)
 }
 #endif
 
+void SelectQuarkTreeItem(Widget w, ListTreeItem *parent, Quark *q)
+{
+    GUI *gui = gui_from_quark(q);
+    ExplorerUI *ui = gui->eui;
+    ListTreeMultiReturnStruct ret;
+
+    ListTreeClearHighlighted(w);
+    highlight_selected(w, parent, 1, &q);
+
+    ListTreeGetHighlighted(w, &ret);
+
+    highlight_cb(ui->tree, (XtPointer) ui, (XtPointer) &ret);
+#ifndef QT_GUI
+    if (ret.count > 0) {
+        ListTreeItem *item = ret.items[0];
+        int top, visible;
+
+        XtVaGetValues(w,
+            XtNtopItemPosition, &top,
+            XtNvisibleItemCount, &visible,
+            NULL);
+
+        if (item->count < top) {
+            ListTreeSetPos(w, item);
+        } else
+        if (item->count >= top + visible) {
+            ListTreeSetBottomPos(w, item);
+        }
+    }
+#endif
+}
+
 static int explorer_apply(ExplorerUI *ui, void *caller)
 {
     ListTreeMultiReturnStruct ret;
@@ -632,7 +635,7 @@ void update_explorer(ExplorerUI *ui, int reselect)
 
     if (reselect) {
         ListTreeGetHighlighted(ui->tree, &ret);
-        CallCallbacks(ui->tree, XtNhighlightCallback, (XtPointer) &ret);
+        highlight_cb(ui->tree, (XtPointer) ui, (XtPointer) &ret);
     } else {
         ui->homogeneous_selection = FALSE;
         ui->all_siblings = FALSE;
