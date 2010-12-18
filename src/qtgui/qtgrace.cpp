@@ -1981,9 +1981,12 @@ void SetOptionChoice(OptionStructure *opt, int value)
 int GetOptionChoice(OptionStructure *opt)
 {
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(opt->pulldown)) {
+        QTableView *tableView = (QTableView *) comboBox->view();
+
         QStandardItemModel *model = (QStandardItemModel *) comboBox->model();
-        int row = comboBox->currentIndex();
-        int col = comboBox->modelColumn();
+        QModelIndex currentIndex = tableView->currentIndex();
+        int row = currentIndex.row();
+        int col = currentIndex.column();
 
         QModelIndex index = model->index(row, col);
         QVariant v = index.data(Qt::UserRole + 1);
