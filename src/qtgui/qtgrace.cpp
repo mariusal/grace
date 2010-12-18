@@ -1870,10 +1870,10 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
         item->setData(QVariant(i));
         model->setItem(row, col, item);
         retval->options[i].widget = (QWidget *) item;
-        row++;
-        if (row == nrows) {
-            row = 0;
-            col++;
+        col++;
+        if (col == ncols) {
+            col = 0;
+            row++;
         }
     }
 
