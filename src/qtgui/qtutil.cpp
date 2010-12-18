@@ -525,7 +525,7 @@ extern "C" {
 Pixmap char_to_pixmap(Widget w, int font, char c, int csize)
 {
     CPixmap *pm;
-    QPixmap *pixmap;
+    QPixmap *pixmap = 0;
     int height, width, hshift, vshift;
     float fsize = 0.8*(float)csize;
 

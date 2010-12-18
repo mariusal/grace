@@ -1738,7 +1738,9 @@ void UpdateCharOptionChoice(OptionStructure *opt, int font)
         for (i = 0; i < opt->nchoices; i++) {
             QStandardItem *item = (QStandardItem *) opt->options[i].widget;
             QPixmap *pixmap = (QPixmap *) char_to_pixmap(opt->pulldown, font, (char) i, csize);
-            item->setIcon(QIcon(*pixmap));
+            if (pixmap) {
+                item->setIcon(QIcon(*pixmap));
+            }
             item->setEnabled(pixmap ? true:false);
         }
         *old_font = font;
