@@ -620,14 +620,6 @@ void create_points_frame(Widget but, void *data)
 }
 
 
-void create_arrange_frame(Widget but, void *data)
-{
-}
-
-void create_autos_frame(Widget but, void *data)
-{
-}
-
 void create_nonl_frame(Widget but, void *data)
 {
 }
@@ -5810,48 +5802,48 @@ void graph_set_selectors(Quark *gr)
 static StorageStructure **frame_selectors = NULL;
 static int nframe_selectors = 0;
 
-//static char *frame_labeling(Quark *q, unsigned int *rid)
-//{
-//    char buf[128];
-//    
-//    if (quark_fid_get(q) == QFlavorFrame) {
-//        sprintf(buf, "Frame \"%s\"", QIDSTR(q));
-//
-//        (*rid)++;
-//
-//        return copy_string(NULL, buf);
-//    } else {
-//        return NULL;
-//    }
-//}
-//
-//StorageStructure *CreateFrameChoice(Widget parent, char *labelstr, int type)
-//{
-//    StorageStructure *ss;
-//    Widget popup;
-//    int nvisible;
-//    
-//    nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
-//    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
-//    SetStorageChoiceLabeling(ss, frame_labeling);
-//    SetStorageChoiceQuark(ss, gproject_get_top(gapp->gp));
-//    AddHelpCB(ss->rc, "doc/UsersGuide.html#frame-selector");
-//
-//    nframe_selectors++;
-//    frame_selectors =
-//        xrealloc(frame_selectors, nframe_selectors*sizeof(StorageStructure *));
-//    frame_selectors[nframe_selectors - 1] = ss;
-//    
-//    popup = ss->popup;
-//    
-//    CreateMenuSeparator(popup);
-//
-//    CreateMenuButton(popup, "Create new", '\0', g_new_cb, ss);
-//    
-//    CreateMenuSeparator(popup);
-//
-//    return ss;
-//}
+static char *frame_labeling(Quark *q, unsigned int *rid)
+{
+    char buf[128];
+
+    if (quark_fid_get(q) == QFlavorFrame) {
+        sprintf(buf, "Frame \"%s\"", QIDSTR(q));
+
+        (*rid)++;
+
+        return copy_string(NULL, buf);
+    } else {
+        return NULL;
+    }
+}
+
+StorageStructure *CreateFrameChoice(Widget parent, char *labelstr, int type)
+{
+    StorageStructure *ss;
+    Widget popup;
+    int nvisible;
+
+    nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4;
+    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
+    SetStorageChoiceLabeling(ss, frame_labeling);
+    SetStorageChoiceQuark(ss, gproject_get_top(gapp->gp));
+    AddHelpCB(ss->rc, "doc/UsersGuide.html#frame-selector");
+
+    nframe_selectors++;
+    frame_selectors =
+        (StorageStructure **) xrealloc(frame_selectors, nframe_selectors*sizeof(StorageStructure *));
+    frame_selectors[nframe_selectors - 1] = ss;
+
+    popup = ss->popup;
+
+    CreateMenuSeparator(popup);
+
+    CreateMenuButton(popup, "Create new", '\0', g_new_cb, ss);
+
+    CreateMenuSeparator(popup);
+
+    return ss;
+}
 
 void update_frame_selectors(Quark *pr)
 {
@@ -5873,7 +5865,7 @@ static StorageStructure **set_selectors = NULL;
 static int nset_selectors = 0;
 
 
-//#define SSS_NEWF_CB          1
+#define SSS_NEWF_CB          1
 
 typedef struct {
     StorageStructure *graphss;
@@ -5895,77 +5887,77 @@ Quark *get_set_choice_gr(StorageStructure *ss)
     return gr;
 }
 
-//static void sss_any_cb(void *udata, int cbtype)
-//{
-//    StorageStructure *ss = (StorageStructure *) udata;
-//    Quark *gr = get_set_choice_gr(ss);
-//    
-//    switch (cbtype) {
-//    case SSS_NEWF_CB:
-//        create_leval_frame(NULL, gr);
-//        break;
-//    }
-//    
-//    snapshot_and_update(gapp->gp, TRUE);
-//}
-//
-//static void s_newF_cb(Widget but, void *udata)
-//{
-//    sss_any_cb(udata, SSS_NEWF_CB);
-//}
-//
-//static char *set_labeling(Quark *q, unsigned int *rid)
-//{
-//    char buf[128];
-//    if (quark_fid_get(q) == QFlavorSet) {
-//        set *p = set_get_data(q);
-//
-//        sprintf(buf, "Set \"%s\" (type: %s, length: %d)",
-//            QIDSTR(q), set_type_descr(gapp->grace, p->type),
-//            set_get_length(q));
-//
-//        (*rid)++;
-//        
-//        return copy_string(NULL, buf);
-//    } else {
-//        return NULL;
-//    }
-//}
-//
-//StorageStructure *CreateSetChoice(Widget parent,
-//    char *labelstr, int type, StorageStructure *graphss)
-//{
-//    StorageStructure *ss;
-//    SSSData *sssdata;
-//    Widget popup, submenupane;
-//    int nvisible;
-//    
-//    nvisible = (type == LIST_TYPE_SINGLE) ? 4 : 8; 
-//    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
-//    SetStorageChoiceLabeling(ss, set_labeling);
-//    AddHelpCB(ss->rc, "doc/UsersGuide.html#set-selector");
-//
-//    nset_selectors++;
-//    set_selectors =
-//        xrealloc(set_selectors, nset_selectors*sizeof(StorageStructure *));
-//    set_selectors[nset_selectors - 1] = ss;
-//    
-//    sssdata = xmalloc(sizeof(SSSData));
-//    ss->data = sssdata;
-//    sssdata->graphss = graphss;
-//    
-//    popup = ss->popup;
-//    
-//    CreateMenuSeparator(popup);
-//
-//    submenupane = CreateMenu(popup, "Create new", '\0', FALSE);
-//    CreateMenuButton(submenupane, "By formula", '\0', s_newF_cb, ss);
-//
-//    UpdateSetChoice(ss);
-//    
-//    return ss;
-//}
-//
+static void sss_any_cb(void *udata, int cbtype)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+    Quark *gr = get_set_choice_gr(ss);
+
+    switch (cbtype) {
+    case SSS_NEWF_CB:
+        create_leval_frame(NULL, gr);
+        break;
+    }
+
+    snapshot_and_update(gapp->gp, TRUE);
+}
+
+static void s_newF_cb(Widget but, void *udata)
+{
+    sss_any_cb(udata, SSS_NEWF_CB);
+}
+
+static char *set_labeling(Quark *q, unsigned int *rid)
+{
+    char buf[128];
+    if (quark_fid_get(q) == QFlavorSet) {
+        set *p = set_get_data(q);
+
+        sprintf(buf, "Set \"%s\" (type: %s, length: %d)",
+            QIDSTR(q), set_type_descr(gapp->grace, (SetType) p->type),
+            set_get_length(q));
+
+        (*rid)++;
+
+        return copy_string(NULL, buf);
+    } else {
+        return NULL;
+    }
+}
+
+StorageStructure *CreateSetChoice(Widget parent,
+    char *labelstr, int type, StorageStructure *graphss)
+{
+    StorageStructure *ss;
+    SSSData *sssdata;
+    Widget popup, submenupane;
+    int nvisible;
+
+    nvisible = (type == LIST_TYPE_SINGLE) ? 4 : 8;
+    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
+    SetStorageChoiceLabeling(ss, set_labeling);
+    AddHelpCB(ss->rc, "doc/UsersGuide.html#set-selector");
+
+    nset_selectors++;
+    set_selectors =
+        (StorageStructure**) xrealloc(set_selectors, nset_selectors*sizeof(StorageStructure *));
+    set_selectors[nset_selectors - 1] = ss;
+
+    sssdata = (SSSData*) xmalloc(sizeof(SSSData));
+    ss->data = sssdata;
+    sssdata->graphss = graphss;
+
+    popup = ss->popup;
+
+    CreateMenuSeparator(popup);
+
+    submenupane = CreateMenu(popup, "Create new", '\0', FALSE);
+    CreateMenuButton(submenupane, "By formula", '\0', s_newF_cb, ss);
+
+    UpdateSetChoice(ss);
+
+    return ss;
+}
+
 void UpdateSetChoice(StorageStructure *ss)
 {
     Quark *gr;
@@ -5994,13 +5986,13 @@ void update_set_selectors(Quark *gr)
     }
 }
 
-//static void update_sets_cb(StorageStructure *ss, int n, Quark **values, void *data)
-//{
-//    GraphSetStructure *gs = (GraphSetStructure *) data;
-//
-//    UpdateSetChoice(gs->set_sel); 
-//}
-//
+static void update_sets_cb(StorageStructure *ss, int n, Quark **values, void *data)
+{
+    GraphSetStructure *gs = (GraphSetStructure *) data;
+
+    UpdateSetChoice(gs->set_sel);
+}
+
 //GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
 //{
 //    GraphSetStructure *retval;
@@ -6018,8 +6010,23 @@ void update_set_selectors(Quark *gr)
 //
 //    return retval;
 //}
-//
-//
+GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
+{
+    GraphSetStructure *retval;
+
+    retval = (GraphSetStructure*) xmalloc(sizeof(GraphSetStructure));
+    QWidget *rc = CreateFrame(parent, s);
+    retval->frame = rc;
+    retval->graph_sel = CreateGraphChoice(rc, "Graph:", LIST_TYPE_SINGLE);
+    retval->set_sel = CreateSetChoice(rc, "Set:", sel_type, retval->graph_sel);
+    AddStorageChoiceCB(retval->graph_sel, update_sets_cb, (void *) retval);
+    UpdateSetChoice(retval->set_sel);
+    retval->set_sel->governor = retval->graph_sel;
+
+    return retval;
+}
+
+
 //SSDSetStructure *CreateSSDSetSelector(Widget parent, char *s, int sel_type)
 //{
 //    SSDSetStructure *retval;
