@@ -1487,7 +1487,7 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
 //}
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 {
-    int nold, ncols;
+    int i, nold, ncols, nw;
     QComboBox *pulldown = (QComboBox *) optp->pulldown;
     QStandardItemModel *model = (QStandardItemModel *) pulldown->model();
     QTableView *tableView = (QTableView *) pulldown->view();
@@ -1505,13 +1505,21 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
         ncols = (nchoices + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
     }
 
+    nw = nold - nchoices;
+    if (nw > 0) {
+        for (i = nchoices; i < nold; i++) {
+// TODO:
+//            delete optp->options[i].widget;
+        }
+    }
+
     optp->options = (OptionWidgetItem *) xrealloc(optp->options, nchoices*sizeof(OptionWidgetItem));
     optp->nchoices = nchoices;
 
     int row = 0;
     int col = 0;
     int nrows = (int) ceil(nchoices/ncols);
-    for (int i = 0; i < nchoices; i++) {
+    for (i = 0; i < nchoices; i++) {
         QStandardItem *item = new QStandardItem(items[i].label);
         optp->options[i].widget = (QWidget *) item;
         item->setData(QVariant(items[i].value));
