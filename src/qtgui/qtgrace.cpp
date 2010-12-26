@@ -558,55 +558,11 @@ void create_netcdfs_popup(Widget but, void *data)
 {
 }
 
-void create_eval_frame(Widget but, void *data)
-{
-}
-
 void create_load_frame(Widget but, void *data)
 {
 }
 
-void create_histo_frame(Widget but, void *data)
-{
-}
-
-void create_fourier_frame(Widget but, void *data)
-{
-}
-
-void create_run_frame(Widget but, void *data)
-{
-}
-
 void create_reg_frame(Widget but, void *data)
-{
-}
-
-void create_diff_frame(Widget but, void *data)
-{
-}
-
-void create_interp_frame(Widget but, void *data)
-{
-}
-
-void create_int_frame(Widget but, void *data)
-{
-}
-
-void create_xcor_frame(Widget but, void *data)
-{
-}
-
-void create_samp_frame(Widget but, void *data)
-{
-}
-
-void create_prune_frame(Widget but, void *data)
-{
-}
-
-void create_lconv_frame(Widget but, void *data)
 {
 }
 
@@ -639,15 +595,6 @@ void create_datasetprop_popup(Widget but, void *data)
 }
 
 void create_datasetop_popup(Widget but, void *data)
-{
-}
-
-
-void create_featext_frame(Widget but, void *data)
-{
-}
-
-void create_cumulative_frame(Widget but, void *data)
 {
 }
 
@@ -2306,7 +2253,40 @@ void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
 //        return RETURN_FAILURE;
 //    }
 //}
-//
+int SelectListChoice(ListStructure *listp, int choice)
+{
+    int top, visible;
+    int i = 0;
+    QListWidgetItem *item;
+
+    QListWidget *listWidget = (QListWidget*) listp->list;
+
+    while (i < listp->nchoices && listp->values[i] != choice) {
+        i++;
+    }
+    if (i < listp->nchoices) {
+        i++;
+        listWidget->clearSelection();
+//        XmListDeselectAllItems(listp->list);
+        item = listWidget->item(i);
+        item->setSelected(true);
+//        XmListSelectPos(listp->list, i, True);
+//        XtVaGetValues(listp->list, XmNtopItemPosition, &top,
+//                                 XmNvisibleItemCount, &visible,
+//                                 NULL);
+        //TODO:
+//        if (i < top) {
+//            XmListSetPos(listp->list, i);
+//        } else if (i >= top + visible) {
+//            XmListSetBottomPos(listp->list, i);
+//        }
+
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 //void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
 //{
 //    int i = 0, j;
@@ -2372,6 +2352,7 @@ void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
         }
     }
 
+    //TODO:
     //if (nchoices > 0) {
         /* Rewind list so the last choice is always visible */
         //XtVaGetValues(listp->list, XmNtopItemPosition, &bottom,
@@ -4966,7 +4947,38 @@ OptionStructure *CreateJustChoice(Widget parent, char *s)
 //
 //    return retval;
 //}
-//
+RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)
+{
+    RestrictionStructure *retval;
+    OptionItem restr_items[7];
+
+    restr_items[0].value = RESTRICT_NONE;
+    restr_items[0].label = "None";
+    restr_items[1].value = RESTRICT_REG0;
+    restr_items[1].label = "Region 0";
+    restr_items[2].value = RESTRICT_REG1;
+    restr_items[2].label = "Region 1";
+    restr_items[3].value = RESTRICT_REG2;
+    restr_items[3].label = "Region 2";
+    restr_items[4].value = RESTRICT_REG3;
+    restr_items[4].label = "Region 3";
+    restr_items[5].value = RESTRICT_REG4;
+    restr_items[5].label = "Region 4";
+    restr_items[6].value = RESTRICT_WORLD;
+    restr_items[6].label = "Inside graph";
+
+    retval = (RestrictionStructure*) xmalloc(sizeof(RestrictionStructure));
+
+    QWidget *rc = CreateFrame(parent, s);
+    retval->frame = rc;
+
+    retval->r_sel = CreateOptionChoice(rc,
+        "Restriction:", 1, 7, restr_items);
+    retval->negate = CreateToggleButton(rc, "Negated");
+
+    return retval;
+}
+
 #define PEN_CHOICE_WIDTH  64
 #define PEN_CHOICE_HEIGHT 16
 
@@ -6052,9 +6064,24 @@ GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
 //
 //    return retval;
 //}
-//
-//
-//
+SSDSetStructure *CreateSSDSetSelector(Widget parent, char *s, int sel_type)
+{
+    SSDSetStructure *retval;
+
+    retval = (SSDSetStructure*) xmalloc(sizeof(SSDSetStructure));
+    QWidget *rc = CreateFrame(parent, s);
+    retval->frame = rc;
+    retval->ssd_sel = CreateSSDChoice(rc, "SSD:", LIST_TYPE_SINGLE);
+    retval->set_sel = CreateSetChoice(rc, "Set:", sel_type, retval->ssd_sel);
+    AddStorageChoiceCB(retval->ssd_sel, update_sets_cb, (void *) retval);
+    UpdateSetChoice(retval->set_sel);
+    retval->set_sel->governor = retval->ssd_sel;
+
+    return retval;
+}
+
+
+
 ListStructure *CreateColChoice(Widget parent, char *labelstr, int type)
 {
     int nvisible;
@@ -6222,7 +6249,33 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
 //
 //    return retval;
 //}
-//
+SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
+{
+    SrcDestStructure *retval;
+
+    retval = (SrcDestStructure*) xmalloc(sizeof(SrcDestStructure));
+
+    QWidget *groupBox = new QWidget(parent);
+    QHBoxLayout *vLayout = new QHBoxLayout;
+    vLayout->setContentsMargins(0,0,0,0);
+    groupBox->setLayout(vLayout);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(groupBox);
+    }
+
+    retval->form = groupBox;
+
+    retval->src  = CreateSSDSetSelector(retval->form, "Source", sel_type);
+    retval->dest = CreateSSDSetSelector(retval->form, "Destination", sel_type);
+
+
+    ManageChild(retval->form);
+
+    return retval;
+}
+
 //void paint_color_selector(OptionStructure *optp)
 //{
 //    X11Stuff *xstuff = gapp->gui->xstuff;
@@ -7181,180 +7234,180 @@ WidgetList CreateAACDialog(Widget form,
     return aacbut;
 }
 
-//int td_cb(void *data)
-//{
-//    int res, i, nssrc, error;
-//    Quark **srcsets, **destsets;
-//    TransformStructure *tdialog = (TransformStructure *) data;
-//    void *tddata;
-//
-//    res = GetTransformDialogSettings(tdialog, &nssrc, &srcsets, &destsets);
-//    
-//    if (res != RETURN_SUCCESS) {
-//        return RETURN_FAILURE;
-//    }
-//    
-//    error = FALSE;
-//    
-//    tddata = tdialog->get_cb(tdialog->gui);
-//    if (!tddata) {
-//        error = TRUE;
-//    }
-//    
-//    if (!error) {
-//        for (i = 0; i < nssrc; i++) {
-//	    Quark *psrc, *pdest;
-//            psrc  = srcsets[i];
-//	    pdest = destsets[i];
-//
-//            res = tdialog->run_cb(psrc, pdest, tddata);
-//	    if (res != RETURN_SUCCESS) {
-//	        error = TRUE;
-//	        break;
-//	    }
-//        }
-//    }
-//    
-//    if (nssrc > 0) {
-//        xfree(srcsets);
-//        xfree(destsets);
-//    }
-//    
-//    if (tddata) {
-//        tdialog->free_cb(tddata);
-//    }
-//
-//    snapshot_and_update(gapp->gp, TRUE);
-//    
-//    if (error == FALSE) {
-//        return RETURN_SUCCESS;
-//    } else {
-//        return RETURN_FAILURE;
-//    }
-//}
-//
-//
-//TransformStructure *CreateTransformDialogForm(Widget parent,
-//    const char *s, int sel_type, int exclusive, const TD_CBProcs *cbs)
-//{
-//    TransformStructure *retval;
-//
-//    set_wait_cursor();
-//    
-//    retval = xmalloc(sizeof(TransformStructure));
-//    memset(retval, 0, sizeof(TransformStructure));
-//    
-//    retval->exclusive = exclusive;
-//    
-//    retval->build_cb = cbs->build_cb;
-//    retval->get_cb   = cbs->get_cb;
-//    retval->run_cb   = cbs->run_cb;
-//    retval->free_cb  = cbs->free_cb;
-//    
-//    retval->form = CreateDialogForm(parent, s);
-//
-//    retval->menubar = CreateMenuBar(retval->form);
-//    AddDialogFormChild(retval->form, retval->menubar);
-//    
-//    retval->srcdest = CreateSrcDestSelector(retval->form, sel_type);
-//    AddDialogFormChild(retval->form, retval->srcdest->form);
-//
-//    retval->frame = CreateFrame(retval->form, NULL);
-//    retval->gui = retval->build_cb(retval);
-//
-///*
-// *     retval->restr = CreateRestrictionChoice(retval->form, "Source data filtering");
-// *     AddDialogFormChild(retval->form, retval->restr->frame);
-// */
-//    
-//    CreateAACDialog(retval->form, retval->frame, td_cb, retval);
-//    
-//    /* FixateDialogFormChild(retval->frame); */
-//    
-//    unset_wait_cursor();
-//
-//    return retval;
-//}
-//
-//int GetTransformDialogSettings(TransformStructure *tdialog,
-//        int *nssrc, Quark ***srcsets, Quark ***destsets)
-//{
-//    int i, nsdest;
-//    Quark *srcssd, *destssd;
-//    
-//    if (GetSingleStorageChoice(tdialog->srcdest->src->ssd_sel, &srcssd)
-//        != RETURN_SUCCESS) {
-//        errmsg("No source SSD selected");
-//	return RETURN_FAILURE;
-//    }
-//    
-//    *nssrc = GetStorageChoices(tdialog->srcdest->src->set_sel, srcsets);
-//    if (*nssrc == 0) {
-//        errmsg("No source sets selected");
-//	return RETURN_FAILURE;
-//    }    
-//    
-//    nsdest = GetStorageChoices(tdialog->srcdest->dest->set_sel, destsets);
-//    if (nsdest != 0 && *nssrc != nsdest) {
-//        errmsg("Different number of source and destination sets");
-//        xfree(*srcsets);
-//        xfree(*destsets);
-//	return RETURN_FAILURE;
-//    }
-//    
-//    if (GetSingleStorageChoice(tdialog->srcdest->dest->ssd_sel, &destssd)
-//        != RETURN_SUCCESS) {
-//        destssd = gapp_ssd_new(quark_parent_get(srcssd));
-//        if (!destssd) {
-//            xfree(*srcsets);
-//            errmsg("Cannot create new SSD");
-//	    return RETURN_FAILURE;
-//        }
-//    } else {
-//        /* check for mutually exclusive selections */
-//        if (tdialog->exclusive && destssd == srcssd) {
-//            xfree(*srcsets);
-//            if (nsdest) {
-//                xfree(*destsets);
-//            }
-//            errmsg("Source and destination SSD's are the same");
-//	    return RETURN_FAILURE;
-//        }
-//    }
-//
-//    if (nsdest == 0) {
-//        ssd_set_indexed(destssd, TRUE);
-//        if (!ssd_is_indexed(destssd)) {
-//            if (!ssd_add_col(destssd, FFORMAT_NUMBER)) {
-//	        return RETURN_FAILURE;
-//            }
-//        }
-//        
-//        *destsets = xmalloc((*nssrc)*sizeof(Quark *));
-//        for (i = 0; i < *nssrc; i++) {
-//            if (ssd_add_col(destssd, FFORMAT_NUMBER)) {
-//                Dataset *dsp;
-//                (*destsets)[i] = gapp_set_new(destssd);
-//                dsp = set_get_dataset((*destsets)[i]);
-//                dsp->cols[0] = 0;
-//                dsp->cols[1] = ssd_get_ncols(destssd) - 1;
-//            }
-//        }
-//        
-//        update_ssd_selectors(gproject_get_top(gapp->gp));
-//        
-//        SelectStorageChoice(tdialog->srcdest->dest->ssd_sel, destssd);
-//        SelectStorageChoices(tdialog->srcdest->dest->set_sel, *nssrc, *destsets);
-//    }
-//    
-//    return RETURN_SUCCESS;
-//}
-//
-//void RaiseTransformationDialog(TransformStructure *tdialog)
-//{
-//    RaiseWindow(GetParent(tdialog->form));
-//}
-//
+int td_cb(void *data)
+{
+    int res, i, nssrc, error;
+    Quark **srcsets, **destsets;
+    TransformStructure *tdialog = (TransformStructure *) data;
+    void *tddata;
+
+    res = GetTransformDialogSettings(tdialog, &nssrc, &srcsets, &destsets);
+
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+
+    error = FALSE;
+
+    tddata = tdialog->get_cb(tdialog->gui);
+    if (!tddata) {
+        error = TRUE;
+    }
+
+    if (!error) {
+        for (i = 0; i < nssrc; i++) {
+            Quark *psrc, *pdest;
+            psrc  = srcsets[i];
+            pdest = destsets[i];
+
+            res = tdialog->run_cb(psrc, pdest, tddata);
+            if (res != RETURN_SUCCESS) {
+                error = TRUE;
+                break;
+            }
+        }
+    }
+
+    if (nssrc > 0) {
+        xfree(srcsets);
+        xfree(destsets);
+    }
+
+    if (tddata) {
+        tdialog->free_cb(tddata);
+    }
+
+    snapshot_and_update(gapp->gp, TRUE);
+
+    if (error == FALSE) {
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+
+TransformStructure *CreateTransformDialogForm(Widget parent,
+    const char *s, int sel_type, int exclusive, const TD_CBProcs *cbs)
+{
+    TransformStructure *retval;
+
+    set_wait_cursor();
+
+    retval = (TransformStructure *) xmalloc(sizeof(TransformStructure));
+    memset(retval, 0, sizeof(TransformStructure));
+
+    retval->exclusive = exclusive;
+
+    retval->build_cb = cbs->build_cb;
+    retval->get_cb   = cbs->get_cb;
+    retval->run_cb   = cbs->run_cb;
+    retval->free_cb  = cbs->free_cb;
+
+    retval->form = CreateDialogForm(parent, s);
+
+    retval->menubar = CreateMenuBar(retval->form);
+    AddDialogFormChild(retval->form, retval->menubar);
+
+    retval->srcdest = CreateSrcDestSelector(retval->form, sel_type);
+    AddDialogFormChild(retval->form, retval->srcdest->form);
+
+    retval->frame = CreateFrame(retval->form, NULL);
+    retval->gui = retval->build_cb(retval);
+
+/*
+ *     retval->restr = CreateRestrictionChoice(retval->form, "Source data filtering");
+ *     AddDialogFormChild(retval->form, retval->restr->frame);
+ */
+
+    CreateAACDialog(retval->form, retval->frame, td_cb, retval);
+
+    /* FixateDialogFormChild(retval->frame); */
+
+    unset_wait_cursor();
+
+    return retval;
+}
+
+int GetTransformDialogSettings(TransformStructure *tdialog,
+        int *nssrc, Quark ***srcsets, Quark ***destsets)
+{
+    int i, nsdest;
+    Quark *srcssd, *destssd;
+
+    if (GetSingleStorageChoice(tdialog->srcdest->src->ssd_sel, &srcssd)
+        != RETURN_SUCCESS) {
+        errmsg("No source SSD selected");
+        return RETURN_FAILURE;
+    }
+
+    *nssrc = GetStorageChoices(tdialog->srcdest->src->set_sel, srcsets);
+    if (*nssrc == 0) {
+        errmsg("No source sets selected");
+        return RETURN_FAILURE;
+    }
+
+    nsdest = GetStorageChoices(tdialog->srcdest->dest->set_sel, destsets);
+    if (nsdest != 0 && *nssrc != nsdest) {
+        errmsg("Different number of source and destination sets");
+        xfree(*srcsets);
+        xfree(*destsets);
+        return RETURN_FAILURE;
+    }
+
+    if (GetSingleStorageChoice(tdialog->srcdest->dest->ssd_sel, &destssd)
+        != RETURN_SUCCESS) {
+        destssd = gapp_ssd_new(quark_parent_get(srcssd));
+        if (!destssd) {
+            xfree(*srcsets);
+            errmsg("Cannot create new SSD");
+            return RETURN_FAILURE;
+        }
+    } else {
+        /* check for mutually exclusive selections */
+        if (tdialog->exclusive && destssd == srcssd) {
+            xfree(*srcsets);
+            if (nsdest) {
+                xfree(*destsets);
+            }
+            errmsg("Source and destination SSD's are the same");
+            return RETURN_FAILURE;
+        }
+    }
+
+    if (nsdest == 0) {
+        ssd_set_indexed(destssd, TRUE);
+        if (!ssd_is_indexed(destssd)) {
+            if (!ssd_add_col(destssd, FFORMAT_NUMBER)) {
+                return RETURN_FAILURE;
+            }
+        }
+
+        *destsets = (Quark **) xmalloc((*nssrc)*sizeof(Quark *));
+        for (i = 0; i < *nssrc; i++) {
+            if (ssd_add_col(destssd, FFORMAT_NUMBER)) {
+                Dataset *dsp;
+                (*destsets)[i] = gapp_set_new(destssd);
+                dsp = set_get_dataset((*destsets)[i]);
+                dsp->cols[0] = 0;
+                dsp->cols[1] = ssd_get_ncols(destssd) - 1;
+            }
+        }
+
+        update_ssd_selectors(gproject_get_top(gapp->gp));
+
+        SelectStorageChoice(tdialog->srcdest->dest->ssd_sel, destssd);
+        SelectStorageChoices(tdialog->srcdest->dest->set_sel, *nssrc, *destsets);
+    }
+
+    return RETURN_SUCCESS;
+}
+
+void RaiseTransformationDialog(TransformStructure *tdialog)
+{
+    RaiseWindow(GetParent(tdialog->form));
+}
+
 //Widget CreateVContainer(Widget parent)
 //{
 //    Widget rc;
@@ -7770,19 +7823,19 @@ int xv_evalexpr(Widget w, double *answer)
 ///*
 // * xv_evalexpri - as xv_evalexpr, but for integers
 // */
-//int xv_evalexpri(Widget w, int *answer)
-//{
-//    int retval;
-//    double buf;
-//    
-//    retval = xv_evalexpr(w, &buf);
-//    
-//    *answer = rint(buf);
-//    
-//    return retval;
-//}
-//
-//
+int xv_evalexpri(Widget w, int *answer)
+{
+    int retval;
+    double buf;
+
+    retval = xv_evalexpr(w, &buf);
+
+    *answer = rint(buf);
+
+    return retval;
+}
+
+
 //void xv_setstr(Widget w, char *s)
 //{
 //    if (w != NULL) {
