@@ -3696,9 +3696,8 @@ TextStructure *CreateTextInput(Widget parent, char *s)
 
     retval = (TextStructure*) xmalloc(sizeof(TextStructure));
 
-    retval->form = parent;
-
     QWidget *widget = new QWidget(parent);
+    retval->form = widget;
 
     QLabel *label = new QLabel(widget);
     label->setText(s);
