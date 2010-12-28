@@ -38,6 +38,7 @@ GUIISRCS = guiactions.c events.c guiutils.c \
            miscwin.c \
            monwin.c \
 	   compwin.c \
+           helpwin.c \
            worldwin.c
 
 GUIIOBJS = guiactions$(O) events$(O) guiutils$(O) \
@@ -50,6 +51,7 @@ GUIIOBJS = guiactions$(O) events$(O) guiutils$(O) \
            miscwin$(O) \
            monwin$(O) \
 	   compwin$(O) \
+           helpwin$(O) \
            worldwin$(O) 
 
 # The following are for a GUI
@@ -58,11 +60,9 @@ GUIIOBJS = guiactions$(O) events$(O) guiutils$(O) \
 #
 
 GUISRCS = Tab.c ListTree.c motifutils.c \
-	helpwin.c \
-	setwin.c \
+        setwin.c \
 	fontwin.c xutil.c x11drv.c xmgrace.c
 
 GUIOBJS = Tab$(O) ListTree$(O) motifutils$(O) \
-	helpwin$(O) \
-	setwin$(O) \
+        setwin$(O) \
 	fontwin$(O) xutil$(O) x11drv$(O) xmgrace$(O)

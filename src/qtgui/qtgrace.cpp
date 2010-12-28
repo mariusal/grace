@@ -599,16 +599,6 @@ void create_datasetop_popup(Widget but, void *data)
 }
 
 
-// TODO: src/helpwin.c
-void HelpCB(Widget w, void *data)
-{
-    qDebug("HelpCB");
-}
-
-void create_about_grtool(Widget but, void *data)
-{
-}
-
 void set_view_items(void)
 {
     MainWinUI *mwui = gapp->gui->mwui;
@@ -4532,7 +4522,32 @@ Widget CreateLabel(Widget parent, char *s)
 //        XmNalignment, xm_alignment,
 //        NULL);
 //}
-//
+void AlignLabel(Widget w, int alignment)
+{
+    unsigned int xm_alignment;
+
+    switch(alignment) {
+    case ALIGN_BEGINNING:
+        xm_alignment = Qt::AlignLeft;
+        break;
+    case ALIGN_CENTER:
+        xm_alignment = Qt::AlignHCenter;
+        break;
+    case ALIGN_END:
+        xm_alignment = Qt::AlignRight;
+        break;
+    default:
+        errmsg("Internal error in AlignLabel()");
+        return;
+        break;
+    }
+
+    QLayout *layout = w->parentWidget()->layout();
+    if (layout != 0) {
+        layout->setAlignment(w, (Qt::Alignment) xm_alignment);
+    }
+}
+
 static OptionItem *settype_option_items;
 static OptionItem *fmt_option_items;
 static OptionItem *frametype_option_items;
