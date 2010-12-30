@@ -439,7 +439,6 @@ void update_set_ui(SetUI *ui, Quark *q)
         int blocklen, blockncols;
         OptionItem *blockitems, *sblockitems;
         unsigned int nncols;
-        int character;
 
         SetOptionChoice(ui->type, p->type);
 
@@ -494,11 +493,7 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetSpinChoice(ui->symskip, p->symskip);
         SetSpinChoice(ui->symskipmindist, p->symskipmindist);
         UpdateCharOptionChoice(ui->symchar, p->sym.charfont);
-        character = (int) p->sym.symchar;
-        if (character < 0) {
-            character = character + 256;
-        }
-        SetOptionChoice(ui->symchar, character);
+        SetOptionChoice(ui->symchar, (unsigned char) p->sym.symchar);
         SetOptionChoice(ui->symbols, p->sym.type);
         
         SetPenChoice(ui->sympen, &p->sym.line.pen);
