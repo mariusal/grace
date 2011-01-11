@@ -34,11 +34,6 @@
 #include "xprotos.h"
 #include "globals.h"
 
-#ifndef QT_GUI
-#include <Xbae/Matrix.h>
-#include <Xm/RowColumn.h>
-#endif
-
 /* default cell value precision */
 #define CELL_PREC 8
 
@@ -346,13 +341,6 @@ static void col_cb(ListStructure *sel, int n, int *values, void *data)
     }
 }
 
-static char tfield_translations[] = "#override\n\
-<Key>osfCancel                : CancelEdit(True)\n\
-<Key>osfActivate              : EditCell(Down)\n\
-<Key>osfUp                    : EditCell(Up)\n\
-<Key>osfDown                  : EditCell(Down)\n\
-~Shift ~Meta ~Alt <Key>Return : EditCell(Down)";
-
 SSDataUI *create_ssd_ui(ExplorerUI *eui)
 {
     SSDataUI *ui;
@@ -362,7 +350,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     char *rowlabels[EXTRA_SS_ROWS];
     char *collabels[EXTRA_SS_COLS];
     unsigned char clab_alignments[EXTRA_SS_COLS];
-    Widget tab, fr, rc, rc1, wbut, tfield;
+    Widget tab, fr, rc, rc1, wbut;
     
     ui = xmalloc(sizeof(SSDataUI));
     if (!ui) {
@@ -387,45 +375,17 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     }
     for (i = 0; i < EXTRA_SS_COLS; i++) {
         collabels[i] = "";
-#ifndef QT_GUI
-        clab_alignments[i] = XmALIGNMENT_CENTER;
-#endif
+        clab_alignments[i] = ALIGN_CENTER;
     }
     for (i = 0; i < EXTRA_SS_COLS; i++) {
         widths[i] = CELL_WIDTH;
     }
 
-#ifndef QT_GUI
-    ui->mw = XtVaCreateManagedWidget("SSD",
-        xbaeMatrixWidgetClass, ui->main_tp,
-#if 0
-        XmNhorizontalScrollBarDisplayPolicy, XmDISPLAY_NONE,
-        XmNverticalScrollBarDisplayPolicy, XmDISPLAY_NONE,
-#endif
-        XmNrows, EXTRA_SS_ROWS,
-        XmNvisibleRows, VISIBLE_SS_ROWS,
-        XmNbuttonLabels, True,
-        XmNrowLabels, rowlabels,
-        XmNcolumns, EXTRA_SS_COLS,
-        XmNvisibleColumns, VISIBLE_SS_COLS,
-        XmNcolumnLabels, collabels,
-        XmNcolumnLabelAlignments, clab_alignments,
-        XmNcolumnWidths, widths,
-        XmNallowColumnResize, True,
-        XmNgridType, XmGRID_CELL_SHADOW,
-        XmNcellShadowType, XmSHADOW_ETCHED_OUT,
-        XmNcellShadowThickness, 1,
-        XmNcellMarginHeight, 1,
-        XmNcellMarginWidth, 1,
-        XmNshadowThickness, 1,
-        XmNaltRowCount, 0,
-        XmNcalcCursorPosition, True,
-        XmNtraverseFixedCells, True,
-        NULL);
+    ui->mw = CreateTable(ui->main_tp,
+                         EXTRA_SS_ROWS, EXTRA_SS_COLS,
+                         VISIBLE_SS_ROWS, VISIBLE_SS_COLS,
+                         rowlabels, collabels, widths, clab_alignments);
 
-    tfield = XtNameToWidget(ui->mw, "textField");
-    XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
-#endif
     for (i = 0; i < EXTRA_SS_ROWS; i++) {
         xfree(rowlabels[i]);
     }
@@ -483,9 +443,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         int cur_row, cur_col, format;
         
         if (ui->q != q) {
-#ifndef QT_GUI
-            XbaeMatrixDeselectAll(ui->mw);
-#endif
+            table_deselect_all_cells(ui->mw);
         }
         
         ui->q = q;
@@ -502,9 +460,8 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             nfixed_cols = 0;
         }
 
-#ifndef QT_GUI
-        XtVaGetValues(ui->mw, XmNrows, &nr, XmNcolumns, &nc, NULL);
-#endif
+        nr = table_get_rowcount(ui->mw);
+        nc = table_get_colcount(ui->mw);
 
         delta_nr = new_nr - nr;
         delta_nc = new_nc - nc;
@@ -516,17 +473,14 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
                 sprintf(buf, "%d", nr + i + 1);
                 rowlabels[i] = copy_string(NULL, buf);
             }
-#ifndef QT_GUI
-            XbaeMatrixAddRows(ui->mw, nr, NULL, rowlabels, NULL, delta_nr);
-#endif
+            table_add_rows(ui->mw, nr, rowlabels, delta_nr);
+
             for (i = 0; i < delta_nr; i++) {
                 xfree(rowlabels[i]);
             }
             xfree(rowlabels);
         } else if (delta_nr < 0) {
-#ifndef QT_GUI
-            XbaeMatrixDeleteRows(ui->mw, new_nr, -delta_nr);
-#endif
+            table_delete_rows(ui->mw, new_nr, -delta_nr);
         }
 
 
@@ -559,20 +513,18 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
                 
                 collabels[i] = copy_string(NULL, buf);
             }
-#ifndef QT_GUI
-            clab_alignments[i] = XmALIGNMENT_CENTER;
-#endif
+            clab_alignments[i] = ALIGN_CENTER;
         }
 
-#ifndef QT_GUI
         if (delta_nc > 0) {
-            XbaeMatrixAddColumns(ui->mw, nc, NULL, NULL, widths, maxlengths, 
-                NULL, NULL, NULL, delta_nc);
+            table_add_cols(ui->mw, nc, widths, maxlengths, delta_nc);
         } else if (delta_nc < 0) {
+            #ifndef QT_GUI
             XbaeMatrixDeleteColumns(ui->mw, new_nc, -delta_nc);
+            #endif
         }
 
-
+#ifndef QT_GUI
         XtVaSetValues(ui->mw,
             XmNrowLabelWidth, 0, /* -> autoadjust row label widths */
             XmNcolumnMaxLengths, maxlengths,
@@ -584,7 +536,8 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         if (delta_nc != 0) {
             XtVaSetValues(ui->mw, XmNcolumnWidths, widths, NULL);
         }
-
+#endif /* QT_GUI */
+#ifndef QT_GUI
 #if XbaeVersion < 45102
         /* A bug in Xbae - the cell with focus on is NOT updated, so we do it */
         /* Fixed in 4.51.02 */

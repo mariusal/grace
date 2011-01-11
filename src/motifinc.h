@@ -651,4 +651,14 @@ void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer)
                                   ExplorerUI *eui);
 void ListTreeSetItemOpen(ListTreeItem *item, Boolean open);
 
+/* Table Widget */
+Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible,
+                   char **row_labels, char **col_labels, short *col_widths, int *col_label_align);
+void table_deselect_all_cells(Widget w);
+int table_get_rowcount(Widget w);
+int table_get_colcount(Widget w);
+void table_add_rows(Widget w, int position, char **labels, int rowcount);
+void table_delete_rows(Widget w, int position, int rowcount);
+void table_add_cols(Widget w, int position, short *col_widths, int *maxlengths, int colcount);
+
 #endif /* __MOTIFINC_H_ */

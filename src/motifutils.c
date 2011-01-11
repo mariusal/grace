@@ -69,6 +69,8 @@
 #include <Xm/ToggleB.h>
 #include <Xm/ArrowBG.h>
 
+#include <Xbae/Matrix.h>
+
 #ifdef WITH_EDITRES
 #  include <X11/Xmu/Editres.h>
 #endif
@@ -5013,6 +5015,7 @@ void set_title(char *title, char *icon_name)
     XtVaSetValues(app_shell, XtNtitle, title, XtNiconName, icon_name, NULL);
 }
 
+/* explorer.c */
 void explorer_menu_cb(Widget w, XtPointer client, XtPointer call)
 {
     ListTreeItemReturnStruct *ret = (ListTreeItemReturnStruct *) call;
@@ -5038,4 +5041,88 @@ void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer)
 void ListTreeSetItemOpen(ListTreeItem *item, Boolean open)
 {
     item->open = open;
+}
+
+/* Tabel Widget */
+static char tfield_translations[] = "#override\n\
+<Key>osfCancel                : CancelEdit(True)\n\
+<Key>osfActivate              : EditCell(Down)\n\
+<Key>osfUp                    : EditCell(Up)\n\
+<Key>osfDown                  : EditCell(Down)\n\
+~Shift ~Meta ~Alt <Key>Return : EditCell(Down)";
+
+Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible,
+                   char **row_labels, char **col_labels, short *col_widths, int *col_label_align)
+{
+    Widget w, tfield;
+
+    w = XtVaCreateManagedWidget("SSD",
+        xbaeMatrixWidgetClass, parent,
+#if 0
+        XmNhorizontalScrollBarDisplayPolicy, XmDISPLAY_NONE,
+        XmNverticalScrollBarDisplayPolicy, XmDISPLAY_NONE,
+#endif
+        XmNrows, nrows,
+        XmNvisibleRows, nrows_visible,
+        XmNbuttonLabels, True,
+        XmNrowLabels, row_labels,
+        XmNcolumns, ncols,
+        XmNvisibleColumns, ncols_visible,
+        XmNcolumnLabels, col_labels,
+        XmNcolumnLabelAlignments, col_label_align,
+        XmNcolumnWidths, col_widths,
+        XmNallowColumnResize, True,
+        XmNgridType, XmGRID_CELL_SHADOW,
+        XmNcellShadowType, XmSHADOW_ETCHED_OUT,
+        XmNcellShadowThickness, 1,
+        XmNcellMarginHeight, 1,
+        XmNcellMarginWidth, 1,
+        XmNshadowThickness, 1,
+        XmNaltRowCount, 0,
+        XmNcalcCursorPosition, True,
+        XmNtraverseFixedCells, True,
+        NULL);
+
+    tfield = XtNameToWidget(w, "textField");
+    XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
+
+    return w;
+}
+
+void table_deselect_all_cells(Widget w)
+{
+    XbaeMatrixDeselectAll(w);
+}
+
+int table_get_rowcount(Widget w)
+{
+    int nr;
+
+    XtVaGetValues(w, XmNrows, &nr, NULL);
+
+    return nr;
+}
+
+int table_get_colcount(Widget w)
+{
+    int nc;
+
+    XtVaGetValues(w, XmNcolumns, &nc, NULL);
+
+    return nc;
+}
+
+void table_add_rows(Widget w, int position, char **labels, int rowcount)
+{
+    XbaeMatrixAddRows(w, position, NULL, labels, NULL, rowcount);
+}
+
+void table_delete_rows(Widget w, int position, int rowcount)
+{
+    XbaeMatrixDeleteRows(w, position, rowcount);
+}
+
+void table_add_cols(Widget w, int position, short *col_widths, int *maxlengths, int colcount)
+{
+    XbaeMatrixAddColumns(w, position, NULL, NULL, col_widths, maxlengths, NULL, NULL, NULL, colcount);
 }

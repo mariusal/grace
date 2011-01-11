@@ -8768,3 +8768,118 @@ void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer)
     QtAddCallback(eui->tree, SIGNAL(itemSelectionChanged()),
                   callback, (XtPointer) eui);
 }
+
+/* Table Widget */
+Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible,
+                   char **row_labels, char **col_labels, short *col_widths, int *col_label_align)
+{
+    QTableWidget *tableWidget = new QTableWidget(nrows, ncols, parent);
+
+    for (int i = 0; i < nrows; i++) {
+        QTableWidgetItem *item = new QTableWidgetItem(row_labels[i]);
+        tableWidget->setVerticalHeaderItem(i, item);
+    }
+
+    QHeaderView *hHeader = tableWidget->horizontalHeader();
+    QHeaderView *vHeader = tableWidget->verticalHeader();
+
+    hHeader->setResizeMode(QHeaderView::Fixed);
+
+    QFontMetrics f = tableWidget->fontMetrics();
+    int fontWidth = f.leftBearing('0') + f.width('0') + f.rightBearing('0');
+    for (int i = 0; i < ncols; i++) {
+        hHeader->resizeSection(i, fontWidth * col_widths[i]);
+        QTableWidgetItem *item = new QTableWidgetItem(col_labels[i]);
+
+        switch (col_label_align[i]) {
+        case ALIGN_BEGINNING:
+            item->setTextAlignment(Qt::AlignLeft);
+            break;
+        case ALIGN_CENTER:
+            item->setTextAlignment(Qt::AlignHCenter);
+            break;
+        case ALIGN_END:
+            item->setTextAlignment(Qt::AlignRight);
+            break;
+        }
+
+        tableWidget->setHorizontalHeaderItem(i, item);
+    }
+
+//    tableWidget->setFixedHeight(vHeader->length() + vHeader->offset());
+//    tableWidget->setFixedWidth(hHeader->length() + vHeader->offset());
+
+    tableWidget->setFixedHeight(1000);
+    tableWidget->setFixedWidth(100);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(tableWidget);
+    }
+
+    return tableWidget;
+}
+
+void table_deselect_all_cells(Widget w)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    tableWidget->clearSelection();
+}
+
+int table_get_rowcount(Widget w)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+    int nr;
+
+    tableWidget->rowCount();
+
+    return nr;
+}
+
+int table_get_colcount(Widget w)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+    int nc;
+
+    nc = tableWidget->columnCount();
+
+    return nc;
+}
+
+void table_add_rows(Widget w, int position, char **labels, int rowcount)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    for (int i = 0; i < rowcount; i++) {
+        tableWidget->insertRow(position + i);
+
+        QTableWidgetItem *item = new QTableWidgetItem(labels[i]);
+        tableWidget->setVerticalHeaderItem(position + i, item);
+    }
+}
+
+void table_delete_rows(Widget w, int position, int rowcount)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    tableWidget->setRowCount(position);
+}
+
+void table_add_cols(Widget w, int position, short *col_widths, int *maxlengths, int colcount)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    QHeaderView *hHeader = tableWidget->horizontalHeader();
+
+    QFontMetrics f = tableWidget->fontMetrics();
+    int fontWidth = f.leftBearing('0') + f.width('0') + f.rightBearing('0');
+
+    for (int i = 0; i < colcount; i++) {
+        tableWidget->insertColumn(position + i);
+        hHeader->resizeSection(position + i, fontWidth * col_widths[i]);
+
+        QTableWidgetItem *item = new QTableWidgetItem;
+        tableWidget->setHorizontalHeaderItem(position + i, item);
+    }
+}
