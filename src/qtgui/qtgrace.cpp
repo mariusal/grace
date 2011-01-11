@@ -1469,12 +1469,16 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
     }
 
     tableView->resizeColumnsToContents();
+    int max = 0;
+    for (int i = 0; i < nchoices; i++) {
+       int size = tableView->horizontalHeader()->sectionSize(i);
+       if (size > max) max = size;
+}
+    tableView->horizontalHeader()->setDefaultSectionSize(max);
+    tableView->horizontalHeader()->resizeSections(QHeaderView::Fixed);
     tableView->resizeRowsToContents();
-
-    tableView->setMinimumWidth(tableView->columnViewportPosition(ncols - 1) +
-                               tableView->columnWidth(ncols - 1));
-    tableView->setMinimumHeight(tableView->rowViewportPosition(nrows - 1) +
-                                tableView->rowHeight(nrows - 1));
+    tableView->setFixedWidth(tableView->horizontalHeader()->length());
+    tableView->setFixedHeight(tableView->verticalHeader()->length());
 }
 
 void UpdateBitmapOptionChoice(OptionStructure *optp, int nchoices,
@@ -1525,9 +1529,9 @@ void UpdateBitmapOptionChoice(OptionStructure *optp, int nchoices,
     tableView->resizeColumnsToContents();
     tableView->resizeRowsToContents();
 
-    tableView->setMinimumWidth(tableView->columnViewportPosition(ncols - 1) +
+    tableView->setFixedWidth(tableView->columnViewportPosition(ncols - 1) +
                                tableView->columnWidth(ncols - 1));
-    tableView->setMinimumHeight(tableView->rowViewportPosition(nrows - 1) +
+    tableView->setFixedHeight(tableView->rowViewportPosition(nrows - 1) +
                                 tableView->rowHeight(nrows - 1));
 }
 //OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
@@ -5293,16 +5297,17 @@ void update_color_choice_popup(void)
             }
         }
 
-        //TODO: resize to biggest item
-//        tableWidget->horizontalHeader()->setDefaultSectionSize();
-//        tableWidget->horizontalHeader()->sectionSize()
         tableWidget->resizeColumnsToContents();
+        int max = 0;
+        for (int i = 0; i < ncols; i++) {
+            int size = tableWidget->horizontalHeader()->sectionSize(i);
+            if (size > max) max = size;
+        }
+        tableWidget->horizontalHeader()->setDefaultSectionSize(max);
+        tableWidget->horizontalHeader()->resizeSections(QHeaderView::Fixed);
         tableWidget->resizeRowsToContents();
-
-        tableWidget->setMaximumWidth(tableWidget->columnViewportPosition(ncols - 1) +
-                                     tableWidget->columnWidth(ncols - 1));
-        tableWidget->setMaximumHeight(tableWidget->rowViewportPosition(nrows - 1) +
-                                      tableWidget->rowHeight(nrows - 1));
+        tableWidget->setFixedWidth(tableWidget->horizontalHeader()->length());
+        tableWidget->setFixedHeight(tableWidget->verticalHeader()->length());
     }
 }
 
