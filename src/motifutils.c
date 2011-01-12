@@ -501,7 +501,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
         xstuff->root, (char *) dummy_bits, 16, 16, fg, bg, xstuff->depth);
 
     for (i = 0; i < nchoices; i++) {
-	retval->options[i].value = i;
+	retval->options[i].value = (char) i;
         retval->options[i].widget =
             XtVaCreateWidget("pixButton", xmPushButtonWidgetClass,
                              retval->pulldown,
