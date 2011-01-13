@@ -1732,7 +1732,7 @@ static unsigned char dummy_bits[] = {
 //        xstuff->root, (char *) dummy_bits, 16, 16, fg, bg, xstuff->depth);
 //
 //    for (i = 0; i < nchoices; i++) {
-//	retval->options[i].value = i;
+//	retval->options[i].value = (char) i;
 //        retval->options[i].widget =
 //            XtVaCreateWidget("pixButton", xmPushButtonWidgetClass,
 //                             retval->pulldown,
@@ -1803,12 +1803,12 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
     int nrows = (int) ceil(nchoices/ncols);
     QStandardItem *item;
     for (int i = 0; i < nchoices; i++) {
-        retval->options[i].value = i;
+        retval->options[i].value = (char) i;
         QBitmap bitmap = QBitmap::fromData(QSize(16, 16),
                                            dummy_bits, QImage::Format_MonoLSB);
         item = new QStandardItem;
         item->setIcon(QIcon(bitmap));
-        item->setData(QVariant(i));
+        item->setData(QVariant((char) i));
         model->setItem(row, col, item);
         retval->options[i].widget = (QWidget *) item;
         col++;

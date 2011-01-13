@@ -493,7 +493,7 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetSpinChoice(ui->symskip, p->symskip);
         SetSpinChoice(ui->symskipmindist, p->symskipmindist);
         UpdateCharOptionChoice(ui->symchar, p->sym.charfont);
-        SetOptionChoice(ui->symchar, (unsigned char) p->sym.symchar);
+        SetOptionChoice(ui->symchar, p->sym.symchar);
         SetOptionChoice(ui->symbols, p->sym.type);
         
         SetPenChoice(ui->sympen, &p->sym.line.pen);
