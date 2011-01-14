@@ -8895,3 +8895,10 @@ void table_add_cols(Widget w, int position, short *col_widths, int *maxlengths, 
         tableWidget->setHorizontalHeaderItem(position + i, item);
     }
 }
+
+void table_set_cell_content(Widget w, int row, int col, char *content)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    tableWidget->setItem(row, col, new QTableWidgetItem(content));
+}

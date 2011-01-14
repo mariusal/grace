@@ -126,17 +126,6 @@ static char *get_cell_content(SSDataUI *ui, int row, int column, int *format)
 }
 
 #ifndef QT_GUI
-static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    SSDataUI *ui = (SSDataUI *) client_data;
-    XbaeMatrixDrawCellCallbackStruct *cs =
-        (XbaeMatrixDrawCellCallbackStruct *) call_data;
-    int format;
-    
-    cs->type = XbaeString;
-    cs->string = get_cell_content(ui, cs->row, cs->column, &format);
-}
-
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     SSDataUI *ui = (SSDataUI *) client_data;
@@ -390,8 +379,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
         xfree(rowlabels[i]);
     }
 
-#ifndef QT_GUI
-    XtAddCallback(ui->mw, XmNdrawCellCallback, drawcellCB, ui); 
+#ifndef QT_GUI 
     XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
     XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
     XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
@@ -537,15 +525,12 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             XtVaSetValues(ui->mw, XmNcolumnWidths, widths, NULL);
         }
 #endif /* QT_GUI */
-#ifndef QT_GUI
-#if XbaeVersion < 45102
-        /* A bug in Xbae - the cell with focus on is NOT updated, so we do it */
-        /* Fixed in 4.51.02 */
-        XbaeMatrixGetCurrentCell(ui->mw, &cur_row, &cur_col);
-        XbaeMatrixSetCell(ui->mw, cur_row, cur_col,
-            get_cell_content(ui, cur_row, cur_col, &format));
-#endif
-#endif /* QT_GUI */
+        for (cur_col = 0; cur_col < ncols; cur_col++) {
+            for (cur_row = 0; cur_row < nrows; cur_row++) {
+                table_set_cell_content(ui->mw, cur_row, cur_col,
+                                       get_cell_content(ui, cur_row, cur_col, &format));
+            }
+        }
 
         xfree(widths);
         xfree(maxlengths);

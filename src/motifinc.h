@@ -660,5 +660,6 @@ int table_get_colcount(Widget w);
 void table_add_rows(Widget w, int position, char **labels, int rowcount);
 void table_delete_rows(Widget w, int position, int rowcount);
 void table_add_cols(Widget w, int position, short *col_widths, int *maxlengths, int colcount);
+void table_set_cell_content(Widget w, int row, int col, char *content);
 
 #endif /* __MOTIFINC_H_ */
