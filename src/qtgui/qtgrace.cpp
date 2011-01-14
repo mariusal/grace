@@ -61,6 +61,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QTreeWidget>
+#include <QScrollBar>
 #include <QTableWidget>
 #include <QStandardItemModel>
 #include <QTableView>
@@ -8811,11 +8812,17 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
         tableWidget->setHorizontalHeaderItem(i, item);
     }
 
-//    tableWidget->setFixedHeight(vHeader->length() + vHeader->offset());
-//    tableWidget->setFixedWidth(hHeader->length() + vHeader->offset());
+    tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    tableWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
-    tableWidget->setFixedHeight(1000);
-    tableWidget->setFixedWidth(100);
+    tableWidget->setFixedHeight(tableWidget->rowHeight(0) * nrows_visible + hHeader->height() +
+                                tableWidget->contentsMargins().top() +
+                                tableWidget->contentsMargins().bottom() +
+                                tableWidget->horizontalScrollBar()->sizeHint().height());
+    tableWidget->setFixedWidth(tableWidget->columnWidth(0) * ncols_visible + vHeader->width() +
+                               tableWidget->contentsMargins().left() +
+                               tableWidget->contentsMargins().right() +
+                               tableWidget->verticalScrollBar()->sizeHint().width());
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
