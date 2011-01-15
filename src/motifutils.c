@@ -5127,6 +5127,11 @@ void table_add_cols(Widget w, int position, short *col_widths, int *maxlengths, 
     XbaeMatrixAddColumns(w, position, NULL, NULL, col_widths, maxlengths, NULL, NULL, NULL, colcount);
 }
 
+void table_delete_cols(Widget w, int position, int colcount)
+{
+    XbaeMatrixDeleteColumns(w, position, colcount);
+}
+
 void table_set_cell_content(Widget w, int row, int col, char *content)
 {
     XbaeMatrixSetCell(w, row, col, content);

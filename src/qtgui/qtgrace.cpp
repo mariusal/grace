@@ -8875,7 +8875,7 @@ void table_delete_rows(Widget w, int position, int rowcount)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
 
-    tableWidget->setRowCount(position);
+    tableWidget->model()->removeRows(position, rowcount);
 }
 
 void table_add_cols(Widget w, int position, short *col_widths, int *maxlengths, int colcount)
@@ -8894,6 +8894,13 @@ void table_add_cols(Widget w, int position, short *col_widths, int *maxlengths, 
         QTableWidgetItem *item = new QTableWidgetItem;
         tableWidget->setHorizontalHeaderItem(position + i, item);
     }
+}
+
+void table_delete_cols(Widget w, int position, int colcount)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    tableWidget->model()->removeColumns(position, colcount);
 }
 
 void table_set_cell_content(Widget w, int row, int col, char *content)

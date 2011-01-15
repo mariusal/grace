@@ -507,9 +507,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         if (delta_nc > 0) {
             table_add_cols(ui->mw, nc, widths, maxlengths, delta_nc);
         } else if (delta_nc < 0) {
-            #ifndef QT_GUI
-            XbaeMatrixDeleteColumns(ui->mw, new_nc, -delta_nc);
-            #endif
+            table_delete_cols(ui->mw, new_nc, -delta_nc);
         }
 
 #ifndef QT_GUI
