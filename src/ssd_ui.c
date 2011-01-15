@@ -523,8 +523,8 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             XtVaSetValues(ui->mw, XmNcolumnWidths, widths, NULL);
         }
 #endif /* QT_GUI */
-        for (cur_col = 0; cur_col < ncols; cur_col++) {
-            for (cur_row = 0; cur_row < nrows; cur_row++) {
+        for (cur_col = 0; cur_col < new_nc; cur_col++) {
+            for (cur_row = 0; cur_row < new_nr; cur_row++) {
                 table_set_cell_content(ui->mw, cur_row, cur_col,
                                        get_cell_content(ui, cur_row, cur_col, &format));
             }
