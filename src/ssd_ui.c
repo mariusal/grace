@@ -427,7 +427,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         short *widths;
         int *maxlengths;
         char **collabels;
-        unsigned char *clab_alignments;
+        int *clab_alignments;
         int cur_row, cur_col, format;
         
         if (ui->q != q) {
@@ -475,7 +475,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         widths = xmalloc(new_nc*SIZEOF_SHORT);
         maxlengths = xmalloc(new_nc*SIZEOF_INT);
         collabels = xmalloc(new_nc*sizeof(char *));
-        clab_alignments = xmalloc(new_nc);
+        clab_alignments = xmalloc(new_nc*SIZEOF_INT);
 
 
         for (i = 0; i < new_nc; i++) {
@@ -510,19 +510,16 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             table_delete_cols(ui->mw, new_nc, -delta_nc);
         }
 
-#ifndef QT_GUI
-        XtVaSetValues(ui->mw,
-            XmNrowLabelWidth, 0, /* -> autoadjust row label widths */
-            XmNcolumnMaxLengths, maxlengths,
-            XmNcolumnLabels, collabels,
-            XmNcolumnLabelAlignments, clab_alignments,
-            XmNfixedColumns, nfixed_cols,
-            NULL);
+        table_set_row_label_widths(ui->mw, 0);
+        table_set_col_maxlengths(ui->mw, maxlengths);
+        table_set_col_labels(ui->mw, collabels);
+        table_set_col_label_align(ui->mw, clab_alignments);
+        table_show_row_label(ui->mw, nfixed_cols);
 
         if (delta_nc != 0) {
-            XtVaSetValues(ui->mw, XmNcolumnWidths, widths, NULL);
+            table_set_col_widths(ui->mw, widths);
         }
-#endif /* QT_GUI */
+
         for (cur_col = 0; cur_col < new_nc; cur_col++) {
             for (cur_row = 0; cur_row < new_nr; cur_row++) {
                 table_set_cell_content(ui->mw, cur_row, cur_col,

@@ -663,4 +663,11 @@ void table_add_cols(Widget w, int position, short *col_widths, int *maxlengths, 
 void table_delete_cols(Widget w, int position, int colcount);
 void table_set_cell_content(Widget w, int row, int col, char *content);
 
+void table_set_row_label_widths(Widget w, int width);
+void table_set_col_maxlengths(Widget w, int *maxlengths);
+void table_set_col_labels(Widget w, char **col_labels);
+void table_set_col_label_align(Widget w, int *col_label_align);
+void table_show_row_label(Widget w, int show);
+void table_set_col_widths(Widget w, short *widths);
+
 #endif /* __MOTIFINC_H_ */
