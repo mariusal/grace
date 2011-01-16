@@ -5139,29 +5139,29 @@ void table_set_cell_content(Widget w, int row, int col, char *content)
 
 void table_set_row_label_widths(Widget w, int width)
 {
-    XtVaSetValues(Widget w, XmNrowLabelWidth, width, NULL);
+    XtVaSetValues(w, XmNrowLabelWidth, width, NULL);
 }
 
 void table_set_col_maxlengths(Widget w, int *maxlengths)
 {
-    XtVaSetValues(Widget w, XmNcolumnMaxLengths, maxlengths, NULL);
+    XtVaSetValues(w, XmNcolumnMaxLengths, maxlengths, NULL);
 }
 
 void table_set_col_labels(Widget w, char **col_labels)
 {
-    XtVaSetValues(Widget w, XmNcolumnLabels, col_labels, NULL);
+    XtVaSetValues(w, XmNcolumnLabels, col_labels, NULL);
 }
 
 void table_set_col_label_align(Widget w, int *col_label_align)
 {
     unsigned char *align;
-    int ncols;
+    int i, ncols;
 
     ncols = table_get_colcount(w);
 
     align = xmalloc(ncols);
 
-    for (int i = 0; i < ncols; i++) {
+    for (i = 0; i < ncols; i++) {
         switch (col_label_align[i]) {
         case ALIGN_BEGINNING:
             align[i] = XmALIGNMENT_BEGINNING;
@@ -5175,17 +5175,17 @@ void table_set_col_label_align(Widget w, int *col_label_align)
         }
     }
 
-    XtVaSetValues(Widget w, XmNcolumnLabelAlignments, align, NULL);
+    XtVaSetValues(w, XmNcolumnLabelAlignments, align, NULL);
 
     xfree(align);
 }
 
 void table_show_row_label(Widget w, int show)
 {
-    XtVaSetValues(Widget w, XmNfixedColumns, show, NULL);
+    XtVaSetValues(w, XmNfixedColumns, show, NULL);
 }
 
 void table_set_col_widths(Widget w, short *widths)
 {
-    XtVaSetValues(Widget w, XmNcolumnWidths, widths, NULL);
+    XtVaSetValues(w, XmNcolumnWidths, widths, NULL);
 }

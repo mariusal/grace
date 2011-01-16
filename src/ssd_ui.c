@@ -338,7 +338,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     short widths[EXTRA_SS_COLS];
     char *rowlabels[EXTRA_SS_ROWS];
     char *collabels[EXTRA_SS_COLS];
-    unsigned char clab_alignments[EXTRA_SS_COLS];
+    int clab_alignments[EXTRA_SS_COLS];
     Widget tab, fr, rc, rc1, wbut;
     
     ui = xmalloc(sizeof(SSDataUI));
