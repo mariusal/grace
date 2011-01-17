@@ -5051,8 +5051,7 @@ static char tfield_translations[] = "#override\n\
 <Key>osfDown                  : EditCell(Down)\n\
 ~Shift ~Meta ~Alt <Key>Return : EditCell(Down)";
 
-Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible,
-                   char **row_labels, char **col_labels, short *col_widths, int *col_label_align)
+Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible)
 {
     Widget w, tfield;
 
@@ -5112,22 +5111,22 @@ int table_get_colcount(Widget w)
     return nc;
 }
 
-void table_add_rows(Widget w, int position, char **labels, int rowcount)
+void table_add_rows(Widget w, int rowcount)
 {
     XbaeMatrixAddRows(w, position, NULL, labels, NULL, rowcount);
 }
 
-void table_delete_rows(Widget w, int position, int rowcount)
+void table_delete_rows(Widget w, int rowcount)
 {
     XbaeMatrixDeleteRows(w, position, rowcount);
 }
 
-void table_add_cols(Widget w, int position, short *col_widths, int *maxlengths, int colcount)
+void table_add_cols(Widget w, int colcount)
 {
     XbaeMatrixAddColumns(w, position, NULL, NULL, col_widths, maxlengths, NULL, NULL, NULL, colcount);
 }
 
-void table_delete_cols(Widget w, int position, int colcount)
+void table_delete_cols(Widget w, int colcount)
 {
     XbaeMatrixDeleteColumns(w, position, colcount);
 }
@@ -5135,11 +5134,6 @@ void table_delete_cols(Widget w, int position, int colcount)
 void table_set_cell_content(Widget w, int row, int col, char *content)
 {
     XbaeMatrixSetCell(w, row, col, content);
-}
-
-void table_set_row_label_widths(Widget w, int width)
-{
-    XtVaSetValues(w, XmNrowLabelWidth, width, NULL);
 }
 
 void table_set_col_maxlengths(Widget w, int *maxlengths)
@@ -5152,40 +5146,7 @@ void table_set_col_labels(Widget w, char **col_labels)
     XtVaSetValues(w, XmNcolumnLabels, col_labels, NULL);
 }
 
-void table_set_col_label_align(Widget w, int *col_label_align)
+void table_set_fixed_cols(Widget w, int nfixed_cols)
 {
-    unsigned char *align;
-    int i, ncols;
-
-    ncols = table_get_colcount(w);
-
-    align = xmalloc(ncols);
-
-    for (i = 0; i < ncols; i++) {
-        switch (col_label_align[i]) {
-        case ALIGN_BEGINNING:
-            align[i] = XmALIGNMENT_BEGINNING;
-            break;
-        case ALIGN_CENTER:
-            align[i] = XmALIGNMENT_CENTER;
-            break;
-        case ALIGN_END:
-            align[i] = XmALIGNMENT_END;
-            break;
-        }
-    }
-
-    XtVaSetValues(w, XmNcolumnLabelAlignments, align, NULL);
-
-    xfree(align);
-}
-
-void table_show_row_label(Widget w, int show)
-{
-    XtVaSetValues(w, XmNfixedColumns, show, NULL);
-}
-
-void table_set_col_widths(Widget w, short *widths)
-{
-    XtVaSetValues(w, XmNcolumnWidths, widths, NULL);
+    XtVaSetValues(w, XmNfixedColumns, nfixed_cols, NULL);
 }

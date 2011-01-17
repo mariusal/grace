@@ -334,11 +334,6 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
 {
     SSDataUI *ui;
 
-    int i;
-    short widths[EXTRA_SS_COLS];
-    char *rowlabels[EXTRA_SS_ROWS];
-    char *collabels[EXTRA_SS_COLS];
-    int clab_alignments[EXTRA_SS_COLS];
     Widget tab, fr, rc, rc1, wbut;
     
     ui = xmalloc(sizeof(SSDataUI));
@@ -357,27 +352,11 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     /* ------------ Main tab -------------- */
     ui->main_tp = CreateTabPage(tab, "Data");
 
-    for (i = 0; i < EXTRA_SS_ROWS; i++) {
-        char buf[32];
-        sprintf(buf, "%d", i + 1);
-        rowlabels[i] = copy_string(NULL, buf);
-    }
-    for (i = 0; i < EXTRA_SS_COLS; i++) {
-        collabels[i] = "";
-        clab_alignments[i] = ALIGN_CENTER;
-    }
-    for (i = 0; i < EXTRA_SS_COLS; i++) {
-        widths[i] = CELL_WIDTH;
-    }
-
     ui->mw = CreateTable(ui->main_tp,
                          EXTRA_SS_ROWS, EXTRA_SS_COLS,
-                         VISIBLE_SS_ROWS, VISIBLE_SS_COLS,
-                         rowlabels, collabels, widths, clab_alignments);
-
-    for (i = 0; i < EXTRA_SS_ROWS; i++) {
-        xfree(rowlabels[i]);
-    }
+                         VISIBLE_SS_ROWS, VISIBLE_SS_COLS);
+    table_set_default_col_width(ui->mw, CELL_WIDTH);
+    table_set_default_col_label_alignment(ui->mw, ALIGN_CENTER);
 
 #ifndef QT_GUI 
     XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
@@ -424,10 +403,8 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
     if (ui && q) {
         int i, nc, nr, new_nc, new_nr, ncols, nrows, nfixed_cols;
         int delta_nc, delta_nr;
-        short *widths;
         int *maxlengths;
         char **collabels;
-        int *clab_alignments;
         int cur_row, cur_col, format;
         
         if (ui->q != q) {
@@ -455,32 +432,16 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         delta_nc = new_nc - nc;
 
         if (delta_nr > 0) {
-            char **rowlabels = xmalloc(delta_nr*sizeof(char *));
-            for (i = 0; i < delta_nr; i++) {
-                char buf[32];
-                sprintf(buf, "%d", nr + i + 1);
-                rowlabels[i] = copy_string(NULL, buf);
-            }
-            table_add_rows(ui->mw, nr, rowlabels, delta_nr);
-
-            for (i = 0; i < delta_nr; i++) {
-                xfree(rowlabels[i]);
-            }
-            xfree(rowlabels);
+            table_add_rows(ui->mw, delta_nr);
         } else if (delta_nr < 0) {
-            table_delete_rows(ui->mw, new_nr, -delta_nr);
+            table_delete_rows(ui->mw, -delta_nr);
         }
 
-
-        widths = xmalloc(new_nc*SIZEOF_SHORT);
         maxlengths = xmalloc(new_nc*SIZEOF_INT);
         collabels = xmalloc(new_nc*sizeof(char *));
-        clab_alignments = xmalloc(new_nc*SIZEOF_INT);
-
 
         for (i = 0; i < new_nc; i++) {
             ss_column *col = ssd_get_col(q, i);
-            widths[i] = CELL_WIDTH;
             if (col && col->format == FFORMAT_STRING) {
                 maxlengths[i] = STRING_CELL_WIDTH;
             } else {
@@ -501,24 +462,17 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
                 
                 collabels[i] = copy_string(NULL, buf);
             }
-            clab_alignments[i] = ALIGN_CENTER;
         }
 
         if (delta_nc > 0) {
-            table_add_cols(ui->mw, nc, widths, maxlengths, delta_nc);
+            table_add_cols(ui->mw, delta_nc);
         } else if (delta_nc < 0) {
-            table_delete_cols(ui->mw, new_nc, -delta_nc);
+            table_delete_cols(ui->mw, -delta_nc);
         }
 
-        table_set_row_label_widths(ui->mw, 0);
         table_set_col_maxlengths(ui->mw, maxlengths);
         table_set_col_labels(ui->mw, collabels);
-        table_set_col_label_align(ui->mw, clab_alignments);
-        table_show_row_label(ui->mw, nfixed_cols);
-
-        if (delta_nc != 0) {
-            table_set_col_widths(ui->mw, widths);
-        }
+        table_set_fixed_cols(ui->mw, nfixed_cols);
 
         for (cur_col = 0; cur_col < new_nc; cur_col++) {
             for (cur_row = 0; cur_row < new_nr; cur_row++) {
@@ -527,9 +481,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             }
         }
 
-        xfree(widths);
         xfree(maxlengths);
-        xfree(clab_alignments);
         for (i = 0; i < new_nc; i++) {
             xfree(collabels[i]);
         }
