@@ -357,6 +357,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
                          VISIBLE_SS_ROWS, VISIBLE_SS_COLS);
     table_set_default_col_width(ui->mw, CELL_WIDTH);
     table_set_default_col_label_alignment(ui->mw, ALIGN_CENTER);
+    table_set_auto_row_labels(ui->mw, TRUE);
 
 #ifndef QT_GUI 
     XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
