@@ -654,8 +654,8 @@ void ListTreeSetItemOpen(ListTreeItem *item, Boolean open);
 /* Table Widget */
 Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible);
 void table_deselect_all_cells(Widget w);
-int table_get_rowcount(Widget w);
-int table_get_colcount(Widget w);
+int table_get_nrows(Widget w);
+int table_get_ncols(Widget w);
 void table_add_rows(Widget w, int nrows);
 void table_delete_rows(Widget w, int nrows);
 void table_add_cols(Widget w, int ncols);
@@ -663,9 +663,9 @@ void table_delete_cols(Widget w, int ncols);
 void table_set_cell_content(Widget w, int row, int col, char *content);
 void table_set_default_col_width(Widget w, int width);
 void table_set_default_col_label_alignment(Widget w, int align);
-void table_set_auto_row_labels(Widget w, int auto_labels);
 void table_set_col_maxlengths(Widget w, int *maxlengths);
-void table_set_col_labels(Widget w, char **col_labels);
+void table_set_row_labels(Widget w, char **labels);
+void table_set_col_labels(Widget w, char **labels);
 void table_set_fixed_cols(Widget w, int nfixed_cols);
 
 #endif /* __MOTIFINC_H_ */

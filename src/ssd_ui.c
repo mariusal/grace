@@ -357,7 +357,6 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
                          VISIBLE_SS_ROWS, VISIBLE_SS_COLS);
     table_set_default_col_width(ui->mw, CELL_WIDTH);
     table_set_default_col_label_alignment(ui->mw, ALIGN_CENTER);
-    table_set_auto_row_labels(ui->mw, TRUE);
 
 #ifndef QT_GUI 
     XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
@@ -405,7 +404,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         int i, nc, nr, new_nc, new_nr, ncols, nrows, nfixed_cols;
         int delta_nc, delta_nr;
         int *maxlengths;
-        char **collabels;
+        char **rowlabels, **collabels;
         int cur_row, cur_col, format;
         
         if (ui->q != q) {
@@ -426,8 +425,8 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             nfixed_cols = 0;
         }
 
-        nr = table_get_rowcount(ui->mw);
-        nc = table_get_colcount(ui->mw);
+        nr = table_get_nrows(ui->mw);
+        nc = table_get_ncols(ui->mw);
 
         delta_nr = new_nr - nr;
         delta_nc = new_nc - nc;
@@ -437,6 +436,18 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         } else if (delta_nr < 0) {
             table_delete_rows(ui->mw, -delta_nr);
         }
+
+        rowlabels = xmalloc(new_nr*sizeof(char *));
+        for (i = 0; i < new_nr; i++) {
+            char buf[32];
+            sprintf(buf, "%d", i + 1);
+            rowlabels[i] = copy_string(NULL, buf);
+        }
+        table_set_row_labels(ui->mw, rowlabels);
+        for (i = 0; i < new_nr; i++) {
+            xfree(rowlabels[i]);
+        }
+        xfree(rowlabels);
 
         maxlengths = xmalloc(new_nc*SIZEOF_INT);
         collabels = xmalloc(new_nc*sizeof(char *));
@@ -481,7 +492,13 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
                                        get_cell_content(ui, cur_row, cur_col, &format));
             }
         }
-
+#ifndef QT_GUI
+        XtVaSetValues(ui->mw,
+                      XmNrowLabelWidth, 0,
+                      XmNheight, 0,
+                      XmNwidth, 0,
+                      NULL);
+#endif
         xfree(maxlengths);
         for (i = 0; i < new_nc; i++) {
             xfree(collabels[i]);

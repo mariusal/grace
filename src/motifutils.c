@@ -5044,6 +5044,13 @@ void ListTreeSetItemOpen(ListTreeItem *item, Boolean open)
 }
 
 /* Tabel Widget */
+typedef struct {
+    int default_col_width;
+    int default_col_label_alignment;
+    int nrows_visible;
+    int ncols_visible;
+} TableData;
+
 static char tfield_translations[] = "#override\n\
 <Key>osfCancel                : CancelEdit(True)\n\
 <Key>osfActivate              : EditCell(Down)\n\
@@ -5054,6 +5061,13 @@ static char tfield_translations[] = "#override\n\
 Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible)
 {
     Widget w, tfield;
+    TableData *td;
+
+    td = (TableData*) xmalloc(sizeof(TableData));
+    td->default_col_width = 5;
+    td->default_col_label_alignment = ALIGN_BEGINNING;
+    td->nrows_visible = nrows_visible;
+    td->ncols_visible = ncols_visible;
 
     w = XtVaCreateManagedWidget("SSD",
         xbaeMatrixWidgetClass, parent,
@@ -5064,12 +5078,8 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
         XmNrows, nrows,
         XmNvisibleRows, nrows_visible,
         XmNbuttonLabels, True,
-        XmNrowLabels, row_labels,
         XmNcolumns, ncols,
         XmNvisibleColumns, ncols_visible,
-        XmNcolumnLabels, col_labels,
-        XmNcolumnLabelAlignments, col_label_align,
-        XmNcolumnWidths, col_widths,
         XmNallowColumnResize, True,
         XmNgridType, XmGRID_CELL_SHADOW,
         XmNcellShadowType, XmSHADOW_ETCHED_OUT,
@@ -5085,7 +5095,26 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     tfield = XtNameToWidget(w, "textField");
     XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
 
+    SetUserData(w, td);
+
     return w;
+}
+
+static int align_to_xmalign(int align)
+{
+    switch(align) {
+    case ALIGN_BEGINNING:
+        return XmALIGNMENT_BEGINNING;
+        break;
+    case ALIGN_CENTER:
+        return XmALIGNMENT_CENTER;
+        break;
+    case ALIGN_END:
+        return XmALIGNMENT_END;
+        break;
+    default:
+        return XmALIGNMENT_BEGINNING;
+    }
 }
 
 void table_deselect_all_cells(Widget w)
@@ -5093,7 +5122,7 @@ void table_deselect_all_cells(Widget w)
     XbaeMatrixDeselectAll(w);
 }
 
-int table_get_rowcount(Widget w)
+int table_get_nrows(Widget w)
 {
     int nr;
 
@@ -5102,7 +5131,7 @@ int table_get_rowcount(Widget w)
     return nr;
 }
 
-int table_get_colcount(Widget w)
+int table_get_ncols(Widget w)
 {
     int nc;
 
@@ -5111,24 +5140,87 @@ int table_get_colcount(Widget w)
     return nc;
 }
 
-void table_add_rows(Widget w, int rowcount)
+void table_add_rows(Widget w, int nrows)
 {
-    XbaeMatrixAddRows(w, position, NULL, labels, NULL, rowcount);
+    XbaeMatrixAddRows(w, table_get_nrows(w), NULL, NULL, NULL, nrows);
 }
 
-void table_delete_rows(Widget w, int rowcount)
+void table_delete_rows(Widget w, int nrows)
 {
-    XbaeMatrixDeleteRows(w, position, rowcount);
+    XbaeMatrixDeleteRows(w, table_get_nrows(w) - nrows, nrows);
 }
 
-void table_add_cols(Widget w, int colcount)
+void table_add_cols(Widget w, int ncols)
 {
-    XbaeMatrixAddColumns(w, position, NULL, NULL, col_widths, maxlengths, NULL, NULL, NULL, colcount);
+    TableData *td;
+    short *widths;
+    int i;
+    unsigned char *alignment, xm_alignment;
+
+    td = (TableData*) GetUserData(w);
+    xm_alignment = align_to_xmalign(td->default_col_label_alignment);
+    widths = xmalloc(ncols*SIZEOF_SHORT);
+    alignment = xmalloc(ncols);
+
+    for (i = 0; i < ncols; i++) {
+        widths[i] = td->default_col_width;
+        alignment[i] = xm_alignment;
+    }
+
+    XbaeMatrixAddColumns(w, table_get_ncols(w), NULL, NULL, widths, NULL, NULL, alignment, NULL, ncols);
+
+    xfree(alignment);
+    xfree(widths);
 }
 
-void table_delete_cols(Widget w, int colcount)
+void table_delete_cols(Widget w, int ncols)
 {
-    XbaeMatrixDeleteColumns(w, position, colcount);
+    XbaeMatrixDeleteColumns(w, table_get_ncols(w) - ncols, ncols);
+}
+
+void table_set_default_col_width(Widget w, int width)
+{
+    TableData *td;
+    short *widths;
+    int ncols, i;
+
+    td = (TableData*) GetUserData(w);
+    td->default_col_width = width;
+
+    ncols = table_get_ncols(w);
+
+    widths = xmalloc(ncols*SIZEOF_SHORT);
+
+    for (i = 0; i < ncols; i++) {
+        widths[i] = td->default_col_width;
+    }
+
+    XtVaSetValues(w, XmNcolumnWidths, widths, NULL);
+
+    xfree(widths);
+}
+
+void table_set_default_col_label_alignment(Widget w, int align)
+{
+    TableData *td;
+    unsigned char *alignment, xm_alignment;
+    int ncols, i;
+
+    td = (TableData*) GetUserData(w);
+    td->default_col_label_alignment = align;
+
+    xm_alignment = align_to_xmalign(align);
+    ncols = table_get_ncols(w);
+
+    alignment = xmalloc(ncols);
+
+    for (i = 0; i < ncols; i++) {
+        alignment[i] = xm_alignment;
+    }
+
+    XtVaSetValues(w, XmNcolumnLabelAlignments, alignment, NULL);
+
+    xfree(alignment);
 }
 
 void table_set_cell_content(Widget w, int row, int col, char *content)
@@ -5141,9 +5233,14 @@ void table_set_col_maxlengths(Widget w, int *maxlengths)
     XtVaSetValues(w, XmNcolumnMaxLengths, maxlengths, NULL);
 }
 
-void table_set_col_labels(Widget w, char **col_labels)
+void table_set_row_labels(Widget w, char **labels)
 {
-    XtVaSetValues(w, XmNcolumnLabels, col_labels, NULL);
+    XtVaSetValues(w, XmNrowLabels, labels, NULL);
+}
+
+void table_set_col_labels(Widget w, char **labels)
+{
+    XtVaSetValues(w, XmNcolumnLabels, labels, NULL);
 }
 
 void table_set_fixed_cols(Widget w, int nfixed_cols)
