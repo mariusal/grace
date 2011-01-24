@@ -5247,3 +5247,12 @@ void table_set_fixed_cols(Widget w, int nfixed_cols)
 {
     XtVaSetValues(w, XmNfixedColumns, nfixed_cols, NULL);
 }
+
+void table_update_visible_rows_cols(Widget w)
+{
+    XtVaSetValues(ui->mw,
+                  XmNrowLabelWidth, 0,
+                  XmNheight, 0,
+                  XmNwidth, 0,
+                  NULL);
+}

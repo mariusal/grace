@@ -8780,7 +8780,6 @@ typedef struct {
     int font_width;
     int default_col_width;
     int default_col_label_alignment;
-    int auto_row_labels;
     int nrows_visible;
     int ncols_visible;
 } TableData;
@@ -8800,9 +8799,8 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
 
     td = (TableData*) xmalloc(sizeof(TableData));
     td->font_width = fontWidth;
-    td->default_col_width = -1;
-    td->default_col_label_alignment = -1;
-    td->auto_row_labels = FALSE;
+    td->default_col_width = 5;
+    td->default_col_label_alignment = ALIGN_BEGINNING;
     td->nrows_visible = nrows_visible;
     td->ncols_visible = ncols_visible;
 
@@ -8817,18 +8815,6 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
         QTableWidgetItem *item = new QTableWidgetItem();
         tableWidget->setVerticalHeaderItem(i, item);
     }
-
-    tableWidget->setFixedHeight(tableWidget->rowHeight(0) * nrows_visible +
-                                tableWidget->horizontalHeader()->height() +
-                                tableWidget->contentsMargins().top() +
-                                tableWidget->contentsMargins().bottom() +
-                                tableWidget->horizontalScrollBar()->sizeHint().height());
-
-    tableWidget->setFixedWidth(tableWidget->columnWidth(0) * ncols_visible +
-                               tableWidget->verticalHeader()->width() +
-                               tableWidget->contentsMargins().left() +
-                               tableWidget->contentsMargins().right() +
-                               tableWidget->verticalScrollBar()->sizeHint().width());
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
@@ -8845,7 +8831,7 @@ void table_deselect_all_cells(Widget w)
     tableWidget->clearSelection();
 }
 
-int table_get_rowcount(Widget w)
+int table_get_nrows(Widget w)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     int nr;
@@ -8855,7 +8841,7 @@ int table_get_rowcount(Widget w)
     return nr;
 }
 
-int table_get_colcount(Widget w)
+int table_get_ncols(Widget w)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     int nc;
@@ -8871,14 +8857,12 @@ void table_add_rows(Widget w, int nrows)
     TableData *td;
     int i, rc;
 
-    rc = table_get_rowcount(w);
+    rc = table_get_nrows(w);
     td = (TableData*) GetUserData(w);
     for (i = rc; i < rc + nrows; i++) {
         tableWidget->insertRow(i);
-        if (td->auto_row_labels) {
-            QTableWidgetItem *item = new QTableWidgetItem(QString::number(i + 1));
-            tableWidget->setVerticalHeaderItem(i, item);
-        }
+        QTableWidgetItem *item = new QTableWidgetItem(QString::number(i + 1));
+        tableWidget->setVerticalHeaderItem(i, item);
     }
 }
 
@@ -8887,7 +8871,7 @@ void table_delete_rows(Widget w, int nrows)
     QTableWidget *tableWidget = (QTableWidget*) w;
     int rc;
 
-    rc = table_get_rowcount(w);
+    rc = table_get_nrows(w);
     tableWidget->model()->removeRows(rc - 1, nrows);
 }
 
@@ -8895,32 +8879,27 @@ void table_add_cols(Widget w, int ncols)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
-    int i, cc, col_label_align;
+    int i, cc;
     QHeaderView *hHeader = tableWidget->horizontalHeader();
 
-    cc = table_get_colcount(w);
+    cc = table_get_ncols(w);
     td = (TableData*) GetUserData(w);
-    col_label_align = td->default_col_label_alignment;
 
     for (i = cc; i < cc + ncols; i++) {
         tableWidget->insertColumn(i);
-        QTableWidgetItem *item = new QTableWidgetItem();
+        QTableWidgetItem *item = new QTableWidgetItem;
         tableWidget->setHorizontalHeaderItem(i, item);
-        if (td->default_col_width != -1) {
-            hHeader->resizeSection(i, td->default_col_width * td->font_width);
-        }
-        if (col_label_align != -1) {
-            switch (col_label_align) {
-            case ALIGN_BEGINNING:
-                hHeader->setDefaultAlignment(Qt::AlignLeft);
-                break;
-            case ALIGN_CENTER:
-                hHeader->setDefaultAlignment(Qt::AlignHCenter);
-                break;
-            case ALIGN_END:
-                hHeader->setDefaultAlignment(Qt::AlignRight);
-                break;
-            }
+        hHeader->resizeSection(i, td->default_col_width * td->font_width);
+        switch (td->default_col_label_alignment) {
+        case ALIGN_BEGINNING:
+            hHeader->setDefaultAlignment(Qt::AlignLeft);
+            break;
+        case ALIGN_CENTER:
+            hHeader->setDefaultAlignment(Qt::AlignHCenter);
+            break;
+        case ALIGN_END:
+            hHeader->setDefaultAlignment(Qt::AlignRight);
+            break;
         }
     }
 }
@@ -8930,7 +8909,7 @@ void table_delete_cols(Widget w, int ncols)
     QTableWidget *tableWidget = (QTableWidget*) w;
     int cc;
 
-    cc = table_get_colcount(w);
+    cc = table_get_ncols(w);
     tableWidget->model()->removeColumns(cc - 1, ncols);
 }
 
@@ -8938,7 +8917,7 @@ void table_set_default_col_width(Widget w, int width)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
-    int i, cc = table_get_colcount(w);
+    int i, cc = table_get_ncols(w);
     QHeaderView *hHeader = tableWidget->horizontalHeader();
 
     td = (TableData*) GetUserData(w);
@@ -8948,19 +8927,13 @@ void table_set_default_col_width(Widget w, int width)
     for (i = 0; i < cc; i++) {
         hHeader->resizeSection(i, td->default_col_width * td->font_width);
     }
-
-    tableWidget->setFixedWidth(tableWidget->columnWidth(0) * td->ncols_visible +
-                               tableWidget->verticalHeader()->width() +
-                               tableWidget->contentsMargins().left() +
-                               tableWidget->contentsMargins().right() +
-                               tableWidget->verticalScrollBar()->sizeHint().width());
 }
 
 void table_set_default_col_label_alignment(Widget w, int align)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
-    int i, cc = table_get_colcount(w);
+    int i, cc = table_get_ncols(w);
     QHeaderView *hHeader = tableWidget->horizontalHeader();
 
     td = (TableData*) GetUserData(w);
@@ -8982,23 +8955,6 @@ void table_set_default_col_label_alignment(Widget w, int align)
     }
 }
 
-void table_set_auto_row_labels(Widget w, int auto_labels)
-{
-    QTableWidget *tableWidget = (QTableWidget*) w;
-    TableData *td;
-    int i, rc = table_get_rowcount(w);
-
-    td = (TableData*) GetUserData(w);
-
-    td->auto_row_labels = TRUE;
-
-    for (i = 0; i < rc; i++) {
-        QTableWidgetItem *item = new QTableWidgetItem(QString::number(i + 1));
-        tableWidget->setVerticalHeaderItem(i, item);
-    }
-
-}
-
 void table_set_cell_content(Widget w, int row, int col, char *content)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
@@ -9011,25 +8967,51 @@ void table_set_col_maxlengths(Widget w, int *maxlengths)
     //TODO: maxlengths
 }
 
-void table_set_col_labels(Widget w, char **col_labels)
+void table_set_row_labels(Widget w, char **labels)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
-    int cc = table_get_colcount(w);
+    int nrows = table_get_nrows(w);
 
-    for (int i = 0; i < cc; i++) {
+    for (int i = 0; i < nrows; i++) {
+        QTableWidgetItem *item = tableWidget->verticalHeaderItem(i);
+        item->setText(labels[i]);
+    }
+}
+
+void table_set_col_labels(Widget w, char **labels)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+    int ncols = table_get_ncols(w);
+
+    for (int i = 0; i < ncols; i++) {
         QTableWidgetItem *item = tableWidget->horizontalHeaderItem(i);
-        item->setText(col_labels[i]);
+        item->setText(labels[i]);
     }
 }
 
 void table_set_fixed_cols(Widget w, int nfixed_cols)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
-    QHeaderView *vHeader = tableWidget->verticalHeader();
+    //TODO:
+    //Two views side by side
+}
 
-    if (nfixed_cols) {
-        vHeader->hide();
-    } else {
-        vHeader->show();
-    }
+void table_update_visible_rows_cols(Widget w)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+    TableData *td;
+
+    td = (TableData*) GetUserData(w);
+
+    tableWidget->setFixedHeight(tableWidget->rowHeight(0) * td->nrows_visible +
+                                tableWidget->horizontalHeader()->height() +
+                                tableWidget->contentsMargins().top() +
+                                tableWidget->contentsMargins().bottom() +
+                                tableWidget->horizontalScrollBar()->sizeHint().height());
+
+    tableWidget->setFixedWidth(tableWidget->columnWidth(0) * td->ncols_visible +
+                               tableWidget->verticalHeader()->width() +
+                               tableWidget->contentsMargins().left() +
+                               tableWidget->contentsMargins().right() +
+                               tableWidget->verticalScrollBar()->sizeHint().width());
 }

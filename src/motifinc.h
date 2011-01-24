@@ -667,5 +667,6 @@ void table_set_col_maxlengths(Widget w, int *maxlengths);
 void table_set_row_labels(Widget w, char **labels);
 void table_set_col_labels(Widget w, char **labels);
 void table_set_fixed_cols(Widget w, int nfixed_cols);
+void table_update_visible_rows_cols(Widget w);
 
 #endif /* __MOTIFINC_H_ */

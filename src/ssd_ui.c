@@ -492,13 +492,9 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
                                        get_cell_content(ui, cur_row, cur_col, &format));
             }
         }
-#ifndef QT_GUI
-        XtVaSetValues(ui->mw,
-                      XmNrowLabelWidth, 0,
-                      XmNheight, 0,
-                      XmNwidth, 0,
-                      NULL);
-#endif
+
+        table_update_visible_rows_cols(ui->mw);
+
         xfree(maxlengths);
         for (i = 0; i < new_nc; i++) {
             xfree(collabels[i]);
