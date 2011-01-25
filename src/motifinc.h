@@ -669,4 +669,22 @@ void table_set_col_labels(Widget w, char **labels);
 void table_set_fixed_cols(Widget w, int nfixed_cols);
 void table_update_visible_rows_cols(Widget w);
 
+typedef struct _Table Table;
+
+typedef int (*Table_cb)(Table *t, int etype, void *cbdata);
+
+typedef struct {
+    Table_cb cb;
+    void *cbdata;
+} TableCBEntry;
+
+struct _Table {
+    Widget w;
+    TableCBEntry *cbentry;
+};
+
+int table_enter_cell_cb_add(Table *t, Table_cb cb, void *cbdata);
+int table_leave_cell_cb_add(Table *t, Table_cb cb, void *cbdata);
+int table_label_activate_cb_add(Table *t, Table_cb cb, void *cbdata);
+
 #endif /* __MOTIFINC_H_ */

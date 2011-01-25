@@ -9045,3 +9045,28 @@ void table_update_visible_rows_cols(Widget w)
                                tableWidget->contentsMargins().right() +
                                tableWidget->verticalScrollBar()->sizeHint().width());
 }
+
+static void table_call_enter_cell_cb(Table *t, int etype)
+{
+    TableCBEntry *cbentry = t->cbentry;
+    cbentry->cb(t, etype, cbentry->cbdata);
+}
+
+int table_enter_cell_cb_add(Table *t, Table_cb cb, void *cbdata)
+{
+    TableCBEntry *cbentry;
+
+    cbentry = (TableCBEntry *) xmalloc(sizeof(TableCBEntry));
+    cbentry->cb = cb;
+    cbentry->cbdata = cbdata;
+}
+
+int table_leave_cell_cb_add(Table *t, Table_cb cb, void *cbdata)
+{
+
+}
+
+int table_label_activate_cb_add(Table *t, Table_cb cb, void *cbdata)
+{
+
+}

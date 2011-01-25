@@ -5256,3 +5256,23 @@ void table_update_visible_rows_cols(Widget w)
                   XmNwidth, 0,
                   NULL);
 }
+
+static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+
+}
+
+int table_enter_cell_cb_add(Widget w, Table_cb cb, void *data)
+{
+    XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
+}
+
+int table_leave_cell_cb_add(Widget w, Table_cb cb, void *data)
+{
+    XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
+}
+
+int table_label_activate_cb_add(Widget w, Table_cb cb, void *data)
+{
+    XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
+}

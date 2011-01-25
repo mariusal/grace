@@ -125,16 +125,15 @@ static char *get_cell_content(SSDataUI *ui, int row, int column, int *format)
     return s;
 }
 
-#ifndef QT_GUI
-static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
+static void enterCB(Table t, int etype, void *cbdata)
 {
-    SSDataUI *ui = (SSDataUI *) client_data;
+    SSDataUI *ui = (SSDataUI *) cbdata;
     XbaeMatrixEnterCellCallbackStruct *cs =
         (XbaeMatrixEnterCellCallbackStruct *) call_data;
     int ncols = ssd_get_ncols(ui->q);
     
     if (cs->column >= 0 && cs->column <= ncols) {
-        XbaeMatrixDeselectAll(ui->mw);
+        table_deselect_all_cells(ui->mw);
     } else {
         cs->doit = False;
         cs->map  = False;
@@ -209,7 +208,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
         snapshot_and_update(gapp->gp, FALSE);
     }
 }
-
+#ifndef QT_GUI
 static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     SSDataUI *ui = (SSDataUI *) client_data;
@@ -358,11 +357,10 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     table_set_default_col_width(ui->mw, CELL_WIDTH);
     table_set_default_col_label_alignment(ui->mw, ALIGN_CENTER);
 
-#ifndef QT_GUI 
-    XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
-    XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
-    XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
-#endif
+    table_enter_cell_cb_add(ui->mw, enterCB, ui);
+    table_leave_cell_cb_add(ui->mw, leaveCB, ui);
+    table_label_activate_cb_add(ui->mw, labelCB, ui);
+
     ui->popup = CreatePopupMenu(ui->mw);
     ui->delete_btn  = CreateMenuButton(ui->popup, "Delete column", '\0', col_delete_cb, ui);
     ui->index_btn   = CreateMenuButton(ui->popup, "Set as index", '\0', index_cb, ui);
