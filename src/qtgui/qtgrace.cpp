@@ -8816,6 +8816,14 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
         tableWidget->setVerticalHeaderItem(i, item);
     }
 
+    for (int col = 0; col < ncols; col++) {
+         for (int row = 0; row < nrows; row++) {
+             QLineEdit *lineEdit = new QLineEdit;
+             lineEdit->setFrame(false);
+             tableWidget->setCellWidget(row, col, lineEdit);
+        }
+    }
+
     QLayout *layout = parent->layout();
     if (layout != 0) {
         layout->addWidget(tableWidget);
@@ -8855,14 +8863,20 @@ void table_add_rows(Widget w, int nrows)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
-    int i, rc;
+    int row, rc, ncols;
 
     rc = table_get_nrows(w);
+    ncols = table_get_ncols(w);
     td = (TableData*) GetUserData(w);
-    for (i = rc; i < rc + nrows; i++) {
-        tableWidget->insertRow(i);
-        QTableWidgetItem *item = new QTableWidgetItem(QString::number(i + 1));
-        tableWidget->setVerticalHeaderItem(i, item);
+    for (row = rc; row < rc + nrows; row++) {
+        tableWidget->insertRow(row);
+        QTableWidgetItem *item = new QTableWidgetItem(QString::number(row + 1));
+        tableWidget->setVerticalHeaderItem(row, item);
+        for (int col = 0; col < ncols; col++) {
+            QLineEdit *lineEdit = new QLineEdit;
+            lineEdit->setFrame(false);
+            tableWidget->setCellWidget(row, col, lineEdit);
+        }
     }
 }
 
@@ -8879,17 +8893,18 @@ void table_add_cols(Widget w, int ncols)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
-    int i, cc;
+    int col, cc, nrows;
     QHeaderView *hHeader = tableWidget->horizontalHeader();
 
     cc = table_get_ncols(w);
+    nrows = table_get_nrows(w);
     td = (TableData*) GetUserData(w);
 
-    for (i = cc; i < cc + ncols; i++) {
-        tableWidget->insertColumn(i);
+    for (col = cc; col < cc + ncols; col++) {
+        tableWidget->insertColumn(col);
         QTableWidgetItem *item = new QTableWidgetItem;
-        tableWidget->setHorizontalHeaderItem(i, item);
-        hHeader->resizeSection(i, td->default_col_width * td->font_width);
+        tableWidget->setHorizontalHeaderItem(col, item);
+        hHeader->resizeSection(col, td->default_col_width * td->font_width);
         switch (td->default_col_label_alignment) {
         case ALIGN_BEGINNING:
             hHeader->setDefaultAlignment(Qt::AlignLeft);
@@ -8900,6 +8915,11 @@ void table_add_cols(Widget w, int ncols)
         case ALIGN_END:
             hHeader->setDefaultAlignment(Qt::AlignRight);
             break;
+        }
+        for (int row = 0; row < nrows; row++) {
+            QLineEdit *lineEdit = new QLineEdit;
+            lineEdit->setFrame(false);
+            tableWidget->setCellWidget(row, col, lineEdit);
         }
     }
 }
@@ -8959,12 +8979,22 @@ void table_set_cell_content(Widget w, int row, int col, char *content)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
 
-    tableWidget->setItem(row, col, new QTableWidgetItem(content));
+    QLineEdit *lineEdit = (QLineEdit*) tableWidget->cellWidget(row, col);
+    lineEdit->setText(content);
 }
 
 void table_set_col_maxlengths(Widget w, int *maxlengths)
 {
-    //TODO: maxlengths
+    QTableWidget *tableWidget = (QTableWidget*) w;
+    int ncols = table_get_ncols(w);
+    int nrows = table_get_nrows(w);
+
+    for (int col = 0; col < ncols; col++) {
+        for (int row = 0; row < nrows; row++) {
+            QLineEdit *lineEdit = (QLineEdit*) tableWidget->cellWidget(row, col);
+            lineEdit->setMaxLength(maxlengths[col]);
+        }
+    }
 }
 
 void table_set_row_labels(Widget w, char **labels)
