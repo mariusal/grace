@@ -125,49 +125,46 @@ static char *get_cell_content(SSDataUI *ui, int row, int column, int *format)
     return s;
 }
 
-static void enterCB(Table t, int etype, void *cbdata)
+static int enterCB(Widget w, int row, int col, char *value, void *anydata)
 {
-    SSDataUI *ui = (SSDataUI *) cbdata;
-    XbaeMatrixEnterCellCallbackStruct *cs =
-        (XbaeMatrixEnterCellCallbackStruct *) call_data;
+    SSDataUI *ui = (SSDataUI *) anydata;
+
     int ncols = ssd_get_ncols(ui->q);
     
-    if (cs->column >= 0 && cs->column <= ncols) {
+    if (col >= 0 && col <= ncols) {
         table_deselect_all_cells(ui->mw);
+        return TRUE;
     } else {
-        cs->doit = False;
-        cs->map  = False;
+        return FALSE;
     }
 }
 
-static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int leaveCB(Widget w, int row, int col, char *value, void *anydata)
 {
-    SSDataUI *ui = (SSDataUI *) client_data;
-    XbaeMatrixLeaveCellCallbackStruct *cs =
-        (XbaeMatrixLeaveCellCallbackStruct *) call_data;
+    SSDataUI *ui = (SSDataUI *) anydata;
 
     int nrows = ssd_get_nrows(ui->q);
     int ncols = ssd_get_ncols(ui->q);
     int format;
-    double value;
+    double ssdvalue;
     
     int changed = FALSE;
     
     GraceApp *gapp = gapp_from_quark(ui->q);
     
-    if (cs->row < 0 || cs->column < 0 || cs->column > ncols) {
-        return;
+    if (row < 0 || col < 0 || col > ncols) {
+        return FALSE;
     }
     
-    if (cs->row >= nrows && !string_is_empty(cs->value)) {
-        if (ssd_set_nrows(ui->q, cs->row + 1) == RETURN_SUCCESS) {
+    if (row >= nrows && !string_is_empty(value)) {
+        if (ssd_set_nrows(ui->q, row + 1) == RETURN_SUCCESS) {
             changed = TRUE;
         }
     }
     
-    if (cs->column == ncols && !string_is_empty(cs->value)) {
+    if (col == ncols && !string_is_empty(value)) {
         if (parse_date_or_number(get_parent_project(ui->q),
-            cs->value, FALSE, get_date_hint(gapp), &value) == RETURN_SUCCESS) {
+            value, FALSE, get_date_hint(gapp), &ssdvalue) == RETURN_SUCCESS) {
             format = FFORMAT_NUMBER;
         } else {
             format = FFORMAT_STRING;
@@ -178,26 +175,26 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
         }
     }
     
-    if (cs->column < ncols) {
-        char *old_value = get_cell_content(ui, cs->row, cs->column, &format);
-        if (!strings_are_equal(old_value, cs->value)) {
+    if (col < ncols) {
+        char *old_value = get_cell_content(ui, row, col, &format);
+        if (!strings_are_equal(old_value, value)) {
             switch (format) {
             case FFORMAT_STRING:
-                if (ssd_set_string(ui->q, cs->row, cs->column, cs->value) ==
+                if (ssd_set_string(ui->q, row, col, value) ==
                     RETURN_SUCCESS) {
                     changed = TRUE;
                 }
                 break;    
             default:
                 if (parse_date_or_number(get_parent_project(ui->q),
-                    cs->value, FALSE, get_date_hint(gapp), &value) == RETURN_SUCCESS) {
-                    if (ssd_set_value(ui->q, cs->row, cs->column, value) ==
+                    value, FALSE, get_date_hint(gapp), &ssdvalue) == RETURN_SUCCESS) {
+                    if (ssd_set_value(ui->q, row, col, ssdvalue) ==
                         RETURN_SUCCESS) {
                         changed = TRUE;
                     }
                 } else {
                     errmsg("Can't parse input value");
-                    cs->doit = False;
+                    return FALSE;
                 }
                 break;
             }
@@ -207,6 +204,8 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     if (changed) {
         snapshot_and_update(gapp->gp, FALSE);
     }
+
+    return TRUE;
 }
 #ifndef QT_GUI
 static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
@@ -357,9 +356,11 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     table_set_default_col_width(ui->mw, CELL_WIDTH);
     table_set_default_col_label_alignment(ui->mw, ALIGN_CENTER);
 
-    table_enter_cell_cb_add(ui->mw, enterCB, ui);
-    table_leave_cell_cb_add(ui->mw, leaveCB, ui);
-    table_label_activate_cb_add(ui->mw, labelCB, ui);
+    AddTableEnterCellCB(ui->mw, enterCB, ui);
+    AddTableLeaveCellCB(ui->mw, leaveCB, ui);
+#ifndef QT_GUI
+    AddTableLabelActivateCB(ui->mw, labelCB, ui);
+#endif
 
     ui->popup = CreatePopupMenu(ui->mw);
     ui->delete_btn  = CreateMenuButton(ui->popup, "Delete column", '\0', col_delete_cb, ui);

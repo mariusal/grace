@@ -9070,27 +9070,56 @@ void table_update_visible_rows_cols(Widget w)
                                tableWidget->verticalScrollBar()->sizeHint().width());
 }
 
-static void table_call_enter_cell_cb(Table *t, int etype)
+typedef struct {
+    Table_CBProc cbproc;
+    void *anydata;
+} Table_CBData;
+
+static void table_int_cell_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    TableCBEntry *cbentry = t->cbentry;
-    cbentry->cb(t, etype, cbentry->cbdata);
+    Table_CBData *cbdata = (Table_CBData *) client_data;
+
+    QTableWidget *tableWidget = (QTableWidget*) w;
+    int row, col, ok;
+    char *value;
+    QPoint pos = QCursor::pos();
+    QPersistentModelIndex index = tableWidget->indexAt(pos);
+    QString str = index.model()->data(index, Qt::EditRole).toString();
+    QByteArray ba = str.toLatin1();
+    value = copy_string(NULL, ba.data());
+
+    ok = cbdata->cbproc(w, row, col, value, cbdata->anydata);
+
+    if (ok) {
+
+    }
 }
 
-int table_enter_cell_cb_add(Table *t, Table_cb cb, void *cbdata)
+void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
-    TableCBEntry *cbentry;
+    Table_CBData *cbdata;
 
-    cbentry = (TableCBEntry *) xmalloc(sizeof(TableCBEntry));
-    cbentry->cb = cb;
-    cbentry->cbdata = cbdata;
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    QtAddCallback(w, SIGNAL(pressed(const QModelIndex)),
+                  table_int_cell_cb_proc, (XtPointer) cbdata);
 }
 
-int table_leave_cell_cb_add(Table *t, Table_cb cb, void *cbdata)
+void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
+    Table_CBData *cbdata;
 
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+//    QtAddCallback(w, SIGNAL(clicked(const QModelIndex)),
+//                  table_int_cell_cb_proc, (XtPointer) cbdata);
 }
 
-int table_label_activate_cb_add(Table *t, Table_cb cb, void *cbdata)
+void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
 
 }
