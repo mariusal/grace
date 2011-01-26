@@ -8776,6 +8776,48 @@ void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer)
 }
 
 /* Table Widget */
+
+LineEditDelegate::LineEditDelegate(int maxLength, QObject *parent)
+    : QItemDelegate(parent)
+{
+    this->maxLength = maxLength;
+}
+
+QWidget *LineEditDelegate::createEditor(QWidget *parent,
+                                        const QStyleOptionViewItem &/* option */,
+                                        const QModelIndex &/* index */) const
+{
+    QLineEdit *editor = new QLineEdit(parent);
+    if (maxLength > 0) {
+        editor->setMaxLength(maxLength);
+    }
+    return editor;
+}
+
+void LineEditDelegate::setEditorData(QWidget *editor,
+                                     const QModelIndex &index) const
+{
+    QString value = index.model()->data(index, Qt::EditRole).toString();
+
+    QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
+    lineEdit->setText(value);
+}
+
+void LineEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
+                                    const QModelIndex &index) const
+{
+    QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
+    QString value = lineEdit->text();
+
+    model->setData(index, value, Qt::EditRole);
+}
+
+void LineEditDelegate::updateEditorGeometry(QWidget *editor,
+                                            const QStyleOptionViewItem &option, const QModelIndex &/* index */) const
+{
+    editor->setGeometry(option.rect);
+}
+
 typedef struct {
     int font_width;
     int default_col_width;
@@ -8816,13 +8858,8 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
         tableWidget->setVerticalHeaderItem(i, item);
     }
 
-    for (int col = 0; col < ncols; col++) {
-         for (int row = 0; row < nrows; row++) {
-             QLineEdit *lineEdit = new QLineEdit;
-             lineEdit->setFrame(false);
-             tableWidget->setCellWidget(row, col, lineEdit);
-        }
-    }
+    LineEditDelegate *lineEdit = new LineEditDelegate;
+    tableWidget->setItemDelegate(lineEdit);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
@@ -8872,11 +8909,6 @@ void table_add_rows(Widget w, int nrows)
         tableWidget->insertRow(row);
         QTableWidgetItem *item = new QTableWidgetItem(QString::number(row + 1));
         tableWidget->setVerticalHeaderItem(row, item);
-        for (int col = 0; col < ncols; col++) {
-            QLineEdit *lineEdit = new QLineEdit;
-            lineEdit->setFrame(false);
-            tableWidget->setCellWidget(row, col, lineEdit);
-        }
     }
 }
 
@@ -8915,11 +8947,6 @@ void table_add_cols(Widget w, int ncols)
         case ALIGN_END:
             hHeader->setDefaultAlignment(Qt::AlignRight);
             break;
-        }
-        for (int row = 0; row < nrows; row++) {
-            QLineEdit *lineEdit = new QLineEdit;
-            lineEdit->setFrame(false);
-            tableWidget->setCellWidget(row, col, lineEdit);
         }
     }
 }
@@ -8978,22 +9005,19 @@ void table_set_default_col_label_alignment(Widget w, int align)
 void table_set_cell_content(Widget w, int row, int col, char *content)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
+    QAbstractItemModel *model = tableWidget->model();
 
-    QLineEdit *lineEdit = (QLineEdit*) tableWidget->cellWidget(row, col);
-    lineEdit->setText(content);
+    QModelIndex index = model->index(row, col, QModelIndex());
+    model->setData(index, QVariant(content));
 }
 
 void table_set_col_maxlengths(Widget w, int *maxlengths)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     int ncols = table_get_ncols(w);
-    int nrows = table_get_nrows(w);
 
     for (int col = 0; col < ncols; col++) {
-        for (int row = 0; row < nrows; row++) {
-            QLineEdit *lineEdit = (QLineEdit*) tableWidget->cellWidget(row, col);
-            lineEdit->setMaxLength(maxlengths[col]);
-        }
+        tableWidget->setItemDelegateForColumn(col, new LineEditDelegate(maxlengths[col]));
     }
 }
 
