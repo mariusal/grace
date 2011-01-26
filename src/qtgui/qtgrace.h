@@ -33,6 +33,28 @@ public slots:
     };
 };
 
+class TableCellCallBack : public QObject
+{
+    Q_OBJECT
+
+public:
+    TableCellCallBack(QObject *parent = 0);
+
+    void (*callback)(const QModelIndex &current, const QModelIndex &previous, void *);
+    void *data;
+
+    void setCallBack(void (*callback)(const QModelIndex &current, const QModelIndex &previous, void *),
+                     void *data) {
+        this->callback = callback;
+        this->data = data;
+    }
+
+public slots:
+    void table_int_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous) {
+        callback(current, previous, data);
+    }
+};
+
 class LineEditDelegate : public QItemDelegate
 {
     Q_OBJECT

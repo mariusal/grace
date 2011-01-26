@@ -8861,6 +8861,9 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     LineEditDelegate *lineEdit = new LineEditDelegate;
     tableWidget->setItemDelegate(lineEdit);
 
+    tableWidget->setEditTriggers(QAbstractItemView::AllEditTriggers);
+    tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+
     QLayout *layout = parent->layout();
     if (layout != 0) {
         layout->addWidget(tableWidget);
@@ -9071,27 +9074,28 @@ void table_update_visible_rows_cols(Widget w)
 }
 
 typedef struct {
+    Widget w;
     Table_CBProc cbproc;
     void *anydata;
 } Table_CBData;
 
-static void table_int_cell_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Table_CBData *cbdata = (Table_CBData *) client_data;
+TableCellCallBack::TableCellCallBack(QObject *parent) : QObject(parent) {}
 
-    QTableWidget *tableWidget = (QTableWidget*) w;
-    int row, col, ok;
+static void table_int_enter_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous, void *data)
+{
+    Table_CBData *cbdata = (Table_CBData *) data;
+    QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
     char *value;
-    QPoint pos = QCursor::pos();
-    QPersistentModelIndex index = tableWidget->indexAt(pos);
-    QString str = index.model()->data(index, Qt::EditRole).toString();
+    int ok;
+
+    QString str = current.model()->data(current, Qt::EditRole).toString();
     QByteArray ba = str.toLatin1();
     value = copy_string(NULL, ba.data());
 
-    ok = cbdata->cbproc(w, row, col, value, cbdata->anydata);
+    ok = cbdata->cbproc(cbdata->w, current.row(), current.column(), value, cbdata->anydata);
 
-    if (ok) {
-
+    if (!ok) {
+        //tableWidget->selectionModel()->;
     }
 }
 
@@ -9100,11 +9104,39 @@ void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
     Table_CBData *cbdata;
 
     cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->w = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    QtAddCallback(w, SIGNAL(pressed(const QModelIndex)),
-                  table_int_cell_cb_proc, (XtPointer) cbdata);
+    TableCellCallBack *cb = new TableCellCallBack(mainWin);
+    cb->setCallBack(table_int_enter_cell_cb_proc, cbdata);
+
+    QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
+
+    QObject::connect(tableWidget->selectionModel(),
+                     SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
+                     cb,
+                     SLOT(table_int_cell_cb_proc(const QModelIndex &, const QModelIndex &)));
+}
+
+static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous, void *data)
+{
+    Table_CBData *cbdata = (Table_CBData *) data;
+    QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
+    char *value;
+    int ok;
+
+    if (previous.isValid()) {
+        QString str = previous.model()->data(previous, Qt::EditRole).toString();
+        QByteArray ba = str.toLatin1();
+        value = copy_string(NULL, ba.data());
+
+        ok = cbdata->cbproc(cbdata->w, previous.row(), previous.column(), value, cbdata->anydata);
+
+        if (!ok) {
+            //tableWidget->selectionModel()->setCurrentIndex(previous, QItemSelectionModel::SelectCurrent);
+        }
+    }
 }
 
 void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
@@ -9112,11 +9144,19 @@ void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
     Table_CBData *cbdata;
 
     cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->w = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-//    QtAddCallback(w, SIGNAL(clicked(const QModelIndex)),
-//                  table_int_cell_cb_proc, (XtPointer) cbdata);
+    TableCellCallBack *cb = new TableCellCallBack(mainWin);
+    cb->setCallBack(table_int_leave_cell_cb_proc, cbdata);
+
+    QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
+
+    QObject::connect(tableWidget->selectionModel(),
+                     SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
+                     cb,
+                     SLOT(table_int_cell_cb_proc(const QModelIndex &, const QModelIndex &)));
 }
 
 void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
