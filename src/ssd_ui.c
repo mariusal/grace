@@ -356,8 +356,8 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     table_set_default_col_width(ui->mw, CELL_WIDTH);
     table_set_default_col_label_alignment(ui->mw, ALIGN_CENTER);
 
-    AddTableEnterCellCB(ui->mw, enterCB, ui);
     AddTableLeaveCellCB(ui->mw, leaveCB, ui);
+    AddTableEnterCellCB(ui->mw, enterCB, ui);
 #if 0
     AddTableLabelActivateCB(ui->mw, labelCB, ui);
 #endif

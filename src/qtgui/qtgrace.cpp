@@ -8862,7 +8862,7 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     tableWidget->setItemDelegate(lineEdit);
 
     tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-    tableWidget->setEditTriggers(QAbstractItemView::AllEditTriggers);
+    tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
 
     QLayout *layout = parent->layout();
@@ -9072,8 +9072,6 @@ void table_update_visible_rows_cols(Widget w)
                                tableWidget->contentsMargins().left() +
                                tableWidget->contentsMargins().right() +
                                tableWidget->verticalScrollBar()->sizeHint().width());
-
-    tableWidget->edit(tableWidget->currentIndex());
 }
 
 typedef struct {
@@ -9098,14 +9096,11 @@ static void table_int_enter_cell_cb_proc(const QModelIndex &current, const QMode
 
         ok = cbdata->cbproc(cbdata->w, current.row(), current.column(), value, cbdata->anydata);
 
-        printf("%s", "enter cb before ok\n");
-        if (!ok) {
-            printf("%s", "enter cb cancel\n");
-            if (previous.isValid()) {
-                tableWidget->selectionModel()->setCurrentIndex(previous, QItemSelectionModel::NoUpdate);
-            } else {
-                tableWidget->setCurrentCell(0, 0, QItemSelectionModel::NoUpdate);
-            }
+        if (ok) {
+            printf("%s", "enter cb ok to edit\n");
+            tableWidget->edit(tableWidget->currentIndex());
+        } else {
+            printf("%s", "enter cb not ok to edit\n");
         }
     }
 }
@@ -9134,6 +9129,7 @@ static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QMode
 {
     Table_CBData *cbdata = (Table_CBData *) data;
     QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
+    QItemSelectionModel *selectionModel = tableWidget->selectionModel();
     char *value;
     int ok;
 
@@ -9144,10 +9140,13 @@ static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QMode
 
         ok = cbdata->cbproc(cbdata->w, previous.row(), previous.column(), value, cbdata->anydata);
 
-        printf("%s", "leave cb before ok\n");
-        if (!ok) {
-            printf("%s", "leave cb cancel\n");
-            tableWidget->selectionModel()->setCurrentIndex(previous, QItemSelectionModel::NoUpdate);
+        if (ok) {
+            printf("%s", "leave cb, ok to leave\n");
+        } else {
+            printf("%s", "leave cb, not ok to leave\n");
+            selectionModel->blockSignals(true);
+            selectionModel->setCurrentIndex(previous, QItemSelectionModel::NoUpdate);
+            selectionModel->blockSignals(false);
         }
     }
 }
