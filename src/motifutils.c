@@ -5250,29 +5250,75 @@ void table_set_fixed_cols(Widget w, int nfixed_cols)
 
 void table_update_visible_rows_cols(Widget w)
 {
-    XtVaSetValues(ui->mw,
+    XtVaSetValues(w,
                   XmNrowLabelWidth, 0,
                   XmNheight, 0,
                   XmNwidth, 0,
                   NULL);
 }
 
+typedef struct {
+    Widget w;
+    Table_CBProc cbproc;
+    void *anydata;
+} Table_CBData;
+
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    Table_CBData *cbdata = (Table_CBData *) client_data;
+    XbaeMatrixEnterCellCallbackStruct *cs =
+            (XbaeMatrixEnterCellCallbackStruct *) call_data;
 
+    int ok;
+
+    ok = cbdata->cbproc(cbdata->w, cs->row, cs->column, NULL, cbdata->anydata);
+
+    if (!ok) {
+        cs->doit = False;
+        cs->map  = False;
+    }
 }
 
-int table_enter_cell_cb_add(Widget w, Table_cb cb, void *data)
+void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
-    XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
+    Table_CBData *cbdata;
+
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XmNenterCellCallback, enterCB, cbdata);
 }
 
-int table_leave_cell_cb_add(Widget w, Table_cb cb, void *data)
+static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
+    Table_CBData *cbdata = (Table_CBData *) client_data;
+    XbaeMatrixLeaveCellCallbackStruct *cs =
+            (XbaeMatrixLeaveCellCallbackStruct *) call_data;
+
+    int ok;
+
+    ok = cbdata->cbproc(cbdata->w, cs->row, cs->column, cs->value, cbdata->anydata);
+
+    if (!ok) {
+        cs->doit = False;
+    }
 }
 
-int table_label_activate_cb_add(Widget w, Table_cb cb, void *data)
+void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
-    XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
+    Table_CBData *cbdata;
+
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XmNleaveCellCallback, leaveCB, cbdata);
+}
+
+void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
+{
+    //XtAddCallback(w, XmNlabelActivateCallback, labelCB, anydata);
 }

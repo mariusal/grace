@@ -153,7 +153,7 @@ static int leaveCB(Widget w, int row, int col, char *value, void *anydata)
     GraceApp *gapp = gapp_from_quark(ui->q);
     
     if (row < 0 || col < 0 || col > ncols) {
-        return FALSE;
+        return TRUE;
     }
     
     if (row >= nrows && !string_is_empty(value)) {
@@ -207,7 +207,7 @@ static int leaveCB(Widget w, int row, int col, char *value, void *anydata)
 
     return TRUE;
 }
-#ifndef QT_GUI
+#if 0
 static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     SSDataUI *ui = (SSDataUI *) client_data;
@@ -358,7 +358,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
 
     AddTableEnterCellCB(ui->mw, enterCB, ui);
     AddTableLeaveCellCB(ui->mw, leaveCB, ui);
-#ifndef QT_GUI
+#if 0
     AddTableLabelActivateCB(ui->mw, labelCB, ui);
 #endif
 
