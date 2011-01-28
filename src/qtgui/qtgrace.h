@@ -25,12 +25,12 @@ public:
         this->sender = (Widget) sender;
         this->callback = callback;
         this->data = data;
-    };
+    }
 
 public slots:
     void callBack() {
         callback(sender, (XtPointer) data, NULL);
-    };
+    }
 };
 
 class TableCellCallBack : public QObject
@@ -40,18 +40,29 @@ class TableCellCallBack : public QObject
 public:
     TableCellCallBack(QObject *parent = 0);
 
-    void (*callback)(const QModelIndex &current, const QModelIndex &previous, void *);
     void *data;
 
+    void (*callback1)(const QModelIndex &current, const QModelIndex &previous, void *);
     void setCallBack(void (*callback)(const QModelIndex &current, const QModelIndex &previous, void *),
                      void *data) {
-        this->callback = callback;
+        this->callback1 = callback;
         this->data = data;
     }
 
+    void (*callback2)(const QModelIndex &index, void *);
+    void setCallBack(void (*callback)(const QModelIndex &index, void *),
+                     void *data) {
+        this->callback2 = callback;
+        this->data = data;
+    }
+
+
 public slots:
     void table_int_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous) {
-        callback(current, previous, data);
+        callback1(current, previous, data);
+    }
+    void table_int_cell_cb_proc(const QModelIndex &index) {
+        callback2(index, data);
     }
 };
 

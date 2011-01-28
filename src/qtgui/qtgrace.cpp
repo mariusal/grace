@@ -9082,19 +9082,19 @@ typedef struct {
 
 TableCellCallBack::TableCellCallBack(QObject *parent) : QObject(parent) {}
 
-static void table_int_enter_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous, void *data)
+static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
 {
     Table_CBData *cbdata = (Table_CBData *) data;
     QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
     char *value;
     int ok;
 
-    if (current.isValid()) {
-        QString str = current.model()->data(current, Qt::EditRole).toString();
+    if (index.isValid()) {
+        QString str = index.model()->data(index, Qt::EditRole).toString();
         QByteArray ba = str.toLatin1();
         value = copy_string(NULL, ba.data());
 
-        ok = cbdata->cbproc(cbdata->w, current.row(), current.column(), value, cbdata->anydata);
+        ok = cbdata->cbproc(cbdata->w, index.row(), index.column(), value, cbdata->anydata);
 
         if (ok) {
             printf("%s", "enter cb ok to edit\n");
@@ -9119,10 +9119,10 @@ void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 
     QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
 
-    QObject::connect(tableWidget->selectionModel(),
-                     SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
+    QObject::connect(tableWidget,
+                     SIGNAL(pressed(const QModelIndex &)),
                      cb,
-                     SLOT(table_int_cell_cb_proc(const QModelIndex &, const QModelIndex &)));
+                     SLOT(table_int_cell_cb_proc(const QModelIndex &)));
 }
 
 static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous, void *data)
