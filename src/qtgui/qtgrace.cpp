@@ -9080,8 +9080,6 @@ typedef struct {
     void *anydata;
 } Table_CBData;
 
-TableCellCallBack::TableCellCallBack(QObject *parent) : QObject(parent) {}
-
 static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
 {
     Table_CBData *cbdata = (Table_CBData *) data;
@@ -9114,7 +9112,7 @@ void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    TableCellCallBack *cb = new TableCellCallBack(mainWin);
+    CallBack *cb = new CallBack(mainWin);
     cb->setCallBack(table_int_enter_cell_cb_proc, cbdata);
 
     QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
@@ -9160,7 +9158,7 @@ void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    TableCellCallBack *cb = new TableCellCallBack(mainWin);
+    CallBack *cb = new CallBack(mainWin);
     cb->setCallBack(table_int_leave_cell_cb_proc, cbdata);
 
     QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
