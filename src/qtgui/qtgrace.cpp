@@ -9074,6 +9074,13 @@ void table_update_visible_rows_cols(Widget w)
                                tableWidget->verticalScrollBar()->sizeHint().width());
 }
 
+void table_commit_edit(Widget w)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    tableWidget->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::NoUpdate);
+}
+
 typedef struct {
     Widget w;
     Table_CBProc cbproc;

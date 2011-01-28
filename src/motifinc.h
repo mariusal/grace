@@ -668,6 +668,7 @@ void table_set_row_labels(Widget w, char **labels);
 void table_set_col_labels(Widget w, char **labels);
 void table_set_fixed_cols(Widget w, int nfixed_cols);
 void table_update_visible_rows_cols(Widget w);
+void table_commit_edit(Widget w);
 
 typedef int (*Table_CBProc)(Widget w, int row, int col, char *value, void *anydata);
 void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata);

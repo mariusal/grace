@@ -511,9 +511,7 @@ int set_ssd_data(SSDataUI *ui, Quark *q, void *caller)
     if (ui && q) {
         if (!caller) {
             /* commit the last entered cell changes */
-#ifndef QT_GUI
-            XbaeMatrixCommitEdit(ui->mw, False);
-#endif
+            table_commit_edit(ui->mw);
         }
         
         if (!caller || caller == ui->col_label) {

@@ -5257,6 +5257,11 @@ void table_update_visible_rows_cols(Widget w)
                   NULL);
 }
 
+void table_commit_edit(Widget w)
+{
+    XbaeMatrixCommitEdit(w, False);
+}
+
 typedef struct {
     Widget w;
     Table_CBProc cbproc;
