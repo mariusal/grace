@@ -2,7 +2,11 @@
 #define __QTGRACE_H_
 
 #include <QObject>
+#include <QApplication>
 #include <QItemDelegate>
+#include <QEvent>
+#include <QKeyEvent>
+
 extern "C" {
 #include <config.h>
 #include <motifinc.h>
@@ -69,6 +73,60 @@ public:
 
     void updateEditorGeometry(QWidget *editor,
                               const QStyleOptionViewItem &option, const QModelIndex &index) const;
+protected:
+    bool eventFilter(QObject *object, QEvent *event)
+    {
+        QWidget *editor = qobject_cast<QWidget*>(object);
+        if (!editor)
+            return false;
+        if (event->type() == QEvent::KeyPress) {
+            switch (static_cast<QKeyEvent *>(event)->key()) {
+            case Qt::Key_Tab:
+                emit commitData(editor);
+                emit closeEditor(editor);
+                return true;
+            case Qt::Key_Backtab:
+                emit commitData(editor);
+                emit closeEditor(editor);
+                return true;
+            case Qt::Key_Enter:
+            case Qt::Key_Return:
+                printf("%s", "editor enter key\n");
+                QMetaObject::invokeMethod(this, "_q_commitDataAndCloseEditor",
+                                          Qt::QueuedConnection, Q_ARG(QWidget*, editor));
+                return false;
+            case Qt::Key_Escape:
+                // don't commit data
+                emit closeEditor(editor, QAbstractItemDelegate::RevertModelCache);
+                break;
+            default:
+                return false;
+            }
+            if (editor->parentWidget())
+                editor->parentWidget()->setFocus();
+            return true;
+        } else if (event->type() == QEvent::FocusOut || (event->type() == QEvent::Hide && editor->isWindow())) {
+            //the Hide event will take care of he editors that are in fact complete dialogs
+            if (!editor->isActiveWindow() || (QApplication::focusWidget() != editor)) {
+                QWidget *w = QApplication::focusWidget();
+                while (w) { // don't worry about focus changes internally in the editor
+                    if (w == editor)
+                        return false;
+                    w = w->parentWidget();
+                }
+
+                emit commitData(editor);
+                emit closeEditor(editor, NoHint);
+            }
+        } else if (event->type() == QEvent::ShortcutOverride) {
+            if (static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
+                event->accept();
+                return true;
+            }
+        }
+        return false;
+    }
+
 private:
     int maxLength;
 };
