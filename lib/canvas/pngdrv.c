@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <zlib.h>
 #include <png.h>
 
 #include "grace/baseP.h"
@@ -108,7 +109,7 @@ static int png_output(const Canvas *canvas, void *data,
         return RETURN_FAILURE;
     }
 
-    if (setjmp(png_ptr->jmpbuf)) {
+    if (setjmp(png_jmpbuf(png_ptr))) {
         png_destroy_write_struct(&png_ptr, &info_ptr);
         return RETURN_FAILURE;
     }
