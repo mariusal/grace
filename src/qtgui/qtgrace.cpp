@@ -1426,9 +1426,9 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 {
     int i, nold, ncols, nw;
-    QComboBox *pulldown = (QComboBox *) optp->pulldown;
-    QStandardItemModel *model = (QStandardItemModel *) pulldown->model();
-    QTableView *tableView = (QTableView *) pulldown->view();
+    QComboBox *comboBox = (QComboBox *) optp->pulldown;
+    QStandardItemModel *model = (QStandardItemModel *) comboBox->model();
+    QTableView *tableView = (QTableView *) comboBox->view();
 
     nold = optp->nchoices;
 
@@ -1468,6 +1468,8 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
             col++;
         }
     }
+    comboBox->setModelColumn(0);
+    comboBox->setCurrentIndex(0);
 
     tableView->resizeColumnsToContents();
     int max = 0;
