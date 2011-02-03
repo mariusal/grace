@@ -3351,27 +3351,27 @@ void AddStorageChoiceDblClickCB(StorageStructure *ss,
 }
 
 
-//static void spin_arrow_cb(Widget w, XtPointer client_data, XtPointer call_data)
-//{
-//    SpinStructure *spinp;
-//    double value, incr;
-//    
-//    spinp = (SpinStructure *) client_data;
-//    value = GetSpinChoice(spinp);
-//    incr = spinp->incr;
-//    
-//    if (w == spinp->arrow_up) {
-//        incr =  spinp->incr;
-//    } else if (w == spinp->arrow_down) {
-//        incr = -spinp->incr;
-//    } else {
-//        errmsg("Wrong call to spin_arrow_cb()");
-//        return;
-//    }
-//    value += incr;
-//    SetSpinChoice(spinp, value);
-//}
-//
+static void spin_arrow_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    SpinStructure *spinp;
+    double value, incr;
+
+    spinp = (SpinStructure *) client_data;
+    value = GetSpinChoice(spinp);
+    incr = spinp->incr;
+
+    if (w == spinp->arrow_up) {
+        incr =  spinp->incr;
+    } else if (w == spinp->arrow_down) {
+        incr = -spinp->incr;
+    } else {
+        errmsg("Wrong call to spin_arrow_cb()");
+        return;
+    }
+    value += incr;
+    SetSpinChoice(spinp, value);
+}
+
 //static void sp_double_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 //{
 //    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
@@ -3444,8 +3444,15 @@ void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    QtAddCallback(spinp->rc, SIGNAL(valueChanged(double)),
+    QtAddCallback(spinp->text, SIGNAL(editingFinished()),
                   sp_double_cb_proc, (XtPointer) cbdata);
+    QtAddCallback(spinp->arrow_up, SIGNAL(clicked()),
+                  sp_double_cb_proc, (XtPointer) cbdata);
+    QtAddCallback(spinp->arrow_down, SIGNAL(clicked()),
+                  sp_double_cb_proc, (XtPointer) cbdata);
+    //TODO:
+    //    XtAddEventHandler(spinp->text,
+    //        ButtonPressMask, False, sp_ev_proc, (XtPointer) cbdata);
 }
 //
 //static void spin_updown(Widget parent,
@@ -3546,11 +3553,33 @@ void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
 //    
 //    return retval;
 //}
+static QPushButton* CreateArrowButton(Widget parent, QStyle::PrimitiveElement element)
+{
+    QStyle *style = QApplication::style();
+
+    QPushButton *arrow = new QPushButton(parent);
+    arrow->setFixedSize(20, 20);
+    arrow->setIconSize(QSize(14, 14));
+
+    QPixmap *pixmap = new QPixmap(14, 14);
+    pixmap->fill(Qt::white);
+
+    QPainter painter(pixmap);
+    painter.setPen(Qt::black);
+
+    QStyleOptionSpinBox option;
+    option.rect = QRect(-1, -1, 16, 16);
+    style->drawPrimitive(element, &option, &painter);
+
+    arrow->setIcon(QIcon(*pixmap));
+
+    return arrow;
+}
+
 SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
                         int type, double min, double max, double incr)
 {
     SpinStructure *retval;
-    QDoubleSpinBox *spinBox;
 
     if (min >= max) {
         errmsg("min >= max in CreateSpinChoice()!");
@@ -3564,30 +3593,44 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
     retval->max = max;
     retval->incr = incr;
 
-    spinBox = new QDoubleSpinBox(parent);
-    spinBox->setKeyboardTracking(false);
+    QWidget *widget = new QWidget(parent);
+    retval->rc = widget;
 
-    if (retval->type == SPIN_TYPE_INT) {
-        spinBox->setDecimals(0);
-    } else {
-        //TODO: decimals set to inf and don't show leading zeroes
-        spinBox->setDecimals(4);
-    }
-
-    spinBox->setRange(retval->min, retval->max);
-    spinBox->setSingleStep(retval->incr);
-
-    retval->rc = spinBox;
-
-    QLabel *label = new QLabel(parent);
+    QLabel *label = new QLabel(widget);
     label->setText(s);
 
-    QWidget *widget = new QWidget(parent);
+    QFontMetrics f = widget->fontMetrics();
+    int fontWidth = f.leftBearing('0') + f.width('0') + f.rightBearing('0');
+
+    QLineEdit *lineEdit = new QLineEdit(widget);
+    lineEdit->setFixedWidth((len+1) * fontWidth);
+    retval->text = lineEdit;
+
+    //TODO:
+    //QtAddCallback(lineEdit, SIGNAL(clicked()),
+    //              spin_updown, (XtPointer) retval);
+    //XtAddEventHandler(retval->text, ButtonPressMask, False, spin_updown, retval);
+
+    QPushButton *arrow_down = CreateArrowButton(widget, QStyle::PE_IndicatorSpinDown);
+    QtAddCallback(arrow_down, SIGNAL(clicked()),
+                  spin_arrow_cb, (XtPointer) retval);
+    retval->arrow_down = arrow_down;
+
+    QPushButton *arrow_up = CreateArrowButton(widget, QStyle::PE_IndicatorSpinUp);
+    QtAddCallback(arrow_up, SIGNAL(clicked()),
+                  spin_arrow_cb, (XtPointer) retval);
+    retval->arrow_up = arrow_up;
+
+    QSpacerItem *vSpacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
     QHBoxLayout *hLayout = new QHBoxLayout;
     hLayout->setContentsMargins(0,0,0,0);
+    hLayout->setSpacing(0);
     hLayout->addWidget(label);
-    hLayout->addWidget(spinBox);
+    hLayout->addWidget(lineEdit);
+    hLayout->addWidget(arrow_down);
+    hLayout->addWidget(arrow_up);
+    hLayout->addItem(vSpacer);
     widget->setLayout(hLayout);
 
     QLayout *layout = parent->layout();
@@ -3620,41 +3663,46 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 //}
 void SetSpinChoice(SpinStructure *spinp, double value)
 {
-    QDoubleSpinBox *spinBox = (QDoubleSpinBox*) spinp->rc;
-    
-    spinBox->blockSignals(true);
-    spinBox->setValue(value);
-    spinBox->blockSignals(false);
+    QLineEdit *spinBox = (QLineEdit*) spinp->text;
+    char buf[64];
+
+    if (value < spinp->min) {
+        QApplication::beep();
+        value = spinp->min;
+    } else if (value > spinp->max) {
+        QApplication::beep();
+        value = spinp->max;
+    }
+
+    if (spinp->type == SPIN_TYPE_FLOAT) {
+        sprintf(buf, "%g", value);
+    } else {
+        sprintf(buf, "%d", (int) rint(value));
+    }
+    spinBox->setText(buf);
 }
 
-//double GetSpinChoice(SpinStructure *spinp)
-//{
-//    double retval;
-//    
-//    xv_evalexpr(spinp->text, &retval);
-//    if (retval < spinp->min) {
-//        errmsg("Input value below min limit in GetSpinChoice()");
-//        retval = spinp->min;
-//        SetSpinChoice(spinp, retval);
-//    } else if (retval > spinp->max) {
-//        errmsg("Input value above max limit in GetSpinChoice()");
-//        retval = spinp->max;
-//        SetSpinChoice(spinp, retval);
-//    }
-//    
-//    if (spinp->type == SPIN_TYPE_INT) {
-//        return rint(retval);
-//    } else {
-//        return retval;
-//    }
-//}
 double GetSpinChoice(SpinStructure *spinp)
 {
-    QDoubleSpinBox *spinBox = (QDoubleSpinBox*) spinp->rc;
-    
-    return spinBox->value();
-}
+    double retval;
 
+    xv_evalexpr(spinp->text, &retval);
+    if (retval < spinp->min) {
+        errmsg("Input value below min limit in GetSpinChoice()");
+        retval = spinp->min;
+        SetSpinChoice(spinp, retval);
+    } else if (retval > spinp->max) {
+        errmsg("Input value above max limit in GetSpinChoice()");
+        retval = spinp->max;
+        SetSpinChoice(spinp, retval);
+    }
+
+    if (spinp->type == SPIN_TYPE_INT) {
+        return rint(retval);
+    } else {
+        return retval;
+    }
+}
 
 //TextStructure *CreateTextInput(Widget parent, char *s)
 //{
@@ -7722,8 +7770,7 @@ Widget CreateTextItem(Widget parent, int len, char *s)
 
     QLineEdit *lineEdit = new QLineEdit(widget);
     int width = (len + 1) * lineEdit->fontMetrics().charWidth("0", 0);
-    lineEdit->setMinimumWidth(width);
-    lineEdit->setMaximumWidth(width);
+    lineEdit->setFixedWidth(width);
 
     QHBoxLayout *hBoxLayout = new QHBoxLayout;
     hBoxLayout->setContentsMargins(0,0,0,0);
