@@ -1871,6 +1871,7 @@ void SetOptionChoice(OptionStructure *opt, int value)
 
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(opt->pulldown)) {
         QStandardItemModel *model = (QStandardItemModel *) comboBox->model();
+        QTableView *tableView = (QTableView *) comboBox->view();
 
         if (opt->ncols == 0) {
             ncols = 1;
@@ -1887,6 +1888,7 @@ void SetOptionChoice(OptionStructure *opt, int value)
             if (v.toInt() == value) {
                 comboBox->setModelColumn(col);
                 comboBox->setCurrentIndex(row);
+                tableView->setCurrentIndex(index);
                 return;
             }
             row++;
