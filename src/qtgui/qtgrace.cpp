@@ -3561,8 +3561,8 @@ static void SetLineEditWidth(QLineEdit *lineEdit, int len)
 
     int leftTextMargin, rightTextMargin;
     int leftMargin, rightMargin;
-    lineEdit->getTextMargins(&leftTextMargin, &rightTextMargin, 0, 0);
-    lineEdit->getContentsMargins(&leftMargin, &rightMargin, 0, 0);
+    lineEdit->getTextMargins(&leftTextMargin, 0, &rightTextMargin, 0);
+    lineEdit->getContentsMargins(&leftMargin, 0, &rightMargin, 0);
     int frameWidth = lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth, 0, 0);
     int cursorWidth = lineEdit->style()->pixelMetric(QStyle::PM_TextCursorWidth, 0, 0);
     int w = fontWidth * len + 2*2 //2 = horizontalMargin, hardcoded in the qlineedit_p.cpp
