@@ -3582,7 +3582,7 @@ static QPushButton* CreateArrowButton(Widget parent, QStyle::PrimitiveElement el
     arrow->setIconSize(QSize(14, 14));
 
     QPixmap *pixmap = new QPixmap(14, 14);
-    pixmap->fill(Qt::white);
+    pixmap->fill(parent->palette().color(QPalette::Window));
 
     QPainter painter(pixmap);
     painter.setPen(Qt::black);
