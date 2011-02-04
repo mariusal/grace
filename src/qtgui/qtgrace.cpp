@@ -7786,8 +7786,7 @@ Widget CreateTextItem(Widget parent, int len, char *s)
     label->setText(s);
 
     QLineEdit *lineEdit = new QLineEdit(widget);
-    int width = (len + 1) * lineEdit->fontMetrics().charWidth("0", 0);
-    lineEdit->setFixedWidth(width);
+    SetLineEditWidth(lineEdit, len);
 
     QHBoxLayout *hBoxLayout = new QHBoxLayout;
     hBoxLayout->setContentsMargins(0,0,0,0);
