@@ -3846,9 +3846,18 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 
     QPlainTextEdit *pTextEdit = new QPlainTextEdit(widget);
     if (nrows > 0) {
-        int height = (nrows + 1) * pTextEdit->fontMetrics().lineSpacing();
-        pTextEdit->setMinimumHeight(height);
-        pTextEdit->setMaximumHeight(height);
+        QFontMetrics fm = pTextEdit->fontMetrics();
+        int fontHeight = fm.height();
+
+        int topMargin, bottomMargin;
+        pTextEdit->getContentsMargins(0, &topMargin, 0, &bottomMargin);
+        int frameWidth = pTextEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth, 0, 0);
+        int frameWidth2 = pTextEdit->frameWidth();
+        int height = fontHeight * nrows
+                     + topMargin + bottomMargin
+                     + 2*frameWidth
+                     + 2*frameWidth2 + 1;
+        pTextEdit->setFixedHeight(height);
     }
 
     retval->text = pTextEdit;
