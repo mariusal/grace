@@ -3553,6 +3553,26 @@ void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
 //    
 //    return retval;
 //}
+
+static void SetLineEditWidth(QLineEdit *lineEdit, int len)
+{
+    QFontMetrics fm = lineEdit->fontMetrics();
+    int fontWidth = fm.width(QLatin1Char('0'));
+
+    int leftTextMargin, rightTextMargin;
+    int leftMargin, rightMargin;
+    lineEdit->getTextMargins(&leftTextMargin, &rightTextMargin, 0, 0);
+    lineEdit->getContentsMargins(&leftMargin, &rightMargin, 0, 0);
+    int frameWidth = lineEdit->style()->pixelMetric(QStyle::PM_DefaultFrameWidth, 0, 0);
+    int cursorWidth = lineEdit->style()->pixelMetric(QStyle::PM_TextCursorWidth, 0, 0);
+    int w = fontWidth * len + 2*2 //2 = horizontalMargin, hardcoded in the qlineedit_p.cpp
+            + leftTextMargin + rightTextMargin
+            + leftMargin + rightMargin
+            + 2*frameWidth + cursorWidth; // "some"
+
+    lineEdit->setFixedWidth(w);
+}
+
 static QPushButton* CreateArrowButton(Widget parent, QStyle::PrimitiveElement element)
 {
     QStyle *style = QApplication::style();
@@ -3599,11 +3619,8 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
     QLabel *label = new QLabel(widget);
     label->setText(s);
 
-    QFontMetrics f = widget->fontMetrics();
-    int fontWidth = f.leftBearing('0') + f.width('0') + f.rightBearing('0');
-
     QLineEdit *lineEdit = new QLineEdit(widget);
-    lineEdit->setFixedWidth((len+1) * fontWidth);
+    SetLineEditWidth(lineEdit, len);
     retval->text = lineEdit;
 
     //TODO:
