@@ -454,7 +454,7 @@ static void set_locator_cb(Widget but, void *udata)
     snapshot_and_update(gapp->gp, TRUE);
 }
 
-void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
+static void canvas_event(XtPointer data, XEvent *event)
 {
 #ifndef QT_GUI
     int x, y;                /* pointer coordinates */
@@ -883,6 +883,11 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         snapshot_and_update(gapp->gp, TRUE);
     }
 #endif
+}
+
+void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
+{
+    canvas_event(data, event);
 }
 
 static int hook(Quark *q, void *udata, QTraverseClosure *closure)
