@@ -3588,7 +3588,7 @@ static QPushButton* CreateArrowButton(Widget parent, QStyle::PrimitiveElement el
     painter.setPen(Qt::black);
 
     QStyleOptionSpinBox option;
-    option.rect = QRect(-1, -1, 16, 16);
+    option.rect = QRect(-3, -3, 18, 18);
     style->drawPrimitive(element, &option, &painter);
 
     arrow->setIcon(QIcon(*pixmap));
