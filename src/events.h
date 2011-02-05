@@ -47,6 +47,21 @@
 typedef union _XEvent { int type; } XEvent;
 #endif
 
+/* Mouse buttons */
+#define BUTTON_1 0
+#define BUTTON_2 1
+#define BUTTON_3 2
+#define BUTTON_4 3
+#define BUTTON_5 4
+
+typedef struct {
+    int x;
+    int y;
+    int button;
+    int key;
+    int time;
+} CanvasEvent;
+
 /* add points at */
 #define ADD_POINT_BEGINNING 0
 #define ADD_POINT_END       1
@@ -75,6 +90,12 @@ typedef union _XEvent { int type; } XEvent;
 /* #define SELECTION_TYPE_POLY 4 */
 
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont);
+void canvas_mouse_move_event(CanvasEvent *event);
+void canvas_mouse_press_event(CanvasEvent *event);
+void canvas_mouse_release_event(CanvasEvent *event);
+void canvas_key_press_event(CanvasEvent *event);
+void canvas_key_release_event(CanvasEvent *event);
+
 void set_action(GUI *gui, unsigned int npoints, int seltype,
     CanvasPointSink sink, void *data);
 void track_point(Quark *pset, int *loc, int shift);

@@ -454,9 +454,8 @@ static void set_locator_cb(Widget but, void *udata)
     snapshot_and_update(gapp->gp, TRUE);
 }
 
-static void canvas_event(XtPointer data, XEvent *event)
+static void canvas_event(XEvent *event)
 {
-#ifndef QT_GUI
     int x, y;                /* pointer coordinates */
     VPoint vp;
     KeySym keybuf;
@@ -482,359 +481,10 @@ static void canvas_event(XtPointer data, XEvent *event)
     
     x = event->xmotion.x;
     y = event->xmotion.y;
-    
-    switch (event->type) {
-    case MotionNotify:
-	xme = (XMotionEvent *) event;
-	if (gapp->gui->crosshair_cursor) {
-            crosshair_motion(gapp->gui, x, y);
-        }
+}
 
-        x11_dev2VPoint(x, y, &vp);
-
-	if (xstuff->collect_points && xstuff->npoints) {
-            switch (xstuff->sel_type) {
-            case SELECTION_TYPE_RECT:
-                select_region(gapp->gui,
-                    x, y, last_b1down_x, last_b1down_y, TRUE);
-                break;
-            case SELECTION_TYPE_VERT:
-                select_vregion(gapp->gui, x, last_b1down_x, TRUE);
-                break;
-            case SELECTION_TYPE_HORZ:
-                select_hregion(gapp->gui, y, last_b1down_y, TRUE);
-                break;
-            }
-        } else
-        if (xme->state & Button1Mask) {
-            if (xme->state & ControlMask) {
-                if (on_focus) {
-                    resize_region(gapp->gui, xstuff->f_v, on_focus,
-                        x - last_b1down_x, y - last_b1down_y, TRUE);
-                } else
-                if (ct.found) {
-                    slide_region(gapp->gui, ct.bbox,
-                        x - last_b1down_x, y - last_b1down_y, TRUE);
-                }
-            } else {
-                scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
-            }
-        } else {
-            if (gapp->gui->focus_policy == FOCUS_FOLLOWS) {
-                cg = next_graph_containing(cg, &vp);
-            }
-            
-            if (xme->state & ControlMask) {
-                if (abs(x - xstuff->f_x1) <= 5 &&
-                    abs(y - xstuff->f_y1) <= 5) {
-                    on_focus = 1;
-                } else
-                if (abs(x - xstuff->f_x1) <= 5 &&
-                    abs(y - xstuff->f_y2) <= 5) {
-                    on_focus = 2;
-                } else
-                if (abs(x - xstuff->f_x2) <= 5 &&
-                    abs(y - xstuff->f_y2) <= 5) {
-                    on_focus = 3;
-                } else
-                if (abs(x - xstuff->f_x2) <= 5 &&
-                    abs(y - xstuff->f_y1) <= 5) {
-                    on_focus = 4;
-                } else {
-                    on_focus = 0;
-                }
-                if (on_focus) {
-                    set_cursor(gapp->gui, 4);
-                } else {
-                    set_cursor(gapp->gui, -1);
-                }
-            }
-        }
-
-        update_locator_lab(cg, &vp);
-        
-        break;
-    case ButtonPress:
-        xbe = (XButtonEvent *) event;
-	x = event->xbutton.x;
-	y = event->xbutton.y;
-	x11_dev2VPoint(x, y, &vp);
-
-	switch (event->xbutton.button) {
-	case Button1:
-            /* first, determine if it's a double click */
-            if (xbe->time - lastc_time < CLICK_INT &&
-                abs(x - lastc_x) < CLICK_DIST      &&
-                abs(y - lastc_y) < CLICK_DIST) {
-                dbl_click = TRUE;
-            } else {
-                dbl_click = FALSE;
-            }
-            lastc_time = xbe->time;
-            lastc_x = x;
-            lastc_y = y;
-
-            if (!dbl_click) {
-                if (xbe->state & ControlMask) {
-                    ct.vp = vp;
-                    ct.include_graphs = FALSE;
-                    if (on_focus) {
-                        resize_region(gapp->gui, xstuff->f_v, on_focus,
-                            0, 0, FALSE);
-                    } else
-                    if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
-                        slide_region(gapp->gui, ct.bbox, 0, 0, FALSE);
-                    }
-                } else {
-                    if (xstuff->collect_points) {
-                        XPoint xp;
-                        xp.x = x;
-                        xp.y = y;
-                        xstuff->npoints++;
-                        xstuff->xps =
-                            xrealloc(xstuff->xps, xstuff->npoints*sizeof(XPoint));
-                            xstuff->xps[xstuff->npoints - 1] = xp;
-                        select_region(gapp->gui, x, y, x, y, FALSE);
-                    } else
-                    if (gapp->gui->focus_policy == FOCUS_CLICK) {
-                        cg = next_graph_containing(cg, &vp);
-                    }
-                    update_locator_lab(cg, &vp);
-                }
-            } else {
-                ct.vp = vp;
-                ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
-                if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
-                    raise_explorer(gapp->gui, ct.q);
-                    ct.found = FALSE;
-                }
-            }
-            
-            last_b1down_x = x;
-            last_b1down_y = y;
-            
-            if (!xstuff->collect_points) {
-                set_cursor(gapp->gui, 5);
-            }
-            
-            break;
-	case Button2:
-            fprintf(stderr, "Button2\n");
-            break;
-	case Button3:
-            if (xstuff->collect_points) {
-                undo_point = TRUE;
-                if (xstuff->npoints) {
-                    xstuff->npoints--;
-                }
-                if (xstuff->npoints == 0) {
-                    abort_action = TRUE;
-                }
-            } else {
-                ct.vp = vp;
-                ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
-                if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
-                    char *s;
-                    ct.found = FALSE;
-                    
-                    if (!popup) {
-                        popup = XmCreatePopupMenu(gapp->gui->xstuff->canvas,
-                            "popupMenu", NULL, 0);
-                        
-                        poplab = CreateMenuLabel(popup, "");
-                        
-                        CreateMenuSeparator(popup);
-
-                        CreateMenuButton(popup,
-                            "Properties...", '\0', edit_cb, &ct);
-                        
-                        CreateMenuSeparator(popup);
-                        
-                        CreateMenuButton(popup, "Hide", '\0', hide_cb, &ct);
-
-                        CreateMenuSeparator(popup);
-                        
-                        CreateMenuButton(popup,
-                            "Delete", '\0', delete_cb, &ct);
-                        CreateMenuButton(popup,
-                            "Duplicate", '\0', duplicate_cb, &ct);
-
-                        CreateMenuSeparator(popup);
-
-                        bring_to_front_bt = CreateMenuButton(popup,
-                            "Bring to front", '\0', bring_to_front_cb, &ct);
-                        move_up_bt = CreateMenuButton(popup,
-                            "Move up", '\0', move_up_cb, &ct);
-                        move_down_bt = CreateMenuButton(popup,
-                            "Move down", '\0', move_down_cb, &ct);
-                        send_to_back_bt = CreateMenuButton(popup,
-                            "Send to back", '\0', send_to_back_cb, &ct);
-                        
-                        CreateMenuSeparator(popup);
-
-                        as_set_bt = CreateMenuButton(popup,
-                            "Autoscale by this set", '\0', autoscale_cb, &ct);
-
-                        atext_bt = CreateMenuButton(popup,
-                            "Annotate this point", '\0', atext_cb, &ct);
-
-                        CreateMenuSeparator(popup);
-
-                        drop_pt_bt = CreateMenuButton(popup,
-                            "Drop this point", '\0', drop_point_cb, &ct);
-
-                        set_locator_bt = CreateMenuButton(popup,
-                            "Set locator fixed point", '\0', set_locator_cb, &ct);
-                        clear_locator_bt = CreateMenuButton(popup,
-                            "Clear locator fixed point", '\0', do_clear_point, &ct);
-                    }
-                    s = q_labeling(ct.q);
-                    SetLabel(poplab, s);
-                    xfree(s);
-                    if (quark_is_last_child(ct.q)) {
-                        SetSensitive(bring_to_front_bt, FALSE);
-                        SetSensitive(move_up_bt, FALSE);
-                    } else {
-                        SetSensitive(bring_to_front_bt, TRUE);
-                        SetSensitive(move_up_bt, TRUE);
-                    }
-                    if (quark_is_first_child(ct.q)) {
-                        SetSensitive(send_to_back_bt, FALSE);
-                        SetSensitive(move_down_bt, FALSE);
-                    } else {
-                        SetSensitive(send_to_back_bt, TRUE);
-                        SetSensitive(move_down_bt, TRUE);
-                    }
-                    
-                    if ((quark_fid_get(ct.q) == QFlavorFrame && ct.part == 0) ||
-                        (quark_fid_get(ct.q) == QFlavorGraph && ct.part == 0)) {
-                        ManageChild(atext_bt);
-                    } else {
-                        UnmanageChild(atext_bt);
-                    }
-                    if (quark_fid_get(ct.q) == QFlavorGraph && ct.part != 1) {
-                        ManageChild(set_locator_bt);
-                    } else {
-                        UnmanageChild(set_locator_bt);
-                    }
-                    if (quark_fid_get(ct.q) == QFlavorGraph && ct.part == 1) {
-                        ManageChild(clear_locator_bt);
-                    } else {
-                        UnmanageChild(clear_locator_bt);
-                    }
-                    
-                    if (quark_fid_get(ct.q) == QFlavorSet) {
-                        ManageChild(as_set_bt);
-                    } else {
-                        UnmanageChild(as_set_bt);
-                    }
-                    if (quark_fid_get(ct.q) == QFlavorSet && ct.part >= 0) {
-                        ManageChild(drop_pt_bt);
-                    } else {
-                        UnmanageChild(drop_pt_bt);
-                    }
-                    
-                    XmMenuPosition(popup, xbe);
-                    XtManageChild(popup);
-                }
-            }
-            break;
-	case Button4:
-            scroll(drawing_window, TRUE, xbe->state & ControlMask);
-            break;
-	case Button5:
-            scroll(drawing_window, FALSE, xbe->state & ControlMask);
-            break;
-	default:
-            break;
-        }
-        break;
-    case ButtonRelease:
-        xbe = (XButtonEvent *) event;
-	switch (event->xbutton.button) {
-	case Button1:
-            if (xbe->state & ControlMask) {
-                x11_dev2VPoint(x, y, &vp);
-                if (on_focus) {
-                    view v;
-                    Quark *fr = get_parent_frame(graph_get_current(gproject_get_top(gapp->gp)));
-                    frame_get_view(fr, &v);
-                    switch (on_focus) {
-                    case 1:
-                        v.xv1 = vp.x;
-                        v.yv1 = vp.y;
-                        break;
-                    case 2:
-                        v.xv1 = vp.x;
-                        v.yv2 = vp.y;
-                        break;
-                    case 3:
-                        v.xv2 = vp.x;
-                        v.yv2 = vp.y;
-                        break;
-                    case 4:
-                        v.xv2 = vp.x;
-                        v.yv1 = vp.y;
-                        break;
-                    }
-                    frame_set_view(fr, &v);
-                } else
-                if (ct.found) {
-                    slide_region(gapp->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
-
-                    move_target(&ct, &vp);
-                }
-                ct.found = FALSE;
-
-                snapshot_and_update(gapp->gp, TRUE);
-            }
-            if (!xstuff->collect_points) {
-                set_cursor(gapp->gui, -1);
-            }
-            break;
-        }
-        break;
-    case KeyPress:
-	xke = (XKeyEvent *) event;
-        keybuf = XLookupKeysym(xke, 0);
-        switch (keybuf) {
-        case XK_Escape: /* Esc */
-            abort_action = TRUE;
-            break;
-        case XK_KP_Add: /* "Grey" plus */
-            if (xke->state & ControlMask) {
-                page_zoom_inout(gapp, +1);
-            }
-            break;
-        case XK_KP_Subtract: /* "Grey" minus */
-            if (xke->state & ControlMask) {
-                page_zoom_inout(gapp, -1);
-            }
-            break;
-        case XK_1:
-            if (xke->state & ControlMask) {
-                page_zoom_inout(gapp, 0);
-            }
-            break;
-        }
-        break;
-    case KeyRelease:
-	xke = (XKeyEvent *) event;
-        keybuf = XLookupKeysym(xke, 0);
-        if (xke->state & ControlMask) {
-            if (on_focus) {
-                set_cursor(gapp->gui, -1);
-            } else
-            if (ct.found) {
-                slide_region(gapp->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
-                ct.found = FALSE;
-            }
-        }
-        break;
-    default:
-	break;
-    }
-    
+static void canvas_complete_event(int x, int y)
+{
     if (abort_action && xstuff->collect_points) {
         /* clear selection */
         switch (xstuff->sel_type) {
@@ -872,7 +522,7 @@ static void canvas_event(XtPointer data, XEvent *event)
         if (ret != RETURN_SUCCESS) {
             XBell(xstuff->disp, 50);
         }
-        
+
         xfree(vps);
 
         xstuff->npoints_requested = 0;
@@ -882,12 +532,391 @@ static void canvas_event(XtPointer data, XEvent *event)
 
         snapshot_and_update(gapp->gp, TRUE);
     }
-#endif
+}
+
+void canvas_mouse_move_event(CanvasEvent *event)
+{
+    xme = (XMotionEvent *) event;
+    if (gapp->gui->crosshair_cursor) {
+        crosshair_motion(gapp->gui, x, y);
+    }
+
+    x11_dev2VPoint(x, y, &vp);
+
+    if (xstuff->collect_points && xstuff->npoints) {
+        switch (xstuff->sel_type) {
+        case SELECTION_TYPE_RECT:
+            select_region(gapp->gui,
+                x, y, last_b1down_x, last_b1down_y, TRUE);
+            break;
+        case SELECTION_TYPE_VERT:
+            select_vregion(gapp->gui, x, last_b1down_x, TRUE);
+            break;
+        case SELECTION_TYPE_HORZ:
+            select_hregion(gapp->gui, y, last_b1down_y, TRUE);
+            break;
+        }
+    } else
+    if (xme->state & Button1Mask) {
+        if (xme->state & ControlMask) {
+            if (on_focus) {
+                resize_region(gapp->gui, xstuff->f_v, on_focus,
+                    x - last_b1down_x, y - last_b1down_y, TRUE);
+            } else
+            if (ct.found) {
+                slide_region(gapp->gui, ct.bbox,
+                    x - last_b1down_x, y - last_b1down_y, TRUE);
+            }
+        } else {
+            scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
+        }
+    } else {
+        if (gapp->gui->focus_policy == FOCUS_FOLLOWS) {
+            cg = next_graph_containing(cg, &vp);
+        }
+
+        if (xme->state & ControlMask) {
+            if (abs(x - xstuff->f_x1) <= 5 &&
+                abs(y - xstuff->f_y1) <= 5) {
+                on_focus = 1;
+            } else
+            if (abs(x - xstuff->f_x1) <= 5 &&
+                abs(y - xstuff->f_y2) <= 5) {
+                on_focus = 2;
+            } else
+            if (abs(x - xstuff->f_x2) <= 5 &&
+                abs(y - xstuff->f_y2) <= 5) {
+                on_focus = 3;
+            } else
+            if (abs(x - xstuff->f_x2) <= 5 &&
+                abs(y - xstuff->f_y1) <= 5) {
+                on_focus = 4;
+            } else {
+                on_focus = 0;
+            }
+            if (on_focus) {
+                set_cursor(gapp->gui, 4);
+            } else {
+                set_cursor(gapp->gui, -1);
+            }
+        }
+    }
+
+    update_locator_lab(cg, &vp);
+}
+
+void canvas_mouse_press_event(CanvasEvent *event)
+{
+    xbe = (XButtonEvent *) event;
+    x = event->xbutton.x;
+    y = event->xbutton.y;
+    x11_dev2VPoint(x, y, &vp);
+
+    switch (event->xbutton.button) {
+    case Button1:
+        /* first, determine if it's a double click */
+        if (xbe->time - lastc_time < CLICK_INT &&
+            abs(x - lastc_x) < CLICK_DIST      &&
+            abs(y - lastc_y) < CLICK_DIST) {
+            dbl_click = TRUE;
+        } else {
+            dbl_click = FALSE;
+        }
+        lastc_time = xbe->time;
+        lastc_x = x;
+        lastc_y = y;
+
+        if (!dbl_click) {
+            if (xbe->state & ControlMask) {
+                ct.vp = vp;
+                ct.include_graphs = FALSE;
+                if (on_focus) {
+                    resize_region(gapp->gui, xstuff->f_v, on_focus,
+                        0, 0, FALSE);
+                } else
+                if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
+                    slide_region(gapp->gui, ct.bbox, 0, 0, FALSE);
+                }
+            } else {
+                if (xstuff->collect_points) {
+                    XPoint xp;
+                    xp.x = x;
+                    xp.y = y;
+                    xstuff->npoints++;
+                    xstuff->xps =
+                        xrealloc(xstuff->xps, xstuff->npoints*sizeof(XPoint));
+                        xstuff->xps[xstuff->npoints - 1] = xp;
+                    select_region(gapp->gui, x, y, x, y, FALSE);
+                } else
+                if (gapp->gui->focus_policy == FOCUS_CLICK) {
+                    cg = next_graph_containing(cg, &vp);
+                }
+                update_locator_lab(cg, &vp);
+            }
+        } else {
+            ct.vp = vp;
+            ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
+            if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
+                raise_explorer(gapp->gui, ct.q);
+                ct.found = FALSE;
+            }
+        }
+
+        last_b1down_x = x;
+        last_b1down_y = y;
+
+        if (!xstuff->collect_points) {
+            set_cursor(gapp->gui, 5);
+        }
+
+        break;
+    case Button2:
+        fprintf(stderr, "Button2\n");
+        break;
+    case Button3:
+        if (xstuff->collect_points) {
+            undo_point = TRUE;
+            if (xstuff->npoints) {
+                xstuff->npoints--;
+            }
+            if (xstuff->npoints == 0) {
+                abort_action = TRUE;
+            }
+        } else {
+            ct.vp = vp;
+            ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
+            if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
+                char *s;
+                ct.found = FALSE;
+
+                if (!popup) {
+                    popup = XmCreatePopupMenu(gapp->gui->xstuff->canvas,
+                        "popupMenu", NULL, 0);
+
+                    poplab = CreateMenuLabel(popup, "");
+
+                    CreateMenuSeparator(popup);
+
+                    CreateMenuButton(popup,
+                        "Properties...", '\0', edit_cb, &ct);
+
+                    CreateMenuSeparator(popup);
+
+                    CreateMenuButton(popup, "Hide", '\0', hide_cb, &ct);
+
+                    CreateMenuSeparator(popup);
+
+                    CreateMenuButton(popup,
+                        "Delete", '\0', delete_cb, &ct);
+                    CreateMenuButton(popup,
+                        "Duplicate", '\0', duplicate_cb, &ct);
+
+                    CreateMenuSeparator(popup);
+
+                    bring_to_front_bt = CreateMenuButton(popup,
+                        "Bring to front", '\0', bring_to_front_cb, &ct);
+                    move_up_bt = CreateMenuButton(popup,
+                        "Move up", '\0', move_up_cb, &ct);
+                    move_down_bt = CreateMenuButton(popup,
+                        "Move down", '\0', move_down_cb, &ct);
+                    send_to_back_bt = CreateMenuButton(popup,
+                        "Send to back", '\0', send_to_back_cb, &ct);
+
+                    CreateMenuSeparator(popup);
+
+                    as_set_bt = CreateMenuButton(popup,
+                        "Autoscale by this set", '\0', autoscale_cb, &ct);
+
+                    atext_bt = CreateMenuButton(popup,
+                        "Annotate this point", '\0', atext_cb, &ct);
+
+                    CreateMenuSeparator(popup);
+
+                    drop_pt_bt = CreateMenuButton(popup,
+                        "Drop this point", '\0', drop_point_cb, &ct);
+
+                    set_locator_bt = CreateMenuButton(popup,
+                        "Set locator fixed point", '\0', set_locator_cb, &ct);
+                    clear_locator_bt = CreateMenuButton(popup,
+                        "Clear locator fixed point", '\0', do_clear_point, &ct);
+                }
+                s = q_labeling(ct.q);
+                SetLabel(poplab, s);
+                xfree(s);
+                if (quark_is_last_child(ct.q)) {
+                    SetSensitive(bring_to_front_bt, FALSE);
+                    SetSensitive(move_up_bt, FALSE);
+                } else {
+                    SetSensitive(bring_to_front_bt, TRUE);
+                    SetSensitive(move_up_bt, TRUE);
+                }
+                if (quark_is_first_child(ct.q)) {
+                    SetSensitive(send_to_back_bt, FALSE);
+                    SetSensitive(move_down_bt, FALSE);
+                } else {
+                    SetSensitive(send_to_back_bt, TRUE);
+                    SetSensitive(move_down_bt, TRUE);
+                }
+
+                if ((quark_fid_get(ct.q) == QFlavorFrame && ct.part == 0) ||
+                    (quark_fid_get(ct.q) == QFlavorGraph && ct.part == 0)) {
+                    ManageChild(atext_bt);
+                } else {
+                    UnmanageChild(atext_bt);
+                }
+                if (quark_fid_get(ct.q) == QFlavorGraph && ct.part != 1) {
+                    ManageChild(set_locator_bt);
+                } else {
+                    UnmanageChild(set_locator_bt);
+                }
+                if (quark_fid_get(ct.q) == QFlavorGraph && ct.part == 1) {
+                    ManageChild(clear_locator_bt);
+                } else {
+                    UnmanageChild(clear_locator_bt);
+                }
+
+                if (quark_fid_get(ct.q) == QFlavorSet) {
+                    ManageChild(as_set_bt);
+                } else {
+                    UnmanageChild(as_set_bt);
+                }
+                if (quark_fid_get(ct.q) == QFlavorSet && ct.part >= 0) {
+                    ManageChild(drop_pt_bt);
+                } else {
+                    UnmanageChild(drop_pt_bt);
+                }
+
+                XmMenuPosition(popup, xbe);
+                XtManageChild(popup);
+            }
+        }
+        break;
+    case Button4:
+        scroll(drawing_window, TRUE, xbe->state & ControlMask);
+        break;
+    case Button5:
+        scroll(drawing_window, FALSE, xbe->state & ControlMask);
+        break;
+    default:
+        break;
+    }
+}
+
+void canvas_mouse_release_event(CanvasEvent *event)
+{
+    xbe = (XButtonEvent *) event;
+    switch (event->xbutton.button) {
+    case Button1:
+        if (xbe->state & ControlMask) {
+            x11_dev2VPoint(x, y, &vp);
+            if (on_focus) {
+                view v;
+                Quark *fr = get_parent_frame(graph_get_current(gproject_get_top(gapp->gp)));
+                frame_get_view(fr, &v);
+                switch (on_focus) {
+                case 1:
+                    v.xv1 = vp.x;
+                    v.yv1 = vp.y;
+                    break;
+                case 2:
+                    v.xv1 = vp.x;
+                    v.yv2 = vp.y;
+                    break;
+                case 3:
+                    v.xv2 = vp.x;
+                    v.yv2 = vp.y;
+                    break;
+                case 4:
+                    v.xv2 = vp.x;
+                    v.yv1 = vp.y;
+                    break;
+                }
+                frame_set_view(fr, &v);
+            } else
+            if (ct.found) {
+                slide_region(gapp->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
+
+                move_target(&ct, &vp);
+            }
+            ct.found = FALSE;
+
+            snapshot_and_update(gapp->gp, TRUE);
+        }
+        if (!xstuff->collect_points) {
+            set_cursor(gapp->gui, -1);
+        }
+        break;
+    }
+}
+
+void canvas_key_press_event(CanvasEvent *event)
+{
+    xke = (XKeyEvent *) event;
+    keybuf = XLookupKeysym(xke, 0);
+    switch (keybuf) {
+    case XK_Escape: /* Esc */
+        abort_action = TRUE;
+        break;
+    case XK_KP_Add: /* "Grey" plus */
+        if (xke->state & ControlMask) {
+            page_zoom_inout(gapp, +1);
+        }
+        break;
+    case XK_KP_Subtract: /* "Grey" minus */
+        if (xke->state & ControlMask) {
+            page_zoom_inout(gapp, -1);
+        }
+        break;
+    case XK_1:
+        if (xke->state & ControlMask) {
+            page_zoom_inout(gapp, 0);
+        }
+        break;
+    }
+}
+
+void canvas_key_release_event(CanvasEvent *event)
+{
+    xke = (XKeyEvent *) event;
+    keybuf = XLookupKeysym(xke, 0);
+    if (xke->state & ControlMask) {
+        if (on_focus) {
+            set_cursor(gapp->gui, -1);
+        } else
+        if (ct.found) {
+            slide_region(gapp->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
+            ct.found = FALSE;
+        }
+    }
 }
 
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 {
-    canvas_event(data, event);
+    CanvasEvent cevent;
+
+    cevent.x = event->xmotion.x;
+    cevent.y = event->xmotion.y;
+
+    switch (event->type) {
+    case MotionNotify:
+        xme = (XMotionEvent *) event;
+        canvas_mouse_move_event(cevent);
+        break;
+    case ButtonPress:
+        canvas_mouse_press_event(cevent);
+        break;
+    case ButtonRelease:
+        canvas_mouse_release_event(cevent);
+        break;
+    case KeyPress:
+        canvas_key_press_event(cevent);
+        break;
+    case KeyRelease:
+        canvas_key_release_event(cevent);
+        break;
+    default:
+        break;
+    }
 }
 
 static int hook(Quark *q, void *udata, QTraverseClosure *closure)
