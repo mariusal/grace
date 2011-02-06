@@ -23,12 +23,12 @@ void CanvasWidget::paintEvent(QPaintEvent *event)
 }
 
 
-void CanvasWidget::mousePressEvent(QMouseEvent *event)
+void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
 {
 
 }
 
-void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
+void CanvasWidget::mousePressEvent(QMouseEvent *event)
 {
 
 }
