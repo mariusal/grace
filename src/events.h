@@ -41,17 +41,29 @@
 #include "xprotos.h"
 
 /* Mouse buttons */
-#define BUTTON1 0
-#define BUTTON2 1
-#define BUTTON3 2
-#define BUTTON4 3
-#define BUTTON5 4
+#define NO_BUTTON         0x00
+#define LEFT_BUTTON       0x01
+#define RIGHT_BUTTON      0x02
+#define MIDDLE_BUTTON     0x04
+#define WHEEL_UP_BUTTON   0x08
+#define WHEEL_DOWN_BUTTON 0x10
+
+/* Keys */
+#define KEY_ESCAPE 0
+#define KEY_1      1
+#define KEY_PLUS   2
+#define KEY_MINUS  3
+
+/* Modifiers */
+#define NO_MODIFIER      0x00
+#define CONTROL_MODIFIER 0x04
 
 typedef struct {
     int x;
     int y;
     int button;
     int key;
+    int modifiers;
     int time;
 } CanvasEvent;
 
