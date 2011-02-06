@@ -458,15 +458,10 @@ void canvas_event(CanvasEvent *event)
 {
     int x, y;                /* pointer coordinates */
     VPoint vp;
-    KeySym keybuf;
     GraceApp *gapp = (GraceApp *) data;
     Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
     X11Stuff *xstuff = gapp->gui->xstuff;
     Widget drawing_window = gapp->gui->mwui->drawing_window;
-    
-    XMotionEvent *xme;
-    XButtonEvent *xbe;
-    XKeyEvent    *xke;
     
     static Time lastc_time = 0;  /* time of last mouse click */
     static int lastc_x, lastc_y; /* coords of last mouse click */
@@ -479,12 +474,11 @@ void canvas_event(CanvasEvent *event)
     static canvas_target ct;
     static int on_focus;
     
-    x = event->xmotion.x;
-    y = event->xmotion.y;
+    x = event->x;
+    y = event->y;
     
     switch (event->type) {
-    case MotionNotify:
-	xme = (XMotionEvent *) event;
+    case MOUSE_MOVE:
 	if (gapp->gui->crosshair_cursor) {
             crosshair_motion(gapp->gui, x, y);
         }
@@ -505,8 +499,8 @@ void canvas_event(CanvasEvent *event)
                 break;
             }
         } else
-        if (xme->state & Button1Mask) {
-            if (xme->state & ControlMask) {
+        if (event->button & LEFT_BUTTON) {
+            if (event->modifiers & CONTROL_MODIFIER) {
                 if (on_focus) {
                     resize_region(gapp->gui, xstuff->f_v, on_focus,
                         x - last_b1down_x, y - last_b1down_y, TRUE);
@@ -523,7 +517,7 @@ void canvas_event(CanvasEvent *event)
                 cg = next_graph_containing(cg, &vp);
             }
             
-            if (xme->state & ControlMask) {
+            if (event->modifiers & CONTROL_MODIFIER) {
                 if (abs(x - xstuff->f_x1) <= 5 &&
                     abs(y - xstuff->f_y1) <= 5) {
                     on_focus = 1;
@@ -553,28 +547,27 @@ void canvas_event(CanvasEvent *event)
         update_locator_lab(cg, &vp);
         
         break;
-    case ButtonPress:
-        xbe = (XButtonEvent *) event;
-	x = event->xbutton.x;
-	y = event->xbutton.y;
+    case MOUSE_PRESS:
+        x = event->x;
+        y = event->y;
 	x11_dev2VPoint(x, y, &vp);
 
-	switch (event->xbutton.button) {
-	case Button1:
+        switch (event->button) {
+        case LEFT_BUTTON:
             /* first, determine if it's a double click */
-            if (xbe->time - lastc_time < CLICK_INT &&
+            if (event->time - lastc_time < CLICK_INT &&
                 abs(x - lastc_x) < CLICK_DIST      &&
                 abs(y - lastc_y) < CLICK_DIST) {
                 dbl_click = TRUE;
             } else {
                 dbl_click = FALSE;
             }
-            lastc_time = xbe->time;
+            lastc_time = event->time;
             lastc_x = x;
             lastc_y = y;
 
             if (!dbl_click) {
-                if (xbe->state & ControlMask) {
+                if (event->modifiers & CONTROL_MODIFIER) {
                     ct.vp = vp;
                     ct.include_graphs = FALSE;
                     if (on_focus) {
@@ -602,7 +595,7 @@ void canvas_event(CanvasEvent *event)
                 }
             } else {
                 ct.vp = vp;
-                ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
+                ct.include_graphs = (event->modifiers & CONTROL_MODIFIER) ? FALSE:TRUE;
                 if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
                     raise_explorer(gapp->gui, ct.q);
                     ct.found = FALSE;
@@ -617,10 +610,10 @@ void canvas_event(CanvasEvent *event)
             }
             
             break;
-	case Button2:
+        case MIDDLE_BUTTON:
             fprintf(stderr, "Button2\n");
             break;
-	case Button3:
+        case RIGHT_BUTTON:
             if (xstuff->collect_points) {
                 undo_point = TRUE;
                 if (xstuff->npoints) {
@@ -631,7 +624,7 @@ void canvas_event(CanvasEvent *event)
                 }
             } else {
                 ct.vp = vp;
-                ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
+                ct.include_graphs = (event->modifiers & CONTROL_MODIFIER) ? FALSE:TRUE;
                 if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
                     char *s;
                     ct.found = FALSE;
@@ -738,21 +731,20 @@ void canvas_event(CanvasEvent *event)
                 }
             }
             break;
-	case Button4:
-            scroll(drawing_window, TRUE, xbe->state & ControlMask);
+        case WHEEL_UP_BUTTON:
+            scroll(drawing_window, TRUE, event->modifiers & CONTROL_MODIFIER);
             break;
-	case Button5:
-            scroll(drawing_window, FALSE, xbe->state & ControlMask);
+        case WHEEL_DOWN_BUTTON:
+            scroll(drawing_window, FALSE, event->modifiers & CONTROL_MODIFIER);
             break;
 	default:
             break;
         }
         break;
-    case ButtonRelease:
-        xbe = (XButtonEvent *) event;
-	switch (event->xbutton.button) {
-	case Button1:
-            if (xbe->state & ControlMask) {
+    case MOUSE_RELEASE:
+        switch (event->button) {
+        case LEFT_BUTTON:
+            if (event->modifiers & CONTROL_MODIFIER) {
                 x11_dev2VPoint(x, y, &vp);
                 if (on_focus) {
                     view v;
@@ -793,34 +785,30 @@ void canvas_event(CanvasEvent *event)
             break;
         }
         break;
-    case KeyPress:
-	xke = (XKeyEvent *) event;
-        keybuf = XLookupKeysym(xke, 0);
-        switch (keybuf) {
-        case XK_Escape: /* Esc */
+    case KEY_PRESS:
+        switch (event->key) {
+        case KEY_ESCAPE: /* Esc */
             abort_action = TRUE;
             break;
-        case XK_KP_Add: /* "Grey" plus */
-            if (xke->state & ControlMask) {
+        case KEY_PLUS: /* "Grey" plus */
+            if (event->modifiers & CONTROL_MODIFIER) {
                 page_zoom_inout(gapp, +1);
             }
             break;
-        case XK_KP_Subtract: /* "Grey" minus */
-            if (xke->state & ControlMask) {
+        case KEY_MINUS: /* "Grey" minus */
+            if (event->modifiers & CONTROL_MODIFIER) {
                 page_zoom_inout(gapp, -1);
             }
             break;
-        case XK_1:
-            if (xke->state & ControlMask) {
+        case KEY_1:
+            if (event->modifiers & CONTROL_MODIFIER) {
                 page_zoom_inout(gapp, 0);
             }
             break;
         }
         break;
-    case KeyRelease:
-	xke = (XKeyEvent *) event;
-        keybuf = XLookupKeysym(xke, 0);
-        if (xke->state & ControlMask) {
+    case KEY_RELEASE:
+        if (event->modifiers & CONTROL_MODIFIER) {
             if (on_focus) {
                 set_cursor(gapp->gui, -1);
             } else

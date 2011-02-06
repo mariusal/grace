@@ -460,6 +460,13 @@ void set_view_items(void)
 static void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 {
     CanvasEvent cevent;
+    cevent.modifiers = NO_MODIFIER;
+    cevent.button    = NO_BUTTON;
+
+    KeySym keybuf;
+    XMotionEvent *xme;
+    XButtonEvent *xbe;
+    XKeyEvent    *xke;
 
     cevent.x = event->xmotion.x;
     cevent.y = event->xmotion.y;
@@ -467,24 +474,86 @@ static void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *
     switch (event->type) {
     case MotionNotify:
         cevent.type = MOUSE_MOVE;
+        xme = (XMotionEvent *) event;
+        if (xme->state & Button1Mask) {
+            cevent.button = cevent.button ^ LEFT_BUTTON;
+        }
+        if (xme->state & ControlMask) {
+            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        }
         break;
     case ButtonPress:
         cevent.type = MOUSE_PRESS;
+        xbe = (XButtonEvent *) event;
+        cevent.x = event->xbutton.x;
+        cevent.y = event->xbutton.y;
+        switch (event->xbutton.button) {
+        case Button1:
+            cevent.button = cevent.button ^ LEFT_BUTTON;
+            cevent.time = xbe->time;
+            break;
+        case Button2:
+            cevent.button = cevent.button ^ MIDDLE_BUTTON;
+            break;
+        case Button3:
+            cevent.button = cevent.button ^ RIGHT_BUTTON;
+            break;
+        case Button4:
+            cevent.button = cevent.button ^ WHEEL_UP_BUTTON;
+            break;
+        case Button5:
+            cevent.button = cevent.button ^ WHEEL_DOWN_BUTTON;
+            break;
+        }
+        if (xbe->state & ControlMask) {
+            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        }
         break;
     case ButtonRelease:
         cevent.type = MOUSE_RELEASE;
+        xbe = (XButtonEvent *) event;
+        switch (event->xbutton.button) {
+        case Button1:
+            cevent.button = cevent.button ^ LEFT_BUTTON;
+            break;
+        if (xbe->state & ControlMask) {
+            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        }
         break;
     case KeyPress:
         cevent.type = KEY_PRESS;
+        xke = (XKeyEvent *) event;
+        keybuf = XLookupKeysym(xke, 0);
+        switch (keybuf) {
+        case XK_Escape: /* Esc */
+            cevent.key = KEY_ESCAPE;
+            break;
+        case XK_KP_Add: /* "Grey" plus */
+            cevent.key = KEY_PLUS;
+            break;
+        case XK_KP_Subtract: /* "Grey" minus */
+            cevent.key = KEY_MINUS;
+            break;
+        case XK_1:
+            cevent.key = KEY_1;
+            break;
+        }
+        if (xke->state & ControlMask) {
+            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        }
         break;
     case KeyRelease:
         cevent.type = KEY_RELEASE;
+        xke = (XKeyEvent *) event;
+        if (xke->state & ControlMask) {
+            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        }
         break;
     default:
         break;
     }
 
-    canvas_event(cevent);
+    canvas_event(&cevent);
 }
 
 /*
