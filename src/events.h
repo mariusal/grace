@@ -73,6 +73,7 @@ typedef struct {
     int key;
     int modifiers;
     int time;
+    void *udata;
 } CanvasEvent;
 
 /* add points at */

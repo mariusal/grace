@@ -458,7 +458,6 @@ void canvas_event(CanvasEvent *event)
 {
     int x, y;                /* pointer coordinates */
     VPoint vp;
-    GraceApp *gapp = (GraceApp *) data;
     Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
     X11Stuff *xstuff = gapp->gui->xstuff;
     Widget drawing_window = gapp->gui->mwui->drawing_window;
@@ -726,7 +725,7 @@ void canvas_event(CanvasEvent *event)
                         UnmanageChild(drop_pt_bt);
                     }
                     
-                    XmMenuPosition(popup, xbe);
+                    XmMenuPosition(popup, (XButtonEvent *) event->udata);
                     XtManageChild(popup);
                 }
             }
@@ -857,7 +856,7 @@ void canvas_event(CanvasEvent *event)
         /* return points to caller */
         ret = xstuff->point_sink(xstuff->npoints, vps, xstuff->sink_data);
         if (ret != RETURN_SUCCESS) {
-            Bell();
+            Beep();
         }
         
         xfree(vps);

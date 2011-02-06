@@ -485,6 +485,7 @@ static void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *
     case ButtonPress:
         cevent.type = MOUSE_PRESS;
         xbe = (XButtonEvent *) event;
+        cevent.udata = xbe;
         cevent.x = event->xbutton.x;
         cevent.y = event->xbutton.y;
         switch (event->xbutton.button) {
@@ -516,6 +517,7 @@ static void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *
         case Button1:
             cevent.button = cevent.button ^ LEFT_BUTTON;
             break;
+        }
         if (xbe->state & ControlMask) {
             cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
         }

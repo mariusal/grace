@@ -138,6 +138,8 @@ static char *label_to_resname(const char *s, const char *suffix)
 
 void Beep(void)
 {
+    X11Stuff *xstuff = gapp->gui->xstuff;
+
     XBell(xstuff->disp, 50);
 }
 
