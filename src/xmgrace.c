@@ -466,24 +466,25 @@ static void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *
 
     switch (event->type) {
     case MotionNotify:
-        xme = (XMotionEvent *) event;
-        canvas_mouse_move_event(cevent);
+        cevent.type = MOUSE_MOVE;
         break;
     case ButtonPress:
-        canvas_mouse_press_event(cevent);
+        cevent.type = MOUSE_PRESS;
         break;
     case ButtonRelease:
-        canvas_mouse_release_event(cevent);
+        cevent.type = MOUSE_RELEASE;
         break;
     case KeyPress:
-        canvas_key_press_event(cevent);
+        cevent.type = KEY_PRESS;
         break;
     case KeyRelease:
-        canvas_key_release_event(cevent);
+        cevent.type = KEY_RELEASE;
         break;
     default:
         break;
     }
+
+    canvas_event(cevent);
 }
 
 /*

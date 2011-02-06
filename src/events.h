@@ -40,6 +40,13 @@
 #include "graceapp.h"
 #include "xprotos.h"
 
+/* Event types */
+#define MOUSE_MOVE    0
+#define MOUSE_PRESS   1
+#define MOUSE_RELEASE 2
+#define KEY_PRESS     3
+#define KEY_RELEASE   4
+
 /* Mouse buttons */
 #define NO_BUTTON         0x00
 #define LEFT_BUTTON       0x01
@@ -59,6 +66,7 @@
 #define CONTROL_MODIFIER 0x04
 
 typedef struct {
+    int type;
     int x;
     int y;
     int button;
@@ -94,12 +102,7 @@ typedef struct {
 #define SELECTION_TYPE_HORZ 3
 /* #define SELECTION_TYPE_POLY 4 */
 
-void canvas_mouse_move_event(CanvasEvent *event);
-void canvas_mouse_press_event(CanvasEvent *event);
-void canvas_mouse_release_event(CanvasEvent *event);
-void canvas_key_press_event(CanvasEvent *event);
-void canvas_key_release_event(CanvasEvent *event);
-
+void canvas_event(CanvasEvent *event);
 void set_action(GUI *gui, unsigned int npoints, int seltype,
     CanvasPointSink sink, void *data);
 void track_point(Quark *pset, int *loc, int shift);
