@@ -397,6 +397,7 @@ struct _FormatStructure {
     void *cb_data;
 };
 
+void Beep(void);
 
 void InitWidgets(void);
 

@@ -520,7 +520,7 @@ static void canvas_complete_event(int x, int y)
         /* return points to caller */
         ret = xstuff->point_sink(xstuff->npoints, vps, xstuff->sink_data);
         if (ret != RETURN_SUCCESS) {
-            XBell(xstuff->disp, 50);
+            Beep();
         }
 
         xfree(vps);

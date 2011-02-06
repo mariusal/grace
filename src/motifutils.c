@@ -136,6 +136,10 @@ static char *label_to_resname(const char *s, const char *suffix)
     return retval;
 }
 
+void Beep(void)
+{
+    XBell(xstuff->disp, 50);
+}
 
 void ManageChild(Widget w)
 {

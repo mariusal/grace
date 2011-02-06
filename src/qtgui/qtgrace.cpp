@@ -993,6 +993,15 @@ static Widget color_choice_popup = NULL;
 //}
 //
 
+//void Beep(void)
+//{
+//    XBell(xstuff->disp, 50);
+//}
+void Beep(void)
+{
+    QApplication::beep();
+}
+
 //void ManageChild(Widget w)
 //{
 //    XtManageChild(w);
