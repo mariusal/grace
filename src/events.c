@@ -890,35 +890,6 @@ void canvas_key_release_event(CanvasEvent *event)
     }
 }
 
-void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
-{
-    CanvasEvent cevent;
-
-    cevent.x = event->xmotion.x;
-    cevent.y = event->xmotion.y;
-
-    switch (event->type) {
-    case MotionNotify:
-        xme = (XMotionEvent *) event;
-        canvas_mouse_move_event(cevent);
-        break;
-    case ButtonPress:
-        canvas_mouse_press_event(cevent);
-        break;
-    case ButtonRelease:
-        canvas_mouse_release_event(cevent);
-        break;
-    case KeyPress:
-        canvas_key_press_event(cevent);
-        break;
-    case KeyRelease:
-        canvas_key_release_event(cevent);
-        break;
-    default:
-        break;
-    }
-}
-
 static int hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     if (quark_fid_get(q) == QFlavorGraph) {

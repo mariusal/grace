@@ -40,19 +40,12 @@
 #include "graceapp.h"
 #include "xprotos.h"
 
-#ifndef QT_GUI
-#include <X11/Xlib.h>
-#include <X11/Intrinsic.h>
-#else
-typedef union _XEvent { int type; } XEvent;
-#endif
-
 /* Mouse buttons */
-#define BUTTON_1 0
-#define BUTTON_2 1
-#define BUTTON_3 2
-#define BUTTON_4 3
-#define BUTTON_5 4
+#define BUTTON1 0
+#define BUTTON2 1
+#define BUTTON3 2
+#define BUTTON4 3
+#define BUTTON5 4
 
 typedef struct {
     int x;
@@ -89,7 +82,6 @@ typedef struct {
 #define SELECTION_TYPE_HORZ 3
 /* #define SELECTION_TYPE_POLY 4 */
 
-void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont);
 void canvas_mouse_move_event(CanvasEvent *event);
 void canvas_mouse_press_event(CanvasEvent *event);
 void canvas_mouse_release_event(CanvasEvent *event);
