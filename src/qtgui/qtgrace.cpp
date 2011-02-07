@@ -1531,9 +1531,9 @@ void UpdateBitmapOptionChoice(OptionStructure *optp, int nchoices,
                               int width, int height, BitmapOptionItem *items)
 {
     int nold, ncols;
-    QComboBox *pulldown = (QComboBox *) optp->pulldown;
-    QStandardItemModel *model = (QStandardItemModel *) pulldown->model();
-    QTableView *tableView = (QTableView *) pulldown->view();
+    QComboBox *comboBox = (QComboBox *) optp->pulldown;
+    QStandardItemModel *model = (QStandardItemModel *) comboBox->model();
+    QTableView *tableView = (QTableView *) comboBox->view();
 
     nold = optp->nchoices;
 
@@ -1571,6 +1571,8 @@ void UpdateBitmapOptionChoice(OptionStructure *optp, int nchoices,
             col++;
         }
     }
+    comboBox->setModelColumn(0);
+    comboBox->setCurrentIndex(0);
 
     tableView->resizeColumnsToContents();
     tableView->resizeRowsToContents();
