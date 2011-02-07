@@ -100,6 +100,9 @@ bool CanvasWidget::event(QEvent *event)
             printf("%s\n", "wheel down");
             cevent.button = cevent.button ^ WHEEL_DOWN_BUTTON;
         }
+        if (wheelEvent->modifiers() & Qt::ControlModifier) {
+            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        }
         break;
     case QEvent::KeyPress:
         cevent.type = KEY_PRESS;

@@ -5339,3 +5339,29 @@ void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
     //XtAddCallback(w, XmNlabelActivateCallback, labelCB, anydata);
 }
+
+/* ScrollBar */
+void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, int *increment)
+{
+    XtVaGetValues(w,
+        XmNvalue,      value,
+        XmNmaximum,    maxvalue,
+        XmNsliderSize, slider_size,
+        XmNincrement,  increment,
+        NULL);
+}
+
+void SetScrollBarValue(Widget w, int value)
+{
+    XmScrollBarSetValues(w, value, 0, 0, 0, True);
+}
+
+Widget GetHorizontalScrollBar(Widget w)
+{
+    return XtNameToWidget(w, "HorScrollBar");
+}
+
+Widget GetVerticalScrollBar(Widget w)
+{
+    return XtNameToWidget(w, "VertScrollBar");
+}

@@ -81,7 +81,7 @@ extern "C" {
   Widget app_shell;
 }
 
-#define canvas grace_get_canvas(gapp->grace)
+//#define canvas grace_get_canvas(gapp->grace)
 
 #include <qtgrace.h>
 
@@ -110,6 +110,7 @@ void startup_gui(GraceApp *gapp)
     qDebug("startup_gui start");
 
     MainWinUI *mwui = gapp->gui->mwui;
+    X11Stuff *xstuff = gapp->gui->xstuff;
 
     mwui->loclab = mainWin->ui.locatorBar;
     mwui->frtop = mwui->loclab;
@@ -119,6 +120,26 @@ void startup_gui(GraceApp *gapp)
     mainWin->ui.statusBar->addWidget(mwui->statlab);
 
     mwui->frleft = mainWin->ui.toolBar;
+
+//    if (!gui_is_page_free(gapp->gui)) {
+//        mwui->drawing_window = XtVaCreateManagedWidget("drawing_window",
+//				     xmScrolledWindowWidgetClass, form,
+//				     XmNscrollingPolicy, XmAUTOMATIC,
+//				     XmNvisualPolicy, XmVARIABLE,
+//				     NULL);
+//        xstuff->canvas = XtVaCreateManagedWidget("canvas",
+//                                     xmDrawingAreaWidgetClass,
+//                                     mwui->drawing_window,
+//				     NULL);
+//    } else {
+//        xstuff->canvas = XtVaCreateManagedWidget("canvas",
+//                                     xmDrawingAreaWidgetClass, form,
+//				     NULL);
+//        mwui->drawing_window = xstuff->canvas;
+//    }
+
+    mwui->drawing_window = mainWin->ui.scrollArea;
+    xstuff->canvas = mainWin->ui.canvasWidget;
 
     //toolBar->setStyleSheet(QString::fromUtf8(" QToolButton {\n"
     //            "    border: 1px solid #8f8f91;\n"
@@ -4810,6 +4831,7 @@ static BitmapOptionItem *lines_option_items;
 //}
 int init_option_menus(void) {
     unsigned int i, j, k, l, n;
+    Canvas *canvas = grace_get_canvas(gapp->grace);
 //
 //    init_xvlibcolors();
 //
@@ -4990,12 +5012,16 @@ OptionStructure *CreateFontChoice(Widget parent, char *s)
 
 OptionStructure *CreatePatternChoice(Widget parent, char *s)
 {
+    Canvas *canvas = grace_get_canvas(gapp->grace);
+
     return (CreateBitmapOptionChoice(parent, s, 4, number_of_patterns(canvas),
                                      16, 16, pattern_option_items));
 }
 
 OptionStructure *CreateLineStyleChoice(Widget parent, char *s)
 {
+    Canvas *canvas = grace_get_canvas(gapp->grace);
+
     return (CreateBitmapOptionChoice(parent, s, 0, number_of_linestyles(canvas),
                         LINES_BM_WIDTH, LINES_BM_HEIGHT, lines_option_items));
 }
@@ -5181,6 +5207,7 @@ typedef struct {
 static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
 {
     QPushButton *pushButton = (QPushButton *) button;
+    Canvas *canvas = grace_get_canvas(gapp->grace);
     RGB bg_rgb, fg_rgb;
     Button_PData *pdata;
     Pattern *pat;
@@ -9309,4 +9336,36 @@ void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
 
+}
+
+/* ScrollBar */
+void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, int *increment)
+{
+    QScrollBar *scrollBar = (QScrollBar*) w;
+
+    *value = scrollBar->value();
+    *maxvalue = scrollBar->maximum();
+    *slider_size = 10;
+    *increment = 1;
+}
+
+void SetScrollBarValue(Widget w, int value)
+{
+    QScrollBar *scrollBar = (QScrollBar*) w;
+
+    scrollBar->setValue(value);
+}
+
+Widget GetHorizontalScrollBar(Widget w)
+{
+    QScrollArea *scrollArea = (QScrollArea*) w;
+
+    return scrollArea->horizontalScrollBar();
+}
+
+Widget GetVerticalScrollBar(Widget w)
+{
+    QScrollArea *scrollArea = (QScrollArea*) w;
+
+    return scrollArea->verticalScrollBar();
 }

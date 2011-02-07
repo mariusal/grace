@@ -675,4 +675,10 @@ void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata);
 void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata);
 void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata);
 
+/* ScrollBar */
+void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, int *increment);
+void SetScrollBarValue(Widget w, int value);
+Widget GetHorizontalScrollBar(Widget w);
+Widget GetVerticalScrollBar(Widget w);
+
 #endif /* __MOTIFINC_H_ */

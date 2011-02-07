@@ -47,15 +47,10 @@
 
 static void scroll_bar_pix(Widget bar, int pix)
 {
-    int value, slider_size, maxvalue;
+    int value, slider_size, maxvalue, increment;
 
-#ifndef QT_GUI
-    XtVaGetValues(bar,
-        XmNvalue,      &value,
-        XmNmaximum,    &maxvalue,
-        XmNsliderSize, &slider_size,
-        NULL);
-#endif
+    GetScrollBarValues(bar, &value, &maxvalue, &slider_size, &increment);
+
     value += pix;
     if (value < 0) {
         value = 0;
@@ -63,62 +58,56 @@ static void scroll_bar_pix(Widget bar, int pix)
     if (value > maxvalue - slider_size) {
         value = maxvalue - slider_size;
     }
-#ifndef QT_GUI
-    XmScrollBarSetValues(bar, value, 0, 0, 0, True);
-#endif
+
+    SetScrollBarValue(bar, value);
 }
 
 static void scroll_pix(Widget w, int dx, int dy)
 {
     Widget bar;
     
-#ifndef QT_GUI
-    if (dx && (bar = XtNameToWidget(w, "HorScrollBar"))) {
+    if (dx && (bar = GetHorizontalScrollBar(w))) {
         scroll_bar_pix(bar, dx);
     }
-    if (dy && (bar = XtNameToWidget(w, "VertScrollBar"))) {
+    if (dy && (bar = GetVerticalScrollBar(w))) {
         scroll_bar_pix(bar, dy);
     }
-#endif
 }
 static void scroll(Widget w, int up, int horiz)
 {
-    int value, slider_size, increment, page_increment, maxvalue;
+    int value, slider_size, increment, maxvalue;
     Widget vbar;
     
-#ifndef QT_GUI
     if (horiz) {
-        vbar = XtNameToWidget(w, "HorScrollBar");
+        vbar = GetHorizontalScrollBar(w);
     } else {
-        vbar = XtNameToWidget(w, "VertScrollBar");
+        vbar = GetVerticalScrollBar(w);
     }
-#endif
     
     if (!vbar) {
         return;
     }
     
-#ifndef QT_GUI
-    XmScrollBarGetValues(vbar, &value, &slider_size,
-        &increment, &page_increment);
-#endif
+    GetScrollBarValues(vbar, &value, &maxvalue, &slider_size, &increment);
+    printf("%s%d\n", "ScrollBarValueInitial = ", value);
+    printf("%s%d\n", "ScrollBarMaxValue = ", maxvalue);
+    printf("%s%d\n", "ScrollBarSliderSize = ", slider_size);
+    printf("%s%d\n", "ScrollBarIncrement = ", increment);
+
     if (up) {
         value -= increment;
         if (value < 0) {
             value = 0;
         }
     } else {
-#ifndef QT_GUI
-        XtVaGetValues(vbar, XmNmaximum, &maxvalue, NULL);
-#endif
         value += increment;
         if (value > maxvalue - slider_size) {
             value = maxvalue - slider_size;
         }
     }
-#ifndef QT_GUI
-    XmScrollBarSetValues(vbar, value, 0, 0, 0, True);
-#endif
+
+    printf("%s%d\n", "ScrollBarValue = ", value);
+    SetScrollBarValue(vbar, value);
 }
 
 typedef struct {
