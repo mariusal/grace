@@ -44,8 +44,6 @@
 #include <Xm/DrawingA.h>
 #include <Xm/RepType.h>
 
-#include <Xbae/Matrix.h>
-
 #if defined(HAVE_XPM_H)
 #  include <xpm.h>
 #else
