@@ -163,9 +163,9 @@ extern "C" {
 //    XFlush(xstuff->disp);
 //}
 
-//void init_cursors(GUI *gui)
-//{
-//    X11Stuff *xstuff = gui->xstuff;
+void init_cursors(GUI *gui)
+{
+    X11Stuff *xstuff = gui->xstuff;
 
 //    xstuff->wait_cursor = XCreateFontCursor(xstuff->disp, XC_watch);
 //    xstuff->line_cursor = XCreateFontCursor(xstuff->disp, XC_crosshair);
@@ -175,8 +175,8 @@ extern "C" {
 //    xstuff->move_cursor = XCreateFontCursor(xstuff->disp, XC_fleur);
 //    xstuff->drag_cursor = XCreateFontCursor(xstuff->disp, XC_hand2);
     
-//    xstuff->cur_cursor = -1;
-//}
+    xstuff->cur_cursor = -1;
+}
 
 ///*
 // *  Auxiliary routines for simultaneous drawing on display and pixmap

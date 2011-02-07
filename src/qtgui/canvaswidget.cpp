@@ -40,14 +40,15 @@ bool CanvasWidget::event(QEvent *event)
         xbe = (QMouseEvent*) event;
         cevent.x = xbe->x();
         cevent.y = xbe->y();
-        if (xbe->modifiers() & Qt::LeftButton) {
+        if (xbe->buttons() & Qt::LeftButton) {
             cevent.button = cevent.button ^ LEFT_BUTTON;
         }
         if (xbe->modifiers() & Qt::ControlModifier) {
             cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
         }
-        printf("%s x=%d, y=%d\n", "mouse move", cevent.x, cevent.y);
+        //printf("%s x=%d, y=%d\n", "mouse move", cevent.x, cevent.y);
         break;
+    case QEvent::MouseButtonDblClick:
     case QEvent::MouseButtonPress:
         cevent.type = MOUSE_PRESS;
         xbe = (QMouseEvent*) event;
@@ -84,24 +85,22 @@ bool CanvasWidget::event(QEvent *event)
         if (xbe->modifiers() & Qt::ControlModifier) {
             cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
         }
-        break;
         printf("%s x=%d, y=%d\n", "button release", cevent.x, cevent.y);
+        break;
     case QEvent::Wheel:
         cevent.type = MOUSE_PRESS;
         wheelEvent = (QWheelEvent*) event;
         cevent.udata = wheelEvent;
         cevent.x = wheelEvent->x();
         cevent.y = wheelEvent->y();
-        switch (wheelEvent->orientation()) {
-        case Qt::Horizontal:
+        if (wheelEvent->delta() > 0) {
+            printf("%s\n", "wheel up");
             cevent.button = cevent.button ^ WHEEL_UP_BUTTON;
-            break;
-        case Qt::Vertical:
+        } else {
+            printf("%s\n", "wheel down");
             cevent.button = cevent.button ^ WHEEL_DOWN_BUTTON;
-            break;
         }
         break;
-
     case QEvent::KeyPress:
         cevent.type = KEY_PRESS;
         xke = (QKeyEvent*) event;

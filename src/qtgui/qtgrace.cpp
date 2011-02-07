@@ -265,11 +265,11 @@ int initialize_gui(int *argc, char **argv)
     gapp->gui->statusbar = TRUE;
     gapp->gui->locbar = TRUE;
 
-//
+
     x11_init(gapp);
-//
-//    /* initialize cursors */
-//    init_cursors(gapp->gui);
+
+    /* initialize cursors */
+    init_cursors(gapp->gui);
 
     qDebug("initialize_gui end");
     return RETURN_SUCCESS;
@@ -381,6 +381,14 @@ void QtAddCallback(const QObject *sender,
  */
 void aux_XDrawLine(GUI *gui, int x1, int y1, int x2, int y2)
 {
+    QImage *pixmap = (QImage*) gui->xstuff->bufpixmap;
+
+    QPainter painter(pixmap);
+    painter.setPen(QPen(Qt::white));
+    painter.setBrush(QBrush(Qt::NoBrush));
+    painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
+    painter.drawLine(x1, y1, x2, y2);
+    canvasWidget->repaint(); // TODO: repaint just drawn rectangle
 //    X11Stuff *xstuff = gui->xstuff;
 //    XDrawLine(xstuff->disp, xstuff->xwin, gcxor, x1, y1, x2, y2);
 //    if (xstuff->bufpixmap != (Pixmap) NULL) {
@@ -519,32 +527,40 @@ char *display_name(GUI *gui)
 
 void set_cursor(GUI *gui, int c)
 {
-// TODO:
     X11Stuff *xstuff = gui->xstuff;
-//    if (xstuff->disp == NULL || xstuff->cur_cursor == c) {
+
     if (xstuff->cur_cursor == c) {
         return;
     }
 
 //    XUndefineCursor(xstuff->disp, xstuff->xwin);
+    canvasWidget->unsetCursor();
     xstuff->cur_cursor = c;
     switch (c) {
     case 0:
-//        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->line_cursor);
+        canvasWidget->setCursor(Qt::CrossCursor);
+        //XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->line_cursor);
         break;
     case 1:
+        //TODO:
+        canvasWidget->setCursor(Qt::CrossCursor);
 //        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->find_cursor);
         break;
     case 2:
+        canvasWidget->setCursor(Qt::IBeamCursor);
 //        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->text_cursor);
         break;
     case 3:
+        //TODO:
+        canvasWidget->setCursor(Qt::CrossCursor);
 //        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->kill_cursor);
         break;
     case 4:
+        canvasWidget->setCursor(Qt::SizeAllCursor);
 //        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->move_cursor);
         break;
     case 5:
+        canvasWidget->setCursor(Qt::PointingHandCursor);
 //        XDefineCursor(xstuff->disp, xstuff->xwin, xstuff->drag_cursor);
         break;
     default:
