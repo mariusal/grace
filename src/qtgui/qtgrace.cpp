@@ -1002,14 +1002,29 @@ void Beep(void)
     QApplication::beep();
 }
 
+//void ShowMenu(Widget w, void *data)
+//{
+//    XmMenuPosition(popup, (XButtonEvent *) data);
+//    XtManageChild(popup);
+//}
+void ShowMenu(Widget w, void *data)
+{
+    QMenu *popup = (QMenu*) w;
+
+    popup->exec(((QMouseEvent*) data)->globalPos());
+}
+
 //void ManageChild(Widget w)
 //{
 //    XtManageChild(w);
 //}
 void ManageChild(Widget w)
 {
-    qDebug("show");
-    w->show();
+    if (QAction *action = qobject_cast<QAction *>(w)) {
+        action->setVisible(true);
+    } else {
+        w->show();
+    }
 }
 
 //void UnmanageChild(Widget w)
@@ -1018,8 +1033,11 @@ void ManageChild(Widget w)
 //}
 void UnmanageChild(Widget w)
 {
-    qDebug("hide");
-    w->hide();
+    if (QAction *action = qobject_cast<QAction *>(w)) {
+        action->setVisible(false);
+    } else {
+        w->hide();
+    }
 }
 
 //int IsManaged(Widget w)
@@ -8325,7 +8343,16 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 //    XtManageChild(lab);
 //    return lab;
 //}
-//
+Widget CreateMenuLabel(Widget parent, char *name)
+{
+    QMenu *popup = (QMenu*) parent;
+
+    QAction *action = new QAction(popup);
+    popup->addAction(action);
+
+    return (QWidget*) action;
+}
+
 //static void help_int_cb(Widget w, XtPointer client_data, XtPointer call_data)
 //{
 //    HelpCB(w, client_data);

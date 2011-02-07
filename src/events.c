@@ -39,14 +39,6 @@
 #include "core_utils.h"
 #include "events.h"
 
-#ifndef QT_GUI
-#include <X11/X.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-#include <X11/keysym.h>
-#include <Xm/ScrollBar.h>
-#include <Xm/RowColumn.h>
-#endif
 #include <string.h>
 
 #include "motifinc.h"
@@ -462,7 +454,7 @@ void canvas_event(CanvasEvent *event)
     X11Stuff *xstuff = gapp->gui->xstuff;
     Widget drawing_window = gapp->gui->mwui->drawing_window;
     
-    static Time lastc_time = 0;  /* time of last mouse click */
+    static unsigned long lastc_time = 0;  /* time of last mouse click */
     static int lastc_x, lastc_y; /* coords of last mouse click */
     static int last_b1down_x, last_b1down_y;   /* coords of last event */
     int dbl_click;
@@ -629,8 +621,7 @@ void canvas_event(CanvasEvent *event)
                     ct.found = FALSE;
                     
                     if (!popup) {
-                        popup = XmCreatePopupMenu(gapp->gui->xstuff->canvas,
-                            "popupMenu", NULL, 0);
+                        popup = CreatePopupMenu(gapp->gui->xstuff->canvas);
                         
                         poplab = CreateMenuLabel(popup, "");
                         
@@ -725,8 +716,7 @@ void canvas_event(CanvasEvent *event)
                         UnmanageChild(drop_pt_bt);
                     }
                     
-                    XmMenuPosition(popup, (XButtonEvent *) event->udata);
-                    XtManageChild(popup);
+                    ShowMenu(popup, event->udata);
                 }
             }
             break;

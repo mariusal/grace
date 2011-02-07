@@ -143,6 +143,12 @@ void Beep(void)
     XBell(xstuff->disp, 50);
 }
 
+void ShowMenu(Widget w, void *data)
+{
+    XmMenuPosition(popup, (XButtonEvent *) data);
+    XtManageChild(popup);
+}
+
 void ManageChild(Widget w)
 {
     XtManageChild(w);

@@ -401,6 +401,7 @@ void Beep(void);
 
 void InitWidgets(void);
 
+void ShowMenu(Widget w, void *data);
 void ManageChild(Widget w);
 void UnmanageChild(Widget w);
 int IsManaged(Widget w);
