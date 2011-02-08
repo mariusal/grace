@@ -50,7 +50,6 @@ static void scroll_bar_pix(Widget bar, int pix)
     int value, slider_size, maxvalue, increment;
 
     GetScrollBarValues(bar, &value, &maxvalue, &slider_size, &increment);
-
     value += pix;
     if (value < 0) {
         value = 0;
@@ -58,7 +57,6 @@ static void scroll_bar_pix(Widget bar, int pix)
     if (value > maxvalue - slider_size) {
         value = maxvalue - slider_size;
     }
-
     SetScrollBarValue(bar, value);
 }
 
@@ -89,11 +87,6 @@ static void scroll(Widget w, int up, int horiz)
     }
     
     GetScrollBarValues(vbar, &value, &maxvalue, &slider_size, &increment);
-    printf("%s%d\n", "ScrollBarValueInitial = ", value);
-    printf("%s%d\n", "ScrollBarMaxValue = ", maxvalue);
-    printf("%s%d\n", "ScrollBarSliderSize = ", slider_size);
-    printf("%s%d\n", "ScrollBarIncrement = ", increment);
-
     if (up) {
         value -= increment;
         if (value < 0) {
@@ -105,8 +98,6 @@ static void scroll(Widget w, int up, int horiz)
             value = maxvalue - slider_size;
         }
     }
-
-    printf("%s%d\n", "ScrollBarValue = ", value);
     SetScrollBarValue(vbar, value);
 }
 
