@@ -9344,9 +9344,9 @@ void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, i
     QScrollBar *scrollBar = (QScrollBar*) w;
 
     *value = scrollBar->value();
-    *maxvalue = scrollBar->maximum();
+    *maxvalue = scrollBar->maximum() + 10;
     *slider_size = 10;
-    *increment = 1;
+    *increment = scrollBar->singleStep();
 }
 
 void SetScrollBarValue(Widget w, int value)
