@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2011 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -34,31 +34,19 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "utils.h"
 #include "core_utils.h"
 #include "events.h"
 
-#include <X11/X.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-#include <X11/keysym.h>
-#include <Xm/ScrollBar.h>
-#include <Xm/RowColumn.h>
-
-#include "motifinc.h"
-#include "xprotos.h"
 #include "globals.h"
 
 static void scroll_bar_pix(Widget bar, int pix)
 {
-    int value, slider_size, maxvalue;
+    int value, slider_size, maxvalue, increment;
 
-    XtVaGetValues(bar,
-        XmNvalue,      &value,
-        XmNmaximum,    &maxvalue,
-        XmNsliderSize, &slider_size,
-        NULL);
+    GetScrollBarValues(bar, &value, &maxvalue, &slider_size, &increment);
     value += pix;
     if (value < 0) {
         value = 0;
@@ -66,50 +54,48 @@ static void scroll_bar_pix(Widget bar, int pix)
     if (value > maxvalue - slider_size) {
         value = maxvalue - slider_size;
     }
-    XmScrollBarSetValues(bar, value, 0, 0, 0, True);
+    SetScrollBarValue(bar, value);
 }
 
 static void scroll_pix(Widget w, int dx, int dy)
 {
     Widget bar;
     
-    if (dx && (bar = XtNameToWidget(w, "HorScrollBar"))) {
+    if (dx && (bar = GetHorizontalScrollBar(w))) {
         scroll_bar_pix(bar, dx);
     }
-    if (dy && (bar = XtNameToWidget(w, "VertScrollBar"))) {
+    if (dy && (bar = GetVerticalScrollBar(w))) {
         scroll_bar_pix(bar, dy);
     }
 }
 static void scroll(Widget w, int up, int horiz)
 {
-    int value, slider_size, increment, page_increment, maxvalue;
+    int value, slider_size, increment, maxvalue;
     Widget vbar;
     
     if (horiz) {
-        vbar = XtNameToWidget(w, "HorScrollBar");
+        vbar = GetHorizontalScrollBar(w);
     } else {
-        vbar = XtNameToWidget(w, "VertScrollBar");
+        vbar = GetVerticalScrollBar(w);
     }
     
     if (!vbar) {
         return;
     }
     
-    XmScrollBarGetValues(vbar, &value, &slider_size,
-        &increment, &page_increment);
+    GetScrollBarValues(vbar, &value, &maxvalue, &slider_size, &increment);
     if (up) {
         value -= increment;
         if (value < 0) {
             value = 0;
         }
     } else {
-        XtVaGetValues(vbar, XmNmaximum, &maxvalue, NULL);
         value += increment;
         if (value > maxvalue - slider_size) {
             value = maxvalue - slider_size;
         }
     }
-    XmScrollBarSetValues(vbar, value, 0, 0, 0, True);
+    SetScrollBarValue(vbar, value);
 }
 
 typedef struct {
@@ -437,21 +423,15 @@ static void set_locator_cb(Widget but, void *udata)
     snapshot_and_update(gapp->gp, TRUE);
 }
 
-void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
+void canvas_event(CanvasEvent *event)
 {
     int x, y;                /* pointer coordinates */
     VPoint vp;
-    KeySym keybuf;
-    GraceApp *gapp = (GraceApp *) data;
     Quark *cg = graph_get_current(gproject_get_top(gapp->gp));
     X11Stuff *xstuff = gapp->gui->xstuff;
     Widget drawing_window = gapp->gui->mwui->drawing_window;
     
-    XMotionEvent *xme;
-    XButtonEvent *xbe;
-    XKeyEvent    *xke;
-    
-    static Time lastc_time = 0;  /* time of last mouse click */
+    static unsigned long lastc_time = 0;  /* time of last mouse click */
     static int lastc_x, lastc_y; /* coords of last mouse click */
     static int last_b1down_x, last_b1down_y;   /* coords of last event */
     int dbl_click;
@@ -462,12 +442,11 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     static canvas_target ct;
     static int on_focus;
     
-    x = event->xmotion.x;
-    y = event->xmotion.y;
+    x = event->x;
+    y = event->y;
     
     switch (event->type) {
-    case MotionNotify:
-	xme = (XMotionEvent *) event;
+    case MOUSE_MOVE:
 	if (gapp->gui->crosshair_cursor) {
             crosshair_motion(gapp->gui, x, y);
         }
@@ -488,8 +467,8 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 break;
             }
         } else
-        if (xme->state & Button1Mask) {
-            if (xme->state & ControlMask) {
+        if (event->button & LEFT_BUTTON) {
+            if (event->modifiers & CONTROL_MODIFIER) {
                 if (on_focus) {
                     resize_region(gapp->gui, xstuff->f_v, on_focus,
                         x - last_b1down_x, y - last_b1down_y, TRUE);
@@ -506,7 +485,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 cg = next_graph_containing(cg, &vp);
             }
             
-            if (xme->state & ControlMask) {
+            if (event->modifiers & CONTROL_MODIFIER) {
                 if (abs(x - xstuff->f_x1) <= 5 &&
                     abs(y - xstuff->f_y1) <= 5) {
                     on_focus = 1;
@@ -536,28 +515,27 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         update_locator_lab(cg, &vp);
         
         break;
-    case ButtonPress:
-        xbe = (XButtonEvent *) event;
-	x = event->xbutton.x;
-	y = event->xbutton.y;
+    case MOUSE_PRESS:
+        x = event->x;
+        y = event->y;
 	x11_dev2VPoint(x, y, &vp);
 
-	switch (event->xbutton.button) {
-	case Button1:
+        switch (event->button) {
+        case LEFT_BUTTON:
             /* first, determine if it's a double click */
-            if (xbe->time - lastc_time < CLICK_INT &&
+            if (event->time - lastc_time < CLICK_INT &&
                 abs(x - lastc_x) < CLICK_DIST      &&
                 abs(y - lastc_y) < CLICK_DIST) {
                 dbl_click = TRUE;
             } else {
                 dbl_click = FALSE;
             }
-            lastc_time = xbe->time;
+            lastc_time = event->time;
             lastc_x = x;
             lastc_y = y;
 
             if (!dbl_click) {
-                if (xbe->state & ControlMask) {
+                if (event->modifiers & CONTROL_MODIFIER) {
                     ct.vp = vp;
                     ct.include_graphs = FALSE;
                     if (on_focus) {
@@ -585,7 +563,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 }
             } else {
                 ct.vp = vp;
-                ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
+                ct.include_graphs = (event->modifiers & CONTROL_MODIFIER) ? FALSE:TRUE;
                 if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
                     raise_explorer(gapp->gui, ct.q);
                     ct.found = FALSE;
@@ -600,10 +578,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             }
             
             break;
-	case Button2:
+        case MIDDLE_BUTTON:
             fprintf(stderr, "Button2\n");
             break;
-	case Button3:
+        case RIGHT_BUTTON:
             if (xstuff->collect_points) {
                 undo_point = TRUE;
                 if (xstuff->npoints) {
@@ -614,14 +592,13 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 }
             } else {
                 ct.vp = vp;
-                ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
+                ct.include_graphs = (event->modifiers & CONTROL_MODIFIER) ? FALSE:TRUE;
                 if (find_target(gapp->gp, &ct) == RETURN_SUCCESS) {
                     char *s;
                     ct.found = FALSE;
                     
                     if (!popup) {
-                        popup = XmCreatePopupMenu(gapp->gui->xstuff->canvas,
-                            "popupMenu", NULL, 0);
+                        popup = CreatePopupMenu(gapp->gui->xstuff->canvas);
                         
                         poplab = CreateMenuLabel(popup, "");
                         
@@ -716,26 +693,24 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         UnmanageChild(drop_pt_bt);
                     }
                     
-                    XmMenuPosition(popup, xbe);
-                    XtManageChild(popup);
+                    ShowMenu(popup, event->udata);
                 }
             }
             break;
-	case Button4:
-            scroll(drawing_window, TRUE, xbe->state & ControlMask);
+        case WHEEL_UP_BUTTON:
+            scroll(drawing_window, TRUE, event->modifiers & CONTROL_MODIFIER);
             break;
-	case Button5:
-            scroll(drawing_window, FALSE, xbe->state & ControlMask);
+        case WHEEL_DOWN_BUTTON:
+            scroll(drawing_window, FALSE, event->modifiers & CONTROL_MODIFIER);
             break;
 	default:
             break;
         }
         break;
-    case ButtonRelease:
-        xbe = (XButtonEvent *) event;
-	switch (event->xbutton.button) {
-	case Button1:
-            if (xbe->state & ControlMask) {
+    case MOUSE_RELEASE:
+        switch (event->button) {
+        case LEFT_BUTTON:
+            if (event->modifiers & CONTROL_MODIFIER) {
                 x11_dev2VPoint(x, y, &vp);
                 if (on_focus) {
                     view v;
@@ -776,34 +751,30 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             break;
         }
         break;
-    case KeyPress:
-	xke = (XKeyEvent *) event;
-        keybuf = XLookupKeysym(xke, 0);
-        switch (keybuf) {
-        case XK_Escape: /* Esc */
+    case KEY_PRESS:
+        switch (event->key) {
+        case KEY_ESCAPE: /* Esc */
             abort_action = TRUE;
             break;
-        case XK_KP_Add: /* "Grey" plus */
-            if (xke->state & ControlMask) {
+        case KEY_PLUS: /* "Grey" plus */
+            if (event->modifiers & CONTROL_MODIFIER) {
                 page_zoom_inout(gapp, +1);
             }
             break;
-        case XK_KP_Subtract: /* "Grey" minus */
-            if (xke->state & ControlMask) {
+        case KEY_MINUS: /* "Grey" minus */
+            if (event->modifiers & CONTROL_MODIFIER) {
                 page_zoom_inout(gapp, -1);
             }
             break;
-        case XK_1:
-            if (xke->state & ControlMask) {
+        case KEY_1:
+            if (event->modifiers & CONTROL_MODIFIER) {
                 page_zoom_inout(gapp, 0);
             }
             break;
         }
         break;
-    case KeyRelease:
-	xke = (XKeyEvent *) event;
-        keybuf = XLookupKeysym(xke, 0);
-        if (xke->state & ControlMask) {
+    case KEY_RELEASE:
+        if (event->modifiers & CONTROL_MODIFIER) {
             if (on_focus) {
                 set_cursor(gapp->gui, -1);
             } else
@@ -852,7 +823,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         /* return points to caller */
         ret = xstuff->point_sink(xstuff->npoints, vps, xstuff->sink_data);
         if (ret != RETURN_SUCCESS) {
-            XBell(xstuff->disp, 50);
+            Beep();
         }
         
         xfree(vps);
@@ -1103,7 +1074,7 @@ void set_action(GUI *gui, unsigned int npoints, int seltype,
     
     xstuff->collect_points = TRUE;
 
-    XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
+    SetFocus(xstuff->canvas);
 }
 
 /* -------------------------------------------------------------- */

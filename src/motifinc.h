@@ -394,9 +394,11 @@ struct _FormatStructure {
     void *cb_data;
 };
 
+void Beep(void);
 
 void InitWidgets(void);
 
+void ShowMenu(Widget w, void *data);
 void ManageChild(Widget w);
 void UnmanageChild(Widget w);
 int IsManaged(Widget w);
@@ -586,6 +588,7 @@ void SetLabel(Widget w, char *s);
 void AlignLabel(Widget w, int alignment);
 void SetFixedFont(Widget w);
 
+Widget CreatePopupMenu(Widget parent);
 Widget CreateMenuBar(Widget parent);
 Widget CreateMenu(Widget parent, char *label, char mnemonic, int help);
 void ManageMenu(Widget menupane);
@@ -619,5 +622,13 @@ void undo_cb(Widget but, void *data);
 void redo_cb(Widget but, void *data);
 
 void unlink_ssd_ui(Quark *q);
+
+/* ScrollBar */
+void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, int *increment);
+void SetScrollBarValue(Widget w, int value);
+Widget GetHorizontalScrollBar(Widget w);
+Widget GetVerticalScrollBar(Widget w);
+
+void SetFocus(Widget w);
 
 #endif /* __MOTIFINC_H_ */

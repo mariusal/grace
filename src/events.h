@@ -40,9 +40,41 @@
 #include "graceapp.h"
 #include "xprotos.h"
 
-#include <X11/Xlib.h>
-#include <X11/Intrinsic.h>
+/* Event types */
+#define MOUSE_MOVE    0
+#define MOUSE_PRESS   1
+#define MOUSE_RELEASE 2
+#define KEY_PRESS     3
+#define KEY_RELEASE   4
 
+/* Mouse buttons */
+#define NO_BUTTON         0x00
+#define LEFT_BUTTON       0x01
+#define RIGHT_BUTTON      0x02
+#define MIDDLE_BUTTON     0x04
+#define WHEEL_UP_BUTTON   0x08
+#define WHEEL_DOWN_BUTTON 0x10
+
+/* Keys */
+#define KEY_ESCAPE 0
+#define KEY_1      1
+#define KEY_PLUS   2
+#define KEY_MINUS  3
+
+/* Modifiers */
+#define NO_MODIFIER      0x00
+#define CONTROL_MODIFIER 0x04
+
+typedef struct {
+    int type;
+    int x;
+    int y;
+    int button;
+    int key;
+    int modifiers;
+    int time;
+    void *udata;
+} CanvasEvent;
 
 /* add points at */
 #define ADD_POINT_BEGINNING 0
@@ -71,7 +103,7 @@
 #define SELECTION_TYPE_HORZ 3
 /* #define SELECTION_TYPE_POLY 4 */
 
-void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont);
+void canvas_event(CanvasEvent *event);
 void set_action(GUI *gui, unsigned int npoints, int seltype,
     CanvasPointSink sink, void *data);
 void track_point(Quark *pset, int *loc, int shift);

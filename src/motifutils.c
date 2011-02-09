@@ -61,6 +61,7 @@
 #include <Xm/Text.h>
 #include <Xm/ToggleB.h>
 #include <Xm/ArrowBG.h>
+#include <Xm/ScrollBar.h>
 
 #ifdef WITH_EDITRES
 #  include <X11/Xmu/Editres.h>
@@ -126,6 +127,18 @@ static char *label_to_resname(const char *s, const char *suffix)
     return retval;
 }
 
+void Beep(void)
+{
+    X11Stuff *xstuff = gapp->gui->xstuff;
+
+    XBell(xstuff->disp, 50);
+}
+
+void ShowMenu(Widget w, void *data)
+{
+    XmMenuPosition(w, (XButtonEvent *) data);
+    XtManageChild(w);
+}
 
 void ManageChild(Widget w)
 {
@@ -4427,6 +4440,11 @@ Widget CreateSeparator(Widget parent)
     return sep;
 }
 
+Widget CreatePopupMenu(Widget parent)
+{
+    return XmCreatePopupMenu(parent, "popupMenu", NULL, 0);
+}
+
 Widget CreateMenuBar(Widget parent)
 {
     Widget menubar;
@@ -4945,3 +4963,35 @@ void InitWidgets(void)
     XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
     XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 }
+
+/* ScrollBar */
+void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, int *increment)
+{
+    XtVaGetValues(w,
+        XmNvalue,      value,
+        XmNmaximum,    maxvalue,
+        XmNsliderSize, slider_size,
+        XmNincrement,  increment,
+        NULL);
+}
+
+void SetScrollBarValue(Widget w, int value)
+{
+    XmScrollBarSetValues(w, value, 0, 0, 0, True);
+}
+
+Widget GetHorizontalScrollBar(Widget w)
+{
+    return XtNameToWidget(w, "HorScrollBar");
+}
+
+Widget GetVerticalScrollBar(Widget w)
+{
+    return XtNameToWidget(w, "VertScrollBar");
+}
+
+void SetFocus(Widget w)
+{
+    XmProcessTraversal(w, XmTRAVERSE_CURRENT);
+}
+
