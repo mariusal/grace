@@ -9075,8 +9075,10 @@ void table_delete_rows(Widget w, int nrows)
     QTableWidget *tableWidget = (QTableWidget*) w;
     int rc;
 
-    rc = table_get_nrows(w);
-    tableWidget->model()->removeRows(rc - 1, nrows);
+    rc = table_get_nrows(w) - 1;
+    for (int row = rc; row > rc - nrows; row--) {
+        tableWidget->removeRow(row);
+    }
 }
 
 void table_add_cols(Widget w, int ncols)
@@ -9113,8 +9115,10 @@ void table_delete_cols(Widget w, int ncols)
     QTableWidget *tableWidget = (QTableWidget*) w;
     int cc;
 
-    cc = table_get_ncols(w);
-    tableWidget->model()->removeColumns(cc - 1, ncols);
+    cc = table_get_ncols(w) - 1;
+    for (int col = cc; col > cc - ncols; col--) {
+        tableWidget->removeColumn(col);
+    }
 }
 
 void table_set_default_col_width(Widget w, int width)
