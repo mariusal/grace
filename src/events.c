@@ -1077,9 +1077,7 @@ void set_action(GUI *gui, unsigned int npoints, int seltype,
     
     xstuff->collect_points = TRUE;
 
-#ifndef QT_GUI
-    XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
-#endif
+    SetFocus(xstuff->canvas);
 }
 
 /* -------------------------------------------------------------- */

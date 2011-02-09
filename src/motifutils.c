@@ -5365,3 +5365,8 @@ Widget GetVerticalScrollBar(Widget w)
 {
     return XtNameToWidget(w, "VertScrollBar");
 }
+
+void SetFocus(Widget w)
+{
+    XmProcessTraversal(w, XmTRAVERSE_CURRENT);
+}
