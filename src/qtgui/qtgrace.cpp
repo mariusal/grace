@@ -9060,15 +9060,12 @@ int table_get_ncols(Widget w)
 void table_add_rows(Widget w, int nrows)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
-    TableData *td;
-    int row, rc, ncols;
+    int row, rc;
 
     rc = table_get_nrows(w);
-    ncols = table_get_ncols(w);
-    td = (TableData*) GetUserData(w);
     for (row = rc; row < rc + nrows; row++) {
         tableWidget->insertRow(row);
-        QTableWidgetItem *item = new QTableWidgetItem(QString::number(row + 1));
+        QTableWidgetItem *item = new QTableWidgetItem;
         tableWidget->setVerticalHeaderItem(row, item);
     }
 }
@@ -9086,11 +9083,10 @@ void table_add_cols(Widget w, int ncols)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
-    int col, cc, nrows;
+    int col, cc;
     QHeaderView *hHeader = tableWidget->horizontalHeader();
 
     cc = table_get_ncols(w);
-    nrows = table_get_nrows(w);
     td = (TableData*) GetUserData(w);
 
     for (col = cc; col < cc + ncols; col++) {
