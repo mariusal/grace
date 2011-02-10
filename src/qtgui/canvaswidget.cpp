@@ -1,6 +1,6 @@
 #include <QPainter>
 #include <QPaintEvent>
-#include <QDateTime>
+#include <QTime>
 #include "mainwindow.h"
 #include "canvaswidget.h"
 extern "C" {
@@ -33,6 +33,7 @@ bool CanvasWidget::event(QEvent *event)
     QMouseEvent *xbe;
     QWheelEvent *wheelEvent;
     QKeyEvent *xke;
+    QTime time;
 
     switch (event->type()) {
     case QEvent::MouseMove:
@@ -58,9 +59,13 @@ bool CanvasWidget::event(QEvent *event)
         switch (xbe->button()) {
         case Qt::LeftButton:
             cevent.button = cevent.button ^ LEFT_BUTTON;
-            cevent.time = QDateTime::currentMSecsSinceEpoch();
+            time = QTime::currentTime();
+            cevent.time = 60 * 60 * 1000 * time.hour()
+                          + 60 * 1000 * time.minute()
+                          + 1000 * time.second()
+                          + time.msec();
             break;
-        case Qt::MiddleButton:
+        case Qt::MidButton:
             cevent.button = cevent.button ^ MIDDLE_BUTTON;
             break;
         case Qt::RightButton:
