@@ -34,15 +34,12 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "utils.h"
 #include "core_utils.h"
 #include "events.h"
 
-#include <string.h>
-
-#include "motifinc.h"
-#include "xprotos.h"
 #include "globals.h"
 
 static void scroll_bar_pix(Widget bar, int pix)
