@@ -458,14 +458,13 @@ void set_view_items(void)
 static void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 {
     CanvasEvent cevent;
-    cevent.modifiers = NO_MODIFIER;
-    cevent.button    = NO_BUTTON;
-
     KeySym keybuf;
     XMotionEvent *xme;
     XButtonEvent *xbe;
     XKeyEvent    *xke;
 
+    cevent.modifiers = NO_MODIFIER;
+    cevent.button    = NO_BUTTON;
     cevent.x = event->xmotion.x;
     cevent.y = event->xmotion.y;
 
