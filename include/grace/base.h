@@ -170,6 +170,8 @@ int isoneof(int c, char *s);
 int init_locale(void);
 void set_locale_num(int flag);
 
+int get_hostname(char *name, size_t len);
+
 /* dict3 stuff */
 typedef struct {
     int key;     /* key */

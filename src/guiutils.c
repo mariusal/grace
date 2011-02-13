@@ -440,7 +440,7 @@ void set_left_footer(char *s)
 
     if (s == NULL) {
         char hbuf[64], buf[GR_MAXPATHLEN + 100], *prname;
-        gethostname(hbuf, 63);
+        get_hostname(hbuf, 63);
         prname = gproject_get_docname(gapp->gp);
         if (prname) {
             sprintf(buf, "%s, %s, %s, %d%%", hbuf, display_name(gapp->gui),

@@ -285,3 +285,37 @@ void set_locale_num(int flag)
 #endif
 }
 
+#ifdef __WIN32
+# include <windows.h>
+int init_gethostname(void)
+{
+    WORD wVersionRequested;
+    WSADATA wsaData;
+    int err;
+
+    static int init = TRUE;
+
+    if (init) {
+        wVersionRequested = MAKEWORD(1,1);
+        err = WSAStartup(wVersionRequested, &wsaData);
+        if (err != 0) {
+            return RETURN_FAILURE;
+        }
+        init = FALSE;
+    }
+
+    return RETURN_SUCCESS;
+}
+#endif /* __WIN32 */
+
+int get_hostname(char *name, size_t len)
+{
+#ifdef __WIN32
+    if (init_gethostname() == RETURN_FAILURE) {
+        strncpy(name, "localhost", len);
+        return RETURN_SUCCESS;
+    }
+#endif /* __WIN32 */
+    return gethostname(name, len);
+}
+

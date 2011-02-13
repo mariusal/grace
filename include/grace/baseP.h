@@ -106,7 +106,7 @@ struct passwd {
 #endif
 
 #ifndef HAVE_GETHOSTNAME
-#  define gethostname(a, n) (strncpy((a), "localhost", n)?0:1)
+#  define get_hostname(a, n) (strncpy((a), "localhost", n)?0:1)
 #endif
 
 #ifndef HAVE_DRAND48
