@@ -5321,6 +5321,7 @@ static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 
     SetPenChoice_int(button, &pen, TRUE);
 
+    tableWidget->setCurrentItem(0);
     menu->hide();
 }
 //
@@ -5480,7 +5481,7 @@ static Widget CreateColorChoicePopup(Widget button)
         QMenu *menu = new QMenu(button);
 
         QTableWidget *tableWidget = new QTableWidget(menu);
-        tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+        tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
         tableWidget->horizontalHeader()->setVisible(false);
         tableWidget->verticalHeader()->setVisible(false);
         tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -5667,6 +5668,7 @@ Widget CreatePenChoice(Widget parent, char *s)
     AddButtonCB(button, define_pen_choice_dialog, button);
 
     pdata->color_popup   = CreateColorChoicePopup(button);
+    //TODO:
 //    pdata->pattern_popup = CreatePatternChoicePopup(button);
 
     button->setContextMenuPolicy(Qt::CustomContextMenu);
