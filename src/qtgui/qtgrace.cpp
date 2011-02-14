@@ -78,6 +78,7 @@ extern "C" {
   #include "xprotos.h"
   #include "utils.h"
   #include "explorer.h"
+  #include "events.h"
   Widget app_shell;
 }
 
@@ -9032,13 +9033,6 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     return tableWidget;
 }
 
-void table_deselect_all_cells(Widget w)
-{
-    QTableWidget *tableWidget = (QTableWidget*) w;
-
-    tableWidget->clearSelection();
-}
-
 int table_get_nrows(Widget w)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
@@ -9233,7 +9227,7 @@ void table_update_visible_rows_cols(Widget w)
                                tableWidget->verticalScrollBar()->sizeHint().width());
 }
 
-void table_commit_edit(Widget w)
+void table_commit_edit(Widget w, int close)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
 
@@ -9245,6 +9239,12 @@ typedef struct {
     Table_CBProc cbproc;
     void *anydata;
 } Table_CBData;
+
+typedef struct {
+    Widget w;
+    TableLabel_CBProc cbproc;
+    void *anydata;
+} TableLabel_CBData;
 
 static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
 {
@@ -9335,9 +9335,148 @@ void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
                      SLOT(table_int_cell_cb_proc(const QModelIndex &, const QModelIndex &)));
 }
 
-void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
+static void table_label_activate_cb_proc(int index, void *data)
 {
+    TableEvent event;
+    event.button = NO_BUTTON;
+    event.modifiers = NO_MODIFIER;
 
+/*    TableLabel_CBData *cbdata = (TableLabel_CBData *) client_data;
+    event.anydata = cbdata->anydata;
+
+    XbaeMatrixLabelActivateCallbackStruct *cbs =
+            (XbaeMatrixLabelActivateCallbackStruct *) call_data;
+
+    event.w = w;
+    event.row = cbs->row;
+    event.col = cbs->column;
+    event.row_label = cbs->row_label;
+
+    XButtonEvent *xbe;
+
+    switch (cbs->event) {
+    case ButtonPress:
+        cevent.type = MOUSE_PRESS;
+        xbe = (XButtonEvent *) cbs->event;
+        cevent.udata = xbe;
+        switch (cbs->event->xbutton.button) {
+        case Button1:
+            cevent.button = cevent.button ^ LEFT_BUTTON;
+            break;
+        case Button3:
+            cevent.button = cevent.button ^ RIGHT_BUTTON;
+            break;
+        }
+        if (xbe->state & ControlMask) {
+            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        }
+        if (xbe->state & ShiftMask) {
+            cevent.modifiers = cevent.modifiers ^ SHIFT_MODIFIER;
+        }
+        break;
+    case ButtonRelease:
+        cevent.type = MOUSE_RELEASE;
+        xbe = (XButtonEvent *) cbs->event;
+        cevent.udata = xbe;
+        switch (cbs->event->xbutton.button) {
+        case Button1:
+            cevent.button = cevent.button ^ LEFT_BUTTON;
+            break;
+        case Button3:
+            cevent.button = cevent.button ^ RIGHT_BUTTON;
+            break;
+        }
+        if (xbe->state & ControlMask) {
+            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        }
+        if (xbe->state & ShiftMask) {
+            cevent.modifiers = cevent.modifiers ^ SHIFT_MODIFIER;
+        }
+        break;
+    default:
+        break;
+    }
+
+    cbdata->cbproc(&event);*/
+}
+
+void AddTableLabelActivateCB(Widget w, TableLabel_CBProc cbproc, void *anydata)
+{
+    TableLabel_CBData *cbdata;
+
+    cbdata = (TableLabel_CBData *) xmalloc(sizeof(TableLabel_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    CallBack *cb = new CallBack(mainWin);
+    cb->setCallBack(table_label_activate_cb_proc, cbdata);
+
+    QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
+
+    QObject::connect(tableWidget->horizontalHeader(),
+                     SIGNAL(sectionPressed(int)),
+                     cb,
+                     SLOT(table_label_activate_cb_proc(int)));
+    QObject::connect(tableWidget->horizontalHeader(),
+                     SIGNAL(sectionClicked(int)),
+                     cb,
+                     SLOT(table_label_activate_cb_proc(int)));
+}
+
+void TableSelectRow(Widget w, int row)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    tableWidget->selectRow(row);
+}
+
+void TableDeselectRow(Widget w, int row)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    QModelIndex topLeft = tableWidget->model()->index(row, 0);
+    QModelIndex bottomRight = tableWidget->model()->index(row, tableWidget->columnCount()-1);
+
+    tableWidget->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
+}
+
+void TableSelectCol(Widget w, int col)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    tableWidget->selectColumn(col);
+}
+
+void TableDeselectCol(Widget w, int col)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    QModelIndex topLeft = tableWidget->model()->index(0, col);
+    QModelIndex bottomRight = tableWidget->model()->index(tableWidget->rowCount()-1, col);
+
+    tableWidget->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
+}
+
+void table_deselect_all_cells(Widget w)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    tableWidget->clearSelection();
+}
+
+int TableIsRowSelected(Widget w, int row)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    return tableWidget->selectionModel()->isRowSelected(row, QModelIndex());
+}
+
+int TableIsColSelected(Widget w, int col)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    return tableWidget->selectionModel()->isColumnSelected(col, QModelIndex());
 }
 
 /* ScrollBar */

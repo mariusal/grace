@@ -653,7 +653,6 @@ void ListTreeSetItemOpen(ListTreeItem *item, Boolean open);
 
 /* Table Widget */
 Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible);
-void table_deselect_all_cells(Widget w);
 int table_get_nrows(Widget w);
 int table_get_ncols(Widget w);
 void table_add_rows(Widget w, int nrows);
@@ -668,12 +667,35 @@ void table_set_row_labels(Widget w, char **labels);
 void table_set_col_labels(Widget w, char **labels);
 void table_set_fixed_cols(Widget w, int nfixed_cols);
 void table_update_visible_rows_cols(Widget w);
-void table_commit_edit(Widget w);
+void table_commit_edit(Widget w, int close);
+void TableSelectRow(Widget w, int row);
+void TableDeselectRow(Widget w, int row);
+void TableSelectCol(Widget w, int col);
+void TableDeselectCol(Widget w, int col);
+void table_deselect_all_cells(Widget w);
+int TableIsRowSelected(Widget w, int row);
+int TableIsColSelected(Widget w, int col);
+
+typedef struct {
+    int type;
+    int button;
+    int modifiers;
+
+    Widget w;
+    int row;
+    int col;
+    char *value;
+    int row_label;
+    void *anydata;
+    void *udata;
+} TableEvent;
+
+typedef int (*TableLabel_CBProc)(TableEvent *event);
 
 typedef int (*Table_CBProc)(Widget w, int row, int col, char *value, void *anydata);
 void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata);
 void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata);
-void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata);
+void AddTableLabelActivateCB(Widget w, TableLabel_CBProc cbproc, void *anydata);
 
 /* ScrollBar */
 void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, int *increment);

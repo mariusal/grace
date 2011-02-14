@@ -91,6 +91,7 @@
 #include "core_utils.h"
 #include "utils.h"
 #include "xprotos.h"
+#include "events.h"
 
 #define canvas grace_get_canvas(gapp->grace)
 
@@ -5129,11 +5130,6 @@ static int align_to_xmalign(int align)
     }
 }
 
-void table_deselect_all_cells(Widget w)
-{
-    XbaeMatrixDeselectAll(w);
-}
-
 int table_get_nrows(Widget w)
 {
     int nr;
@@ -5269,9 +5265,9 @@ void table_update_visible_rows_cols(Widget w)
                   NULL);
 }
 
-void table_commit_edit(Widget w)
+void table_commit_edit(Widget w, int close)
 {
-    XbaeMatrixCommitEdit(w, False);
+    XbaeMatrixCommitEdit(w, close);
 }
 
 typedef struct {
@@ -5279,6 +5275,12 @@ typedef struct {
     Table_CBProc cbproc;
     void *anydata;
 } Table_CBData;
+
+typedef struct {
+    Widget w;
+    TableLabel_CBProc cbproc;
+    void *anydata;
+} TableLabel_CBData;
 
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
@@ -5335,9 +5337,116 @@ void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
     XtAddCallback(w, XmNleaveCellCallback, leaveCB, cbdata);
 }
 
-void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
+static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    //XtAddCallback(w, XmNlabelActivateCallback, labelCB, anydata);
+    TableEvent event;
+    event.button = NO_BUTTON;
+    event.modifiers = NO_MODIFIER;
+
+    TableLabel_CBData *cbdata = (TableLabel_CBData *) client_data;
+    event.anydata = cbdata->anydata;
+
+    XbaeMatrixLabelActivateCallbackStruct *cbs =
+            (XbaeMatrixLabelActivateCallbackStruct *) call_data;
+
+    event.w = w;
+    event.row = cbs->row;
+    event.col = cbs->column;
+    event.row_label = cbs->row_label;
+
+    XButtonEvent *xbe;
+
+    switch (cbs->event) {
+    case ButtonPress:
+        cevent.type = MOUSE_PRESS;
+        xbe = (XButtonEvent *) cbs->event;
+        cevent.udata = xbe;
+        switch (cbs->event->xbutton.button) {
+        case Button1:
+            cevent.button = cevent.button ^ LEFT_BUTTON;
+            break;
+        case Button3:
+            cevent.button = cevent.button ^ RIGHT_BUTTON;
+            break;
+        }
+        if (xbe->state & ControlMask) {
+            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        }
+        if (xbe->state & ShiftMask) {
+            cevent.modifiers = cevent.modifiers ^ SHIFT_MODIFIER;
+        }
+        break;
+    case ButtonRelease:
+        cevent.type = MOUSE_RELEASE;
+        xbe = (XButtonEvent *) cbs->event;
+        cevent.udata = xbe;
+        switch (cbs->event->xbutton.button) {
+        case Button1:
+            cevent.button = cevent.button ^ LEFT_BUTTON;
+            break;
+        case Button3:
+            cevent.button = cevent.button ^ RIGHT_BUTTON;
+            break;
+        }
+        if (xbe->state & ControlMask) {
+            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        }
+        if (xbe->state & ShiftMask) {
+            cevent.modifiers = cevent.modifiers ^ SHIFT_MODIFIER;
+        }
+        break;
+    default:
+        break;
+    }
+
+    cbdata->cbproc(&event);
+}
+
+void AddTableLabelActivateCB(Widget w, TableLabel_CBProc cbproc, void *anydata)
+{
+    TableLabel_CBData *cbdata;
+
+    cbdata = (TableLabel_CBData *) xmalloc(sizeof(TableLabel_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XmNlabelActivateCallback, labelCB, cbdata);
+}
+
+void TableSelectRow(Widget w, int row)
+{
+    XbaeMatrixSelectRow(w, row);
+}
+
+void TableDeselectRow(Widget w, int row)
+{
+    XbaeMatrixDeselectRow(w, row);
+}
+
+void TableSelectCol(Widget w, int col)
+{
+    XbaeMatrixSelectColumn(w, col);
+}
+
+void TableDeselectCol(Widget w, int col)
+{
+    XbaeMatrixDeselectColumn(w, col);
+}
+
+void table_deselect_all_cells(Widget w)
+{
+    XbaeMatrixDeselectAll(w);
+}
+
+int TableIsRowSelected(Widget w, int row)
+{
+    return XbaeMatrixIsRowSelected(w, row);
+}
+
+int TableIsColSelected(Widget w, int col)
+{
+    return XbaeMatrixIsColumnSelected(w, col);
 }
 
 /* ScrollBar */

@@ -44,6 +44,12 @@ public:
         this->callback2 = callback;
         this->data = data;
     }
+    void (*callback3)(int index, void *);
+    void setCallBack(void (*callback)(int index, void *),
+                     void *data) {
+        this->callback3 = callback;
+        this->data = data;
+    }
 
 public slots:
     void callBack() {
@@ -54,6 +60,9 @@ public slots:
     }
     void table_int_cell_cb_proc(const QModelIndex &index) {
         callback2(index, data);
+    }
+    void table_label_activate_cb_proc(int index) {
+        callback3(index, data);
     }
 };
 

@@ -29,6 +29,7 @@
 
 #include <stdlib.h>
 
+#include "events.h"
 #include "utils.h"
 #include "explorer.h"
 #include "xprotos.h"
@@ -207,73 +208,67 @@ static int leaveCB(Widget w, int row, int col, char *value, void *anydata)
 
     return TRUE;
 }
-#if 0
-static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
+
+static void labelCB(TableEvent *event)
 {
-    SSDataUI *ui = (SSDataUI *) client_data;
-    XbaeMatrixLabelActivateCallbackStruct *cbs =
-        (XbaeMatrixLabelActivateCallbackStruct *) call_data;
-    XEvent *e = cbs->event;
-    XButtonEvent *xbe;
+    SSDataUI *ui = (SSDataUI *) event->anydata;
     static int last_row, last_column;
     int i;
     
-    if (!e || (e->type != ButtonRelease && e->type != ButtonPress)) {
+    if (!event || (event->type != MOUSE_RELEASE && event->type != MOUSE_PRESS)) {
         return;
     }
 
-    xbe = (XButtonEvent *) e;
+    if (event->button == LEFT_BUTTON) {
+        table_commit_edit(ui->mw, TRUE);
 
-    if (xbe->button == Button1) {
-        XbaeMatrixCommitEdit(ui->mw, True);
-
-        if (cbs->row_label) {
-            if (xbe->state & ControlMask) {
-                if (XbaeMatrixIsRowSelected(ui->mw, cbs->row)) {
-                    XbaeMatrixDeselectRow(ui->mw, cbs->row);
+        if (event->row_label) {
+            if (event->modifiers & CONTROL_MODIFIER) {
+                if (TableIsRowSelected(ui->mw, event->row)) {
+                    TableDeselectRow(ui->mw, event->row);
                 } else {
-                    XbaeMatrixSelectRow(ui->mw, cbs->row);
+                    TableSelectRow(ui->mw, event->row);
                 }
-                last_row = cbs->row;
+                last_row = event->row;
             } else
-            if ((xbe->state & ShiftMask) && last_row >= 0) {
-                for (i = MIN2(last_row, cbs->row); i <= MAX2(last_row, cbs->row); i++) {
-                    XbaeMatrixSelectRow(ui->mw, i);
+            if ((event->modifiers & SHIFT_MODIFIER) && last_row >= 0) {
+                for (i = MIN2(last_row, event->row); i <= MAX2(last_row, event->row); i++) {
+                    TableSelectRow(ui->mw, i);
                 }
             } else {
-                XbaeMatrixDeselectAll(ui->mw);
-                XbaeMatrixSelectRow(ui->mw, cbs->row);
-                last_row = cbs->row;
+                table_deselect_all_cells(ui->mw);
+                TableSelectRow(ui->mw, event->row);
+                last_row = event->row;
             }
 
             last_column = -1;
         } else {
-            if (xbe->state & ControlMask) {
-                if (XbaeMatrixIsColumnSelected(ui->mw, cbs->column)) {
-                    XbaeMatrixDeselectColumn(ui->mw, cbs->column);
+            if (event->modifiers & CONTROL_MODIFIER) {
+                if (TableIsColSelected(ui->mw, event->col)) {
+                    TableDeselectCol(ui->mw, event->col);
                 } else {
-                    XbaeMatrixSelectColumn(ui->mw, cbs->column);
+                    TableSelectCol(ui->mw, event->col);
                 }
-                last_column = cbs->column;
+                last_column = event->col;
             } else
-            if ((xbe->state & ShiftMask) && last_column >= 0) {
-                for (i = MIN2(last_column, cbs->column); i <= MAX2(last_column, cbs->column); i++) {
-                    XbaeMatrixSelectColumn(ui->mw, i);
+            if ((event->modifiers & SHIFT_MODIFIER) && last_column >= 0) {
+                for (i = MIN2(last_column, event->col); i <= MAX2(last_column, event->col); i++) {
+                    TableSelectCol(ui->mw, i);
                 }
             } else {
-                XbaeMatrixDeselectAll(ui->mw);
-                XbaeMatrixSelectColumn(ui->mw, cbs->column);
-                last_column = cbs->column;
+                table_deselect_all_cells(ui->mw);
+                TableSelectCol(ui->mw, event->col);
+                last_column = event->col;
             }
 
             last_row = -1;
         }
     }
 
-    if (xbe->button == Button3) {
+    if (event->button == RIGHT_BUTTON) {
         ss_column *col;
-        if (!cbs->row_label) {
-            ui->cb_column = cbs->column;
+        if (!event->row_label) {
+            ui->cb_column = event->col;
         }
 
         col = ssd_get_col(ui->q, ui->cb_column);
@@ -283,12 +278,10 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
         SetSensitive(ui->unindex_btn, ui->cb_column == 0 && col != NULL &&
             ssd_is_indexed(ui->q));
         
-        XmMenuPosition(ui->popup, xbe);
-        ManageChild(ui->popup);
+        ShowMenu(ui->popup, event->udata);
         return;
     }
 }
-#endif
 
 static void col_delete_cb(Widget but, void *udata)
 {
@@ -358,9 +351,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
 
     AddTableLeaveCellCB(ui->mw, leaveCB, ui);
     AddTableEnterCellCB(ui->mw, enterCB, ui);
-#if 0
     AddTableLabelActivateCB(ui->mw, labelCB, ui);
-#endif
 
     ui->popup = CreatePopupMenu(ui->mw);
     ui->delete_btn  = CreateMenuButton(ui->popup, "Delete column", '\0', col_delete_cb, ui);
@@ -511,7 +502,7 @@ int set_ssd_data(SSDataUI *ui, Quark *q, void *caller)
     if (ui && q) {
         if (!caller) {
             /* commit the last entered cell changes */
-            table_commit_edit(ui->mw);
+            table_commit_edit(ui->mw, FALSE);
         }
         
         if (!caller || caller == ui->col_label) {
