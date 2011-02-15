@@ -163,6 +163,7 @@ int main(int argc, char *argv[])
 #endif
     register_mif_drv(canvas);
     register_svg_drv(canvas);
+    register_emf_drv(canvas);
 
 #ifdef HAVE_LIBXMI
     device_id = register_pnm_drv(canvas);
