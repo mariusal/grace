@@ -16,15 +16,15 @@ LANGUAGE    = english
 LINUXDOC    = linuxdoc --language=$(LANGUAGE) --papersize=$(PAPERSIZE)
 
 SGML2HTML   = $(LINUXDOC) --backend=html  --split=0 --toc=2
-SGML2LATEX  = $(LINUXDOC) --backend=latex --pass='\usepackage{pslatex}' \
+SGML2LATEX  = $(LINUXDOC) --backend=latex --pass="\usepackage{pslatex}" \
 	--output=tex
-SGML2DVI    = $(LINUXDOC) --backend=latex --pass='\usepackage{pslatex}' \
+SGML2DVI    = $(LINUXDOC) --backend=latex --pass="\usepackage{pslatex}" \
 	--output=dvi
 		
-SGML2PS     = $(LINUXDOC) --backend=latex --pass='\usepackage{pslatex}' \
+SGML2PS     = $(LINUXDOC) --backend=latex --pass="\usepackage{pslatex}" \
 	--output=ps
 		
-SGML2PDF    = $(LINUXDOC) --backend=latex --pass='\usepackage{pslatex}' \
+SGML2PDF    = $(LINUXDOC) --backend=latex --pass="\usepackage{pslatex}" \
 	--output=pdf
 		
 DVI2PS      = dvips -t $(PAPERSIZE)
