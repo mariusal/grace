@@ -68,6 +68,7 @@
 #include <Xm/Text.h>
 #include <Xm/ToggleB.h>
 #include <Xm/ArrowBG.h>
+#include <Xm/ScrollBar.h>
 
 #include <Xbae/Matrix.h>
 
@@ -5339,60 +5340,59 @@ void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 
 static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    XButtonEvent *xbe;
+
     TableEvent event;
-    event.button = NO_BUTTON;
-    event.modifiers = NO_MODIFIER;
-
     TableLabel_CBData *cbdata = (TableLabel_CBData *) client_data;
-    event.anydata = cbdata->anydata;
-
     XbaeMatrixLabelActivateCallbackStruct *cbs =
             (XbaeMatrixLabelActivateCallbackStruct *) call_data;
+
+    event.button = NO_BUTTON;
+    event.modifiers = NO_MODIFIER;
+    event.anydata = cbdata->anydata;
 
     event.w = w;
     event.row = cbs->row;
     event.col = cbs->column;
     event.row_label = cbs->row_label;
 
-    XButtonEvent *xbe;
-
-    switch (cbs->event) {
+    switch (cbs->event->type) {
     case ButtonPress:
-        cevent.type = MOUSE_PRESS;
+        event.type = MOUSE_PRESS;
         xbe = (XButtonEvent *) cbs->event;
-        cevent.udata = xbe;
+        event.udata = xbe;
         switch (cbs->event->xbutton.button) {
         case Button1:
-            cevent.button = cevent.button ^ LEFT_BUTTON;
+            event.button = event.button ^ LEFT_BUTTON;
             break;
         case Button3:
-            cevent.button = cevent.button ^ RIGHT_BUTTON;
+            event.button = event.button ^ RIGHT_BUTTON;
             break;
         }
         if (xbe->state & ControlMask) {
-            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+            event.modifiers = event.modifiers ^ CONTROL_MODIFIER;
         }
         if (xbe->state & ShiftMask) {
-            cevent.modifiers = cevent.modifiers ^ SHIFT_MODIFIER;
+            event.modifiers = event.modifiers ^ SHIFT_MODIFIER;
         }
         break;
     case ButtonRelease:
-        cevent.type = MOUSE_RELEASE;
+        event.type = MOUSE_RELEASE;
         xbe = (XButtonEvent *) cbs->event;
-        cevent.udata = xbe;
+        event.udata = xbe;
         switch (cbs->event->xbutton.button) {
         case Button1:
-            cevent.button = cevent.button ^ LEFT_BUTTON;
+            event.button = event.button ^ LEFT_BUTTON;
             break;
         case Button3:
-            cevent.button = cevent.button ^ RIGHT_BUTTON;
+            event.button = event.button ^ RIGHT_BUTTON;
             break;
         }
         if (xbe->state & ControlMask) {
-            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+            event.modifiers = event.modifiers ^ CONTROL_MODIFIER;
         }
         if (xbe->state & ShiftMask) {
-            cevent.modifiers = cevent.modifiers ^ SHIFT_MODIFIER;
+            event.modifiers = event.modifiers ^ SHIFT_MODIFIER;
         }
         break;
     default:

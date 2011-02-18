@@ -690,7 +690,7 @@ typedef struct {
     void *udata;
 } TableEvent;
 
-typedef int (*TableLabel_CBProc)(TableEvent *event);
+typedef void (*TableLabel_CBProc)(TableEvent *event);
 
 typedef int (*Table_CBProc)(Widget w, int row, int col, char *value, void *anydata);
 void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata);
