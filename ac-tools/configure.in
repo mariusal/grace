@@ -330,7 +330,7 @@ then
   if test "x${GCC}" = "xyes"
   then
     dnl **** default settings for gcc
-    DEBUG="-g"
+    DEBUG="-g -O2"
     OPTIMIZE="-O2"
     CFLAGS="-fno-common -Wall -pedantic -Wpointer-arith -Wnested-externs"
 
