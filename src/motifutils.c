@@ -5277,21 +5277,20 @@ typedef struct {
     void *anydata;
 } Table_CBData;
 
-typedef struct {
-    Widget w;
-    TableLabel_CBProc cbproc;
-    void *anydata;
-} TableLabel_CBData;
-
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    TableEvent event;
     Table_CBData *cbdata = (Table_CBData *) client_data;
     XbaeMatrixEnterCellCallbackStruct *cs =
             (XbaeMatrixEnterCellCallbackStruct *) call_data;
 
     int ok;
 
-    ok = cbdata->cbproc(cbdata->w, cs->row, cs->column, NULL, cbdata->anydata);
+    event.w = cbdata->w;
+    event.row = cs->row;
+    event.col = cs->column;
+    event.anydata = cbdata->anydata;
+    ok = cbdata->cbproc(&event);
 
     if (!ok) {
         cs->doit = False;
@@ -5313,13 +5312,19 @@ void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 
 static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    TableEvent event;
     Table_CBData *cbdata = (Table_CBData *) client_data;
     XbaeMatrixLeaveCellCallbackStruct *cs =
             (XbaeMatrixLeaveCellCallbackStruct *) call_data;
 
     int ok;
 
-    ok = cbdata->cbproc(cbdata->w, cs->row, cs->column, cs->value, cbdata->anydata);
+    event.w = cbdata->w;
+    event.row = cs->row;
+    event.col = cs->column;
+    event.value = cs->value;
+    event.anydata = cbdata->anydata;
+    ok = cbdata->cbproc(&event);
 
     if (!ok) {
         cs->doit = False;
@@ -5343,7 +5348,7 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
     XButtonEvent *xbe;
 
     TableEvent event;
-    TableLabel_CBData *cbdata = (TableLabel_CBData *) client_data;
+    Table_CBData *cbdata = (Table_CBData *) client_data;
     XbaeMatrixLabelActivateCallbackStruct *cbs =
             (XbaeMatrixLabelActivateCallbackStruct *) call_data;
 
@@ -5402,11 +5407,11 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
     cbdata->cbproc(&event);
 }
 
-void AddTableLabelActivateCB(Widget w, TableLabel_CBProc cbproc, void *anydata)
+void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
-    TableLabel_CBData *cbdata;
+    Table_CBData *cbdata;
 
-    cbdata = (TableLabel_CBData *) xmalloc(sizeof(TableLabel_CBData));
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
     cbdata->w = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;

@@ -690,12 +690,10 @@ typedef struct {
     void *udata;
 } TableEvent;
 
-typedef void (*TableLabel_CBProc)(TableEvent *event);
-
-typedef int (*Table_CBProc)(Widget w, int row, int col, char *value, void *anydata);
+typedef int (*Table_CBProc)(TableEvent *event);
 void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata);
 void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata);
-void AddTableLabelActivateCB(Widget w, TableLabel_CBProc cbproc, void *anydata);
+void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata);
 
 /* ScrollBar */
 void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, int *increment);

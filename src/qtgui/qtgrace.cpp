@@ -9226,14 +9226,9 @@ typedef struct {
     void *anydata;
 } Table_CBData;
 
-typedef struct {
-    Widget w;
-    TableLabel_CBProc cbproc;
-    void *anydata;
-} TableLabel_CBData;
-
 static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
 {
+    TableEvent event;
     Table_CBData *cbdata = (Table_CBData *) data;
     QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
     char *value;
@@ -9244,7 +9239,12 @@ static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
         QByteArray ba = str.toLatin1();
         value = copy_string(NULL, ba.data());
 
-        ok = cbdata->cbproc(cbdata->w, index.row(), index.column(), value, cbdata->anydata);
+        event.w = cbdata->w;
+        event.row = index.row();
+        event.col = index.column();
+        event.value = value;
+        event.anydata = cbdata->anydata;
+        ok = cbdata->cbproc(&event);
 
         if (ok) {
             printf("%s", "enter cb ok to edit\n");
@@ -9277,6 +9277,7 @@ void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 
 static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous, void *data)
 {
+    TableEvent event;
     Table_CBData *cbdata = (Table_CBData *) data;
     QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
     QItemSelectionModel *selectionModel = tableWidget->selectionModel();
@@ -9288,7 +9289,12 @@ static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QMode
         QByteArray ba = str.toLatin1();
         value = copy_string(NULL, ba.data());
 
-        ok = cbdata->cbproc(cbdata->w, previous.row(), previous.column(), value, cbdata->anydata);
+        event.w = cbdata->w;
+        event.row = previous.row();
+        event.col = previous.column();
+        event.value = value;
+        event.anydata = cbdata->anydata;
+        ok = cbdata->cbproc(&event);
 
         if (ok) {
             printf("%s", "leave cb, ok to leave\n");
@@ -9327,7 +9333,7 @@ static void table_label_activate_cb_proc(int index, void *data)
     event.button = NO_BUTTON;
     event.modifiers = NO_MODIFIER;
 
-/*    TableLabel_CBData *cbdata = (TableLabel_CBData *) client_data;
+/*    Table_CBData *cbdata = (Table_CBData *) client_data;
     event.anydata = cbdata->anydata;
 
     XbaeMatrixLabelActivateCallbackStruct *cbs =
@@ -9386,11 +9392,11 @@ static void table_label_activate_cb_proc(int index, void *data)
     cbdata->cbproc(&event);*/
 }
 
-void AddTableLabelActivateCB(Widget w, TableLabel_CBProc cbproc, void *anydata)
+void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
-    TableLabel_CBData *cbdata;
+    Table_CBData *cbdata;
 
-    cbdata = (TableLabel_CBData *) xmalloc(sizeof(TableLabel_CBData));
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
     cbdata->w = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;

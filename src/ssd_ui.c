@@ -126,13 +126,13 @@ static char *get_cell_content(SSDataUI *ui, int row, int column, int *format)
     return s;
 }
 
-static int enterCB(Widget w, int row, int col, char *value, void *anydata)
+static int enterCB(TableEvent *event)
 {
-    SSDataUI *ui = (SSDataUI *) anydata;
+    SSDataUI *ui = (SSDataUI *) event->anydata;
 
     int ncols = ssd_get_ncols(ui->q);
     
-    if (col >= 0 && col <= ncols) {
+    if (event->col >= 0 && event->col <= ncols) {
         table_deselect_all_cells(ui->mw);
         return TRUE;
     } else {
@@ -140,32 +140,32 @@ static int enterCB(Widget w, int row, int col, char *value, void *anydata)
     }
 }
 
-static int leaveCB(Widget w, int row, int col, char *value, void *anydata)
+static int leaveCB(TableEvent *event)
 {
-    SSDataUI *ui = (SSDataUI *) anydata;
+    SSDataUI *ui = (SSDataUI *) event->anydata;
 
     int nrows = ssd_get_nrows(ui->q);
     int ncols = ssd_get_ncols(ui->q);
     int format;
-    double ssdvalue;
+    double value;
     
     int changed = FALSE;
     
     GraceApp *gapp = gapp_from_quark(ui->q);
     
-    if (row < 0 || col < 0 || col > ncols) {
+    if (event->row < 0 || event->col < 0 || event->col > ncols) {
         return TRUE;
     }
     
-    if (row >= nrows && !string_is_empty(value)) {
-        if (ssd_set_nrows(ui->q, row + 1) == RETURN_SUCCESS) {
+    if (event->row >= nrows && !string_is_empty(event->value)) {
+        if (ssd_set_nrows(ui->q, event->row + 1) == RETURN_SUCCESS) {
             changed = TRUE;
         }
     }
     
-    if (col == ncols && !string_is_empty(value)) {
+    if (event->col == ncols && !string_is_empty(event->value)) {
         if (parse_date_or_number(get_parent_project(ui->q),
-            value, FALSE, get_date_hint(gapp), &ssdvalue) == RETURN_SUCCESS) {
+            event->value, FALSE, get_date_hint(gapp), &value) == RETURN_SUCCESS) {
             format = FFORMAT_NUMBER;
         } else {
             format = FFORMAT_STRING;
@@ -176,20 +176,20 @@ static int leaveCB(Widget w, int row, int col, char *value, void *anydata)
         }
     }
     
-    if (col < ncols) {
-        char *old_value = get_cell_content(ui, row, col, &format);
-        if (!strings_are_equal(old_value, value)) {
+    if (event->col < ncols) {
+        char *old_value = get_cell_content(ui, event->row, event->col, &format);
+        if (!strings_are_equal(old_value, event->value)) {
             switch (format) {
             case FFORMAT_STRING:
-                if (ssd_set_string(ui->q, row, col, value) ==
+                if (ssd_set_string(ui->q, event->row, event->col, event->value) ==
                     RETURN_SUCCESS) {
                     changed = TRUE;
                 }
                 break;    
             default:
                 if (parse_date_or_number(get_parent_project(ui->q),
-                    value, FALSE, get_date_hint(gapp), &ssdvalue) == RETURN_SUCCESS) {
-                    if (ssd_set_value(ui->q, row, col, ssdvalue) ==
+                    event->value, FALSE, get_date_hint(gapp), &value) == RETURN_SUCCESS) {
+                    if (ssd_set_value(ui->q, event->row, event->col, value) ==
                         RETURN_SUCCESS) {
                         changed = TRUE;
                     }
@@ -209,14 +209,14 @@ static int leaveCB(Widget w, int row, int col, char *value, void *anydata)
     return TRUE;
 }
 
-static void labelCB(TableEvent *event)
+static int labelCB(TableEvent *event)
 {
     SSDataUI *ui = (SSDataUI *) event->anydata;
     static int last_row, last_column;
     int i;
     
     if (!event || (event->type != MOUSE_RELEASE && event->type != MOUSE_PRESS)) {
-        return;
+        return TRUE;
     }
 
     if (event->button == LEFT_BUTTON) {
@@ -279,8 +279,9 @@ static void labelCB(TableEvent *event)
             ssd_is_indexed(ui->q));
         
         ShowMenu(ui->popup, event->udata);
-        return;
     }
+
+    return TRUE;
 }
 
 static void col_delete_cb(Widget but, void *udata)
