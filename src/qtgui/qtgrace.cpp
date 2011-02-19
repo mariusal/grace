@@ -8980,6 +8980,8 @@ void LineEditDelegate::updateEditorGeometry(QWidget *editor,
 
 typedef struct {
     int font_width;
+    int font_height;
+    int frame_width;
     int default_col_width;
     int default_col_label_alignment;
     int nrows_visible;
@@ -8991,16 +8993,26 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     TableData *td;
 
     QTableWidget *tableWidget = new QTableWidget(nrows, ncols, parent);
-    QFontMetrics f = tableWidget->fontMetrics();
-    int fontWidth = f.leftBearing('0') + f.width('0') + f.rightBearing('0');
+    QHeaderView *hHeader = tableWidget->horizontalHeader();
+    QHeaderView *vHeader = tableWidget->verticalHeader();
+    QFontMetrics fm = tableWidget->fontMetrics();
 
-    tableWidget->horizontalHeader()->setResizeMode(QHeaderView::Fixed);
+    int margin = tableWidget->style()->pixelMetric(QStyle::PM_HeaderMargin, 0, tableWidget);
+    int frame = tableWidget->style()->pixelMetric(QStyle::PM_DefaultFrameWidth, 0, 0);
+    int frameWidth = margin + frame;
+    int fontWidth = fm.width(QLatin1Char('0'));
+    int fontHeight = fm.height() + 2*frameWidth;
+
+    hHeader->setResizeMode(QHeaderView::Fixed);
+    vHeader->setResizeMode(QHeaderView::Fixed);
 
     tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     tableWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
     td = (TableData*) xmalloc(sizeof(TableData));
     td->font_width = fontWidth;
+    td->font_height = fontHeight;
+    td->frame_width = frameWidth;
     td->default_col_width = 5;
     td->default_col_label_alignment = ALIGN_BEGINNING;
     td->nrows_visible = nrows_visible;
@@ -9011,11 +9023,13 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     for (int i = 0; i < ncols; i++) {
         QTableWidgetItem *item = new QTableWidgetItem();
         tableWidget->setHorizontalHeaderItem(i, item);
+        hHeader->resizeSection(i, td->default_col_width * td->font_width + 2*td->frame_width);
     }
 
     for (int i = 0; i < nrows; i++) {
         QTableWidgetItem *item = new QTableWidgetItem();
         tableWidget->setVerticalHeaderItem(i, item);
+        vHeader->resizeSection(i, td->font_height);
     }
 
     LineEditDelegate *lineEdit = new LineEditDelegate;
@@ -9056,13 +9070,18 @@ int table_get_ncols(Widget w)
 void table_add_rows(Widget w, int nrows)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
+    TableData *td;
     int row, rc;
+    QHeaderView *vHeader = tableWidget->verticalHeader();
 
     rc = table_get_nrows(w);
+    td = (TableData*) GetUserData(w);
+
     for (row = rc; row < rc + nrows; row++) {
         tableWidget->insertRow(row);
         QTableWidgetItem *item = new QTableWidgetItem;
         tableWidget->setVerticalHeaderItem(row, item);
+        vHeader->resizeSection(row, td->font_height);
     }
 }
 
@@ -9091,7 +9110,7 @@ void table_add_cols(Widget w, int ncols)
         tableWidget->insertColumn(col);
         QTableWidgetItem *item = new QTableWidgetItem;
         tableWidget->setHorizontalHeaderItem(col, item);
-        hHeader->resizeSection(col, td->default_col_width * td->font_width);
+        hHeader->resizeSection(col, td->default_col_width * td->font_width + 2*td->frame_width);
         switch (td->default_col_label_alignment) {
         case ALIGN_BEGINNING:
             hHeader->setDefaultAlignment(Qt::AlignLeft);
@@ -9129,7 +9148,7 @@ void table_set_default_col_width(Widget w, int width)
     td->default_col_width = width;
 
     for (i = 0; i < cc; i++) {
-        hHeader->resizeSection(i, td->default_col_width * td->font_width);
+        hHeader->resizeSection(i, td->default_col_width * td->font_width + 2*td->frame_width);
     }
 }
 
