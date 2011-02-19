@@ -1056,6 +1056,8 @@ static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
         atext_set_ap(q, &ap);
     }
     
+    update_all();
+
     raise_explorer(gapp->gui, q);
 
     return RETURN_SUCCESS;
