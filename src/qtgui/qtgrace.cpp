@@ -4735,6 +4735,10 @@ static BitmapOptionItem *lines_option_items;
 //        }
 //    }
 //}
+static void init_xvlibcolors(void)
+{
+
+}
 //
 //int init_option_menus(void) {
 //    unsigned int i, j, k, l, n;
@@ -8662,41 +8666,8 @@ void update_undo_buttons(GProject *gp)
     }
 }
 
-//void update_all(void)
-//{
-//    if (!gapp->gui->inwin) {
-//        return;
-//    }
-//
-//    if (gui_is_page_free(gapp->gui)) {
-//        sync_canvas_size(gapp);
-//    }
-//    
-//    update_ssd_selectors(gproject_get_top(gapp->gp));
-//    update_frame_selectors(gproject_get_top(gapp->gp));
-//    update_graph_selectors(gproject_get_top(gapp->gp));
-//    update_set_selectors(NULL);
-//
-//    if (gapp->gui->need_colorsel_update == TRUE) {
-//        init_xvlibcolors();
-//        update_color_selectors();
-//        gapp->gui->need_colorsel_update = FALSE;
-//    }
-//
-//    if (gapp->gui->need_fontsel_update == TRUE) {
-//        update_font_selectors();
-//        gapp->gui->need_fontsel_update = FALSE;
-//    }
-//
-//    update_undo_buttons(gapp->gp);
-//    update_props_items();
-//    update_explorer(gapp->gui->eui, TRUE);
-//    set_left_footer(NULL);
-//    update_app_title(gapp->gp);
-//}
 void update_all(void)
 {
-// TODO: remove this function, use global one
     if (!gapp->gui->inwin) {
         return;
     }
@@ -8711,7 +8682,7 @@ void update_all(void)
     update_set_selectors(NULL);
 
     if (gapp->gui->need_colorsel_update == TRUE) {
-        //init_xvlibcolors();
+        init_xvlibcolors();
         update_color_selectors();
         gapp->gui->need_colorsel_update = FALSE;
     }
@@ -8726,7 +8697,6 @@ void update_all(void)
     update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
     update_app_title(gapp->gp);
-    canvasWidget->update();
 }
 
 void update_all_cb(Widget but, void *data)
@@ -8840,21 +8810,18 @@ int clean_frame_selectors(Quark *pr, int etype, void *data)
 //    return RETURN_SUCCESS;
 //}
 //
-///* what a mess... */
-//void unlink_ssd_ui(Quark *q)
-//{
-//    GUI *gui = gui_from_quark(q);
-//    if (gui && gui->eui && gui->eui->ssd_ui) {
-//        if (gui->eui->ssd_ui->q == q) {
-//            gui->eui->ssd_ui->q = NULL;
-//        }
-//        if (gui->eui->ssd_ui->col_sel->anydata == q) {
-//            gui->eui->ssd_ui->col_sel->anydata = NULL;
-//        }
-//    }
-//}
+/* what a mess... */
 void unlink_ssd_ui(Quark *q)
 {
+    GUI *gui = gui_from_quark(q);
+    if (gui && gui->eui && gui->eui->ssd_ui) {
+        if (gui->eui->ssd_ui->q == q) {
+            gui->eui->ssd_ui->q = NULL;
+        }
+        if (gui->eui->ssd_ui->col_sel->anydata == q) {
+            gui->eui->ssd_ui->col_sel->anydata = NULL;
+        }
+    }
 }
 
 
