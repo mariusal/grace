@@ -691,6 +691,12 @@ typedef struct {
 } TableEvent;
 
 typedef int (*Table_CBProc)(TableEvent *event);
+typedef struct {
+    Widget w;
+    Table_CBProc cbproc;
+    void *anydata;
+} Table_CBData;
+
 void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata);
 void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata);
 void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata);

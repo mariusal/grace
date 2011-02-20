@@ -8960,8 +8960,10 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     TableData *td;
 
     QTableWidget *tableWidget = new QTableWidget(nrows, ncols, parent);
-    QHeaderView *hHeader = tableWidget->horizontalHeader();
-    QHeaderView *vHeader = tableWidget->verticalHeader();
+    QHeaderView *hHeader = new HeaderView(Qt::Horizontal);
+    tableWidget->setHorizontalHeader(hHeader);
+    QHeaderView *vHeader = new HeaderView(Qt::Vertical);
+    tableWidget->setVerticalHeader(vHeader);
     QFontMetrics fm = tableWidget->fontMetrics();
 
     int margin = tableWidget->style()->pixelMetric(QStyle::PM_HeaderMargin, 0, tableWidget);
@@ -9220,12 +9222,6 @@ void table_commit_edit(Widget w, int close)
     tableWidget->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::NoUpdate);
 }
 
-typedef struct {
-    Widget w;
-    Table_CBProc cbproc;
-    void *anydata;
-} Table_CBData;
-
 static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
 {
     TableEvent event;
@@ -9327,69 +9323,61 @@ void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
                      SLOT(table_int_cell_cb_proc(const QModelIndex &, const QModelIndex &)));
 }
 
-static void table_label_activate_cb_proc(int index, void *data)
+bool HeaderView::event(QEvent *e)
 {
-    TableEvent event;
-    event.button = NO_BUTTON;
-    event.modifiers = NO_MODIFIER;
+    if (cbdata != 0) {
+        QMouseEvent *xbe;
 
-/*    Table_CBData *cbdata = (Table_CBData *) client_data;
-    event.anydata = cbdata->anydata;
+        TableEvent event;
+        event.button = NO_BUTTON;
+        event.modifiers = NO_MODIFIER;
+        event.anydata = cbdata->anydata;
 
-    XbaeMatrixLabelActivateCallbackStruct *cbs =
-            (XbaeMatrixLabelActivateCallbackStruct *) call_data;
+        event.w = cbdata->w;
 
-    event.w = w;
-    event.row = cbs->row;
-    event.col = cbs->column;
-    event.row_label = cbs->row_label;
-
-    XButtonEvent *xbe;
-
-    switch (cbs->event) {
-    case ButtonPress:
-        cevent.type = MOUSE_PRESS;
-        xbe = (XButtonEvent *) cbs->event;
-        cevent.udata = xbe;
-        switch (cbs->event->xbutton.button) {
-        case Button1:
-            cevent.button = cevent.button ^ LEFT_BUTTON;
+        switch (e->type()) {
+        case QEvent::MouseButtonDblClick:
+        case QEvent::MouseButtonPress:
+            event.type = MOUSE_PRESS;
+            qDebug("HeaderView mouse press");
             break;
-        case Button3:
-            cevent.button = cevent.button ^ RIGHT_BUTTON;
+        case QEvent::MouseButtonRelease:
+            event.type = MOUSE_RELEASE;
+            qDebug("HeaderView mouse release");
             break;
+        default:
+            return QAbstractItemView::event(e);
         }
-        if (xbe->state & ControlMask) {
-            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
-        }
-        if (xbe->state & ShiftMask) {
-            cevent.modifiers = cevent.modifiers ^ SHIFT_MODIFIER;
-        }
-        break;
-    case ButtonRelease:
-        cevent.type = MOUSE_RELEASE;
-        xbe = (XButtonEvent *) cbs->event;
-        cevent.udata = xbe;
-        switch (cbs->event->xbutton.button) {
-        case Button1:
-            cevent.button = cevent.button ^ LEFT_BUTTON;
+
+        xbe = (QMouseEvent*) e;
+        event.udata = xbe;
+        switch (xbe->button()) {
+        case Qt::LeftButton:
+            event.button = event.button ^ LEFT_BUTTON;
             break;
-        case Button3:
-            cevent.button = cevent.button ^ RIGHT_BUTTON;
+        case Qt::RightButton:
+            event.button = event.button ^ RIGHT_BUTTON;
             break;
         }
-        if (xbe->state & ControlMask) {
-            cevent.modifiers = cevent.modifiers ^ CONTROL_MODIFIER;
+        if (xbe->modifiers() & Qt::ControlModifier) {
+            event.modifiers = event.modifiers ^ CONTROL_MODIFIER;
         }
-        if (xbe->state & ShiftMask) {
-            cevent.modifiers = cevent.modifiers ^ SHIFT_MODIFIER;
+        if (xbe->modifiers() & Qt::ShiftModifier) {
+            event.modifiers = event.modifiers ^ SHIFT_MODIFIER;
         }
-        break;
-    default:
-        break;
+
+        int pos = orientation() == Qt::Horizontal ? xbe->x() : xbe->y();
+        int section = logicalIndexAt(pos);
+        event.row = section;
+        event.col = section;
+        event.row_label = (orientation() == Qt::Vertical);
+
+        cbdata->cbproc(&event);
+
+        return true;
+    } else {
+        return QHeaderView::event(e);
     }
-
-    cbdata->cbproc(&event);*/
 }
 
 void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
@@ -9401,26 +9389,21 @@ void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    CallBack *cb = new CallBack(mainWin);
-    cb->setCallBack(table_label_activate_cb_proc, cbdata);
-
     QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
-
-    QObject::connect(tableWidget->horizontalHeader(),
-                     SIGNAL(sectionPressed(int)),
-                     cb,
-                     SLOT(table_label_activate_cb_proc(int)));
-    QObject::connect(tableWidget->horizontalHeader(),
-                     SIGNAL(sectionClicked(int)),
-                     cb,
-                     SLOT(table_label_activate_cb_proc(int)));
+    HeaderView *hHeader = (HeaderView*) tableWidget->horizontalHeader();
+    hHeader->setCallBackData(cbdata);
+    HeaderView *vHeader = (HeaderView*) tableWidget->verticalHeader();
+    vHeader->setCallBackData(cbdata);
 }
 
 void TableSelectRow(Widget w, int row)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
 
-    tableWidget->selectRow(row);
+    QModelIndex topLeft = tableWidget->model()->index(row, 0);
+    QModelIndex bottomRight = tableWidget->model()->index(row, tableWidget->columnCount()-1);
+
+    tableWidget->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
 }
 
 void TableDeselectRow(Widget w, int row)
@@ -9437,7 +9420,10 @@ void TableSelectCol(Widget w, int col)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
 
-    tableWidget->selectColumn(col);
+    QModelIndex topLeft = tableWidget->model()->index(0, col);
+    QModelIndex bottomRight = tableWidget->model()->index(tableWidget->rowCount()-1, col);
+
+    tableWidget->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
 }
 
 void TableDeselectCol(Widget w, int col)

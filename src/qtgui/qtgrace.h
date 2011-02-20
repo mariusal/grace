@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QApplication>
 #include <QItemDelegate>
+#include <QHeaderView>
 #include <QEvent>
 #include <QKeyEvent>
 
@@ -82,6 +83,8 @@ public:
 
     void updateEditorGeometry(QWidget *editor,
                               const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+
 protected:
     bool eventFilter(QObject *object, QEvent *event)
     {
@@ -138,6 +141,32 @@ protected:
 
 private:
     int maxLength;
+};
+
+class HeaderView : public QHeaderView
+{
+    Q_OBJECT
+
+public:
+    HeaderView(Qt::Orientation orientation, QWidget *parent = 0)
+        : QHeaderView(orientation, parent)
+    {
+        cbdata = 0;
+    }
+
+    void setCallBackData(Table_CBData *cbdata) {
+        this->cbdata = cbdata;
+    }
+
+protected:
+    bool event(QEvent *e);
+    void mousePressEvent(QMouseEvent *e) {e->ignore();}
+    void mouseReleaseEvent(QMouseEvent *e) {e->ignore();}
+    void mouseDoubleClickEvent(QMouseEvent *e) {e->ignore();}
+
+private:
+     Table_CBData *cbdata;
+
 };
 
 #endif /* __QTGRACE_H_ */

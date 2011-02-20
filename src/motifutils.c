@@ -5271,12 +5271,6 @@ void table_commit_edit(Widget w, int close)
     XbaeMatrixCommitEdit(w, close);
 }
 
-typedef struct {
-    Widget w;
-    Table_CBProc cbproc;
-    void *anydata;
-} Table_CBData;
-
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     TableEvent event;
