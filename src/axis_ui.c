@@ -32,6 +32,7 @@
  */
 
 #include <config.h>
+#include <string.h>
 
 #include "core_utils.h"
 #include "explorer.h"
