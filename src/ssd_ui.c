@@ -28,6 +28,7 @@
 /* SSData UI */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "events.h"
 #include "utils.h"
