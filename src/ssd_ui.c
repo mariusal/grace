@@ -134,7 +134,7 @@ static int enterCB(TableEvent *event)
     int ncols = ssd_get_ncols(ui->q);
     
     if (event->col >= 0 && event->col <= ncols) {
-        table_deselect_all_cells(ui->mw);
+        TableDeselectAllCells(ui->mw);
         return TRUE;
     } else {
         return FALSE;
@@ -221,7 +221,7 @@ static int labelCB(TableEvent *event)
     }
 
     if (event->button == LEFT_BUTTON) {
-        table_commit_edit(ui->mw, TRUE);
+        TableCommitEdit(ui->mw, TRUE);
 
         if (event->row_label) {
             if (event->modifiers & CONTROL_MODIFIER) {
@@ -237,7 +237,7 @@ static int labelCB(TableEvent *event)
                     TableSelectRow(ui->mw, i);
                 }
             } else {
-                table_deselect_all_cells(ui->mw);
+                TableDeselectAllCells(ui->mw);
                 TableSelectRow(ui->mw, event->row);
                 last_row = event->row;
             }
@@ -257,7 +257,7 @@ static int labelCB(TableEvent *event)
                     TableSelectCol(ui->mw, i);
                 }
             } else {
-                table_deselect_all_cells(ui->mw);
+                TableDeselectAllCells(ui->mw);
                 TableSelectCol(ui->mw, event->col);
                 last_column = event->col;
             }
@@ -348,8 +348,8 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     ui->mw = CreateTable(ui->main_tp,
                          EXTRA_SS_ROWS, EXTRA_SS_COLS,
                          VISIBLE_SS_ROWS, VISIBLE_SS_COLS);
-    table_set_default_col_width(ui->mw, CELL_WIDTH);
-    table_set_default_col_label_alignment(ui->mw, ALIGN_CENTER);
+    TableSetDefaultColWidth(ui->mw, CELL_WIDTH);
+    TableSetDefaultColLabelAlignment(ui->mw, ALIGN_CENTER);
 
     AddTableLeaveCellCB(ui->mw, leaveCB, ui);
     AddTableEnterCellCB(ui->mw, enterCB, ui);
@@ -400,7 +400,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         int cur_row, cur_col, format;
         
         if (ui->q != q) {
-            table_deselect_all_cells(ui->mw);
+            TableDeselectAllCells(ui->mw);
         }
         
         ui->q = q;
@@ -417,16 +417,16 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             nfixed_cols = 0;
         }
 
-        nr = table_get_nrows(ui->mw);
-        nc = table_get_ncols(ui->mw);
+        nr = TableGetNrows(ui->mw);
+        nc = TableGetNcols(ui->mw);
 
         delta_nr = new_nr - nr;
         delta_nc = new_nc - nc;
 
         if (delta_nr > 0) {
-            table_add_rows(ui->mw, delta_nr);
+            TableAddRows(ui->mw, delta_nr);
         } else if (delta_nr < 0) {
-            table_delete_rows(ui->mw, -delta_nr);
+            TableDeleteRows(ui->mw, -delta_nr);
         }
 
         rowlabels = xmalloc(new_nr*sizeof(char *));
@@ -435,7 +435,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             sprintf(buf, "%d", i + 1);
             rowlabels[i] = copy_string(NULL, buf);
         }
-        table_set_row_labels(ui->mw, rowlabels);
+        TableSetRowLabels(ui->mw, rowlabels);
         for (i = 0; i < new_nr; i++) {
             xfree(rowlabels[i]);
         }
@@ -469,23 +469,23 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         }
 
         if (delta_nc > 0) {
-            table_add_cols(ui->mw, delta_nc);
+            TableAddCols(ui->mw, delta_nc);
         } else if (delta_nc < 0) {
-            table_delete_cols(ui->mw, -delta_nc);
+            TableDeleteCols(ui->mw, -delta_nc);
         }
 
-        table_set_col_maxlengths(ui->mw, maxlengths);
-        table_set_col_labels(ui->mw, collabels);
-        table_set_fixed_cols(ui->mw, nfixed_cols);
+        TableSetColMaxlengths(ui->mw, maxlengths);
+        TableSetColLabels(ui->mw, collabels);
+        TableSetFixedCols(ui->mw, nfixed_cols);
 
         for (cur_col = 0; cur_col < new_nc; cur_col++) {
             for (cur_row = 0; cur_row < new_nr; cur_row++) {
-                table_set_cell_content(ui->mw, cur_row, cur_col,
+                TableSetCellContent(ui->mw, cur_row, cur_col,
                                        get_cell_content(ui, cur_row, cur_col, &format));
             }
         }
 
-        table_update_visible_rows_cols(ui->mw);
+        TableUpdateVisibleRowsCols(ui->mw);
 
         xfree(maxlengths);
         for (i = 0; i < new_nc; i++) {
@@ -504,7 +504,7 @@ int set_ssd_data(SSDataUI *ui, Quark *q, void *caller)
     if (ui && q) {
         if (!caller) {
             /* commit the last entered cell changes */
-            table_commit_edit(ui->mw, FALSE);
+            TableCommitEdit(ui->mw, FALSE);
         }
         
         if (!caller || caller == ui->col_label) {

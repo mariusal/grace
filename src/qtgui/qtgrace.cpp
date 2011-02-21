@@ -9017,7 +9017,7 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     return tableWidget;
 }
 
-int table_get_nrows(Widget w)
+int TableGetNrows(Widget w)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     int nr;
@@ -9027,7 +9027,7 @@ int table_get_nrows(Widget w)
     return nr;
 }
 
-int table_get_ncols(Widget w)
+int TableGetNcols(Widget w)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     int nc;
@@ -9037,14 +9037,14 @@ int table_get_ncols(Widget w)
     return nc;
 }
 
-void table_add_rows(Widget w, int nrows)
+void TableAddRows(Widget w, int nrows)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
     int row, rc;
     QHeaderView *vHeader = tableWidget->verticalHeader();
 
-    rc = table_get_nrows(w);
+    rc = TableGetNrows(w);
     td = (TableData*) GetUserData(w);
 
     for (row = rc; row < rc + nrows; row++) {
@@ -9055,25 +9055,25 @@ void table_add_rows(Widget w, int nrows)
     }
 }
 
-void table_delete_rows(Widget w, int nrows)
+void TableDeleteRows(Widget w, int nrows)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     int rc;
 
-    rc = table_get_nrows(w) - 1;
+    rc = TableGetNrows(w) - 1;
     for (int row = rc; row > rc - nrows; row--) {
         tableWidget->removeRow(row);
     }
 }
 
-void table_add_cols(Widget w, int ncols)
+void TableAddCols(Widget w, int ncols)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
     int col, cc;
     QHeaderView *hHeader = tableWidget->horizontalHeader();
 
-    cc = table_get_ncols(w);
+    cc = TableGetNcols(w);
     td = (TableData*) GetUserData(w);
 
     for (col = cc; col < cc + ncols; col++) {
@@ -9095,22 +9095,22 @@ void table_add_cols(Widget w, int ncols)
     }
 }
 
-void table_delete_cols(Widget w, int ncols)
+void TableDeleteCols(Widget w, int ncols)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     int cc;
 
-    cc = table_get_ncols(w) - 1;
+    cc = TableGetNcols(w) - 1;
     for (int col = cc; col > cc - ncols; col--) {
         tableWidget->removeColumn(col);
     }
 }
 
-void table_set_default_col_width(Widget w, int width)
+void TableSetDefaultColWidth(Widget w, int width)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
-    int i, cc = table_get_ncols(w);
+    int i, cc = TableGetNcols(w);
     QHeaderView *hHeader = tableWidget->horizontalHeader();
 
     td = (TableData*) GetUserData(w);
@@ -9122,11 +9122,11 @@ void table_set_default_col_width(Widget w, int width)
     }
 }
 
-void table_set_default_col_label_alignment(Widget w, int align)
+void TableSetDefaultColLabelAlignment(Widget w, int align)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
-    int i, cc = table_get_ncols(w);
+    int i, cc = TableGetNcols(w);
     QHeaderView *hHeader = tableWidget->horizontalHeader();
 
     td = (TableData*) GetUserData(w);
@@ -9148,7 +9148,7 @@ void table_set_default_col_label_alignment(Widget w, int align)
     }
 }
 
-void table_set_cell_content(Widget w, int row, int col, char *content)
+void TableSetCellContent(Widget w, int row, int col, char *content)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     QAbstractItemModel *model = tableWidget->model();
@@ -9157,20 +9157,20 @@ void table_set_cell_content(Widget w, int row, int col, char *content)
     model->setData(index, QVariant(content));
 }
 
-void table_set_col_maxlengths(Widget w, int *maxlengths)
+void TableSetColMaxlengths(Widget w, int *maxlengths)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
-    int ncols = table_get_ncols(w);
+    int ncols = TableGetNcols(w);
 
     for (int col = 0; col < ncols; col++) {
         tableWidget->setItemDelegateForColumn(col, new LineEditDelegate(maxlengths[col]));
     }
 }
 
-void table_set_row_labels(Widget w, char **labels)
+void TableSetRowLabels(Widget w, char **labels)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
-    int nrows = table_get_nrows(w);
+    int nrows = TableGetNrows(w);
 
     for (int i = 0; i < nrows; i++) {
         QTableWidgetItem *item = tableWidget->verticalHeaderItem(i);
@@ -9178,10 +9178,10 @@ void table_set_row_labels(Widget w, char **labels)
     }
 }
 
-void table_set_col_labels(Widget w, char **labels)
+void TableSetColLabels(Widget w, char **labels)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
-    int ncols = table_get_ncols(w);
+    int ncols = TableGetNcols(w);
 
     for (int i = 0; i < ncols; i++) {
         QTableWidgetItem *item = tableWidget->horizontalHeaderItem(i);
@@ -9189,14 +9189,14 @@ void table_set_col_labels(Widget w, char **labels)
     }
 }
 
-void table_set_fixed_cols(Widget w, int nfixed_cols)
+void TableSetFixedCols(Widget w, int nfixed_cols)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     //TODO:
     //Two views side by side
 }
 
-void table_update_visible_rows_cols(Widget w)
+void TableUpdateVisibleRowsCols(Widget w)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
@@ -9216,7 +9216,7 @@ void table_update_visible_rows_cols(Widget w)
                                tableWidget->verticalScrollBar()->sizeHint().width());
 }
 
-void table_commit_edit(Widget w, int close)
+void TableCommitEdit(Widget w, int close)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
 
@@ -9438,7 +9438,7 @@ void TableDeselectCol(Widget w, int col)
     tableWidget->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
 }
 
-void table_deselect_all_cells(Widget w)
+void TableDeselectAllCells(Widget w)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
 

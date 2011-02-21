@@ -5131,7 +5131,7 @@ static int align_to_xmalign(int align)
     }
 }
 
-int table_get_nrows(Widget w)
+int TableGetNrows(Widget w)
 {
     int nr;
 
@@ -5140,7 +5140,7 @@ int table_get_nrows(Widget w)
     return nr;
 }
 
-int table_get_ncols(Widget w)
+int TableGetNcols(Widget w)
 {
     int nc;
 
@@ -5149,17 +5149,17 @@ int table_get_ncols(Widget w)
     return nc;
 }
 
-void table_add_rows(Widget w, int nrows)
+void TableAddRows(Widget w, int nrows)
 {
-    XbaeMatrixAddRows(w, table_get_nrows(w), NULL, NULL, NULL, nrows);
+    XbaeMatrixAddRows(w, TableGetNrows(w), NULL, NULL, NULL, nrows);
 }
 
-void table_delete_rows(Widget w, int nrows)
+void TableDeleteRows(Widget w, int nrows)
 {
-    XbaeMatrixDeleteRows(w, table_get_nrows(w) - nrows, nrows);
+    XbaeMatrixDeleteRows(w, TableGetNrows(w) - nrows, nrows);
 }
 
-void table_add_cols(Widget w, int ncols)
+void TableAddCols(Widget w, int ncols)
 {
     TableData *td;
     short *widths;
@@ -5176,18 +5176,18 @@ void table_add_cols(Widget w, int ncols)
         alignment[i] = xm_alignment;
     }
 
-    XbaeMatrixAddColumns(w, table_get_ncols(w), NULL, NULL, widths, NULL, NULL, alignment, NULL, ncols);
+    XbaeMatrixAddColumns(w, TableGetNcols(w), NULL, NULL, widths, NULL, NULL, alignment, NULL, ncols);
 
     xfree(alignment);
     xfree(widths);
 }
 
-void table_delete_cols(Widget w, int ncols)
+void TableDeleteCols(Widget w, int ncols)
 {
-    XbaeMatrixDeleteColumns(w, table_get_ncols(w) - ncols, ncols);
+    XbaeMatrixDeleteColumns(w, TableGetNcols(w) - ncols, ncols);
 }
 
-void table_set_default_col_width(Widget w, int width)
+void TableSetDefaultColWidth(Widget w, int width)
 {
     TableData *td;
     short *widths;
@@ -5196,7 +5196,7 @@ void table_set_default_col_width(Widget w, int width)
     td = (TableData*) GetUserData(w);
     td->default_col_width = width;
 
-    ncols = table_get_ncols(w);
+    ncols = TableGetNcols(w);
 
     widths = xmalloc(ncols*SIZEOF_SHORT);
 
@@ -5209,7 +5209,7 @@ void table_set_default_col_width(Widget w, int width)
     xfree(widths);
 }
 
-void table_set_default_col_label_alignment(Widget w, int align)
+void TableSetDefaultColLabelAlignment(Widget w, int align)
 {
     TableData *td;
     unsigned char *alignment, xm_alignment;
@@ -5219,7 +5219,7 @@ void table_set_default_col_label_alignment(Widget w, int align)
     td->default_col_label_alignment = align;
 
     xm_alignment = align_to_xmalign(align);
-    ncols = table_get_ncols(w);
+    ncols = TableGetNcols(w);
 
     alignment = xmalloc(ncols);
 
@@ -5232,32 +5232,32 @@ void table_set_default_col_label_alignment(Widget w, int align)
     xfree(alignment);
 }
 
-void table_set_cell_content(Widget w, int row, int col, char *content)
+void TableSetCellContent(Widget w, int row, int col, char *content)
 {
     XbaeMatrixSetCell(w, row, col, content);
 }
 
-void table_set_col_maxlengths(Widget w, int *maxlengths)
+void TableSetColMaxlengths(Widget w, int *maxlengths)
 {
     XtVaSetValues(w, XmNcolumnMaxLengths, maxlengths, NULL);
 }
 
-void table_set_row_labels(Widget w, char **labels)
+void TableSetRowLabels(Widget w, char **labels)
 {
     XtVaSetValues(w, XmNrowLabels, labels, NULL);
 }
 
-void table_set_col_labels(Widget w, char **labels)
+void TableSetColLabels(Widget w, char **labels)
 {
     XtVaSetValues(w, XmNcolumnLabels, labels, NULL);
 }
 
-void table_set_fixed_cols(Widget w, int nfixed_cols)
+void TableSetFixedCols(Widget w, int nfixed_cols)
 {
     XtVaSetValues(w, XmNfixedColumns, nfixed_cols, NULL);
 }
 
-void table_update_visible_rows_cols(Widget w)
+void TableUpdateVisibleRowsCols(Widget w)
 {
     XtVaSetValues(w,
                   XmNrowLabelWidth, 0,
@@ -5266,7 +5266,7 @@ void table_update_visible_rows_cols(Widget w)
                   NULL);
 }
 
-void table_commit_edit(Widget w, int close)
+void TableCommitEdit(Widget w, int close)
 {
     XbaeMatrixCommitEdit(w, close);
 }
@@ -5414,7 +5414,7 @@ void TableDeselectCol(Widget w, int col)
     XbaeMatrixDeselectColumn(w, col);
 }
 
-void table_deselect_all_cells(Widget w)
+void TableDeselectAllCells(Widget w)
 {
     XbaeMatrixDeselectAll(w);
 }
