@@ -8915,6 +8915,7 @@ QWidget *LineEditDelegate::createEditor(QWidget *parent,
                                         const QModelIndex &/* index */) const
 {
     QLineEdit *editor = new QLineEdit(parent);
+    const_cast<LineEditDelegate*> (this)->lineEditor = editor;
     if (maxLength > 0) {
         editor->setMaxLength(maxLength);
     }
@@ -9219,7 +9220,12 @@ void table_commit_edit(Widget w, int close)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
 
-    tableWidget->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::NoUpdate);
+    LineEditDelegate *delegate = (LineEditDelegate*) tableWidget->itemDelegate();
+    delegate->emitCommitData();
+    if (close) {
+//        tableWidget->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::NoUpdate);
+        delegate->emitCloseEditor();
+    }
 }
 
 static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)

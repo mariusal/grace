@@ -83,7 +83,20 @@ public:
 
     void updateEditorGeometry(QWidget *editor,
                               const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void emitCommitData()
+    {
+//        QEvent event(QEvent::User);
+//        QApplication::sendEvent(lineEditor, &event);
+        //emit commitData(lineEditor);
+        qDebug("emitCommitData");
+    }
 
+    void emitCloseEditor()
+    {
+ //       QEvent event(QEvent::Type(QEvent::User + 1));
+//        QApplication::sendEvent(lineEditor, &event);
+        qDebug("emitCloseEditor");
+    }
 
 protected:
     bool eventFilter(QObject *object, QEvent *event)
@@ -118,29 +131,38 @@ protected:
                 editor->parentWidget()->setFocus();
             return true;
         } else if (event->type() == QEvent::FocusOut || (event->type() == QEvent::Hide && editor->isWindow())) {
-            //the Hide event will take care of he editors that are in fact complete dialogs
-            if (!editor->isActiveWindow() || (QApplication::focusWidget() != editor)) {
-                QWidget *w = QApplication::focusWidget();
-                while (w) { // don't worry about focus changes internally in the editor
-                    if (w == editor)
-                        return false;
-                    w = w->parentWidget();
-                }
+//            //the Hide event will take care of he editors that are in fact complete dialogs
+//            if (!editor->isActiveWindow() || (QApplication::focusWidget() != editor)) {
+//                QWidget *w = QApplication::focusWidget();
+//                while (w) { // don't worry about focus changes internally in the editor
+//                    if (w == editor)
+//                        return false;
+//                    w = w->parentWidget();
+//                }
 
-                emit commitData(editor);
-                emit closeEditor(editor, NoHint);
-            }
+//                emit commitData(editor);
+//                emit closeEditor(editor, NoHint);
+//            }
         } else if (event->type() == QEvent::ShortcutOverride) {
             if (static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
                 event->accept();
                 return true;
             }
-        }
+        } /*else if (event->type() == QEvent::User) {
+            qDebug("receive CommitData");
+            emit commitData(editor);
+            return true;
+        } else if (event->type() == QEvent::User + 1) {
+            qDebug("receive CloseEditor");
+            emit closeEditor(editor);
+            return true;
+        }*/
         return false;
     }
 
 private:
     int maxLength;
+    QWidget *lineEditor;
 };
 
 class HeaderView : public QHeaderView
