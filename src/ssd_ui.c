@@ -48,7 +48,7 @@
 /* string cell width */
 #define STRING_CELL_WIDTH 128
 
-/* minimum size of the spreadseet matrix */
+/* minimum size of the spreadsheet matrix */
 #define EXTRA_SS_ROWS      20
 #define EXTRA_SS_COLS       3
 
@@ -348,6 +348,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     ui->mw = CreateTable(ui->main_tp,
                          EXTRA_SS_ROWS, EXTRA_SS_COLS,
                          VISIBLE_SS_ROWS, VISIBLE_SS_COLS);
+    TableSSDInit(ui->mw);
     TableSetDefaultColWidth(ui->mw, CELL_WIDTH);
     TableSetDefaultColLabelAlignment(ui->mw, ALIGN_CENTER);
 

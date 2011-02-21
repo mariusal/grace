@@ -653,6 +653,8 @@ void ListTreeSetItemOpen(ListTreeItem *item, Boolean open);
 
 /* Table Widget */
 Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible);
+void TableSSDInit(Widget w);
+void TableFontInit(Widget w);
 int TableGetNrows(Widget w);
 int TableGetNcols(Widget w);
 void TableAddRows(Widget w, int nrows);
@@ -660,6 +662,8 @@ void TableDeleteRows(Widget w, int nrows);
 void TableAddCols(Widget w, int ncols);
 void TableDeleteCols(Widget w, int ncols);
 void TableSetCellContent(Widget w, int row, int col, char *content);
+void TableSetCellPixmapContent(Widget w, int row, int col, Pixmap content);
+void TableGetCellDimentions(Widget w, int *cwidth, int *cheight);
 void TableSetDefaultColWidth(Widget w, int width);
 void TableSetDefaultColLabelAlignment(Widget w, int align);
 void TableSetColMaxlengths(Widget w, int *maxlengths);

@@ -5065,16 +5065,9 @@ typedef struct {
     int ncols_visible;
 } TableData;
 
-static char tfield_translations[] = "#override\n\
-<Key>osfCancel                : CancelEdit(True)\n\
-<Key>osfActivate              : EditCell(Down)\n\
-<Key>osfUp                    : EditCell(Up)\n\
-<Key>osfDown                  : EditCell(Down)\n\
-~Shift ~Meta ~Alt <Key>Return : EditCell(Down)";
-
 Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible)
 {
-    Widget w, tfield;
+    Widget w;
     TableData *td;
 
     td = (TableData*) xmalloc(sizeof(TableData));
@@ -5085,33 +5078,59 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
 
     w = XtVaCreateManagedWidget("SSD",
         xbaeMatrixWidgetClass, parent,
-#if 0
-        XmNhorizontalScrollBarDisplayPolicy, XmDISPLAY_NONE,
-        XmNverticalScrollBarDisplayPolicy, XmDISPLAY_NONE,
-#endif
         XmNrows, nrows,
         XmNvisibleRows, nrows_visible,
-        XmNbuttonLabels, True,
         XmNcolumns, ncols,
         XmNvisibleColumns, ncols_visible,
-        XmNallowColumnResize, True,
-        XmNgridType, XmGRID_CELL_SHADOW,
-        XmNcellShadowType, XmSHADOW_ETCHED_OUT,
-        XmNcellShadowThickness, 1,
-        XmNcellMarginHeight, 1,
-        XmNcellMarginWidth, 1,
-        XmNshadowThickness, 1,
-        XmNaltRowCount, 0,
-        XmNcalcCursorPosition, True,
-        XmNtraverseFixedCells, True,
         NULL);
-
-    tfield = XtNameToWidget(w, "textField");
-    XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
 
     SetUserData(w, td);
 
     return w;
+}
+
+static char tfield_translations[] = "#override\n\
+<Key>osfCancel                : CancelEdit(True)\n\
+<Key>osfActivate              : EditCell(Down)\n\
+<Key>osfUp                    : EditCell(Up)\n\
+<Key>osfDown                  : EditCell(Down)\n\
+~Shift ~Meta ~Alt <Key>Return : EditCell(Down)";
+
+void TableSSDInit(Widget w)
+{
+    Widget tfield;
+
+    XtVaSetValues(w,
+#if 0
+                  XmNhorizontalScrollBarDisplayPolicy, XmDISPLAY_NONE,
+                  XmNverticalScrollBarDisplayPolicy, XmDISPLAY_NONE,
+#endif
+                  XmNbuttonLabels, True,
+                  XmNallowColumnResize, True,
+                  XmNgridType, XmGRID_CELL_SHADOW,
+                  XmNcellShadowType, XmSHADOW_ETCHED_OUT,
+                  XmNcellShadowThickness, 1,
+                  XmNcellMarginHeight, 1,
+                  XmNcellMarginWidth, 1,
+                  XmNshadowThickness, 1,
+                  XmNaltRowCount, 0,
+                  XmNcalcCursorPosition, True,
+                  XmNtraverseFixedCells, True,
+                  NULL);
+
+    tfield = XtNameToWidget(w, "textField");
+    XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
+}
+
+void TableFontInit(Widget w)
+{
+    XtVaSetValues(w,
+                  XmNfill, True,
+                  XmNgridType, XmGRID_CELL_SHADOW,
+                  XmNcellShadowType, XmSHADOW_ETCHED_OUT,
+                  XmNcellShadowThickness, 2,
+                  XmNaltRowCount, 0,
+                  NULL);
 }
 
 static int align_to_xmalign(int align)
@@ -5235,6 +5254,19 @@ void TableSetDefaultColLabelAlignment(Widget w, int align)
 void TableSetCellContent(Widget w, int row, int col, char *content)
 {
     XbaeMatrixSetCell(w, row, col, content);
+}
+
+void TableSetCellPixmapContent(Widget w, int row, int col, Pixmap content)
+{
+    XbaeMatrixSetCellPixmap(w, row, col, content, NULL);
+}
+
+void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
+{
+    XbaeMatrixRowColToXY(w, 0, 0, &x0, &y0);
+    XbaeMatrixRowColToXY(w, 1, 1, &x1, &y1);
+    *cwidth  = x1 - x0;
+    *cheight = y1 - y0;
 }
 
 void TableSetColMaxlengths(Widget w, int *maxlengths)

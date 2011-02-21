@@ -620,15 +620,6 @@ void create_nonl_frame(Widget but, void *data)
 }
 
 
-void create_fonttool(TextStructure *cstext_parent)
-{
-}
-
-void create_fonttool_cb(Widget but, void *data)
-{
-}
-
-
 void create_datasetprop_popup(Widget but, void *data)
 {
 }
@@ -4181,12 +4172,30 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
 //{
 //    return XmTextGetInsertionPosition(cst->text);
 //}
-//
+int GetTextCursorPos(TextStructure *cst)
+{
+    int pos;
+    QPlainTextEdit *text = (QPlainTextEdit*) cst->text;
+
+    QTextCursor textCursor = text->textCursor();
+    pos = textCursor.position();
+
+    return pos;
+}
+
 //void SetTextCursorPos(TextStructure *cst, int pos)
 //{
 //    XmTextSetInsertionPosition(cst->text, pos);
 //}
-//
+void SetTextCursorPos(TextStructure *cst, int pos)
+{
+    QPlainTextEdit *text = (QPlainTextEdit*) cst->text;
+
+    QTextCursor textCursor = text->textCursor();
+    textCursor.setPosition(pos);
+    text->setTextCursor(textCursor);
+}
+
 //void TextInsert(TextStructure *cst, int pos, char *s)
 //{
 //    XmTextInsert(cst->text, pos, s);
@@ -8976,9 +8985,6 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     hHeader->setResizeMode(QHeaderView::Fixed);
     vHeader->setResizeMode(QHeaderView::Fixed);
 
-    tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    tableWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-
     td = (TableData*) xmalloc(sizeof(TableData));
     td->font_width = fontWidth;
     td->font_height = fontHeight;
@@ -9009,12 +9015,32 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
 
+    TableUpdateVisibleRowsCols(tableWidget);
+
     QLayout *layout = parent->layout();
     if (layout != 0) {
         layout->addWidget(tableWidget);
     }
 
     return tableWidget;
+}
+
+void TableSSDInit(Widget w)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    tableWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+}
+
+void TableFontInit(Widget w)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    tableWidget->verticalHeader()->hide();
+    tableWidget->horizontalHeader()->hide();
+    tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    tableWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 }
 
 int TableGetNrows(Widget w)
@@ -9157,6 +9183,27 @@ void TableSetCellContent(Widget w, int row, int col, char *content)
     model->setData(index, QVariant(content));
 }
 
+void TableSetCellPixmapContent(Widget w, int row, int col, Pixmap content)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+    QPixmap *pixmap = (QPixmap*) content;
+
+    QTableWidgetItem *item = new QTableWidgetItem;
+    if (pixmap) {
+        item->setIcon(QIcon(*pixmap));
+    }
+    item->setFlags(pixmap ? Qt::ItemIsEnabled : Qt::NoItemFlags);
+    tableWidget->setItem(row, col, item);
+}
+
+void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
+{
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
+    *cwidth = tableWidget->columnWidth(0);
+    *cheight = tableWidget->rowHeight(0);
+}
+
 void TableSetColMaxlengths(Widget w, int *maxlengths)
 {
     QTableWidget *tableWidget = (QTableWidget*) w;
@@ -9198,22 +9245,31 @@ void TableSetFixedCols(Widget w, int nfixed_cols)
 
 void TableUpdateVisibleRowsCols(Widget w)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
     TableData *td;
+    int height = 0;
+    int width = 0;
+    QTableWidget *tableWidget = (QTableWidget*) w;
+
 
     td = (TableData*) GetUserData(w);
 
-    tableWidget->setFixedHeight(tableWidget->rowHeight(0) * td->nrows_visible +
-                                tableWidget->horizontalHeader()->height() +
-                                tableWidget->contentsMargins().top() +
-                                tableWidget->contentsMargins().bottom() +
-                                tableWidget->horizontalScrollBar()->sizeHint().height());
+    height += tableWidget->rowHeight(0) * td->nrows_visible;
+    if (tableWidget->horizontalHeader()->isVisible())
+        height += tableWidget->horizontalHeader()->height();
+    height += tableWidget->contentsMargins().top();
+    height += tableWidget->contentsMargins().bottom();
+    if (tableWidget->horizontalScrollBar()->isVisible())
+        height += tableWidget->horizontalScrollBar()->sizeHint().height();
+    tableWidget->setFixedHeight(height);
 
-    tableWidget->setFixedWidth(tableWidget->columnWidth(0) * td->ncols_visible +
-                               tableWidget->verticalHeader()->width() +
-                               tableWidget->contentsMargins().left() +
-                               tableWidget->contentsMargins().right() +
-                               tableWidget->verticalScrollBar()->sizeHint().width());
+    width += tableWidget->columnWidth(0) * td->ncols_visible;
+    if (tableWidget->verticalHeader()->isVisible())
+        width += tableWidget->verticalHeader()->width();
+    width += tableWidget->contentsMargins().left();
+    width += tableWidget->contentsMargins().right();
+    if (tableWidget->verticalScrollBar()->isVisible())
+        width += tableWidget->verticalScrollBar()->sizeHint().width();
+    tableWidget->setFixedWidth(width);
 }
 
 void TableCommitEdit(Widget w, int close)
