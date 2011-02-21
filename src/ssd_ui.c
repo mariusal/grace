@@ -215,7 +215,7 @@ static int labelCB(TableEvent *event)
     static int last_row, last_column;
     int i;
     
-    if (!event || (event->type != MOUSE_RELEASE && event->type != MOUSE_PRESS)) {
+    if (!event || event->type != MOUSE_PRESS) {
         return TRUE;
     }
 

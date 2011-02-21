@@ -5375,25 +5375,6 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
             event.modifiers = event.modifiers ^ SHIFT_MODIFIER;
         }
         break;
-    case ButtonRelease:
-        event.type = MOUSE_RELEASE;
-        xbe = (XButtonEvent *) cbs->event;
-        event.udata = xbe;
-        switch (cbs->event->xbutton.button) {
-        case Button1:
-            event.button = event.button ^ LEFT_BUTTON;
-            break;
-        case Button3:
-            event.button = event.button ^ RIGHT_BUTTON;
-            break;
-        }
-        if (xbe->state & ControlMask) {
-            event.modifiers = event.modifiers ^ CONTROL_MODIFIER;
-        }
-        if (xbe->state & ShiftMask) {
-            event.modifiers = event.modifiers ^ SHIFT_MODIFIER;
-        }
-        break;
     default:
         break;
     }

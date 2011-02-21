@@ -9341,10 +9341,6 @@ bool HeaderView::event(QEvent *e)
             event.type = MOUSE_PRESS;
             qDebug("HeaderView mouse press");
             break;
-        case QEvent::MouseButtonRelease:
-            event.type = MOUSE_RELEASE;
-            qDebug("HeaderView mouse release");
-            break;
         default:
             return QAbstractItemView::event(e);
         }
