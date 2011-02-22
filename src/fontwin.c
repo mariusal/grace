@@ -91,6 +91,7 @@ void create_fonttool(TextStructure *cstext_parent)
                                      8, 16);
         TableFontInit(ui->font_table);
         TableSetDefaultColWidth(ui->font_table, 2);
+        //TODO: not col label alin but col align
         TableSetDefaultColLabelAlignment(ui->font_table, ALIGN_BEGINNING);
 
 //        XtAddCallback(ui->font_table, XmNenterCellCallback, EnterCB, ui);

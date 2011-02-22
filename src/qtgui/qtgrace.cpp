@@ -9146,6 +9146,8 @@ void TableSetDefaultColWidth(Widget w, int width)
     for (i = 0; i < cc; i++) {
         hHeader->resizeSection(i, td->default_col_width * td->font_width + 2*td->frame_width);
     }
+
+    TableUpdateVisibleRowsCols(tableWidget);
 }
 
 void TableSetDefaultColLabelAlignment(Widget w, int align)
@@ -9201,7 +9203,9 @@ void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
     QTableWidget *tableWidget = (QTableWidget*) w;
 
     *cwidth = tableWidget->columnWidth(0);
+    printf("cell width %d\n", *cwidth);
     *cheight = tableWidget->rowHeight(0);
+    printf("cell height %d\n", *cheight);
 }
 
 void TableSetColMaxlengths(Widget w, int *maxlengths)
@@ -9253,21 +9257,23 @@ void TableUpdateVisibleRowsCols(Widget w)
 
     td = (TableData*) GetUserData(w);
 
+    printf("update visible row height %d\n", tableWidget->rowHeight(0));
     height += tableWidget->rowHeight(0) * td->nrows_visible;
     if (tableWidget->horizontalHeader()->isVisible())
         height += tableWidget->horizontalHeader()->height();
     height += tableWidget->contentsMargins().top();
     height += tableWidget->contentsMargins().bottom();
-    if (tableWidget->horizontalScrollBar()->isVisible())
+    if (tableWidget->horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOn)
         height += tableWidget->horizontalScrollBar()->sizeHint().height();
     tableWidget->setFixedHeight(height);
 
+    printf("update visible col width %d\n", tableWidget->columnWidth(0));
     width += tableWidget->columnWidth(0) * td->ncols_visible;
     if (tableWidget->verticalHeader()->isVisible())
         width += tableWidget->verticalHeader()->width();
     width += tableWidget->contentsMargins().left();
     width += tableWidget->contentsMargins().right();
-    if (tableWidget->verticalScrollBar()->isVisible())
+    if (tableWidget->verticalScrollBarPolicy() == Qt::ScrollBarAlwaysOn)
         width += tableWidget->verticalScrollBar()->sizeHint().width();
     tableWidget->setFixedWidth(width);
 }
