@@ -197,6 +197,8 @@ int initialize_gui(int *argc, char **argv)
     qDebug("initialize_gui start");
     X11Stuff *xstuff;
     MainWinUI *mwui;
+    char **enc;
+    char *encoding;
 //    Screen *screen;
 //    ApplicationData rd;
 //    String *allResources, *resolResources;
@@ -212,6 +214,38 @@ int initialize_gui(int *argc, char **argv)
     memset(mwui, 0, sizeof(MainWinUI));
     gapp->gui->mwui = mwui;
 
+    app = new QApplication(*argc, argv);
+
+    enc = get_default_encoding(grace_get_canvas(gapp->grace));
+    char *encoding = copy_string(NULL, enc[256]);
+    printf("Encoding=%s\n", encoding);
+
+    if (!strcmp(encoding,"CP1251"))
+        encoding = copy_string(encoding, "Windows-1251");
+    else if (!strcmp(encoding,"ISOLatin1Encoding"))
+        encoding = copy_string(encoding, "ISO 8859-1");
+    else if (!strcmp(encoding,"ISOLatin2Encoding"))
+        encoding = copy_string(encoding, "ISO 8859-2");
+    else if (!strcmp(encoding,"ISOLatin7Encoding"))
+        encoding = copy_string(encoding, "ISO 8859-13");
+    else if (!strcmp(encoding,"ISOLatin9Encoding"))
+        encoding = copy_string(encoding, "ISO 8859-15");
+    else if (!strcmp(encoding,"KOI8-R"))
+        encoding = copy_string(encoding, "Windows-1251");
+    else if (!strcmp(encoding,"KOI8-U"))
+        encoding = copy_string(encoding, "Windows-1251");
+    else if (!strcmp(encoding,"MacRomanEncoding"))
+        encoding = copy_string(encoding, "Windows-1251");
+    else if (!strcmp(encoding,"PDFDocEncoding"))
+        encoding = copy_string(encoding, "Windows-1251");
+    else if (!strcmp(encoding,"PSLatin1Encoding"))
+        encoding = copy_string(encoding, "Windows-1251");
+    else if (!strcmp(encoding,"WinAnsiEncoding"))
+        encoding = copy_string(encoding, "Windows-1251");
+    else
+        encoding = copy_string(encoding, "ISO 8859-1");
+
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName(encoding));
 //    
 //    installXErrorHandler();
 //    
@@ -265,7 +299,6 @@ int initialize_gui(int *argc, char **argv)
 //    XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
 //    XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 //
-    app = new QApplication(*argc, argv);
 //    app_shell = XtAppCreateShell(NULL, "XmGrace", applicationShellWidgetClass,
 //        xstuff->disp, NULL, 0);
 //
@@ -4014,12 +4047,12 @@ char *GetTextString(TextStructure *cst)
     char *buf;
 
     if (QPlainTextEdit *plainText = qobject_cast<QPlainTextEdit *>(cst->text)) {
-        QByteArray ba = plainText->toPlainText().toLatin1();
+        QByteArray ba = plainText->toPlainText().toAscii();
         buf = copy_string(NULL, ba.data());
     }
 
     if (QLineEdit *text = qobject_cast<QLineEdit *>(cst->text)) {
-        QByteArray ba = text->text().toLatin1();
+        QByteArray ba = text->text().toAscii();
         buf = copy_string(NULL, ba.data());
     }
 
@@ -4119,10 +4152,10 @@ static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_dat
     Text_CBdata *cbdata = (Text_CBdata *) client_data;
 
     if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(w)) {
-        ba = lineEdit->text().toLatin1();
+        ba = lineEdit->text().toAscii();
     }
     if (QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit *>(w)) {
-        ba = plainTextEdit->toPlainText().toLatin1();
+        ba = plainTextEdit->toPlainText().toAscii();
     }
 
     s = ba.data();
@@ -4575,7 +4608,7 @@ static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data
     QLineEdit *lineEdit = fileSelectionDialog->ui.selectionLineEdit;
     QString str = lineEdit->text();
 
-    QByteArray ba = str.toLatin1();
+    QByteArray ba = str.toAscii();
     s = ba.data();
     qDebug(s);
  
@@ -7964,7 +7997,7 @@ char *xv_getstr(Widget w)
 
     QLineEdit *lineEdit = (QLineEdit*) w;
     QString str = lineEdit->text();
-    QByteArray ba = str.toLatin1();
+    QByteArray ba = str.toAscii();
     buf = copy_string(buf, ba.data());
 
     return buf;
@@ -7995,7 +8028,7 @@ int xv_evalexpr(Widget w, double *answer)
 
     QLineEdit *lineEdit = (QLineEdit*) w;
     QString str = lineEdit->text();
-    QByteArray ba = str.toLatin1();
+    QByteArray ba = str.toAscii();
     s = ba.data();
 
     retval = graal_eval_expr(grace_get_graal(gapp->grace),
@@ -9300,7 +9333,7 @@ static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
 
     if (index.isValid()) {
         QString str = index.model()->data(index, Qt::EditRole).toString();
-        QByteArray ba = str.toLatin1();
+        QByteArray ba = str.toAscii();
         value = copy_string(NULL, ba.data());
 
         event.w = cbdata->w;
@@ -9350,7 +9383,7 @@ static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QMode
 
     if (previous.isValid()) {
         QString str = previous.model()->data(previous, Qt::EditRole).toString();
-        QByteArray ba = str.toLatin1();
+        QByteArray ba = str.toAscii();
         value = copy_string(NULL, ba.data());
 
         event.w = cbdata->w;
