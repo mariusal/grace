@@ -65,6 +65,7 @@
 #include <QTableWidget>
 #include <QStandardItemModel>
 #include <QTableView>
+#include <QTextCodec>
 #include <mainwindow.h>
 #include <canvaswidget.h>
 #include <fileselectiondialog.h>
@@ -217,7 +218,7 @@ int initialize_gui(int *argc, char **argv)
     app = new QApplication(*argc, argv);
 
     enc = get_default_encoding(grace_get_canvas(gapp->grace));
-    char *encoding = copy_string(NULL, enc[256]);
+    encoding = copy_string(NULL, enc[256]);
     printf("Encoding=%s\n", encoding);
 
     if (!strcmp(encoding,"CP1251"))
@@ -231,21 +232,23 @@ int initialize_gui(int *argc, char **argv)
     else if (!strcmp(encoding,"ISOLatin9Encoding"))
         encoding = copy_string(encoding, "ISO 8859-15");
     else if (!strcmp(encoding,"KOI8-R"))
-        encoding = copy_string(encoding, "Windows-1251");
+        encoding = copy_string(encoding, "KOI8-R");
     else if (!strcmp(encoding,"KOI8-U"))
-        encoding = copy_string(encoding, "Windows-1251");
+        encoding = copy_string(encoding, "KOI8-U");
     else if (!strcmp(encoding,"MacRomanEncoding"))
-        encoding = copy_string(encoding, "Windows-1251");
+        encoding = copy_string(encoding, "Apple Roman");
     else if (!strcmp(encoding,"PDFDocEncoding"))
-        encoding = copy_string(encoding, "Windows-1251");
+        encoding = copy_string(encoding, "ISO 8859-1"); //TODO:
     else if (!strcmp(encoding,"PSLatin1Encoding"))
-        encoding = copy_string(encoding, "Windows-1251");
+        encoding = copy_string(encoding, "ISO 8859-1"); //TODO:
     else if (!strcmp(encoding,"WinAnsiEncoding"))
-        encoding = copy_string(encoding, "Windows-1251");
+        encoding = copy_string(encoding, "Windows-1252");
     else
         encoding = copy_string(encoding, "ISO 8859-1");
 
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName(encoding));
+
+    xfree(encoding);
 //    
 //    installXErrorHandler();
 //    
