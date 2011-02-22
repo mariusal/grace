@@ -9289,14 +9289,17 @@ void TableUpdateVisibleRowsCols(Widget w)
     int height = 0;
     int width = 0;
     QTableWidget *tableWidget = (QTableWidget*) w;
-
+    QHeaderView *hHeader = tableWidget->horizontalHeader();
+    QHeaderView *vHeader = tableWidget->verticalHeader();
 
     td = (TableData*) GetUserData(w);
 
     printf("update visible row height %d\n", tableWidget->rowHeight(0));
+    if (!hHeader->isHidden()) {
+        height = qMax(hHeader->minimumHeight(), hHeader->sizeHint().height());
+        height = qMin(height, hHeader->maximumHeight());
+    }
     height += tableWidget->rowHeight(0) * td->nrows_visible;
-    if (tableWidget->horizontalHeader()->isVisible())
-        height += tableWidget->horizontalHeader()->height();
     height += tableWidget->contentsMargins().top();
     height += tableWidget->contentsMargins().bottom();
     if (tableWidget->horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOn)
@@ -9304,9 +9307,11 @@ void TableUpdateVisibleRowsCols(Widget w)
     tableWidget->setFixedHeight(height);
 
     printf("update visible col width %d\n", tableWidget->columnWidth(0));
+    if (!vHeader->isHidden()) {
+        width = qMax(vHeader->minimumWidth(), vHeader->sizeHint().width());
+        width = qMin(width, vHeader->maximumWidth());
+    }
     width += tableWidget->columnWidth(0) * td->ncols_visible;
-    if (tableWidget->verticalHeader()->isVisible())
-        width += tableWidget->verticalHeader()->width();
     width += tableWidget->contentsMargins().left();
     width += tableWidget->contentsMargins().right();
     if (tableWidget->verticalScrollBarPolicy() == Qt::ScrollBarAlwaysOn)
