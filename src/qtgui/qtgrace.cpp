@@ -8264,6 +8264,7 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
     l.insert(index, "&");
 
     QMenu *menu = new QMenu(l, menuBar);
+    menu->setTearOffEnabled(true);
 
     menuBar->addAction(menu->menuAction());
 
