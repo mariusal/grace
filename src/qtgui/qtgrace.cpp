@@ -446,7 +446,7 @@ void aux_XDrawLine(GUI *gui, int x1, int y1, int x2, int y2)
     painter.setBrush(QBrush(Qt::NoBrush));
     painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
     painter.drawLine(x1, y1, x2, y2);
-    canvasWidget->repaint(); // TODO: repaint just drawn rectangle
+    canvasWidget->update(); // TODO: repaint just drawn rectangle
 //    X11Stuff *xstuff = gui->xstuff;
 //    XDrawLine(xstuff->disp, xstuff->xwin, gcxor, x1, y1, x2, y2);
 //    if (xstuff->bufpixmap != (Pixmap) NULL) {
@@ -462,8 +462,8 @@ void aux_XDrawRectangle(GUI *gui, int x1, int y1, int x2, int y2)
     painter.setPen(QPen(Qt::white));
     painter.setBrush(QBrush(Qt::NoBrush));
     painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
-    painter.drawRect(QRectF(x1, y1, x2, y2));
-    canvasWidget->repaint(); // TODO: repaint just drawn rectangle
+    painter.drawRect(x1, y1, x2, y2);
+    canvasWidget->update(x1, y1, x2 + 1, y2 + 1); // Plus pen = 1
 //    XDrawRectangle(xstuff->disp, xstuff->xwin, gcxor, x1, y1, x2, y2);
 //    if (xstuff->bufpixmap != (Pixmap) NULL) {
 //        XDrawRectangle(xstuff->disp, xstuff->bufpixmap, gcxor, x1, y1, x2, y2);
@@ -478,7 +478,8 @@ void aux_XFillRectangle(GUI *gui, int x, int y, unsigned int width, unsigned int
     painter.setPen(QPen(Qt::NoPen));
     painter.setBrush(QBrush(Qt::white));
     painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
-    painter.drawRect(QRectF(x, y, width, height));
+    painter.drawRect(x, y, width, height);
+    canvasWidget->update(x, y, width, height);
 //    XFillRectangle(xstuff->disp, xstuff->xwin, gcxor, x, y, width, height);
 //    if (xstuff->bufpixmap != (Pixmap) NULL) {
 //        XFillRectangle(xstuff->disp, xstuff->bufpixmap, gcxor, x, y, width, height);
