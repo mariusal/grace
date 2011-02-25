@@ -188,11 +188,22 @@ static int leaveCB(TableEvent *event)
                 }
                 break;    
             default:
-                if (parse_date_or_number(get_parent_project(ui->q),
-                    event->value, FALSE, get_date_hint(gapp), &value) == RETURN_SUCCESS) {
-                    if (ssd_set_value(ui->q, event->row, event->col, value) ==
-                        RETURN_SUCCESS) {
-                        changed = TRUE;
+                if (graal_eval_expr(grace_get_graal(gapp->grace),
+                    event->value, &value, gproject_get_top(gapp->gp)) == RETURN_SUCCESS) {
+
+                    unsigned int prec;
+                    char buf[32];
+                    double val;
+
+                    prec = project_get_prec(get_parent_project(ui->q));
+                    sprintf(buf, "%.*g", prec, value);
+
+                    if (parse_date_or_number(get_parent_project(ui->q),
+                        buf, FALSE, get_date_hint(gapp), &val) == RETURN_SUCCESS) {
+
+                        if (ssd_set_value(ui->q, event->row, event->col, val) == RETURN_SUCCESS) {
+                            changed = TRUE;
+                        }
                     }
                 } else {
                     errmsg("Can't parse input value");
