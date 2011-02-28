@@ -374,8 +374,12 @@ then
 fi
 
 case $debug in
-  true) CFLAGS="$DEBUG $CFLAGS";;
-  *) CFLAGS="$OPTIMIZE $CFLAGS";;
+  true)
+    CFLAGS="$DEBUG $CFLAGS";;
+  *)
+    CFLAGS="$OPTIMIZE $CFLAGS"
+    WINDOWS_LIBS="-mwindows"
+    ;;
 esac
 
 case $FC in
@@ -808,7 +812,7 @@ then
   case "$host_os" in
       *cygwin* | *mingw*)
       LDFLAGS="$LDFLAGS -L$QTDIR/lib -lQtGui4 -lQtCore4"
-      WINDOWS_LIBS="-lws2_32"
+      WINDOWS_LIBS="$WINDOWS_LIBS -lws2_32"
       ;;
       *)
       LDFLAGS="$LDFLAGS -L$QTDIR/lib -lQtGui -lQtCore -lpthread"
