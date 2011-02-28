@@ -38,15 +38,15 @@
     <value key="ProjectExplorer.BuildConfiguration.CleanStepsCount" type="int">1</value>
     <value key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment" type="bool">true</value>
     <valuelist key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges" type="QVariantList">
-     <value type="QString">PATH=C:\Qt\2010.04\mingw\bin;C:\Qt\2010.04\qt\bin;c:\cygwin\bin;C:\cygwin\home\img\xccbin\bin</value>
-     <value type="QString">TMP=C:\DOCUME~1\img\LOCALS~1\Temp</value>
+     <value type="QString">PATH=C:\Qt\2010.05\mingw\bin;C:\Qt\2010.05\qt\bin\;c:\cygwin\bin;C:\cygwin\home\marius\xcc</value>
+     <value type="QString">TMP=C:\DOCUME~1\marius\LOCALS~1\Temp</value>
      <value type="QString">MAKE=mingw32-make</value>
     </valuelist>
     <value key="ProjectExplorer.ProjectConfiguration.DisplayName" type="QString">make</value>
     <value key="ProjectExplorer.ProjectConfiguration.Id" type="QString">Qt4ProjectManager.Qt4BuildConfiguration</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.BuildConfiguration" type="int">0</value>
-    <value key="Qt4ProjectManager.Qt4BuildConfiguration.BuildDirectory" type="QString">C:/cygwin/home/img/grace-build-desktop</value>
-    <value key="Qt4ProjectManager.Qt4BuildConfiguration.QtVersionId" type="int">6</value>
+    <value key="Qt4ProjectManager.Qt4BuildConfiguration.BuildDirectory" type="QString">C:/cygwin/home/marius/grace</value>
+    <value key="Qt4ProjectManager.Qt4BuildConfiguration.QtVersionId" type="int">5</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.ToolChain" type="int">2</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.UseShadowBuild" type="bool">false</value>
    </valuemap>
@@ -55,10 +55,12 @@
      <valuelist key="ProjectExplorer.ProcessStep.Arguments" type="QVariantList">
       <value type="QString">configure</value>
       <value type="QString">--enable-qt-gui</value>
+      <value type="QString">--enable-debug</value>
+      <value type="QString">--with-undo-library=C:/cygwin/home/marius/libundo/src/.libs/libundo.a</value>
      </valuelist>
      <value key="ProjectExplorer.ProcessStep.Command" type="QString">C:\cygwin\bin\sh.exe</value>
      <value key="ProjectExplorer.ProcessStep.Enabled" type="bool">true</value>
-     <value key="ProjectExplorer.ProcessStep.WorkingDirectory" type="QString">C:\cygwin\home\img\grace</value>
+     <value key="ProjectExplorer.ProcessStep.WorkingDirectory" type="QString">C:\cygwin\home\marius\grace</value>
      <value key="ProjectExplorer.ProjectConfiguration.DisplayName" type="QString">configure</value>
      <value key="ProjectExplorer.ProjectConfiguration.Id" type="QString">ProjectExplorer.ProcessStep</value>
     </valuemap>
@@ -66,15 +68,16 @@
     <value key="ProjectExplorer.BuildConfiguration.CleanStepsCount" type="int">0</value>
     <value key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment" type="bool">true</value>
     <valuelist key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges" type="QVariantList">
-     <value type="QString">PATH=C:\Qt\2010.04\mingw\bin;C:\Qt\2010.04\qt\bin;c:\cygwin\bin</value>
-     <value type="QString">TMP=C:\DOCUME~1\img\LOCALS~1\Temp</value>
+     <value type="QString">PATH=C:\Qt\2010.05\mingw\bin;C:\Qt\2010.05\qt\bin\;c:\cygwin\bin</value>
+     <value type="QString">TMP=C:\DOCUME~1\marius\LOCALS~1\Temp</value>
      <value type="QString">MAKE=mingw32-make</value>
+     <value type="QString">CPPFLAGS=-IC:/cygwin/home/marius/libundo/include</value>
     </valuelist>
     <value key="ProjectExplorer.ProjectConfiguration.DisplayName" type="QString">configure</value>
     <value key="ProjectExplorer.ProjectConfiguration.Id" type="QString">Qt4ProjectManager.Qt4BuildConfiguration</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.BuildConfiguration" type="int">0</value>
-    <value key="Qt4ProjectManager.Qt4BuildConfiguration.BuildDirectory" type="QString">C:/cygwin/home/img/grace-build-desktop</value>
-    <value key="Qt4ProjectManager.Qt4BuildConfiguration.QtVersionId" type="int">6</value>
+    <value key="Qt4ProjectManager.Qt4BuildConfiguration.BuildDirectory" type="QString">C:/cygwin/home/marius/grace</value>
+    <value key="Qt4ProjectManager.Qt4BuildConfiguration.QtVersionId" type="int">5</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.ToolChain" type="int">2</value>
     <value key="Qt4ProjectManager.Qt4BuildConfiguration.UseShadowBuild" type="bool">false</value>
    </valuemap>
@@ -82,9 +85,13 @@
    <valuemap key="ProjectExplorer.Target.RunConfiguration.0" type="QVariantMap">
     <valuelist key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments" type="QVariantList"/>
     <value key="ProjectExplorer.CustomExecutableRunConfiguration.BaseEnvironmentBase" type="int">2</value>
-    <value key="ProjectExplorer.CustomExecutableRunConfiguration.Executable" type="QString">C:\cygwin\home\img\grace\src\qtgrace.exe</value>
-    <value key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal" type="bool">true</value>
-    <valuelist key="ProjectExplorer.CustomExecutableRunConfiguration.UserEnvironmentChanges" type="QVariantList"/>
+    <value key="ProjectExplorer.CustomExecutableRunConfiguration.Executable" type="QString">C:\cygwin\home\marius\grace\src\qtgrace.exe</value>
+    <value key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal" type="bool">false</value>
+    <valuelist key="ProjectExplorer.CustomExecutableRunConfiguration.UserEnvironmentChanges" type="QVariantList">
+     <value type="QString">GRACE_HOME=C:/cygwin/home/marius/grace</value>
+     <value type="QString">HOME=C:/Documents and Settings/marius</value>
+     <value type="QString">GRACE_HELPVIEWER="C:\Documents and Settings\marius\Local Settings\Application Data\Google\Chrome\Application\chrome.exe"</value>
+    </valuelist>
     <value key="ProjectExplorer.CustomExecutableRunConfiguration.UserName" type="QString">grace</value>
     <value key="ProjectExplorer.CustomExecutableRunConfiguration.UserSetName" type="bool">true</value>
     <value key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory" type="QString">$BUILDDIR</value>
