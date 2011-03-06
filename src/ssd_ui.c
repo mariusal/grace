@@ -127,6 +127,16 @@ static char *get_cell_content(SSDataUI *ui, int row, int column, int *format)
     return s;
 }
 
+static int drawcellCB(TableEvent *event)
+{
+    SSDataUI *ui = (SSDataUI *) event->anydata;
+    int format;
+
+    event->value = get_cell_content(ui, event->row, event->col, &format);
+
+    return TRUE;
+}
+
 static int enterCB(TableEvent *event)
 {
     SSDataUI *ui = (SSDataUI *) event->anydata;
@@ -363,6 +373,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     TableSetDefaultColWidth(ui->mw, CELL_WIDTH);
     TableSetDefaultColLabelAlignment(ui->mw, ALIGN_CENTER);
 
+    AddTableDrawCellCB(ui->mw, drawcellCB, ui);
     AddTableLeaveCellCB(ui->mw, leaveCB, ui);
     AddTableEnterCellCB(ui->mw, enterCB, ui);
     AddTableLabelActivateCB(ui->mw, labelCB, ui);
@@ -489,13 +500,6 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         TableSetColMaxlengths(ui->mw, maxlengths);
         TableSetColLabels(ui->mw, collabels);
         TableSetFixedCols(ui->mw, nfixed_cols);
-
-        for (cur_col = 0; cur_col < new_nc; cur_col++) {
-            for (cur_row = 0; cur_row < new_nr; cur_row++) {
-                TableSetCellContent(ui->mw, cur_row, cur_col,
-                                       get_cell_content(ui, cur_row, cur_col, &format));
-            }
-        }
 
         TableUpdateVisibleRowsCols(ui->mw);
 

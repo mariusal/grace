@@ -5251,16 +5251,6 @@ void TableSetDefaultColLabelAlignment(Widget w, int align)
     xfree(alignment);
 }
 
-void TableSetCellContent(Widget w, int row, int col, char *content)
-{
-    XbaeMatrixSetCell(w, row, col, content);
-}
-
-void TableSetCellPixmapContent(Widget w, int row, int col, Pixmap content)
-{
-    XbaeMatrixSetCellPixmap(w, row, col, content, NULL);
-}
-
 void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
 {
     XbaeMatrixRowColToXY(w, 0, 0, &x0, &y0);
@@ -5301,6 +5291,42 @@ void TableUpdateVisibleRowsCols(Widget w)
 void TableCommitEdit(Widget w, int close)
 {
     XbaeMatrixCommitEdit(w, close);
+}
+
+static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    TableEvent event;
+    SSDataUI *ui = (SSDataUI *) client_data;
+    XbaeMatrixDrawCellCallbackStruct *cs =
+        (XbaeMatrixDrawCellCallbackStruct *) call_data;
+
+    event.w = cbdata->w;
+    event.row = cs->row;
+    event.col = cs->column;
+    event.anydata = cbdata->anydata;
+    event.pixmap = 0;
+
+    cbdata->cbproc(&event);
+
+    if (event.pixmap) {
+        cbs->type = XbaePixmap;
+        cbs->pixmap = event.pixmap;
+    } else {
+        cs->type = XbaeString;
+        cs->string = event.value;
+    }
+}
+
+void AddTableDrawCellCB(Widget w, Table_CBProc cbproc, void *anydata)
+{
+    Table_CBData *cbdata;
+
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XmNdrawCellCallback, drawcellCB, cbdata);
 }
 
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)

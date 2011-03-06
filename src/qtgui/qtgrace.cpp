@@ -8949,7 +8949,155 @@ void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer)
                   callback, (XtPointer) eui);
 }
 
+
 /* Table Widget */
+
+TableModel::TableModel(QObject *parent)
+    : QAbstractTableModel(parent)
+{
+    nrows = 0;
+    ncols = 0;
+    defaultColumnAlignment = Qt::AlignHCenter;
+    cbdata = 0;
+}
+
+void TableModel::setRowCount(int rows)
+{
+    this->nrows = rows;
+    reset();
+}
+
+void TableModel::setColumnCount(int cols)
+{
+    this->ncols = cols;
+    reset();
+}
+
+int TableModel::rowCount(const QModelIndex & /* parent */) const
+{
+    return nrows;
+}
+
+int TableModel::columnCount(const QModelIndex & /* parent */) const
+{
+    return ncols;
+}
+
+QVariant TableModel::data(const QModelIndex &index, int role) const
+{
+    TableEvent event;
+
+    if (!index.isValid() || cbdata == 0)
+        return QVariant();
+
+    event.w = cbdata->w;
+    event.row = index.row();
+    event.col = index.column();
+    event.anydata = cbdata->anydata;
+    event.pixmap = 0;
+
+    cbdata->cbproc(&event);
+
+    if (role == Qt::DisplayRole || role == Qt::EditRole) {
+        if (!event.pixmap) {
+            return QVariant(QString(event.value));
+        }
+    }
+
+    if (role == Qt::DecorationRole) {
+        if (event.pixmap) {
+            QPixmap *pixmap = (QPixmap *) event.pixmap;
+            return QVariant(*pixmap);
+        }
+    }
+
+    return QVariant();
+}
+
+QVariant TableModel::headerData(int section,
+                                Qt::Orientation  orientation,
+                                int role) const
+{
+    if (role == Qt::TextAlignmentRole &&
+        orientation == Qt::Horizontal)
+        return int(defaultColumnAlignment);
+
+    if (role == Qt::DisplayRole) {
+        if (orientation == Qt::Horizontal) {
+            if (columnLabels.size() > section) {
+                return columnLabels[section];
+            } else {
+                return QVariant();
+            }
+        } else {
+            if (rowLabels.size() > section) {
+                return rowLabels[section];
+            } else {
+                return QVariant();
+            }
+        }
+    }
+
+    return QVariant();
+}
+
+Qt::ItemFlags TableModel::flags(const QModelIndex &index) const
+{
+    if (!index.isValid())
+        return Qt::ItemIsEnabled;
+
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
+}
+
+bool TableModel::setData(const QModelIndex &index,
+                         const QVariant &value, int role)
+{
+    if (index.isValid() && role == Qt::EditRole) {
+
+        //stringList.replace(index.row(), value.toString());
+        emit dataChanged(index, index);
+        return true;
+    }
+    return false;
+}
+
+void TableModel::setDefaultColumnAlignment(Qt::Alignment align)
+{
+    this->defaultColumnAlignment = align;
+}
+
+void TableModel::setRowLabels(char **labels)
+{
+    int rc = rowCount();
+
+    rowLabels.clear();
+
+    for (int i = 0; i < rc; i++) {
+        rowLabels.append(labels[i]);
+    }
+}
+
+void TableModel::setColumnLabels(char **labels)
+{
+    int cc = columnCount();
+
+    columnLabels.clear();
+
+    for (int i = 0; i < cc; i++) {
+        columnLabels.append(labels[i]);
+    }
+}
+
+void TableModel::setDrawCellCallback(Table_CBData *cbdata)
+{
+    this->cbdata = cbdata;
+}
+
+TableView::TableView(QWidget *parent)
+    : QTableView(parent)
+{
+}
+
 
 LineEditDelegate::LineEditDelegate(int maxLength, QObject *parent)
     : QItemDelegate(parent)
@@ -8998,7 +9146,6 @@ typedef struct {
     int font_height;
     int frame_width;
     int default_col_width;
-    int default_col_label_alignment;
     int nrows_visible;
     int ncols_visible;
 } TableData;
@@ -9007,15 +9154,21 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
 {
     TableData *td;
 
-    QTableWidget *tableWidget = new QTableWidget(nrows, ncols, parent);
-    QHeaderView *hHeader = new HeaderView(Qt::Horizontal);
-    tableWidget->setHorizontalHeader(hHeader);
-    QHeaderView *vHeader = new HeaderView(Qt::Vertical);
-    tableWidget->setVerticalHeader(vHeader);
-    QFontMetrics fm = tableWidget->fontMetrics();
+    TableModel *model = new TableModel(parent);
+    model->setRowCount(nrows);
+    model->setColumnCount(ncols);
 
-    int margin = tableWidget->style()->pixelMetric(QStyle::PM_HeaderMargin, 0, tableWidget);
-    int frame = tableWidget->style()->pixelMetric(QStyle::PM_DefaultFrameWidth, 0, 0);
+    TableView *view = new TableView(parent);
+    view->setModel(model);
+
+    QHeaderView *hHeader = new HeaderView(Qt::Horizontal);
+    view->setHorizontalHeader(hHeader);
+    QHeaderView *vHeader = new HeaderView(Qt::Vertical);
+    view->setVerticalHeader(vHeader);
+    QFontMetrics fm = view->fontMetrics();
+
+    int margin = view->style()->pixelMetric(QStyle::PM_HeaderMargin, 0, view);
+    int frame = view->style()->pixelMetric(QStyle::PM_DefaultFrameWidth, 0, 0);
     int frameWidth = margin + frame;
     int fontWidth = fm.width(QLatin1Char('0'));
     int fontHeight = fm.height() + 2*frameWidth;
@@ -9028,154 +9181,122 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     td->font_height = fontHeight;
     td->frame_width = frameWidth;
     td->default_col_width = 5;
-    td->default_col_label_alignment = ALIGN_BEGINNING;
     td->nrows_visible = nrows_visible;
     td->ncols_visible = ncols_visible;
 
-    SetUserData(tableWidget, td);
-
-    for (int i = 0; i < ncols; i++) {
-        QTableWidgetItem *item = new QTableWidgetItem();
-        tableWidget->setHorizontalHeaderItem(i, item);
-        hHeader->resizeSection(i, td->default_col_width * td->font_width + 2*td->frame_width);
-    }
-
-    for (int i = 0; i < nrows; i++) {
-        QTableWidgetItem *item = new QTableWidgetItem();
-        tableWidget->setVerticalHeaderItem(i, item);
-        vHeader->resizeSection(i, td->font_height);
-    }
+    SetUserData(view, td);
 
     LineEditDelegate *lineEdit = new LineEditDelegate;
-    tableWidget->setItemDelegate(lineEdit);
+    view->setItemDelegate(lineEdit);
 
-    tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-    tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
+    view->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    view->setSelectionMode(QAbstractItemView::NoSelection);
 
-    TableUpdateVisibleRowsCols(tableWidget);
+    TableUpdateVisibleRowsCols(view);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
-        layout->addWidget(tableWidget);
+        layout->addWidget(view);
     }
 
-    return tableWidget;
+    return view;
 }
 
 void TableSSDInit(Widget w)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
 
-    tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    tableWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 }
 
 void TableFontInit(Widget w)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
 
-    tableWidget->verticalHeader()->hide();
-    tableWidget->horizontalHeader()->hide();
-    tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    tableWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    view->verticalHeader()->hide();
+    view->horizontalHeader()->hide();
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 }
 
 int TableGetNrows(Widget w)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
     int nr;
 
-    nr = tableWidget->rowCount();
+    nr = model->rowCount();
 
     return nr;
 }
 
 int TableGetNcols(Widget w)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
     int nc;
 
-    nc = tableWidget->columnCount();
+    nc = model->columnCount();
 
     return nc;
 }
 
 void TableAddRows(Widget w, int nrows)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
-    TableData *td;
-    int row, rc;
-    QHeaderView *vHeader = tableWidget->verticalHeader();
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+    int rc;
 
     rc = TableGetNrows(w);
-    td = (TableData*) GetUserData(w);
 
-    for (row = rc; row < rc + nrows; row++) {
-        tableWidget->insertRow(row);
-        QTableWidgetItem *item = new QTableWidgetItem;
-        tableWidget->setVerticalHeaderItem(row, item);
-        vHeader->resizeSection(row, td->font_height);
-    }
+    model->setRowCount(rc + nrows);
 }
 
 void TableDeleteRows(Widget w, int nrows)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
     int rc;
 
-    rc = TableGetNrows(w) - 1;
-    for (int row = rc; row > rc - nrows; row--) {
-        tableWidget->removeRow(row);
-    }
+    rc = TableGetNrows(w);
+
+    model->setRowCount(rc - nrows);
 }
 
 void TableAddCols(Widget w, int ncols)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    TableView *view = (TableView*) w;
+    TableModel *model = (TableModel *) view->model();
     TableData *td;
-    int col, cc;
-    QHeaderView *hHeader = tableWidget->horizontalHeader();
+    int cc;
 
     cc = TableGetNcols(w);
-    td = (TableData*) GetUserData(w);
 
-    for (col = cc; col < cc + ncols; col++) {
-        tableWidget->insertColumn(col);
-        QTableWidgetItem *item = new QTableWidgetItem;
-        tableWidget->setHorizontalHeaderItem(col, item);
-        hHeader->resizeSection(col, td->default_col_width * td->font_width + 2*td->frame_width);
-        switch (td->default_col_label_alignment) {
-        case ALIGN_BEGINNING:
-            hHeader->setDefaultAlignment(Qt::AlignLeft);
-            break;
-        case ALIGN_CENTER:
-            hHeader->setDefaultAlignment(Qt::AlignHCenter);
-            break;
-        case ALIGN_END:
-            hHeader->setDefaultAlignment(Qt::AlignRight);
-            break;
-        }
-    }
+    model->setColumnCount(cc + ncols);
+
+    td = (TableData*) GetUserData(w);
+    TableSetDefaultColWidth(w, td->default_col_width);
 }
 
 void TableDeleteCols(Widget w, int ncols)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    TableView *view = (TableView*) w;
+    TableModel *model = (TableModel *) view->model();
     int cc;
 
-    cc = TableGetNcols(w) - 1;
-    for (int col = cc; col > cc - ncols; col--) {
-        tableWidget->removeColumn(col);
-    }
+    cc = TableGetNcols(w);
+
+    model->setColumnCount(cc - ncols);
 }
 
 void TableSetDefaultColWidth(Widget w, int width)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
     TableData *td;
     int i, cc = TableGetNcols(w);
-    QHeaderView *hHeader = tableWidget->horizontalHeader();
+    QHeaderView *hHeader = view->horizontalHeader();
 
     td = (TableData*) GetUserData(w);
 
@@ -9185,97 +9306,61 @@ void TableSetDefaultColWidth(Widget w, int width)
         hHeader->resizeSection(i, td->default_col_width * td->font_width + 2*td->frame_width);
     }
 
-    TableUpdateVisibleRowsCols(tableWidget);
+    TableUpdateVisibleRowsCols(view);
 }
 
 void TableSetDefaultColLabelAlignment(Widget w, int align)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
-    TableData *td;
-    int i, cc = TableGetNcols(w);
-    QHeaderView *hHeader = tableWidget->horizontalHeader();
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
 
-    td = (TableData*) GetUserData(w);
-
-    td->default_col_label_alignment = align;
-
-    for (i = 0; i < cc; i++) {
-        switch (align) {
-        case ALIGN_BEGINNING:
-            hHeader->setDefaultAlignment(Qt::AlignLeft);
-            break;
-        case ALIGN_CENTER:
-            hHeader->setDefaultAlignment(Qt::AlignHCenter);
-            break;
-        case ALIGN_END:
-            hHeader->setDefaultAlignment(Qt::AlignRight);
-            break;
-        }
+    switch (align) {
+    case ALIGN_BEGINNING:
+        model->setDefaultColumnAlignment(Qt::AlignLeft);
+        break;
+    case ALIGN_CENTER:
+        model->setDefaultColumnAlignment(Qt::AlignHCenter);
+        break;
+    case ALIGN_END:
+        model->setDefaultColumnAlignment(Qt::AlignRight);
+        break;
     }
-}
-
-void TableSetCellContent(Widget w, int row, int col, char *content)
-{
-    QTableWidget *tableWidget = (QTableWidget*) w;
-    QAbstractItemModel *model = tableWidget->model();
-
-    QModelIndex index = model->index(row, col, QModelIndex());
-    model->setData(index, QVariant(content));
-}
-
-void TableSetCellPixmapContent(Widget w, int row, int col, Pixmap content)
-{
-    QTableWidget *tableWidget = (QTableWidget*) w;
-    QPixmap *pixmap = (QPixmap*) content;
-
-    QTableWidgetItem *item = new QTableWidgetItem;
-    if (pixmap) {
-        item->setIcon(QIcon(*pixmap));
-    }
-    item->setFlags(pixmap ? Qt::ItemIsEnabled : Qt::NoItemFlags);
-    tableWidget->setItem(row, col, item);
 }
 
 void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
 
-    *cwidth = tableWidget->columnWidth(0);
+    *cwidth = view->columnWidth(0);
     printf("cell width %d\n", *cwidth);
-    *cheight = tableWidget->rowHeight(0);
+    *cheight = view->rowHeight(0);
     printf("cell height %d\n", *cheight);
 }
 
 void TableSetColMaxlengths(Widget w, int *maxlengths)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
     int ncols = TableGetNcols(w);
 
     for (int col = 0; col < ncols; col++) {
-        tableWidget->setItemDelegateForColumn(col, new LineEditDelegate(maxlengths[col]));
+        view->setItemDelegateForColumn(col, new LineEditDelegate(maxlengths[col]));
     }
 }
 
 void TableSetRowLabels(Widget w, char **labels)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
-    int nrows = TableGetNrows(w);
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
 
-    for (int i = 0; i < nrows; i++) {
-        QTableWidgetItem *item = tableWidget->verticalHeaderItem(i);
-        item->setText(labels[i]);
-    }
+    model->setRowLabels(labels);
 }
 
 void TableSetColLabels(Widget w, char **labels)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
-    int ncols = TableGetNcols(w);
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
 
-    for (int i = 0; i < ncols; i++) {
-        QTableWidgetItem *item = tableWidget->horizontalHeaderItem(i);
-        item->setText(labels[i]);
-    }
+    model->setColumnLabels(labels);
 }
 
 void TableSetFixedCols(Widget w, int nfixed_cols)
@@ -9290,54 +9375,69 @@ void TableUpdateVisibleRowsCols(Widget w)
     TableData *td;
     int height = 0;
     int width = 0;
-    QTableWidget *tableWidget = (QTableWidget*) w;
-    QHeaderView *hHeader = tableWidget->horizontalHeader();
-    QHeaderView *vHeader = tableWidget->verticalHeader();
+    QTableView *view = (QTableView*) w;
+    QHeaderView *hHeader = view->horizontalHeader();
+    QHeaderView *vHeader = view->verticalHeader();
 
     td = (TableData*) GetUserData(w);
 
-    printf("update visible row height %d\n", tableWidget->rowHeight(0));
+    printf("update visible row height %d\n", view->rowHeight(0));
     if (!hHeader->isHidden()) {
         height = qMax(hHeader->minimumHeight(), hHeader->sizeHint().height());
         height = qMin(height, hHeader->maximumHeight());
     }
-    height += tableWidget->rowHeight(0) * td->nrows_visible;
-    height += tableWidget->contentsMargins().top();
-    height += tableWidget->contentsMargins().bottom();
-    if (tableWidget->horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOn)
-        height += tableWidget->horizontalScrollBar()->sizeHint().height();
-    tableWidget->setFixedHeight(height);
+    height += view->rowHeight(0) * td->nrows_visible;
+    height += view->contentsMargins().top();
+    height += view->contentsMargins().bottom();
+    if (view->horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOn)
+        height += view->horizontalScrollBar()->sizeHint().height();
+    view->setFixedHeight(height);
 
-    printf("update visible col width %d\n", tableWidget->columnWidth(0));
+    printf("update visible col width %d\n", view->columnWidth(0));
     if (!vHeader->isHidden()) {
         width = qMax(vHeader->minimumWidth(), vHeader->sizeHint().width());
         width = qMin(width, vHeader->maximumWidth());
     }
-    width += tableWidget->columnWidth(0) * td->ncols_visible;
-    width += tableWidget->contentsMargins().left();
-    width += tableWidget->contentsMargins().right();
-    if (tableWidget->verticalScrollBarPolicy() == Qt::ScrollBarAlwaysOn)
-        width += tableWidget->verticalScrollBar()->sizeHint().width();
-    tableWidget->setFixedWidth(width);
+    width += view->columnWidth(0) * td->ncols_visible;
+    width += view->contentsMargins().left();
+    width += view->contentsMargins().right();
+    if (view->verticalScrollBarPolicy() == Qt::ScrollBarAlwaysOn)
+        width += view->verticalScrollBar()->sizeHint().width();
+    view->setFixedWidth(width);
 }
 
 void TableCommitEdit(Widget w, int close)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+//    QTableWidget *tableWidget = (QTableWidget*) w;
 
-    LineEditDelegate *delegate = (LineEditDelegate*) tableWidget->itemDelegate();
-    delegate->emitCommitData();
-    if (close) {
-//        tableWidget->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::NoUpdate);
-        delegate->emitCloseEditor();
-    }
+//    LineEditDelegate *delegate = (LineEditDelegate*) tableWidget->itemDelegate();
+//    delegate->emitCommitData();
+//    if (close) {
+////        tableWidget->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::NoUpdate);
+//        delegate->emitCloseEditor();
+//    }
+}
+
+void AddTableDrawCellCB(Widget w, Table_CBProc cbproc, void *anydata)
+{
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+
+    Table_CBData *cbdata;
+
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    model->setDrawCellCallback(cbdata);
 }
 
 static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
 {
     TableEvent event;
     Table_CBData *cbdata = (Table_CBData *) data;
-    QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
+    QTableView *view = (QTableView*) cbdata->w;
     char *value;
     int ok;
 
@@ -9355,7 +9455,7 @@ static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
 
         if (ok) {
             printf("%s", "enter cb ok to edit\n");
-            tableWidget->edit(tableWidget->currentIndex());
+            view->edit(view->currentIndex());
         } else {
             printf("%s", "enter cb not ok to edit\n");
         }
@@ -9374,9 +9474,9 @@ void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
     CallBack *cb = new CallBack(mainWin);
     cb->setCallBack(table_int_enter_cell_cb_proc, cbdata);
 
-    QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
+    QTableView *view = (QTableView*) cbdata->w;
 
-    QObject::connect(tableWidget,
+    QObject::connect(view,
                      SIGNAL(pressed(const QModelIndex &)),
                      cb,
                      SLOT(table_int_cell_cb_proc(const QModelIndex &)));
@@ -9386,8 +9486,8 @@ static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QMode
 {
     TableEvent event;
     Table_CBData *cbdata = (Table_CBData *) data;
-    QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
-    QItemSelectionModel *selectionModel = tableWidget->selectionModel();
+    QTableView *view = (QTableView*) cbdata->w;
+    QItemSelectionModel *selectionModel = view->selectionModel();
     char *value;
     int ok;
 
@@ -9426,9 +9526,9 @@ void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
     CallBack *cb = new CallBack(mainWin);
     cb->setCallBack(table_int_leave_cell_cb_proc, cbdata);
 
-    QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
+    QTableView *view = (QTableView*) cbdata->w;
 
-    QObject::connect(tableWidget->selectionModel(),
+    QObject::connect(view->selectionModel(),
                      SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
                      cb,
                      SLOT(table_int_cell_cb_proc(const QModelIndex &, const QModelIndex &)));
@@ -9496,72 +9596,76 @@ void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    QTableWidget *tableWidget = (QTableWidget*) cbdata->w;
-    HeaderView *hHeader = (HeaderView*) tableWidget->horizontalHeader();
+    QTableView *view = (QTableView*) cbdata->w;
+    HeaderView *hHeader = (HeaderView*) view->horizontalHeader();
     hHeader->setCallBackData(cbdata);
-    HeaderView *vHeader = (HeaderView*) tableWidget->verticalHeader();
+    HeaderView *vHeader = (HeaderView*) view->verticalHeader();
     vHeader->setCallBackData(cbdata);
 }
 
 void TableSelectRow(Widget w, int row)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
 
-    QModelIndex topLeft = tableWidget->model()->index(row, 0);
-    QModelIndex bottomRight = tableWidget->model()->index(row, tableWidget->columnCount()-1);
+    QModelIndex topLeft = view->model()->index(row, 0);
+    QModelIndex bottomRight = view->model()->index(row, model->columnCount()-1);
 
-    tableWidget->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
+    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
 }
 
 void TableDeselectRow(Widget w, int row)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
 
-    QModelIndex topLeft = tableWidget->model()->index(row, 0);
-    QModelIndex bottomRight = tableWidget->model()->index(row, tableWidget->columnCount()-1);
+    QModelIndex topLeft = view->model()->index(row, 0);
+    QModelIndex bottomRight = view->model()->index(row, model->columnCount()-1);
 
-    tableWidget->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
+    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
 }
 
 void TableSelectCol(Widget w, int col)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
 
-    QModelIndex topLeft = tableWidget->model()->index(0, col);
-    QModelIndex bottomRight = tableWidget->model()->index(tableWidget->rowCount()-1, col);
+    QModelIndex topLeft = view->model()->index(0, col);
+    QModelIndex bottomRight = view->model()->index(model->rowCount()-1, col);
 
-    tableWidget->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
+    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
 }
 
 void TableDeselectCol(Widget w, int col)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
 
-    QModelIndex topLeft = tableWidget->model()->index(0, col);
-    QModelIndex bottomRight = tableWidget->model()->index(tableWidget->rowCount()-1, col);
+    QModelIndex topLeft = view->model()->index(0, col);
+    QModelIndex bottomRight = view->model()->index(model->rowCount()-1, col);
 
-    tableWidget->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
+    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
 }
 
 void TableDeselectAllCells(Widget w)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
 
-    tableWidget->clearSelection();
+    view->clearSelection();
 }
 
 int TableIsRowSelected(Widget w, int row)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
 
-    return tableWidget->selectionModel()->isRowSelected(row, QModelIndex());
+    return view->selectionModel()->isRowSelected(row, QModelIndex());
 }
 
 int TableIsColSelected(Widget w, int col)
 {
-    QTableWidget *tableWidget = (QTableWidget*) w;
+    QTableView *view = (QTableView*) w;
 
-    return tableWidget->selectionModel()->isColumnSelected(col, QModelIndex());
+    return view->selectionModel()->isColumnSelected(col, QModelIndex());
 }
 
 /* ScrollBar */

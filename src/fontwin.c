@@ -61,7 +61,7 @@ typedef struct _fonttool_ui
     char valid_chars[256];
 } fonttool_ui;
 
-static void DrawCB(Widget w, XtPointer client_data, XtPointer call_data);
+static void DrawCB(TableEvent *event);
 static void EnterCB(Widget w, XtPointer client_data, XtPointer call_data);
 static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data);
 
@@ -94,6 +94,7 @@ void create_fonttool(TextStructure *cstext_parent)
         //TODO: not col label alin but col align
         TableSetDefaultColLabelAlignment(ui->font_table, ALIGN_BEGINNING);
 
+        AddTableDrawCellCB(ui->font_table, DrawCB, ui);
 //        XtAddCallback(ui->font_table, XmNenterCellCallback, EnterCB, ui);
         AddOptionChoiceCB(ui->font_select, update_fonttool_cb, ui);
 
@@ -138,6 +139,31 @@ void create_fonttool(TextStructure *cstext_parent)
     RaiseWindow(GetParent(ui->fonttool_panel));
 }
 
+static void DrawCB(TableEvent *event)
+{
+    fonttool_ui *ui = (fonttool_ui *) event->anydata;
+    unsigned char c;
+    Pixmap pixmap;
+
+    c = 16*event->row + event->col;
+
+    if (ui->font_id == BAD_FONT_ID) {
+        pixmap = 0;
+    } else {
+        pixmap = char_to_pixmap(event->w, ui->font_id, c, ui->csize);
+    }
+
+    if (pixmap || c == ' ') {
+        ui->valid_chars[c] = TRUE;
+    } else {
+        ui->valid_chars[c] = FALSE;
+    }
+
+    event->pixmap = pixmap;
+
+    return TRUE;
+}
+
 static void insert_into_string(TextStructure *cstext, char *s)
 {
     int pos;
@@ -177,43 +203,19 @@ static void EnterCB(Widget w, XtPointer client_data, XtPointer call_data)
 static void update_fonttool_cb(OptionStructure *opt, int value, void *data)
 {
     fonttool_ui *ui = (fonttool_ui *) data;
-    int col, row, cwidth, cheight;
-    unsigned char c;
-    Pixmap pixmap;
-    
+    int cwidth, cheight;
+
     if (ui->font_id != value) {
         ui->font_id = value;
         ui->new_font = TRUE;
     }
-    
+
     TableGetCellDimentions(ui->font_table, &cwidth, &cheight);
-    
+
     /* 6 = 2*cellShadowThickness + 2 */
     ui->csize = MIN2(cwidth, cheight) - 6;
 
-    for (col = 0; col < FONT_TOOL_COLS; col++) {
-        for (row = 0; row < FONT_TOOL_ROWS; row++) {
-
-            c = 16*row + col;
-
-            if (ui->font_id == BAD_FONT_ID) {
-                pixmap = 0;
-            } else {
-                pixmap = char_to_pixmap(ui->font_table, ui->font_id, c, ui->csize);
-            }
-
-            if (pixmap || c == ' ') {
-                ui->valid_chars[c] = TRUE;
-            } else {
-                ui->valid_chars[c] = FALSE;
-            }
-
-            /* Assign it a pixmap */
-            if (pixmap) {
-                TableSetCellPixmapContent(ui->font_table, row, col, pixmap);
-            }
-        }
-    }
+    //XbaeMatrixRefresh(ui->font_table);
 }
 
 #if 0

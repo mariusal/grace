@@ -661,8 +661,6 @@ void TableAddRows(Widget w, int nrows);
 void TableDeleteRows(Widget w, int nrows);
 void TableAddCols(Widget w, int ncols);
 void TableDeleteCols(Widget w, int ncols);
-void TableSetCellContent(Widget w, int row, int col, char *content);
-void TableSetCellPixmapContent(Widget w, int row, int col, Pixmap content);
 void TableGetCellDimentions(Widget w, int *cwidth, int *cheight);
 void TableSetDefaultColWidth(Widget w, int width);
 void TableSetDefaultColLabelAlignment(Widget w, int align);
@@ -689,6 +687,7 @@ typedef struct {
     int row;
     int col;
     char *value;
+    Pixmap pixmap;
     int row_label;
     void *anydata;
     void *udata;
@@ -701,6 +700,7 @@ typedef struct {
     void *anydata;
 } Table_CBData;
 
+void AddTableDrawCellCB(Widget w, Table_CBProc cbproc, void *anydata);
 void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata);
 void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata);
 void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata);

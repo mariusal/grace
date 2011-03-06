@@ -191,5 +191,54 @@ private:
 
 };
 
+
+#include <QAbstractTableModel>
+
+class TableModel : public QAbstractTableModel
+{
+    Q_OBJECT
+
+public:
+    TableModel(QObject *parent = 0);
+
+    void setRowCount(int rows);
+    void setColumnCount(int cols);
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    bool setData(const QModelIndex &index, const QVariant &value,
+                 int role = Qt::EditRole);
+
+    void setDefaultColumnAlignment(Qt::Alignment align);
+    void setRowLabels(char **labels);
+    void setColumnLabels(char **labels);
+    void setDrawCellCallback(Table_CBData *cbdata);
+
+private:
+    int ncols;
+    int nrows;
+    Qt::Alignment defaultColumnAlignment;
+    QStringList rowLabels;
+    QStringList columnLabels;
+    Table_CBData *cbdata;
+};
+
+
+#include <QTableView>
+
+class TableView : public QTableView
+{
+    Q_OBJECT
+
+public:
+    TableView(QWidget *parent = 0);
+
+};
+
 #endif /* __QTGRACE_H_ */
 
