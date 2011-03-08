@@ -8999,13 +8999,13 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
     cbdata->cbproc(&event);
 
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
-        if (!event.pixmap) {
+        if (event.value_type == TABLE_CELL_STRING) {
             return QVariant(QString(event.value));
         }
     }
 
     if (role == Qt::DecorationRole) {
-        if (event.pixmap) {
+        if (event.value_type == TABLE_CELL_PIXMAP) {
             QPixmap *pixmap = (QPixmap *) event.pixmap;
             return QVariant(*pixmap);
         }
@@ -9666,6 +9666,11 @@ int TableIsColSelected(Widget w, int col)
     QTableView *view = (QTableView*) w;
 
     return view->selectionModel()->isColumnSelected(col, QModelIndex());
+}
+
+void TableUpdate(Widget w)
+{
+
 }
 
 /* ScrollBar */

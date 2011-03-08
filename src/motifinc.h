@@ -60,6 +60,10 @@
 #define ALIGN_CENTER        1
 #define ALIGN_END           2
 
+#define TABLE_CELL_NONE    0
+#define TABLE_CELL_STRING  1
+#define TABLE_CELL_PIXMAP  2
+
 extern Widget app_shell;        /* defined in xmgapp.c */
 
 typedef struct {
@@ -677,6 +681,7 @@ void TableDeselectCol(Widget w, int col);
 void TableDeselectAllCells(Widget w);
 int TableIsRowSelected(Widget w, int row);
 int TableIsColSelected(Widget w, int col);
+void TableUpdate(Widget w);
 
 typedef struct {
     int type;
@@ -686,6 +691,7 @@ typedef struct {
     Widget w;
     int row;
     int col;
+    int value_type;
     char *value;
     Pixmap pixmap;
     int row_label;

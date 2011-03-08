@@ -132,6 +132,7 @@ static int drawcellCB(TableEvent *event)
     SSDataUI *ui = (SSDataUI *) event->anydata;
     int format;
 
+    event->value_type = TABLE_CELL_STRING;
     event->value = get_cell_content(ui, event->row, event->col, &format);
 
     return TRUE;

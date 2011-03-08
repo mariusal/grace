@@ -159,7 +159,10 @@ static void DrawCB(TableEvent *event)
         ui->valid_chars[c] = FALSE;
     }
 
-    event->pixmap = pixmap;
+    if (pixmap) {
+        event->value_type = TABLE_CELL_PIXMAP;
+        event->pixmap = pixmap;
+    }
 
     return TRUE;
 }
@@ -215,7 +218,7 @@ static void update_fonttool_cb(OptionStructure *opt, int value, void *data)
     /* 6 = 2*cellShadowThickness + 2 */
     ui->csize = MIN2(cwidth, cheight) - 6;
 
-    //XbaeMatrixRefresh(ui->font_table);
+    TableUpdate(ui->font_table);
 }
 
 #if 0

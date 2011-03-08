@@ -5306,16 +5306,16 @@ static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
     event.row = cs->row;
     event.col = cs->column;
     event.anydata = cbdata->anydata;
-    event.pixmap = 0;
+    event.value_type = TABLE_CELL_NONE;
 
     cbdata->cbproc(&event);
 
-    if (event.pixmap) {
-        cs->type = XbaePixmap;
-        cs->pixmap = event.pixmap;
-    } else {
+    if (event.value_type == TABLE_CELL_STRING) {
         cs->type = XbaeString;
         cs->string = event.value;
+    } else  if (event.value_type == TABLE_CELL_PIXMAP) {
+        cs->type = XbaePixmap;
+        cs->pixmap = event.pixmap;
     }
 }
 
@@ -5487,6 +5487,11 @@ int TableIsRowSelected(Widget w, int row)
 int TableIsColSelected(Widget w, int col)
 {
     return XbaeMatrixIsColumnSelected(w, col);
+}
+
+void TableUpdate(Widget w)
+{
+    XbaeMatrixRefresh(w);
 }
 
 /* ScrollBar */
