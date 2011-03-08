@@ -5253,6 +5253,8 @@ void TableSetDefaultColLabelAlignment(Widget w, int align)
 
 void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
 {
+    int x0, x1, y0, y1;
+
     XbaeMatrixRowColToXY(w, 0, 0, &x0, &y0);
     XbaeMatrixRowColToXY(w, 1, 1, &x1, &y1);
     *cwidth  = x1 - x0;
@@ -5296,7 +5298,7 @@ void TableCommitEdit(Widget w, int close)
 static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     TableEvent event;
-    SSDataUI *ui = (SSDataUI *) client_data;
+    Table_CBData *cbdata = (Table_CBData *) client_data;
     XbaeMatrixDrawCellCallbackStruct *cs =
         (XbaeMatrixDrawCellCallbackStruct *) call_data;
 
@@ -5309,8 +5311,8 @@ static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
     cbdata->cbproc(&event);
 
     if (event.pixmap) {
-        cbs->type = XbaePixmap;
-        cbs->pixmap = event.pixmap;
+        cs->type = XbaePixmap;
+        cs->pixmap = event.pixmap;
     } else {
         cs->type = XbaeString;
         cs->string = event.value;
