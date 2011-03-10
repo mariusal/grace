@@ -9143,7 +9143,6 @@ void LineEditDelegate::updateEditorGeometry(QWidget *editor,
 
 typedef struct {
     int font_width;
-    int font_height;
     int frame_width;
     int default_col_width;
     int nrows_visible;
@@ -9176,9 +9175,10 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     hHeader->setResizeMode(QHeaderView::Fixed);
     vHeader->setResizeMode(QHeaderView::Fixed);
 
+    vHeader->setDefaultSectionSize(fontHeight);
+
     td = (TableData*) xmalloc(sizeof(TableData));
     td->font_width = fontWidth;
-    td->font_height = fontHeight;
     td->frame_width = frameWidth;
     td->default_col_width = 5;
     td->nrows_visible = nrows_visible;
