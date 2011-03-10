@@ -667,6 +667,7 @@ void TableAddCols(Widget w, int ncols);
 void TableDeleteCols(Widget w, int ncols);
 void TableGetCellDimentions(Widget w, int *cwidth, int *cheight);
 void TableSetDefaultColWidth(Widget w, int width);
+void TableSetDefaultColAlignment(Widget w, int align);
 void TableSetDefaultColLabelAlignment(Widget w, int align);
 void TableSetColMaxlengths(Widget w, int *maxlengths);
 void TableSetRowLabels(Widget w, char **labels);

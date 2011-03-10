@@ -4212,10 +4212,9 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
 int GetTextCursorPos(TextStructure *cst)
 {
     int pos;
-    QPlainTextEdit *text = (QPlainTextEdit*) cst->text;
+    QLineEdit *text = (QLineEdit*) cst->text;
 
-    QTextCursor textCursor = text->textCursor();
-    pos = textCursor.position();
+    pos = text->cursorPosition();
 
     return pos;
 }
@@ -4239,14 +4238,19 @@ void SetTextCursorPos(TextStructure *cst, int pos)
 //}
 void TextInsert(TextStructure *cst, int pos, char *s)
 {
-    QPlainTextEdit *text = (QPlainTextEdit*) cst->text;
-    
-    QTextCursor textCursor = text->textCursor();
-    if (pos == -1) {
-        textCursor.movePosition(QTextCursor::End);
+    if (QPlainTextEdit *plainText = qobject_cast<QPlainTextEdit *>(cst->text)) {
+        QTextCursor textCursor = plainText->textCursor();
+        if (pos == -1) {
+            textCursor.movePosition(QTextCursor::End);
+        }
+        textCursor.insertText(s);
+        plainText->setTextCursor(textCursor);
     }
-    textCursor.insertText(s);
-    text->setTextCursor(textCursor);
+
+    if (QLineEdit *text = qobject_cast<QLineEdit *>(cst->text)) {
+        text->setCursorPosition(pos);
+        text->insert(s);
+    }
 }
 
 //void SetTextEditable(TextStructure *cst, int onoff)
@@ -8958,6 +8962,7 @@ TableModel::TableModel(QObject *parent)
     nrows = 0;
     ncols = 0;
     defaultColumnAlignment = Qt::AlignHCenter;
+    defaultColumnLabelAlignment = Qt::AlignLeft;
     cbdata = 0;
 }
 
@@ -8990,6 +8995,9 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || cbdata == 0)
         return QVariant();
 
+    if (role == Qt::TextAlignmentRole)
+        return int(defaultColumnLabelAlignment);
+
     event.w = cbdata->w;
     event.row = index.row();
     event.col = index.column();
@@ -9020,7 +9028,7 @@ QVariant TableModel::headerData(int section,
 {
     if (role == Qt::TextAlignmentRole &&
         orientation == Qt::Horizontal)
-        return int(defaultColumnAlignment);
+        return int(defaultColumnLabelAlignment);
 
     if (role == Qt::DisplayRole) {
         if (orientation == Qt::Horizontal) {
@@ -9064,6 +9072,11 @@ bool TableModel::setData(const QModelIndex &index,
 void TableModel::setDefaultColumnAlignment(Qt::Alignment align)
 {
     this->defaultColumnAlignment = align;
+}
+
+void TableModel::setDefaultColumnLabelAlignment(Qt::Alignment align)
+{
+    this->defaultColumnLabelAlignment = align;
 }
 
 void TableModel::setRowLabels(char **labels)
@@ -9309,7 +9322,7 @@ void TableSetDefaultColWidth(Widget w, int width)
     TableUpdateVisibleRowsCols(view);
 }
 
-void TableSetDefaultColLabelAlignment(Widget w, int align)
+void TableSetDefaultColAlignment(Widget w, int align)
 {
     QTableView *view = (QTableView*) w;
     TableModel *model = (TableModel *) view->model();
@@ -9323,6 +9336,24 @@ void TableSetDefaultColLabelAlignment(Widget w, int align)
         break;
     case ALIGN_END:
         model->setDefaultColumnAlignment(Qt::AlignRight);
+        break;
+    }
+}
+
+void TableSetDefaultColLabelAlignment(Widget w, int align)
+{
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+
+    switch (align) {
+    case ALIGN_BEGINNING:
+        model->setDefaultColumnLabelAlignment(Qt::AlignLeft);
+        break;
+    case ALIGN_CENTER:
+        model->setDefaultColumnLabelAlignment(Qt::AlignHCenter);
+        break;
+    case ALIGN_END:
+        model->setDefaultColumnLabelAlignment(Qt::AlignRight);
         break;
     }
 }

@@ -5228,6 +5228,25 @@ void TableSetDefaultColWidth(Widget w, int width)
     xfree(widths);
 }
 
+void TableSetDefaultColAlignment(Widget w, int align)
+{
+    unsigned char *alignment, xm_alignment;
+    int ncols, i;
+
+    xm_alignment = align_to_xmalign(align);
+    ncols = TableGetNcols(w);
+
+    alignment = xmalloc(ncols);
+
+    for (i = 0; i < ncols; i++) {
+        alignment[i] = xm_alignment;
+    }
+
+    XtVaSetValues(w, XmNcolumnAlignments, alignment, NULL);
+
+    xfree(alignment);
+}
+
 void TableSetDefaultColLabelAlignment(Widget w, int align)
 {
     TableData *td;

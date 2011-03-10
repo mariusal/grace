@@ -61,8 +61,8 @@ typedef struct _fonttool_ui
     char valid_chars[256];
 } fonttool_ui;
 
-static void DrawCB(TableEvent *event);
-static void EnterCB(Widget w, XtPointer client_data, XtPointer call_data);
+static int DrawCB(TableEvent *event);
+static int EnterCB(TableEvent *event);
 static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data);
 
 static void update_fonttool_cb(OptionStructure *opt, int value, void *data);
@@ -91,11 +91,10 @@ void create_fonttool(TextStructure *cstext_parent)
                                      8, 16);
         TableFontInit(ui->font_table);
         TableSetDefaultColWidth(ui->font_table, 2);
-        //TODO: not col label alin but col align
-        TableSetDefaultColLabelAlignment(ui->font_table, ALIGN_BEGINNING);
+        TableSetDefaultColAlignment(ui->font_table, ALIGN_BEGINNING);
 
         AddTableDrawCellCB(ui->font_table, DrawCB, ui);
-//        XtAddCallback(ui->font_table, XmNenterCellCallback, EnterCB, ui);
+        AddTableEnterCellCB(ui->font_table, EnterCB, ui);
         AddOptionChoiceCB(ui->font_select, update_fonttool_cb, ui);
 
         AddDialogFormChild(ui->fonttool_panel, ui->font_table);
@@ -139,7 +138,7 @@ void create_fonttool(TextStructure *cstext_parent)
     RaiseWindow(GetParent(ui->fonttool_panel));
 }
 
-static void DrawCB(TableEvent *event)
+static int DrawCB(TableEvent *event)
 {
     fonttool_ui *ui = (fonttool_ui *) event->anydata;
     unsigned char c;
@@ -174,19 +173,16 @@ static void insert_into_string(TextStructure *cstext, char *s)
     pos = GetTextCursorPos(cstext);
     TextInsert(cstext, pos, s);
 }
-#if 0
-static void EnterCB(Widget w, XtPointer client_data, XtPointer call_data)
+
+static int EnterCB(TableEvent *event)
 {
-    fonttool_ui *ui = (fonttool_ui *) client_data;
-    XbaeMatrixEnterCellCallbackStruct *cbs =
-        (XbaeMatrixEnterCellCallbackStruct *) call_data;
-    X11Stuff *xstuff = gapp->gui->xstuff;
+    fonttool_ui *ui = (fonttool_ui *) event->anydata;
     char s[7];
     unsigned char c;
     
-    c = 16*cbs->row + cbs->column;
+    c = 16*event->row + event->col;
     if (ui->valid_chars[c]) {
-        c = 16*cbs->row + cbs->column;
+        c = 16*event->row + event->col;
         /* TODO: check for c being displayable in the _X_ font */
         if (c > 31) {
             s[0] = (char) c;
@@ -196,12 +192,12 @@ static void EnterCB(Widget w, XtPointer client_data, XtPointer call_data)
         }
         insert_into_string(ui->cstext, s);
     } else {
-        XBell(xstuff->disp, 25);
+        Beep();
     }
     
-    cbs->doit = False;
+    return FALSE;
 }
-#endif
+
 
 static void update_fonttool_cb(OptionStructure *opt, int value, void *data)
 {

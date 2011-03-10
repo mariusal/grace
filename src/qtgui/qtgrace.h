@@ -215,6 +215,7 @@ public:
                  int role = Qt::EditRole);
 
     void setDefaultColumnAlignment(Qt::Alignment align);
+    void setDefaultColumnLabelAlignment(Qt::Alignment align);
     void setRowLabels(char **labels);
     void setColumnLabels(char **labels);
     void setDrawCellCallback(Table_CBData *cbdata);
@@ -223,6 +224,7 @@ private:
     int ncols;
     int nrows;
     Qt::Alignment defaultColumnAlignment;
+    Qt::Alignment defaultColumnLabelAlignment;
     QStringList rowLabels;
     QStringList columnLabels;
     Table_CBData *cbdata;
