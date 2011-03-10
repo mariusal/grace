@@ -9670,7 +9670,9 @@ int TableIsColSelected(Widget w, int col)
 
 void TableUpdate(Widget w)
 {
+    QTableView *view = (QTableView*) w;
 
+    view->reset();
 }
 
 /* ScrollBar */
