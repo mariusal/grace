@@ -5295,7 +5295,7 @@ void TableSetRowLabels(Widget w, char **labels)
 {
     XtVaSetValues(w, XmNrowLabels, labels, NULL);
 
-    TableUpdateVisibleRowsCols(w);
+    XtVaSetValues(w, XmNrowLabelWidth, 0, NULL);
 }
 
 void TableSetColLabels(Widget w, char **labels)
@@ -5313,7 +5313,6 @@ void TableSetFixedCols(Widget w, int nfixed_cols)
 void TableUpdateVisibleRowsCols(Widget w)
 {
     XtVaSetValues(w,
-                  XmNrowLabelWidth, 0,
                   XmNheight, 0,
                   XmNwidth, 0,
                   NULL);
