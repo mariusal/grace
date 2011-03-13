@@ -421,7 +421,6 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         int delta_nc, delta_nr;
         int *maxlengths;
         char **rowlabels, **collabels;
-        int cur_row, cur_col, format;
         
         if (ui->q != q) {
             TableDeselectAllCells(ui->mw);
