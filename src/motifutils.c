@@ -5171,6 +5171,8 @@ int TableGetNcols(Widget w)
 void TableAddRows(Widget w, int nrows)
 {
     XbaeMatrixAddRows(w, TableGetNrows(w), NULL, NULL, NULL, nrows);
+
+    TableUpdateVisibleRowsCols(w);
 }
 
 void TableDeleteRows(Widget w, int nrows)
@@ -5199,6 +5201,8 @@ void TableAddCols(Widget w, int ncols)
 
     xfree(alignment);
     xfree(widths);
+
+    TableUpdateVisibleRowsCols(w);
 }
 
 void TableDeleteCols(Widget w, int ncols)
@@ -5226,6 +5230,8 @@ void TableSetDefaultColWidth(Widget w, int width)
     XtVaSetValues(w, XmNcolumnWidths, widths, NULL);
 
     xfree(widths);
+
+    TableUpdateVisibleRowsCols(w);
 }
 
 void TableSetDefaultColAlignment(Widget w, int align)
@@ -5288,11 +5294,15 @@ void TableSetColMaxlengths(Widget w, int *maxlengths)
 void TableSetRowLabels(Widget w, char **labels)
 {
     XtVaSetValues(w, XmNrowLabels, labels, NULL);
+
+    TableUpdateVisibleRowsCols(w);
 }
 
 void TableSetColLabels(Widget w, char **labels)
 {
     XtVaSetValues(w, XmNcolumnLabels, labels, NULL);
+
+    TableUpdateVisibleRowsCols(w);
 }
 
 void TableSetFixedCols(Widget w, int nfixed_cols)
