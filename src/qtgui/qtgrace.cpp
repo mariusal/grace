@@ -9265,6 +9265,8 @@ void TableAddRows(Widget w, int nrows)
     rc = TableGetNrows(w);
 
     model->setRowCount(rc + nrows);
+
+    TableUpdateVisibleRowsCols(w);
 }
 
 void TableDeleteRows(Widget w, int nrows)
@@ -9291,6 +9293,8 @@ void TableAddCols(Widget w, int ncols)
 
     td = (TableData*) GetUserData(w);
     TableSetDefaultColWidth(w, td->default_col_width);
+
+    TableUpdateVisibleRowsCols(w);
 }
 
 void TableDeleteCols(Widget w, int ncols)
@@ -9384,6 +9388,8 @@ void TableSetRowLabels(Widget w, char **labels)
     TableModel *model = (TableModel *) view->model();
 
     model->setRowLabels(labels);
+
+    TableUpdateVisibleRowsCols(w);
 }
 
 void TableSetColLabels(Widget w, char **labels)
@@ -9392,6 +9398,8 @@ void TableSetColLabels(Widget w, char **labels)
     TableModel *model = (TableModel *) view->model();
 
     model->setColumnLabels(labels);
+
+    TableUpdateVisibleRowsCols(w);
 }
 
 void TableSetFixedCols(Widget w, int nfixed_cols)
