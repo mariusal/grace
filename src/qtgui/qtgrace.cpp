@@ -9123,7 +9123,6 @@ QWidget *LineEditDelegate::createEditor(QWidget *parent,
                                         const QModelIndex &/* index */) const
 {
     QLineEdit *editor = new QLineEdit(parent);
-    const_cast<LineEditDelegate*> (this)->lineEditor = editor;
     if (maxLength > 0) {
         editor->setMaxLength(maxLength);
     }
@@ -9447,7 +9446,7 @@ void TableUpdateVisibleRowsCols(Widget w)
 
 void TableCommitEdit(Widget w, int close)
 {
-//    QTableWidget *tableWidget = (QTableWidget*) w;
+    TableView *view = (TableView*) w;
 
 //    LineEditDelegate *delegate = (LineEditDelegate*) tableWidget->itemDelegate();
 //    delegate->emitCommitData();

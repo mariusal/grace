@@ -83,20 +83,6 @@ public:
 
     void updateEditorGeometry(QWidget *editor,
                               const QStyleOptionViewItem &option, const QModelIndex &index) const;
-    void emitCommitData()
-    {
-//        QEvent event(QEvent::User);
-//        QApplication::sendEvent(lineEditor, &event);
-        //emit commitData(lineEditor);
-        qDebug("emitCommitData");
-    }
-
-    void emitCloseEditor()
-    {
- //       QEvent event(QEvent::Type(QEvent::User + 1));
-//        QApplication::sendEvent(lineEditor, &event);
-        qDebug("emitCloseEditor");
-    }
 
 protected:
     bool eventFilter(QObject *object, QEvent *event)
@@ -148,21 +134,12 @@ protected:
                 event->accept();
                 return true;
             }
-        } /*else if (event->type() == QEvent::User) {
-            qDebug("receive CommitData");
-            emit commitData(editor);
-            return true;
-        } else if (event->type() == QEvent::User + 1) {
-            qDebug("receive CloseEditor");
-            emit closeEditor(editor);
-            return true;
-        }*/
+        }
         return false;
     }
 
 private:
     int maxLength;
-    QWidget *lineEditor;
 };
 
 class HeaderView : public QHeaderView
