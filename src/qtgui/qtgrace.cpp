@@ -8961,8 +8961,8 @@ TableModel::TableModel(QObject *parent)
 {
     nrows = 0;
     ncols = 0;
-    defaultColumnAlignment = Qt::AlignHCenter;
-    defaultColumnLabelAlignment = Qt::AlignLeft;
+    defaultColumnAlignment = Qt::AlignLeft | Qt::AlignVCenter;
+    defaultColumnLabelAlignment = Qt::AlignLeft | Qt::AlignVCenter;
     cbdata = 0;
 }
 
@@ -8996,7 +8996,7 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
         return QVariant();
 
     if (role == Qt::TextAlignmentRole)
-        return int(defaultColumnLabelAlignment);
+        return int(defaultColumnAlignment);
 
     event.w = cbdata->w;
     event.row = index.row();
@@ -9061,8 +9061,8 @@ bool TableModel::setData(const QModelIndex &index,
                          const QVariant &value, int role)
 {
     if (index.isValid() && role == Qt::EditRole) {
-
         //stringList.replace(index.row(), value.toString());
+        editorData = value.toString();
         emit dataChanged(index, index);
         return true;
     }
@@ -9071,12 +9071,12 @@ bool TableModel::setData(const QModelIndex &index,
 
 void TableModel::setDefaultColumnAlignment(Qt::Alignment align)
 {
-    this->defaultColumnAlignment = align;
+    this->defaultColumnAlignment = align  | Qt::AlignVCenter;
 }
 
 void TableModel::setDefaultColumnLabelAlignment(Qt::Alignment align)
 {
-    this->defaultColumnLabelAlignment = align;
+    this->defaultColumnLabelAlignment = align  | Qt::AlignVCenter;
 }
 
 void TableModel::setRowLabels(char **labels)
@@ -9104,6 +9104,11 @@ void TableModel::setColumnLabels(char **labels)
 void TableModel::setDrawCellCallback(Table_CBData *cbdata)
 {
     this->cbdata = cbdata;
+}
+
+QString TableModel::getEditorData()
+{
+    return editorData;
 }
 
 TableView::TableView(QWidget *parent)
@@ -9493,7 +9498,7 @@ static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
 
         if (ok) {
             printf("%s", "enter cb ok to edit\n");
-            view->edit(view->currentIndex());
+            view->openPersistentEditor(view->currentIndex());
         } else {
             printf("%s", "enter cb not ok to edit\n");
         }
@@ -9525,12 +9530,14 @@ static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QMode
     TableEvent event;
     Table_CBData *cbdata = (Table_CBData *) data;
     QTableView *view = (QTableView*) cbdata->w;
+    TableModel *model = (TableModel *) view->model();
     QItemSelectionModel *selectionModel = view->selectionModel();
+    QString str;
     char *value;
     int ok;
 
     if (previous.isValid()) {
-        QString str = previous.model()->data(previous, Qt::EditRole).toString();
+        str = model->getEditorData();
         QByteArray ba = str.toAscii();
         value = copy_string(NULL, ba.data());
 
@@ -9541,8 +9548,11 @@ static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QMode
         event.anydata = cbdata->anydata;
         ok = cbdata->cbproc(&event);
 
+        xfree(value);
+
         if (ok) {
             printf("%s", "leave cb, ok to leave\n");
+            view->closePersistentEditor(previous);
         } else {
             printf("%s", "leave cb, not ok to leave\n");
             selectionModel->blockSignals(true);

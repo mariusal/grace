@@ -117,18 +117,18 @@ protected:
                 editor->parentWidget()->setFocus();
             return true;
         } else if (event->type() == QEvent::FocusOut || (event->type() == QEvent::Hide && editor->isWindow())) {
-//            //the Hide event will take care of he editors that are in fact complete dialogs
-//            if (!editor->isActiveWindow() || (QApplication::focusWidget() != editor)) {
-//                QWidget *w = QApplication::focusWidget();
-//                while (w) { // don't worry about focus changes internally in the editor
-//                    if (w == editor)
-//                        return false;
-//                    w = w->parentWidget();
-//                }
+            //the Hide event will take care of he editors that are in fact complete dialogs
+            if (!editor->isActiveWindow() || (QApplication::focusWidget() != editor)) {
+                QWidget *w = QApplication::focusWidget();
+                while (w) { // don't worry about focus changes internally in the editor
+                    if (w == editor)
+                        return false;
+                    w = w->parentWidget();
+                }
 
-//                emit commitData(editor);
-//                emit closeEditor(editor, NoHint);
-//            }
+                emit commitData(editor);
+                emit closeEditor(editor, NoHint);
+            }
         } else if (event->type() == QEvent::ShortcutOverride) {
             if (static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
                 event->accept();
@@ -196,6 +196,7 @@ public:
     void setRowLabels(char **labels);
     void setColumnLabels(char **labels);
     void setDrawCellCallback(Table_CBData *cbdata);
+    QString getEditorData();
 
 private:
     int ncols;
@@ -205,6 +206,7 @@ private:
     QStringList rowLabels;
     QStringList columnLabels;
     Table_CBData *cbdata;
+    QString editorData;
 };
 
 
