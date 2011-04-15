@@ -357,6 +357,19 @@ typedef void (*Text_CBProc)(
     void *               /* data the application registered */
 );
 
+/* Text validate CB procedure */
+typedef int (*TextValidate_CBProc)(
+        char **value,
+        int *length,
+        void *data
+);
+
+typedef struct {
+    Widget w;
+    TextValidate_CBProc cbproc;
+    void *anydata;
+} TextValidate_CBData;
+
 /* Text item CB procedure */
 typedef void (*TItem_CBProc)(
     Widget ti,
@@ -526,6 +539,7 @@ void SetTextInputLength(TextStructure *cst, int len);
 char *GetTextString(TextStructure *cst);
 void SetTextString(TextStructure *cst, char *s);
 void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data);
+void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata);
 int GetTextCursorPos(TextStructure *cst);
 void SetTextCursorPos(TextStructure *cst, int pos);
 void TextInsert(TextStructure *cst, int pos, char *s);
@@ -675,6 +689,8 @@ void TableSetColLabels(Widget w, char **labels);
 void TableSetFixedCols(Widget w, int nfixed_cols);
 void TableUpdateVisibleRowsCols(Widget w);
 void TableCommitEdit(Widget w, int close);
+void TableSelectCell(Widget w, int row, int col);
+void TableDeselectCell(Widget w, int row, int col);
 void TableSelectRow(Widget w, int row);
 void TableDeselectRow(Widget w, int row);
 void TableSelectCol(Widget w, int col);

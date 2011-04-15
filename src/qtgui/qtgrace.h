@@ -45,6 +45,7 @@ public:
         this->callback2 = callback;
         this->data = data;
     }
+
     void (*callback3)(int index, void *);
     void setCallBack(void (*callback)(int index, void *),
                      void *data) {
@@ -220,6 +221,30 @@ public:
     TableView(QWidget *parent = 0);
 
 };
+
+class Validator : public QValidator
+{
+    Q_OBJECT
+
+public:
+    Validator(TextValidate_CBData *cbdata, QWidget *parent = 0);
+    State validate(QString &input, int &pos) const;
+    static char *text;
+    static int pos;
+
+private:
+    TextValidate_CBData *cbdata;
+};
+
+class KeyPressListener : public QObject
+ {
+     Q_OBJECT
+ public:
+    KeyPressListener(QObject *parent);
+
+ protected:
+     bool eventFilter(QObject *obj, QEvent *event);
+ };
 
 #endif /* __QTGRACE_H_ */
 

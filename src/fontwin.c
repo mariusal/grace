@@ -63,7 +63,7 @@ typedef struct _fonttool_ui
 
 static int DrawCB(TableEvent *event);
 static int EnterCB(TableEvent *event);
-static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data);
+static int EditStringCB(char **value, int *length, void *data);
 
 static void update_fonttool_cb(OptionStructure *opt, int value, void *data);
 static int fonttool_aac_cb(void *data);
@@ -101,6 +101,7 @@ void create_fonttool(TextStructure *cstext_parent)
 
         ui->cstext = CreateCSText(ui->fonttool_panel, "CString:");
 
+        AddTextValidateCB(ui->cstext->text, EditStringCB, ui);
 //        XtAddCallback(ui->cstext->text,
 //            XmNmodifyVerifyCallback, EditStringCB, ui);
         
@@ -217,35 +218,32 @@ static void update_fonttool_cb(OptionStructure *opt, int value, void *data)
     TableUpdate(ui->font_table);
 }
 
-#if 0
-static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int EditStringCB(char **value, int *length, void *data)
 {
-    fonttool_ui *ui = (fonttool_ui *) client_data;
-    XmTextVerifyCallbackStruct *tcbs =
-        (XmTextVerifyCallbackStruct *) call_data;
+    fonttool_ui *ui = (fonttool_ui *) data;
     unsigned char c;
     static int column = 0, row = 0;
-    XmTextBlock text;
+    char *text;
+    int len = *length;
     
     if (ui->enable_edit_cb != TRUE) {
-        return;
+        return FALSE;
     }
+
+    text = *value;
     
-    text = tcbs->text;
+    TableDeselectCell(ui->font_table, row, column);
     
-    XbaeMatrixDeselectCell(ui->font_table, row, column);
-    
-    if (text->length == 1) {
+    if (len == 1) {
         /* */
-        c = text->ptr[0];
+        c = text[0];
         row = c/16;
         column = c % 16;
 
         if (ui->valid_chars[c]) {
-            XbaeMatrixSelectCell(ui->font_table, row, column);
+            TableSelectCell(ui->font_table, row, column);
         } else {
-            tcbs->doit = False;
-            return;
+            return FALSE;
         }
     }
     
@@ -256,16 +254,19 @@ static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data)
         buf = concat_strings(buf,
             project_get_font_name_by_id(gproject_get_top(gapp->gp), ui->font_id));
         buf = concat_strings(buf, "}");
-        buf = concat_strings(buf, text->ptr);
-        XtFree(text->ptr);
-        text->ptr = XtNewString(buf);
-        text->length = strlen(buf);
+        buf = concat_strings(buf, text);
+        xfree(text);
+        text = copy_string(NULL, buf);
+        *value = text;
+        *length = strlen(buf);
         xfree(buf);
 
         ui->new_font = FALSE;
     }
+
+    return TRUE;
 }
-#endif
+
 static int fonttool_aac_cb(void *data)
 {
     fonttool_ui *ui = (fonttool_ui *) data;

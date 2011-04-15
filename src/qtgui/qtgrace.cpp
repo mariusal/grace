@@ -34,6 +34,7 @@
 
 #define CANVAS_BACKEND_API
 
+#include <QDebug>
 #include <QtGlobal>
 #include <QApplication>
 #include <QMainWindow>
@@ -4205,6 +4206,80 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     }
 }
 
+Validator::Validator(TextValidate_CBData *cbdata, QWidget *parent)
+    : QValidator(parent)
+{
+    this->cbdata = cbdata;
+}
+
+QValidator::State Validator::validate(QString &input, int &pos) const
+{
+    static bool skip = false;
+    static QString last_input = "";
+    static int last_pos = 0;
+    int len;
+
+    if (text) {
+        len = strlen(text);
+    }
+
+    if (!QString::compare(input, last_input) && (pos != last_pos)) return Acceptable;
+
+    last_input = input;
+    last_pos = pos;
+
+    if (skip) {
+        skip = false;
+    } else {
+        if (cbdata->cbproc(&text, &len, cbdata->anydata)) {
+            QString oldinput = input;
+            input.remove(pos - 1, 1);
+            input.insert(pos - 1, text);
+            pos = pos - 1 + len;
+            if (QString::compare(oldinput, input)) {
+                skip = true;
+            }
+        }
+    }
+
+    return Acceptable;
+}
+
+KeyPressListener::KeyPressListener(QObject *parent)
+    : QObject(parent)
+{
+}
+
+bool KeyPressListener::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        qDebug() << "Listened key press " << keyEvent->text();
+        QByteArray ba = keyEvent->text().toAscii();
+        Validator::text = copy_string(Validator::text, ba.data());
+        return false;
+    } else {
+        // standard event processing
+        return QObject::eventFilter(obj, event);
+    }
+}
+
+void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata)
+{
+    TextValidate_CBData *cbdata;
+
+    cbdata = (TextValidate_CBData *) xmalloc(sizeof(TextValidate_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    QLineEdit *lineEdit = qobject_cast<QLineEdit *>(w);
+    lineEdit->setValidator(new Validator(cbdata, w));
+
+    KeyPressListener *keyPressListener = new KeyPressListener(w);
+    lineEdit->installEventFilter(keyPressListener);
+}
+
 //int GetTextCursorPos(TextStructure *cst)
 //{
 //    return XmTextGetInsertionPosition(cst->text);
@@ -4236,6 +4311,10 @@ void SetTextCursorPos(TextStructure *cst, int pos)
 //{
 //    XmTextInsert(cst->text, pos, s);
 //}
+
+char *Validator::text = 0;
+int Validator::pos = 0;
+
 void TextInsert(TextStructure *cst, int pos, char *s)
 {
     if (QPlainTextEdit *plainText = qobject_cast<QPlainTextEdit *>(cst->text)) {
@@ -4248,6 +4327,8 @@ void TextInsert(TextStructure *cst, int pos, char *s)
     }
 
     if (QLineEdit *text = qobject_cast<QLineEdit *>(cst->text)) {
+        Validator::text = copy_string(Validator::text, s);
+        Validator::pos = pos;
         text->setCursorPosition(pos);
         text->insert(s);
     }
@@ -9312,6 +9393,16 @@ void TableDeleteCols(Widget w, int ncols)
     model->setColumnCount(cc - ncols);
 }
 
+void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
+{
+    QTableView *view = (QTableView*) w;
+
+    *cwidth = view->columnWidth(0);
+    printf("cell width %d\n", *cwidth);
+    *cheight = view->rowHeight(0);
+    printf("cell height %d\n", *cheight);
+}
+
 void TableSetDefaultColWidth(Widget w, int width)
 {
     QTableView *view = (QTableView*) w;
@@ -9364,16 +9455,6 @@ void TableSetDefaultColLabelAlignment(Widget w, int align)
         model->setDefaultColumnLabelAlignment(Qt::AlignRight);
         break;
     }
-}
-
-void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
-{
-    QTableView *view = (QTableView*) w;
-
-    *cwidth = view->columnWidth(0);
-    printf("cell width %d\n", *cwidth);
-    *cheight = view->rowHeight(0);
-    printf("cell height %d\n", *cheight);
 }
 
 void TableSetColMaxlengths(Widget w, int *maxlengths)
@@ -9459,6 +9540,92 @@ void TableCommitEdit(Widget w, int close)
 ////        tableWidget->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::NoUpdate);
 //        delegate->emitCloseEditor();
 //    }
+}
+
+void TableSelectCell(Widget w, int row, int col)
+{
+    QTableView *view = (QTableView*) w;
+    QModelIndex index = view->model()->index(row, col);
+    view->selectionModel()->select(index, QItemSelectionModel::Select);
+}
+
+void TableDeselectCell(Widget w, int row, int col)
+{
+    QTableView *view = (QTableView*) w;
+    QModelIndex index = view->model()->index(row, col);
+    view->selectionModel()->select(index, QItemSelectionModel::Deselect);
+}
+
+void TableSelectRow(Widget w, int row)
+{
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+
+    QModelIndex topLeft = view->model()->index(row, 0);
+    QModelIndex bottomRight = view->model()->index(row, model->columnCount()-1);
+
+    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
+}
+
+void TableDeselectRow(Widget w, int row)
+{
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+
+    QModelIndex topLeft = view->model()->index(row, 0);
+    QModelIndex bottomRight = view->model()->index(row, model->columnCount()-1);
+
+    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
+}
+
+void TableSelectCol(Widget w, int col)
+{
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+
+    QModelIndex topLeft = view->model()->index(0, col);
+    QModelIndex bottomRight = view->model()->index(model->rowCount()-1, col);
+
+    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
+}
+
+void TableDeselectCol(Widget w, int col)
+{
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+
+    QModelIndex topLeft = view->model()->index(0, col);
+    QModelIndex bottomRight = view->model()->index(model->rowCount()-1, col);
+
+    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
+}
+
+void TableDeselectAllCells(Widget w)
+{
+    QTableView *view = (QTableView*) w;
+
+    view->clearSelection();
+}
+
+int TableIsRowSelected(Widget w, int row)
+{
+    QTableView *view = (QTableView*) w;
+
+    return view->selectionModel()->isRowSelected(row, QModelIndex());
+}
+
+int TableIsColSelected(Widget w, int col)
+{
+    QTableView *view = (QTableView*) w;
+
+    return view->selectionModel()->isColumnSelected(col, QModelIndex());
+}
+
+void TableUpdate(Widget w)
+{
+    QTableView *view = (QTableView*) w;
+
+    view->reset();
 }
 
 void AddTableDrawCellCB(Widget w, Table_CBProc cbproc, void *anydata)
@@ -9649,78 +9816,6 @@ void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
     hHeader->setCallBackData(cbdata);
     HeaderView *vHeader = (HeaderView*) view->verticalHeader();
     vHeader->setCallBackData(cbdata);
-}
-
-void TableSelectRow(Widget w, int row)
-{
-    QTableView *view = (QTableView*) w;
-    TableModel *model = (TableModel *) view->model();
-
-    QModelIndex topLeft = view->model()->index(row, 0);
-    QModelIndex bottomRight = view->model()->index(row, model->columnCount()-1);
-
-    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
-}
-
-void TableDeselectRow(Widget w, int row)
-{
-    QTableView *view = (QTableView*) w;
-    TableModel *model = (TableModel *) view->model();
-
-    QModelIndex topLeft = view->model()->index(row, 0);
-    QModelIndex bottomRight = view->model()->index(row, model->columnCount()-1);
-
-    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
-}
-
-void TableSelectCol(Widget w, int col)
-{
-    QTableView *view = (QTableView*) w;
-    TableModel *model = (TableModel *) view->model();
-
-    QModelIndex topLeft = view->model()->index(0, col);
-    QModelIndex bottomRight = view->model()->index(model->rowCount()-1, col);
-
-    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
-}
-
-void TableDeselectCol(Widget w, int col)
-{
-    QTableView *view = (QTableView*) w;
-    TableModel *model = (TableModel *) view->model();
-
-    QModelIndex topLeft = view->model()->index(0, col);
-    QModelIndex bottomRight = view->model()->index(model->rowCount()-1, col);
-
-    view->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Deselect);
-}
-
-void TableDeselectAllCells(Widget w)
-{
-    QTableView *view = (QTableView*) w;
-
-    view->clearSelection();
-}
-
-int TableIsRowSelected(Widget w, int row)
-{
-    QTableView *view = (QTableView*) w;
-
-    return view->selectionModel()->isRowSelected(row, QModelIndex());
-}
-
-int TableIsColSelected(Widget w, int col)
-{
-    QTableView *view = (QTableView*) w;
-
-    return view->selectionModel()->isColumnSelected(col, QModelIndex());
-}
-
-void TableUpdate(Widget w)
-{
-    QTableView *view = (QTableView*) w;
-
-    view->reset();
 }
 
 /* ScrollBar */
