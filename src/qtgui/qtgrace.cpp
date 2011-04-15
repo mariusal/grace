@@ -9690,6 +9690,11 @@ void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
                      SIGNAL(pressed(const QModelIndex &)),
                      cb,
                      SLOT(table_int_cell_cb_proc(const QModelIndex &)));
+
+    QObject::connect(view,
+                     SIGNAL(doubleClicked(const QModelIndex &)),
+                     cb,
+                     SLOT(table_int_cell_cb_proc(const QModelIndex &)));
 }
 
 static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous, void *data)
