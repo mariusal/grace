@@ -1878,6 +1878,32 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
         XmNmodifyVerifyCallback, text_int_mv_cb_proc, (XtPointer) cbdata);
 }
 
+static void text_int_validate_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    XmTextBlock text;
+    TextValidate_CBData *cbdata = (TextValidate_CBData *) client_data;
+    XmTextVerifyCallbackStruct *tcbs =
+            (XmTextVerifyCallbackStruct *) call_data;
+
+    text = tcbs->text;
+
+    if (!cbdata->cbproc(&text->ptr, &text->length, cbdata->anydata)) {
+        tcbs->doit = FALSE;
+    }
+}
+
+void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata)
+{
+    TextValidate_CBData *cbdata;
+
+    cbdata = (TextValidate_CBData *) xmalloc(sizeof(TextValidate_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XmNmodifyVerifyCallback, text_int_validate_cb_proc, cbdata);
+}
+
 int GetTextCursorPos(TextStructure *cst)
 {
     return XmTextGetInsertionPosition(cst->text);
@@ -5210,6 +5236,16 @@ void TableDeleteCols(Widget w, int ncols)
     XbaeMatrixDeleteColumns(w, TableGetNcols(w) - ncols, ncols);
 }
 
+void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
+{
+    int x0, x1, y0, y1;
+
+    XbaeMatrixRowColToXY(w, 0, 0, &x0, &y0);
+    XbaeMatrixRowColToXY(w, 1, 1, &x1, &y1);
+    *cwidth  = x1 - x0;
+    *cheight = y1 - y0;
+}
+
 void TableSetDefaultColWidth(Widget w, int width)
 {
     TableData *td;
@@ -5276,16 +5312,6 @@ void TableSetDefaultColLabelAlignment(Widget w, int align)
     xfree(alignment);
 }
 
-void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
-{
-    int x0, x1, y0, y1;
-
-    XbaeMatrixRowColToXY(w, 0, 0, &x0, &y0);
-    XbaeMatrixRowColToXY(w, 1, 1, &x1, &y1);
-    *cwidth  = x1 - x0;
-    *cheight = y1 - y0;
-}
-
 void TableSetColMaxlengths(Widget w, int *maxlengths)
 {
     XtVaSetValues(w, XmNcolumnMaxLengths, maxlengths, NULL);
@@ -5321,6 +5347,56 @@ void TableUpdateVisibleRowsCols(Widget w)
 void TableCommitEdit(Widget w, int close)
 {
     XbaeMatrixCommitEdit(w, close);
+}
+
+void TableSelectCell(Widget w, int row, int col)
+{
+    XbaeMatrixSelectCell(w, row, col);
+}
+
+void TableDeselectCell(Widget w, int row, int col)
+{
+    XbaeMatrixDeselectCell(w, row, col);
+}
+
+void TableSelectRow(Widget w, int row)
+{
+    XbaeMatrixSelectRow(w, row);
+}
+
+void TableDeselectRow(Widget w, int row)
+{
+    XbaeMatrixDeselectRow(w, row);
+}
+
+void TableSelectCol(Widget w, int col)
+{
+    XbaeMatrixSelectColumn(w, col);
+}
+
+void TableDeselectCol(Widget w, int col)
+{
+    XbaeMatrixDeselectColumn(w, col);
+}
+
+void TableDeselectAllCells(Widget w)
+{
+    XbaeMatrixDeselectAll(w);
+}
+
+int TableIsRowSelected(Widget w, int row)
+{
+    return XbaeMatrixIsRowSelected(w, row);
+}
+
+int TableIsColSelected(Widget w, int col)
+{
+    return XbaeMatrixIsColumnSelected(w, col);
+}
+
+void TableUpdate(Widget w)
+{
+    XbaeMatrixRefresh(w);
 }
 
 static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
@@ -5480,46 +5556,6 @@ void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
     cbdata->anydata = anydata;
 
     XtAddCallback(w, XmNlabelActivateCallback, labelCB, cbdata);
-}
-
-void TableSelectRow(Widget w, int row)
-{
-    XbaeMatrixSelectRow(w, row);
-}
-
-void TableDeselectRow(Widget w, int row)
-{
-    XbaeMatrixDeselectRow(w, row);
-}
-
-void TableSelectCol(Widget w, int col)
-{
-    XbaeMatrixSelectColumn(w, col);
-}
-
-void TableDeselectCol(Widget w, int col)
-{
-    XbaeMatrixDeselectColumn(w, col);
-}
-
-void TableDeselectAllCells(Widget w)
-{
-    XbaeMatrixDeselectAll(w);
-}
-
-int TableIsRowSelected(Widget w, int row)
-{
-    return XbaeMatrixIsRowSelected(w, row);
-}
-
-int TableIsColSelected(Widget w, int col)
-{
-    return XbaeMatrixIsColumnSelected(w, col);
-}
-
-void TableUpdate(Widget w)
-{
-    XbaeMatrixRefresh(w);
 }
 
 /* ScrollBar */
