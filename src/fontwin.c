@@ -92,6 +92,7 @@ void create_fonttool(TextStructure *cstext_parent)
         TableFontInit(ui->font_table);
         TableSetDefaultColWidth(ui->font_table, 2);
         TableSetDefaultColAlignment(ui->font_table, ALIGN_BEGINNING);
+        TableUpdateVisibleRowsCols(ui->font_table);
 
         AddTableDrawCellCB(ui->font_table, DrawCB, ui);
         AddTableEnterCellCB(ui->font_table, EnterCB, ui);

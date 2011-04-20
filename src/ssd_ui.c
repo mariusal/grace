@@ -500,6 +500,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         TableSetColMaxlengths(ui->mw, maxlengths);
         TableSetColLabels(ui->mw, collabels);
         TableSetFixedCols(ui->mw, nfixed_cols);
+        TableUpdateVisibleRowsCols(ui->mw);
 
         xfree(maxlengths);
         for (i = 0; i < new_nc; i++) {

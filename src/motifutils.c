@@ -5159,6 +5159,30 @@ void TableFontInit(Widget w)
                   NULL);
 }
 
+void TableDataSetPropInit(Widget w)
+{
+    XtVaSetValues(w,
+                  XmNshowArrows, True,
+                  XmNallowColumnResize, True,
+                  XmNgridType, XmGRID_COLUMN_SHADOW,
+                  XmNcellShadowType, XmSHADOW_OUT,
+                  XmNcellShadowThickness, 1,
+                  XmNaltRowCount, 1,
+                  XmNtraversalOn, False,
+                  NULL);
+}
+
+void TableLevalInit(Widget w)
+{
+    XtVaSetValues(w,
+                  XmNgridType, XmGRID_CELL_SHADOW,
+                  XmNcellShadowType, XmSHADOW_ETCHED_OUT,
+                  XmNcellShadowThickness, 2,
+                  XmNaltRowCount, 0,
+                  XmNallowColumnResize, True,
+                  NULL);
+}
+
 static int align_to_xmalign(int align)
 {
     switch(align) {
@@ -5347,6 +5371,21 @@ void TableUpdateVisibleRowsCols(Widget w)
 void TableCommitEdit(Widget w, int close)
 {
     XbaeMatrixCommitEdit(w, close);
+}
+
+void TableSetCells(Widget w, char ***cells)
+{
+    XtVaSetValues(w, XmNcells, cells, NULL);
+}
+
+void TableSetCell(Widget w, int row, int col, char *value)
+{
+    XbaeMatrixSetCell(w, row, col, value);
+}
+
+char *TableGetCell(Widget w, int row, int col)
+{
+    return XbaeMatrixGetCell(w, row, col);
 }
 
 void TableSelectCell(Widget w, int row, int col)

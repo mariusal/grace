@@ -128,7 +128,7 @@ protected:
                 }
 
                 emit commitData(editor);
-                emit closeEditor(editor, NoHint);
+//                emit closeEditor(editor, NoHint);
             }
         } else if (event->type() == QEvent::ShortcutOverride) {
             if (static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
@@ -194,20 +194,23 @@ public:
 
     void setDefaultColumnAlignment(Qt::Alignment align);
     void setDefaultColumnLabelAlignment(Qt::Alignment align);
+    void setDefaultRowLabelAlignment(Qt::Alignment align);
     void setRowLabels(char **labels);
     void setColumnLabels(char **labels);
     void setDrawCellCallback(Table_CBData *cbdata);
-    QString getEditorData();
+    char *getEditorData();
+    QVector<QVector<char *> > cells;
 
 private:
     int ncols;
     int nrows;
     Qt::Alignment defaultColumnAlignment;
     Qt::Alignment defaultColumnLabelAlignment;
+    Qt::Alignment defaultRowLabelAlignment;
     QStringList rowLabels;
     QStringList columnLabels;
     Table_CBData *cbdata;
-    QString editorData;
+    char *editorData;
 };
 
 
@@ -218,8 +221,15 @@ class TableView : public QTableView
     Q_OBJECT
 
 public:
-    TableView(QWidget *parent = 0);
+    TableView(QAbstractItemModel *model, QWidget *parent = 0);
+    void removeDefaultTableEnterCellCB();
+    void removeDefaultTableLeaveCellCB();
 
+private:
+    Table_CBData *enter_cbdata;
+    Table_CBData *leave_cbdata;
+    CallBack *enter_cb;
+    CallBack *leave_cb;
 };
 
 class Validator : public QValidator

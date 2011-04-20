@@ -643,26 +643,12 @@ void create_reg_frame(Widget but, void *data)
 {
 }
 
-void create_leval_frame(Widget but, void *data)
-{
-}
-
-
 void create_points_frame(Widget but, void *data)
 {
 }
 
 
 void create_nonl_frame(Widget but, void *data)
-{
-}
-
-
-void create_datasetprop_popup(Widget but, void *data)
-{
-}
-
-void create_datasetop_popup(Widget but, void *data)
 {
 }
 
@@ -8758,14 +8744,14 @@ void SetLabel(Widget w, char *s)
 //        XmFontListFree(xmf);
 //    }
 //}
-//
-//void update_set_lists(Quark *gr)
-//{
-//    update_set_selectors(gr);
-//    
-//    snapshot_and_update(gapp->gp, FALSE);
-//}
-//
+
+void update_set_lists(Quark *gr)
+{
+    update_set_selectors(gr);
+
+    snapshot_and_update(gapp->gp, FALSE);
+}
+
 void update_undo_buttons(GProject *gp)
 {
     Quark *project = gproject_get_top(gp);
@@ -9044,17 +9030,31 @@ TableModel::TableModel(QObject *parent)
     ncols = 0;
     defaultColumnAlignment = Qt::AlignLeft | Qt::AlignVCenter;
     defaultColumnLabelAlignment = Qt::AlignLeft | Qt::AlignVCenter;
+    defaultRowLabelAlignment = Qt::AlignLeft | Qt::AlignVCenter;
     cbdata = 0;
+    editorData = 0;
 }
 
 void TableModel::setRowCount(int rows)
 {
+    if (rows > cells.size()) {
+        cells.resize(rows);
+        for (int row = 0; row < rows; ++row) {
+            cells[row].resize(this->ncols);
+        }
+    }
+
     this->nrows = rows;
     reset();
 }
 
 void TableModel::setColumnCount(int cols)
 {
+    for (int row = 0; row < this->nrows; ++row) {
+        if (cells[row].size() < cols)
+            cells[row].resize(cols);
+    }
+
     this->ncols = cols;
     reset();
 }
@@ -9073,11 +9073,21 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
 {
     TableEvent event;
 
-    if (!index.isValid() || cbdata == 0)
+    if (!index.isValid())
         return QVariant();
 
     if (role == Qt::TextAlignmentRole)
         return int(defaultColumnAlignment);
+
+    if (cbdata == 0) {
+        if (role == Qt::DisplayRole) {
+            return QVariant(cells[index.row()][index.column()]);
+        } else if (role == Qt::EditRole) {
+            return QVariant::fromValue<void *>(cells[index.row()][index.column()]);
+        } else {
+            return QVariant();
+        }
+    }
 
     event.w = cbdata->w;
     event.row = index.row();
@@ -9087,9 +9097,15 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
 
     cbdata->cbproc(&event);
 
-    if (role == Qt::DisplayRole || role == Qt::EditRole) {
+    if (role == Qt::DisplayRole) {
         if (event.value_type == TABLE_CELL_STRING) {
-            return QVariant(QString(event.value));
+            return QVariant(event.value);
+        }
+    }
+
+    if (role == Qt::EditRole) {
+        if (event.value_type == TABLE_CELL_STRING) {
+            return QVariant::fromValue<void *>(event.value);
         }
     }
 
@@ -9107,9 +9123,15 @@ QVariant TableModel::headerData(int section,
                                 Qt::Orientation  orientation,
                                 int role) const
 {
-    if (role == Qt::TextAlignmentRole &&
-        orientation == Qt::Horizontal)
-        return int(defaultColumnLabelAlignment);
+    if (role == Qt::TextAlignmentRole) {
+        if (orientation == Qt::Horizontal) {
+            return int(defaultColumnLabelAlignment);
+        }
+        if (orientation == Qt::Vertical) {
+            return int(defaultRowLabelAlignment);
+        }
+    }
+
 
     if (role == Qt::DisplayRole) {
         if (orientation == Qt::Horizontal) {
@@ -9142,9 +9164,9 @@ bool TableModel::setData(const QModelIndex &index,
                          const QVariant &value, int role)
 {
     if (index.isValid() && role == Qt::EditRole) {
-        //stringList.replace(index.row(), value.toString());
-        editorData = value.toString();
-        emit dataChanged(index, index);
+        QByteArray ba = value.toString().toAscii();
+        editorData = copy_string(editorData, ba.data());
+        //emit dataChanged(index, index);
         return true;
     }
     return false;
@@ -9158,6 +9180,11 @@ void TableModel::setDefaultColumnAlignment(Qt::Alignment align)
 void TableModel::setDefaultColumnLabelAlignment(Qt::Alignment align)
 {
     this->defaultColumnLabelAlignment = align  | Qt::AlignVCenter;
+}
+
+void TableModel::setDefaultRowLabelAlignment(Qt::Alignment align)
+{
+    this->defaultRowLabelAlignment = align  | Qt::AlignVCenter;
 }
 
 void TableModel::setRowLabels(char **labels)
@@ -9187,16 +9214,70 @@ void TableModel::setDrawCellCallback(Table_CBData *cbdata)
     this->cbdata = cbdata;
 }
 
-QString TableModel::getEditorData()
+char *TableModel::getEditorData()
 {
     return editorData;
 }
 
-TableView::TableView(QWidget *parent)
-    : QTableView(parent)
+static int defaultTableCB(TableEvent *event)
 {
+    return TRUE;
 }
 
+static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data);
+static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous, void *data);
+
+TableView::TableView(QAbstractItemModel *model, QWidget *parent)
+    : QTableView(parent)
+{
+    this->setModel(model);
+
+    Table_CBProc cbproc = defaultTableCB;
+
+    enter_cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    enter_cbdata->w = this;
+    enter_cbdata->cbproc = cbproc;
+    enter_cbdata->anydata = NULL;
+
+    enter_cb = new CallBack(mainWin);
+    enter_cb->setCallBack(table_int_enter_cell_cb_proc, enter_cbdata);
+
+    QObject::connect(this,
+                     SIGNAL(pressed(const QModelIndex &)),
+                     enter_cb,
+                     SLOT(table_int_cell_cb_proc(const QModelIndex &)));
+
+    QObject::connect(this,
+                     SIGNAL(doubleClicked(const QModelIndex &)),
+                     enter_cb,
+                     SLOT(table_int_cell_cb_proc(const QModelIndex &)));
+
+
+    leave_cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    leave_cbdata->w = this;
+    leave_cbdata->cbproc = cbproc;
+    leave_cbdata->anydata = NULL;
+
+    leave_cb = new CallBack(mainWin);
+    leave_cb->setCallBack(table_int_leave_cell_cb_proc, leave_cbdata);
+
+    QObject::connect(this->selectionModel(),
+                     SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
+                     leave_cb,
+                     SLOT(table_int_cell_cb_proc(const QModelIndex &, const QModelIndex &)));
+}
+
+void TableView::removeDefaultTableEnterCellCB()
+{
+    delete enter_cb;
+    xfree(enter_cbdata);
+}
+
+void TableView::removeDefaultTableLeaveCellCB()
+{
+    delete leave_cb;
+    xfree(leave_cbdata);
+}
 
 LineEditDelegate::LineEditDelegate(int maxLength, QObject *parent)
     : QItemDelegate(parent)
@@ -9218,7 +9299,9 @@ QWidget *LineEditDelegate::createEditor(QWidget *parent,
 void LineEditDelegate::setEditorData(QWidget *editor,
                                      const QModelIndex &index) const
 {
-    QString value = index.model()->data(index, Qt::EditRole).toString();
+    QVariant v = index.model()->data(index, Qt::EditRole);
+    char *text = reinterpret_cast<char *>(v.value<void *>());
+    QString value(text);
 
     QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
     lineEdit->setText(value);
@@ -9255,8 +9338,7 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     model->setRowCount(nrows);
     model->setColumnCount(ncols);
 
-    TableView *view = new TableView(parent);
-    view->setModel(model);
+    TableView *view = new TableView(model, parent);
 
     QHeaderView *hHeader = new HeaderView(Qt::Horizontal);
     view->setHorizontalHeader(hHeader);
@@ -9291,7 +9373,8 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     view->setEditTriggers(QAbstractItemView::NoEditTriggers);
     view->setSelectionMode(QAbstractItemView::NoSelection);
 
-    TableUpdateVisibleRowsCols(view);
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
@@ -9317,6 +9400,24 @@ void TableFontInit(Widget w)
     view->horizontalHeader()->hide();
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+}
+
+void TableDataSetPropInit(Widget w)
+{
+    QTableView *view = (QTableView*) w;
+
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+}
+
+void TableLevalInit(Widget w)
+{
+    QTableView *view = (QTableView*) w;
+
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    view->horizontalHeader()->hide();
 }
 
 int TableGetNrows(Widget w)
@@ -9350,8 +9451,6 @@ void TableAddRows(Widget w, int nrows)
     rc = TableGetNrows(w);
 
     model->setRowCount(rc + nrows);
-
-    TableUpdateVisibleRowsCols(w);
 }
 
 void TableDeleteRows(Widget w, int nrows)
@@ -9378,8 +9477,6 @@ void TableAddCols(Widget w, int ncols)
 
     td = (TableData*) GetUserData(w);
     TableSetDefaultColWidth(w, td->default_col_width);
-
-    TableUpdateVisibleRowsCols(w);
 }
 
 void TableDeleteCols(Widget w, int ncols)
@@ -9403,6 +9500,47 @@ void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
     printf("cell height %d\n", *cheight);
 }
 
+void TableSetColWidths(Widget w, int *widths)
+{
+    QTableView *view = (QTableView*) w;
+    TableData *td;
+    int i, cc = TableGetNcols(w);
+    QHeaderView *hHeader = view->horizontalHeader();
+
+    td = (TableData*) GetUserData(w);
+
+    for (i = 0; i < cc; i++) {
+        hHeader->resizeSection(i, widths[i] * td->font_width + 2*td->frame_width);
+    }
+}
+
+void TableSetDefaultRowLabelWidth(Widget w, int width)
+{
+    QTableView *view = (QTableView*) w;
+    QHeaderView *vHeader = view->verticalHeader();
+    TableData *td = (TableData*) GetUserData(w);
+
+    vHeader->setFixedWidth(width * td->font_width + 2*td->frame_width);
+}
+
+void TableSetDefaultRowLabelAlignment(Widget w, int align)
+{
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+
+    switch (align) {
+    case ALIGN_BEGINNING:
+        model->setDefaultRowLabelAlignment(Qt::AlignLeft);
+        break;
+    case ALIGN_CENTER:
+        model->setDefaultRowLabelAlignment(Qt::AlignHCenter);
+        break;
+    case ALIGN_END:
+        model->setDefaultRowLabelAlignment(Qt::AlignRight);
+        break;
+    }
+}
+
 void TableSetDefaultColWidth(Widget w, int width)
 {
     QTableView *view = (QTableView*) w;
@@ -9417,8 +9555,6 @@ void TableSetDefaultColWidth(Widget w, int width)
     for (i = 0; i < cc; i++) {
         hHeader->resizeSection(i, td->default_col_width * td->font_width + 2*td->frame_width);
     }
-
-    TableUpdateVisibleRowsCols(view);
 }
 
 void TableSetDefaultColAlignment(Widget w, int align)
@@ -9473,8 +9609,6 @@ void TableSetRowLabels(Widget w, char **labels)
     TableModel *model = (TableModel *) view->model();
 
     model->setRowLabels(labels);
-
-    TableUpdateVisibleRowsCols(w);
 }
 
 void TableSetColLabels(Widget w, char **labels)
@@ -9483,8 +9617,6 @@ void TableSetColLabels(Widget w, char **labels)
     TableModel *model = (TableModel *) view->model();
 
     model->setColumnLabels(labels);
-
-    TableUpdateVisibleRowsCols(w);
 }
 
 void TableSetFixedCols(Widget w, int nfixed_cols)
@@ -9505,24 +9637,26 @@ void TableUpdateVisibleRowsCols(Widget w)
 
     td = (TableData*) GetUserData(w);
 
-    printf("update visible row height %d\n", view->rowHeight(0));
     if (!hHeader->isHidden()) {
         height = qMax(hHeader->minimumHeight(), hHeader->sizeHint().height());
         height = qMin(height, hHeader->maximumHeight());
     }
-    height += view->rowHeight(0) * td->nrows_visible;
+    for (int i = 0; i < td->nrows_visible; i++) {
+        height += view->rowHeight(i);
+    }
     height += view->contentsMargins().top();
     height += view->contentsMargins().bottom();
     if (view->horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOn)
         height += view->horizontalScrollBar()->sizeHint().height();
     view->setFixedHeight(height);
 
-    printf("update visible col width %d\n", view->columnWidth(0));
     if (!vHeader->isHidden()) {
         width = qMax(vHeader->minimumWidth(), vHeader->sizeHint().width());
         width = qMin(width, vHeader->maximumWidth());
     }
-    width += view->columnWidth(0) * td->ncols_visible;
+    for (int i = 0; i < td->ncols_visible; i++) {
+        width += view->columnWidth(i);
+    }
     width += view->contentsMargins().left();
     width += view->contentsMargins().right();
     if (view->verticalScrollBarPolicy() == Qt::ScrollBarAlwaysOn)
@@ -9540,6 +9674,42 @@ void TableCommitEdit(Widget w, int close)
 ////        tableWidget->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::NoUpdate);
 //        delegate->emitCloseEditor();
 //    }
+}
+
+void TableSetCells(Widget w, char ***cells)
+{
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+    int ncols = TableGetNcols(w);
+    int nrows = TableGetNrows(w);
+
+    for (int row = 0; row < nrows; row++) {
+        for (int col = 0; col < ncols; col++) {
+            model->cells[row][col] = cells[row][col];
+        }
+    }
+    TableUpdate(w);
+}
+
+void TableSetCell(Widget w, int row, int col, char *value)
+{
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+
+    qDebug() << "TableSetCell" << "row" << row << "col" << col << "value" << value;
+
+    model->cells[row][col] = value;
+}
+
+char *TableGetCell(Widget w, int row, int col)
+{
+    QTableView *view = (QTableView*) w;
+    TableModel *model = (TableModel *) view->model();
+
+    char *value = model->cells.value(row).value(col);
+    qDebug() << "TableGetCell:value" << value;
+
+    return value;
 }
 
 void TableSelectCell(Widget w, int row, int col)
@@ -9648,18 +9818,16 @@ static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
     TableEvent event;
     Table_CBData *cbdata = (Table_CBData *) data;
     QTableView *view = (QTableView*) cbdata->w;
-    char *value;
     int ok;
 
     if (index.isValid()) {
-        QString str = index.model()->data(index, Qt::EditRole).toString();
-        QByteArray ba = str.toAscii();
-        value = copy_string(NULL, ba.data());
-
+        qDebug() << "enter cb" << "row" << index.row() << "col" << index.column() << "value" << index.model()->data(index, Qt::EditRole).toByteArray().data();
         event.w = cbdata->w;
         event.row = index.row();
         event.col = index.column();
-        event.value = value;
+        QVariant v = index.model()->data(index, Qt::EditRole);
+        char *text = reinterpret_cast<char *>(v.value<void *>());
+        event.value = text;
         event.anydata = cbdata->anydata;
         ok = cbdata->cbproc(&event);
 
@@ -9675,16 +9843,18 @@ static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
 void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
     Table_CBData *cbdata;
+    CallBack *cb;
 
     cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
     cbdata->w = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    CallBack *cb = new CallBack(mainWin);
+    cb = new CallBack(mainWin);
     cb->setCallBack(table_int_enter_cell_cb_proc, cbdata);
 
-    QTableView *view = (QTableView*) cbdata->w;
+    TableView *view = (TableView*) cbdata->w;
+    view->removeDefaultTableEnterCellCB();
 
     QObject::connect(view,
                      SIGNAL(pressed(const QModelIndex &)),
@@ -9704,23 +9874,16 @@ static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QMode
     QTableView *view = (QTableView*) cbdata->w;
     TableModel *model = (TableModel *) view->model();
     QItemSelectionModel *selectionModel = view->selectionModel();
-    QString str;
-    char *value;
     int ok;
 
     if (previous.isValid()) {
-        str = model->getEditorData();
-        QByteArray ba = str.toAscii();
-        value = copy_string(NULL, ba.data());
-
+        qDebug() << "leave cb" << "row" << previous.row() << "col" << previous.column() << "value" << *model->getEditorData();
         event.w = cbdata->w;
         event.row = previous.row();
         event.col = previous.column();
-        event.value = value;
+        event.value = model->getEditorData();
         event.anydata = cbdata->anydata;
         ok = cbdata->cbproc(&event);
-
-        xfree(value);
 
         if (ok) {
             printf("%s", "leave cb, ok to leave\n");
@@ -9737,16 +9900,18 @@ static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QMode
 void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
     Table_CBData *cbdata;
+    CallBack *cb;
 
     cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
     cbdata->w = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    CallBack *cb = new CallBack(mainWin);
+    cb = new CallBack(mainWin);
     cb->setCallBack(table_int_leave_cell_cb_proc, cbdata);
 
-    QTableView *view = (QTableView*) cbdata->w;
+    TableView *view = (TableView*) cbdata->w;
+    view->removeDefaultTableLeaveCellCB();
 
     QObject::connect(view->selectionModel(),
                      SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
