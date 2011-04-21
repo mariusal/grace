@@ -9081,7 +9081,7 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
 
     if (cbdata == 0) {
         if (role == Qt::DisplayRole) {
-            return QVariant(cells[index.row()][index.column()]);
+            return QString::fromAscii(cells[index.row()][index.column()]);
         } else if (role == Qt::EditRole) {
             return QVariant::fromValue<void *>(cells[index.row()][index.column()]);
         } else {
@@ -9099,7 +9099,7 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
         if (event.value_type == TABLE_CELL_STRING) {
-            return QVariant(event.value);
+            return QString::fromAscii(event.value);
         }
     }
 
@@ -9166,6 +9166,7 @@ bool TableModel::setData(const QModelIndex &index,
     if (index.isValid() && role == Qt::EditRole) {
         QByteArray ba = value.toString().toAscii();
         editorData = copy_string(editorData, ba.data());
+        qDebug() << "editorData" << editorData;
         //emit dataChanged(index, index);
         return true;
     }
@@ -9300,8 +9301,9 @@ void LineEditDelegate::setEditorData(QWidget *editor,
                                      const QModelIndex &index) const
 {
     QVariant v = index.model()->data(index, Qt::EditRole);
-    char *text = reinterpret_cast<char *>(v.value<void *>());
+    char *text = copy_string(NULL, reinterpret_cast<char *>(v.value<void *>()));
     QString value(text);
+    xfree(text);
 
     QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
     lineEdit->setText(value);
@@ -9685,7 +9687,7 @@ void TableSetCells(Widget w, char ***cells)
 
     for (int row = 0; row < nrows; row++) {
         for (int col = 0; col < ncols; col++) {
-            model->cells[row][col] = cells[row][col];
+            model->cells[row][col] = copy_string(model->cells[row][col], cells[row][col]);
         }
     }
     TableUpdate(w);
@@ -9698,7 +9700,7 @@ void TableSetCell(Widget w, int row, int col, char *value)
 
     qDebug() << "TableSetCell" << "row" << row << "col" << col << "value" << value;
 
-    model->cells[row][col] = value;
+    model->cells[row][col] = copy_string(model->cells[row][col], value);
 }
 
 char *TableGetCell(Widget w, int row, int col)
@@ -9821,15 +9823,16 @@ static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
     int ok;
 
     if (index.isValid()) {
-        qDebug() << "enter cb" << "row" << index.row() << "col" << index.column() << "value" << index.model()->data(index, Qt::EditRole).toByteArray().data();
+        QVariant v = index.model()->data(index, Qt::EditRole);
+        char *text = copy_string(NULL, reinterpret_cast<char *>(v.value<void *>()));
+        qDebug() << "enter cb" << "row" << index.row() << "col" << index.column() << "value" << text;
         event.w = cbdata->w;
         event.row = index.row();
         event.col = index.column();
-        QVariant v = index.model()->data(index, Qt::EditRole);
-        char *text = reinterpret_cast<char *>(v.value<void *>());
         event.value = text;
         event.anydata = cbdata->anydata;
         ok = cbdata->cbproc(&event);
+        xfree(text);
 
         if (ok) {
             printf("%s", "enter cb ok to edit\n");
@@ -9877,13 +9880,15 @@ static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QMode
     int ok;
 
     if (previous.isValid()) {
-        qDebug() << "leave cb" << "row" << previous.row() << "col" << previous.column() << "value" << *model->getEditorData();
+        char *text = copy_string(NULL, model->getEditorData());
+        qDebug() << "leave cb" << "row" << previous.row() << "col" << previous.column() << "value" << text;
         event.w = cbdata->w;
         event.row = previous.row();
         event.col = previous.column();
-        event.value = model->getEditorData();
+        event.value = text;
         event.anydata = cbdata->anydata;
         ok = cbdata->cbproc(&event);
+        xfree(text);
 
         if (ok) {
             printf("%s", "leave cb, ok to leave\n");
