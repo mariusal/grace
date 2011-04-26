@@ -9208,6 +9208,18 @@ TableView::TableView(QAbstractItemModel *model, QWidget *parent)
     previous_col = -1;
 }
 
+void TableView::closeEditor()
+{
+    TableModel *tm = (TableModel *) model();
+
+    closeEditor(tm->newIndex(previous_row, previous_col));
+}
+
+void TableView::commitEdit()
+{
+    jumpToCell();
+}
+
 void TableView::setEditorMaxLengths(int *maxlengths)
 {
     int cc = model()->columnCount();
@@ -9664,12 +9676,10 @@ void TableCommitEdit(Widget w, int close)
 {
     TableView *view = (TableView*) w;
 
-//    LineEditDelegate *delegate = (LineEditDelegate*) tableWidget->itemDelegate();
-//    delegate->emitCommitData();
-//    if (close) {
-////        tableWidget->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::NoUpdate);
-//        delegate->emitCloseEditor();
-//    }
+    view->commitEdit();
+    if (close) {
+        view->closeEditor();
+    }
 }
 
 void TableSetCells(Widget w, char ***cells)

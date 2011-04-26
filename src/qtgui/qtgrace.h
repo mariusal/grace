@@ -147,6 +147,10 @@ class TableView : public QTableView
 
 public:
     TableView(QAbstractItemModel *model, QWidget *parent = 0);
+
+    void closeEditor();
+    void commitEdit();
+
     void setEditorMaxLengths(int *maxlengths);
 
     void setLeaveCellCallback(Table_CBData *cbdata) {
