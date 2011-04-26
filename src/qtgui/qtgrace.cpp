@@ -9032,7 +9032,6 @@ TableModel::TableModel(QObject *parent)
     defaultColumnLabelAlignment = Qt::AlignLeft | Qt::AlignVCenter;
     defaultRowLabelAlignment = Qt::AlignLeft | Qt::AlignVCenter;
     cbdata = 0;
-    editorData = 0;
 }
 
 void TableModel::setRowCount(int rows)
@@ -9152,27 +9151,6 @@ QVariant TableModel::headerData(int section,
     return QVariant();
 }
 
-Qt::ItemFlags TableModel::flags(const QModelIndex &index) const
-{
-    if (!index.isValid())
-        return Qt::ItemIsEnabled;
-
-    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
-}
-
-bool TableModel::setData(const QModelIndex &index,
-                         const QVariant &value, int role)
-{
-    if (index.isValid() && role == Qt::EditRole) {
-        QByteArray ba = value.toString().toAscii();
-        editorData = copy_string(editorData, ba.data());
-        qDebug() << "editorData" << editorData;
-        //emit dataChanged(index, index);
-        return true;
-    }
-    return false;
-}
-
 void TableModel::setDefaultColumnAlignment(Qt::Alignment align)
 {
     this->defaultColumnAlignment = align  | Qt::AlignVCenter;
@@ -9215,113 +9193,135 @@ void TableModel::setDrawCellCallback(Table_CBData *cbdata)
     this->cbdata = cbdata;
 }
 
-char *TableModel::getEditorData()
-{
-    return editorData;
-}
-
-static int defaultTableCB(TableEvent *event)
-{
-    return TRUE;
-}
-
-static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data);
-static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous, void *data);
 
 TableView::TableView(QAbstractItemModel *model, QWidget *parent)
     : QTableView(parent)
 {
     this->setModel(model);
 
-    Table_CBProc cbproc = defaultTableCB;
+    lineEditor = 0;
 
-    enter_cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
-    enter_cbdata->w = this;
-    enter_cbdata->cbproc = cbproc;
-    enter_cbdata->anydata = NULL;
+    enter_cbdata = 0;
+    leave_cbdata = 0;
 
-    enter_cb = new CallBack(mainWin);
-    enter_cb->setCallBack(table_int_enter_cell_cb_proc, enter_cbdata);
-
-    QObject::connect(this,
-                     SIGNAL(pressed(const QModelIndex &)),
-                     enter_cb,
-                     SLOT(table_int_cell_cb_proc(const QModelIndex &)));
-
-    QObject::connect(this,
-                     SIGNAL(doubleClicked(const QModelIndex &)),
-                     enter_cb,
-                     SLOT(table_int_cell_cb_proc(const QModelIndex &)));
-
-
-    leave_cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
-    leave_cbdata->w = this;
-    leave_cbdata->cbproc = cbproc;
-    leave_cbdata->anydata = NULL;
-
-    leave_cb = new CallBack(mainWin);
-    leave_cb->setCallBack(table_int_leave_cell_cb_proc, leave_cbdata);
-
-    QObject::connect(this->selectionModel(),
-                     SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
-                     leave_cb,
-                     SLOT(table_int_cell_cb_proc(const QModelIndex &, const QModelIndex &)));
+    previous_row = -1;
+    previous_col = -1;
 }
 
-void TableView::removeDefaultTableEnterCellCB()
+void TableView::setEditorMaxLengths(int *maxlengths)
 {
-    delete enter_cb;
-    xfree(enter_cbdata);
-}
+    int cc = model()->columnCount();
 
-void TableView::removeDefaultTableLeaveCellCB()
-{
-    delete leave_cb;
-    xfree(leave_cbdata);
-}
+    editLengths.clear();
 
-LineEditDelegate::LineEditDelegate(int maxLength, QObject *parent)
-    : QItemDelegate(parent)
-{
-    this->maxLength = maxLength;
-}
-
-QWidget *LineEditDelegate::createEditor(QWidget *parent,
-                                        const QStyleOptionViewItem &/* option */,
-                                        const QModelIndex &/* index */) const
-{
-    QLineEdit *editor = new QLineEdit(parent);
-    if (maxLength > 0) {
-        editor->setMaxLength(maxLength);
+    for (int i = 0; i < cc; i++) {
+        editLengths.append(maxlengths[i]);
     }
-    return editor;
 }
 
-void LineEditDelegate::setEditorData(QWidget *editor,
-                                     const QModelIndex &index) const
+void TableView::mousePressEvent(QMouseEvent *event)
 {
-    QVariant v = index.model()->data(index, Qt::EditRole);
-    char *text = copy_string(NULL, reinterpret_cast<char *>(v.value<void *>()));
-    QString value(text);
-    xfree(text);
+    QModelIndex index = indexAt(event->pos());
 
-    QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
-    lineEdit->setText(value);
+    if (index.isValid()) {
+        row = index.row();
+        col = index.column();
+        jumpToCell();
+    }
 }
 
-void LineEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
-                                    const QModelIndex &index) const
+void TableView::jumpToCell()
 {
-    QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
-    QString value = lineEdit->text();
+    TableModel *tm = (TableModel *) model();
 
-    model->setData(index, value, Qt::EditRole);
+    if (leaveCellEvent(previous_row, previous_col)) {
+        closeEditor(tm->newIndex(previous_row, previous_col));
+        if (enterCellEvent(row, col)) {
+            previous_row = row;
+            previous_col = col;
+            openEditor(tm->newIndex(row, col));
+        }
+    }
 }
 
-void LineEditDelegate::updateEditorGeometry(QWidget *editor,
-                                            const QStyleOptionViewItem &option, const QModelIndex &/* index */) const
+int TableView::leaveCellEvent(int row, int col)
 {
-    editor->setGeometry(option.rect);
+    if (leave_cbdata) {
+        TableEvent event;
+        int ok;
+
+        if (row != -1 && col != -1) {
+            if (lineEditor) {
+                QString str = lineEditor->text();
+                qDebug() << "getEditorData from lineEdit" <<  str;
+                QByteArray ba = str.toAscii();
+                char *text = copy_string(NULL, ba.data());
+                qDebug() << "leave cb" << "row" << row << "col" << col << "value" << text;
+                event.w = leave_cbdata->w;
+                event.row = row;
+                event.col = col;
+                event.value = text;
+                event.anydata = leave_cbdata->anydata;
+                ok = leave_cbdata->cbproc(&event);
+                xfree(text);
+
+                return ok;
+            } else {
+                qDebug() << "leaveCellEvent index invalid";
+                return TRUE;
+            }
+        } else {
+            return TRUE;
+        }
+    } else {
+        return TRUE;
+    }
+}
+
+int TableView::enterCellEvent(int row, int col)
+{
+    if (enter_cbdata) {
+        TableEvent event;
+        int ok;
+
+        if (row != -1 && col != -1) {
+            qDebug() << "enter cb" << "row" << row << "col" << col;
+            event.w = enter_cbdata->w;
+            event.row = row;
+            event.col = col;
+            event.anydata = enter_cbdata->anydata;
+            ok = enter_cbdata->cbproc(&event);
+
+            return ok;
+        } else {
+            qDebug() << "enterCellEvent index invalid";
+            return TRUE;
+        }
+    } else {
+        return TRUE;
+    }
+}
+
+void TableView::openEditor(QModelIndex index)
+{
+    if (index.isValid()) {
+        QVariant v = model()->data(index, Qt::DisplayRole);
+        lineEditor = new QLineEdit(v.toString());
+        if (editLengths.size() == model()->columnCount()) {
+            qDebug() << "openEditor at column" << index.column();
+            lineEditor->setMaxLength(editLengths.at(index.column()));
+        }
+        setIndexWidget(index, lineEditor);
+        lineEditor->setFocus();
+        qDebug() << "openEditor";
+    }
+}
+
+void TableView::closeEditor(QModelIndex index)
+{
+    setIndexWidget(index, 0);
+    lineEditor = 0;
+    qDebug() << "closeEditor";
 }
 
 typedef struct {
@@ -9367,9 +9367,6 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     td->ncols_visible = ncols_visible;
 
     SetUserData(view, td);
-
-    LineEditDelegate *lineEdit = new LineEditDelegate;
-    view->setItemDelegate(lineEdit);
 
     view->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     view->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -9597,12 +9594,9 @@ void TableSetDefaultColLabelAlignment(Widget w, int align)
 
 void TableSetColMaxlengths(Widget w, int *maxlengths)
 {
-    QTableView *view = (QTableView*) w;
-    int ncols = TableGetNcols(w);
+    TableView *view = (TableView*) w;
 
-    for (int col = 0; col < ncols; col++) {
-        view->setItemDelegateForColumn(col, new LineEditDelegate(maxlengths[col]));
-    }
+    view->setEditorMaxLengths(maxlengths);
 }
 
 void TableSetRowLabels(Widget w, char **labels)
@@ -9815,113 +9809,31 @@ void AddTableDrawCellCB(Widget w, Table_CBProc cbproc, void *anydata)
     model->setDrawCellCallback(cbdata);
 }
 
-static void table_int_enter_cell_cb_proc(const QModelIndex &index, void *data)
-{
-    TableEvent event;
-    Table_CBData *cbdata = (Table_CBData *) data;
-    QTableView *view = (QTableView*) cbdata->w;
-    int ok;
-
-    if (index.isValid()) {
-        QVariant v = index.model()->data(index, Qt::EditRole);
-        char *text = copy_string(NULL, reinterpret_cast<char *>(v.value<void *>()));
-        qDebug() << "enter cb" << "row" << index.row() << "col" << index.column() << "value" << text;
-        event.w = cbdata->w;
-        event.row = index.row();
-        event.col = index.column();
-        event.value = text;
-        event.anydata = cbdata->anydata;
-        ok = cbdata->cbproc(&event);
-        xfree(text);
-
-        if (ok) {
-            printf("%s", "enter cb ok to edit\n");
-            view->openPersistentEditor(view->currentIndex());
-        } else {
-            printf("%s", "enter cb not ok to edit\n");
-        }
-    }
-}
-
 void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
     Table_CBData *cbdata;
-    CallBack *cb;
 
     cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
     cbdata->w = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    cb = new CallBack(mainWin);
-    cb->setCallBack(table_int_enter_cell_cb_proc, cbdata);
-
     TableView *view = (TableView*) cbdata->w;
-    view->removeDefaultTableEnterCellCB();
+    view->setEnterCellCallback(cbdata);
 
-    QObject::connect(view,
-                     SIGNAL(pressed(const QModelIndex &)),
-                     cb,
-                     SLOT(table_int_cell_cb_proc(const QModelIndex &)));
-
-    QObject::connect(view,
-                     SIGNAL(doubleClicked(const QModelIndex &)),
-                     cb,
-                     SLOT(table_int_cell_cb_proc(const QModelIndex &)));
-}
-
-static void table_int_leave_cell_cb_proc(const QModelIndex &current, const QModelIndex &previous, void *data)
-{
-    TableEvent event;
-    Table_CBData *cbdata = (Table_CBData *) data;
-    QTableView *view = (QTableView*) cbdata->w;
-    TableModel *model = (TableModel *) view->model();
-    QItemSelectionModel *selectionModel = view->selectionModel();
-    int ok;
-
-    if (previous.isValid()) {
-        char *text = copy_string(NULL, model->getEditorData());
-        qDebug() << "leave cb" << "row" << previous.row() << "col" << previous.column() << "value" << text;
-        event.w = cbdata->w;
-        event.row = previous.row();
-        event.col = previous.column();
-        event.value = text;
-        event.anydata = cbdata->anydata;
-        ok = cbdata->cbproc(&event);
-        xfree(text);
-
-        if (ok) {
-            printf("%s", "leave cb, ok to leave\n");
-            view->closePersistentEditor(previous);
-        } else {
-            printf("%s", "leave cb, not ok to leave\n");
-            selectionModel->blockSignals(true);
-            selectionModel->setCurrentIndex(previous, QItemSelectionModel::NoUpdate);
-            selectionModel->blockSignals(false);
-        }
-    }
 }
 
 void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
 {
     Table_CBData *cbdata;
-    CallBack *cb;
 
     cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
     cbdata->w = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    cb = new CallBack(mainWin);
-    cb->setCallBack(table_int_leave_cell_cb_proc, cbdata);
-
     TableView *view = (TableView*) cbdata->w;
-    view->removeDefaultTableLeaveCellCB();
-
-    QObject::connect(view->selectionModel(),
-                     SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
-                     cb,
-                     SLOT(table_int_cell_cb_proc(const QModelIndex &, const QModelIndex &)));
+    view->setLeaveCellCallback(cbdata);
 }
 
 bool HeaderView::event(QEvent *e)

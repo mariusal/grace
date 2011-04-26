@@ -1,9 +1,10 @@
 #ifndef __QTGRACE_H_
 #define __QTGRACE_H_
 
+#include <QDebug>
 #include <QObject>
 #include <QApplication>
-#include <QItemDelegate>
+#include <QLineEdit>
 #include <QHeaderView>
 #include <QEvent>
 #include <QKeyEvent>
@@ -68,80 +69,6 @@ public slots:
     }
 };
 
-class LineEditDelegate : public QItemDelegate
-{
-    Q_OBJECT
-
-public:
-    LineEditDelegate(int maxLength = 0, QObject *parent = 0);
-
-    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
-                          const QModelIndex &index) const;
-
-    void setEditorData(QWidget *editor, const QModelIndex &index) const;
-    void setModelData(QWidget *editor, QAbstractItemModel *model,
-                      const QModelIndex &index) const;
-
-    void updateEditorGeometry(QWidget *editor,
-                              const QStyleOptionViewItem &option, const QModelIndex &index) const;
-
-protected:
-    bool eventFilter(QObject *object, QEvent *event)
-    {
-        QWidget *editor = qobject_cast<QWidget*>(object);
-        if (!editor)
-            return false;
-        if (event->type() == QEvent::KeyPress) {
-            switch (static_cast<QKeyEvent *>(event)->key()) {
-            case Qt::Key_Tab:
-                emit commitData(editor);
-                emit closeEditor(editor);
-                return true;
-            case Qt::Key_Backtab:
-                emit commitData(editor);
-                emit closeEditor(editor);
-                return true;
-            case Qt::Key_Enter:
-            case Qt::Key_Return:
-                printf("%s", "editor enter key\n");
-                QMetaObject::invokeMethod(this, "_q_commitDataAndCloseEditor",
-                                          Qt::QueuedConnection, Q_ARG(QWidget*, editor));
-                return false;
-            case Qt::Key_Escape:
-                // don't commit data
-                emit closeEditor(editor, QAbstractItemDelegate::RevertModelCache);
-                break;
-            default:
-                return false;
-            }
-            if (editor->parentWidget())
-                editor->parentWidget()->setFocus();
-            return true;
-        } else if (event->type() == QEvent::FocusOut || (event->type() == QEvent::Hide && editor->isWindow())) {
-            //the Hide event will take care of he editors that are in fact complete dialogs
-            if (!editor->isActiveWindow() || (QApplication::focusWidget() != editor)) {
-                QWidget *w = QApplication::focusWidget();
-                while (w) { // don't worry about focus changes internally in the editor
-                    if (w == editor)
-                        return false;
-                    w = w->parentWidget();
-                }
-
-                emit commitData(editor);
-//                emit closeEditor(editor, NoHint);
-            }
-        } else if (event->type() == QEvent::ShortcutOverride) {
-            if (static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
-                event->accept();
-                return true;
-            }
-        }
-        return false;
-    }
-
-private:
-    int maxLength;
-};
 
 class HeaderView : public QHeaderView
 {
@@ -188,18 +115,17 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-    bool setData(const QModelIndex &index, const QVariant &value,
-                 int role = Qt::EditRole);
-
     void setDefaultColumnAlignment(Qt::Alignment align);
     void setDefaultColumnLabelAlignment(Qt::Alignment align);
     void setDefaultRowLabelAlignment(Qt::Alignment align);
     void setRowLabels(char **labels);
     void setColumnLabels(char **labels);
     void setDrawCellCallback(Table_CBData *cbdata);
-    char *getEditorData();
     QVector<QVector<char *> > cells;
+
+    QModelIndex newIndex(int row, int column) const {
+        return createIndex(row, column);
+    }
 
 private:
     int ncols;
@@ -210,7 +136,6 @@ private:
     QStringList rowLabels;
     QStringList columnLabels;
     Table_CBData *cbdata;
-    char *editorData;
 };
 
 
@@ -222,14 +147,82 @@ class TableView : public QTableView
 
 public:
     TableView(QAbstractItemModel *model, QWidget *parent = 0);
-    void removeDefaultTableEnterCellCB();
-    void removeDefaultTableLeaveCellCB();
+    void setEditorMaxLengths(int *maxlengths);
+
+    void setLeaveCellCallback(Table_CBData *cbdata) {
+        leave_cbdata = cbdata;
+    }
+    void setEnterCellCallback(Table_CBData *cbdata) {
+        enter_cbdata = cbdata;
+    }
+
+protected:
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event) {}
+    void mouseReleaseEvent(QMouseEvent *event) {}
+    void mouseDoubleClickEvent(QMouseEvent *event) {}
+
+    void keyPressEvent(QKeyEvent *event)
+    {
+//        int ncols = model()->columnCount();
+//        int nrows = model()->rowCount();
+
+//        switch (event->key()) {
+//        case Qt::Key_Enter:
+//        case Qt::Key_Return:
+//        case Qt::Key_Down:
+//            qDebug() << "enter key pressed";
+//            row = (previous_row + 1 < nrows) ? previous_row + 1 : 0;
+//            col = previous_col;
+//            jumpToCell();
+//            break;
+
+//        case Qt::Key_Up:
+//            row = previous_row - 1;
+//            col = previous_col;
+//            jumpToCell();
+//            break;
+
+//        case Qt::Key_Tab:
+//            if (previous_col < ncols) {
+//                row = previous_row;
+//                col = previous_col + 1;
+//            } else {
+//                row = previous_row + 1;
+//                col = 0;
+//            }
+//            jumpToCell();
+//            break;
+
+//        case Qt::Key_Backtab:
+//            if (previous_col != 0) {
+//                row = previous_row;
+//                col = previous_col - 1;
+//            } else {
+//                row = previous_row - 1;
+//                col = ncols;
+//            }
+//            jumpToCell();
+//            break;
+//        }
+    }
 
 private:
+    void jumpToCell();
+    int leaveCellEvent(int row, int col);
+    int enterCellEvent(int row, int col);
+    void openEditor(QModelIndex index);
+    void closeEditor(QModelIndex index);
+
     Table_CBData *enter_cbdata;
     Table_CBData *leave_cbdata;
-    CallBack *enter_cb;
-    CallBack *leave_cb;
+    int previous_row;
+    int previous_col;
+    int row;
+    int col;
+    QModelIndex previousIndex;
+    QLineEdit *lineEditor;
+    QList<int> editLengths;
 };
 
 class Validator : public QValidator
