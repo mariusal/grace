@@ -75,7 +75,7 @@ void create_datasetprop_popup(Widget but, void *data)
         char *rowlabels[MAX_SET_COLS];
         char *collabels[DATA_STAT_COLS] =
             {"Min", "at", "Max", "at", "Mean", "Stdev"};
-        int column_widths[DATA_STAT_COLS] = {12, 6, 12, 6, 12, 12};
+        short column_widths[DATA_STAT_COLS] = {12, 6, 12, 6, 12, 12};
         GraceApp *gapp = (GraceApp *) data;
 
         tui.top = CreateDialogForm(app_shell, "Data set statistics");
