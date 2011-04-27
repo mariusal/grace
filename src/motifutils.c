@@ -5268,7 +5268,20 @@ void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
 
 void TableSetColWidths(Widget w, int *widths)
 {
-    XtVaSetValues(w, XmNcolumnWidths, widths, NULL);
+    int i, ncols;
+    short *short_widths;
+
+    ncols = TableGetNcols(w);
+
+    short_widths = xmalloc(ncols*SIZEOF_SHORT);
+
+    for (i = 0; i < ncols; i++) {
+        short_widths[i] = (short) widths[i];
+    }
+
+    XtVaSetValues(w, XmNcolumnWidths, short_widths, NULL);
+
+    xfree(short_widths);
 }
 
 void TableSetDefaultRowLabelWidth(Widget w, int width)
