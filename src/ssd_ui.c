@@ -367,7 +367,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     /* ------------ Main tab -------------- */
     ui->main_tp = CreateTabPage(tab, "Data");
 
-    ui->mw = CreateTable(ui->main_tp,
+    ui->mw = CreateTable("SSD", ui->main_tp,
                          EXTRA_SS_ROWS, EXTRA_SS_COLS,
                          VISIBLE_SS_ROWS, VISIBLE_SS_COLS);
     TableSSDInit(ui->mw);

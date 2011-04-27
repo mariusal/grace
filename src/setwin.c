@@ -105,7 +105,7 @@ void create_datasetprop_popup(Widget but, void *data)
         }
 
         fr = CreateFrame(tui.top, "Statistics");
-        tui.mw = CreateTable(fr, MAX_SET_COLS, DATA_STAT_COLS,
+        tui.mw = CreateTable("mw", fr, MAX_SET_COLS, DATA_STAT_COLS,
                                  MAX_SET_COLS, 4);
         TableDataSetPropInit(tui.mw);
         TableSetColLabels(tui.mw, collabels);
@@ -507,7 +507,7 @@ void create_leval_frame(Widget but, void *data)
             cells[i] = &rows[i][0];
         }
 
-        levalui.mw = CreateTable(levalui.top,
+        levalui.mw = CreateTable("mw", levalui.top,
                                  nscols, 1,
                                  MAX_SET_COLS, 1);
         TableLevalInit(levalui.mw);

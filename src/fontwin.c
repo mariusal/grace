@@ -86,7 +86,7 @@ void create_fonttool(TextStructure *cstext_parent)
         ui->font_select = CreateFontChoice(ui->fonttool_panel, "Font:");
         AddDialogFormChild(ui->fonttool_panel, ui->font_select->menu);
         
-        ui->font_table = CreateTable(ui->fonttool_panel,
+        ui->font_table = CreateTable("fontTable", ui->fonttool_panel,
                                      FONT_TOOL_ROWS, FONT_TOOL_COLS,
                                      8, 16);
         TableFontInit(ui->font_table);

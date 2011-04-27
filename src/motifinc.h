@@ -670,7 +670,7 @@ void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer)
 void ListTreeSetItemOpen(ListTreeItem *item, Boolean open);
 
 /* Table Widget */
-Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible);
+Widget CreateTable(char *name, Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible);
 void TableSSDInit(Widget w);
 void TableFontInit(Widget w);
 void TableDataSetPropInit(Widget w);

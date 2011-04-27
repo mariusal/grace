@@ -5091,7 +5091,7 @@ typedef struct {
     int ncols_visible;
 } TableData;
 
-Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible)
+Widget CreateTable(char *name, Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible)
 {
     Widget w;
     TableData *td;
@@ -5102,7 +5102,7 @@ Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int n
     td->nrows_visible = nrows_visible;
     td->ncols_visible = ncols_visible;
 
-    w = XtVaCreateManagedWidget("SSD",
+    w = XtVaCreateManagedWidget(name,
         xbaeMatrixWidgetClass, parent,
         XmNrows, nrows,
         XmNvisibleRows, nrows_visible,

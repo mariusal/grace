@@ -9344,7 +9344,7 @@ typedef struct {
     int ncols_visible;
 } TableData;
 
-Widget CreateTable(Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible)
+Widget CreateTable(char *name, Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible)
 {
     TableData *td;
 
