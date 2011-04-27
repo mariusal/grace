@@ -5270,6 +5270,25 @@ void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
     *cheight = y1 - y0;
 }
 
+void TableSetColWidths(Widget w, int *widths)
+{
+    XtVaSetValues(w, XmNcolumnWidths, widths, NULL);
+}
+
+void TableSetDefaultRowLabelWidth(Widget w, int width)
+{
+    XtVaSetValues(w, XmNrowLabelWidth, width, NULL);
+}
+
+void TableSetDefaultRowLabelAlignment(Widget w, int align)
+{
+    unsigned char xm_alignment;
+
+    xm_alignment = align_to_xmalign(align);
+
+    XtVaSetValues(w, XmNrowLabelAlignment, xm_alignment, NULL);
+}
+
 void TableSetDefaultColWidth(Widget w, int width)
 {
     TableData *td;
