@@ -153,8 +153,10 @@ void create_about_grtool(Widget but, void *data)
 	CreateLabel(rc,
             "The program is distributed under the terms of the GNU General Public License");
 
+#if defined(MOTIF_GUI) || defined(HAVE_LIBPDF)
 	fr = CreateFrame(about_panel, "Third party copyrights");
         rc = CreateVContainer(fr);
+#ifdef MOTIF_GUI
 	CreateLabel(rc,
             "Tab widget, Copyright (c) 1997 Pralay Dakua");
 	CreateLabel(rc, "Xbae widget,");
@@ -162,8 +164,10 @@ void create_about_grtool(Widget but, void *data)
             "      Copyright (c) 1991, 1992 Bell Communications Research, Inc. (Bellcore)");
 	CreateLabel(rc,
             "      Copyright (c) 1995-1999 Andrew Lister");
+#endif
 #ifdef HAVE_LIBPDF
 	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-2004 Thomas Merz and PDFlib GmbH");
+#endif
 #endif
 
 	fr = CreateFrame(about_panel, "Build info");
