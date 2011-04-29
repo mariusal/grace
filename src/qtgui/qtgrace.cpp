@@ -67,6 +67,7 @@
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QTextCodec>
+#include <QWhatsThis>
 #include <mainwindow.h>
 #include <canvaswidget.h>
 #include <fileselectiondialog.h>
@@ -8337,6 +8338,13 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
     QMenu *menu = new QMenu(l, menuBar);
     menu->setTearOffEnabled(true);
 
+    if (help) {
+        menuBar->addSeparator();
+        CreateMenuButton(menu, "On context", 'x',
+            ContextHelpCB, NULL);
+        CreateSeparator(menu);
+    }
+
     menuBar->addAction(menu->menuAction());
 
     return menu;
@@ -8570,6 +8578,30 @@ void AddHelpCB(Widget w, char *ha)
 //    }
 //    XFreeCursor(xstuff->disp, cursor);
 //}
+void ContextHelpCB(Widget but, void *data)
+{
+//    X11Stuff *xstuff = gapp->gui->xstuff;
+//    Widget whelp;
+//    Cursor cursor;
+    int ok = FALSE;
+
+    QWhatsThis::enterWhatsThisMode();
+//    cursor = XCreateFontCursor(xstuff->disp, XC_question_arrow);
+//    whelp = XmTrackingLocate(app_shell, cursor, False);
+//    while (whelp != NULL) {
+//        if (XtHasCallbacks(whelp, XmNhelpCallback) == XtCallbackHasSome) {
+//            XtCallCallbacks(whelp, XmNhelpCallback, NULL);
+//            ok = TRUE;
+//            break;
+//        } else {
+//            whelp = GetParent(whelp);
+//        }
+//    }
+    if (!ok) {
+        HelpCB(but, NULL);
+    }
+//    XFreeCursor(xstuff->disp, cursor);
+}
 //
 //
 //static int yesno_retval = FALSE;
