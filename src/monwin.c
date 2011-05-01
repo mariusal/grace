@@ -190,12 +190,8 @@ static void create_monitor_frame(int force, char *msg)
     }
     
     if (msg != NULL) {
-#ifndef QT_GUI
-        XmTextPosition pos;
-        pos = XmTextGetLastPosition(ui->monText->text);
-#else
-        int pos = -1;
-#endif
+        int pos;
+        pos = GetTextLastPosition(ui->monText);
         TextInsert(ui->monText, pos, msg);
     }
     

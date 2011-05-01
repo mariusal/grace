@@ -4294,6 +4294,11 @@ void SetTextCursorPos(TextStructure *cst, int pos)
     text->setTextCursor(textCursor);
 }
 
+int GetTextLastPosition(TextStructure *cst)
+{
+    return QTextCursor::End;
+}
+
 //void TextInsert(TextStructure *cst, int pos, char *s)
 //{
 //    XmTextInsert(cst->text, pos, s);
@@ -4306,7 +4311,7 @@ void TextInsert(TextStructure *cst, int pos, char *s)
 {
     if (QPlainTextEdit *plainText = qobject_cast<QPlainTextEdit *>(cst->text)) {
         QTextCursor textCursor = plainText->textCursor();
-        if (pos == -1) {
+        if (pos == QTextCursor::End) {
             textCursor.movePosition(QTextCursor::End);
         }
         textCursor.insertText(s);

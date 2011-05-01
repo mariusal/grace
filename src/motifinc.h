@@ -542,6 +542,7 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data);
 void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata);
 int GetTextCursorPos(TextStructure *cst);
 void SetTextCursorPos(TextStructure *cst, int pos);
+int GetTextLastPosition(TextStructure *cst);
 void TextInsert(TextStructure *cst, int pos, char *s);
 void SetTextEditable(TextStructure *cst, int onoff);
 

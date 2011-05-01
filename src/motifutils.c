@@ -1914,6 +1914,11 @@ void SetTextCursorPos(TextStructure *cst, int pos)
     XmTextSetInsertionPosition(cst->text, pos);
 }
 
+int GetTextLastPosition(TextStructure *cst)
+{
+    return XmTextGetLastPosition(cst->text);
+}
+
 void TextInsert(TextStructure *cst, int pos, char *s)
 {
     XmTextInsert(cst->text, pos, s);
