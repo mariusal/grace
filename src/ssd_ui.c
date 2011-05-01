@@ -28,10 +28,9 @@
 /* SSData UI */
 
 #include <stdlib.h>
+#include <string.h>
 
-#include <Xbae/Matrix.h>
-#include <Xm/RowColumn.h>
-
+#include "events.h"
 #include "utils.h"
 #include "explorer.h"
 #include "xprotos.h"
@@ -49,7 +48,7 @@
 /* string cell width */
 #define STRING_CELL_WIDTH 128
 
-/* minimum size of the spreadseet matrix */
+/* minimum size of the spreadsheet matrix */
 #define EXTRA_SS_ROWS      20
 #define EXTRA_SS_COLS       3
 
@@ -128,37 +127,34 @@ static char *get_cell_content(SSDataUI *ui, int row, int column, int *format)
     return s;
 }
 
-static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int drawcellCB(TableEvent *event)
 {
-    SSDataUI *ui = (SSDataUI *) client_data;
-    XbaeMatrixDrawCellCallbackStruct *cs =
-        (XbaeMatrixDrawCellCallbackStruct *) call_data;
+    SSDataUI *ui = (SSDataUI *) event->anydata;
     int format;
-    
-    cs->type = XbaeString;
-    cs->string = get_cell_content(ui, cs->row, cs->column, &format);
+
+    event->value_type = TABLE_CELL_STRING;
+    event->value = get_cell_content(ui, event->row, event->col, &format);
+
+    return TRUE;
 }
 
-static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int enterCB(TableEvent *event)
 {
-    SSDataUI *ui = (SSDataUI *) client_data;
-    XbaeMatrixEnterCellCallbackStruct *cs =
-        (XbaeMatrixEnterCellCallbackStruct *) call_data;
+    SSDataUI *ui = (SSDataUI *) event->anydata;
+
     int ncols = ssd_get_ncols(ui->q);
     
-    if (cs->column >= 0 && cs->column <= ncols) {
-        XbaeMatrixDeselectAll(ui->mw);
+    if (event->col >= 0 && event->col <= ncols) {
+        TableDeselectAllCells(ui->mw);
+        return TRUE;
     } else {
-        cs->doit = False;
-        cs->map  = False;
+        return FALSE;
     }
 }
 
-static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int leaveCB(TableEvent *event)
 {
-    SSDataUI *ui = (SSDataUI *) client_data;
-    XbaeMatrixLeaveCellCallbackStruct *cs =
-        (XbaeMatrixLeaveCellCallbackStruct *) call_data;
+    SSDataUI *ui = (SSDataUI *) event->anydata;
 
     int nrows = ssd_get_nrows(ui->q);
     int ncols = ssd_get_ncols(ui->q);
@@ -169,19 +165,19 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     
     GraceApp *gapp = gapp_from_quark(ui->q);
     
-    if (cs->row < 0 || cs->column < 0 || cs->column > ncols) {
-        return;
+    if (event->row < 0 || event->col < 0 || event->col > ncols) {
+        return TRUE;
     }
     
-    if (cs->row >= nrows && !string_is_empty(cs->value)) {
-        if (ssd_set_nrows(ui->q, cs->row + 1) == RETURN_SUCCESS) {
+    if (event->row >= nrows && !string_is_empty(event->value)) {
+        if (ssd_set_nrows(ui->q, event->row + 1) == RETURN_SUCCESS) {
             changed = TRUE;
         }
     }
     
-    if (cs->column == ncols && !string_is_empty(cs->value)) {
+    if (event->col == ncols && !string_is_empty(event->value)) {
         if (parse_date_or_number(get_parent_project(ui->q),
-            cs->value, FALSE, get_date_hint(gapp), &value) == RETURN_SUCCESS) {
+            event->value, FALSE, get_date_hint(gapp), &value) == RETURN_SUCCESS) {
             format = FFORMAT_NUMBER;
         } else {
             format = FFORMAT_STRING;
@@ -192,26 +188,37 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
         }
     }
     
-    if (cs->column < ncols) {
-        char *old_value = get_cell_content(ui, cs->row, cs->column, &format);
-        if (!strings_are_equal(old_value, cs->value)) {
+    if (event->col < ncols) {
+        char *old_value = get_cell_content(ui, event->row, event->col, &format);
+        if (!strings_are_equal(old_value, event->value)) {
             switch (format) {
             case FFORMAT_STRING:
-                if (ssd_set_string(ui->q, cs->row, cs->column, cs->value) ==
+                if (ssd_set_string(ui->q, event->row, event->col, event->value) ==
                     RETURN_SUCCESS) {
                     changed = TRUE;
                 }
                 break;    
             default:
-                if (parse_date_or_number(get_parent_project(ui->q),
-                    cs->value, FALSE, get_date_hint(gapp), &value) == RETURN_SUCCESS) {
-                    if (ssd_set_value(ui->q, cs->row, cs->column, value) ==
-                        RETURN_SUCCESS) {
-                        changed = TRUE;
+                if (graal_eval_expr(grace_get_graal(gapp->grace),
+                    event->value, &value, gproject_get_top(gapp->gp)) == RETURN_SUCCESS) {
+
+                    unsigned int prec;
+                    char buf[32];
+                    double val;
+
+                    prec = project_get_prec(get_parent_project(ui->q));
+                    sprintf(buf, "%.*g", prec, value);
+
+                    if (parse_date_or_number(get_parent_project(ui->q),
+                        buf, FALSE, get_date_hint(gapp), &val) == RETURN_SUCCESS) {
+
+                        if (ssd_set_value(ui->q, event->row, event->col, val) == RETURN_SUCCESS) {
+                            changed = TRUE;
+                        }
                     }
                 } else {
                     errmsg("Can't parse input value");
-                    cs->doit = False;
+                    return FALSE;
                 }
                 break;
             }
@@ -221,74 +228,70 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     if (changed) {
         snapshot_and_update(gapp->gp, FALSE);
     }
+
+    return TRUE;
 }
 
-static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int labelCB(TableEvent *event)
 {
-    SSDataUI *ui = (SSDataUI *) client_data;
-    XbaeMatrixLabelActivateCallbackStruct *cbs =
-        (XbaeMatrixLabelActivateCallbackStruct *) call_data;
-    XEvent *e = cbs->event;
-    XButtonEvent *xbe;
+    SSDataUI *ui = (SSDataUI *) event->anydata;
     static int last_row, last_column;
     int i;
     
-    if (!e || (e->type != ButtonRelease && e->type != ButtonPress)) {
-        return;
+    if (!event || event->type != MOUSE_PRESS) {
+        return TRUE;
     }
 
-    xbe = (XButtonEvent *) e;
+    if (event->button == LEFT_BUTTON) {
+        TableCommitEdit(ui->mw, TRUE);
 
-    if (xbe->button == Button1) {
-        XbaeMatrixCommitEdit(ui->mw, True);
-
-        if (cbs->row_label) {
-            if (xbe->state & ControlMask) {
-                if (XbaeMatrixIsRowSelected(ui->mw, cbs->row)) {
-                    XbaeMatrixDeselectRow(ui->mw, cbs->row);
+        if (event->row_label) {
+            if (event->modifiers & CONTROL_MODIFIER) {
+                if (TableIsRowSelected(ui->mw, event->row)) {
+                    TableDeselectRow(ui->mw, event->row);
                 } else {
-                    XbaeMatrixSelectRow(ui->mw, cbs->row);
+                    TableSelectRow(ui->mw, event->row);
                 }
-                last_row = cbs->row;
+                last_row = event->row;
             } else
-            if ((xbe->state & ShiftMask) && last_row >= 0) {
-                for (i = MIN2(last_row, cbs->row); i <= MAX2(last_row, cbs->row); i++) {
-                    XbaeMatrixSelectRow(ui->mw, i);
+            if ((event->modifiers & SHIFT_MODIFIER) && last_row >= 0) {
+                for (i = MIN2(last_row, event->row); i <= MAX2(last_row, event->row); i++) {
+                    TableSelectRow(ui->mw, i);
                 }
             } else {
-                XbaeMatrixDeselectAll(ui->mw);
-                XbaeMatrixSelectRow(ui->mw, cbs->row);
-                last_row = cbs->row;
+                TableDeselectAllCells(ui->mw);
+                TableSelectRow(ui->mw, event->row);
+                last_row = event->row;
             }
 
             last_column = -1;
         } else {
-            if (xbe->state & ControlMask) {
-                if (XbaeMatrixIsColumnSelected(ui->mw, cbs->column)) {
-                    XbaeMatrixDeselectColumn(ui->mw, cbs->column);
+            if (event->modifiers & CONTROL_MODIFIER) {
+                if (TableIsColSelected(ui->mw, event->col)) {
+                    TableDeselectCol(ui->mw, event->col);
                 } else {
-                    XbaeMatrixSelectColumn(ui->mw, cbs->column);
+                    TableSelectCol(ui->mw, event->col);
                 }
-                last_column = cbs->column;
+                last_column = event->col;
             } else
-            if ((xbe->state & ShiftMask) && last_column >= 0) {
-                for (i = MIN2(last_column, cbs->column); i <= MAX2(last_column, cbs->column); i++) {
-                    XbaeMatrixSelectColumn(ui->mw, i);
+            if ((event->modifiers & SHIFT_MODIFIER) && last_column >= 0) {
+                for (i = MIN2(last_column, event->col); i <= MAX2(last_column, event->col); i++) {
+                    TableSelectCol(ui->mw, i);
                 }
             } else {
-                XbaeMatrixDeselectAll(ui->mw);
-                XbaeMatrixSelectColumn(ui->mw, cbs->column);
-                last_column = cbs->column;
+                TableDeselectAllCells(ui->mw);
+                TableSelectCol(ui->mw, event->col);
+                last_column = event->col;
             }
 
             last_row = -1;
         }
     }
 
-    if (xbe->button == Button3) {
+    if (event->button == RIGHT_BUTTON) {
         ss_column *col;
-        if (!cbs->row_label) {
-            ui->cb_column = cbs->column;
+        if (!event->row_label) {
+            ui->cb_column = event->col;
         }
 
         col = ssd_get_col(ui->q, ui->cb_column);
@@ -298,10 +301,10 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
         SetSensitive(ui->unindex_btn, ui->cb_column == 0 && col != NULL &&
             ssd_is_indexed(ui->q));
         
-        XmMenuPosition(ui->popup, xbe);
-        ManageChild(ui->popup);
-        return;
+        ShowMenu(ui->popup, event->udata);
     }
+
+    return TRUE;
 }
 
 static void col_delete_cb(Widget but, void *udata)
@@ -342,23 +345,11 @@ static void col_cb(ListStructure *sel, int n, int *values, void *data)
     }
 }
 
-static char tfield_translations[] = "#override\n\
-<Key>osfCancel                : CancelEdit(True)\n\
-<Key>osfActivate              : EditCell(Down)\n\
-<Key>osfUp                    : EditCell(Up)\n\
-<Key>osfDown                  : EditCell(Down)\n\
-~Shift ~Meta ~Alt <Key>Return : EditCell(Down)";
-
 SSDataUI *create_ssd_ui(ExplorerUI *eui)
 {
     SSDataUI *ui;
 
-    int i;
-    short widths[EXTRA_SS_COLS];
-    char *rowlabels[EXTRA_SS_ROWS];
-    char *collabels[EXTRA_SS_COLS];
-    unsigned char clab_alignments[EXTRA_SS_COLS];
-    Widget tab, fr, rc, rc1, wbut, tfield;
+    Widget tab, fr, rc, rc1, wbut;
     
     ui = xmalloc(sizeof(SSDataUI));
     if (!ui) {
@@ -376,59 +367,19 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     /* ------------ Main tab -------------- */
     ui->main_tp = CreateTabPage(tab, "Data");
 
-    for (i = 0; i < EXTRA_SS_ROWS; i++) {
-        char buf[32];
-        sprintf(buf, "%d", i + 1);
-        rowlabels[i] = copy_string(NULL, buf);
-    }
-    for (i = 0; i < EXTRA_SS_COLS; i++) {
-        collabels[i] = "";
-        clab_alignments[i] = XmALIGNMENT_CENTER;
-    }
-    for (i = 0; i < EXTRA_SS_COLS; i++) {
-        widths[i] = CELL_WIDTH;
-    }
+    ui->mw = CreateTable("SSD", ui->main_tp,
+                         EXTRA_SS_ROWS, EXTRA_SS_COLS,
+                         VISIBLE_SS_ROWS, VISIBLE_SS_COLS);
+    TableSSDInit(ui->mw);
+    TableSetDefaultColWidth(ui->mw, CELL_WIDTH);
+    TableSetDefaultColLabelAlignment(ui->mw, ALIGN_CENTER);
 
-    ui->mw = XtVaCreateManagedWidget("SSD",
-        xbaeMatrixWidgetClass, ui->main_tp,
-#if 0
-        XmNhorizontalScrollBarDisplayPolicy, XmDISPLAY_NONE,
-        XmNverticalScrollBarDisplayPolicy, XmDISPLAY_NONE,
-#endif
-        XmNrows, EXTRA_SS_ROWS,
-        XmNvisibleRows, VISIBLE_SS_ROWS,
-        XmNbuttonLabels, True,
-        XmNrowLabels, rowlabels,
-        XmNcolumns, EXTRA_SS_COLS,
-        XmNvisibleColumns, VISIBLE_SS_COLS,
-        XmNcolumnLabels, collabels,
-        XmNcolumnLabelAlignments, clab_alignments,
-        XmNcolumnWidths, widths,
-        XmNallowColumnResize, True,
-        XmNgridType, XmGRID_CELL_SHADOW,
-        XmNcellShadowType, XmSHADOW_ETCHED_OUT,
-        XmNcellShadowThickness, 1,
-        XmNcellMarginHeight, 1,
-        XmNcellMarginWidth, 1,
-        XmNshadowThickness, 1,
-        XmNaltRowCount, 0,
-        XmNcalcCursorPosition, True,
-        XmNtraverseFixedCells, True,
-        NULL);
+    AddTableDrawCellCB(ui->mw, drawcellCB, ui);
+    AddTableLeaveCellCB(ui->mw, leaveCB, ui);
+    AddTableEnterCellCB(ui->mw, enterCB, ui);
+    AddTableLabelActivateCB(ui->mw, labelCB, ui);
 
-    tfield = XtNameToWidget(ui->mw, "textField");
-    XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
-
-    for (i = 0; i < EXTRA_SS_ROWS; i++) {
-        xfree(rowlabels[i]);
-    }
-
-    XtAddCallback(ui->mw, XmNdrawCellCallback, drawcellCB, ui); 
-    XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
-    XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
-    XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
-
-    ui->popup = XmCreatePopupMenu(ui->mw, "popupMenu", NULL, 0);
+    ui->popup = CreatePopupMenu(ui->mw);
     ui->delete_btn  = CreateMenuButton(ui->popup, "Delete column", '\0', col_delete_cb, ui);
     ui->index_btn   = CreateMenuButton(ui->popup, "Set as index", '\0', index_cb, ui);
     ui->unindex_btn = CreateMenuButton(ui->popup, "Unset index", '\0', unindex_cb, ui);
@@ -468,14 +419,11 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
     if (ui && q) {
         int i, nc, nr, new_nc, new_nr, ncols, nrows, nfixed_cols;
         int delta_nc, delta_nr;
-        short *widths;
         int *maxlengths;
-        char **collabels;
-        unsigned char *clab_alignments;
-        int cur_row, cur_col, format;
+        char **rowlabels, **collabels;
         
         if (ui->q != q) {
-            XbaeMatrixDeselectAll(ui->mw);
+            TableDeselectAllCells(ui->mw);
         }
         
         ui->q = q;
@@ -492,37 +440,35 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             nfixed_cols = 0;
         }
 
-        XtVaGetValues(ui->mw, XmNrows, &nr, XmNcolumns, &nc, NULL);
+        nr = TableGetNrows(ui->mw);
+        nc = TableGetNcols(ui->mw);
 
         delta_nr = new_nr - nr;
         delta_nc = new_nc - nc;
 
         if (delta_nr > 0) {
-            char **rowlabels = xmalloc(delta_nr*sizeof(char *));
-            for (i = 0; i < delta_nr; i++) {
-                char buf[32];
-                sprintf(buf, "%d", nr + i + 1);
-                rowlabels[i] = copy_string(NULL, buf);
-            }
-            XbaeMatrixAddRows(ui->mw, nr, NULL, rowlabels, NULL, delta_nr);
-            for (i = 0; i < delta_nr; i++) {
-                xfree(rowlabels[i]);
-            }
-            xfree(rowlabels);
+            TableAddRows(ui->mw, delta_nr);
         } else if (delta_nr < 0) {
-            XbaeMatrixDeleteRows(ui->mw, new_nr, -delta_nr);
+            TableDeleteRows(ui->mw, -delta_nr);
         }
 
+        rowlabels = xmalloc(new_nr*sizeof(char *));
+        for (i = 0; i < new_nr; i++) {
+            char buf[32];
+            sprintf(buf, "%d", i + 1);
+            rowlabels[i] = copy_string(NULL, buf);
+        }
+        TableSetRowLabels(ui->mw, rowlabels);
+        for (i = 0; i < new_nr; i++) {
+            xfree(rowlabels[i]);
+        }
+        xfree(rowlabels);
 
-        widths = xmalloc(new_nc*SIZEOF_SHORT);
         maxlengths = xmalloc(new_nc*SIZEOF_INT);
         collabels = xmalloc(new_nc*sizeof(char *));
-        clab_alignments = xmalloc(new_nc);
-
 
         for (i = 0; i < new_nc; i++) {
             ss_column *col = ssd_get_col(q, i);
-            widths[i] = CELL_WIDTH;
             if (col && col->format == FFORMAT_STRING) {
                 maxlengths[i] = STRING_CELL_WIDTH;
             } else {
@@ -543,40 +489,20 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
                 
                 collabels[i] = copy_string(NULL, buf);
             }
-            clab_alignments[i] = XmALIGNMENT_CENTER;
         }
 
         if (delta_nc > 0) {
-            XbaeMatrixAddColumns(ui->mw, nc, NULL, NULL, widths, maxlengths, 
-                NULL, NULL, NULL, delta_nc);
+            TableAddCols(ui->mw, delta_nc);
         } else if (delta_nc < 0) {
-            XbaeMatrixDeleteColumns(ui->mw, new_nc, -delta_nc);
+            TableDeleteCols(ui->mw, -delta_nc);
         }
 
+        TableSetColMaxlengths(ui->mw, maxlengths);
+        TableSetColLabels(ui->mw, collabels);
+        TableSetFixedCols(ui->mw, nfixed_cols);
+        TableUpdateVisibleRowsCols(ui->mw);
 
-        XtVaSetValues(ui->mw,
-            XmNrowLabelWidth, 0, /* -> autoadjust row label widths */
-            XmNcolumnMaxLengths, maxlengths,
-            XmNcolumnLabels, collabels,
-            XmNcolumnLabelAlignments, clab_alignments,
-            XmNfixedColumns, nfixed_cols,
-            NULL);
-
-        if (delta_nc != 0) {
-            XtVaSetValues(ui->mw, XmNcolumnWidths, widths, NULL);
-        }
-
-#if XbaeVersion < 45102
-        /* A bug in Xbae - the cell with focus on is NOT updated, so we do it */
-        /* Fixed in 4.51.02 */
-        XbaeMatrixGetCurrentCell(ui->mw, &cur_row, &cur_col);
-        XbaeMatrixSetCell(ui->mw, cur_row, cur_col,
-            get_cell_content(ui, cur_row, cur_col, &format));
-#endif
-
-        xfree(widths);
         xfree(maxlengths);
-        xfree(clab_alignments);
         for (i = 0; i < new_nc; i++) {
             xfree(collabels[i]);
         }
@@ -593,7 +519,7 @@ int set_ssd_data(SSDataUI *ui, Quark *q, void *caller)
     if (ui && q) {
         if (!caller) {
             /* commit the last entered cell changes */
-            XbaeMatrixCommitEdit(ui->mw, False);
+            TableCommitEdit(ui->mw, FALSE);
         }
         
         if (!caller || caller == ui->col_label) {

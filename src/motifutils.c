@@ -63,6 +63,8 @@
 #include <Xm/ArrowBG.h>
 #include <Xm/ScrollBar.h>
 
+#include <Xbae/Matrix.h>
+
 #ifdef WITH_EDITRES
 #  include <X11/Xmu/Editres.h>
 #endif
@@ -82,6 +84,7 @@
 #include "core_utils.h"
 #include "utils.h"
 #include "xprotos.h"
+#include "events.h"
 
 #define canvas grace_get_canvas(gapp->grace)
 
@@ -1842,6 +1845,32 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
         XmNactivateCallback, text_int_cb_proc, (XtPointer) cbdata);
     XtAddCallback(cst->text,
         XmNmodifyVerifyCallback, text_int_mv_cb_proc, (XtPointer) cbdata);
+}
+
+static void text_int_validate_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    XmTextBlock text;
+    TextValidate_CBData *cbdata = (TextValidate_CBData *) client_data;
+    XmTextVerifyCallbackStruct *tcbs =
+            (XmTextVerifyCallbackStruct *) call_data;
+
+    text = tcbs->text;
+
+    if (!cbdata->cbproc(&text->ptr, &text->length, cbdata->anydata)) {
+        tcbs->doit = FALSE;
+    }
+}
+
+void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata)
+{
+    TextValidate_CBData *cbdata;
+
+    cbdata = (TextValidate_CBData *) xmalloc(sizeof(TextValidate_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XmNmodifyVerifyCallback, text_int_validate_cb_proc, cbdata);
 }
 
 int GetTextCursorPos(TextStructure *cst)
@@ -4962,6 +4991,546 @@ void InitWidgets(void)
     XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
     XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
     XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
+}
+
+/* Tabel Widget */
+typedef struct {
+    int default_col_width;
+    int default_col_label_alignment;
+    int nrows_visible;
+    int ncols_visible;
+} TableData;
+
+Widget CreateTable(char *name, Widget parent,
+                   int nrows, int ncols,
+                   int nrows_visible, int ncols_visible)
+{
+    Widget w;
+    TableData *td;
+
+    td = (TableData*) xmalloc(sizeof(TableData));
+    td->default_col_width = 5;
+    td->default_col_label_alignment = ALIGN_BEGINNING;
+    td->nrows_visible = nrows_visible;
+    td->ncols_visible = ncols_visible;
+
+    w = XtVaCreateManagedWidget(name,
+        xbaeMatrixWidgetClass, parent,
+        XmNrows, nrows,
+        XmNvisibleRows, nrows_visible,
+        XmNcolumns, ncols,
+        XmNvisibleColumns, ncols_visible,
+        NULL);
+
+    SetUserData(w, td);
+
+    return w;
+}
+
+static char tfield_translations[] = "#override\n\
+<Key>osfCancel                : CancelEdit(True)\n\
+<Key>osfActivate              : EditCell(Down)\n\
+<Key>osfUp                    : EditCell(Up)\n\
+<Key>osfDown                  : EditCell(Down)\n\
+~Shift ~Meta ~Alt <Key>Return : EditCell(Down)";
+
+void TableSSDInit(Widget w)
+{
+    Widget tfield;
+
+    XtVaSetValues(w,
+#if 0
+                  XmNhorizontalScrollBarDisplayPolicy, XmDISPLAY_NONE,
+                  XmNverticalScrollBarDisplayPolicy, XmDISPLAY_NONE,
+#endif
+                  XmNbuttonLabels, True,
+                  XmNallowColumnResize, True,
+                  XmNgridType, XmGRID_CELL_SHADOW,
+                  XmNcellShadowType, XmSHADOW_ETCHED_OUT,
+                  XmNcellShadowThickness, 1,
+                  XmNcellMarginHeight, 1,
+                  XmNcellMarginWidth, 1,
+                  XmNshadowThickness, 1,
+                  XmNaltRowCount, 0,
+                  XmNcalcCursorPosition, True,
+                  XmNtraverseFixedCells, True,
+                  NULL);
+
+    tfield = XtNameToWidget(w, "textField");
+    XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
+}
+
+void TableFontInit(Widget w)
+{
+    XtVaSetValues(w,
+                  XmNfill, True,
+                  XmNgridType, XmGRID_CELL_SHADOW,
+                  XmNcellShadowType, XmSHADOW_ETCHED_OUT,
+                  XmNcellShadowThickness, 2,
+                  XmNaltRowCount, 0,
+                  NULL);
+}
+
+void TableDataSetPropInit(Widget w)
+{
+    XtVaSetValues(w,
+                  XmNshowArrows, True,
+                  XmNallowColumnResize, True,
+                  XmNgridType, XmGRID_COLUMN_SHADOW,
+                  XmNcellShadowType, XmSHADOW_OUT,
+                  XmNcellShadowThickness, 1,
+                  XmNaltRowCount, 1,
+                  XmNtraversalOn, False,
+                  NULL);
+}
+
+void TableLevalInit(Widget w)
+{
+    XtVaSetValues(w,
+                  XmNgridType, XmGRID_CELL_SHADOW,
+                  XmNcellShadowType, XmSHADOW_ETCHED_OUT,
+                  XmNcellShadowThickness, 2,
+                  XmNaltRowCount, 0,
+                  XmNallowColumnResize, True,
+                  NULL);
+}
+
+static int align_to_xmalign(int align)
+{
+    switch(align) {
+    case ALIGN_BEGINNING:
+        return XmALIGNMENT_BEGINNING;
+        break;
+    case ALIGN_CENTER:
+        return XmALIGNMENT_CENTER;
+        break;
+    case ALIGN_END:
+        return XmALIGNMENT_END;
+        break;
+    default:
+        return XmALIGNMENT_BEGINNING;
+    }
+}
+
+int TableGetNrows(Widget w)
+{
+    int nr;
+
+    XtVaGetValues(w, XmNrows, &nr, NULL);
+
+    return nr;
+}
+
+int TableGetNcols(Widget w)
+{
+    int nc;
+
+    XtVaGetValues(w, XmNcolumns, &nc, NULL);
+
+    return nc;
+}
+
+void TableAddRows(Widget w, int nrows)
+{
+    XbaeMatrixAddRows(w, TableGetNrows(w), NULL, NULL, NULL, nrows);
+}
+
+void TableDeleteRows(Widget w, int nrows)
+{
+    XbaeMatrixDeleteRows(w, TableGetNrows(w) - nrows, nrows);
+}
+
+void TableAddCols(Widget w, int ncols)
+{
+    TableData *td;
+    short *widths;
+    int i;
+    unsigned char *alignment, xm_alignment;
+
+    td = (TableData*) GetUserData(w);
+    xm_alignment = align_to_xmalign(td->default_col_label_alignment);
+    widths = xmalloc(ncols*SIZEOF_SHORT);
+    alignment = xmalloc(ncols);
+
+    for (i = 0; i < ncols; i++) {
+        widths[i] = td->default_col_width;
+        alignment[i] = xm_alignment;
+    }
+
+    XbaeMatrixAddColumns(w, TableGetNcols(w), NULL, NULL, widths, NULL, NULL, alignment, NULL, ncols);
+
+    xfree(alignment);
+    xfree(widths);
+}
+
+void TableDeleteCols(Widget w, int ncols)
+{
+    XbaeMatrixDeleteColumns(w, TableGetNcols(w) - ncols, ncols);
+}
+
+void TableGetCellDimentions(Widget w, int *cwidth, int *cheight)
+{
+    int x0, x1, y0, y1;
+
+    XbaeMatrixRowColToXY(w, 0, 0, &x0, &y0);
+    XbaeMatrixRowColToXY(w, 1, 1, &x1, &y1);
+    *cwidth  = x1 - x0;
+    *cheight = y1 - y0;
+}
+
+void TableSetColWidths(Widget w, int *widths)
+{
+    int i, ncols;
+    short *short_widths;
+
+    ncols = TableGetNcols(w);
+
+    short_widths = xmalloc(ncols*SIZEOF_SHORT);
+
+    for (i = 0; i < ncols; i++) {
+        short_widths[i] = (short) widths[i];
+    }
+
+    XtVaSetValues(w, XmNcolumnWidths, short_widths, NULL);
+
+    xfree(short_widths);
+}
+
+void TableSetDefaultRowLabelWidth(Widget w, int width)
+{
+    XtVaSetValues(w, XmNrowLabelWidth, width, NULL);
+}
+
+void TableSetDefaultRowLabelAlignment(Widget w, int align)
+{
+    unsigned char xm_alignment;
+
+    xm_alignment = align_to_xmalign(align);
+
+    XtVaSetValues(w, XmNrowLabelAlignment, xm_alignment, NULL);
+}
+
+void TableSetDefaultColWidth(Widget w, int width)
+{
+    TableData *td;
+    short *widths;
+    int ncols, i;
+
+    td = (TableData*) GetUserData(w);
+    td->default_col_width = width;
+
+    ncols = TableGetNcols(w);
+
+    widths = xmalloc(ncols*SIZEOF_SHORT);
+
+    for (i = 0; i < ncols; i++) {
+        widths[i] = td->default_col_width;
+    }
+
+    XtVaSetValues(w, XmNcolumnWidths, widths, NULL);
+
+    xfree(widths);
+}
+
+void TableSetDefaultColAlignment(Widget w, int align)
+{
+    unsigned char *alignment, xm_alignment;
+    int ncols, i;
+
+    xm_alignment = align_to_xmalign(align);
+    ncols = TableGetNcols(w);
+
+    alignment = xmalloc(ncols);
+
+    for (i = 0; i < ncols; i++) {
+        alignment[i] = xm_alignment;
+    }
+
+    XtVaSetValues(w, XmNcolumnAlignments, alignment, NULL);
+
+    xfree(alignment);
+}
+
+void TableSetDefaultColLabelAlignment(Widget w, int align)
+{
+    TableData *td;
+    unsigned char *alignment, xm_alignment;
+    int ncols, i;
+
+    td = (TableData*) GetUserData(w);
+    td->default_col_label_alignment = align;
+
+    xm_alignment = align_to_xmalign(align);
+    ncols = TableGetNcols(w);
+
+    alignment = xmalloc(ncols);
+
+    for (i = 0; i < ncols; i++) {
+        alignment[i] = xm_alignment;
+    }
+
+    XtVaSetValues(w, XmNcolumnLabelAlignments, alignment, NULL);
+
+    xfree(alignment);
+}
+
+void TableSetColMaxlengths(Widget w, int *maxlengths)
+{
+    XtVaSetValues(w, XmNcolumnMaxLengths, maxlengths, NULL);
+}
+
+void TableSetRowLabels(Widget w, char **labels)
+{
+    XtVaSetValues(w, XmNrowLabels, labels, NULL);
+
+    XtVaSetValues(w, XmNrowLabelWidth, 0, NULL);
+}
+
+void TableSetColLabels(Widget w, char **labels)
+{
+    XtVaSetValues(w, XmNcolumnLabels, labels, NULL);
+}
+
+void TableSetFixedCols(Widget w, int nfixed_cols)
+{
+    XtVaSetValues(w, XmNfixedColumns, nfixed_cols, NULL);
+}
+
+void TableUpdateVisibleRowsCols(Widget w)
+{
+    XtVaSetValues(w,
+                  XmNheight, 0,
+                  XmNwidth, 0,
+                  NULL);
+}
+
+void TableCommitEdit(Widget w, int close)
+{
+    XbaeMatrixCommitEdit(w, close);
+}
+
+void TableSetCells(Widget w, char ***cells)
+{
+    XtVaSetValues(w, XmNcells, cells, NULL);
+}
+
+void TableSetCell(Widget w, int row, int col, char *value)
+{
+    XbaeMatrixSetCell(w, row, col, value);
+}
+
+char *TableGetCell(Widget w, int row, int col)
+{
+    return XbaeMatrixGetCell(w, row, col);
+}
+
+void TableSelectCell(Widget w, int row, int col)
+{
+    XbaeMatrixSelectCell(w, row, col);
+}
+
+void TableDeselectCell(Widget w, int row, int col)
+{
+    XbaeMatrixDeselectCell(w, row, col);
+}
+
+void TableSelectRow(Widget w, int row)
+{
+    XbaeMatrixSelectRow(w, row);
+}
+
+void TableDeselectRow(Widget w, int row)
+{
+    XbaeMatrixDeselectRow(w, row);
+}
+
+void TableSelectCol(Widget w, int col)
+{
+    XbaeMatrixSelectColumn(w, col);
+}
+
+void TableDeselectCol(Widget w, int col)
+{
+    XbaeMatrixDeselectColumn(w, col);
+}
+
+void TableDeselectAllCells(Widget w)
+{
+    XbaeMatrixDeselectAll(w);
+}
+
+int TableIsRowSelected(Widget w, int row)
+{
+    return XbaeMatrixIsRowSelected(w, row);
+}
+
+int TableIsColSelected(Widget w, int col)
+{
+    return XbaeMatrixIsColumnSelected(w, col);
+}
+
+void TableUpdate(Widget w)
+{
+    XbaeMatrixRefresh(w);
+}
+
+static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    TableEvent event;
+    Table_CBData *cbdata = (Table_CBData *) client_data;
+    XbaeMatrixDrawCellCallbackStruct *cs =
+        (XbaeMatrixDrawCellCallbackStruct *) call_data;
+
+    event.w = cbdata->w;
+    event.row = cs->row;
+    event.col = cs->column;
+    event.anydata = cbdata->anydata;
+    event.value_type = TABLE_CELL_NONE;
+
+    cbdata->cbproc(&event);
+
+    if (event.value_type == TABLE_CELL_STRING) {
+        cs->type = XbaeString;
+        cs->string = event.value;
+    } else  if (event.value_type == TABLE_CELL_PIXMAP) {
+        cs->type = XbaePixmap;
+        cs->pixmap = event.pixmap;
+    }
+}
+
+void AddTableDrawCellCB(Widget w, Table_CBProc cbproc, void *anydata)
+{
+    Table_CBData *cbdata;
+
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XmNdrawCellCallback, drawcellCB, cbdata);
+}
+
+static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    TableEvent event;
+    Table_CBData *cbdata = (Table_CBData *) client_data;
+    XbaeMatrixEnterCellCallbackStruct *cs =
+            (XbaeMatrixEnterCellCallbackStruct *) call_data;
+
+    int ok;
+
+    event.w = cbdata->w;
+    event.row = cs->row;
+    event.col = cs->column;
+    event.anydata = cbdata->anydata;
+    ok = cbdata->cbproc(&event);
+
+    if (!ok) {
+        cs->doit = False;
+        cs->map  = False;
+    }
+}
+
+void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata)
+{
+    Table_CBData *cbdata;
+
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XmNenterCellCallback, enterCB, cbdata);
+}
+
+static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    TableEvent event;
+    Table_CBData *cbdata = (Table_CBData *) client_data;
+    XbaeMatrixLeaveCellCallbackStruct *cs =
+            (XbaeMatrixLeaveCellCallbackStruct *) call_data;
+
+    int ok;
+
+    event.w = cbdata->w;
+    event.row = cs->row;
+    event.col = cs->column;
+    event.value = cs->value;
+    event.anydata = cbdata->anydata;
+    ok = cbdata->cbproc(&event);
+
+    if (!ok) {
+        cs->doit = False;
+    }
+}
+
+void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata)
+{
+    Table_CBData *cbdata;
+
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XmNleaveCellCallback, leaveCB, cbdata);
+}
+
+static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    XButtonEvent *xbe;
+
+    TableEvent event;
+    Table_CBData *cbdata = (Table_CBData *) client_data;
+    XbaeMatrixLabelActivateCallbackStruct *cbs =
+            (XbaeMatrixLabelActivateCallbackStruct *) call_data;
+
+    event.button = NO_BUTTON;
+    event.modifiers = NO_MODIFIER;
+    event.anydata = cbdata->anydata;
+
+    event.w = w;
+    event.row = cbs->row;
+    event.col = cbs->column;
+    event.row_label = cbs->row_label;
+
+    switch (cbs->event->type) {
+    case ButtonPress:
+        event.type = MOUSE_PRESS;
+        xbe = (XButtonEvent *) cbs->event;
+        event.udata = xbe;
+        switch (cbs->event->xbutton.button) {
+        case Button1:
+            event.button = event.button ^ LEFT_BUTTON;
+            break;
+        case Button3:
+            event.button = event.button ^ RIGHT_BUTTON;
+            break;
+        }
+        if (xbe->state & ControlMask) {
+            event.modifiers = event.modifiers ^ CONTROL_MODIFIER;
+        }
+        if (xbe->state & ShiftMask) {
+            event.modifiers = event.modifiers ^ SHIFT_MODIFIER;
+        }
+        break;
+    default:
+        break;
+    }
+
+    cbdata->cbproc(&event);
+}
+
+void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
+{
+    Table_CBData *cbdata;
+
+    cbdata = (Table_CBData *) xmalloc(sizeof(Table_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XmNlabelActivateCallback, labelCB, cbdata);
 }
 
 /* ScrollBar */

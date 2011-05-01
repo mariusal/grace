@@ -56,6 +56,9 @@
 #define ALIGN_END           2
 
 #define CreateMenuSeparator(w) CreateSeparator(w)
+#define TABLE_CELL_NONE    0
+#define TABLE_CELL_STRING  1
+#define TABLE_CELL_PIXMAP  2
 
 extern Widget app_shell;        /* defined in xmgapp.c */
 
@@ -350,6 +353,19 @@ typedef void (*Text_CBProc)(
     void *               /* data the application registered */
 );
 
+/* Text validate CB procedure */
+typedef int (*TextValidate_CBProc)(
+        char **value,
+        int *length,
+        void *data
+);
+
+typedef struct {
+    Widget w;
+    TextValidate_CBProc cbproc;
+    void *anydata;
+} TextValidate_CBData;
+
 /* Text item CB procedure */
 typedef void (*TItem_CBProc)(
     Widget ti,
@@ -506,6 +522,7 @@ void SetTextInputLength(TextStructure *cst, int len);
 char *GetTextString(TextStructure *cst);
 void SetTextString(TextStructure *cst, char *s);
 void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data);
+void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata);
 int GetTextCursorPos(TextStructure *cst);
 void SetTextCursorPos(TextStructure *cst, int pos);
 void TextInsert(TextStructure *cst, int pos, char *s);
@@ -622,6 +639,75 @@ void undo_cb(Widget but, void *data);
 void redo_cb(Widget but, void *data);
 
 void unlink_ssd_ui(Quark *q);
+
+/* Table Widget */
+Widget CreateTable(char *name, Widget parent,
+                   int nrows, int ncols,
+                   int nrows_visible, int ncols_visible);
+void TableSSDInit(Widget w);
+void TableFontInit(Widget w);
+void TableDataSetPropInit(Widget w);
+void TableLevalInit(Widget w);
+int TableGetNrows(Widget w);
+int TableGetNcols(Widget w);
+void TableAddRows(Widget w, int nrows);
+void TableDeleteRows(Widget w, int nrows);
+void TableAddCols(Widget w, int ncols);
+void TableDeleteCols(Widget w, int ncols);
+void TableGetCellDimentions(Widget w, int *cwidth, int *cheight);
+void TableSetColWidths(Widget w, int *widths);
+void TableSetDefaultRowLabelWidth(Widget w, int width);
+void TableSetDefaultRowLabelAlignment(Widget w, int align);
+void TableSetDefaultColWidth(Widget w, int width);
+void TableSetDefaultColAlignment(Widget w, int align);
+void TableSetDefaultColLabelAlignment(Widget w, int align);
+void TableSetColMaxlengths(Widget w, int *maxlengths);
+void TableSetRowLabels(Widget w, char **labels);
+void TableSetColLabels(Widget w, char **labels);
+void TableSetFixedCols(Widget w, int nfixed_cols);
+void TableUpdateVisibleRowsCols(Widget w);
+void TableCommitEdit(Widget w, int close);
+void TableSetCells(Widget w, char ***cells);
+void TableSetCell(Widget w, int row, int col, char *value);
+char *TableGetCell(Widget w, int row, int col);
+void TableSelectCell(Widget w, int row, int col);
+void TableDeselectCell(Widget w, int row, int col);
+void TableSelectRow(Widget w, int row);
+void TableDeselectRow(Widget w, int row);
+void TableSelectCol(Widget w, int col);
+void TableDeselectCol(Widget w, int col);
+void TableDeselectAllCells(Widget w);
+int TableIsRowSelected(Widget w, int row);
+int TableIsColSelected(Widget w, int col);
+void TableUpdate(Widget w);
+
+typedef struct {
+    int type;
+    int button;
+    int modifiers;
+
+    Widget w;
+    int row;
+    int col;
+    int value_type;
+    char *value;
+    Pixmap pixmap;
+    int row_label;
+    void *anydata;
+    void *udata;
+} TableEvent;
+
+typedef int (*Table_CBProc)(TableEvent *event);
+typedef struct {
+    Widget w;
+    Table_CBProc cbproc;
+    void *anydata;
+} Table_CBData;
+
+void AddTableDrawCellCB(Widget w, Table_CBProc cbproc, void *anydata);
+void AddTableEnterCellCB(Widget w, Table_CBProc cbproc, void *anydata);
+void AddTableLeaveCellCB(Widget w, Table_CBProc cbproc, void *anydata);
+void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata);
 
 /* ScrollBar */
 void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, int *increment);

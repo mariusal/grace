@@ -32,12 +32,15 @@
  */
 
 #include <config.h>
-
-#include <Xbae/Matrix.h>
+#include <string.h>
 
 #include "globals.h"
 #include "motifinc.h"
 #include "xprotos.h"
+
+/* the size of the font tool matrix */
+#define FONT_TOOL_ROWS      16
+#define FONT_TOOL_COLS      16
 
 typedef struct _fonttool_ui
 {
@@ -58,9 +61,9 @@ typedef struct _fonttool_ui
     char valid_chars[256];
 } fonttool_ui;
 
-static void DrawCB(Widget w, XtPointer client_data, XtPointer call_data);
-static void EnterCB(Widget w, XtPointer client_data, XtPointer call_data);
-static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data);
+static int DrawCB(TableEvent *event);
+static int EnterCB(TableEvent *event);
+static int EditStringCB(char **value, int *length, void *data);
 
 static void update_fonttool_cb(OptionStructure *opt, int value, void *data);
 static int fonttool_aac_cb(void *data);
@@ -75,10 +78,6 @@ void create_fonttool(TextStructure *cstext_parent)
     static fonttool_ui *ui = NULL;
     
     if (ui == NULL) {
-        int i;
-        short widths[16];
-        unsigned char column_alignments[16];
-	
         ui = xmalloc(sizeof(fonttool_ui));
         memset(ui, 0, sizeof(fonttool_ui));
 	
@@ -87,35 +86,23 @@ void create_fonttool(TextStructure *cstext_parent)
         ui->font_select = CreateFontChoice(ui->fonttool_panel, "Font:");
         AddDialogFormChild(ui->fonttool_panel, ui->font_select->menu);
         
-        for (i = 0; i < 16; i++) {
-            widths[i] = 2;
-            column_alignments[i] = XmALIGNMENT_BEGINNING;
-        }
-        ui->font_table = XtVaCreateManagedWidget(
-            "fontTable", xbaeMatrixWidgetClass, ui->fonttool_panel,
-            XmNrows, 16,
-            XmNcolumns, 16,
-            XmNvisibleRows, 8,
-            XmNvisibleColumns, 16,
-            XmNfill, True,
-            XmNcolumnWidths, widths,
-            XmNcolumnAlignments, column_alignments,
-	    XmNgridType, XmGRID_CELL_SHADOW,
-	    XmNcellShadowType, XmSHADOW_ETCHED_OUT,
-	    XmNcellShadowThickness, 2,
-            XmNaltRowCount, 0,
-            NULL);
-            
-        XtAddCallback(ui->font_table, XmNdrawCellCallback, DrawCB, ui);
-        XtAddCallback(ui->font_table, XmNenterCellCallback, EnterCB, ui);
+        ui->font_table = CreateTable("fontTable", ui->fonttool_panel,
+                                     FONT_TOOL_ROWS, FONT_TOOL_COLS,
+                                     8, 16);
+        TableFontInit(ui->font_table);
+        TableSetDefaultColWidth(ui->font_table, 2);
+        TableSetDefaultColAlignment(ui->font_table, ALIGN_BEGINNING);
+        TableUpdateVisibleRowsCols(ui->font_table);
+
+        AddTableDrawCellCB(ui->font_table, DrawCB, ui);
+        AddTableEnterCellCB(ui->font_table, EnterCB, ui);
         AddOptionChoiceCB(ui->font_select, update_fonttool_cb, ui);
 
         AddDialogFormChild(ui->fonttool_panel, ui->font_table);
 
         ui->cstext = CreateCSText(ui->fonttool_panel, "CString:");
 
-        XtAddCallback(ui->cstext->text,
-            XmNmodifyVerifyCallback, EditStringCB, ui);
+        AddTextValidateCB(ui->cstext->text, EditStringCB, ui);
         
         ui->aac_buts = CreateAACDialog(ui->fonttool_panel,
             ui->cstext->form, fonttool_aac_cb, ui);
@@ -151,35 +138,32 @@ void create_fonttool(TextStructure *cstext_parent)
     RaiseWindow(GetParent(ui->fonttool_panel));
 }
 
-static void DrawCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int DrawCB(TableEvent *event)
 {
-    fonttool_ui *ui = (fonttool_ui *) client_data;
-    XbaeMatrixDrawCellCallbackStruct *cbs =
-        (XbaeMatrixDrawCellCallbackStruct *) call_data;
+    fonttool_ui *ui = (fonttool_ui *) event->anydata;
     unsigned char c;
     Pixmap pixmap;
-    
-    c = 16*cbs->row + cbs->column;
-        
+
+    c = 16*event->row + event->col;
+
     if (ui->font_id == BAD_FONT_ID) {
         pixmap = 0;
     } else {
-        pixmap = char_to_pixmap(w, ui->font_id, c, ui->csize);
+        pixmap = char_to_pixmap(event->w, ui->font_id, c, ui->csize);
     }
-       
+
     if (pixmap || c == ' ') {
         ui->valid_chars[c] = TRUE;
     } else {
         ui->valid_chars[c] = FALSE;
     }
-    
-    /* Assign it a pixmap */
+
     if (pixmap) {
-        cbs->pixmap = pixmap;
-        cbs->type = XbaePixmap;
+        event->value_type = TABLE_CELL_PIXMAP;
+        event->pixmap = pixmap;
     }
-   
-    return;
+
+    return TRUE;
 }
 
 static void insert_into_string(TextStructure *cstext, char *s)
@@ -190,18 +174,15 @@ static void insert_into_string(TextStructure *cstext, char *s)
     TextInsert(cstext, pos, s);
 }
 
-static void EnterCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int EnterCB(TableEvent *event)
 {
-    fonttool_ui *ui = (fonttool_ui *) client_data;
-    XbaeMatrixEnterCellCallbackStruct *cbs =
-        (XbaeMatrixEnterCellCallbackStruct *) call_data;
-    X11Stuff *xstuff = gapp->gui->xstuff;
+    fonttool_ui *ui = (fonttool_ui *) event->anydata;
     char s[7];
     unsigned char c;
     
-    c = 16*cbs->row + cbs->column;
+    c = 16*event->row + event->col;
     if (ui->valid_chars[c]) {
-        c = 16*cbs->row + cbs->column;
+        c = 16*event->row + event->col;
         /* TODO: check for c being displayable in the _X_ font */
         if (c > 31) {
             s[0] = (char) c;
@@ -211,63 +192,57 @@ static void EnterCB(Widget w, XtPointer client_data, XtPointer call_data)
         }
         insert_into_string(ui->cstext, s);
     } else {
-        XBell(xstuff->disp, 25);
+        Beep();
     }
     
-    cbs->doit = False;
+    return FALSE;
 }
 
 
 static void update_fonttool_cb(OptionStructure *opt, int value, void *data)
 {
     fonttool_ui *ui = (fonttool_ui *) data;
-    int x0, y0, x1, y1, cwidth, cheight;
-    
+    int cwidth, cheight;
+
     if (ui->font_id != value) {
         ui->font_id = value;
         ui->new_font = TRUE;
     }
-    
-    XbaeMatrixRowColToXY(ui->font_table, 0, 0, &x0, &y0);
-    XbaeMatrixRowColToXY(ui->font_table, 1, 1, &x1, &y1);
-    cwidth  = x1 - x0;
-    cheight = y1 - y0;
-    
+
+    TableGetCellDimentions(ui->font_table, &cwidth, &cheight);
+
     /* 6 = 2*cellShadowThickness + 2 */
     ui->csize = MIN2(cwidth, cheight) - 6;
 
-    XbaeMatrixRefresh(ui->font_table);
+    TableUpdate(ui->font_table);
 }
 
-
-static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int EditStringCB(char **value, int *length, void *data)
 {
-    fonttool_ui *ui = (fonttool_ui *) client_data;
-    XmTextVerifyCallbackStruct *tcbs =
-        (XmTextVerifyCallbackStruct *) call_data;
+    fonttool_ui *ui = (fonttool_ui *) data;
     unsigned char c;
     static int column = 0, row = 0;
-    XmTextBlock text;
+    char *text;
+    int len = *length;
     
     if (ui->enable_edit_cb != TRUE) {
-        return;
+        return FALSE;
     }
+
+    text = *value;
     
-    text = tcbs->text;
+    TableDeselectCell(ui->font_table, row, column);
     
-    XbaeMatrixDeselectCell(ui->font_table, row, column);
-    
-    if (text->length == 1) {
+    if (len == 1) {
         /* */
-        c = text->ptr[0];
+        c = text[0];
         row = c/16;
         column = c % 16;
 
         if (ui->valid_chars[c]) {
-            XbaeMatrixSelectCell(ui->font_table, row, column);
+            TableSelectCell(ui->font_table, row, column);
         } else {
-            tcbs->doit = False;
-            return;
+            return FALSE;
         }
     }
     
@@ -278,14 +253,17 @@ static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data)
         buf = concat_strings(buf,
             project_get_font_name_by_id(gproject_get_top(gapp->gp), ui->font_id));
         buf = concat_strings(buf, "}");
-        buf = concat_strings(buf, text->ptr);
-        XtFree(text->ptr);
-        text->ptr = XtNewString(buf);
-        text->length = strlen(buf);
+        buf = concat_strings(buf, text);
+        xfree(text);
+        text = copy_string(NULL, buf);
+        *value = text;
+        *length = strlen(buf);
         xfree(buf);
 
         ui->new_font = FALSE;
     }
+
+    return TRUE;
 }
 
 static int fonttool_aac_cb(void *data)

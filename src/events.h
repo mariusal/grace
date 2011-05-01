@@ -63,6 +63,7 @@
 
 /* Modifiers */
 #define NO_MODIFIER      0x00
+#define SHIFT_MODIFIER   0x02
 #define CONTROL_MODIFIER 0x04
 
 typedef struct {

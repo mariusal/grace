@@ -36,10 +36,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <Xm/Xm.h>
-
-#include <Xbae/Matrix.h>
+#include <string.h>
 
 #include "core_utils.h"
 #include "utils.h"
@@ -51,7 +48,7 @@
 
 #define DATA_STAT_COLS   6
 
-static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
+static int enterCB(TableEvent *event);
 static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data);
 
 static int datasetop_aac_cb(void *data);
@@ -78,9 +75,7 @@ void create_datasetprop_popup(Widget but, void *data)
         char *rowlabels[MAX_SET_COLS];
         char *collabels[DATA_STAT_COLS] =
             {"Min", "at", "Max", "at", "Mean", "Stdev"};
-        short column_widths[DATA_STAT_COLS] = {12, 6, 12, 6, 12, 12};
-        unsigned char column_alignments[DATA_STAT_COLS];
-        unsigned char column_label_alignments[DATA_STAT_COLS];
+        int column_widths[DATA_STAT_COLS] = {12, 6, 12, 6, 12, 12};
         GraceApp *gapp = (GraceApp *) data;
 
         tui.top = CreateDialogForm(app_shell, "Data set statistics");
@@ -101,11 +96,6 @@ void create_datasetprop_popup(Widget but, void *data)
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On data sets", 's',
             tui.top, "doc/UsersGuide.html#data-sets");
-
-        for (i = 0; i < DATA_STAT_COLS; i++) {
-            column_alignments[i] = XmALIGNMENT_END;
-            column_label_alignments[i] = XmALIGNMENT_CENTER;
-        }
         
         for (i = 0; i < MAX_SET_COLS; i++) {
             rowlabels[i] = copy_string(NULL, dataset_col_name(gapp->grace, i));
@@ -115,32 +105,23 @@ void create_datasetprop_popup(Widget but, void *data)
         }
 
         fr = CreateFrame(tui.top, "Statistics");
-        tui.mw = XtVaCreateManagedWidget("mw",
-            xbaeMatrixWidgetClass, fr,
-            XmNrows, MAX_SET_COLS,
-            XmNcolumns, DATA_STAT_COLS,
-            XmNvisibleRows, MAX_SET_COLS,
-            XmNvisibleColumns, 4,
-            XmNcolumnLabels, collabels,
-            XmNcolumnWidths, column_widths,
-            XmNcolumnAlignments, column_alignments,
-            XmNcolumnLabelAlignments, column_label_alignments,
-            XmNrowLabels, rowlabels,
-            XmNrowLabelWidth, 3,
-            XmNrowLabelAlignment, XmALIGNMENT_CENTER,
-            XmNshowArrows, True,
-            XmNallowColumnResize, True,
-            XmNgridType, XmGRID_COLUMN_SHADOW,
-            XmNcellShadowType, XmSHADOW_OUT,
-            XmNcellShadowThickness, 1,
-            XmNaltRowCount, 1,
-            XmNtraversalOn, False,
-            NULL);
+        tui.mw = CreateTable("mw", fr,
+                             MAX_SET_COLS, DATA_STAT_COLS,
+                             MAX_SET_COLS, 4);
+        TableDataSetPropInit(tui.mw);
+        TableSetColLabels(tui.mw, collabels);
+        TableSetColWidths(tui.mw, column_widths);
+        TableSetDefaultColAlignment(tui.mw, ALIGN_END);
+        TableSetDefaultColLabelAlignment(tui.mw, ALIGN_CENTER);
+        TableSetRowLabels(tui.mw, rowlabels);
+        TableSetDefaultRowLabelWidth(tui.mw, 3);
+        TableSetDefaultRowLabelAlignment(tui.mw, ALIGN_CENTER);
+        TableUpdateVisibleRowsCols(tui.mw);
 
-        XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);     
+        AddTableEnterCellCB(tui.mw, enterCB, NULL);
 
         AddDialogFormChild(tui.top, fr);
-        XtManageChild(tui.top);
+        ManageChild(tui.top);
     }
     
     RaiseWindow(GetParent(tui.top));
@@ -206,16 +187,12 @@ static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data
         }
         cells[i] = &tui.rows[i][0];
     }
-    XtVaSetValues(tui.mw, XmNcells, cells, NULL);
+    TableSetCells(tui.mw, cells);
 }
 
-static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int enterCB(TableEvent *event)
 {
-    XbaeMatrixEnterCellCallbackStruct *cbs =
-        (XbaeMatrixEnterCellCallbackStruct *) call_data;
-    
-    cbs->doit = False;
-    cbs->map  = False;
+    return FALSE;
 }
 
 typedef enum {
@@ -257,7 +234,6 @@ void create_datasetop_popup(Widget but, void *data)
 
 
         dialog = CreateVContainer(datasetopui.top);
-        XtVaSetValues(dialog, XmNrecomputeSize, True, NULL);
 
         datasetopui.sel = CreateSSDChoice(dialog,
             "Data sets:", LIST_TYPE_MULTIPLE);
@@ -284,7 +260,6 @@ void create_datasetop_popup(Widget but, void *data)
         AddOptionChoiceCB(datasetopui.optype_item, datasetoptypeCB, NULL);
 
         rc = CreateHContainer(dialog);
-        XtVaSetValues(rc, XmNrecomputeSize, True, NULL);
 
         /* Sort */
         datasetopui.up_down_item = CreateOptionChoiceVA(rc, "Order:",
@@ -449,33 +424,34 @@ void set_type_cb(OptionStructure *opt, int type, void *data)
     char *rowlabels[MAX_SET_COLS];
     Leval_ui *ui = (Leval_ui *) data;
     
-    nmrows = XbaeMatrixNumRows(ui->mw);
+    nmrows = TableGetNrows(ui->mw);
     nscols = settype_cols(type);
     
     if (nmrows > nscols) {
-        XbaeMatrixDeleteRows(ui->mw, nscols, nmrows - nscols);
+        TableDeleteRows(ui->mw, nmrows - nscols);
     } else if (nmrows < nscols) {
         if (ui->gr) {
             Grace *grace = grace_from_quark(ui->gr);
-            for (i = nmrows; i < nscols; i++) {
-                rowlabels[i - nmrows] = copy_string(NULL, dataset_col_name(grace, i));
-                rowlabels[i - nmrows] = concat_strings(rowlabels[i - nmrows], " = ");
+            for (i = 0; i < nscols; i++) {
+                rowlabels[i] = copy_string(NULL, dataset_col_name(grace, i));
+                rowlabels[i] = concat_strings(rowlabels[i], " = ");
             }
         }
-        XbaeMatrixAddRows(ui->mw, nmrows, NULL, rowlabels, NULL, nscols - nmrows);
+        TableAddRows(ui->mw, nscols - nmrows);
+        TableSetRowLabels(ui->mw, rowlabels);
     }
+    TableUpdateVisibleRowsCols(ui->mw);
 }
 
 static Leval_ui levalui;
 
-static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
+static int leaveCB(TableEvent *event)
 {
-    Leval_ui *ui = (Leval_ui *) client_data;
-    
-    XbaeMatrixLeaveCellCallbackStruct *cs =
-            (XbaeMatrixLeaveCellCallbackStruct *) call_data;
+    Leval_ui *ui = (Leval_ui *) event->anydata;
 
-    XbaeMatrixSetCell(ui->mw, cs->row, cs->column, cs->value);
+    TableSetCell(ui->mw, event->row, event->col, event->value);
+
+    return TRUE;
 }
 
 void create_leval_frame(Widget but, void *data)
@@ -497,7 +473,7 @@ void create_leval_frame(Widget but, void *data)
         char *rows[MAX_SET_COLS][1];
         char **cells[MAX_SET_COLS];
         char *rowlabels[MAX_SET_COLS];
-        short column_widths[1] = {50};
+        int column_widths[1] = {50};
         int column_maxlengths[1] = {256};
         Grace *grace = grace_from_quark(gr);
 
@@ -526,26 +502,19 @@ void create_leval_frame(Widget but, void *data)
             cells[i] = &rows[i][0];
         }
 
-        levalui.mw = XtVaCreateManagedWidget("mw",
-            xbaeMatrixWidgetClass, levalui.top,
-            XmNrows, nscols,
-            XmNcolumns, 1,
-            XmNvisibleRows, MAX_SET_COLS,
-            XmNvisibleColumns, 1,
-            XmNcolumnWidths, column_widths,
-            XmNcolumnMaxLengths, column_maxlengths,
-            XmNrowLabels, rowlabels,
-            XmNrowLabelWidth, 6,
-            XmNrowLabelAlignment, XmALIGNMENT_CENTER,
-            XmNcells, cells,
-            XmNgridType, XmGRID_CELL_SHADOW,
-            XmNcellShadowType, XmSHADOW_ETCHED_OUT,
-            XmNcellShadowThickness, 2,
-            XmNaltRowCount, 0,
-            XmNallowColumnResize, True,
-            NULL);
+        levalui.mw = CreateTable("mw", levalui.top,
+                                 nscols, 1,
+                                 MAX_SET_COLS, 1);
+        TableLevalInit(levalui.mw);
+        TableSetColWidths(levalui.mw, column_widths);
+        TableSetColMaxlengths(levalui.mw, column_maxlengths);
+        TableSetRowLabels(levalui.mw, rowlabels);
+        TableSetDefaultRowLabelWidth(levalui.mw, 6);
+        TableSetDefaultRowLabelAlignment(levalui.mw, ALIGN_CENTER);
+        TableSetCells(levalui.mw, cells);
+        TableUpdateVisibleRowsCols(levalui.mw);
 
-        XtAddCallback(levalui.mw, XmNleaveCellCallback, leaveCB, &levalui);
+        AddTableLeaveCellCB(levalui.mw, leaveCB, &levalui);
 
         CreateAACDialog(levalui.top, levalui.mw, leval_aac_cb, &levalui);
     }
@@ -584,9 +553,9 @@ static int leval_aac_cb(void *data)
         return RETURN_FAILURE;
     }
 
-    XbaeMatrixCommitEdit(ui->mw, False);
+    TableCommitEdit(ui->mw, FALSE);
     for (i = 0; i < nscols; i++) {
-        formula[i] = XbaeMatrixGetCell(ui->mw, i, 0);
+        formula[i] = TableGetCell(ui->mw, i, 0);
     }
     
     
