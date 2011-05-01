@@ -127,6 +127,9 @@ public:
         return createIndex(row, column);
     }
 
+signals:
+    void nRowsOrColsChanged();
+
 private:
     int ncols;
     int nrows;
@@ -148,7 +151,6 @@ class TableView : public QTableView
 public:
     TableView(QAbstractItemModel *model, QWidget *parent = 0);
 
-    void closeEditor();
     void commitEdit();
 
     void setEditorMaxLengths(int *maxlengths);
@@ -159,6 +161,9 @@ public:
     void setEnterCellCallback(Table_CBData *cbdata) {
         enter_cbdata = cbdata;
     }
+
+public slots:
+    void closeEditor();
 
 protected:
     void mousePressEvent(QMouseEvent *event);

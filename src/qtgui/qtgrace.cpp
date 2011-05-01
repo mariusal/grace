@@ -9076,6 +9076,7 @@ void TableModel::setRowCount(int rows)
     }
 
     this->nrows = rows;
+    emit nRowsOrColsChanged();
     reset();
 }
 
@@ -9087,6 +9088,7 @@ void TableModel::setColumnCount(int cols)
     }
 
     this->ncols = cols;
+    emit nRowsOrColsChanged();
     reset();
 }
 
@@ -9231,6 +9233,8 @@ TableView::TableView(QAbstractItemModel *model, QWidget *parent)
 {
     this->setModel(model);
 
+    connect(model, SIGNAL(nRowsOrColsChanged()), this, SLOT(closeEditor()));
+
     lineEditor = 0;
 
     enter_cbdata = 0;
@@ -9245,6 +9249,7 @@ void TableView::closeEditor()
     TableModel *tm = (TableModel *) model();
 
     closeEditor(tm->newIndex(previous_row, previous_col));
+    qDebug() << "closeEditor";
 }
 
 void TableView::commitEdit()
@@ -9365,7 +9370,7 @@ void TableView::closeEditor(QModelIndex index)
 {
     setIndexWidget(index, 0);
     lineEditor = 0;
-    qDebug() << "closeEditor";
+    qDebug() << "closeEditor(index)";
 }
 
 typedef struct {
