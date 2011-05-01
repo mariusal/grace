@@ -147,7 +147,10 @@ RunTime *runtime_new(GraceApp *gapp)
 
     /* working directory */
     rt->workingdir = xmalloc(GR_MAXPATHLEN);
-    getcwd(rt->workingdir, GR_MAXPATHLEN - 1);
+    if (!getcwd(rt->workingdir, GR_MAXPATHLEN - 1)) {
+        runtime_free(rt);
+        return NULL;
+    }
     if (rt->workingdir[strlen(rt->workingdir)-1] != '/') {
         rt->workingdir = concat_strings(rt->workingdir, "/");
     }
