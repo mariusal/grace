@@ -352,6 +352,9 @@
 /* Define if PDFlib library is available */
 #undef HAVE_LIBPDF
 
+/* Define if Haru library is available */
+#undef HAVE_HARU
+
 /* Define if the X Window System is missing or not being used.  */
 #undef X_DISPLAY_MISSING
 

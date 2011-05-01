@@ -248,6 +248,7 @@ int attach_pnm_drv_setup(Canvas *canvas, int device_id);
 int attach_png_drv_setup(Canvas *canvas, int device_id);
 int attach_jpg_drv_setup(Canvas *canvas, int device_id);
 int attach_pdf_drv_setup(Canvas *canvas, int device_id);
+int attach_hpdf_drv_setup(Canvas *canvas, int device_id);
 
 #endif /* NONE_GUI */
 

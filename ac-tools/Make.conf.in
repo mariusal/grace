@@ -83,6 +83,9 @@ PNG_LIB=@PNG_LIB@
 # PDFlib library
 PDF_LIB=@PDF_LIB@
 
+# Haru PDF library
+HARU_LIB=@HARU_LIB@
+
 # Xbae include path
 XBAE_INC=@XBAE_INC@
 

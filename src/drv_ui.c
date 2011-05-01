@@ -324,6 +324,86 @@ int attach_pdf_drv_setup(Canvas *canvas, int device_id)
 
 #endif /* HAVE_LIBPDF */
 
+#ifdef HAVE_HARU
+
+typedef struct {
+    HPDF_data       *hpdf;
+    
+    Widget           frame;
+    Widget           compression;
+    OptionStructure *colorspace;
+} HPDF_UI_data;
+
+static void update_hpdf_setup_frame(HPDF_UI_data *ui)
+{
+    if (ui->frame) {
+        HPDF_data *hpdf = ui->hpdf;
+        
+        SetOptionChoice(ui->colorspace, hpdf->colorspace);
+        SetToggleButtonState(ui->compression, hpdf->compression);
+    }
+}
+
+static int set_hpdf_setup_proc(void *data)
+{
+    HPDF_UI_data *ui = (HPDF_UI_data *) data;
+    HPDF_data *hpdf = ui->hpdf;
+
+    hpdf->colorspace  = GetOptionChoice(ui->colorspace);
+    hpdf->compression = GetToggleButtonState(ui->compression);
+    
+    return RETURN_SUCCESS;
+}
+
+void hpdf_gui_setup(const Canvas *canvas, void *data)
+{
+    HPDF_UI_data *ui = (HPDF_UI_data *) data;
+
+    set_wait_cursor();
+    
+    if (ui->frame == NULL) {
+        Widget fr, rc;
+        OptionItem colorspace_ops[3] = {
+            {HPDF_COLORSPACE_GRAYSCALE, "Grayscale"},
+            {HPDF_COLORSPACE_RGB,       "RGB"      },
+            {HPDF_COLORSPACE_CMYK,      "CMYK"     }
+        };
+    
+	ui->frame = CreateDialogForm(app_shell, "hPDF options");
+
+	fr = CreateFrame(ui->frame, "hPDF options");
+        rc = CreateVContainer(fr);
+        ui->colorspace =
+            CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_ops);
+	ui->compression = CreateToggleButton(rc, "Compression");
+
+	CreateAACDialog(ui->frame, fr, set_hpdf_setup_proc, ui);
+    }
+    update_hpdf_setup_frame(ui);
+    RaiseWindow(GetParent(ui->frame));
+    unset_wait_cursor();
+}
+
+int attach_hpdf_drv_setup(Canvas *canvas, int device_id)
+{
+    dev_gui_setup *setup_data;
+    HPDF_UI_data *ui_data;
+    
+    ui_data = xmalloc(sizeof(HPDF_UI_data));
+    memset(ui_data, 0, sizeof(HPDF_UI_data));
+    ui_data->hpdf = device_get_devdata(canvas, device_id);
+    
+    setup_data = xmalloc(sizeof(dev_gui_setup));
+    setup_data->setup = hpdf_gui_setup;
+    setup_data->ui = ui_data;
+    
+    device_set_udata(canvas, device_id, setup_data);
+
+    return RETURN_SUCCESS;
+}
+
+#endif /* HAVE_HARU */
+
 #ifdef HAVE_LIBXMI
 
 typedef struct {
