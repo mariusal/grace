@@ -258,5 +258,18 @@ class KeyPressListener : public QObject
      bool eventFilter(QObject *obj, QEvent *event);
  };
 
+class WhatsThisListener : public QObject
+ {
+     Q_OBJECT
+ public:
+    WhatsThisListener(QObject *parent);
+
+ signals:
+      void whatsThis();
+
+ protected:
+     bool eventFilter(QObject *obj, QEvent *event);
+ };
+
 #endif /* __QTGRACE_H_ */
 

@@ -145,6 +145,8 @@ void startup_gui(GraceApp *gapp)
     mwui->drawing_window = mainWin->ui.scrollArea;
     xstuff->canvas = mainWin->ui.canvasWidget;
 
+    AddHelpCB(xstuff->canvas, "doc/UsersGuide.html#canvas");
+
     //toolBar->setStyleSheet(QString::fromUtf8(" QToolButton {\n"
     //            "    border: 1px solid #8f8f91;\n"
     //            "    border-radius: 2px;\n"
@@ -8554,10 +8556,27 @@ static void help_int_cb(Widget w, XtPointer client_data, XtPointer call_data)
 //    
 //    XtAddCallback(w, XmNhelpCallback, help_int_cb, (XtPointer) ha);
 //}
+WhatsThisListener::WhatsThisListener(QObject *parent)
+    : QObject(parent)
+{
+}
+
+bool WhatsThisListener::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::WhatsThis) {
+        emit whatsThis();
+        return false;
+    } else {
+        // standard event processing
+        return QObject::eventFilter(obj, event);
+    }
+}
+
 void AddHelpCB(Widget w, char *ha)
 {
-    //TODO:
-    //QtAddCallback(w, SIGNAL(clicked()), help_int_cb, (XtPointer) ha);
+    WhatsThisListener *listener = new WhatsThisListener(w);
+    w->installEventFilter(listener);
+    QtAddCallback(listener, SIGNAL(whatsThis()), help_int_cb, (XtPointer) ha);
 }
 
 //void ContextHelpCB(Widget but, void *data)
@@ -8591,6 +8610,7 @@ void ContextHelpCB(Widget but, void *data)
     int ok = FALSE;
 
     QWhatsThis::enterWhatsThisMode();
+//    QWidget::event()
 //    cursor = XCreateFontCursor(xstuff->disp, XC_question_arrow);
 //    whelp = XmTrackingLocate(app_shell, cursor, False);
 //    while (whelp != NULL) {
@@ -8602,9 +8622,9 @@ void ContextHelpCB(Widget but, void *data)
 //            whelp = GetParent(whelp);
 //        }
 //    }
-    if (!ok) {
-        HelpCB(but, NULL);
-    }
+//    if (!ok) {
+//        HelpCB(but, NULL);
+//    }
 //    XFreeCursor(xstuff->disp, cursor);
 }
 //
