@@ -7405,6 +7405,7 @@ Widget CreateCommandButtons(Widget parent, int n, Widget *buts, char **l)
 
     for (i = 0; i < n; i++) {
         pushButton = new QPushButton(l[i], form);
+        pushButton->setAutoDefault(false);
         hLayout->addWidget(pushButton);
         buts[i] = pushButton;
     }
