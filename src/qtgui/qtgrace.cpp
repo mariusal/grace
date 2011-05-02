@@ -8016,10 +8016,10 @@ Widget CreateTextItem(Widget parent, int len, char *s)
     return lineEdit;
 }
 
-//typedef struct {
-//    TItem_CBProc cbproc;
-//    void *anydata;
-//} TItem_CBdata;
+typedef struct {
+    TItem_CBProc cbproc;
+    void *anydata;
+} TItem_CBdata;
 
 //static void titem_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 //{
@@ -8029,6 +8029,16 @@ Widget CreateTextItem(Widget parent, int len, char *s)
 //    cbdata->cbproc(w, s, cbdata->anydata);
 //    XtFree(s);
 //}
+static void titem_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    char *s;
+    TItem_CBdata *cbdata = (TItem_CBdata *) client_data;
+
+    QLineEdit *lineEdit = qobject_cast<QLineEdit *>(w);
+    QByteArray ba = lineEdit->text().toAscii();
+    s = ba.data();
+    cbdata->cbproc(w, s, cbdata->anydata);
+}
 
 
 //void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
@@ -8042,7 +8052,14 @@ Widget CreateTextItem(Widget parent, int len, char *s)
 //}
 void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
 {
-    //TODO:
+    TItem_CBdata *cbdata;
+
+    cbdata = (TItem_CBdata *) xmalloc(sizeof(TItem_CBdata));
+    cbdata->anydata = data;
+    cbdata->cbproc = cbproc;
+
+    QtAddCallback(ti, SIGNAL(returnPressed()),
+                  titem_int_cb_proc, (XtPointer) cbdata);
 }
 
 ///* FIXME: get rid of xv_getstr()!!! */
