@@ -382,17 +382,17 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor)
 void stufftext(char *s)
 {
 #ifdef NONE_GUI
-    printf(s);
+    fputs(s, stdout);
 #else
     if (gapp->gui->inwin) {
         stufftextwin(s);
     } else {
-        printf(s);
+        fputs(s, stdout);
     }
 #endif
     /* log results to file */
     if (gapp->rt->resfp != NULL) {
-	fprintf(gapp->rt->resfp, s);
+	fputs(s, gapp->rt->resfp);
     }
 }
 
