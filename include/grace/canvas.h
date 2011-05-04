@@ -729,6 +729,39 @@ typedef struct {
 
 #endif /* HAVE_LIBPDF */
 
+#ifdef HAVE_HARU
+#include <hpdf.h>
+
+typedef enum {
+    HPDF_COLORSPACE_GRAYSCALE,
+    HPDF_COLORSPACE_RGB,
+    HPDF_COLORSPACE_CMYK
+} HPDFColorSpace;
+
+typedef struct {
+    HPDF_Doc         pdf;
+    HPDF_Page        page;
+    jmp_buf          jmpenv;
+
+    unsigned long    page_scale;
+    float            pixel_size;
+    float            page_scalef;
+
+    HPDF_Font       *font_ids;
+
+    int              color;
+    int              pattern;
+    double           linew;
+    int              lines;
+    int              linecap;
+    int              linejoin;
+
+    PDFColorSpace    colorspace;
+    int              compression;
+} HPDF_data;
+
+#endif /* HAVE_HARU */
+
 #ifdef HAVE_LIBXMI
 
 /* PNM sub-formats */
@@ -798,6 +831,10 @@ int register_svg_drv(Canvas *canvas);
 
 #ifdef HAVE_LIBPDF
 int register_pdf_drv(Canvas *canvas);
+#endif
+
+#ifdef HAVE_HARU
+int register_hpdf_drv(Canvas *canvas);
 #endif
 
 #ifdef HAVE_LIBXMI

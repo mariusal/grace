@@ -270,6 +270,7 @@ int attach_pnm_drv_setup(Canvas *canvas, int device_id);
 int attach_png_drv_setup(Canvas *canvas, int device_id);
 int attach_jpg_drv_setup(Canvas *canvas, int device_id);
 int attach_pdf_drv_setup(Canvas *canvas, int device_id);
+int attach_hpdf_drv_setup(Canvas *canvas, int device_id);
 
 void aux_XDrawLine(GUI *gui, int x1, int y1, int x2, int y2);
 void aux_XDrawRectangle(GUI *gui, int x1, int y1, int x2, int y2);

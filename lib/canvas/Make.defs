@@ -11,6 +11,7 @@ SRCS = draw.c t1fonts.c device.c xrstdrv.c \
 	mfdrv.c \
 	psdrv.c \
 	pdfdrv.c \
+	hpdfdrv.c \
 	mifdrv.c \
 	svgdrv.c \
 	pnmdrv.c \
@@ -23,6 +24,7 @@ OBJS = draw$(O) t1fonts$(O) device$(O) xrstdrv$(O) \
 	mfdrv$(O) \
 	psdrv$(O) \
 	pdfdrv$(O) \
+	hpdfdrv$(O) \
 	mifdrv$(O) \
 	svgdrv$(O) \
 	pnmdrv$(O) \

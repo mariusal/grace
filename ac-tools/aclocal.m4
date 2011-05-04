@@ -725,6 +725,54 @@ AC_DEFUN(ACX_CHECK_PDFLIB,
   fi
 ])dnl
 
+dnl ACX_CHECK_HARU
+dnl --------------
+AC_DEFUN(ACX_CHECK_HARU,
+[
+  AC_ARG_WITH(haru_library,
+  [  --with-haru-library=OBJ      use OBJ as Haru library [[-lhpdf]]],
+  haru_library="$withval")
+  if test "x$haru_library" = "x"
+  then
+    haru_library=-lhpdf
+  fi
+
+  AC_CACHE_CHECK([for Haru PDF library >= $1], acx_cv_haru,
+    AC_CACHE_VAL(acx_cv_haru_library, acx_cv_haru_library=$haru_library)
+    ACX_SAVE_STATE
+    LIBS="$acx_cv_haru_library $PNG_LIB $Z_LIB $LIBS"
+    AC_TRY_RUN([
+#include <hpdf.h>
+      int main(void) {
+        const char *vinc, *vlib;
+        vinc = HPDF_VERSION_TEXT;
+        vlib = HPDF_GetVersion();
+        if (strcmp(vinc, "[$1]") < 0) {
+          exit(1);
+        }
+        if (strcmp(vinc, vlib)) {
+          exit(2);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_haru="yes",
+      acx_cv_haru="no",
+      acx_cv_haru="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_haru" = "yes"
+  then
+    HARU_LIB="$acx_cv_haru_library"
+    $2
+  else
+    HARU_LIB=
+    $3
+  fi
+])dnl
+
 dnl ACX_CHECK_LIBUNDO
 dnl --------------
 AC_DEFUN(ACX_CHECK_LIBUNDO,

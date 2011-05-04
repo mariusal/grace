@@ -161,6 +161,12 @@ int main(int argc, char *argv[])
     attach_pdf_drv_setup(canvas, device_id);
 #endif
 #endif
+#ifdef HAVE_HARU
+    device_id = register_hpdf_drv(canvas);
+#ifndef NONE_GUI
+    attach_hpdf_drv_setup(canvas, device_id);
+#endif
+#endif
     register_mif_drv(canvas);
     register_svg_drv(canvas);
     register_emf_drv(canvas);
