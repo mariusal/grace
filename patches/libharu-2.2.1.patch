@@ -1,0 +1,44 @@
+--- ./include/hpdf.h.orig	2010-11-22 11:57:27.000000000 +0200
++++ ./include/hpdf.h	2011-03-27 23:59:04.000000000 +0200
+@@ -1058,7 +1058,7 @@
+ /* d */
+ HPDF_EXPORT(HPDF_STATUS)
+ HPDF_Page_SetDash  (HPDF_Page           page,
+-                    const HPDF_UINT16  *dash_ptn,
++                    const HPDF_REAL    *dash_ptn,
+                     HPDF_UINT           num_param,
+                     HPDF_UINT           phase);
+ 
+--- ./src/hpdf_page_operator.c.orig	2010-02-01 12:26:13.000000000 +0200
++++ ./src/hpdf_page_operator.c	2011-03-27 23:59:04.000000000 +0200
+@@ -179,7 +179,7 @@
+ /* d */
+ HPDF_EXPORT(HPDF_STATUS)
+ HPDF_Page_SetDash  (HPDF_Page           page,
+-                    const HPDF_UINT16  *dash_ptn,
++                    const HPDF_REAL    *dash_ptn,
+                     HPDF_UINT           num_param,
+                     HPDF_UINT           phase)
+ {
+@@ -188,7 +188,7 @@
+     char buf[HPDF_TMP_BUF_SIZ];
+     char *pbuf = buf;
+     char *eptr = buf + HPDF_TMP_BUF_SIZ - 1;
+-    const HPDF_UINT16 *pdash_ptn = dash_ptn;
++    const HPDF_REAL *pdash_ptn = dash_ptn;
+     HPDF_PageAttr attr;
+     HPDF_UINT i;
+ 
+@@ -213,10 +213,10 @@
+     *pbuf++ = '[';
+ 
+     for (i = 0; i < num_param; i++) {
+-        if (*pdash_ptn == 0 || *pdash_ptn > HPDF_MAX_DASH_PATTERN)
++        if (*pdash_ptn <= 0.0)
+             return HPDF_RaiseError (page->error, HPDF_PAGE_OUT_OF_RANGE, 0);
+ 
+-        pbuf = HPDF_IToA (pbuf, *pdash_ptn, eptr);
++        pbuf = HPDF_FToA (pbuf, *pdash_ptn, eptr);
+         *pbuf++ = ' ';
+         pdash_ptn++;
+     }
