@@ -730,6 +730,7 @@ typedef struct {
 #endif /* HAVE_LIBPDF */
 
 #ifdef HAVE_HARU
+#include <setjmp.h>
 #include <hpdf.h>
 
 typedef enum {
@@ -756,7 +757,7 @@ typedef struct {
     int              linecap;
     int              linejoin;
 
-    PDFColorSpace    colorspace;
+    HPDFColorSpace   colorspace;
     int              compression;
 } HPDF_data;
 
