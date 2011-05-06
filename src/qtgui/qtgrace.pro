@@ -2,7 +2,9 @@ TEMPLATE = lib
 CONFIG -= debug_and_release debug release
 CONFIG += debug
 CONFIG += staticlib
-INCLUDEPATH += . ../ ../../include
+include(../../Make.conf)
+CPPFLAGS ~= s/-I//
+INCLUDEPATH += . ../ ../../include $$CPPFLAGS
 
 # Input
 FORMS += mainwindow.ui \
