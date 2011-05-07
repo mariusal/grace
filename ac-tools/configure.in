@@ -621,16 +621,6 @@ else
   AC_MSG_RESULT(--> Good. Seems you have compatible version of Expat installed)
 fi
 
-dnl **** Check for XDR
-mdw_CHECK_MANYLIBS(xdrstdio_create, nsl rpc xdr rpclib, XDR_LIB=$mdw_cv_lib_xdrstdio_create, XDR_LIB="NONE")
-
-if test "${XDR_LIB}" = "NONE"; then
-  XDR_LIB=
-  AC_MSG_RESULT(--> No XDR library found; grconvert will not be built)
-else
-  grconvert_dir="grconvert"
-fi
-
 dnl **** Check for dlopen() interface
 dnl           (Linux, SunOS-[4,5], OSF, IRIX, AIX-4, UnixWare, ...)
 mdw_CHECK_MANYLIBS(dlopen, dl, [DL_LIB=$mdw_cv_lib_dlopen; AC_DEFINE(HAVE_DLOPEN)], DL_LIB="NONE")
@@ -841,7 +831,7 @@ then
 fi
 
 dnl **** Final list of subdirs
-SUBDIRS="${t1lib_dir} ${expat_dir} ${xbae_dir} ${qtgui_dir} lib/base lib/canvas lib/core lib/plot lib/graal lib/grace src ${grconvert_dir} fonts templates doc examples auxiliary"
+SUBDIRS="${t1lib_dir} ${expat_dir} ${xbae_dir} ${qtgui_dir} lib/base lib/canvas lib/core lib/plot lib/graal lib/grace src fonts templates doc examples auxiliary"
 
 dnl **** Create Make.conf
 AC_OUTPUT(Make.conf:ac-tools/Make.conf.in)
