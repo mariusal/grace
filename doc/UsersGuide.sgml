@@ -8,7 +8,7 @@
 
   <title>Grace User's Guide (for Grace-5.99.1)</title>
   <author><name>The Grace Team</name></author>
-  <date>28.01.2007</date>
+  <date>08.05.2011</date>
   <abstract>
     This document explains the usage of
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -3028,12 +3028,6 @@ C
              In most cases, 40102 would do the trick.
       </item>
 
-      <item> The above relates to the ASCII projects only. The old binary
-             projects (saved with xmgr-4.0.*) are not automatically converted
-             anymore. You can use the "grconvert" utility that comes with
-             Grace to convert such files to Xmgr-4.1.2-style projects. 
-      </item>
- 
       <item> Grace is WYSIWYG. Xmgr was not. Many changes required to achieve the
              WYSIWYG'ness led to the situation when graphs with objects carefully
              aligned under Xmgr may not look so under Grace. Grace tries its best

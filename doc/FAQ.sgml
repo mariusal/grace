@@ -8,7 +8,7 @@
 
   <title>Grace FAQ (for Grace-5.99.1)</title>
   <author><name>The Grace Team</name></author>
-  <date>06.05.2006</date>
+  <date>08.05.2011</date>
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -953,16 +953,6 @@ XMgrace*background: ...
         In most cases, 40102 would do the trick. Also, make sure to read
         the "Xmgr to Grace migration" section of the User's Guide
         (question <ref id="manual" name="User's Guide">).
-      </p>
-    </sect1>
-
-    <sect1><heading>I can't open anymore project files saved with an old
-           version of Xmgr.</heading>
-      <p>
-        In Xmgr-4.1.0, support for the binary file format (the
-        former default one) was dropped. You must use the
-        <tt>grconvert</tt> utility supplied with the Grace
-        distribution in order to convert the files.
       </p>
     </sect1>
 

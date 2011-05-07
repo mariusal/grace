@@ -70,7 +70,7 @@ TEXDOCS  = FAQ.tex UsersGuide.tex
 
 GRACEMAN = grace.1
 MANLINKS = xmgrace.1 gracebat.1
-MANPAGES = $(GRACEMAN) grconvert.1 convcal.1
+MANPAGES = $(GRACEMAN) convcal.1
 
 all : html pdf
 
