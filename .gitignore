@@ -11,7 +11,6 @@ doc/FAQ.html
 doc/FAQ.pdf
 doc/UsersGuide.html
 doc/UsersGuide.pdf
-grconvert/grconvert
 include/config.h
 lib/graal/parser.c
 lib/graal/parser.h
