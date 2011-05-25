@@ -19,4 +19,6 @@ clean: Makefile.qt
 
 distclean: Makefile.qt
 	$(MAKE) -f Makefile.qt distclean
+	$(RM) Makefile.qt
+	$(RM) object_script.libqtgrace
 
