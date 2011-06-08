@@ -191,10 +191,10 @@ handle_sigchld(int signum)
             if (retval == pid) {
                 /* Grace just died */
                 pid = (pid_t) -1;
+		close(fd_pipe);
+		fd_pipe = -1;
             }
         }
-        close(fd_pipe);
-        fd_pipe = -1;
     }
 }
 
