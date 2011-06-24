@@ -1,0 +1,6 @@
+export CPPFLAGS="-IC:/cygwin/home/img/libundo/include -IC:/cygwin/home/img/lib/libharu/include -IC:/cygwin/home/img/lib/zlib/include -IC:/cygwin/home/img/lib/libxmi/include -IC:/cygwin/home/img/lib/libpng/include -IC:/cygwin/home/img/lib/libjpeg/include"
+export MAKE=mingw32-make
+export PATH=/cygwin/c/QtSDK/mingw/bin/:/cygwin/c/QtSDK/Desktop/Qt/4.7.3/mingw/bin/:$PATH
+export QTDIR=C:/QtSDK/Desktop/Qt/4.7.3/mingw/
+
+./configure --enable-qt-gui --enable-debug --with-undo-library=C:/cygwin/home/img/libundo/src/.libs/libundo.a --with-haru-library=C:/cygwin/home/img/lib/libharu/lib/libhpdf.a --with-zlib-library=C:/cygwin/home/img/lib/zlib/lib/libz.a  --with-xmi-library=C:/cygwin/home/img/lib/libxmi/lib/libxmi.a --with-png-library=C:/cygwin/home/img/lib/libpng/lib/libpng.dll.a --with-jpeg-library=C:/cygwin/home/img/lib/libjpeg/lib/libjpeg.dll.a
