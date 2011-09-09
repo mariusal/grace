@@ -3,8 +3,7 @@ CONFIG -= debug_and_release debug release
 CONFIG += debug
 CONFIG += staticlib
 include(../../Make.conf)
-CPPFLAGS ~= s/-I//
-INCLUDEPATH += . ../ ../../include $$CPPFLAGS
+INCLUDEPATH += . ../ ../../include $$replace(CPPFLAGS, "-I", "")
 
 # Input
 FORMS += mainwindow.ui \
