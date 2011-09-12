@@ -36,6 +36,19 @@ static void quark_storage_free(AMem *amem, void *data)
     quark_free((Quark *) data);
 }
 
+static int explorer_cb(Quark *pr, int etype, void *data)
+{
+    if (etype == QUARK_ETYPE_DELETE) {
+        printf("Delete Quark\n");
+    } else if (etype == QUARK_ETYPE_MODIFY) {
+//        printf("Modify Quark\n");
+    } else if (etype == QUARK_ETYPE_REPARENT) {
+        printf("Reparent Quark\n");
+    } else {
+        printf("Else event Quark\n");
+    }
+}
+
 static Quark *quark_new_raw(AMem *amem,
     Quark *parent, unsigned int fid, void *data)
 {
@@ -71,6 +84,10 @@ static Quark *quark_new_raw(AMem *amem,
             
             quark_dirtystate_set(parent, TRUE);
         }
+#ifndef NONE_GUI
+        printf("Create new Quark\n");
+        quark_cb_add(q, explorer_cb, NULL);
+#endif
     }
     
     return q;

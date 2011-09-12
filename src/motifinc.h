@@ -41,7 +41,6 @@
 #endif /* QT_GUI */
 
 #include "graceapp.h"
-#include "ListTree.h"
 
 /* 
  * Accept/Apply/Close for aac_cb callbacks
@@ -450,8 +449,8 @@ void FixateDialogFormChild(Widget w);
 
 Widget CreateFrame(Widget parent, char *s);
 
-Widget CreateScrolledListTree(Widget parent);
 Widget CreateScrolledWindow(Widget parent);
+Widget CreatePanedWindow(Widget parent);
 
 Widget CreateSeparator(Widget parent);
 Widget CreateMenuSeparator(Widget parent);
@@ -662,13 +661,26 @@ void unlink_ssd_ui(Quark *q);
 
 void set_title(char *title, char *icon_name);
 
-/* explorer.c */
-void explorer_menu_cb(Widget w, XtPointer client, XtPointer call);
-void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointer),
-                                    ExplorerUI *eui);
-void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer),
-                                  ExplorerUI *eui);
-void ListTreeSetItemOpen(ListTreeItem *item, Boolean open);
+/* Tree Widget */
+Widget CreateTree(Widget parent);
+void TreeAddItem(Widget w, int depth, int step, char *label);
+
+typedef struct {
+    Widget w;
+    void *anydata;
+    void *udata;
+} TreeEvent;
+
+typedef int (*Tree_CBProc)(TreeEvent *event);
+typedef struct {
+    Widget w;
+    Tree_CBProc cbproc;
+    void *anydata;
+} Tree_CBData;
+
+void AddTreeContextMenuCB(Widget w, Tree_CBProc cbproc, void *anydata);
+void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata);
+void AddTreeDropItemsCB(Widget w, Tree_CBProc cbproc, void *anydata);
 
 /* Table Widget */
 Widget CreateTable(char *name, Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible);

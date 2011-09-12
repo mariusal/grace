@@ -683,22 +683,6 @@ void set_view_items(void)
     }
 }
 
-Widget CreateScrolledListTree(Widget parent)
-{
-    QTreeWidget *treeWidget = new QTreeWidget(parent);
-
-    treeWidget->setHeaderHidden(true);
-    treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    treeWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
-
-    QLayout *layout = parent->layout();
-    if (layout != 0) {
-        layout->addWidget(treeWidget);
-    }
-
-    return treeWidget;
-}
-
 //Widget CreateScrolledWindow(Widget parent)
 //{
 //    return XtVaCreateManagedWidget("ui->sw",
@@ -710,8 +694,8 @@ Widget CreateScrolledListTree(Widget parent)
 Widget CreateScrolledWindow(Widget parent)
 {
     QScrollArea *scrollArea = new QScrollArea(parent);
-    scrollArea->setMinimumHeight(500);
-    scrollArea->setMinimumWidth(320);
+    scrollArea->setMinimumHeight(320);
+//    scrollArea->setMinimumWidth(320);
     scrollArea->setWidgetResizable(true);
 
     QWidget *widget = new QWidget;
@@ -731,222 +715,19 @@ Widget CreateScrolledWindow(Widget parent)
     return widget;
 }
 
-void
-ListTreeSetItemOpen(ListTreeItem *item, Boolean open)
+Widget CreatePanedWindow(Widget parent)
 {
-    QTreeWidgetItem *widget = (QTreeWidgetItem *) item->widget;
-    widget->setExpanded(open);
-    item->open = open;
-}
+    QSplitter *splitter = new QSplitter(parent);
+    splitter->setChildrenCollapsible(false);
 
-void
-ListTreeGetHighlighted(Widget w, ListTreeMultiReturnStruct *ret)
-{
-    QTreeWidget *treeWidget = (QTreeWidget *) w;
-
-    QList<QTreeWidgetItem *> list = treeWidget->selectedItems();
-    int count = list.count();
-
-    ret->items = NULL;
-    ret->count = 0;
-
-    ret->items = (ListTreeItem **) xmalloc(count * sizeof(ListTreeItem *));
-
-    foreach (QTreeWidgetItem *item, list) {
-        QVariant v = item->data(1, Qt::UserRole);
-        ListTreeItem *litem = reinterpret_cast<ListTreeItem *>(v.value<void *>());
-        litem->highlighted = TRUE;
-        ret->items[ret->count] = litem;
-        ret->count++;
-    }
-}
-
-void
-ListTreeClearHighlighted(Widget w)
-{
-    QTreeWidget *treeWidget = (QTreeWidget *) w;
-
-    QList<QTreeWidgetItem *> list = treeWidget->selectedItems();
-
-    foreach (QTreeWidgetItem *item, list) {
-        QVariant v = item->data(1, Qt::UserRole);
-        ListTreeItem *litem = reinterpret_cast<ListTreeItem *>(v.value<void *>());
-        litem->highlighted = FALSE;
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(splitter);
     }
 
-    treeWidget->clearSelection();
+    return splitter;
 }
 
-ListTreeItem *
-ListTreeAdd(Widget w, ListTreeItem *parent, char *string)
-{
-    ListTreeItem *item;
-
-    QTreeWidget *treeWidget = (QTreeWidget *) w;
-
-    QTreeWidgetItem *child_widget = new QTreeWidgetItem;
-    child_widget->setText(0, string);
-
-    item = (ListTreeItem *) xmalloc(sizeof(ListTreeItem));
-
-    item->widget = (QWidget *) child_widget;
-    item->open = FALSE;
-    item->highlighted = FALSE;
-    item->openPixmap = item->closedPixmap = (Pixmap)NULL;
-    item->firstchild = item->prevsibling = item->nextsibling = NULL;
-
-    QVariant v = QVariant::fromValue<void *>(item);
-    child_widget->setData(1, Qt::UserRole, v);
-
-    ListTreeItem *i;
-
-    item->parent = parent;
-    if (parent) {
-        if (parent->firstchild) {
-            i = parent->firstchild;
-            while (i->nextsibling) {
-                i = i->nextsibling;
-            }
-            i->nextsibling = item;
-            item->prevsibling = i;
-        } else {
-            parent->firstchild = item;
-        }
-        QTreeWidgetItem *parent_widget = (QTreeWidgetItem *) parent->widget;
-        parent_widget->addChild(child_widget);
-    } else {			/* if parent==NULL, this is a top level entry */
-        treeWidget->addTopLevelItem(child_widget);
-    }
-
-    return item;
-}
-
-static void
-DeleteChildren(Widget w, ListTreeItem *item)
-{
-  ListTreeItem *sibling;
-//  ListTreeItemReturnStruct ret;
-
-  while (item) {
-    if (item->firstchild) {
-      DeleteChildren(w, item->firstchild);
-      item->firstchild = NULL;
-    }
-    sibling = item->nextsibling;
-
-//    if (w->list.DestroyItemCallback) {
-//      ret.reason = XtDESTROY;
-//      ret.item = item;
-//      ret.event = NULL;
-//      XtCallCallbacks((Widget) w, XtNdestroyItemCallback, &ret);
-//    }
-
-//    xfree((char *) item->text);
-    qDebug("delete");
-//    delete item->widget;
-    xfree((char *) item);
-    item = sibling;
-  }
-}
-
-int
-ListTreeDeleteChildren(Widget w, ListTreeItem *item)
-{
-    //delete item->widget;
-    qDebug("delete tree children");
-    if (item->firstchild)
-      DeleteChildren(w, item->firstchild);
-    item->firstchild = NULL;
-
-//    ListTreeRefresh(w);
-
-    return 1;
-}
-
-void
-ListTreeSetItemPixmaps (Widget w, ListTreeItem *item,
-                        Pixmap openPixmap, Pixmap closedPixmap)
-{
-    QTreeWidgetItem *widget = (QTreeWidgetItem *) item->widget;
-
-    QIcon *icon = (QIcon *) openPixmap;
-
-    widget->setIcon(0, *icon);
-//    item->openPixmap   = openPixmap;
-//    item->closedPixmap = closedPixmap;
-}
-
-void
-ListTreeHighlightItemMultiple(Widget w, ListTreeItem *item)
-{
-    qDebug("Highlight multiple");
-    QTreeWidget *treeWidget = (QTreeWidget *) w;
-
-    QTreeWidgetItem *widget = (QTreeWidgetItem *) item->widget;
-    widget->setSelected(true);
-
-    item->highlighted = TRUE;
-}
-
-void ListTreeSetBottomPos(Widget aw, ListTreeItem *item)
-{/*
-  ListTreeWidget w = (ListTreeWidget) aw;
-  w->list.topItemPos = item->count - w->list.visibleCount + 1;
-  GotoPosition(w);
-  DrawAll(w);
-  SetScrollbars(w);*/
-}
-
-void ListTreeSetPos(Widget aw, ListTreeItem *item)
-{
-//  ListTreeWidget w = (ListTreeWidget) aw;
-//  w->list.topItemPos = item->count;
-//  GotoPosition(w);
-//  DrawAll(w);
-//  SetScrollbars(w);
-}
-
-void
-ListTreeRefresh(Widget w)
-{
-//  if (XtIsRealized((Widget) w) && ((ListTreeWidget)w)->list.Refresh) {
-//    DrawChanged((ListTreeWidget)w);
-//    XmUpdateDisplay(w);
-//  }
-}
-
-void
-ListTreeRefreshOff(Widget w)
-{
-//  ((ListTreeWidget)w)->list.Refresh = False;
-}
-
-void
-ListTreeRefreshOn(Widget w)
-{
-//  ((ListTreeWidget)w)->list.Refresh = True;
-//  ListTreeRefresh(w);
-}
-
-int
-ListTreeDelete(Widget w, ListTreeItem * item)
-{
-  ListTreeDeleteChildren(w, item);
-
-  QTreeWidget *treeWidget = (QTreeWidget *) w;
-  treeWidget->clear();
-
-  return 1;
-}
-
-void
-ListTreeRenameItem(Widget w, ListTreeItem * item, char *string)
-{
-    qDebug("rename Item");
-    QTreeWidgetItem *widget = (QTreeWidgetItem *) item->widget;
-
-    widget->setText(0, string);
-}
 
 /*
  *
@@ -7227,9 +7008,9 @@ void CreatePixmaps(ExplorerUI *eui)
 Widget CreateForm(Widget parent)
 {
     QWidget *widget = new QWidget(parent);
-    // width for explorer
-    widget->setMaximumWidth(250);
-    widget->setMinimumWidth(250);
+//    // width for explorer
+//    widget->setMaximumWidth(250);
+//    widget->setMinimumWidth(250);
 
     QVBoxLayout *vLayout = new QVBoxLayout;
     vLayout->setContentsMargins(3,3,3,3);
@@ -7398,6 +7179,7 @@ Widget CreateCommandButtons(Widget parent, int n, Widget *buts, char **l)
     QPushButton *pushButton;
 
     QWidget *form = new QWidget(parent);
+    form->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     QHBoxLayout *hLayout = new QHBoxLayout;
     hLayout->setContentsMargins(3,3,3,3);
@@ -8887,7 +8669,7 @@ void update_all(void)
 
     update_undo_buttons(gapp->gp);
     update_props_items();
-    update_explorer(gapp->gui->eui, TRUE);
+//    update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
     update_app_title(gapp->gp);
 }
@@ -8916,7 +8698,7 @@ void snapshot_and_update(GProject *gp, int all)
         update_all();
     } else {
         update_undo_buttons(gp);
-        update_explorer(gui->eui, FALSE);
+//        update_explorer(gui->eui, FALSE);
         update_app_title(gp);
     }
 }
@@ -9058,42 +8840,30 @@ void set_title(char *title, char *icon_name)
     mainWin->setWindowTitle(title);
 }
 
-//void explorer_menu_cb(Widget w, XtPointer client, XtPointer call)
-//{
-//    ListTreeItemReturnStruct *ret = (ListTreeItemReturnStruct *) call;
-//    XButtonEvent *xbe = (XButtonEvent *) ret->event;
-//    ExplorerUI *ui = (ExplorerUI *) client;
+/* Tree Widget */
 
-//    XmMenuPosition(ui->popup, xbe);
-//    XtManageChild(ui->popup);
-//}
-
-void explorer_menu_cb(Widget w, XtPointer client, XtPointer call)
+Widget CreateTree(Widget parent)
 {
-    ExplorerUI *ui = (ExplorerUI *) client;
-    QMenu *popup = (QMenu *) ui->popup;
+    QTreeWidget *treeWidget = new QTreeWidget(parent);
 
-    popup->exec(QCursor::pos());
+    treeWidget->setHeaderHidden(true);
+    treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    treeWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
+
+    QLayout *layout = parent->layout();
+    if (layout != 0) {
+        layout->addWidget(treeWidget);
+    }
+
+    return treeWidget;
 }
 
-//void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointer),
-//                                    ExplorerUI *eui)
-//{
-//    XtAddCallback(eui->tree, XtNmenuCallback, callback, eui);
-//}
-void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointer),
-                                    ExplorerUI *eui)
+void TreeAddItem(Widget w, int depth, int step, char *label)
 {
-    QtAddCallback(eui->tree, SIGNAL(customContextMenuRequested(const QPoint &)),
-                  callback, (XtPointer) eui);
+    QTreeWidgetItem *child_widget = new QTreeWidgetItem;
+//    child_widget->setText(0, string);
 }
 
-void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer),
-                                  ExplorerUI *eui)
-{
-    QtAddCallback(eui->tree, SIGNAL(itemSelectionChanged()),
-                  callback, (XtPointer) eui);
-}
 
 
 /* Table Widget */

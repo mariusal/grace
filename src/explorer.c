@@ -29,153 +29,8 @@
 
 #include "globals.h"
 #include "utils.h"
-
 #include "explorer.h"
-
-#ifndef QT_GUI
-#if XmVersion >= 2000
-# define USE_PANEDW 1
-#  include <Xm/PanedW.h>
-#else
-# define USE_PANEDW 0
-#endif
-#else /* QT_GUI */
-# define USE_PANEDW 0
-#endif /* QT_GUI */
-
 #include "xprotos.h"
-
-/* Quark labeling procedure */
-typedef char * (*Quark_LabelingProc)(
-    Quark *q
-);
-
-/* Quark creating procedure */
-typedef ListTreeItem * (*Quark_CreateProc)(
-    Widget w,
-    ListTreeItem *parent,
-    char *string,
-    void *udata
-);
-
-typedef struct {
-    Quark *q;
-    Widget tree;
-    unsigned int nchoices;
-    Quark_LabelingProc labeling_proc;
-} TreeItemData;
-
-static void highlight_selected(Widget w, ListTreeItem *parent,
-    int nsquarks, Quark **squarks);
-
-static ListTreeItem *q_create(Widget w,
-    ListTreeItem *parent, char *string, void *udata);
-
-static char *default_quark_labeling_proc(Quark *q)
-{
-    char buf[128];
-    
-    sprintf(buf, "Quark \"%s\"", QIDSTR(q));
-    
-    return copy_string(NULL, buf);
-}
-
-static int traverse_hook(unsigned int step, void *data, void *udata)
-{
-    char *s;
-    ListTreeItem *ti = (ListTreeItem *) udata;
-    TreeItemData *ti_data = (TreeItemData *) ti->user_data;
-    Quark *q = (Quark *) data;
-    
-    s = ti_data->labeling_proc(q);
-    if (s) {
-        if (step >= ti_data->nchoices) {
-            q_create(ti_data->tree, ti, s, data);
-            ti_data->nchoices++;
-        } else {
-            ListTreeRenameItem(ti_data->tree, ti, s);
-        }
-        xfree(s);
-    }
-    
-    return TRUE;
-}
-
-void UpdateQuarkTree(ListTreeItem *ti)
-{
-    TreeItemData *ti_data = (TreeItemData *) ti->user_data;
-    if (!ti_data->q || quark_count_children(ti_data->q) <= 0) {
-        ListTreeDeleteChildren(ti_data->tree, ti);
-        ti_data->nchoices = 0;
-    }
-    if (ti_data->q) {
-        storage_traverse(quark_get_children(ti_data->q), traverse_hook, ti);
-    }
-}   
-
-ListTreeItem *CreateQuarkTree(Widget tree, ListTreeItem *parent,
-    Quark *q, const char *label, Quark_LabelingProc labeling_proc)
-{
-    ListTreeItem *item;
-    TreeItemData *data;
-    char *s;
-    GUI *gui;
-    
-    if (!q) {
-        return NULL;
-    }
-    
-    gui = gui_from_quark(q);
-    
-    data = xmalloc(sizeof(TreeItemData));
-    data->q = q;
-    data->tree = tree;
-    data->nchoices = 0;
-    
-    if (labeling_proc) {
-        data->labeling_proc = labeling_proc;
-    } else {
-        data->labeling_proc = default_quark_labeling_proc;
-    }
-    
-    if (label) {
-        s = copy_string(NULL, label);
-    } else {
-        s = data->labeling_proc(q);
-    }
-    
-    item = ListTreeAdd(tree, parent, s);
-    xfree(s);
-    item->user_data = data;
-
-    if (quark_is_active(q) && quark_count_children(q) > 0) {
-        ListTreeSetItemOpen(item, TRUE);
-    }
-    
-    if (quark_is_active(q)) {
-        ListTreeSetItemPixmaps(tree, item, gui->eui->a_icon, gui->eui->a_icon);
-    } else {
-        ListTreeSetItemPixmaps(tree, item, gui->eui->h_icon, gui->eui->h_icon);
-    }
-    
-    UpdateQuarkTree(item);
-    
-    return item;
-}
-
-static int explorer_apply(ExplorerUI *ui, void *caller);
-
-static ListTreeItem *q_create(Widget w,
-    ListTreeItem *parent, char *string, void *udata)
-{
-    ListTreeItem *item;
-    Quark *q = (Quark *) udata;
-    TreeItemData *p_data = (TreeItemData *) parent->user_data;
-    
-    item = CreateQuarkTree(w, parent, q, string, p_data->labeling_proc);
-    
-    return item;
-}
 
 static void manage_plugin(ExplorerUI *ui, Widget managed_top)
 {
@@ -233,6 +88,7 @@ static void manage_plugin(ExplorerUI *ui, Widget managed_top)
 
 static void highlight_cb(Widget w, XtPointer client, XtPointer call)
 {
+#if 0
     ExplorerUI *ui = (ExplorerUI *) client;
     ListTreeMultiReturnStruct ret;
     int count;
@@ -402,93 +258,37 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         SetSensitive(ui->idstr->form, FALSE);
         SetTextString(ui->idstr, NULL);
     }
+#endif
 }
 
-static void destroy_cb(Widget w, XtPointer client, XtPointer call)
-{
-    ListTreeItemReturnStruct *ret;
-
-    ret = (ListTreeItemReturnStruct *) call;
-    
-    xfree(ret->item->user_data);
-}
-
-#ifndef QT_GUI
 static void drop_cb(Widget w, XtPointer client, XtPointer call)
 {
     ExplorerUI *ui = (ExplorerUI *) client;
-    ListTreeDropStruct *cbs = (ListTreeDropStruct *) call;
-    TreeItemData *ti_data = (TreeItemData *) cbs->item->user_data;
-    Quark *drop_q = ti_data->q;
-
-    if (ui->all_siblings && ui->homogeneous_selection) {
-        int count;
-        ListTreeMultiReturnStruct ret;
-        
-        ListTreeGetHighlighted(ui->tree, &ret);
-        count = ret.count;
-        if (count > 0) {
-            int i;
-            Quark *parent;
-            ListTreeItem *item = ret.items[0];
-            ti_data = (TreeItemData *) item->user_data;
-            parent = quark_parent_get(ti_data->q);
-            
-            if (parent && parent != drop_q &&
-                quark_fid_get(parent) == quark_fid_get(drop_q)) {
-                for (i = 0; i < count; i++) {
-                    Quark *q;
-                    item = ret.items[i];
-                    ti_data = (TreeItemData *) item->user_data;
-                    q = ti_data->q;
-                    if (cbs->operation == XmDROP_COPY) {
-                        quark_copy2(drop_q, q);
-                    } else {
-                        quark_reparent(q, drop_q);
-                    }
-                }
-                cbs->ok = True;
-                snapshot_and_update(gapp->gp, TRUE);
-            }
-        }
-    }
 }
-#endif
 
-void SelectQuarkTreeItem(Widget w, ListTreeItem *parent, Quark *q)
+static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    Widget tree = (Widget) udata;
+
+    TreeAddItem(tree, closure->depth, closure->step, "label");
+
+    return TRUE;
+}
+
+void CreateQuarkTree(Widget tree)
+{
+//    quark_traverse(gproject_get_top(gp), create_hook, tree);
+}
+
+void SelectQuarkTreeItem(Widget w, Quark *q)
 {
     GUI *gui = gui_from_quark(q);
     ExplorerUI *ui = gui->eui;
-    ListTreeMultiReturnStruct ret;
-
-    ListTreeClearHighlighted(w);
-    highlight_selected(w, parent, 1, &q);
-
-    ListTreeGetHighlighted(w, &ret);
-
-    highlight_cb(ui->tree, (XtPointer) ui, (XtPointer) &ret);
-#ifndef QT_GUI
-    if (ret.count > 0) {
-        ListTreeItem *item = ret.items[0];
-        int top, visible;
-
-        XtVaGetValues(w,
-            XtNtopItemPosition, &top,
-            XtNvisibleItemCount, &visible,
-            NULL);
-
-        if (item->count < top) {
-            ListTreeSetPos(w, item);
-        } else
-        if (item->count >= top + visible) {
-            ListTreeSetBottomPos(w, item);
-        }
-    }
-#endif
 }
 
 static int explorer_apply(ExplorerUI *ui, void *caller)
 {
+#if 0
     ListTreeMultiReturnStruct ret;
     int count, i, res = RETURN_SUCCESS;
     
@@ -570,6 +370,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     snapshot_and_update(gapp->gp, FALSE);
 
     return res;
+#endif
 }
 
 static int explorer_aac(void *data)
@@ -577,75 +378,6 @@ static int explorer_aac(void *data)
     ExplorerUI *ui = (ExplorerUI *) data;
     
     return explorer_apply(ui, NULL);
-}
-
-static void highlight_selected(Widget w, ListTreeItem *parent,
-    int nsquarks, Quark **squarks)
-{
-    ListTreeItem *item;
-
-    item = parent;
-    while (item) {
-        TreeItemData *ti_data = (TreeItemData *) item->user_data;
-        int i;
-        for (i = 0; i < nsquarks; i++) {
-            if (ti_data->q == squarks[i]) {
-                ListTreeHighlightItemMultiple(w, item);
-            }
-        }
-        if (item->firstchild) {
-            highlight_selected(w, item->firstchild, nsquarks, squarks);
-        }
-        item = item->nextsibling;
-    }
-}
-
-void update_explorer(ExplorerUI *ui, int reselect)
-{
-    ListTreeMultiReturnStruct ret;
-    int i, nsquarks;
-    Quark **squarks;
-    
-    if (!ui) {
-        return;
-    }
-    
-    ListTreeGetHighlighted(ui->tree, &ret);
-    nsquarks = ret.count;
-    
-    squarks = xmalloc(nsquarks*SIZEOF_VOID_P);
-    for (i = 0; i < nsquarks; i++) {
-        ListTreeItem *item = ret.items[i];
-        TreeItemData *ti_data = (TreeItemData *) item->user_data;
-        squarks[i] = ti_data->q;
-    }
-    
-    ListTreeRefreshOff(ui->tree);
-    if (ui->project) {
-        ListTreeDelete(ui->tree, ui->project);
-    }
-    ui->project = CreateQuarkTree(ui->tree, NULL,
-        gproject_get_top(gapp->gp), NULL, q_labeling);
-
-    highlight_selected(ui->tree, ui->project, nsquarks, squarks);
-    xfree(squarks);
-
-    ListTreeRefreshOn(ui->tree);
-    ListTreeRefresh(ui->tree);
-
-    if (reselect) {
-        ListTreeGetHighlighted(ui->tree, &ret);
-        highlight_cb(ui->tree, (XtPointer) ui, (XtPointer) &ret);
-    } else {
-        ui->homogeneous_selection = FALSE;
-        ui->all_siblings = FALSE;
-    }
-}
-
-static void update_explorer_cb(Widget but, void *data)
-{
-    ExplorerUI *ui = (ExplorerUI *) data;
-    update_explorer(ui, TRUE);
 }
 
 
@@ -670,6 +402,7 @@ static void update_explorer_cb(Widget but, void *data)
 
 static void popup_any_cb(ExplorerUI *eui, int type)
 {
+#if 0
     ListTreeMultiReturnStruct ret;
     int count, i;
     Quark *qnew = NULL;
@@ -756,8 +489,9 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     snapshot_and_update(gapp->gp, TRUE);
     
     if (qnew) {
-        SelectQuarkTreeItem(eui->tree, eui->project, qnew);
+        SelectQuarkTreeItem(eui->tree, qnew);
     }
+#endif
 }
 
 static void hide_cb(Widget but, void *udata)
@@ -919,24 +653,14 @@ void raise_explorer(GUI *gui, Quark *q)
         CreateMenuHelpButton(menupane, "On explorer", 'e',
             eui->top, "doc/UsersGuide.html#explorer");
 
-#if USE_PANEDW
-        panel = XtVaCreateWidget("panedWindow",
-            xmPanedWindowWidgetClass, eui->top,
-            XmNorientation, XmHORIZONTAL,
-            NULL);
-#else
-        panel = CreateGrid(eui->top, 2, 1);
-#endif
+        panel = CreatePanedWindow(eui->top);
 
         form = CreateForm(panel);
 
-        eui->tree = CreateScrolledListTree(form);
-        ExplorerAddHighlightCallback(highlight_cb, eui);
-        ExplorerAddContextMenuCallback(explorer_menu_cb, eui);
-        AddCallback(eui->tree, "XtNdestroyItemCallback", destroy_cb, eui);
-#ifndef QT_GUI
-        AddCallback(eui->tree, "XtNdropCallback", drop_cb, eui);
-#endif
+        eui->tree = CreateTree(form);
+//        AddTreeHighlightItemsCB(eui->tree, highlight_cb, eui);
+//        AddTreeContextMenuCB(eui->tree, explorer_menu_cb, eui);
+//        AddTreeDropItemsCB(eui->tree, drop_cb, eui);
 
         fr = CreateFrame(form, NULL);
         eui->idstr = CreateTextInput(fr, "ID string:");
@@ -958,21 +682,13 @@ void raise_explorer(GUI *gui, Quark *q)
 #endif
 	ManageChild(form);
         
-#if !USE_PANEDW
-        PlaceGridChild(panel, form, 0, 0);
-#endif
-
         eui->scrolled_window = CreateScrolledWindow(panel);
 
-#if USE_PANEDW
 	ManageChild(panel);
-        XtVaSetValues(form,
-            XmNpaneMinimum, 150,
-            XmNwidth, 250,
-            NULL);
-#else
-        PlaceGridChild(panel, eui->scrolled_window, 1, 0);
-#endif
+//        XtVaSetValues(form,
+//            XmNpaneMinimum, 150,
+//            XmNwidth, 250,
+//            NULL);
 
 #ifdef HAVE_LESSTIF
 # if !defined(SF_BUG_993209_FIXED) && !defined(SF_BUG_993209_NOT_FIXED)
@@ -1018,12 +734,9 @@ void raise_explorer(GUI *gui, Quark *q)
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
-        eui->project = CreateQuarkTree(eui->tree, NULL,
-            gproject_get_top(gapp->gp), NULL, q_labeling);
+        CreateQuarkTree(eui->tree);
         
         ManageChild(eui->tree);
-        ListTreeRefreshOn(eui->tree);
-        ListTreeRefresh(eui->tree);
 
         /* Menu popup */
         eui->popup = CreatePopupMenu(eui->tree);
@@ -1049,17 +762,12 @@ void raise_explorer(GUI *gui, Quark *q)
             "Move down", '\0', move_down_cb, eui);
         eui->popup_send_to_back_bt = CreateMenuButton(eui->popup,
             "Send to back", '\0', send_to_back_cb, eui);
-
-        CreateMenuSeparator(eui->popup);
-
-        CreateMenuButton(eui->popup,
-            "Update tree", '\0', update_explorer_cb, eui);
     }
 
     RaiseWindow(GetParent(gui->eui->top));
     
     if (q) {
-        SelectQuarkTreeItem(gui->eui->tree, gui->eui->project, q);
+        SelectQuarkTreeItem(gui->eui->tree, q);
     }
 
     update_undo_buttons(gapp->gp);

@@ -32,7 +32,6 @@
 #include "core_utils.h"
 
 #include "motifinc.h"
-#include "ListTree.h"
 
 typedef struct {
     Widget          top;
@@ -399,7 +398,6 @@ struct _ExplorerUI {
     WidgetList   aacbuts;
     TextStructure *idstr;
     Widget       scrolled_window;
-    ListTreeItem *project;
     
     int          homogeneous_selection;
     int          all_siblings;

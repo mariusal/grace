@@ -4061,17 +4061,17 @@ TransformStructure *CreateTransformDialogForm(Widget parent,
     TransformStructure *retval;
 
     set_wait_cursor();
-    
+
     retval = xmalloc(sizeof(TransformStructure));
     memset(retval, 0, sizeof(TransformStructure));
-    
+
     retval->exclusive = exclusive;
-    
+
     retval->build_cb = cbs->build_cb;
     retval->get_cb   = cbs->get_cb;
     retval->run_cb   = cbs->run_cb;
     retval->free_cb  = cbs->free_cb;
-    
+
     retval->form = CreateDialogForm(parent, s);
 
     retval->menubar = CreateMenuBar(retval->form);
@@ -4212,7 +4212,7 @@ Widget CreateFrame(Widget parent, char *s)
     return (fr);   
 }
 
-Widget CreateScrolledListTree(Widget parent)
+Widget CreateTree(Widget parent)
 {
     return XmCreateScrolledListTree(parent, "tree", NULL, 0);
 }
@@ -4220,9 +4220,17 @@ Widget CreateScrolledListTree(Widget parent)
 Widget CreateScrolledWindow(Widget parent)
 {
     return XtVaCreateManagedWidget("scrolledWindow",
-        xmScrolledWindowWidgetClass, parent, 
-        XmNscrollingPolicy, XmAUTOMATIC,
-        NULL);
+                                   xmScrolledWindowWidgetClass, parent,
+                                   XmNscrollingPolicy, XmAUTOMATIC,
+                                   NULL);
+}
+
+Widget CreatePanedWindow(Widget parent)
+{
+    return XtVaCreateWidget("panedWindow",
+                            xmPanedWindowWidgetClass, parent,
+                            XmNorientation, XmHORIZONTAL,
+                            NULL);
 }
 
 typedef struct {
@@ -4924,7 +4932,7 @@ void update_all(void)
 
     update_undo_buttons(gapp->gp);
     update_props_items();
-    update_explorer(gapp->gui->eui, TRUE);
+//    update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
     update_app_title(gapp->gp);
 }
@@ -4953,7 +4961,7 @@ void snapshot_and_update(GProject *gp, int all)
         update_all();
     } else {
         update_undo_buttons(gp);
-        update_explorer(gui->eui, FALSE);
+//        update_explorer(gui->eui, FALSE);
         update_app_title(gp);
     }
 }
