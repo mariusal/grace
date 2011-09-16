@@ -79,11 +79,20 @@ static ListTreeItem *q_create(Widget w,
 
 static char *default_quark_labeling_proc(Quark *q)
 {
-    char buf[128];
+    char *buf;
+
+    if (!q) {
+        return NULL;
+    }
+
+    buf = (char *) xmalloc(strlen(QIDSTR(q)) + 128);
+    if (!buf) {
+        return NULL;
+    }
     
     sprintf(buf, "Quark \"%s\"", QIDSTR(q));
     
-    return copy_string(NULL, buf);
+    return buf;
 }
 
 static int traverse_hook(unsigned int step, void *data, void *udata)

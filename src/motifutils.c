@@ -896,13 +896,22 @@ void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata)
 
 static char *default_storage_labeling_proc(Quark *q, unsigned int *rid)
 {
-    char buf[128];
+    char *buf;
+
+    if (!q) {
+        return NULL;
+    }
+
+    buf = (char *) xmalloc(strlen(QIDSTR(q)) + 128);
+    if (!buf) {
+        return NULL;
+    }
     
     sprintf(buf, "Quark \"%s\"", QIDSTR(q));
     
     (*rid)++;
     
-    return copy_string(NULL, buf);
+    return buf;
 }
 
 typedef struct {
@@ -2829,7 +2838,16 @@ static int nssd_selectors = 0;
 
 static char *ssd_labeling(Quark *q, unsigned int *rid)
 {
-    char buf[128];
+    char *buf;
+
+    if (!q) {
+        return NULL;
+    }
+
+    buf = (char *) xmalloc(strlen(QIDSTR(q)) + 128);
+    if (!buf) {
+        return NULL;
+    }
     
     if (quark_fid_get(q) == QFlavorSSD) {
         sprintf(buf, "SSD \"%s\" (%d x %d)", QIDSTR(q),
@@ -2837,7 +2855,7 @@ static char *ssd_labeling(Quark *q, unsigned int *rid)
 
         (*rid)++;
 
-        return copy_string(NULL, buf);
+        return buf;
     } else {
         return NULL;
     }
@@ -2943,8 +2961,17 @@ static void g_new_cb(Widget but, void *udata)
 
 static char *graph_labeling(Quark *q, unsigned int *rid)
 {
-    char buf[128];
-    
+    char *buf;
+
+    if (!q) {
+        return NULL;
+    }
+
+    buf = (char *) xmalloc(strlen(QIDSTR(q)) + 128);
+    if (!buf) {
+        return NULL;
+    }
+
     if (quark_fid_get(q) == QFlavorGraph) {
         sprintf(buf, "Graph \"%s\" (type: %s, sets: %d)",
             QIDSTR(q),
@@ -2952,7 +2979,7 @@ static char *graph_labeling(Quark *q, unsigned int *rid)
 
         (*rid)++;
 
-        return copy_string(NULL, buf);
+        return buf;
     } else {
         return NULL;
     }
@@ -3023,14 +3050,23 @@ static int nframe_selectors = 0;
 
 static char *frame_labeling(Quark *q, unsigned int *rid)
 {
-    char buf[128];
-    
+    char *buf;
+
+    if (!q) {
+        return NULL;
+    }
+
+    buf = (char *) xmalloc(strlen(QIDSTR(q)) + 128);
+    if (!buf) {
+        return NULL;
+    }
+
     if (quark_fid_get(q) == QFlavorFrame) {
         sprintf(buf, "Frame \"%s\"", QIDSTR(q));
 
         (*rid)++;
 
-        return copy_string(NULL, buf);
+        return buf;
     } else {
         return NULL;
     }
@@ -3127,7 +3163,17 @@ static void s_newF_cb(Widget but, void *udata)
 
 static char *set_labeling(Quark *q, unsigned int *rid)
 {
-    char buf[128];
+    char *buf;
+
+    if (!q) {
+        return NULL;
+    }
+
+    buf = (char *) xmalloc(strlen(QIDSTR(q)) + 128);
+    if (!buf) {
+        return NULL;
+    }
+
     if (quark_fid_get(q) == QFlavorSet) {
         set *p = set_get_data(q);
 
@@ -3137,7 +3183,7 @@ static char *set_labeling(Quark *q, unsigned int *rid)
 
         (*rid)++;
         
-        return copy_string(NULL, buf);
+        return buf;
     } else {
         return NULL;
     }
