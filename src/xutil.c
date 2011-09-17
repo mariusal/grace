@@ -874,9 +874,10 @@ Pixmap char_to_pixmap(Widget w, int font, char c, int csize)
     Pixmap pixmap = 0;
     int height, width, hshift, vshift;
     float fsize = 0.8*(float)csize;
+    Canvas *canvas = grace_get_canvas(gapp->grace);
     
-    pm = canvas_raster_char(grace_get_canvas(gapp->grace),
-        font, c, fsize, &vshift, &hshift);
+    pm = canvas_raster_char(canvas,
+        grace_fmap(gapp->gp, canvas, font), c, fsize, &vshift, &hshift);
        
     if (pm != NULL && pm->bits != NULL) {
         long bg, fg;
