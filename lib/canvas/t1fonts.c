@@ -947,7 +947,7 @@ CPixmap *canvas_raster_char(Canvas *canvas,
     size_t memsize;
     int pad = T1_GetBitmapPad();
     
-    glyph = T1_SetChar(canvas->fmap_proc(canvas, font), c, size, &UNITY_MATRIX);
+    glyph = T1_SetChar(font, c, size, &UNITY_MATRIX);
     if (!glyph || !glyph->bits) {
         return NULL;
     }
