@@ -755,6 +755,8 @@ void SetScrollBarValue(Widget w, int value);
 Widget GetHorizontalScrollBar(Widget w);
 Widget GetVerticalScrollBar(Widget w);
 
+void AddMouseWheelSupport(Widget w);
+
 void SetFocus(Widget w);
 
 #endif /* __MOTIFINC_H_ */
