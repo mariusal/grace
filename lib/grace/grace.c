@@ -328,6 +328,8 @@ Graal *grace_get_graal(const Grace *grace)
 
 int gproject_render(const GProject *gp)
 {
+    int res;
+    
     Grace *grace = grace_from_gproject(gp);
     
     if (!grace) {
@@ -338,7 +340,11 @@ int gproject_render(const GProject *gp)
     
     canvas_set_docname(grace->canvas, gproject_get_docname(gp));
     
-    return drawgraph(grace->canvas, grace->graal, gp->q);
+    res = drawgraph(grace->canvas, grace->graal, gp->q);
+    
+    canvas_set_udata(grace->canvas, NULL);
+    
+    return res;
 }
 
 GProject *gproject_new(const Grace *grace, int mmodel)
