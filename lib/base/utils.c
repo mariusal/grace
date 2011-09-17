@@ -253,7 +253,7 @@ int init_locale(void)
 {
 #ifdef HAVE_SETLOCALE
     char *s;
-    s = setlocale(LC_NUMERIC, "");
+    s = setlocale(LC_NUMERIC, NULL);
     if (s == NULL) {
         /* invalid/unsupported locale */
         return RETURN_FAILURE;
@@ -319,3 +319,16 @@ int get_hostname(char *name, size_t len)
     return gethostname(name, len);
 }
 
+int is_locale_utf8(void)
+{
+#ifdef HAVE_SETLOCALE
+    char *s = system_locale_string;
+    if (s && (strstr(s, "utf8") || strstr(s, "UTF-8"))) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+#else
+    return FALSE;
+#endif
+}
