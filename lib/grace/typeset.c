@@ -102,9 +102,8 @@ int grace_init_font_db(const Grace *grace)
 }
 
 /* TODO: optimize, e.g. via a hashed array */
-int grace_fmap_proc(const Canvas *canvas, int font_id)
+int grace_fmap(const GProject *gp, const Canvas *canvas, int font_id)
 {
-    GProject *gp = (GProject *) canvas_get_udata(canvas);
     Quark *project = gp->q;
     Project *pr = project_get_data(project);
     int font = BAD_FONT_ID;
@@ -132,6 +131,13 @@ int grace_fmap_proc(const Canvas *canvas, int font_id)
     }
     
     return font;
+}
+
+int grace_fmap_proc(const Canvas *canvas, int font_id)
+{
+    GProject *gp = (GProject *) canvas_get_udata(canvas);
+    
+    return grace_fmap(gp, canvas, font_id);
 }
 
 static const TextMatrix unit_tm = UNIT_TM;
