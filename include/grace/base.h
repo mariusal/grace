@@ -169,6 +169,7 @@ int isoneof(int c, char *s);
 /* locale */
 int init_locale(void);
 void set_locale_num(int flag);
+int is_locale_utf8(void);
 
 /* dict3 stuff */
 typedef struct {
