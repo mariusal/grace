@@ -253,7 +253,7 @@ int init_locale(void)
 {
 #ifdef HAVE_SETLOCALE
     char *s;
-    s = setlocale(LC_NUMERIC, NULL);
+    s = setlocale(LC_NUMERIC, "");
     if (s == NULL) {
         /* invalid/unsupported locale */
         return RETURN_FAILURE;
