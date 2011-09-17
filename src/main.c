@@ -88,6 +88,13 @@ int main(int argc, char *argv[])
     canvas  = grace_get_canvas(grace);
     gui     = gapp->gui;
     
+    /* check whether locale is correctly set */
+    if (init_locale() != RETURN_SUCCESS) {
+        errmsg("Invalid or unsupported locale");
+    }
+    /* default is POSIX */
+    set_locale_num(FALSE);
+    
     /*
      * if program name is gracebat* then don't initialize the X toolkit
      */
@@ -187,13 +194,6 @@ int main(int argc, char *argv[])
 
     register_mf_drv(canvas);
 
-    /* check whether locale is correctly set */
-    if (init_locale() != RETURN_SUCCESS) {
-        errmsg("Invalid or unsupported locale");
-    }
-    /* default is POSIX */
-    set_locale_num(FALSE);
-    
     /* TODO: load prefs */
 
     for (i = 1; i < argc; i++) {
