@@ -702,6 +702,8 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     retval->list = XmCreateScrolledList(retval->rc, "listList", args, 4);
     retval->values = NULL;
 
+    AddMouseWheelSupport(retval->list);
+
     XtOverrideTranslations(retval->list, 
                              XtParseTranslationTable(list_translation_table));
     
@@ -1208,6 +1210,8 @@ StorageStructure *CreateStorageChoice(Widget parent,
     XtSetArg(args[3], XmNvisibleItemCount, nvisible);
     retval->list = XmCreateScrolledList(retval->rc, "list", args, 4);
     retval->values = NULL;
+
+    AddMouseWheelSupport(retval->list);
 
     CreateStorageChoicePopup(retval);
     XtAddEventHandler(retval->list,
@@ -2074,6 +2078,7 @@ static void show_hidden_cb(Widget but, int onoff, void *data)
 }
 #endif
 
+
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 {
     FSBStructure *retval;
@@ -2129,6 +2134,11 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
     XtManageChild(form);
 
     XtManageChild(retval->rc);
+
+    AddMouseWheelSupport(XmFileSelectionBoxGetChild(retval->FSB,
+        XmDIALOG_LIST));
+    AddMouseWheelSupport(XmFileSelectionBoxGetChild(retval->FSB,
+        XmDIALOG_DIR_LIST));
         
     return retval;
 }
@@ -5017,6 +5027,66 @@ static void do_nothing_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
 }
 
+static void pageUp_action(Widget w, XEvent *event, String *args, Cardinal *nArgs)
+{
+    Widget scrolledWindow, scrollBar;
+    String al[1];
+    
+    al[0] = "Up";
+    scrolledWindow = XtParent(w);
+    scrollBar = XtNameToWidget (scrolledWindow, "VertScrollBar");
+    if (scrollBar)
+        XtCallActionProc(scrollBar, "PageUpOrLeft", event, al, 1) ;
+    return;
+}
+
+static void pageDown_action(Widget w, XEvent *event, String *args, Cardinal *nArgs)
+{
+    Widget scrolledWindow, scrollBar;
+    String al[1];
+    
+    al[0] = "Down";
+    scrolledWindow = XtParent(w);
+    scrollBar = XtNameToWidget (scrolledWindow, "VertScrollBar");
+    if (scrollBar)
+        XtCallActionProc(scrollBar, "PageDownOrRight", event, al, 1) ;
+    return;
+}
+
+static void scrollUp_action(Widget w, XEvent *event, String *args, Cardinal *nArgs)
+{
+    Widget scrolledWindow, scrollBar;
+    String al[1];
+    int i, nLines;
+    
+    if (*nArgs == 0 || sscanf(args[0], "%d", &nLines) != 1)
+       return;
+    al[0] = "Up";
+    scrolledWindow = XtParent(w);
+    scrollBar = XtNameToWidget (scrolledWindow, "VertScrollBar");
+    if (scrollBar)
+        for (i=0; i<nLines; i++)
+            XtCallActionProc(scrollBar, "IncrementUpOrLeft", event, al, 1) ;
+    return;
+}
+
+static void scrollDown_action(Widget w, XEvent *event, String *args, Cardinal *nArgs)
+{
+    Widget scrolledWindow, scrollBar;
+    String al[1];
+    int i, nLines;
+    
+    if (*nArgs == 0 || sscanf(args[0], "%d", &nLines) != 1)
+       return;
+    al[0] = "Down";
+    scrolledWindow = XtParent(w);
+    scrollBar = XtNameToWidget (scrolledWindow, "VertScrollBar");
+    if (scrollBar)
+        for (i=0; i<nLines; i++)
+            XtCallActionProc(scrollBar, "IncrementDownOrRight", event, al, 1) ;
+    return;
+}
+
 static XtActionsRec dummy_actions[] = {
     {"do_nothing", do_nothing_action}
 };
@@ -5032,14 +5102,23 @@ static XtActionsRec cstext_actions[] = {
     {"cstext_edit_action", cstext_edit_action}
 };
 
+static XtActionsRec sw_scroll_actions[] = {
+    {"scrolled-window-scroll-up",   scrollUp_action  },
+    {"scrolled-window-page-up",     pageUp_action    },
+    {"scrolled-window-scroll-down", scrollDown_action},
+    {"scrolled-window-page-down",   pageDown_action  } 
+};
+
 void InitWidgets(void)
 {
     XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
     XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
     XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
+    XtAppAddActions(app_con, sw_scroll_actions, XtNumber(sw_scroll_actions));
 }
 
-/* Tabel Widget */
+
+/* Table Widget */
 typedef struct {
     int default_col_width;
     int default_col_label_alignment;
@@ -5073,12 +5152,12 @@ Widget CreateTable(char *name, Widget parent,
     return w;
 }
 
-static char tfield_translations[] = "#override\n\
-<Key>osfCancel                : CancelEdit(True)\n\
-<Key>osfActivate              : EditCell(Down)\n\
-<Key>osfUp                    : EditCell(Up)\n\
-<Key>osfDown                  : EditCell(Down)\n\
-~Shift ~Meta ~Alt <Key>Return : EditCell(Down)";
+static char tfield_translation_table[] = "\
+    <Key>osfCancel                : CancelEdit(True)\n\
+    <Key>osfActivate              : EditCell(Down)\n\
+    <Key>osfUp                    : EditCell(Up)\n\
+    <Key>osfDown                  : EditCell(Down)\n\
+    ~Shift ~Meta ~Alt <Key>Return : EditCell(Down)";
 
 void TableSSDInit(Widget w)
 {
@@ -5103,7 +5182,8 @@ void TableSSDInit(Widget w)
                   NULL);
 
     tfield = XtNameToWidget(w, "textField");
-    XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
+    XtOverrideTranslations(tfield,
+        XtParseTranslationTable(tfield_translation_table));
 }
 
 void TableFontInit(Widget w)
@@ -5603,6 +5683,31 @@ Widget GetHorizontalScrollBar(Widget w)
 Widget GetVerticalScrollBar(Widget w)
 {
     return XtNameToWidget(w, "VertScrollBar");
+}
+
+/*
+** Add mouse wheel support to a specific widget, which must be the scrollable
+** widget of a ScrolledWindow.
+*/
+void AddMouseWheelSupport(Widget w)
+{
+    if (XmIsScrolledWindow(XtParent(w))) 
+    {
+        static const char scrollTranslations[] =
+           "Shift<Btn4Down>: scrolled-window-scroll-up(1)\n"
+           "Shift<Btn5Down>: scrolled-window-scroll-down(1)\n"
+           "Ctrl<Btn4Down>:  scrolled-window-page-up()\n"
+           "Ctrl<Btn5Down>:  scrolled-window-page-down()\n"
+           "<Btn4Down>:      scrolled-window-scroll-up(3)\n"
+           "<Btn5Down>:      scrolled-window-scroll-down(3)\n";
+        static XtTranslations trans_table = NULL;
+        
+        if (trans_table == NULL)
+        {
+            trans_table = XtParseTranslationTable(scrollTranslations);
+        }
+        XtOverrideTranslations(w, trans_table);
+    }
 }
 
 void SetFocus(Widget w)
