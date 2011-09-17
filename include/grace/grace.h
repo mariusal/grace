@@ -132,6 +132,8 @@ char *frame_type_descr(Grace *grace, FrameType it);
 char *dataset_col_name(Grace *grace, DataColumn it);
 DataColumn get_dataset_col_by_name(Grace *grace, const char *name);
 
+/* typeset.c */
+int grace_fmap(const GProject *gp, const Canvas *canvas, int font_id);
 
 /* paths.c */
 char *grace_get_userhome(const Grace *grace);
