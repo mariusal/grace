@@ -662,8 +662,12 @@ void unlink_ssd_ui(Quark *q);
 void set_title(char *title, char *icon_name);
 
 /* Tree Widget */
+typedef void TreeItem;
+
 Widget CreateTree(Widget parent);
-void TreeAddItem(Widget w, int depth, int step, char *label);
+TreeItem *TreeAddItem(Widget w, TreeItem *parent, char *label);
+void TreeSetItemOpen(TreeItem *item, int open);
+void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap);
 
 typedef struct {
     Widget w;

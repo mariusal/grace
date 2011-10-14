@@ -268,16 +268,35 @@ static void drop_cb(Widget w, XtPointer client, XtPointer call)
 
 static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    Widget tree = (Widget) udata;
+    TreeItem *item;
+    GUI *gui = gui_from_quark(q);
+    Quark *qparent = quark_parent_get(q);
 
-    TreeAddItem(tree, closure->depth, closure->step, "label");
+    if (qparent) {
+        TreeItem *parent = quark_get_udata(qparent);
+        item = TreeAddItem(udata, parent, q_labeling(q));
+    } else {
+        item = TreeAddItem(udata, NULL, q_labeling(q));
+    }
+
+    if (quark_is_active(q) && quark_count_children(q) > 0) {
+        TreeSetItemOpen(item, TRUE);
+    }
+
+    if (quark_is_active(q)) {
+        TreeSetItemPixmap(item, gui->eui->a_icon);
+    } else {
+        TreeSetItemPixmap(item, gui->eui->h_icon);
+    }
+
+    quark_set_udata(q, item);
 
     return TRUE;
 }
 
-void CreateQuarkTree(Widget tree)
+void InitQuarkTree(Widget tree)
 {
-//    quark_traverse(gproject_get_top(gp), create_hook, tree);
+    quark_traverse(gproject_get_top(gapp->gp), create_hook, tree);
 }
 
 void SelectQuarkTreeItem(Widget w, Quark *q)
@@ -734,7 +753,7 @@ void raise_explorer(GUI *gui, Quark *q)
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
-        CreateQuarkTree(eui->tree);
+        InitQuarkTree(eui->tree);
         
         ManageChild(eui->tree);
 

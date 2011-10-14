@@ -8895,6 +8895,8 @@ Widget CreateTree(Widget parent)
     treeWidget->setHeaderHidden(true);
     treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     treeWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    treeWidget->header()->setResizeMode(0, QHeaderView::ResizeToContents);
+    treeWidget->header()->setStretchLastSection(false);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
@@ -8904,13 +8906,39 @@ Widget CreateTree(Widget parent)
     return treeWidget;
 }
 
-void TreeAddItem(Widget w, int depth, int step, char *label)
+TreeItem *TreeAddItem(Widget w, TreeItem *parent, char *label)
 {
-    QTreeWidgetItem *child_widget = new QTreeWidgetItem;
-//    child_widget->setText(0, string);
+    QTreeWidgetItem *child_widget = 0;
+
+    if (parent) {
+        QTreeWidgetItem *treeWidgetItem = (QTreeWidgetItem *) parent;
+        child_widget = new QTreeWidgetItem(treeWidgetItem);
+    } else {
+        QTreeWidget *treeWidget = (QTreeWidget *) w;
+        child_widget = new QTreeWidgetItem(treeWidget);
+    }
+
+    if (child_widget) {
+        child_widget->setText(0, label);
+    }
+
+    return child_widget;
 }
 
+void TreeSetItemOpen(TreeItem *item, int open)
+{
+    QTreeWidgetItem *treeWidgetItem = (QTreeWidgetItem *) item;
 
+    treeWidgetItem->setExpanded(open);
+}
+
+void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap)
+{
+    QTreeWidgetItem *treeWidgetItem = (QTreeWidgetItem *) item;
+    QIcon *icon = (QIcon *) pixmap;
+
+    treeWidgetItem->setIcon(0, *icon);
+}
 
 /* Table Widget */
 
