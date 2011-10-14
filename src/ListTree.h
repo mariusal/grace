@@ -26,11 +26,9 @@
 #ifndef _ListTree_H
 #define _ListTree_H
 
-#ifndef QT_GUI
 #include <X11/Core.h>
 #include <Xm/Xm.h>
 #include <Xm/XmP.h>
-#endif
 
 #define _ListTree_WIDGET_VERSION	3.0
 
@@ -65,12 +63,10 @@
 extern "C" {
 #endif
 
-#ifndef QT_GUI
 extern WidgetClass listtreeWidgetClass;
 
 typedef struct _ListTreeClassRec *ListTreeWidgetClass;
 typedef struct _ListTreeRec      *ListTreeWidget;
-#endif
 
 typedef enum _ListTreeItemType {
     ItemDetermineType = 0,
