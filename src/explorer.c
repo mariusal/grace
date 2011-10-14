@@ -311,21 +311,19 @@ void SelectQuarkTreeItem(Widget w, Quark *q)
 
 static int explorer_apply(ExplorerUI *ui, void *caller)
 {
-#if 0
-    ListTreeMultiReturnStruct ret;
+    TreeItemList items;
     int count, i, res = RETURN_SUCCESS;
     
     if (caller && !GetToggleButtonState(ui->instantupdate)) {
         return RETURN_FAILURE;
     }
     
-    ListTreeGetHighlighted(ui->tree, &ret);
-    count = ret.count;
+    TreeGetHighlighted(ui->tree, &items);
+    count = items.count;
 
     for (i = 0; i < count && res == RETURN_SUCCESS; i++) {
-        ListTreeItem *item = ret.items[i];
-        TreeItemData *ti_data = (TreeItemData *) item->user_data;
-        Quark *q = ti_data->q;
+        TreeItem *item = items.items[i];
+        Quark *q = TreeGetQuark(item);
 
         if (count == 1 && (!caller || caller == ui->idstr)) {
             char *s = GetTextString(ui->idstr);
@@ -393,7 +391,6 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     snapshot_and_update(gapp->gp, FALSE);
 
     return res;
-#endif
 }
 
 static int explorer_aac(void *data)
