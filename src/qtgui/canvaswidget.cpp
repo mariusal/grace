@@ -34,6 +34,7 @@ bool CanvasWidget::event(QEvent *event)
     QWheelEvent *wheelEvent;
     QKeyEvent *xke;
     QTime time;
+    QPoint point;
 
     switch (event->type()) {
     case QEvent::MouseMove:
@@ -53,7 +54,8 @@ bool CanvasWidget::event(QEvent *event)
     case QEvent::MouseButtonPress:
         cevent.type = MOUSE_PRESS;
         xbe = (QMouseEvent*) event;
-        cevent.udata = xbe;
+        point = xbe->globalPos();
+        cevent.udata = &point;
         cevent.x = xbe->x();
         cevent.y = xbe->y();
         switch (xbe->button()) {
@@ -95,7 +97,6 @@ bool CanvasWidget::event(QEvent *event)
     case QEvent::Wheel:
         cevent.type = MOUSE_PRESS;
         wheelEvent = (QWheelEvent*) event;
-        cevent.udata = wheelEvent;
         cevent.x = wheelEvent->x();
         cevent.y = wheelEvent->y();
         if (wheelEvent->delta() > 0) {

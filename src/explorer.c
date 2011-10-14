@@ -89,20 +89,22 @@ static void manage_plugin(ExplorerUI *ui, Widget managed_top)
 static void highlight_cb(TreeEvent *event)
 {
     ExplorerUI *ui = (ExplorerUI *) event->anydata;
+    TreeItemList items;
     int count;
     Quark *q = NULL;
     int fid = -1;
     int all_shown = TRUE;
     int all_hidden = TRUE;
 
-    count = event->count;
+    TreeGetHighlighted(event->w, &items);
+    count = items.count;
     
     ui->homogeneous_selection = TRUE;
     ui->all_siblings = TRUE;
 
     if (count > 0) {
         int i;
-        TreeItem *item = (TreeItem *) event->items[0];
+        TreeItem *item = (TreeItem *) items.items[0];
         Quark *parent;
         
         q = TreeGetQuark(item);
@@ -112,7 +114,7 @@ static void highlight_cb(TreeEvent *event)
         all_hidden = !all_shown;
         
         for (i = 1; i < count; i++) {
-            item = event->items[i];
+            item = items.items[i];
             
             if ((int) quark_fid_get(q) != fid) {
                 ui->homogeneous_selection = FALSE;
@@ -253,6 +255,14 @@ static void highlight_cb(TreeEvent *event)
         SetSensitive(ui->idstr->form, FALSE);
         SetTextString(ui->idstr, NULL);
     }
+}
+
+
+static void menu_cb(TreeEvent *event)
+{
+    ExplorerUI *ui = (ExplorerUI *) event->anydata;
+
+    ShowMenu(ui->popup, event->udata);
 }
 
 static void drop_cb(Widget w, XtPointer client, XtPointer call)
@@ -415,31 +425,28 @@ static int explorer_aac(void *data)
 
 static void popup_any_cb(ExplorerUI *eui, int type)
 {
-#if 0
-    ListTreeMultiReturnStruct ret;
+    TreeItemList items;
     int count, i;
     Quark *qnew = NULL;
     
-    ListTreeGetHighlighted(eui->tree, &ret);
-    count = ret.count;
+    TreeGetHighlighted(eui->tree, &items);
+    count = items.count;
     
     for (i = 0; i < count; i ++) {
-        ListTreeItem *item;
-        TreeItemData *ti_data;
+        TreeItem *item;
         Quark *q;
         
         switch (type) {
         case SEND_TO_BACK_CB:
         case MOVE_UP_CB:
-            item = ret.items[count - i - 1];
+            item = items.items[count - i - 1];
             break;
         default:
-            item = ret.items[i];
+            item = items.items[i];
             break;
         }
 
-        ti_data = (TreeItemData *) item->user_data;
-        q = ti_data->q;
+        q = TreeGetQuark(item);
         
         switch (type) {
         case HIDE_CB:
@@ -504,7 +511,6 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     if (qnew) {
         SelectQuarkTreeItem(eui->tree, qnew);
     }
-#endif
 }
 
 static void hide_cb(Widget but, void *udata)
@@ -672,7 +678,7 @@ void raise_explorer(GUI *gui, Quark *q)
 
         eui->tree = CreateTree(form);
         AddTreeHighlightItemsCB(eui->tree, highlight_cb, eui);
-//        AddTreeContextMenuCB(eui->tree, explorer_menu_cb, eui);
+        AddTreeContextMenuCB(eui->tree, menu_cb, eui);
 //        AddTreeDropItemsCB(eui->tree, drop_cb, eui);
 
         fr = CreateFrame(form, NULL);

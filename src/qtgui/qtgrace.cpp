@@ -847,8 +847,9 @@ void Beep(void)
 void ShowMenu(Widget w, void *data)
 {
     QMenu *popup = (QMenu*) w;
+    QPoint *point = (QPoint*) data;
 
-    popup->exec(((QMouseEvent*) data)->globalPos());
+    popup->exec(*point);
 }
 
 //void ManageChild(Widget w)
@@ -8952,7 +8953,17 @@ Quark *TreeGetQuark(TreeItem *item)
     return q;
 }
 
-static void tree_highlight_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void TreeGetHighlighted(Widget w, TreeItemList *items)
+{
+    QTreeWidget *treeWidget = (QTreeWidget *) w;
+
+    QList<QTreeWidgetItem *> litems = treeWidget->selectedItems();
+
+    items->count = litems.size();
+    items->items = (TreeItem **) litems.toVector().constData();
+}
+
+static void tree_context_menu_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Tree_CBData *cbdata = (Tree_CBData *) client_data;
 
@@ -8960,12 +8971,32 @@ static void tree_highlight_cb_proc(Widget w, XtPointer client_data, XtPointer ca
     event.w = cbdata->w;
     event.anydata = cbdata->anydata;
 
-    QTreeWidget *treeWidget = (QTreeWidget *) cbdata->w;
+    QPoint point = QCursor::pos();
+    event.udata = &point;
 
-    QList<QTreeWidgetItem *> items = treeWidget->selectedItems();
+    cbdata->cbproc(&event);
+}
 
-    event.count = items.size();
-    event.items = (TreeItem **) items.toVector().constData();
+void AddTreeContextMenuCB(Widget w, Tree_CBProc cbproc, void *anydata)
+{
+    Tree_CBData *cbdata;
+
+    cbdata = (Tree_CBData *) xmalloc(sizeof(Tree_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    QtAddCallback(w, SIGNAL(customContextMenuRequested(const QPoint)),
+                  tree_context_menu_cb_proc, cbdata);
+}
+
+static void tree_highlight_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Tree_CBData *cbdata = (Tree_CBData *) client_data;
+
+    TreeEvent event;
+    event.w = cbdata->w;
+    event.anydata = cbdata->anydata;
 
     cbdata->cbproc(&event);
 }
@@ -9837,7 +9868,8 @@ bool HeaderView::event(QEvent *e)
         }
 
         xbe = (QMouseEvent*) e;
-        event.udata = xbe;
+        QPoint point = xbe->globalPos();
+        event.udata = &point;
         switch (xbe->button()) {
         case Qt::LeftButton:
             event.button = event.button ^ LEFT_BUTTON;

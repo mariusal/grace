@@ -664,19 +664,15 @@ void set_title(char *title, char *icon_name);
 /* Tree Widget */
 typedef void TreeItem;
 
-Widget CreateTree(Widget parent);
-TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q);
-void TreeSetItemOpen(TreeItem *item, int open);
-void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap);
-Quark *TreeGetQuark(TreeItem *item);
+typedef struct {
+    TreeItem **items;
+    int count;
+} TreeItemList;
 
 typedef struct {
     Widget w;
     void *anydata;
     void *udata;
-
-    int count;
-    TreeItem **items;
 } TreeEvent;
 
 typedef int (*Tree_CBProc)(TreeEvent *event);
@@ -686,9 +682,17 @@ typedef struct {
     void *anydata;
 } Tree_CBData;
 
+Widget CreateTree(Widget parent);
+TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q);
+void TreeSetItemOpen(TreeItem *item, int open);
+void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap);
+Quark *TreeGetQuark(TreeItem *item);
+void TreeGetHighlighted(Widget w, TreeItemList *items);
+
 void AddTreeContextMenuCB(Widget w, Tree_CBProc cbproc, void *anydata);
 void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata);
 void AddTreeDropItemsCB(Widget w, Tree_CBProc cbproc, void *anydata);
+
 
 /* Table Widget */
 Widget CreateTable(char *name, Widget parent, int nrows, int ncols, int nrows_visible, int ncols_visible);
