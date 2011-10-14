@@ -86,53 +86,48 @@ static void manage_plugin(ExplorerUI *ui, Widget managed_top)
     }
 }
 
-static void highlight_cb(Widget w, XtPointer client, XtPointer call)
+static void highlight_cb(TreeEvent *event)
 {
-#if 0
-    ExplorerUI *ui = (ExplorerUI *) client;
-    ListTreeMultiReturnStruct ret;
+    ExplorerUI *ui = (ExplorerUI *) event->anydata;
     int count;
     Quark *q = NULL;
     int fid = -1;
     int all_shown = TRUE;
     int all_hidden = TRUE;
 
-    ListTreeGetHighlighted(w, &ret);
-    count = ret.count;
+    count = event->count;
     
     ui->homogeneous_selection = TRUE;
     ui->all_siblings = TRUE;
 
     if (count > 0) {
         int i;
-        ListTreeItem *item = ret.items[0];
-        TreeItemData *ti_data = (TreeItemData *) item->user_data;
+        TreeItem *item = (TreeItem *) event->items[0];
         Quark *parent;
         
-        q = ti_data->q;
+        q = TreeGetQuark(item);
         fid = quark_fid_get(q);
         parent = quark_parent_get(q);
         all_shown  = quark_is_active(q);
         all_hidden = !all_shown;
         
         for (i = 1; i < count; i++) {
-            item = ret.items[i];
-            ti_data = (TreeItemData *) item->user_data;
+            item = event->items[i];
             
-            if ((int) quark_fid_get(ti_data->q) != fid) {
+            if ((int) quark_fid_get(q) != fid) {
                 ui->homogeneous_selection = FALSE;
             }
-            if (quark_parent_get(ti_data->q) != parent) {
+            if (quark_parent_get(q) != parent) {
                 ui->all_siblings = FALSE;
             }
-            if (quark_is_active(ti_data->q)) {
+            if (quark_is_active(q)) {
                 all_hidden = FALSE;
             } else {
                 all_shown = FALSE;
             }
         }
     }
-    
+
     if (!count || !ui->homogeneous_selection) {
         SetSensitive(ui->aacbuts[0], FALSE);
         SetSensitive(ui->aacbuts[1], FALSE);
@@ -217,7 +212,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         SetSensitive(ui->popup_move_up_bt,        TRUE);
         SetSensitive(ui->popup_move_down_bt,      TRUE);
     }
-    
+
     SetSensitive(ui->insert_frame_bt,    FALSE);
     SetSensitive(ui->insert_graph_bt,    FALSE);
     SetSensitive(ui->insert_set_bt,      FALSE);
@@ -258,7 +253,6 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         SetSensitive(ui->idstr->form, FALSE);
         SetTextString(ui->idstr, NULL);
     }
-#endif
 }
 
 static void drop_cb(Widget w, XtPointer client, XtPointer call)
@@ -274,9 +268,9 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
 
     if (qparent) {
         TreeItem *parent = quark_get_udata(qparent);
-        item = TreeAddItem(udata, parent, q_labeling(q));
+        item = TreeAddItem(udata, parent, q);
     } else {
-        item = TreeAddItem(udata, NULL, q_labeling(q));
+        item = TreeAddItem(udata, NULL, q);
     }
 
     if (quark_is_active(q) && quark_count_children(q) > 0) {
@@ -677,7 +671,7 @@ void raise_explorer(GUI *gui, Quark *q)
         form = CreateForm(panel);
 
         eui->tree = CreateTree(form);
-//        AddTreeHighlightItemsCB(eui->tree, highlight_cb, eui);
+        AddTreeHighlightItemsCB(eui->tree, highlight_cb, eui);
 //        AddTreeContextMenuCB(eui->tree, explorer_menu_cb, eui);
 //        AddTreeDropItemsCB(eui->tree, drop_cb, eui);
 

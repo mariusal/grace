@@ -665,14 +665,18 @@ void set_title(char *title, char *icon_name);
 typedef void TreeItem;
 
 Widget CreateTree(Widget parent);
-TreeItem *TreeAddItem(Widget w, TreeItem *parent, char *label);
+TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q);
 void TreeSetItemOpen(TreeItem *item, int open);
 void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap);
+Quark *TreeGetQuark(TreeItem *item);
 
 typedef struct {
     Widget w;
     void *anydata;
     void *udata;
+
+    int count;
+    TreeItem **items;
 } TreeEvent;
 
 typedef int (*Tree_CBProc)(TreeEvent *event);

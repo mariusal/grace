@@ -8906,7 +8906,7 @@ Widget CreateTree(Widget parent)
     return treeWidget;
 }
 
-TreeItem *TreeAddItem(Widget w, TreeItem *parent, char *label)
+TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
 {
     QTreeWidgetItem *child_widget = 0;
 
@@ -8919,8 +8919,10 @@ TreeItem *TreeAddItem(Widget w, TreeItem *parent, char *label)
     }
 
     if (child_widget) {
-        child_widget->setText(0, label);
+        child_widget->setText(0, q_labeling(q));
     }
+
+    child_widget->setData(0, Qt::UserRole, qVariantFromValue((void *) q));
 
     return child_widget;
 }
@@ -8939,6 +8941,48 @@ void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap)
 
     treeWidgetItem->setIcon(0, *icon);
 }
+
+Quark *TreeGetQuark(TreeItem *item)
+{
+    QTreeWidgetItem *widget = (QTreeWidgetItem *) item;
+
+    QVariant v = widget->data(0, Qt::UserRole);
+    Quark *q = (Quark *) v.value<void *>();
+
+    return q;
+}
+
+static void tree_highlight_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Tree_CBData *cbdata = (Tree_CBData *) client_data;
+
+    TreeEvent event;
+    event.w = cbdata->w;
+    event.anydata = cbdata->anydata;
+
+    QTreeWidget *treeWidget = (QTreeWidget *) cbdata->w;
+
+    QList<QTreeWidgetItem *> items = treeWidget->selectedItems();
+
+    event.count = items.size();
+    event.items = (TreeItem **) items.toVector().constData();
+
+    cbdata->cbproc(&event);
+}
+
+void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata)
+{
+    Tree_CBData *cbdata;
+
+    cbdata = (Tree_CBData *) xmalloc(sizeof(Tree_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    QtAddCallback(w, SIGNAL(itemSelectionChanged()),
+                  tree_highlight_cb_proc, (XtPointer) cbdata);
+}
+
 
 /* Table Widget */
 
