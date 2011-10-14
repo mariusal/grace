@@ -688,6 +688,9 @@ void TreeSetItemOpen(TreeItem *item, int open);
 void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap);
 Quark *TreeGetQuark(TreeItem *item);
 void TreeGetHighlighted(Widget w, TreeItemList *items);
+void TreeSelectItem(TreeItem *item);
+void TreeClearSelection(Widget w);
+void TreeScrollToItem(Widget w, TreeItem *item);
 
 void AddTreeContextMenuCB(Widget w, Tree_CBProc cbproc, void *anydata);
 void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata);

@@ -8963,6 +8963,28 @@ void TreeGetHighlighted(Widget w, TreeItemList *items)
     items->items = (TreeItem **) litems.toVector().constData();
 }
 
+void TreeSelectItem(TreeItem *item)
+{
+    QTreeWidgetItem *widget = (QTreeWidgetItem *) item;
+
+    widget->setSelected(true);
+}
+
+void TreeClearSelection(Widget w)
+{
+    QTreeWidget *widget = (QTreeWidget *) w;
+
+    widget->clearSelection();
+}
+
+void TreeScrollToItem(Widget w, TreeItem *item)
+{
+    QTreeWidget *widget = (QTreeWidget *) w;
+    QTreeWidgetItem *witem = (QTreeWidgetItem *) item;
+
+    widget->scrollToItem(witem);
+}
+
 static void tree_context_menu_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Tree_CBData *cbdata = (Tree_CBData *) client_data;

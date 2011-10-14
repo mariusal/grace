@@ -303,10 +303,14 @@ void InitQuarkTree(Widget tree)
     quark_traverse(gproject_get_top(gapp->gp), create_hook, tree);
 }
 
-void SelectQuarkTreeItem(Widget w, Quark *q)
+void SelectQuarkTreeItem(Quark *q)
 {
     GUI *gui = gui_from_quark(q);
-    ExplorerUI *ui = gui->eui;
+    TreeItem *item = quark_get_udata(q);
+
+    TreeClearSelection(gui->eui->tree);
+    TreeSelectItem(item);
+    TreeScrollToItem(gui->eui->tree, item);
 }
 
 static int explorer_apply(ExplorerUI *ui, void *caller)
@@ -506,7 +510,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     snapshot_and_update(gapp->gp, TRUE);
     
     if (qnew) {
-        SelectQuarkTreeItem(eui->tree, qnew);
+        SelectQuarkTreeItem(qnew);
     }
 }
 
@@ -783,7 +787,7 @@ void raise_explorer(GUI *gui, Quark *q)
     RaiseWindow(GetParent(gui->eui->top));
     
     if (q) {
-        SelectQuarkTreeItem(gui->eui->tree, q);
+        SelectQuarkTreeItem(q);
     }
 
     update_undo_buttons(gapp->gp);
