@@ -685,6 +685,7 @@ typedef struct {
 Widget CreateTree(Widget parent);
 TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q);
 void TreeSetItemOpen(TreeItem *item, int open);
+void TreeSetItemText(TreeItem *item, char *text);
 void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap);
 Quark *TreeGetQuark(TreeItem *item);
 void TreeGetHighlighted(Widget w, TreeItemList *items);

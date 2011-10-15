@@ -8935,6 +8935,13 @@ void TreeSetItemOpen(TreeItem *item, int open)
     treeWidgetItem->setExpanded(open);
 }
 
+void TreeSetItemText(TreeItem *item, char *text)
+{
+    QTreeWidgetItem *widget = (QTreeWidgetItem *) item;
+
+    widget->setText(0, text);
+}
+
 void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap)
 {
     QTreeWidgetItem *treeWidgetItem = (QTreeWidgetItem *) item;
