@@ -275,9 +275,11 @@ static int explorer_cb(Quark *q, int etype, void *data)
     GUI *gui = gui_from_quark(q);
 
     if (etype == QUARK_ETYPE_DELETE) {
-        printf("Delete Quark\n");
+        printf("Delete Quark: %s\n", q_labeling(q));
+        TreeItem *item = quark_get_udata(q);
+        TreeDeleteItem(item);
     } else if (etype == QUARK_ETYPE_MODIFY) {
-        printf("Modify Quark\n");
+        printf("Modify Quark: %s\n", q_labeling(q));
         TreeItem *item = quark_get_udata(q);
 
         TreeSetItemText(item, q_labeling(q));
@@ -294,9 +296,9 @@ static int explorer_cb(Quark *q, int etype, void *data)
             TreeSetItemPixmap(item, gui->eui->h_icon);
         }
     } else if (etype == QUARK_ETYPE_REPARENT) {
-        printf("Reparent Quark\n");
+        printf("Reparent Quark: %s\n", q_labeling(q));
     } else {
-        printf("Else event Quark\n");
+        printf("Else event Quark: %s\n", q_labeling(q));
     }
 
     return TRUE;

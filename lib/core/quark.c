@@ -139,14 +139,14 @@ void quark_free(Quark *q)
         
         qf = quark_flavor_get(q->qfactory, q->fid);
 
-        quark_call_cblist(q, QUARK_ETYPE_DELETE);
-
         if (parent) {
             parent->refcount--;
         }
         
         storage_free(q->children);
         
+        quark_call_cblist(q, QUARK_ETYPE_DELETE);
+
         qf->data_free(amem, q->data);
         amem_free(amem, q->idstr);
         if (q->refcount != 0) {

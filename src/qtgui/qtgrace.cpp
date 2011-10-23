@@ -8928,6 +8928,13 @@ TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
     return child_widget;
 }
 
+void TreeDeleteItem(TreeItem *item)
+{
+    QTreeWidgetItem *treeWidgetItem = (QTreeWidgetItem *) item;
+
+    delete treeWidgetItem;
+}
+
 void TreeSetItemOpen(TreeItem *item, int open)
 {
     QTreeWidgetItem *treeWidgetItem = (QTreeWidgetItem *) item;
