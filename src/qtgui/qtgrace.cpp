@@ -9048,7 +9048,7 @@ void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    QtAddCallback(w, SIGNAL(itemSelectionChanged()),
+    QtAddCallback(w, SIGNAL(itemPressed(QTreeWidgetItem*, int)),
                   tree_highlight_cb_proc, (XtPointer) cbdata);
 }
 
