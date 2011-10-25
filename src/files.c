@@ -1053,6 +1053,8 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
         return RETURN_FAILURE;
     }
     
+    gproject_free(gapp->gp);
+
     gp = load_any_project(gapp, fn);
     if (!gp) {
         errmsg("Failed loading project file");
