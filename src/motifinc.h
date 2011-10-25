@@ -675,7 +675,7 @@ typedef struct {
     void *udata;
 } TreeEvent;
 
-typedef int (*Tree_CBProc)(TreeEvent *event);
+typedef void (*Tree_CBProc)(TreeEvent *event);
 typedef struct {
     Widget w;
     Tree_CBProc cbproc;
