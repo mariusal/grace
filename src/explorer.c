@@ -106,13 +106,13 @@ static void highlight_cb(TreeEvent *event)
         int i;
         TreeItem *item = (TreeItem *) items.items[0];
         Quark *parent;
-        
+
         q = TreeGetQuark(item);
         fid = quark_fid_get(q);
         parent = quark_parent_get(q);
         all_shown  = quark_is_active(q);
         all_hidden = !all_shown;
-        
+
         for (i = 1; i < count; i++) {
             item = items.items[i];
             
@@ -129,6 +129,7 @@ static void highlight_cb(TreeEvent *event)
             }
         }
     }
+    xfree(items.items);
 
     if (!count || !ui->homogeneous_selection) {
         SetSensitive(ui->aacbuts[0], FALSE);
@@ -270,40 +271,6 @@ static void drop_cb(Widget w, XtPointer client, XtPointer call)
     ExplorerUI *ui = (ExplorerUI *) client;
 }
 
-static int explorer_cb(Quark *q, int etype, void *data)
-{
-    GUI *gui = gui_from_quark(q);
-
-    if (etype == QUARK_ETYPE_DELETE) {
-        printf("Delete Quark: %s\n", q_labeling(q));
-        TreeItem *item = quark_get_udata(q);
-        TreeDeleteItem(item);
-    } else if (etype == QUARK_ETYPE_MODIFY) {
-        printf("Modify Quark: %s\n", q_labeling(q));
-        TreeItem *item = quark_get_udata(q);
-
-        TreeSetItemText(item, q_labeling(q));
-
-        if (quark_is_active(q) && quark_count_children(q) > 0) {
-            TreeSetItemOpen(item, TRUE);
-        } else {
-            TreeSetItemOpen(item, FALSE);
-        }
-
-        if (quark_is_active(q)) {
-            TreeSetItemPixmap(item, gui->eui->a_icon);
-        } else {
-            TreeSetItemPixmap(item, gui->eui->h_icon);
-        }
-    } else if (etype == QUARK_ETYPE_REPARENT) {
-        printf("Reparent Quark: %s\n", q_labeling(q));
-    } else {
-        printf("Else event Quark: %s\n", q_labeling(q));
-    }
-
-    return TRUE;
-}
-
 static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     TreeItem *item;
@@ -328,7 +295,42 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     }
 
     quark_set_udata(q, item);
-    quark_cb_add(q, explorer_cb, NULL);
+
+    return TRUE;
+}
+
+static int explorer_cb(Quark *q, int etype, void *data)
+{
+    GUI *gui = gui_from_quark(q);
+    if (etype == QUARK_ETYPE_DELETE) {
+        printf("Delete Quark: %s\n", q_labeling(q));
+        TreeItem *item = quark_get_udata(q);
+        TreeDeleteItem(item);
+    } else if (etype == QUARK_ETYPE_MODIFY) {
+        printf("Modify Quark: %s\n", q_labeling(q));
+        TreeItem *item = quark_get_udata(q);
+
+        TreeSetItemText(item, q_labeling(q));
+
+        if (quark_is_active(q) && quark_count_children(q) > 0) {
+            TreeSetItemOpen(item, TRUE);
+        } else {
+            TreeSetItemOpen(item, FALSE);
+        }
+
+        if (quark_is_active(q)) {
+            TreeSetItemPixmap(item, gui->eui->a_icon);
+        } else {
+            TreeSetItemPixmap(item, gui->eui->h_icon);
+        }
+    } else if (etype == QUARK_ETYPE_REPARENT) {
+        printf("Reparent Quark: %s\n", q_labeling(q));
+    } else if (etype == QUARK_ETYPE_NEW) {
+        printf("New Quark: %s\n", q_labeling(q));
+        create_hook(q, gui->eui->tree, NULL);
+    } else {
+        printf("Else event Quark: %s\n", q_labeling(q));
+    }
 
     return TRUE;
 }
@@ -336,6 +338,7 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
 void InitQuarkTree(Widget tree)
 {
     quark_traverse(gproject_get_top(gapp->gp), create_hook, tree);
+    quark_cb_add(NULL, explorer_cb, NULL);
 }
 
 
@@ -427,6 +430,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
             break;
         }
     }
+    xfree(items.items);
     
     snapshot_and_update(gapp->gp, FALSE);
 
@@ -469,7 +473,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     TreeGetHighlighted(eui->tree, &items);
     count = items.count;
     
-    for (i = 0; i < count; i ++) {
+    for (i = 0; i < count; i++) {
         TreeItem *item;
         Quark *q;
         
@@ -542,6 +546,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             break;
         }
     }
+    xfree(items.items);
     
     snapshot_and_update(gapp->gp, TRUE);
     

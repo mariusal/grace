@@ -8971,10 +8971,12 @@ void TreeGetHighlighted(Widget w, TreeItemList *items)
 {
     QTreeWidget *treeWidget = (QTreeWidget *) w;
 
-    QList<QTreeWidgetItem *> litems = treeWidget->selectedItems();
-
-    items->count = litems.size();
-    items->items = (TreeItem **) litems.toVector().constData();
+    QList<QTreeWidgetItem *> list = treeWidget->selectedItems();
+    items->count = list.size();
+    items->items = (TreeItem **) xmalloc(items->count*sizeof(TreeItem *));
+    for (int i = 0; i < items->count; i++) {
+        items->items[i] = (TreeItem *) list.at(i);
+    }
 }
 
 void TreeSelectItem(TreeItem *item)

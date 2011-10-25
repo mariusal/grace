@@ -50,8 +50,10 @@ QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid)
 
 QuarkFactory *qfactory_new(void)
 {
-    QuarkFactory *qfactory;
+    static QuarkFactory *qfactory = 0;
     
+    if (qfactory) return qfactory;
+
     qfactory = xmalloc(sizeof(QuarkFactory));
     if (qfactory) {
         memset(qfactory, 0, sizeof(QuarkFactory));
@@ -63,6 +65,7 @@ QuarkFactory *qfactory_new(void)
 void qfactory_free(QuarkFactory *qfactory)
 {
     if (qfactory) {
+        xfree(qfactory->cblist);
         xfree(qfactory->qflavours);
         xfree(qfactory);
     }

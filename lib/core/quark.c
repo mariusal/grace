@@ -36,6 +36,27 @@ static void quark_storage_free(AMem *amem, void *data)
     quark_free((Quark *) data);
 }
 
+static void quark_call_cblist(Quark *q, int etype)
+{
+    unsigned int i, cbcount;
+    QuarkCBEntry *cblist;
+    QuarkFactory *qf = qfactory_new();
+
+    cbcount = qf->cbcount;
+    cblist = qf->cblist;
+    for (i = 0; i < cbcount; i++) {
+        QuarkCBEntry *cbentry = &cblist[i];
+        cbentry->cb(q, etype, cbentry->cbdata);
+    }
+
+    cbcount = q->cbcount;
+    cblist = q->cblist;
+    for (i = 0; i < cbcount; i++) {
+        QuarkCBEntry *cbentry = &cblist[i];
+        cbentry->cb(q, etype, cbentry->cbdata);
+    }
+}
+
 static Quark *quark_new_raw(AMem *amem,
     Quark *parent, unsigned int fid, void *data)
 {
@@ -60,9 +81,6 @@ static Quark *quark_new_raw(AMem *amem,
             return NULL;
         }
         
-        sprintf(buf, "%p", (void *) q);
-        quark_idstr_set(q, buf);
-        
         if (parent) {
             q->parent   = parent;
             q->qfactory = parent->qfactory;
@@ -71,6 +89,11 @@ static Quark *quark_new_raw(AMem *amem,
             
             quark_dirtystate_set(parent, TRUE);
         }
+
+        quark_call_cblist(q, QUARK_ETYPE_NEW);
+
+        sprintf(buf, "%p", (void *) q);
+        quark_idstr_set(q, buf);
     }
     
     return q;
@@ -114,15 +137,6 @@ Quark *quark_new(Quark *parent, unsigned int fid)
     q = quark_new_raw(parent->amem, parent, fid, data);
     
     return q;
-}
-
-static void quark_call_cblist(Quark *q, int etype)
-{
-    unsigned int i;
-    for (i = 0; i < q->cbcount; i++) {
-        QuarkCBEntry *cbentry = &q->cblist[i];
-        cbentry->cb(q, etype, cbentry->cbdata);
-    }
 }
 
 void quark_free(Quark *q)
@@ -405,6 +419,9 @@ Quark *quark_find_descendant_by_idstr(Quark *q, const char *s)
 
 int quark_cb_add(Quark *q, Quark_cb cb, void *cbdata)
 {
+    static AMem *cblistamem;
+    QuarkFactory *qf = qfactory_new();
+
     if (q) {
         void *p = amem_realloc(q->amem, q->cblist,
             (q->cbcount + 1)*sizeof(QuarkCBEntry));
@@ -421,7 +438,23 @@ int quark_cb_add(Quark *q, Quark_cb cb, void *cbdata)
             return RETURN_FAILURE;
         }
     } else {
-        return RETURN_FAILURE;
+        if (!cblistamem) {
+            cblistamem = amem_amem_new(AMEM_MODEL_SIMPLE);
+        }
+        void *p = amem_realloc(cblistamem, qf->cblist,
+            (qf->cbcount + 1)*sizeof(QuarkCBEntry));
+        if (p) {
+            QuarkCBEntry *cbentry;
+            qf->cblist = p;
+            qf->cbcount++;
+            cbentry = &qf->cblist[qf->cbcount - 1];
+            cbentry->cb     = cb;
+            cbentry->cbdata = cbdata;
+
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
     }
 }
 
