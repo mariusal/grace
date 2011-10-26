@@ -8891,6 +8891,8 @@ void set_title(char *title, char *icon_name)
 
 Widget CreateTree(Widget parent)
 {
+    qRegisterMetaType<QTreeWidgetItem*>("QTreeWidgetItem*");
+
     QTreeWidget *treeWidget = new QTreeWidget(parent);
 
     treeWidget->setHeaderHidden(true);
@@ -8979,11 +8981,15 @@ void TreeGetHighlighted(Widget w, TreeItemList *items)
     }
 }
 
-void TreeSelectItem(TreeItem *item)
+void TreeSelectItem(Widget w, TreeItem *item)
 {
+    QTreeWidget *treeWidget = (QTreeWidget *) w;
     QTreeWidgetItem *widget = (QTreeWidgetItem *) item;
 
     widget->setSelected(true);
+    QMetaObject::invokeMethod(treeWidget, "itemPressed", Qt::QueuedConnection,
+                              Q_ARG(QTreeWidgetItem*, widget),
+                              Q_ARG(int, 0));
 }
 
 void TreeClearSelection(Widget w)

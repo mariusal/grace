@@ -348,7 +348,7 @@ void SelectQuarkTreeItem(Quark *q)
     TreeItem *item = quark_get_udata(q);
 
     TreeClearSelection(gui->eui->tree);
-    TreeSelectItem(item);
+    TreeSelectItem(gui->eui->tree, item);
     TreeScrollToItem(gui->eui->tree, item);
 }
 
