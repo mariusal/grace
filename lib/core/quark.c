@@ -284,7 +284,6 @@ void quark_dirtystate_set(Quark *q, int flag)
     if (flag) {
         q->dirtystate++;
         q->statestamp++;
-        quark_call_cblist(q, QUARK_ETYPE_MODIFY);
         if (q->parent) {
             quark_dirtystate_set(q->parent, TRUE);
         }
@@ -292,6 +291,7 @@ void quark_dirtystate_set(Quark *q, int flag)
         q->dirtystate = 0;
         storage_traverse(q->children, dirtystate_hook, NULL);
     }
+    quark_call_cblist(q, QUARK_ETYPE_MODIFY);
 }
 
 int quark_dirtystate_get(const Quark *q)
