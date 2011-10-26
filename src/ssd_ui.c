@@ -195,6 +195,7 @@ static int leaveCB(TableEvent *event)
             case FFORMAT_STRING:
                 if (ssd_set_string(ui->q, event->row, event->col, event->value) ==
                     RETURN_SUCCESS) {
+                    quark_dirtystate_set(ui->q, TRUE);
                     changed = TRUE;
                 }
                 break;    
@@ -213,6 +214,7 @@ static int leaveCB(TableEvent *event)
                         buf, FALSE, get_date_hint(gapp), &val) == RETURN_SUCCESS) {
 
                         if (ssd_set_value(ui->q, event->row, event->col, val) == RETURN_SUCCESS) {
+                            quark_dirtystate_set(ui->q, TRUE);
                             changed = TRUE;
                         }
                     }

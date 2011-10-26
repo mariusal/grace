@@ -356,7 +356,9 @@ int ssd_transpose(Quark *q)
             ssd_set_value(q, i, j, ((double *)ssd_old->cols[i].data)[j]);
         }
     }
-    
+
+    quark_dirtystate_set(q, TRUE);
+
     ssd_data_free(q->amem, ssd_old);
     
     return RETURN_SUCCESS;
