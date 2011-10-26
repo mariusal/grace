@@ -81,6 +81,8 @@ static Quark *quark_new_raw(AMem *amem,
             return NULL;
         }
         
+        q->qfactory = qfactory_new();
+
         if (parent) {
             q->parent   = parent;
             q->qfactory = parent->qfactory;
