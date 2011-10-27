@@ -271,5 +271,15 @@ class WhatsThisListener : public QObject
      bool eventFilter(QObject *obj, QEvent *event);
  };
 
+
+#include <QTreeView>
+
+class TreeView : public QTreeView
+{
+    Q_OBJECT
+
+public:
+    TreeView(QWidget *parent = 0);
+};
 #endif /* __QTGRACE_H_ */
 

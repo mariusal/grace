@@ -285,7 +285,7 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     }
 
     if (quark_is_active(q) && quark_count_children(q) > 0) {
-        TreeSetItemOpen(item, TRUE);
+        TreeSetItemOpen(udata, item, TRUE);
     }
 
     if (quark_is_active(q)) {
@@ -305,7 +305,7 @@ static int explorer_cb(Quark *q, int etype, void *data)
     if (etype == QUARK_ETYPE_DELETE) {
         printf("Delete Quark: %s\n", q_labeling(q));
         TreeItem *item = quark_get_udata(q);
-        TreeDeleteItem(item);
+        TreeDeleteItem(gui->eui->tree, item);
     } else if (etype == QUARK_ETYPE_MODIFY) {
         printf("Modify Quark: %s\n", q_labeling(q));
         TreeItem *item = quark_get_udata(q);
@@ -313,9 +313,9 @@ static int explorer_cb(Quark *q, int etype, void *data)
         TreeSetItemText(item, q_labeling(q));
 
         if (quark_is_active(q) && quark_count_children(q) > 0) {
-            TreeSetItemOpen(item, TRUE);
+            TreeSetItemOpen(gui->eui->tree, item, TRUE);
         } else {
-            TreeSetItemOpen(item, FALSE);
+            TreeSetItemOpen(gui->eui->tree, item, FALSE);
         }
 
         if (quark_is_active(q)) {

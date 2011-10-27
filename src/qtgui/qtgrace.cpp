@@ -61,7 +61,6 @@
 #include <QPlainTextEdit>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QTreeWidget>
 #include <QScrollBar>
 #include <QTableWidget>
 #include <QStandardItemModel>
@@ -8897,81 +8896,95 @@ void set_title(char *title, char *icon_name)
 
 /* Tree Widget */
 
+TreeView::TreeView(QWidget *parent)
+    : QTreeView(parent)
+{
+
+}
+
 Widget CreateTree(Widget parent)
 {
-    qRegisterMetaType<QTreeWidgetItem*>("QTreeWidgetItem*");
+    TreeView *treeView = new TreeView(parent);
+    treeView->setModel(new QStandardItemModel);
 
-    QTreeWidget *treeWidget = new QTreeWidget(parent);
-
-    treeWidget->setHeaderHidden(true);
-    treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    treeWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    treeWidget->header()->setResizeMode(0, QHeaderView::ResizeToContents);
-    treeWidget->header()->setStretchLastSection(false);
+    treeView->setHeaderHidden(true);
+    treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+    treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    treeView->header()->setResizeMode(QHeaderView::ResizeToContents);
+    treeView->header()->setStretchLastSection(false);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
-        layout->addWidget(treeWidget);
+        layout->addWidget(treeView);
     }
 
-    return treeWidget;
+    return treeView;
 }
 
 TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
 {
-    QTreeWidgetItem *child_widget = 0;
+    TreeView *treeView = (TreeView *) w;
+    QStandardItemModel *model = (QStandardItemModel *) treeView->model();
+
+    QStandardItem *item;
+    QStandardItem *parentItem;
 
     if (parent) {
-        QTreeWidgetItem *treeWidgetItem = (QTreeWidgetItem *) parent;
-        child_widget = new QTreeWidgetItem(treeWidgetItem);
+        parentItem = (QStandardItem *) parent;
     } else {
-        QTreeWidget *treeWidget = (QTreeWidget *) w;
-        child_widget = new QTreeWidgetItem(treeWidget);
+        parentItem = model->invisibleRootItem();
     }
 
-    if (child_widget) {
-        child_widget->setText(0, q_labeling(q));
+    item = new QStandardItem(q_labeling(q));
+    item->setData(qVariantFromValue((void *) q));
+    parentItem->appendRow(item);
+
+    return item;
+}
+
+void TreeDeleteItem(Widget w, TreeItem *item)
+{
+    TreeView *treeView = (TreeView *) w;
+    QStandardItemModel *model = (QStandardItemModel *) treeView->model();
+    QStandardItem *treeItem = (QStandardItem *) item;
+
+    int row = treeItem->row();
+    QStandardItem *parent = treeItem->parent();
+    if (!parent) {
+        parent = model->invisibleRootItem();
     }
-
-    child_widget->setData(0, Qt::UserRole, qVariantFromValue((void *) q));
-
-    return child_widget;
+    parent->removeRow(row);
 }
 
-void TreeDeleteItem(TreeItem *item)
+void TreeSetItemOpen(Widget w, TreeItem *item, int open)
 {
-    QTreeWidgetItem *treeWidgetItem = (QTreeWidgetItem *) item;
+    TreeView *treeView = (TreeView *) w;
+    QStandardItemModel *model = (QStandardItemModel *) treeView->model();
+    QStandardItem *treeItem = (QStandardItem *) item;
 
-    delete treeWidgetItem;
-}
-
-void TreeSetItemOpen(TreeItem *item, int open)
-{
-    QTreeWidgetItem *treeWidgetItem = (QTreeWidgetItem *) item;
-
-    treeWidgetItem->setExpanded(open);
+    treeView->setExpanded(model->indexFromItem(treeItem), open);
 }
 
 void TreeSetItemText(TreeItem *item, char *text)
 {
-    QTreeWidgetItem *widget = (QTreeWidgetItem *) item;
+    QStandardItem *treeItem = (QStandardItem *) item;
 
-    widget->setText(0, text);
+    treeItem->setText(text);
 }
 
 void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap)
 {
-    QTreeWidgetItem *treeWidgetItem = (QTreeWidgetItem *) item;
+    QStandardItem *treeItem = (QStandardItem *) item;
     QIcon *icon = (QIcon *) pixmap;
 
-    treeWidgetItem->setIcon(0, *icon);
+    treeItem->setIcon(*icon);
 }
 
 Quark *TreeGetQuark(TreeItem *item)
 {
-    QTreeWidgetItem *widget = (QTreeWidgetItem *) item;
+    QStandardItem *treeItem = (QStandardItem *) item;
 
-    QVariant v = widget->data(0, Qt::UserRole);
+    QVariant v = treeItem->data();
     Quark *q = (Quark *) v.value<void *>();
 
     return q;
@@ -8979,40 +8992,46 @@ Quark *TreeGetQuark(TreeItem *item)
 
 void TreeGetHighlighted(Widget w, TreeItemList *items)
 {
-    QTreeWidget *treeWidget = (QTreeWidget *) w;
+    QTreeView *treeView = (TreeView *) w;
+    QStandardItemModel *model = (QStandardItemModel *) treeView->model();
+    QItemSelectionModel *selectionModel = treeView->selectionModel();
 
-    QList<QTreeWidgetItem *> list = treeWidget->selectedItems();
+    QList<QModelIndex> list = selectionModel->selectedIndexes();
     items->count = list.size();
     items->items = (TreeItem **) xmalloc(items->count*sizeof(TreeItem *));
     for (int i = 0; i < items->count; i++) {
-        items->items[i] = (TreeItem *) list.at(i);
+        items->items[i] = (TreeItem *) model->itemFromIndex(list.at(i));
     }
 }
 
 void TreeSelectItem(Widget w, TreeItem *item)
 {
-    QTreeWidget *treeWidget = (QTreeWidget *) w;
-    QTreeWidgetItem *widget = (QTreeWidgetItem *) item;
+    QTreeView *treeView = (TreeView *) w;
+    QStandardItemModel *model = (QStandardItemModel *) treeView->model();
+    QItemSelectionModel *selectionModel = treeView->selectionModel();
+    QStandardItem *treeItem = (QStandardItem *) item;
 
-    widget->setSelected(true);
-    QMetaObject::invokeMethod(treeWidget, "itemPressed", Qt::QueuedConnection,
-                              Q_ARG(QTreeWidgetItem*, widget),
-                              Q_ARG(int, 0));
+    QModelIndex index = model->indexFromItem(treeItem);
+    selectionModel->select(index, QItemSelectionModel::SelectCurrent);
+
+    QMetaObject::invokeMethod(treeView, "pressed", Qt::QueuedConnection,
+                              Q_ARG(const QModelIndex&, index));
 }
 
 void TreeClearSelection(Widget w)
 {
-    QTreeWidget *widget = (QTreeWidget *) w;
+    QTreeView *treeView = (TreeView *) w;
 
-    widget->clearSelection();
+    treeView->clearSelection();
 }
 
 void TreeScrollToItem(Widget w, TreeItem *item)
 {
-    QTreeWidget *widget = (QTreeWidget *) w;
-    QTreeWidgetItem *witem = (QTreeWidgetItem *) item;
+    QTreeView *treeView = (TreeView *) w;
+    QStandardItemModel *model = (QStandardItemModel *) treeView->model();
+    QStandardItem *treeItem = (QStandardItem *) item;
 
-    widget->scrollToItem(witem);
+    treeView->scrollTo(model->indexFromItem(treeItem));
 }
 
 static void tree_context_menu_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
@@ -9062,7 +9081,7 @@ void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    QtAddCallback(w, SIGNAL(itemPressed(QTreeWidgetItem*, int)),
+    QtAddCallback(w, SIGNAL(pressed(const QModelIndex&)),
                   tree_highlight_cb_proc, (XtPointer) cbdata);
 }
 
