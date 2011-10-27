@@ -745,11 +745,9 @@ void raise_explorer(GUI *gui, Quark *q)
         
         eui->scrolled_window = CreateScrolledWindow(panel);
 
-	ManageChild(panel);
-//        XtVaSetValues(form,
-//            XmNpaneMinimum, 150,
-//            XmNwidth, 250,
-//            NULL);
+        ManageChild(panel);
+        SetMinimumDimensions(form, 150, 0);
+        SetDimensions(form, 250, 0);
 
 #ifdef HAVE_LESSTIF
 # if !defined(SF_BUG_993209_FIXED) && !defined(SF_BUG_993209_NOT_FIXED)

@@ -1006,6 +1006,11 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
     *height = (unsigned int) wh;
 }
 
+void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height)
+{
+    w->setMinimumSize(width, height);
+}
+
 //void *GetUserData(Widget w)
 //{
 //    void *udata = NULL;
