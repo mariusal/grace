@@ -695,8 +695,11 @@ Widget CreateScrolledWindow(Widget parent)
 {
     QScrollArea *scrollArea = new QScrollArea(parent);
     scrollArea->setMinimumHeight(320);
-//    scrollArea->setMinimumWidth(320);
     scrollArea->setWidgetResizable(true);
+    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    sizePolicy.setHorizontalStretch(1);
+    sizePolicy.setVerticalStretch(0);
+    scrollArea->setSizePolicy(sizePolicy);
 
     QWidget *widget = new QWidget;
     QVBoxLayout *vLayout = new QVBoxLayout;
