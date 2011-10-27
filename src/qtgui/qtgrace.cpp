@@ -980,7 +980,7 @@ Widget GetParent(Widget w)
 //}
 void SetDimensions(Widget w, unsigned int width, unsigned int height)
 {
-    canvasWidget->setMinimumSize(width, height);
+    w->resize(width, height);
 }
 
 //void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
@@ -999,8 +999,8 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
 {
     unsigned int ww, wh;
 
-    ww = canvasWidget->width();
-    wh = canvasWidget->height();
+    ww = w->width();
+    wh = w->height();
 
     *width  = (unsigned int) ww;
     *height = (unsigned int) wh;
