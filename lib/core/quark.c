@@ -64,6 +64,7 @@ static Quark *quark_new_raw(AMem *amem,
 
     q = amem_malloc(amem, sizeof(Quark));
     if (q) {
+        char buf[32];
         memset(q, 0, sizeof(Quark));
         
         q->amem = amem;
@@ -80,6 +81,9 @@ static Quark *quark_new_raw(AMem *amem,
             return NULL;
         }
         
+        sprintf(buf, "%p", (void *) q);
+        q->idstr = amem_strcpy(q->amem, q->idstr, buf);
+
         if (parent) {
             q->parent   = parent;
             q->qfactory = parent->qfactory;
@@ -99,7 +103,6 @@ Quark *quark_root(int mmodel, QuarkFactory *qfactory, unsigned int fid)
     Quark *q;
     QuarkFlavor *qf;
     void *data;
-    char buf[32];
     
     amem = amem_amem_new(mmodel);
     
@@ -111,9 +114,6 @@ Quark *quark_root(int mmodel, QuarkFactory *qfactory, unsigned int fid)
 
     quark_call_cblist(q, QUARK_ETYPE_NEW);
 
-    sprintf(buf, "%p", (void *) q);
-    quark_idstr_set(q, buf);
-
     return q;
 }
 
@@ -122,7 +122,6 @@ Quark *quark_new(Quark *parent, unsigned int fid)
     Quark *q;
     QuarkFlavor *qf;
     void *data;
-    char buf[32];
     
     if (!parent) {
         return NULL;
@@ -138,9 +137,6 @@ Quark *quark_new(Quark *parent, unsigned int fid)
     q = quark_new_raw(parent->amem, parent, fid, data);
 
     quark_call_cblist(q, QUARK_ETYPE_NEW);
-
-    sprintf(buf, "%p", (void *) q);
-    quark_idstr_set(q, buf);
 
     return q;
 }
@@ -243,7 +239,6 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
     Quark *new;
     QuarkFlavor *qf;
     void *data;
-    char buf[32];
     
     qf = quark_flavor_get(q->qfactory, q->fid);
     data = qf->data_copy(q->amem, q->data);
@@ -261,9 +256,6 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
     new->udata  = q->udata;
 
     quark_call_cblist(new, QUARK_ETYPE_NEW);
-
-    sprintf(buf, "%p", (void *) new);
-    quark_idstr_set(new, buf);
 
     if (newparent != q->parent) {
         quark_idstr_set(new, q->idstr);
