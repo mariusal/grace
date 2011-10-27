@@ -822,7 +822,10 @@ void raise_explorer(GUI *gui, Quark *q)
         eui->popup_send_to_back_bt = CreateMenuButton(eui->popup,
             "Send to back", '\0', send_to_back_cb, eui);
     }
-
+#ifdef QT_GUI
+    //TODO: use resources
+    SetDimensions(gui->eui->top, 650, 600);
+#endif
     RaiseWindow(GetParent(gui->eui->top));
     
     if (q) {
