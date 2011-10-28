@@ -280,6 +280,23 @@ class TreeView : public QTreeView
 
 public:
     TreeView(QWidget *parent = 0);
+
+    void setDropCallback(Tree_CBData *cbdata) {
+        drop_cbdata = cbdata;
+    }
+
+protected:
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
+    void dragMoveEvent(QDragMoveEvent *event);
+
+private:
+    QPoint dragStartPosition;
+    Tree_CBData *drop_cbdata;
+
 };
+
 #endif /* __QTGRACE_H_ */
 

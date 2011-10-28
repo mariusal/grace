@@ -63,6 +63,9 @@
 #define TABLE_CELL_STRING  1
 #define TABLE_CELL_PIXMAP  2
 
+#define DROP_ACTION_MOVE 0
+#define DROP_ACTION_COPY 1
+
 extern Widget app_shell;        /* defined in xmgapp.c */
 
 typedef struct {
@@ -674,9 +677,10 @@ typedef struct {
     Widget w;
     void *anydata;
     void *udata;
+    int drop_action;
 } TreeEvent;
 
-typedef void (*Tree_CBProc)(TreeEvent *event);
+typedef int (*Tree_CBProc)(TreeEvent *event);
 typedef struct {
     Widget w;
     Tree_CBProc cbproc;

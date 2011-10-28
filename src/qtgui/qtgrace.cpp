@@ -8899,13 +8899,91 @@ void set_title(char *title, char *icon_name)
 TreeView::TreeView(QWidget *parent)
     : QTreeView(parent)
 {
+    setEditTriggers(QAbstractItemView::NoEditTriggers);
+    setAcceptDrops(true);
 
+    drop_cbdata = 0;
+}
+
+void TreeView::mousePressEvent(QMouseEvent *event)
+{
+    QPersistentModelIndex index = indexAt(event->pos());
+
+    if (event->button() == Qt::MidButton) {
+        selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
+//        setCurrentIndex(index);
+        dragStartPosition = event->pos();
+    } else {
+        QTreeView::mousePressEvent(event);
+    }
+}
+
+void TreeView::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->buttons() & Qt::MidButton) {
+        if ((event->pos() - dragStartPosition).manhattanLength()
+                < QApplication::startDragDistance()) return;
+
+        QDrag *drag = new QDrag(this);
+        drag->setMimeData(new QMimeData);
+        drag->exec(Qt::CopyAction | Qt::MoveAction, Qt::MoveAction);
+    } else {
+        QTreeView::mouseMoveEvent(event);
+    }
+}
+
+void TreeView::dragEnterEvent(QDragEnterEvent *event)
+ {
+    qDebug("xxxx");
+    event->accept();
+ }
+
+void TreeView::dropEvent(QDropEvent *event)
+ {
+    qDebug("yyyy");
+    if (drop_cbdata) {
+        TreeEvent e;
+        QStandardItemModel *model = (QStandardItemModel *) this->model();
+
+        e.w = drop_cbdata->w;
+        e.anydata = drop_cbdata->anydata;
+        e.udata = model->itemFromIndex(indexAt(event->pos()));
+
+        switch (event->dropAction()) {
+        case Qt::MoveAction:
+            e.drop_action = DROP_ACTION_MOVE;
+            qDebug("DROP_ACTION_MOVE");
+            break;
+        case Qt::CopyAction:
+            e.drop_action = DROP_ACTION_COPY;
+            qDebug("DROP_ACTION_COPY");
+            break;
+        default:
+            qDebug("DROP_ACTION_UKNOWN");
+            event->ignore();
+            return;
+        }
+
+        if (drop_cbdata->cbproc(&e)) {
+            event->accept();
+        } else {
+            event->ignore();
+        }
+    } else {
+        event->ignore();
+    }
+ }
+
+void TreeView::dragMoveEvent(QDragMoveEvent *event)
+{
+    event->acceptProposedAction();
 }
 
 Widget CreateTree(Widget parent)
 {
     TreeView *treeView = new TreeView(parent);
-    treeView->setModel(new QStandardItemModel);
+    QStandardItemModel *model = new QStandardItemModel;
+    treeView->setModel(model);
 
     treeView->setHeaderHidden(true);
     treeView->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -9083,6 +9161,19 @@ void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata)
 
     QtAddCallback(w, SIGNAL(pressed(const QModelIndex&)),
                   tree_highlight_cb_proc, (XtPointer) cbdata);
+}
+
+void AddTreeDropItemsCB(Widget w, Tree_CBProc cbproc, void *anydata)
+{
+    Tree_CBData *cbdata;
+
+    cbdata = (Tree_CBData *) xmalloc(sizeof(Tree_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    TreeView *view = (TreeView *) cbdata->w;
+    view->setDropCallback(cbdata);
 }
 
 

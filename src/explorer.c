@@ -86,7 +86,7 @@ static void manage_plugin(ExplorerUI *ui, Widget managed_top)
     }
 }
 
-static void highlight_cb(TreeEvent *event)
+static int highlight_cb(TreeEvent *event)
 {
     ExplorerUI *ui = (ExplorerUI *) event->anydata;
     TreeItemList items;
@@ -256,19 +256,57 @@ static void highlight_cb(TreeEvent *event)
         SetSensitive(ui->idstr->form, FALSE);
         SetTextString(ui->idstr, NULL);
     }
+
+    return TRUE;
 }
 
 
-static void menu_cb(TreeEvent *event)
+static int menu_cb(TreeEvent *event)
 {
     ExplorerUI *ui = (ExplorerUI *) event->anydata;
 
     ShowMenu(ui->popup, event->udata);
+
+    return TRUE;
 }
 
-static void drop_cb(Widget w, XtPointer client, XtPointer call)
+static int drop_cb(TreeEvent *event)
 {
-    ExplorerUI *ui = (ExplorerUI *) client;
+    ExplorerUI *ui = (ExplorerUI *) event->anydata;
+    TreeItem *item = (TreeItem *) event->udata;
+    Quark *drop_q = TreeGetQuark(item);
+
+    if (ui->all_siblings && ui->homogeneous_selection) {
+        int count;
+        TreeItemList items;
+
+        TreeGetHighlighted(ui->tree, &items);
+        count = items.count;
+        printf("count %d\n", count);
+        if (count > 0) {
+            int i;
+            Quark *parent;
+            TreeItem *item = items.items[0];
+            parent = quark_parent_get(TreeGetQuark(item));
+
+            if (parent && parent != drop_q &&
+                quark_fid_get(parent) == quark_fid_get(drop_q)) {
+                for (i = 0; i < count; i++) {
+                    Quark *q;
+                    item = items.items[i];
+                    q = TreeGetQuark(item);
+                    if (event->drop_action == DROP_ACTION_COPY) {
+                        quark_copy2(drop_q, q);
+                    } else {
+                        quark_reparent(q, drop_q);
+                    }
+                }
+                snapshot_and_update(gapp->gp, TRUE);
+                return TRUE;
+            }
+        }
+    }
+    return FALSE;
 }
 
 static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
@@ -299,6 +337,20 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
+static int reparent_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    Widget tree = (Widget) udata;
+    TreeItem *item = quark_get_udata(q);
+
+    if ((closure->depth == 0) && (closure->step == 0)) {
+        printf("delete item");
+        TreeDeleteItem(tree, item);
+    }
+    create_hook(q, tree, NULL);
+
+    return TRUE;
+}
+
 static int explorer_cb(Quark *q, int etype, void *data)
 {
     GUI *gui = gui_from_quark(q);
@@ -325,6 +377,7 @@ static int explorer_cb(Quark *q, int etype, void *data)
         }
     } else if (etype == QUARK_ETYPE_REPARENT) {
         printf("Reparent Quark: %s\n", q_labeling(q));
+        quark_traverse(q, reparent_hook, gui->eui->tree);
     } else if (etype == QUARK_ETYPE_NEW) {
         printf("New Quark: %s\n", q_labeling(q));
         create_hook(q, gui->eui->tree, NULL);
@@ -340,7 +393,6 @@ void InitQuarkTree(Widget tree)
     quark_traverse(gproject_get_top(gapp->gp), create_hook, tree);
     quark_cb_add(NULL, explorer_cb, NULL);
 }
-
 
 void SelectQuarkTreeItem(Quark *q)
 {
@@ -721,7 +773,7 @@ void raise_explorer(GUI *gui, Quark *q)
         eui->tree = CreateTree(form);
         AddTreeHighlightItemsCB(eui->tree, highlight_cb, eui);
         AddTreeContextMenuCB(eui->tree, menu_cb, eui);
-//        AddTreeDropItemsCB(eui->tree, drop_cb, eui);
+        AddTreeDropItemsCB(eui->tree, drop_cb, eui);
 
         fr = CreateFrame(form, NULL);
         eui->idstr = CreateTextInput(fr, "ID string:");
