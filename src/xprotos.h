@@ -209,7 +209,7 @@ void create_autos_frame(Widget but, void *data);
 
 void raise_explorer(GUI *gui, Quark *q);
 void define_explorer_popup(Widget but, void *data);
-//void update_explorer(ExplorerUI *ui, int reselect);
+void update_explorer(ExplorerUI *ui);
 
 void create_about_grtool(Widget but, void *data);
 

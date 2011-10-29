@@ -9030,12 +9030,16 @@ void TreeDeleteItem(Widget w, TreeItem *item)
     QStandardItemModel *model = (QStandardItemModel *) treeView->model();
     QStandardItem *treeItem = (QStandardItem *) item;
 
-    int row = treeItem->row();
-    QStandardItem *parent = treeItem->parent();
-    if (!parent) {
-        parent = model->invisibleRootItem();
+    if (item) {
+        int row = treeItem->row();
+        QStandardItem *parent = treeItem->parent();
+        if (!parent) {
+            parent = model->invisibleRootItem();
+        }
+        parent->removeRow(row);
+    } else {
+        model->clear();
     }
-    parent->removeRow(row);
 }
 
 void TreeSetItemOpen(Widget w, TreeItem *item, int open)
@@ -9093,6 +9097,9 @@ void TreeSelectItem(Widget w, TreeItem *item)
     QItemSelectionModel *selectionModel = treeView->selectionModel();
     QStandardItem *treeItem = (QStandardItem *) item;
 
+    if (!item) {
+        treeItem = model->invisibleRootItem()->child(0);
+    }
     QModelIndex index = model->indexFromItem(treeItem);
     selectionModel->select(index, QItemSelectionModel::SelectCurrent);
 

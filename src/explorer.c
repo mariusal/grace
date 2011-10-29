@@ -496,6 +496,12 @@ static int explorer_aac(void *data)
     return explorer_apply(ui, NULL);
 }
 
+void update_explorer(ExplorerUI *ui)
+{
+    TreeDeleteItem(ui->tree, NULL);
+    quark_traverse(gproject_get_top(gapp->gp), create_hook, ui->tree);
+    TreeSelectItem(ui->tree, NULL);
+}
 
 #define HIDE_CB           0
 #define SHOW_CB           1

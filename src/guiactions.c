@@ -287,6 +287,7 @@ void undo_cb(Widget but, void *data)
     amem_undo(amem);
     
     xdrawgraph(gapp->gp);
+    update_explorer(gapp->gui->eui);
     update_all();
 }
 
@@ -298,6 +299,7 @@ void redo_cb(Widget but, void *data)
     amem_redo(amem);
     
     xdrawgraph(gapp->gp);
+    update_explorer(gapp->gui->eui);
     update_all();
 }
 
