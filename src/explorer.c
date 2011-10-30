@@ -397,11 +397,14 @@ void InitQuarkTree(Widget tree)
 void SelectQuarkTreeItem(Quark *q)
 {
     GUI *gui = gui_from_quark(q);
-    TreeItem *item = quark_get_udata(q);
 
-    TreeClearSelection(gui->eui->tree);
-    TreeSelectItem(gui->eui->tree, item);
-    TreeScrollToItem(gui->eui->tree, item);
+    if (gui->eui) {
+        TreeItem *item = quark_get_udata(q);
+
+        TreeClearSelection(gui->eui->tree);
+        TreeSelectItem(gui->eui->tree, item);
+        TreeScrollToItem(gui->eui->tree, item);
+    }
 }
 
 static int explorer_apply(ExplorerUI *ui, void *caller)
