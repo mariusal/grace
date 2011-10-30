@@ -43,6 +43,7 @@ struct _QuarkFactory {
     QuarkFlavor *qflavours;
     unsigned int nflavours;
     
+    AMem *amem;
     unsigned int cbcount;    /* user-supplied callbacks */
     QuarkCBEntry *cblist;
 

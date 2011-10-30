@@ -423,9 +423,6 @@ Quark *quark_find_descendant_by_idstr(Quark *q, const char *s)
 
 int quark_cb_add(Quark *q, Quark_cb cb, void *cbdata)
 {
-    static AMem *cblistamem;
-    QuarkFactory *qf = qfactory_new();
-
     if (q) {
         void *p = amem_realloc(q->amem, q->cblist,
             (q->cbcount + 1)*sizeof(QuarkCBEntry));
@@ -442,10 +439,8 @@ int quark_cb_add(Quark *q, Quark_cb cb, void *cbdata)
             return RETURN_FAILURE;
         }
     } else {
-        if (!cblistamem) {
-            cblistamem = amem_amem_new(AMEM_MODEL_SIMPLE);
-        }
-        void *p = amem_realloc(cblistamem, qf->cblist,
+        QuarkFactory *qf = qfactory_new();
+        void *p = amem_realloc(qf->amem, qf->cblist,
             (qf->cbcount + 1)*sizeof(QuarkCBEntry));
         if (p) {
             QuarkCBEntry *cbentry;
