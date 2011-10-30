@@ -387,13 +387,13 @@ static int explorer_cb(Quark *q, int etype, void *udata)
     return TRUE;
 }
 
-static void InitQuarkTree(ExplorerUI *eui)
+static void init_quark_tree(ExplorerUI *eui)
 {
     quark_traverse(gproject_get_top(gapp->gp), create_hook, eui);
     quark_cb_add(NULL, explorer_cb, eui);
 }
 
-void SelectQuarkTreeItem(Quark *q)
+void select_quark_explorer(Quark *q)
 {
     GUI *gui = gui_from_quark(q);
 
@@ -611,7 +611,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     snapshot_and_update(gapp->gp, TRUE);
     
     if (qnew) {
-        SelectQuarkTreeItem(qnew);
+        select_quark_explorer(qnew);
     }
 }
 
@@ -853,7 +853,7 @@ void raise_explorer(GUI *gui, Quark *q)
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
-        InitQuarkTree(eui);
+        init_quark_tree(eui);
         
         ManageChild(eui->tree);
 
@@ -889,7 +889,7 @@ void raise_explorer(GUI *gui, Quark *q)
     RaiseWindow(GetParent(gui->eui->top));
     
     if (q) {
-        SelectQuarkTreeItem(q);
+        select_quark_explorer(q);
     }
 
     update_undo_buttons(gapp->gp);

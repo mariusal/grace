@@ -1090,7 +1090,7 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
     xfree(graphs);
 
 #ifndef NONE_GUI
-    SelectQuarkTreeItem(project);
+    select_quark_explorer(project);
     update_all();
 #endif
     if (project) {
