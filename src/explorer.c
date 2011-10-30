@@ -312,24 +312,24 @@ static int drop_cb(TreeEvent *event)
 static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     TreeItem *item;
-    GUI *gui = gui_from_quark(q);
+    ExplorerUI *eui = (ExplorerUI *) udata;
     Quark *qparent = quark_parent_get(q);
 
     if (qparent) {
         TreeItem *parent = quark_get_udata(qparent);
-        item = TreeAddItem(udata, parent, q);
+        item = TreeAddItem(eui->tree, parent, q);
     } else {
-        item = TreeAddItem(udata, NULL, q);
+        item = TreeAddItem(eui->tree, NULL, q);
     }
 
     if (quark_is_active(q) && quark_count_children(q) > 0) {
-        TreeSetItemOpen(udata, item, TRUE);
+        TreeSetItemOpen(eui->tree, item, TRUE);
     }
 
     if (quark_is_active(q)) {
-        TreeSetItemPixmap(item, gui->eui->a_icon);
+        TreeSetItemPixmap(item, eui->a_icon);
     } else {
-        TreeSetItemPixmap(item, gui->eui->h_icon);
+        TreeSetItemPixmap(item, eui->h_icon);
     }
 
     quark_set_udata(q, item);
@@ -339,59 +339,58 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
 
 static int reparent_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    Widget tree = (Widget) udata;
+    ExplorerUI *eui = (ExplorerUI *) udata;
     TreeItem *item = quark_get_udata(q);
 
     if ((closure->depth == 0) && (closure->step == 0)) {
-        printf("delete item");
-        TreeDeleteItem(tree, item);
+        TreeDeleteItem(eui->tree, item);
     }
-    create_hook(q, tree, NULL);
+    create_hook(q, eui, NULL);
 
     return TRUE;
 }
 
-static int explorer_cb(Quark *q, int etype, void *data)
+static int explorer_cb(Quark *q, int etype, void *udata)
 {
-    GUI *gui = gui_from_quark(q);
-    if (etype == QUARK_ETYPE_DELETE) {
-        printf("Delete Quark: %s\n", q_labeling(q));
-        TreeItem *item = quark_get_udata(q);
-        TreeDeleteItem(gui->eui->tree, item);
-    } else if (etype == QUARK_ETYPE_MODIFY) {
-        printf("Modify Quark: %s\n", q_labeling(q));
-        TreeItem *item = quark_get_udata(q);
+    ExplorerUI *eui = (ExplorerUI *) udata;
+    TreeItem *item = quark_get_udata(q);
 
+    switch (etype) {
+    case QUARK_ETYPE_DELETE:
+        TreeDeleteItem(eui->tree, item);
+        break;
+    case QUARK_ETYPE_MODIFY:
         TreeSetItemText(item, q_labeling(q));
 
         if (quark_is_active(q) && quark_count_children(q) > 0) {
-            TreeSetItemOpen(gui->eui->tree, item, TRUE);
+            TreeSetItemOpen(eui->tree, item, TRUE);
         } else {
-            TreeSetItemOpen(gui->eui->tree, item, FALSE);
+            TreeSetItemOpen(eui->tree, item, FALSE);
         }
 
         if (quark_is_active(q)) {
-            TreeSetItemPixmap(item, gui->eui->a_icon);
+            TreeSetItemPixmap(item, eui->a_icon);
         } else {
-            TreeSetItemPixmap(item, gui->eui->h_icon);
+            TreeSetItemPixmap(item, eui->h_icon);
         }
-    } else if (etype == QUARK_ETYPE_REPARENT) {
-        printf("Reparent Quark: %s\n", q_labeling(q));
-        quark_traverse(q, reparent_hook, gui->eui->tree);
-    } else if (etype == QUARK_ETYPE_NEW) {
-        printf("New Quark: %s\n", q_labeling(q));
-        create_hook(q, gui->eui->tree, NULL);
-    } else {
+        break;
+    case QUARK_ETYPE_REPARENT:
+        quark_traverse(q, reparent_hook, eui);
+        break;
+    case QUARK_ETYPE_NEW:
+        create_hook(q, eui, NULL);
+        break;
+    default:
         printf("Else event Quark: %s\n", q_labeling(q));
     }
 
     return TRUE;
 }
 
-void InitQuarkTree(Widget tree)
+static void InitQuarkTree(ExplorerUI *eui)
 {
-    quark_traverse(gproject_get_top(gapp->gp), create_hook, tree);
-    quark_cb_add(NULL, explorer_cb, NULL);
+    quark_traverse(gproject_get_top(gapp->gp), create_hook, eui);
+    quark_cb_add(NULL, explorer_cb, eui);
 }
 
 void SelectQuarkTreeItem(Quark *q)
@@ -499,11 +498,11 @@ static int explorer_aac(void *data)
     return explorer_apply(ui, NULL);
 }
 
-void update_explorer(ExplorerUI *ui)
+void update_explorer(ExplorerUI *eui)
 {
-    TreeDeleteItem(ui->tree, NULL);
-    quark_traverse(gproject_get_top(gapp->gp), create_hook, ui->tree);
-    TreeSelectItem(ui->tree, NULL);
+    TreeDeleteItem(eui->tree, NULL);
+    quark_traverse(gproject_get_top(gapp->gp), create_hook, eui);
+    TreeSelectItem(eui->tree, NULL);
 }
 
 #define HIDE_CB           0
@@ -854,7 +853,7 @@ void raise_explorer(GUI *gui, Quark *q)
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
-        InitQuarkTree(eui->tree);
+        InitQuarkTree(eui);
         
         ManageChild(eui->tree);
 
@@ -884,7 +883,7 @@ void raise_explorer(GUI *gui, Quark *q)
             "Send to back", '\0', send_to_back_cb, eui);
     }
 #ifdef QT_GUI
-    //TODO: use resources
+    /* TODO: use resources */
     SetDimensions(gui->eui->top, 650, 600);
 #endif
     RaiseWindow(GetParent(gui->eui->top));
