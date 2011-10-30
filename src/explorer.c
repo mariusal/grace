@@ -282,7 +282,6 @@ static int drop_cb(TreeEvent *event)
 
         TreeGetHighlighted(ui->tree, &items);
         count = items.count;
-        printf("count %d\n", count);
         if (count > 0) {
             int i;
             Quark *parent;
@@ -391,6 +390,7 @@ static void init_quark_tree(ExplorerUI *eui)
 {
     quark_traverse(gproject_get_top(gapp->gp), create_hook, eui);
     quark_cb_add(NULL, explorer_cb, eui);
+    select_quark_explorer(gproject_get_top(gapp->gp));
 }
 
 void select_quark_explorer(Quark *q)
