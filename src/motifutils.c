@@ -5205,12 +5205,13 @@ TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
 
 void TreeDeleteItem(Widget w, TreeItem *item)
 {
-    if (item) {
-        ListTreeDelete(w, item);
-    } else {
-        ListTreeItem *titem = ListTreeFirstItem(w);
-        ListTreeDelete(w, titem);
+    ListTreeItem *titem = item;
+
+    if (!item) {
+        titem = ListTreeFirstItem(w);
     }
+
+    ListTreeDelete(w, titem);
 }
 
 void TreeSetItemOpen(Widget w, TreeItem *item, int open)
@@ -5252,16 +5253,17 @@ void TreeGetHighlighted(Widget w, TreeItemList *items)
 
 void TreeSelectItem(Widget w, TreeItem *item)
 {
-//    if (item) {
-        ListTreeMultiReturnStruct ret;
+    ListTreeItem *titem = item;
+    ListTreeMultiReturnStruct ret;
 
-        ListTreeHighlightItem(w, item);
+    if (!item) {
+        titem = ListTreeFirstItem(w);
+    }
 
-        ListTreeGetHighlighted(w, &ret);
-//        XtCallCallbacks(w, XtNhighlightCallback, (XtPointer) &ret);
-//    } else {
+    ListTreeHighlightItem(w, titem);
 
-//    }
+    ListTreeGetHighlighted(w, &ret);
+    XtCallCallbacks(w, XtNhighlightCallback, (XtPointer) &ret);
 }
 
 void TreeClearSelection(Widget w)
