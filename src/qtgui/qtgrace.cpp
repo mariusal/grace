@@ -9086,6 +9086,11 @@ void TreeScrollToItem(Widget w, TreeItem *item)
     treeView->scrollTo(model->indexFromItem(treeItem));
 }
 
+void TreeRefresh(Widget w)
+{
+
+}
+
 static void tree_context_menu_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Tree_CBData *cbdata = (Tree_CBData *) client_data;
