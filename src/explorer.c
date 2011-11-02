@@ -304,6 +304,7 @@ static int drop_cb(TreeEvent *event)
                         quark_reparent(q, drop_q);
                     }
                 }
+                TreeRefresh(ui->tree);
                 snapshot_and_update(gapp->gp, TRUE);
                 return TRUE;
             }
@@ -407,9 +408,11 @@ void select_quark_explorer(Quark *q)
     if (gui->eui) {
         TreeItem *item = quark_get_udata(q);
 
+        TreeRefresh(gui->eui->tree);
         TreeClearSelection(gui->eui->tree);
         TreeSelectItem(gui->eui->tree, item);
         TreeScrollToItem(gui->eui->tree, item);
+        TreeRefresh(gui->eui->tree);
     }
 }
 
@@ -493,6 +496,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     }
     xfree(items.items);
     
+    TreeRefresh(ui->tree);
     snapshot_and_update(gapp->gp, FALSE);
 
     return res;
@@ -615,6 +619,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     }
     xfree(items.items);
     
+    TreeRefresh(eui->tree);
     snapshot_and_update(gapp->gp, TRUE);
     
     if (qnew) {

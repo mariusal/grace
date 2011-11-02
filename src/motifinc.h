@@ -694,6 +694,7 @@ void TreeGetHighlighted(Widget w, TreeItemList *items);
 void TreeSelectItem(Widget w, TreeItem *item);
 void TreeClearSelection(Widget w);
 void TreeScrollToItem(Widget w, TreeItem *item);
+void TreeRefresh(Widget w);
 
 void AddTreeContextMenuCB(Widget w, Tree_CBProc cbproc, void *anydata);
 void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata);

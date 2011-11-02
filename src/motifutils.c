@@ -5182,7 +5182,12 @@ void set_title(char *title, char *icon_name)
 
 Widget CreateTree(Widget parent)
 {
-    return XmCreateScrolledListTree(parent, "tree", NULL, 0);
+    Widget w;
+
+    w = XmCreateScrolledListTree(parent, "tree", NULL, 0);
+    ListTreeRefreshOff(w);
+
+    return w;
 }
 
 TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
@@ -5201,10 +5206,10 @@ TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
 void TreeDeleteItem(Widget w, TreeItem *item)
 {
     if (item) {
-        ListTreeDeleteChildren(w, item);
+        ListTreeDelete(w, item);
     } else {
         ListTreeItem *titem = ListTreeFirstItem(w);
-        ListTreeDeleteChildren(w, titem);
+        ListTreeDelete(w, titem);
     }
 }
 
@@ -5213,17 +5218,11 @@ void TreeSetItemOpen(Widget w, TreeItem *item, int open)
     ListTreeItem *titem = item;
 
     titem->open = open;
-    ListTreeRefresh(w);
 }
 
 void TreeSetItemText(Widget w, TreeItem *item, char *text)
 {
-    ListTreeItem *titem = item;
-    char *s;
-
-    s = copy_string(NULL, text);
-    titem->text = s;
-    ListTreeRefresh(w);
+    ListTreeRenameItem(w, item, text);
 }
 
 void TreeSetItemPixmap(Widget w, TreeItem *item, Pixmap pixmap)
@@ -5286,6 +5285,13 @@ void TreeScrollToItem(Widget w, TreeItem *item)
         if (titem->count >= top + visible) {
             ListTreeSetBottomPos(w, titem);
         }
+}
+
+void TreeRefresh(Widget w)
+{
+    ListTreeRefreshOn(w);
+    ListTreeRefresh(w);
+    ListTreeRefreshOff(w);
 }
 
 static void tree_context_menu_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
