@@ -693,7 +693,6 @@ void set_view_items(void)
 Widget CreateScrolledWindow(Widget parent)
 {
     QScrollArea *scrollArea = new QScrollArea(parent);
-    scrollArea->setMinimumHeight(320);
     scrollArea->setWidgetResizable(true);
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     sizePolicy.setHorizontalStretch(1);
@@ -928,6 +927,15 @@ Widget GetParent(Widget w)
 //    XtAddEventHandler(shell, (EventMask) 0, True, _XEditResCheckMessages, NULL);
 //#endif
 //}
+
+void SetHeight(Widget w, unsigned int height)
+{
+    if (QScrollArea *scrollArea = qobject_cast<QScrollArea *>(w->parent()->parent())) {
+        scrollArea->setMinimumHeight(height);
+    } else {
+        w->resize(w->size().width(), height);
+    }
+}
 
 //void SetDimensions(Widget w, unsigned int width, unsigned int height)
 //{
@@ -10048,10 +10056,11 @@ void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, i
 {
     QScrollBar *scrollBar = (QScrollBar*) w;
 
-    *value = scrollBar->value();
-    *maxvalue = scrollBar->maximum() + 10;
-    *slider_size = 10;
-    *increment = scrollBar->singleStep();
+    // TODO: fix "+ 10" and "if max is 0 in case of axis_ui on the firt run"
+    if (value) *value = scrollBar->value();
+    if (maxvalue) *maxvalue = scrollBar->maximum() + 10;
+    if (slider_size) *slider_size = 10;
+    if (increment) *increment = scrollBar->singleStep();
 }
 
 void SetScrollBarValue(Widget w, int value)
@@ -10061,16 +10070,31 @@ void SetScrollBarValue(Widget w, int value)
     scrollBar->setValue(value);
 }
 
+void SetScrollBarIncrement(Widget w, int increment)
+{
+    QScrollBar *scrollBar = (QScrollBar*) w;
+
+    scrollBar->setSingleStep(increment);
+}
+
 Widget GetHorizontalScrollBar(Widget w)
 {
-    QScrollArea *scrollArea = (QScrollArea*) w;
+    QScrollArea *scrollArea;
+
+    if (!(scrollArea = qobject_cast<QScrollArea *>(w))) {
+        scrollArea = qobject_cast<QScrollArea *>(w->parent()->parent());
+    }
 
     return scrollArea->horizontalScrollBar();
 }
 
 Widget GetVerticalScrollBar(Widget w)
 {
-    QScrollArea *scrollArea = (QScrollArea*) w;
+    QScrollArea *scrollArea;
+
+    if (!(scrollArea = qobject_cast<QScrollArea *>(w))) {
+        scrollArea = qobject_cast<QScrollArea *>(w->parent()->parent());
+    }
 
     return scrollArea->verticalScrollBar();
 }
