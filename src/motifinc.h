@@ -428,13 +428,9 @@ void SetSensitive(Widget w, int onoff);
 
 Widget GetParent(Widget w);
 
-void CallCallbacks(Widget w, const char *callback_name, XtPointer call_data);
-void AddCallback(Widget w, const char *callback_name,
-                 void (*callback)(Widget, XtPointer, XtPointer),
-                 XtPointer client_data);
-
 void RegisterEditRes(Widget shell);
 
+void SetHeight(Widget w, unsigned int height);
 void SetDimensions(Widget w, unsigned int width, unsigned int height);
 void GetDimensions(Widget w, unsigned int *width, unsigned int *height);
 void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height);
@@ -691,8 +687,8 @@ Widget CreateTree(Widget parent);
 TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q);
 void TreeDeleteItem(Widget w, TreeItem *item);
 void TreeSetItemOpen(Widget w, TreeItem *item, int open);
-void TreeSetItemText(TreeItem *item, char *text);
-void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap);
+void TreeSetItemText(Widget w, TreeItem *item, char *text);
+void TreeSetItemPixmap(Widget w, TreeItem *item, Pixmap pixmap);
 Quark *TreeGetQuark(TreeItem *item);
 void TreeGetHighlighted(Widget w, TreeItemList *items);
 void TreeSelectItem(Widget w, TreeItem *item);
@@ -774,6 +770,7 @@ void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata);
 /* ScrollBar */
 void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, int *increment);
 void SetScrollBarValue(Widget w, int value);
+void SetScrollBarIncrement(Widget w, int increment);
 Widget GetHorizontalScrollBar(Widget w);
 Widget GetVerticalScrollBar(Widget w);
 

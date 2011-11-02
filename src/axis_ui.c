@@ -248,9 +248,7 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     CreateLabel(ui->special_tp, "Tick location - Label:");
 
     ui->sw = CreateScrolledWindow(ui->special_tp);
-#ifndef QT_GUI
-    XtVaSetValues(ui->sw, XmNheight, 320, NULL);
-#endif
+    SetHeight(ui->sw, 320);
 
     rc = CreateVContainer(ui->sw);
 
@@ -378,16 +376,13 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
             }
         }
 
-
-#ifndef QT_GUI
         /* set reasonable scrolling */
-        vbar = XtNameToWidget(ui->sw, "VertScrollBar");
+        vbar = GetVerticalScrollBar(ui->sw);
         if (vbar) {
             int maxval;
-            XtVaGetValues(vbar, XmNmaximum, &maxval, NULL);
-            XtVaSetValues(vbar, XmNincrement, (int) rint(maxval/MAX_TICKS), NULL);
+            GetScrollBarValues(vbar, NULL, &maxval, NULL, NULL);
+            SetScrollBarIncrement(vbar, (int) rint(maxval/MAX_TICKS));
         }
-#endif
     }
 }
 

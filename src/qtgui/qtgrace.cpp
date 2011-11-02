@@ -902,50 +902,6 @@ void SetSensitive(Widget w, int onoff)
     }
 }
 
-//void CallCallbacks(Widget w, const char *callback_name, XtPointer call_data)
-//{
-//    if (!strcmp(callback_name, "XtNhighlightCallback"))
-//        XtCallCallbacks(w, XtNhighlightCallback, call_data);
-//}
-void CallCallbacks(Widget w, const char *callback_name, XtPointer call_data)
-{
-    //if (!strcmp(callback_name, "XtNhighlightCallback"))
-        //XtCallCallbacks(w, XtNhighlightCallback, call_data);
-}
-
-//void AddCallback(Widget w, const char *callback_name,
-//                 void (*callback)(Widget, XtPointer, XtPointer),
-//                 XtPointer client_data)
-//{
-//    if (!strcmp(callback_name, "XtNhighlightCallback")) {
-//        XtAddCallback(w, XtNhighlightCallback, callback, client_data);
-//    } else if (!strcmp(callback_name, "XtNmenuCallback")) {
-//        XtAddCallback(w, XtNmenuCallback, callback, client_data);
-//    } else if (!strcmp(callback_name, "XtNdestroyItemCallback")) {
-//        XtAddCallback(w, XtNdestroyItemCallback, callback, client_data);
-//    } else if (!strcmp(callback_name, "XtNdropCallback")) {
-//        XtAddCallback(w, XtNdropCallback, callback, client_data);
-//    } else {
-//        printf("%s: %s", "A missing Callback", callback_name);
-//    }
-//}
-void AddCallback(Widget w, const char *callback_name,
-                 void (*callback)(Widget, XtPointer, XtPointer),
-                 XtPointer client_data)
-{
-    if (!strcmp(callback_name, "XtNhighlightCallback")) {
-        printf("\n%s: %s", "AddCallback", callback_name);
-    } else if (!strcmp(callback_name, "XtNmenuCallback")) {
-        printf("\n%s: %s", "AddCallback", callback_name);
-    } else if (!strcmp(callback_name, "XtNdestroyItemCallback")) {
-        printf("\n%s: %s", "AddCallback", callback_name);
-    } else if (!strcmp(callback_name, "XtNdropCallback")) {
-        printf("\n%s: %s", "AddCallback", callback_name);
-    } else {
-        printf("\n%s: %s", "A missing Callback", callback_name);
-    }
-}
-
 //Widget GetParent(Widget w)
 //{
 //    if (w) {
@@ -8723,7 +8679,6 @@ void update_all(void)
 
     update_undo_buttons(gapp->gp);
     update_props_items();
-//    update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
     update_app_title(gapp->gp);
 }
@@ -8736,7 +8691,6 @@ void update_all_cb(Widget but, void *data)
 void snapshot_and_update(GProject *gp, int all)
 {
     Quark *pr = gproject_get_top(gp);
-    GUI *gui = gui_from_quark(pr);
     AMem *amem;
 
     if (!pr) {
@@ -8752,7 +8706,6 @@ void snapshot_and_update(GProject *gp, int all)
         update_all();
     } else {
         update_undo_buttons(gp);
-//        update_explorer(gui->eui, FALSE);
         update_app_title(gp);
     }
 }
@@ -9017,7 +8970,9 @@ TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
         parentItem = model->invisibleRootItem();
     }
 
-    item = new QStandardItem(q_labeling(q));
+    char *s = q_labeling(q);
+    item = new QStandardItem(s);
+    xfree(s);
     item->setData(qVariantFromValue((void *) q));
     parentItem->appendRow(item);
 
@@ -9051,14 +9006,14 @@ void TreeSetItemOpen(Widget w, TreeItem *item, int open)
     treeView->setExpanded(model->indexFromItem(treeItem), open);
 }
 
-void TreeSetItemText(TreeItem *item, char *text)
+void TreeSetItemText(Widget w, TreeItem *item, char *text)
 {
     QStandardItem *treeItem = (QStandardItem *) item;
 
     treeItem->setText(text);
 }
 
-void TreeSetItemPixmap(TreeItem *item, Pixmap pixmap)
+void TreeSetItemPixmap(Widget w, TreeItem *item, Pixmap pixmap)
 {
     QStandardItem *treeItem = (QStandardItem *) item;
     QIcon *icon = (QIcon *) pixmap;

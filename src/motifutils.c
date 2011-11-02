@@ -69,8 +69,15 @@
 #include <Xm/ToggleB.h>
 #include <Xm/ArrowBG.h>
 #include <Xm/ScrollBar.h>
+#if XmVersion >= 2000
+# define USE_PANEDW 1
+#  include <Xm/PanedW.h>
+#else
+# define USE_PANEDW 0
+#endif
 
 #include <Xbae/Matrix.h>
+#include "ListTree.h"
 
 #ifdef WITH_EDITRES
 #  include <X11/Xmu/Editres.h>
@@ -181,34 +188,16 @@ Widget GetParent(Widget w)
     }
 }
 
-void CallCallbacks(Widget w, const char *callback_name, XtPointer call_data)
-{
-    if (!strcmp(callback_name, "XtNhighlightCallback"))
-        XtCallCallbacks(w, XtNhighlightCallback, call_data);
-}
-
-void AddCallback(Widget w, const char *callback_name,
-                 void (*callback)(Widget, XtPointer, XtPointer),
-                 XtPointer client_data)
-{
-    if (!strcmp(callback_name, "XtNhighlightCallback")) {
-        XtAddCallback(w, XtNhighlightCallback, callback, client_data);
-    } else if (!strcmp(callback_name, "XtNmenuCallback")) {
-        XtAddCallback(w, XtNmenuCallback, callback, client_data);
-    } else if (!strcmp(callback_name, "XtNdestroyItemCallback")) {
-        XtAddCallback(w, XtNdestroyItemCallback, callback, client_data);
-    } else if (!strcmp(callback_name, "XtNdropCallback")) {
-        XtAddCallback(w, XtNdropCallback, callback, client_data);
-    } else {
-        printf("%s: %s", "A missing Callback", callback_name);
-    }
-}
-
 void RegisterEditRes(Widget shell)
 {
 #ifdef WITH_EDITRES    
     XtAddEventHandler(shell, (EventMask) 0, True, _XEditResCheckMessages, NULL);
 #endif
+}
+
+void SetHeight(Widget w, unsigned int height)
+{
+    XtVaSetValues(w, XmNheight, height, NULL);
 }
 
 void SetDimensions(Widget w, unsigned int width, unsigned int height)
@@ -230,6 +219,11 @@ void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
 
     *width  = (unsigned int) ww;
     *height = (unsigned int) wh;
+}
+
+void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height)
+{
+    XtVaSetValues(w, XmNpaneMinimum, width, NULL);
 }
 
 void *GetUserData(Widget w)
@@ -4268,11 +4262,6 @@ Widget CreateFrame(Widget parent, char *s)
     return (fr);   
 }
 
-Widget CreateTree(Widget parent)
-{
-    return XmCreateScrolledListTree(parent, "tree", NULL, 0);
-}
-
 Widget CreateScrolledWindow(Widget parent)
 {
     return XtVaCreateManagedWidget("scrolledWindow",
@@ -4988,7 +4977,6 @@ void update_all(void)
 
     update_undo_buttons(gapp->gp);
     update_props_items();
-//    update_explorer(gapp->gui->eui, TRUE);
     set_left_footer(NULL);
     update_app_title(gapp->gp);
 }
@@ -5001,7 +4989,6 @@ void update_all_cb(Widget but, void *data)
 void snapshot_and_update(GProject *gp, int all)
 {
     Quark *pr = gproject_get_top(gp);
-    GUI *gui = gui_from_quark(pr);
     AMem *amem;
     
     if (!pr) {
@@ -5017,7 +5004,6 @@ void snapshot_and_update(GProject *gp, int all)
         update_all();
     } else {
         update_undo_buttons(gp);
-//        update_explorer(gui->eui, FALSE);
         update_app_title(gp);
     }
 }
@@ -5192,34 +5178,205 @@ void set_title(char *title, char *icon_name)
     XtVaSetValues(app_shell, XtNtitle, title, XtNiconName, icon_name, NULL);
 }
 
-/* explorer.c */
-void explorer_menu_cb(Widget w, XtPointer client, XtPointer call)
+/* Tree Widget */
+
+Widget CreateTree(Widget parent)
 {
-    ListTreeItemReturnStruct *ret = (ListTreeItemReturnStruct *) call;
+    return XmCreateScrolledListTree(parent, "tree", NULL, 0);
+}
+
+TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
+{
+    char *s;
+    ListTreeItem *item;
+
+    s = q_labeling(q);
+    item = ListTreeAdd(w, parent, s);
+    item->user_data = q;
+    xfree(s);
+
+    return item;
+}
+
+void TreeDeleteItem(Widget w, TreeItem *item)
+{
+    if (item) {
+        ListTreeDeleteChildren(w, item);
+    } else {
+        ListTreeItem *titem = ListTreeFirstItem(w);
+        ListTreeDeleteChildren(w, titem);
+    }
+}
+
+void TreeSetItemOpen(Widget w, TreeItem *item, int open)
+{
+    ListTreeItem *titem = item;
+
+    titem->open = open;
+    ListTreeRefresh(w);
+}
+
+void TreeSetItemText(Widget w, TreeItem *item, char *text)
+{
+    ListTreeItem *titem = item;
+    char *s;
+
+    s = copy_string(NULL, text);
+    titem->text = s;
+    ListTreeRefresh(w);
+}
+
+void TreeSetItemPixmap(Widget w, TreeItem *item, Pixmap pixmap)
+{
+    ListTreeSetItemPixmaps(w, item, pixmap, pixmap);
+}
+
+Quark *TreeGetQuark(TreeItem *item)
+{
+    ListTreeItem *titem = item;
+
+    return titem->user_data;
+}
+
+void TreeGetHighlighted(Widget w, TreeItemList *items)
+{
+    int i;
+    ListTreeMultiReturnStruct ret;
+
+    ListTreeGetHighlighted(w, &ret);
+    items->count = ret.count;
+    items->items = (TreeItem **) xmalloc(items->count*sizeof(TreeItem *));
+    for (i = 0; i < items->count; i++) {
+        items->items[i] = (TreeItem *) ret.items[i];
+    }
+}
+
+void TreeSelectItem(Widget w, TreeItem *item)
+{
+//    if (item) {
+        ListTreeMultiReturnStruct ret;
+
+        ListTreeHighlightItem(w, item);
+
+        ListTreeGetHighlighted(w, &ret);
+//        XtCallCallbacks(w, XtNhighlightCallback, (XtPointer) &ret);
+//    } else {
+
+//    }
+}
+
+void TreeClearSelection(Widget w)
+{
+    ListTreeClearHighlighted(w);
+}
+
+void TreeScrollToItem(Widget w, TreeItem *item)
+{
+    ListTreeItem *titem = item;
+    int top, visible;
+
+    XtVaGetValues(w,
+                  XtNtopItemPosition, &top,
+                  XtNvisibleItemCount, &visible,
+                  NULL);
+
+    if (titem->count < top) {
+        ListTreeSetPos(w, titem);
+    } else
+        if (titem->count >= top + visible) {
+            ListTreeSetBottomPos(w, titem);
+        }
+}
+
+static void tree_context_menu_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Tree_CBData *cbdata = (Tree_CBData *) client_data;
+    ListTreeItemReturnStruct *ret = (ListTreeItemReturnStruct *) call_data;
     XButtonEvent *xbe = (XButtonEvent *) ret->event;
-    ExplorerUI *ui = (ExplorerUI *) client;
 
-    XmMenuPosition(ui->popup, xbe);
-    XtManageChild(ui->popup);
+    TreeEvent event;
+    event.w = cbdata->w;
+    event.anydata = cbdata->anydata;
+    event.udata = xbe;
+
+    cbdata->cbproc(&event);
 }
 
-void ExplorerAddContextMenuCallback(void (*callback)(Widget, XtPointer, XtPointer),
-                                    ExplorerUI *eui)
+void AddTreeContextMenuCB(Widget w, Tree_CBProc cbproc, void *anydata)
 {
-    XtAddCallback(eui->tree, XtNmenuCallback, callback, eui);
+    Tree_CBData *cbdata;
+
+    cbdata = (Tree_CBData *) xmalloc(sizeof(Tree_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XtNmenuCallback, tree_context_menu_cb_proc, cbdata);
 }
 
-void ExplorerAddHighlightCallback(void (*callback)(Widget, XtPointer, XtPointer),
-                                  ExplorerUI *eui)
+static void tree_highlight_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    XtAddCallback(eui->tree, XtNhighlightCallback, callback, eui);
+    Tree_CBData *cbdata = (Tree_CBData *) client_data;
+
+    TreeEvent event;
+    event.w = cbdata->w;
+    event.anydata = cbdata->anydata;
+
+    cbdata->cbproc(&event);
 }
 
-void ListTreeSetItemOpen(ListTreeItem *item, Boolean open)
+void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata)
 {
-    item->open = open;
+    Tree_CBData *cbdata;
+
+    cbdata = (Tree_CBData *) xmalloc(sizeof(Tree_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XtNhighlightCallback, tree_highlight_cb_proc, cbdata);
 }
 
+static void tree_drop_items_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Tree_CBData *cbdata = (Tree_CBData *) client_data;
+    ListTreeDropStruct *cbs = (ListTreeDropStruct *) call_data;
+
+    TreeEvent event;
+    event.w = cbdata->w;
+    event.anydata = cbdata->anydata;
+    event.udata = cbs->item;
+
+    switch (cbs->operation) {
+    case XmDROP_MOVE:
+        event.drop_action = DROP_ACTION_MOVE;
+        break;
+    case XmDROP_COPY:
+        event.drop_action = DROP_ACTION_COPY;
+        break;
+    default:
+        cbs->ok = FALSE;
+        return;
+    }
+
+    if (cbdata->cbproc(&event)) {
+        cbs->ok = TRUE;
+    } else {
+        cbs->ok = FALSE;
+    }
+}
+
+void AddTreeDropItemsCB(Widget w, Tree_CBProc cbproc, void *anydata)
+{
+    Tree_CBData *cbdata;
+
+    cbdata = (Tree_CBData *) xmalloc(sizeof(Tree_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddCallback(w, XtNdropCallback, tree_drop_items_cb_proc, cbdata);
+}
 
 /* Table Widget */
 typedef struct {
@@ -5774,6 +5931,11 @@ void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, i
 void SetScrollBarValue(Widget w, int value)
 {
     XmScrollBarSetValues(w, value, 0, 0, 0, True);
+}
+
+void SetScrollBarIncrement(Widget w, int increment)
+{
+    XtVaSetValues(w, XmNincrement, increment, NULL);
 }
 
 Widget GetHorizontalScrollBar(Widget w)

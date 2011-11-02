@@ -46,6 +46,10 @@
 #include "xprotos.h"
 #include "globals.h"
 
+#ifdef MOTIF_GUI
+#include <Xm/Label.h>
+#endif
+
 #define DATA_STAT_COLS   6
 
 static int enterCB(TableEvent *event);
@@ -233,7 +237,7 @@ void create_datasetop_popup(Widget but, void *data)
 
 
         dialog = CreateVContainer(datasetopui.top);
-#ifndef QT_GUI
+#ifdef MOTIF_GUI
         XtVaSetValues(dialog, XmNrecomputeSize, True, NULL);
 #endif
 
@@ -262,7 +266,7 @@ void create_datasetop_popup(Widget but, void *data)
         AddOptionChoiceCB(datasetopui.optype_item, datasetoptypeCB, NULL);
 
         rc = CreateHContainer(dialog);
-#ifndef QT_GUI
+#ifdef MOTIF_GUI
         XtVaSetValues(rc, XmNrecomputeSize, True, NULL);
 #endif
 

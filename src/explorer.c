@@ -32,6 +32,10 @@
 #include "explorer.h"
 #include "xprotos.h"
 
+#ifdef MOTIF_GUI
+#include <Xm/Form.h>
+#endif
+
 static void manage_plugin(ExplorerUI *ui, Widget managed_top)
 {
     if (managed_top == ui->project_ui->top) {
@@ -326,9 +330,9 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     }
 
     if (quark_is_active(q)) {
-        TreeSetItemPixmap(item, eui->a_icon);
+        TreeSetItemPixmap(eui->tree, item, eui->a_icon);
     } else {
-        TreeSetItemPixmap(item, eui->h_icon);
+        TreeSetItemPixmap(eui->tree, item, eui->h_icon);
     }
 
     quark_set_udata(q, item);
@@ -353,13 +357,16 @@ static int explorer_cb(Quark *q, int etype, void *udata)
 {
     ExplorerUI *eui = (ExplorerUI *) udata;
     TreeItem *item = quark_get_udata(q);
+    char *s;
 
     switch (etype) {
     case QUARK_ETYPE_DELETE:
         TreeDeleteItem(eui->tree, item);
         break;
     case QUARK_ETYPE_MODIFY:
-        TreeSetItemText(item, q_labeling(q));
+        s = q_labeling(q);
+        TreeSetItemText(eui->tree, item, s);
+        xfree(s);
 
         if (quark_is_active(q) && quark_count_children(q) > 0) {
             TreeSetItemOpen(eui->tree, item, TRUE);
@@ -368,9 +375,9 @@ static int explorer_cb(Quark *q, int etype, void *udata)
         }
 
         if (quark_is_active(q)) {
-            TreeSetItemPixmap(item, eui->a_icon);
+            TreeSetItemPixmap(eui->tree, item, eui->a_icon);
         } else {
-            TreeSetItemPixmap(item, eui->h_icon);
+            TreeSetItemPixmap(eui->tree, item, eui->h_icon);
         }
         break;
     case QUARK_ETYPE_REPARENT:
@@ -380,7 +387,7 @@ static int explorer_cb(Quark *q, int etype, void *udata)
         create_hook(q, eui, NULL);
         break;
     default:
-        printf("Else event Quark: %s\n", q_labeling(q));
+        printf("Else event Quark\n");
     }
 
     return TRUE;
@@ -786,7 +793,7 @@ void raise_explorer(GUI *gui, Quark *q)
         fr = CreateFrame(form, NULL);
         eui->idstr = CreateTextInput(fr, "ID string:");
         AddTextInputCB(eui->idstr, text_explorer_cb, eui);
-#ifndef QT_GUI
+#ifdef MOTIF_GUI
         XtVaSetValues(GetParent(eui->tree),
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
