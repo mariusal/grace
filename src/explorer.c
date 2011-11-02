@@ -514,6 +514,7 @@ void update_explorer(ExplorerUI *eui)
     TreeDeleteItem(eui->tree, NULL);
     quark_traverse(gproject_get_top(gapp->gp), create_hook, eui);
     TreeSelectItem(eui->tree, NULL);
+    TreeRefresh(eui->tree);
 }
 
 #define HIDE_CB           0
@@ -865,8 +866,6 @@ void raise_explorer(GUI *gui, Quark *q)
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
-        init_quark_tree(eui);
-        
         ManageChild(eui->tree);
 
         /* Menu popup */
@@ -893,6 +892,8 @@ void raise_explorer(GUI *gui, Quark *q)
             "Move down", '\0', move_down_cb, eui);
         eui->popup_send_to_back_bt = CreateMenuButton(eui->popup,
             "Send to back", '\0', send_to_back_cb, eui);
+
+        init_quark_tree(eui);
     }
 #ifdef QT_GUI
     /* TODO: use resources */
