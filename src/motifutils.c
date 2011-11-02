@@ -5920,12 +5920,28 @@ void AddTableLabelActivateCB(Widget w, Table_CBProc cbproc, void *anydata)
 /* ScrollBar */
 void GetScrollBarValues(Widget w, int *value, int *maxvalue, int *slider_size, int *increment)
 {
-    XtVaGetValues(w,
-        XmNvalue,      value,
-        XmNmaximum,    maxvalue,
-        XmNsliderSize, slider_size,
-        XmNincrement,  increment,
-        NULL);
+    Arg args[4];
+    int i = 0;
+
+    if (value) {
+        XtSetArg(args[i], XmNvalue, value); i++;
+    }
+
+    if (maxvalue) {
+        XtSetArg(args[i], XmNmaximum, maxvalue); i++;
+    }
+
+    if (slider_size) {
+        XtSetArg(args[i], XmNsliderSize, slider_size); i++;
+    }
+
+    if (increment) {
+        XtSetArg(args[i], XmNincrement, increment); i++;
+    }
+
+    if (i != 0) {
+        XtGetValues(w, args, i);
+    }
 }
 
 void SetScrollBarValue(Widget w, int value)
