@@ -341,19 +341,6 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
-static int reparent_hook(Quark *q, void *udata, QTraverseClosure *closure)
-{
-    ExplorerUI *eui = (ExplorerUI *) udata;
-    TreeItem *item = quark_get_udata(q);
-
-    if ((closure->depth == 0) && (closure->step == 0)) {
-        TreeDeleteItem(eui->tree, item);
-    }
-    create_hook(q, eui, NULL);
-
-    return TRUE;
-}
-
 static int delete_children_hook(unsigned int step, void *data, void *udata)
 {
     ExplorerUI *eui = (ExplorerUI *) udata;
@@ -404,7 +391,8 @@ static int explorer_cb(Quark *q, int etype, void *udata)
         }
         break;
     case QUARK_ETYPE_REPARENT:
-        quark_traverse(q, reparent_hook, eui);
+        TreeDeleteItem(eui->tree, item);
+        quark_traverse(q, create_hook, eui);
         break;
     case QUARK_ETYPE_NEW:
         create_hook(q, eui, NULL);
