@@ -603,7 +603,7 @@ int quark_move(const Quark *q, int forward)
         quark_dirtystate_set(q->parent, TRUE);
         ret = storage_move(sto, forward);
         if (ret == RETURN_SUCCESS) {
-            quark_call_cblist(q->parent, QUARK_ETYPE_MOVE);
+            quark_call_cblist(q, QUARK_ETYPE_MOVE);
         }
         return ret;
     } else {
@@ -619,7 +619,7 @@ int quark_push(const Quark *q, int forward)
         quark_dirtystate_set(q->parent, TRUE);
         ret = storage_push(sto, forward);
         if (ret == RETURN_SUCCESS) {
-            quark_call_cblist(q->parent, QUARK_ETYPE_MOVE);
+            quark_call_cblist(q, QUARK_ETYPE_MOVE);
         }
         return ret;
     } else {

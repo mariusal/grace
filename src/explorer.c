@@ -380,6 +380,7 @@ static int explorer_cb(Quark *q, int etype, void *udata)
     ExplorerUI *eui = (ExplorerUI *) udata;
     TreeItem *item = quark_get_udata(q);
     char *s;
+    Quark *parent;
 
     switch (etype) {
     case QUARK_ETYPE_DELETE:
@@ -409,8 +410,9 @@ static int explorer_cb(Quark *q, int etype, void *udata)
         create_hook(q, eui, NULL);
         break;
     case QUARK_ETYPE_MOVE:
-        storage_traverse(quark_get_children(q), delete_children_hook, eui);
-        storage_traverse(quark_get_children(q), create_children_hook, eui);
+        parent = quark_parent_get(q);
+        storage_traverse(quark_get_children(parent), delete_children_hook, eui);
+        storage_traverse(quark_get_children(parent), create_children_hook, eui);
         break;
     default:
         printf("Else event Quark\n");
