@@ -259,7 +259,6 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
 
     if (newparent != q->parent) {
         quark_idstr_set(new, q->idstr);
-        quark_call_cblist(new, QUARK_ETYPE_REPARENT);
     }
 
     storage_traverse(q->children, copy_hook, new);
