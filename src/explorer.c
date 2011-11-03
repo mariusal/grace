@@ -354,6 +354,27 @@ static int reparent_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
+static int delete_children_hook(unsigned int step, void *data, void *udata)
+{
+    ExplorerUI *eui = (ExplorerUI *) udata;
+    Quark *q = (Quark *) data;
+    TreeItem *item = quark_get_udata(q);
+
+    TreeDeleteItem(eui->tree, item);
+
+    return TRUE;
+}
+
+static int create_children_hook(unsigned int step, void *data, void *udata)
+{
+    ExplorerUI *eui = (ExplorerUI *) udata;
+    Quark *q = (Quark *) data;
+
+    quark_traverse(q, create_hook, eui);
+
+    return TRUE;
+}
+
 static int explorer_cb(Quark *q, int etype, void *udata)
 {
     ExplorerUI *eui = (ExplorerUI *) udata;
@@ -386,6 +407,10 @@ static int explorer_cb(Quark *q, int etype, void *udata)
         break;
     case QUARK_ETYPE_NEW:
         create_hook(q, eui, NULL);
+        break;
+    case QUARK_ETYPE_MOVE:
+        storage_traverse(quark_get_children(q), delete_children_hook, eui);
+        storage_traverse(quark_get_children(q), create_children_hook, eui);
         break;
     default:
         printf("Else event Quark\n");

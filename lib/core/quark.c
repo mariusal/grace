@@ -597,10 +597,15 @@ int quark_reparent_children(Quark *parent, Quark *newparent)
 
 int quark_move(const Quark *q, int forward)
 {
+    int ret;
     Storage *sto = q->parent->children;
     if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
         quark_dirtystate_set(q->parent, TRUE);
-        return storage_move(sto, forward);
+        ret = storage_move(sto, forward);
+        if (ret == RETURN_SUCCESS) {
+            quark_call_cblist(q->parent, QUARK_ETYPE_MOVE);
+        }
+        return ret;
     } else {
         return RETURN_FAILURE;
     }
@@ -608,10 +613,15 @@ int quark_move(const Quark *q, int forward)
 
 int quark_push(const Quark *q, int forward)
 {
+    int ret;
     Storage *sto = q->parent->children;
     if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
         quark_dirtystate_set(q->parent, TRUE);
-        return storage_push(sto, forward);
+        ret = storage_push(sto, forward);
+        if (ret == RETURN_SUCCESS) {
+            quark_call_cblist(q->parent, QUARK_ETYPE_MOVE);
+        }
+        return ret;
     } else {
         return RETURN_FAILURE;
     }

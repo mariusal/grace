@@ -35,6 +35,7 @@
 #define QUARK_ETYPE_DELETE   2
 #define QUARK_ETYPE_REPARENT 3
 #define QUARK_ETYPE_NEW      4
+#define QUARK_ETYPE_MOVE     5
 
 /*
  * axis types
