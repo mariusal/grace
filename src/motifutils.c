@@ -5192,11 +5192,9 @@ Widget CreateTree(Widget parent)
 
 TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
 {
-    char *s;
     ListTreeItem *item;
 
-    s = q_labeling(q);
-    item = ListTreeAdd(w, parent, s);
+    item = ListTreeAdd(w, parent, NULL);
     item->user_data = q;
     xfree(s);
 

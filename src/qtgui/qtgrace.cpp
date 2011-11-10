@@ -8969,6 +8969,22 @@ TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
     TreeView *treeView = (TreeView *) w;
     QStandardItemModel *model = (QStandardItemModel *) treeView->model();
 
+    QStandardItem *parentItem;
+
+    if (parent) {
+        parentItem = (QStandardItem *) parent;
+    } else {
+        parentItem = model->invisibleRootItem();
+    }
+
+    return TreeInsertItem(w, parent, q, parentItem->rowCount());
+}
+
+TreeItem *TreeInsertItem(Widget w, TreeItem *parent, Quark *q, int row)
+{
+    TreeView *treeView = (TreeView *) w;
+    QStandardItemModel *model = (QStandardItemModel *) treeView->model();
+
     QStandardItem *item;
     QStandardItem *parentItem;
 
@@ -8978,11 +8994,10 @@ TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
         parentItem = model->invisibleRootItem();
     }
 
-    char *s = q_labeling(q);
-    item = new QStandardItem(s);
-    xfree(s);
+    item = new QStandardItem;
+
     item->setData(qVariantFromValue((void *) q));
-    parentItem->appendRow(item);
+    parentItem->insertRow(row, item);
 
     return item;
 }

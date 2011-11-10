@@ -313,6 +313,25 @@ static int drop_cb(TreeEvent *event)
     return FALSE;
 }
 
+static void init_item(ExplorerUI *eui, TreeItem *item, Quark *q)
+{
+    char *s;
+
+    s = q_labeling(q);
+    TreeSetItemText(eui->tree, item, s);
+    xfree(s);
+
+    if (quark_is_active(q) && quark_count_children(q) > 0) {
+        TreeSetItemOpen(eui->tree, item, TRUE);
+    }
+
+    if (quark_is_active(q)) {
+        TreeSetItemPixmap(eui->tree, item, eui->a_icon);
+    } else {
+        TreeSetItemPixmap(eui->tree, item, eui->h_icon);
+    }
+}
+
 static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     TreeItem *item;
@@ -326,28 +345,9 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
         item = TreeAddItem(eui->tree, NULL, q);
     }
 
-    if (quark_is_active(q) && quark_count_children(q) > 0) {
-        TreeSetItemOpen(eui->tree, item, TRUE);
-    }
-
-    if (quark_is_active(q)) {
-        TreeSetItemPixmap(eui->tree, item, eui->a_icon);
-    } else {
-        TreeSetItemPixmap(eui->tree, item, eui->h_icon);
-    }
+    init_item(eui, item, q);
 
     quark_set_udata(q, item);
-
-    return TRUE;
-}
-
-static int delete_children_hook(unsigned int step, void *data, void *udata)
-{
-    ExplorerUI *eui = (ExplorerUI *) udata;
-    Quark *q = (Quark *) data;
-    TreeItem *item = quark_get_udata(q);
-
-    TreeDeleteItem(eui->tree, item);
 
     return TRUE;
 }
@@ -366,29 +366,17 @@ static int explorer_cb(Quark *q, int etype, void *udata)
 {
     ExplorerUI *eui = (ExplorerUI *) udata;
     TreeItem *item = quark_get_udata(q);
-    char *s;
+    TreeItem *parent_item;
+    int row;
     Quark *parent;
+    Storage *sto;
 
     switch (etype) {
     case QUARK_ETYPE_DELETE:
         TreeDeleteItem(eui->tree, item);
         break;
     case QUARK_ETYPE_MODIFY:
-        s = q_labeling(q);
-        TreeSetItemText(eui->tree, item, s);
-        xfree(s);
-
-        if (quark_is_active(q) && quark_count_children(q) > 0) {
-            TreeSetItemOpen(eui->tree, item, TRUE);
-        } else {
-            TreeSetItemOpen(eui->tree, item, FALSE);
-        }
-
-        if (quark_is_active(q)) {
-            TreeSetItemPixmap(eui->tree, item, eui->a_icon);
-        } else {
-            TreeSetItemPixmap(eui->tree, item, eui->h_icon);
-        }
+        init_item(eui, item, q);
         break;
     case QUARK_ETYPE_REPARENT:
         TreeDeleteItem(eui->tree, item);
@@ -398,9 +386,20 @@ static int explorer_cb(Quark *q, int etype, void *udata)
         create_hook(q, eui, NULL);
         break;
     case QUARK_ETYPE_MOVE:
+        TreeDeleteItem(eui->tree, item);
+
         parent = quark_parent_get(q);
-        storage_traverse(quark_get_children(parent), delete_children_hook, eui);
-        storage_traverse(quark_get_children(parent), create_children_hook, eui);
+        sto = quark_get_children(parent);
+        if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
+            if ((row = storage_get_id(sto)) != -1) {
+                parent_item = quark_get_udata(parent);
+                item = TreeInsertItem(eui->tree, parent_item, q, row);
+                init_item(eui, item, q);
+                quark_set_udata(q, item);
+                storage_traverse(quark_get_children(q), create_children_hook, eui);
+            }
+        }
+
         break;
     default:
         printf("Else event Quark\n");
