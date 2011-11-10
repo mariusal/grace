@@ -323,6 +323,8 @@ static void init_item(ExplorerUI *eui, TreeItem *item, Quark *q)
 
     if (quark_is_active(q) && quark_count_children(q) > 0) {
         TreeSetItemOpen(eui->tree, item, TRUE);
+    } else {
+        TreeSetItemOpen(eui->tree, item, FALSE);
     }
 
     if (quark_is_active(q)) {
