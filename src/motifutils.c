@@ -5258,7 +5258,7 @@ void TreeSelectItem(Widget w, TreeItem *item)
         titem = ListTreeFirstItem(w);
     }
 
-    ListTreeHighlightItem(w, titem);
+    ListTreeHighlightItemMultiple(w, titem);
 
     ListTreeGetHighlighted(w, &ret);
     XtCallCallbacks(w, XtNhighlightCallback, (XtPointer) &ret);

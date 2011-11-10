@@ -9079,7 +9079,7 @@ void TreeSelectItem(Widget w, TreeItem *item)
         treeItem = model->invisibleRootItem()->child(0);
     }
     QModelIndex index = model->indexFromItem(treeItem);
-    selectionModel->select(index, QItemSelectionModel::SelectCurrent);
+    selectionModel->setCurrentIndex(index, QItemSelectionModel::Select);
 
     QMetaObject::invokeMethod(treeView, "pressed", Qt::QueuedConnection,
                               Q_ARG(const QModelIndex&, index));

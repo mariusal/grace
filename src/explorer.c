@@ -352,6 +352,39 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
+static int nsquarks;
+static Quark **squarks;
+
+static void save_selected_quarks(ExplorerUI *eui)
+{
+    int i;
+    TreeItemList items;
+
+    TreeGetHighlighted(eui->tree, &items);
+    nsquarks = items.count;
+
+    squarks = xmalloc(nsquarks*SIZEOF_VOID_P);
+
+    for (i = 0; i < nsquarks; i++) {
+        TreeItem *item = items.items[i];
+        squarks[i] = TreeGetQuark(item);
+    }
+
+    xfree(items.items);
+}
+
+static void restore_selected_quarks(ExplorerUI *eui)
+{
+    int i;
+
+    for (i = 0; i < nsquarks; i++) {
+        TreeItem *item = quark_get_udata(squarks[i]);
+        TreeSelectItem(eui->tree, item);
+    }
+
+    xfree(squarks);
+}
+
 static int create_children_hook(unsigned int step, void *data, void *udata)
 {
     ExplorerUI *eui = (ExplorerUI *) udata;
@@ -379,13 +412,16 @@ static int explorer_cb(Quark *q, int etype, void *udata)
         init_item(eui, item, q);
         break;
     case QUARK_ETYPE_REPARENT:
+        save_selected_quarks(eui);
         TreeDeleteItem(eui->tree, item);
         quark_traverse(q, create_hook, eui);
+        restore_selected_quarks(eui);
         break;
     case QUARK_ETYPE_NEW:
         create_hook(q, eui, NULL);
         break;
     case QUARK_ETYPE_MOVE:
+        save_selected_quarks(eui);
         TreeDeleteItem(eui->tree, item);
 
         parent = quark_parent_get(q);
@@ -399,7 +435,7 @@ static int explorer_cb(Quark *q, int etype, void *udata)
                 storage_traverse(quark_get_children(q), create_children_hook, eui);
             }
         }
-
+        restore_selected_quarks(eui);
         break;
     default:
         printf("Else event Quark\n");
