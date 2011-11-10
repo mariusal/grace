@@ -8947,7 +8947,7 @@ void TreeView::dragMoveEvent(QDragMoveEvent *event)
 Widget CreateTree(Widget parent)
 {
     TreeView *treeView = new TreeView(parent);
-    TreeModel *model = new TreeModel;
+    QStandardItemModel *model = new QStandardItemModel;
     treeView->setModel(model);
 
     treeView->setHeaderHidden(true);
@@ -8962,14 +8962,6 @@ Widget CreateTree(Widget parent)
     }
 
     return treeView;
-}
-
-void TreeSetRootQuark(Widget w, Quark *q)
-{
-    TreeView *treeView = (TreeView *) w;
-    TreeModel *model = (TreeModel *) treeView->model();
-
-    model->setRootQuark(q);
 }
 
 TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)

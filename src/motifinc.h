@@ -684,7 +684,6 @@ typedef struct {
 } Tree_CBData;
 
 Widget CreateTree(Widget parent);
-void TreeSetRootQuark(Widget w, Quark *q);
 TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q);
 void TreeDeleteItem(Widget w, TreeItem *item);
 void TreeSetItemOpen(Widget w, TreeItem *item, int open);

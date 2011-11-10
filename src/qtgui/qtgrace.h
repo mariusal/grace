@@ -12,7 +12,6 @@
 extern "C" {
 #include <config.h>
 #include <motifinc.h>
-#include <utils.h>
 }
 
 class CallBack : public QObject
@@ -272,99 +271,6 @@ class WhatsThisListener : public QObject
      bool eventFilter(QObject *obj, QEvent *event);
  };
 
-class TreeModel : public QAbstractTableModel
-{
-    Q_OBJECT
-
-public:
-    TreeModel(QObject *parent = 0)
-    {
-        qDebug() << "TreeModel";
-        root_quark = 0;
-    }
-
-    QModelIndex index(int row, int col, const QModelIndex &parent = QModelIndex()) const
-    {
-        qDebug() << "index";
-        if (!root_quark || col > 1) return QModelIndex();
-
-        if (parent.isValid()) {
-            Storage *sto = quark_get_children((Quark *) parent.internalPointer());
-            void *q;
-            if (storage_scroll_to_id(sto, row) == RETURN_SUCCESS) {
-                if (storage_get_data(sto, &q) == RETURN_SUCCESS) {
-                    return createIndex(row, 0, q);
-                }
-            }
-        } else {
-            if (row == 0) {
-                return createIndex(0, 0, root_quark);
-            } else {
-                return QModelIndex();
-            }
-        }
-    }
-
-
-    QModelIndex parent(const QModelIndex &index) const
-    {
-        qDebug() << "parent";
-        Quark *q = (Quark *) index.internalPointer();
-        Quark *qparent = quark_parent_get(q);
-        int row;
-
-        if (qparent) {
-            Storage *sto = quark_get_children(qparent);
-            if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
-                if ((row = storage_get_id(sto)) != -1) {
-                    return createIndex(row, 0, qparent);
-                }
-            }
-        }
-
-        return QModelIndex();
-    }
-
-    int rowCount(const QModelIndex &parent = QModelIndex()) const
-    {
-        qDebug() << "rowCount";
-        if (parent.isValid()) {
-            Quark *q = (Quark *) parent.internalPointer();
-            return quark_count_children(q);
-        } else {
-            return 1;
-        }
-    }
-
-    int columnCount(const QModelIndex &parent = QModelIndex()) const
-    {
-        qDebug() << "colCount";
-        return 1;
-    }
-
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
-    {
-        qDebug() << "data";
-        if (role == Qt::DisplayRole) {
-            Quark *q = (Quark *)index.internalPointer();
-            if (q) {
-                return QVariant(q_labeling(q));
-            }
-        }
-        return QVariant();
-    }
-
-    void setRootQuark(Quark *q)
-    {
-        qDebug() << "setRootQuark";
-        this->root_quark = q;
-    }
-
-private:
-    Tree_CBData *cbdata;
-    Quark *root_quark;
-
-};
 
 #include <QTreeView>
 
