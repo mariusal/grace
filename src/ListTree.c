@@ -1767,37 +1767,49 @@ DeleteChildren(ListTreeWidget w, ListTreeItem *item)
 }
 
 static void
-InsertChild(ListTreeWidget w, ListTreeItem *parent, ListTreeItem *item)
+InsertChild(ListTreeWidget w, ListTreeItem *parent, ListTreeItem *item, int row)
 {
+  int irow = 1;
   ListTreeItem *i;
+  ListTreeItem *next;
 
   item->parent = parent;
   item->nextsibling = item->prevsibling = NULL;
   if (parent) {
-    if (parent->firstchild) {
+    if (parent->firstchild && row != 0) {
       i = parent->firstchild;
-      while (i->nextsibling) {
+      while (i->nextsibling && (irow < row || row == -1)) {
 	i = i->nextsibling;
+        irow++;
       }
+      next = i->nextsibling;
       i->nextsibling = item;
       item->prevsibling = i;
+      item->nextsibling = next;
     }
     else {
+      next = parent->firstchild;
       parent->firstchild = item;
+      item->nextsibling = next;
     }
 
   }
   else {			/* if parent==NULL, this is a top level entry */
-    if (w->list.first) {
+    if (w->list.first && row != 0) {
       i = w->list.first;
-      while (i->nextsibling) {
+      while (i->nextsibling && (irow < row || row == -1)) {
 	i = i->nextsibling;
+        irow++;
       }
+      next = i->nextsibling;
       i->nextsibling = item;
       item->prevsibling = i;
+      item->nextsibling = next;
     }
     else {
+      next = w->list.first;
       w->list.first = w->list.topItem = item;
+      item->nextsibling = next;
     }
   }
   w->list.recount = True;
@@ -1821,7 +1833,7 @@ InsertChildren(ListTreeWidget w, ListTreeItem *parent, ListTreeItem *item)
   next = item->nextsibling;
 
 /* Insert the first item in the new list into the existing list */
-  InsertChild(w, parent, item);
+  InsertChild(w, parent, item, -1);
 
 /* The first item is inserted, with its prev and next siblings updated */
 /* to fit into the existing list.  So, save the existing list reference */
@@ -1999,7 +2011,7 @@ ListTreeRefreshOn(Widget w)
 
 static ListTreeItem *
 AddItem(ListTreeWidget w, ListTreeItem * parent, char *string,
-  ListTreeItemType type)
+  ListTreeItemType type, int row)
 {
   ListTreeItem *item;
   int len;
@@ -2018,7 +2030,7 @@ AddItem(ListTreeWidget w, ListTreeItem * parent, char *string,
   item->highlighted = False;
   item->openPixmap = item->closedPixmap = (Pixmap)NULL;
   item->firstchild = item->prevsibling = item->nextsibling = NULL;
-  InsertChild(w, parent, item);
+  InsertChild(w, parent, item, row);
 
   ListTreeRefresh((Widget)w);
 
@@ -2028,26 +2040,32 @@ AddItem(ListTreeWidget w, ListTreeItem * parent, char *string,
 ListTreeItem *
 ListTreeAdd(Widget w,ListTreeItem *parent,char *string)
 {
-    return (AddItem ((ListTreeWidget)w,parent,string,ItemDetermineType));
+    return (AddItem ((ListTreeWidget)w,parent,string,ItemDetermineType, -1));
 }
 
 ListTreeItem *
 ListTreeAddType(Widget w, ListTreeItem *parent, char *string,
                 ListTreeItemType type)
 {
-    return (AddItem( (ListTreeWidget)w, parent, string, type));
+    return (AddItem( (ListTreeWidget)w, parent, string, type, -1));
 }
 
 ListTreeItem *
 ListTreeAddBranch(Widget w,ListTreeItem *parent,char *string)
 {
-    return (AddItem( (ListTreeWidget)w,parent,string,ItemBranchType));
+    return (AddItem( (ListTreeWidget)w,parent,string,ItemBranchType, -1));
 }
 
 ListTreeItem *
 ListTreeAddLeaf(Widget w,ListTreeItem *parent,char *string)
 {
-    return (AddItem( (ListTreeWidget)w,parent,string,ItemLeafType));
+    return (AddItem( (ListTreeWidget)w,parent,string,ItemLeafType, -1));
+}
+
+ListTreeItem *
+ListTreeInsert(Widget w,ListTreeItem *parent,char *string, int row)
+{
+    return (AddItem ((ListTreeWidget)w,parent,string,ItemDetermineType, row));
 }
 
 void
@@ -2112,7 +2130,7 @@ ListTreeReparent(Widget w, ListTreeItem * item, ListTreeItem * newparent)
   RemoveReference((ListTreeWidget)w, item);
 
 /* The item is now unattached.  Reparent it.                     */
-  InsertChild((ListTreeWidget)w, newparent, item);
+  InsertChild((ListTreeWidget)w, newparent, item, -1);
 
   ListTreeRefresh(w);
 

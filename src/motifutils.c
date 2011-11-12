@@ -5194,9 +5194,18 @@ TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
 {
     ListTreeItem *item;
 
-    item = ListTreeAdd(w, parent, NULL);
+    item = ListTreeAdd(w, parent, "");
     item->user_data = q;
-    xfree(s);
+
+    return item;
+}
+
+TreeItem *TreeInsertItem(Widget w, TreeItem *parent, Quark *q, int row)
+{
+    ListTreeItem *item;
+
+    item = ListTreeInsert(w, parent, "", row);
+    item->user_data = q;
 
     return item;
 }

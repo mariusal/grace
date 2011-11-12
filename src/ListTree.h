@@ -134,6 +134,7 @@ ListTreeItem *ListTreeAdd (Widget w, ListTreeItem *parent, char *string);
 ListTreeItem *ListTreeAddType (Widget w, ListTreeItem *parent, char *string, ListTreeItemType type);
 ListTreeItem *ListTreeAddBranch (Widget w, ListTreeItem *parent, char *string);
 ListTreeItem *ListTreeAddLeaf (Widget w, ListTreeItem *parent, char *string);
+ListTreeItem *ListTreeInsert (Widget w, ListTreeItem *parent, char *string, int row);
 void ListTreeSetItemPixmaps (Widget w, ListTreeItem *item, Pixmap openPixmap, Pixmap closedPixmap);
 void ListTreeRenameItem (Widget w, ListTreeItem *item, char *string);
 int ListTreeDelete (Widget w, ListTreeItem *item);
