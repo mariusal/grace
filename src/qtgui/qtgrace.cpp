@@ -8868,15 +8868,7 @@ TreeView::TreeView(QWidget *parent)
 
 void TreeView::mousePressEvent(QMouseEvent *event)
 {
-    QPersistentModelIndex index = indexAt(event->pos());
-    QItemSelectionModel *model = selectionModel();
-
     if (event->button() == Qt::MidButton) {
-        if (event->modifiers() == Qt::ControlModifier) {
-            model->setCurrentIndex(index, QItemSelectionModel::Select);
-        } else {
-            model->setCurrentIndex(index, QItemSelectionModel::ClearAndSelect);
-        }
         dragStartPosition = event->pos();
     } else {
         QTreeView::mousePressEvent(event);
@@ -8885,9 +8877,15 @@ void TreeView::mousePressEvent(QMouseEvent *event)
 
 void TreeView::mouseMoveEvent(QMouseEvent *event)
 {
+    QPersistentModelIndex index = indexAt(event->pos());
+    QItemSelectionModel *model = selectionModel();
+
     if (event->buttons() & Qt::MidButton) {
+
         if ((event->pos() - dragStartPosition).manhattanLength()
                 < QApplication::startDragDistance()) return;
+
+        if (!model->isSelected(indexAt(dragStartPosition))) return;
 
         QDrag *drag = new QDrag(this);
         drag->setMimeData(new QMimeData);
