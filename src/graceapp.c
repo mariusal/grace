@@ -307,6 +307,12 @@ GraceApp *gapp_new(void)
         return NULL;
     }
 
+    gapp->pc = container_new(grace_get_qfactory(gapp->grace), AMEM_MODEL_SIMPLE);
+    if (!gapp->pc) {
+        gapp_free(gapp);
+        return NULL;
+    }
+
     return gapp;
 }
 
@@ -316,7 +322,7 @@ void gapp_free(GraceApp *gapp)
         return;
     }
     
-    gproject_free(gapp->gp);
+    quark_free(gapp->pc);
     gui_free(gapp->gui);
     runtime_free(gapp->rt);
     grace_free(gapp->grace);

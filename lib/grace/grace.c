@@ -139,20 +139,6 @@ static int set_proc(void *obj,
     }
 }
 
-void *container_data_new(AMem *amem)
-{
-    return NULL;
-}
-
-void container_data_free(AMem *amem, void *data)
-{
-}
-
-void *container_data_copy(AMem *amem, void *data)
-{
-    return data;
-}
-
 int grace_init(void)
 {
     return canvas_init();
@@ -163,13 +149,6 @@ Grace *grace_new(const char *home)
     Grace *grace;
     char *s;
     
-    QuarkFlavor container_qf = {
-        QFlavorContainer,
-        container_data_new,
-        container_data_free,
-        container_data_copy
-    };
-
     grace = xmalloc(sizeof(Grace));
     if (!grace) {
         return NULL;
@@ -218,6 +197,7 @@ Grace *grace_new(const char *home)
     quark_factory_set_udata(grace->qfactory, grace);
 
     /* register quark flavors */
+    container_qf_register(grace->qfactory);
     project_qf_register(grace->qfactory);
     ssd_qf_register(grace->qfactory);
     frame_qf_register(grace->qfactory);
@@ -228,8 +208,6 @@ Grace *grace_new(const char *home)
     object_qf_register(grace->qfactory);
     atext_qf_register(grace->qfactory);
     region_qf_register(grace->qfactory);
-
-    quark_flavor_add(grace->qfactory, &container_qf);
 
     grace->canvas = canvas_new();
     if (!grace->canvas) {
@@ -324,6 +302,11 @@ Canvas *grace_get_canvas(const Grace *grace)
 Graal *grace_get_graal(const Grace *grace)
 {
     return grace->graal;
+}
+
+QuarkFactory *grace_get_qfactory(const Grace *grace)
+{
+    return grace->qfactory;
 }
 
 int gproject_render(const GProject *gp)

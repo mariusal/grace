@@ -59,6 +59,7 @@ Grace *grace_from_quark(const Quark *q);
 
 Canvas *grace_get_canvas(const Grace *grace);
 Graal *grace_get_graal(const Grace *grace);
+QuarkFactory *grace_get_qfactory(const Grace *grace);
 
 int gproject_render(const GProject *gp);
 

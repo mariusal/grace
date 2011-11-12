@@ -182,6 +182,7 @@ struct _GraceApp {
     RunTime *rt;
     GUI *gui;
     GProject *gp;
+    Quark *pc;
 };
 
 GUI *gui_new(GraceApp *gapp);

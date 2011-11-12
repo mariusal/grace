@@ -1052,8 +1052,6 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
         !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
         return RETURN_FAILURE;
     }
-    
-    gproject_free(gapp->gp);
 
     gp = load_any_project(gapp, fn);
     if (!gp) {
@@ -1062,6 +1060,8 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
     }
     
     project = gproject_get_top(gp);
+
+    storage_add(quark_get_children(gapp->pc), project);
 
     gapp->rt->print_file[0] = '\0';
 

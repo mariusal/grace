@@ -763,6 +763,9 @@ void *quark_get_udata(const Quark *q);
 int quark_is_first_child(const Quark *q);
 int quark_is_last_child(const Quark *q);
 
+/* Container */
+Quark *container_new(QuarkFactory *qfactory, int mmodel);
+
 /* Project */
 Quark *project_new(QuarkFactory *qfactory, int mmodel);
 Project *project_get_data(const Quark *q);
@@ -1054,6 +1057,7 @@ int atext_shift(Quark *q, const VVector *vshift);
 int atext_at_shift(Quark *q, const VVector *vshift);
 
 /* registration of quark flavors */
+int container_qf_register(QuarkFactory *qfactory);
 int project_qf_register(QuarkFactory *qfactory);
 int ssd_qf_register(QuarkFactory *qfactory);
 int frame_qf_register(QuarkFactory *qfactory);
