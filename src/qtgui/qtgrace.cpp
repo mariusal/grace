@@ -8955,6 +8955,7 @@ Widget CreateTree(Widget parent)
     treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     treeView->header()->setResizeMode(QHeaderView::ResizeToContents);
     treeView->header()->setStretchLastSection(false);
+    treeView->setAutoScroll(false);
 
     QLayout *layout = parent->layout();
     if (layout != 0) {
