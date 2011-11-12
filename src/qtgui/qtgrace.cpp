@@ -8904,13 +8904,15 @@ void TreeView::dragEnterEvent(QDragEnterEvent *event)
 void TreeView::dropEvent(QDropEvent *event)
  {
     qDebug("yyyy");
-    if (drop_cbdata) {
+    QPersistentModelIndex index = indexAt(event->pos());
+
+    if (drop_cbdata && index.isValid()) {
         TreeEvent e;
         QStandardItemModel *model = (QStandardItemModel *) this->model();
 
         e.w = drop_cbdata->w;
         e.anydata = drop_cbdata->anydata;
-        e.udata = model->itemFromIndex(indexAt(event->pos()));
+        e.udata = model->itemFromIndex(index);
 
         switch (event->dropAction()) {
         case Qt::MoveAction:
@@ -8929,12 +8931,11 @@ void TreeView::dropEvent(QDropEvent *event)
 
         if (drop_cbdata->cbproc(&e)) {
             event->accept();
-        } else {
-            event->ignore();
+            return;
         }
-    } else {
-        event->ignore();
     }
+
+    event->ignore();
  }
 
 void TreeView::dragMoveEvent(QDragMoveEvent *event)
