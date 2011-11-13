@@ -50,15 +50,11 @@ QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid)
 
 QuarkFactory *qfactory_new(void)
 {
-    static QuarkFactory *qfactory = 0;
+    QuarkFactory *qfactory;
     
-    if (qfactory) return qfactory;
-
     qfactory = xmalloc(sizeof(QuarkFactory));
     if (qfactory) {
         memset(qfactory, 0, sizeof(QuarkFactory));
-
-        qfactory->amem = amem_amem_new(AMEM_MODEL_SIMPLE);
     }
     
     return qfactory;
@@ -67,11 +63,7 @@ QuarkFactory *qfactory_new(void)
 void qfactory_free(QuarkFactory *qfactory)
 {
     if (qfactory) {
-        AMem *amem = qfactory->amem;
-
         xfree(qfactory->qflavours);
-        amem_free(amem, qfactory->cblist);
-        amem_amem_free(amem);
         xfree(qfactory);
     }
 }

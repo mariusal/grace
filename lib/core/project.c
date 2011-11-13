@@ -137,11 +137,11 @@ static int project_cb(Quark *q, int etype, void *data)
     return RETURN_SUCCESS;
 }
 
-Quark *project_new(QuarkFactory *qfactory, int mmodel)
+Quark *project_new(Quark *parent, QuarkFactory *qfactory, int mmodel)
 {
     Quark *q;
-    
-    q = quark_root(mmodel, qfactory, QFlavorProject);
+
+    q = quark_root(parent, mmodel, qfactory, QFlavorProject);
 
     if (q) {
         quark_cb_add(q, project_cb, NULL);

@@ -32,23 +32,19 @@
 
 #include <grace/core.h>
 
-typedef struct {
-    Quark_cb cb;
-    void *cbdata;
-} QuarkCBEntry;
-
 struct _QuarkFactory {
     unsigned int refcount;
     
     QuarkFlavor *qflavours;
     unsigned int nflavours;
     
-    AMem *amem;
-    unsigned int cbcount;    /* user-supplied callbacks */
-    QuarkCBEntry *cblist;
-
     void *udata;
 };
+
+typedef struct {
+    Quark_cb cb;
+    void *cbdata;
+} QuarkCBEntry;
 
 struct _Quark {
     AMem *amem;

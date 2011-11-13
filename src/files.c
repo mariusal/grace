@@ -1061,11 +1061,10 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
     
     project = gproject_get_top(gp);
 
-    storage_add(quark_get_children(gapp->pc), project);
-
     gapp->rt->print_file[0] = '\0';
 
-    gapp_set_project(gapp, gp);
+    gapp_add_project(gapp, gp);
+    gapp_set_active_project(gapp, gp);
 
     if (as_template) {
         grfile_free(gp->grf);
@@ -1186,7 +1185,7 @@ GProject *load_xgr_project(GraceApp *gapp, const char *fn)
         return NULL;
     }
     
-    gp = gproject_load(gapp->grace, grf, AMEM_MODEL_LIBUNDO);
+    gp = gproject_load(gapp->pc, gapp->grace, grf, AMEM_MODEL_LIBUNDO);
 
     grfile_free(grf);
     

@@ -38,21 +38,25 @@ static void quark_storage_free(AMem *amem, void *data)
 
 static void quark_call_cblist(Quark *q, int etype)
 {
-    unsigned int i, cbcount;
-    QuarkCBEntry *cblist;
-    QuarkFactory *qf = qfactory_new();
+    unsigned int i;
+    Quark *p = (Quark *) q;
 
-    cbcount = qf->cbcount;
-    cblist = qf->cblist;
-    for (i = 0; i < cbcount; i++) {
-        QuarkCBEntry *cbentry = &cblist[i];
-        cbentry->cb(q, etype, cbentry->cbdata);
+    if (q->fid == QFlavorContainer) {
+        return;
     }
 
-    cbcount = q->cbcount;
-    cblist = q->cblist;
-    for (i = 0; i < cbcount; i++) {
-        QuarkCBEntry *cbentry = &cblist[i];
+    while (p) {
+        if (p->fid == QFlavorContainer) {
+            for (i = 0; i < p->cbcount; i++) {
+                QuarkCBEntry *cbentry = &p->cblist[i];
+                cbentry->cb(q, etype, cbentry->cbdata);
+            }
+        }
+        p = quark_parent_get(p);
+    }
+
+    for (i = 0; i < q->cbcount; i++) {
+        QuarkCBEntry *cbentry = &q->cblist[i];
         cbentry->cb(q, etype, cbentry->cbdata);
     }
 }
@@ -97,7 +101,7 @@ static Quark *quark_new_raw(AMem *amem,
     return q;
 }
 
-Quark *quark_root(int mmodel, QuarkFactory *qfactory, unsigned int fid)
+Quark *quark_root(Quark *parent, int mmodel, QuarkFactory *qfactory, unsigned int fid)
 {
     AMem *amem;
     Quark *q;
@@ -109,7 +113,7 @@ Quark *quark_root(int mmodel, QuarkFactory *qfactory, unsigned int fid)
     qf = quark_flavor_get(qfactory, fid);
     
     data = qf->data_new(amem);
-    q = quark_new_raw(amem, NULL, fid, data);
+    q = quark_new_raw(amem, parent, fid, data);
     q->qfactory = qfactory;
 
     quark_call_cblist(q, QUARK_ETYPE_NEW);
@@ -438,21 +442,7 @@ int quark_cb_add(Quark *q, Quark_cb cb, void *cbdata)
             return RETURN_FAILURE;
         }
     } else {
-        QuarkFactory *qf = qfactory_new();
-        void *p = amem_realloc(qf->amem, qf->cblist,
-            (qf->cbcount + 1)*sizeof(QuarkCBEntry));
-        if (p) {
-            QuarkCBEntry *cbentry;
-            qf->cblist = p;
-            qf->cbcount++;
-            cbentry = &qf->cblist[qf->cbcount - 1];
-            cbentry->cb     = cb;
-            cbentry->cbdata = cbdata;
-
-            return RETURN_SUCCESS;
-        } else {
-            return RETURN_FAILURE;
-        }
+        return RETURN_FAILURE;
     }
 }
 

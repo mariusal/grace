@@ -714,7 +714,7 @@ QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid);
 int quark_factory_set_udata(QuarkFactory *qfactory, void *udata);
 void *quark_factory_get_udata(const QuarkFactory *qfactory);
 
-Quark *quark_root(int mmodel, QuarkFactory *qfactory, unsigned int fid);
+Quark *quark_root(Quark *parent, int mmodel, QuarkFactory *qfactory, unsigned int fid);
 Quark *quark_new(Quark *parent, unsigned int fid);
 void quark_free(Quark *q);
 Quark *quark_copy(const Quark *q);
@@ -767,7 +767,7 @@ int quark_is_last_child(const Quark *q);
 Quark *container_new(QuarkFactory *qfactory, int mmodel);
 
 /* Project */
-Quark *project_new(QuarkFactory *qfactory, int mmodel);
+Quark *project_new(Quark *parent, QuarkFactory *qfactory, int mmodel);
 Project *project_get_data(const Quark *q);
 
 int project_get_version_id(const Quark *q);

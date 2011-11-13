@@ -65,7 +65,7 @@ int gproject_render(const GProject *gp);
 
 Quark *gproject_get_top(const GProject *gp);
 
-GProject *gproject_new(const Grace *grace, int mmodel);
+GProject *gproject_new(Quark *parent, const Grace *grace, int mmodel);
 void gproject_free(GProject *gp);
 char *gproject_get_docname(const GProject *gp);
 
@@ -76,7 +76,7 @@ int grace_sync_canvas_devices(const GProject *gp);
 /* xml_out.c */
 int gproject_save(GProject *gp, GrFILE *grf);
 /* xml_in.c */
-GProject *gproject_load(Grace *grace, GrFILE *grf, int mmodel);
+GProject *gproject_load(Quark *parent, Grace *grace, GrFILE *grf, int mmodel);
 
 /* dicts.c */
 char *graph_types(Grace *grace, GraphType it);

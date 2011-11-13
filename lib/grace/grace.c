@@ -330,12 +330,12 @@ int gproject_render(const GProject *gp)
     return res;
 }
 
-GProject *gproject_new(const Grace *grace, int mmodel)
+GProject *gproject_new(Quark *parent, const Grace *grace, int mmodel)
 {
     GProject *gp = xmalloc(sizeof(GProject));
     if (gp) {
         memset(gp, 0, sizeof(GProject));
-        gp->q = project_new(grace->qfactory, mmodel);
+        gp->q = project_new(parent, grace->qfactory, mmodel);
         if (!gp->q) {
             gproject_free(gp);
             return NULL;

@@ -183,6 +183,9 @@ struct _GraceApp {
     GUI *gui;
     GProject *gp;
     Quark *pc;
+
+    unsigned int gpcount;
+    GProject **gplist;
 };
 
 GUI *gui_new(GraceApp *gapp);
@@ -197,12 +200,14 @@ void gapp_free(GraceApp *gapp);
 GraceApp *gapp_from_quark(const Quark *q);
 RunTime *rt_from_quark(const Quark *q);
 GUI *gui_from_quark(const Quark *q);
+GProject *gproject_from_quark(const Quark *q);
 
 int gui_is_page_free(const GUI *gui);
 void gui_set_page_free(GUI *gui, int onoff);
 void gui_set_barebones(GUI *gui);
 
-int gapp_set_project(GraceApp *gapp, GProject *gp);
+int gapp_add_project(GraceApp *gapp, GProject *gp);
+int gapp_set_active_project(GraceApp *gapp, GProject *gp);
 
 int set_page_dimensions(GraceApp *gapp, int wpp, int hpp, int rescale);
 int set_printer(GraceApp *gapp, int device);

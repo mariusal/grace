@@ -58,7 +58,7 @@ Quark *container_new(QuarkFactory *qfactory, int mmodel)
 {
     Quark *q;
 
-    q = quark_root(mmodel, qfactory, QFlavorContainer);
+    q = quark_root(NULL, mmodel, qfactory, QFlavorContainer);
 
     return q;
 }

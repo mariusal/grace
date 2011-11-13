@@ -203,6 +203,10 @@ static int highlight_cb(TreeEvent *event)
         SetSensitive(ui->popup_hide_bt, !all_hidden);
         SetSensitive(ui->popup_show_bt, !all_shown);
     }
+
+    if (fid == QFlavorProject && count == 1 && all_hidden) {
+        SetSensitive(ui->popup_show_bt,           TRUE);
+    }
         
     if (!count || !ui->all_siblings || fid == QFlavorProject) {
         SetSensitive(ui->popup_delete_bt,         FALSE);
@@ -321,10 +325,12 @@ static void init_item(ExplorerUI *eui, TreeItem *item, Quark *q)
     TreeSetItemText(eui->tree, item, s);
     xfree(s);
 
-    if (quark_is_active(q) && quark_count_children(q) > 0) {
-        TreeSetItemOpen(eui->tree, item, TRUE);
-    } else {
-        TreeSetItemOpen(eui->tree, item, FALSE);
+    if (quark_fid_get(q) != QFlavorProject) {
+        if (quark_is_active(q) && quark_count_children(q) > 0) {
+            TreeSetItemOpen(eui->tree, item, TRUE);
+        } else {
+            TreeSetItemOpen(eui->tree, item, FALSE);
+        }
     }
 
     if (quark_is_active(q)) {
@@ -340,11 +346,11 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     ExplorerUI *eui = (ExplorerUI *) udata;
     Quark *qparent = quark_parent_get(q);
 
-    if (qparent) {
+    if (quark_fid_get(qparent) == QFlavorContainer) {
+        item = TreeAddItem(eui->tree, NULL, q);
+    } else {
         TreeItem *parent = quark_get_udata(qparent);
         item = TreeAddItem(eui->tree, parent, q);
-    } else {
-        item = TreeAddItem(eui->tree, NULL, q);
     }
 
     init_item(eui, item, q);
@@ -448,9 +454,13 @@ static int explorer_cb(Quark *q, int etype, void *udata)
 
 static void init_quark_tree(ExplorerUI *eui)
 {
-    quark_traverse(gproject_get_top(gapp->gp), create_hook, eui);
-    quark_cb_add(NULL, explorer_cb, eui);
-    select_quark_explorer(gproject_get_top(gapp->gp));
+    Quark *q = gproject_get_top(gapp->gp);
+
+    storage_traverse(quark_get_children(gapp->pc), create_children_hook, eui);
+    quark_cb_add(gapp->pc, explorer_cb, eui);
+
+    TreeSetItemOpen(eui->tree, quark_get_udata(q), TRUE);
+    select_quark_explorer(q);
 }
 
 void select_quark_explorer(Quark *q)
@@ -563,10 +573,13 @@ static int explorer_aac(void *data)
 
 void update_explorer(ExplorerUI *eui)
 {
+    Quark *q = gproject_get_top(gapp->gp);
+
     TreeDeleteItem(eui->tree, NULL);
-    quark_traverse(gproject_get_top(gapp->gp), create_hook, eui);
-    TreeSelectItem(eui->tree, NULL);
-    TreeRefresh(eui->tree);
+    storage_traverse(quark_get_children(gapp->pc), create_children_hook, eui);
+
+    TreeSetItemOpen(eui->tree, quark_get_udata(q), TRUE);
+    select_quark_explorer(q);
 }
 
 #define HIDE_CB           0
@@ -618,7 +631,11 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             quark_set_active(q, FALSE);
             break;
         case SHOW_CB:
-            quark_set_active(q, TRUE);
+            if (quark_fid_get(q) == QFlavorProject) {
+                gapp_set_active_project(gapp, gproject_from_quark(q));
+            } else {
+                quark_set_active(q, TRUE);
+            }
             break;
         case DELETE_CB:
             quark_free(q);

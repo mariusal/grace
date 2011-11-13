@@ -318,11 +318,17 @@ GraceApp *gapp_new(void)
 
 void gapp_free(GraceApp *gapp)
 {
+    unsigned int i;
+
     if (!gapp) {
         return;
     }
     
-    quark_free(gapp->pc);
+    for (i = 0; i < gapp->gpcount; i++) {
+        gproject_free(gapp->gplist[i]);
+    }
+    xfree(gapp->gplist);
+
     gui_free(gapp->gui);
     runtime_free(gapp->rt);
     grace_free(gapp->grace);
@@ -361,10 +367,31 @@ GUI *gui_from_quark(const Quark *q)
     }
 }
 
-int gapp_set_project(GraceApp *gapp, GProject *gp)
+GProject *gproject_from_quark(const Quark *q)
+{
+    unsigned int i;
+    GraceApp *gapp;
+    GProject *gp;
+
+    if (!q) {
+        return NULL;
+    }
+
+    gapp = gapp_from_quark(q);
+
+    for (i = 0; i < gapp->gpcount; i++) {
+        gp = gapp->gplist[i];
+        if (gproject_get_top(gp) == q) {
+            return gp;
+        }
+    }
+
+    return NULL;
+}
+
+static int gapp_set_project(GraceApp *gapp, GProject *gp)
 {
     if (gapp && gp) {
-        gproject_free(gapp->gp);
         gapp->gp = gp;
         /* reset graal ? */
         
@@ -384,6 +411,54 @@ int gapp_set_project(GraceApp *gapp, GProject *gp)
     } else {
         return RETURN_FAILURE;
     }
+}
+
+int gapp_add_project(GraceApp *gapp, GProject *gp)
+{
+    void *p;
+
+    if (!gapp || !gp) {
+        return RETURN_FAILURE;
+    }
+
+    p = realloc(gapp->gplist, (gapp->gpcount + 1)*sizeof(GProject));
+    if (!p) {
+        return RETURN_FAILURE;
+    }
+
+    gapp->gplist = p;
+    gapp->gplist[gapp->gpcount] = gp;
+    gapp->gpcount++;
+
+    return RETURN_SUCCESS;
+}
+
+int gapp_set_active_project(GraceApp *gapp, GProject *gp)
+{
+    unsigned int i;
+    GProject *p;
+    Quark *project;
+
+    if (!gapp || !gp) {
+        return RETURN_FAILURE;
+    }
+
+    gapp_set_project(gapp, gp);
+
+    for (i = 0; i < gapp->gpcount; i++) {
+        p = gapp->gplist[i];
+        project = gproject_get_top(p);
+
+        if (p == gp) {
+            quark_set_active(project, TRUE);
+            quark_dirtystate_set(project, FALSE);
+        } else {
+            quark_set_active(project, FALSE);
+            quark_dirtystate_set(project, FALSE);
+        }
+    }
+
+    return RETURN_SUCCESS;
 }
 
 /*

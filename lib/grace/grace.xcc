@@ -2066,7 +2066,7 @@ static int exception_handler(int ierrno,
     return handled;
 }
 
-GProject *gproject_load(Grace *grace, GrFILE *grf, int mmodel)
+GProject *gproject_load(Quark *parent, Grace *grace, GrFILE *grf, int mmodel)
 {
     ParserData udata;
     void *dummy;
@@ -2076,7 +2076,7 @@ GProject *gproject_load(Grace *grace, GrFILE *grf, int mmodel)
     udata.ss     = NULL;
     udata.nrow   = -1;
     udata.ncol   = -1;
-    udata.gp     = gproject_new(grace, mmodel);
+    udata.gp     = gproject_new(parent, grace, mmodel);
     
     if (!udata.gp) {
         return NULL;
