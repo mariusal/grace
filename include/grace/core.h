@@ -752,8 +752,8 @@ int quark_reparent_children(Quark *parent, Quark *newparent);
 
 Storage *quark_get_children(const Quark *q);
 
-int quark_move(const Quark *q, int forward);
-int quark_push(const Quark *q, int forward);
+int quark_move(Quark *q, int forward);
+int quark_push(Quark *q, int forward);
 
 int quark_sort_children(Quark *q, Quark_comp_proc fcomp, void *udata);
 

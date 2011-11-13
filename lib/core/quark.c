@@ -594,7 +594,7 @@ int quark_reparent_children(Quark *parent, Quark *newparent)
 }
 
 
-int quark_move(const Quark *q, int forward)
+int quark_move(Quark *q, int forward)
 {
     int ret;
     Storage *sto = q->parent->children;
@@ -610,7 +610,7 @@ int quark_move(const Quark *q, int forward)
     }
 }
 
-int quark_push(const Quark *q, int forward)
+int quark_push(Quark *q, int forward)
 {
     int ret;
     Storage *sto = q->parent->children;
