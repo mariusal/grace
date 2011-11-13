@@ -1073,8 +1073,8 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
 
     amem = quark_get_amem(project);
 
-    /* Set undo limit of 16MB */
-    amem_set_undo_limit(amem, 0x1000000L);
+    /* Set undo limit of 128MB */
+    amem_set_undo_limit(amem, 0x8000000L);
     /* Get initial memory snapshot */
     amem_snapshot(amem);
 
