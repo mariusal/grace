@@ -271,6 +271,26 @@ static void revert_cb(Widget but, void *data)
     unset_wait_cursor();
 }
 
+static void close_cb(Widget but, void *data)
+{
+    GraceApp *gapp = (GraceApp *) data;
+    GProject *gp = gapp->gp;
+
+    if (gp && gproject_get_top(gp) &&
+        quark_dirtystate_get(gproject_get_top(gp)) &&
+        !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
+        return;
+    }
+
+    gapp_remove_project(gapp, gp);
+    gproject_free(gp);
+    gapp_set_active_project(gapp, gapp->gplist[gapp->gpcount - 1]);
+
+    if (gapp->gpcount == 1) {
+        SetSensitive(but, FALSE);
+    }
+}
+
 static void print_cb(Widget but, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
@@ -324,6 +344,8 @@ Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Save as...", 'a', save_as_cb, gapp);
     CreateMenuButton(menupane, "Revert to saved", 'v', revert_cb, gapp);
 
+    CreateMenuSeparator(menupane);
+    mwui->close_button = CreateMenuButtonA(menupane, "Close", 'C', "Ctrl+W", close_cb, gapp);
     CreateMenuSeparator(menupane);
 
     CreateMenuButtonA(menupane, "Print setup...", 't', "Ctrl+P", create_printer_setup, &gapp->rt->hdevice);

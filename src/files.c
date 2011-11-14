@@ -1047,12 +1047,6 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
     int i, ngraphs;
     AMem *amem;
 
-    if (gapp->gp && gproject_get_top(gapp->gp) &&
-        quark_dirtystate_get(gproject_get_top(gapp->gp)) &&
-        !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
-        return RETURN_FAILURE;
-    }
-
     gp = load_any_project(gapp, fn);
     if (!gp) {
         errmsg("Failed loading project file");

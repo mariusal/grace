@@ -433,6 +433,39 @@ int gapp_add_project(GraceApp *gapp, GProject *gp)
     return RETURN_SUCCESS;
 }
 
+int gapp_remove_project(GraceApp *gapp, GProject *gp)
+{
+    unsigned int i, j;
+    GProject **p;
+    GProject *gpr;
+
+    if (!gapp || !gp) {
+        return RETURN_FAILURE;
+    }
+
+    p = malloc((gapp->gpcount - 1)*sizeof(GProject));
+    if (!p) {
+        return RETURN_FAILURE;
+    }
+
+    j = 0;
+    for (i = 0; i < gapp->gpcount; i++) {
+        gpr = gapp->gplist[i];
+
+        if (gpr != gp) {
+            p[j] = gpr;
+            j++;
+        }
+    }
+
+    xfree(gapp->gplist);
+
+    gapp->gplist = p;
+    gapp->gpcount--;
+
+    return RETURN_SUCCESS;
+}
+
 int gapp_set_active_project(GraceApp *gapp, GProject *gp)
 {
     unsigned int i;

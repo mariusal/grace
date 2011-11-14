@@ -122,6 +122,7 @@ struct _MainWinUI {
     Widget statlab;          /* status line at the bottom */
     Widget undo_button;
     Widget redo_button;
+    Widget close_button;
 };
 
 typedef void (*DevSetupProc)(const Canvas *canvas, void *ui);
