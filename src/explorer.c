@@ -108,17 +108,16 @@ static int highlight_cb(TreeEvent *event)
 
     if (count > 0) {
         int i;
-        TreeItem *item = (TreeItem *) items.items[0];
         Quark *parent;
 
-        q = TreeGetQuark(item);
+        q = TreeGetQuark(items.items[0]);
         fid = quark_fid_get(q);
         parent = quark_parent_get(q);
         all_shown  = quark_is_active(q);
         all_hidden = !all_shown;
 
         for (i = 1; i < count; i++) {
-            item = items.items[i];
+            q = TreeGetQuark(items.items[i]);
             
             if ((int) quark_fid_get(q) != fid) {
                 ui->homogeneous_selection = FALSE;
