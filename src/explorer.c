@@ -324,10 +324,10 @@ static void init_item(ExplorerUI *eui, TreeItem *item, Quark *q)
     TreeSetItemText(eui->tree, item, s);
     xfree(s);
 
-    if (quark_fid_get(q) != QFlavorProject) {
-        if (quark_is_active(q) && quark_count_children(q) > 0) {
-            TreeSetItemOpen(eui->tree, item, TRUE);
-        } else {
+    if (quark_is_active(q) && quark_count_children(q) > 0) {
+        TreeSetItemOpen(eui->tree, item, TRUE);
+    } else {
+        if (quark_fid_get(q) != QFlavorProject) {
             TreeSetItemOpen(eui->tree, item, FALSE);
         }
     }
@@ -362,7 +362,7 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
 static int nsquarks;
 static Quark **squarks;
 
-static void save_selected_quarks(ExplorerUI *eui)
+static void explorer_save_quark_state(ExplorerUI *eui)
 {
     int i;
     TreeItemList items;
@@ -380,7 +380,7 @@ static void save_selected_quarks(ExplorerUI *eui)
     xfree(items.items);
 }
 
-static void restore_selected_quarks(ExplorerUI *eui)
+static void explorer_restore_quark_state(ExplorerUI *eui)
 {
     int i;
 
@@ -419,16 +419,16 @@ static int explorer_cb(Quark *q, int etype, void *udata)
         init_item(eui, item, q);
         break;
     case QUARK_ETYPE_REPARENT:
-        save_selected_quarks(eui);
+        explorer_save_quark_state(eui);
         TreeDeleteItem(eui->tree, item);
         quark_traverse(q, create_hook, eui);
-        restore_selected_quarks(eui);
+        explorer_restore_quark_state(eui);
         break;
     case QUARK_ETYPE_NEW:
         create_hook(q, eui, NULL);
         break;
     case QUARK_ETYPE_MOVE:
-        save_selected_quarks(eui);
+        explorer_save_quark_state(eui);
         TreeDeleteItem(eui->tree, item);
 
         parent = quark_parent_get(q);
@@ -442,7 +442,7 @@ static int explorer_cb(Quark *q, int etype, void *udata)
                 storage_traverse(quark_get_children(q), create_children_hook, eui);
             }
         }
-        restore_selected_quarks(eui);
+        explorer_restore_quark_state(eui);
         break;
     default:
         printf("Else event Quark\n");
@@ -569,11 +569,12 @@ void update_explorer(ExplorerUI *eui)
 {
     Quark *q = gproject_get_top(gapp->gp);
 
-    TreeDeleteItem(eui->tree, NULL);
-    storage_traverse(quark_get_children(gapp->pc), create_children_hook, eui);
+    explorer_save_quark_state(eui);
 
-    TreeSetItemOpen(eui->tree, quark_get_udata(q), TRUE);
-    select_quark_explorer(q);
+    TreeDeleteItem(eui->tree, quark_get_udata(q));
+    quark_traverse(q, create_hook, eui);
+
+    explorer_restore_quark_state(eui);
 }
 
 #define HIDE_CB           0
