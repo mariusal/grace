@@ -453,13 +453,8 @@ static int explorer_cb(Quark *q, int etype, void *udata)
 
 static void init_quark_tree(ExplorerUI *eui)
 {
-    Quark *q = gproject_get_top(gapp->gp);
-
     storage_traverse(quark_get_children(gapp->pc), create_children_hook, eui);
     quark_cb_add(gapp->pc, explorer_cb, eui);
-
-    TreeSetItemOpen(eui->tree, quark_get_udata(q), TRUE);
-    select_quark_explorer(q);
 }
 
 void select_quark_explorer(Quark *q)
@@ -962,6 +957,10 @@ void raise_explorer(GUI *gui, Quark *q)
             "Send to back", '\0', send_to_back_cb, eui);
 
         init_quark_tree(eui);
+
+        if (!q) {
+            select_quark_explorer(gproject_get_top(gapp->gp));
+        }
     }
 #ifdef QT_GUI
     /* TODO: use resources */
