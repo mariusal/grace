@@ -421,7 +421,7 @@ int gapp_add_project(GraceApp *gapp, GProject *gp)
         return RETURN_FAILURE;
     }
 
-    p = realloc(gapp->gplist, (gapp->gpcount + 1)*sizeof(GProject));
+    p = xrealloc(gapp->gplist, (gapp->gpcount + 1)*sizeof(GProject));
     if (!p) {
         return RETURN_FAILURE;
     }
@@ -443,7 +443,7 @@ int gapp_remove_project(GraceApp *gapp, GProject *gp)
         return RETURN_FAILURE;
     }
 
-    p = malloc((gapp->gpcount - 1)*sizeof(GProject));
+    p = xmalloc((gapp->gpcount - 1)*sizeof(GProject));
     if (!p) {
         return RETURN_FAILURE;
     }
