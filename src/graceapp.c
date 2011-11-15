@@ -39,6 +39,7 @@
 #include "graceapp.h"
 #include "utils.h"
 #include "core_utils.h"
+#include "xprotos.h"
 
 GUI *gui_new(GraceApp *gapp)
 {
@@ -372,16 +373,17 @@ GProject *gproject_from_quark(const Quark *q)
     unsigned int i;
     GraceApp *gapp;
     GProject *gp;
+    Quark *project = get_parent_project(q);
 
-    if (!q) {
+    if (!project) {
         return NULL;
     }
 
-    gapp = gapp_from_quark(q);
+    gapp = gapp_from_quark(project);
 
     for (i = 0; i < gapp->gpcount; i++) {
         gp = gapp->gplist[i];
-        if (gproject_get_top(gp) == q) {
+        if (gproject_get_top(gp) == project) {
             return gp;
         }
     }
@@ -483,13 +485,17 @@ int gapp_set_active_project(GraceApp *gapp, GProject *gp)
         project = gproject_get_top(p);
 
         if (p == gp) {
-            quark_set_active(project, TRUE);
-            quark_dirtystate_set(project, FALSE);
+            quark_set_active2(project, TRUE);
         } else {
-            quark_set_active(project, FALSE);
-            quark_dirtystate_set(project, FALSE);
+            quark_set_active2(project, FALSE);
         }
     }
+
+#ifndef NONE_GUI
+    xdrawgraph(gp);
+    update_all();
+    select_quark_explorer(gproject_get_top(gp));
+#endif
 
     return RETURN_SUCCESS;
 }

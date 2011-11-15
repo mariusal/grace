@@ -277,38 +277,86 @@ static int menu_cb(TreeEvent *event)
     return TRUE;
 }
 
+static void add_to_list(GProject **gplist, int *gpcount, GProject *gp)
+{
+    int i, add = TRUE;
+
+    for (i = 0; i < *gpcount; i++) {
+        if (gp == gplist[i]) {
+            add = FALSE;
+        }
+    }
+
+    if (add) {
+        gplist[*gpcount] = gp;
+        (*gpcount)++;
+    }
+}
+
 static int drop_cb(TreeEvent *event)
 {
     ExplorerUI *ui = (ExplorerUI *) event->anydata;
     TreeItem *item = (TreeItem *) event->udata;
     Quark *drop_q = TreeGetQuark(item);
+    GProject *drop_gp = gproject_from_quark(drop_q);
 
-    if (ui->all_siblings && ui->homogeneous_selection) {
+    int gpcount = 0;
+    GProject **gplist;
+
+    if (ui->homogeneous_selection) {
         int count;
         TreeItemList items;
 
         TreeGetHighlighted(ui->tree, &items);
         count = items.count;
         if (count > 0) {
-            int i;
             Quark *parent;
-            TreeItem *item = items.items[0];
-            parent = quark_parent_get(TreeGetQuark(item));
+
+            parent = quark_parent_get(TreeGetQuark(items.items[0]));
+
+            gplist = xmalloc(gapp->gpcount*sizeof(GProject));
+            if (!gplist) {
+                return FALSE;
+            }
 
             if (parent && parent != drop_q &&
                 quark_fid_get(parent) == quark_fid_get(drop_q)) {
+                int i, all;
+
                 for (i = 0; i < count; i++) {
-                    Quark *q;
-                    item = items.items[i];
-                    q = TreeGetQuark(item);
-                    if (event->drop_action == DROP_ACTION_COPY) {
+                    Quark *q = TreeGetQuark(items.items[i]);
+
+                    switch (event->drop_action) {
+                    case DROP_ACTION_COPY:
                         quark_copy2(drop_q, q);
-                    } else {
+                        break;
+                    case DROP_ACTION_MOVE:
+                        add_to_list(gplist, &gpcount, gproject_from_quark(q));
                         quark_reparent(q, drop_q);
+                        break;
+                    default:
+                        errmsg("unknown drop type");
+                        break;
                     }
                 }
+
                 TreeRefresh(ui->tree);
-                snapshot_and_update(gapp->gp, TRUE);
+
+                switch (event->drop_action) {
+                case DROP_ACTION_COPY:
+                    all = (drop_gp == gapp->gp) ? TRUE : FALSE;
+                    snapshot_and_update(drop_gp, all);
+                    break;
+                case DROP_ACTION_MOVE:
+                    add_to_list(gplist, &gpcount, drop_gp);
+                    for (i = 0; i < gpcount; i++) {
+                        all = (gplist[i] == gapp->gp) ? TRUE : FALSE;
+                        snapshot_and_update(gplist[i], all);
+                    }
+                    xfree(gplist);
+                    break;
+                }
+
                 return TRUE;
             }
         }
@@ -346,7 +394,11 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     Quark *qparent = quark_parent_get(q);
 
     if (quark_fid_get(qparent) == QFlavorContainer) {
-        item = TreeAddItem(eui->tree, NULL, q);
+        if (eui->row == -1) {
+            item = TreeAddItem(eui->tree, NULL, q);
+        } else {
+            item = TreeInsertItem(eui->tree, NULL, q, eui->row);
+        }
     } else {
         TreeItem *parent = quark_get_udata(qparent);
         item = TreeAddItem(eui->tree, parent, q);
@@ -453,6 +505,7 @@ static int explorer_cb(Quark *q, int etype, void *udata)
 
 static void init_quark_tree(ExplorerUI *eui)
 {
+    eui->row = -1;
     storage_traverse(quark_get_children(gapp->pc), create_children_hook, eui);
     quark_cb_add(gapp->pc, explorer_cb, eui);
 }
@@ -565,16 +618,39 @@ static int explorer_aac(void *data)
     return explorer_apply(ui, NULL);
 }
 
-void update_explorer(ExplorerUI *eui)
+void explorer_undo(GraceApp *gapp, int undo)
 {
+    ExplorerUI *eui = gapp->gui->eui;
     Quark *q = gproject_get_top(gapp->gp);
+    TreeItem *item = quark_get_udata(q);
+    AMem *amem = quark_get_amem(q);
+
+    if (item) {
+        Storage *sto = quark_get_children(quark_parent_get(q));
+        if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
+            eui->row = storage_get_id(sto);
+        }
+        TreeDeleteItem(eui->tree, item);
+    } else {
+        errmsg("Can't delete the project tree");
+    }
+
+    if (undo) {
+        amem_undo(amem);
+    } else {
+        amem_redo(amem);
+    }
 
     explorer_save_quark_state(eui);
-
-    TreeDeleteItem(eui->tree, quark_get_udata(q));
     quark_traverse(q, create_hook, eui);
-
+    eui->row = -1;
+    quark_set_active2(q, TRUE);
     explorer_restore_quark_state(eui);
+
+    TreeSelectItem(eui->tree, quark_get_udata(q));
+
+    xdrawgraph(gapp->gp);
+    update_all();
 }
 
 #define HIDE_CB           0
@@ -600,14 +676,29 @@ static void popup_any_cb(ExplorerUI *eui, int type)
 {
     TreeItemList items;
     int count, i;
+    int do_snapshot = TRUE;
     Quark *qnew = NULL;
+    Quark *q;
+    GProject *gp;
+
+    int gpcount = 0;
+    GProject **gplist;
     
     TreeGetHighlighted(eui->tree, &items);
     count = items.count;
+
+    if (!count) {
+        xfree(items.items);
+        return;
+    }
+
+    gplist = xmalloc(gapp->gpcount*sizeof(GProject));
+    if (!gplist) {
+        return;
+    }
     
     for (i = 0; i < count; i++) {
         TreeItem *item;
-        Quark *q;
         
         switch (type) {
         case SEND_TO_BACK_CB:
@@ -620,6 +711,8 @@ static void popup_any_cb(ExplorerUI *eui, int type)
         }
 
         q = TreeGetQuark(item);
+        gp = gproject_from_quark(q);
+        add_to_list(gplist, &gpcount, gp);
         
         switch (type) {
         case HIDE_CB:
@@ -627,7 +720,8 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             break;
         case SHOW_CB:
             if (quark_fid_get(q) == QFlavorProject) {
-                gapp_set_active_project(gapp, gproject_from_quark(q));
+                gapp_set_active_project(gapp, gp);
+                do_snapshot = FALSE;
             } else {
                 quark_set_active(q, TRUE);
             }
@@ -685,11 +779,19 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     xfree(items.items);
     
     TreeRefresh(eui->tree);
-    snapshot_and_update(gapp->gp, TRUE);
-    
+
+    if (do_snapshot) {
+        for (i = 0; i < gpcount; i++) {
+            snapshot_and_update(gplist[i],
+                                (gplist[i] == gapp->gp) ? TRUE : FALSE);
+        }
+        xfree(gplist);
+    }
+
     if (qnew) {
         select_quark_explorer(qnew);
     }
+
 }
 
 static void hide_cb(Widget but, void *udata)

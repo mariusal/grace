@@ -401,6 +401,7 @@ struct _ExplorerUI {
     
     int          homogeneous_selection;
     int          all_siblings;
+    int          row;
 
     ProjectUI    *project_ui;
     SSDataUI     *ssd_ui;

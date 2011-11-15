@@ -732,6 +732,7 @@ char *quark_idstr_get(const Quark *q);
 int quark_fid_set(Quark *q, int fid);
 int quark_fid_get(const Quark *q);
 
+int quark_set_active2(Quark *q, int onoff);
 int quark_set_active(Quark *q, int onoff);
 int quark_is_active(const Quark *q);
 

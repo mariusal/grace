@@ -309,6 +309,18 @@ unsigned int quark_get_statestamp(const Quark *q)
     return q->statestamp;
 }
 
+int quark_set_active2(Quark *q, int onoff)
+{
+    if (q) {
+        q->active = onoff;
+        quark_call_cblist(q, QUARK_ETYPE_MODIFY);
+
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 int quark_set_active(Quark *q, int onoff)
 {
     if (q) {

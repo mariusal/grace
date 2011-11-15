@@ -1058,7 +1058,6 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
     gapp->rt->print_file[0] = '\0';
 
     gapp_add_project(gapp, gp);
-    gapp_set_active_project(gapp, gp);
 
     if (as_template) {
         grfile_free(gp->grf);
@@ -1082,10 +1081,8 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
     }
     xfree(graphs);
 
-#ifndef NONE_GUI
-    select_quark_explorer(project);
-    update_all();
-#endif
+    gapp_set_active_project(gapp, gp);
+
     if (project) {
         return RETURN_SUCCESS;
     } else {

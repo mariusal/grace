@@ -302,25 +302,15 @@ static void print_cb(Widget but, void *data)
 void undo_cb(Widget but, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
-    AMem *amem = quark_get_amem(gproject_get_top(gapp->gp));
-    
-    amem_undo(amem);
-    
-    xdrawgraph(gapp->gp);
-    update_explorer(gapp->gui->eui);
-    update_all();
+
+    explorer_undo(gapp, TRUE);
 }
 
 void redo_cb(Widget but, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
-    AMem *amem = quark_get_amem(gproject_get_top(gapp->gp));
-    
-    amem_redo(amem);
-    
-    xdrawgraph(gapp->gp);
-    update_explorer(gapp->gui->eui);
-    update_all();
+
+    explorer_undo(gapp, FALSE);
 }
 
 /*
