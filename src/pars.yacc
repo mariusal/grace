@@ -3725,7 +3725,7 @@ GProject *load_agr_project(GraceApp *gapp, const char *fn)
 	return NULL;
     }
     
-    gp = gproject_new(gapp->grace, AMEM_MODEL_LIBUNDO);
+    gp = gproject_new(gapp->pc, gapp->grace, AMEM_MODEL_LIBUNDO);
     project = gproject_get_top(gp);
 
     parser_state_reset(project);
