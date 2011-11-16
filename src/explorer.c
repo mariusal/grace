@@ -1083,6 +1083,19 @@ void raise_explorer(GUI *gui, Quark *q)
         eui->popup_send_to_back_bt = CreateMenuButton(eui->popup,
             "Send to back", '\0', send_to_back_cb, eui);
 
+        /* Project menu popup */
+        eui->project_popup = CreatePopupMenu(eui->tree);
+        eui->project_popup_show_bt = CreateMenuButton(eui->project_popup,
+            "Show", '\0', project_show_cb, eui);
+        eui->project_popup_save_bt = CreateMenuButton(eui->project_popup,
+            "Save", '\0', project_save_as_cb, eui);
+        eui->project_popup_save_as_bt = CreateMenuButton(eui->project_popup,
+            "Save as...", '\0', project_save_as_cb, eui);
+        eui->project_popup_revert_to_saved_bt = CreateMenuButton(eui->project_popup,
+            "Revert to saved", '\0', project_revert_to_saved_cb, eui);
+        eui->project_popup_close_bt = CreateMenuButton(eui->project_popup,
+            "Close", '\0', project_close_cb, eui);
+
         init_quark_tree(eui);
 
         if (!q) {

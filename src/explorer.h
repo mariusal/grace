@@ -426,7 +426,14 @@ struct _ExplorerUI {
     Widget       popup_send_to_back_bt;
     Widget       popup_move_up_bt;
     Widget       popup_move_down_bt;
- 
+
+    Widget       project_popup;
+    Widget       project_popup_show_bt;
+    Widget       project_popup_save_bt;
+    Widget       project_popup_save_as_bt;
+    Widget       project_popup_revert_to_saved_bt;
+    Widget       project_popup_close_bt;
+
     Widget       edit_undo_bt;
     Widget       edit_redo_bt;
    
