@@ -517,7 +517,7 @@ static void init_quark_tree(ExplorerUI *eui)
     quark_cb_add(gapp->pc, explorer_cb, eui);
 }
 
-void select_quark_explorer(Quark *q)
+static void select_quark_explorer(Quark *q)
 {
     GUI *gui = gui_from_quark(q);
 
