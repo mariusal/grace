@@ -130,11 +130,20 @@ char *escapequotes(char *s)
  */
 void bailout(GraceApp *gapp)
 {
-    if ((gapp->gp && !quark_dirtystate_get(gproject_get_top(gapp->gp))) ||
-        yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
-        gapp_free(gapp);
-        exit(0);
+    int i;
+
+    for (i = 0; i < gapp->gpcount; i++) {
+        if (gapp->gplist[i] && quark_dirtystate_get(gproject_get_top(gapp->gplist[i]))) {
+            if (yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
+                break;
+            } else {
+                return;
+            }
+        }
     }
+
+    gapp_free(gapp);
+    exit(0);
 }
 
 /*
@@ -166,6 +175,7 @@ void emergency_exit(GraceApp *gapp, int is_my_bug, char *msg)
  *  a static storage
  */
     static char buf[GR_MAXPATHLEN];
+    int i;
     
     if (gapp->rt->emergency_save != FALSE) {
         /* don't mind signals anymore: we're in emergency save mode already */
@@ -180,16 +190,19 @@ void emergency_exit(GraceApp *gapp, int is_my_bug, char *msg)
         gapp->rt->emergency_save = TRUE;
         gapp->rt->interrupts = 0;
         fprintf(stderr, "\a\nOops! %s\n", msg);
-        if (gapp->gp && quark_dirtystate_get(gproject_get_top(gapp->gp))) {
-            strcpy(buf, gproject_get_docname(gapp->gp));
-            strcat(buf, "$");
-            fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
-            fflush(stderr);
-            gapp->gui->noask = TRUE;
-            if (save_project(gapp->gp, buf) == RETURN_SUCCESS) {
-                fprintf(stderr, "ok!\n");
-            } else {
-                fprintf(stderr, "oh, no luck :-(\n");
+
+        for (i = 0; i < gapp->gpcount; i++) {
+            if (gapp->gplist[i] && quark_dirtystate_get(gproject_get_top(gapp->gplist[i]))) {
+                strcpy(buf, gproject_get_docname(gapp->gplist[i]));
+                strcat(buf, "$");
+                fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
+                fflush(stderr);
+                gapp->gui->noask = TRUE;
+                if (save_project(gapp->gplist[i], buf) == RETURN_SUCCESS) {
+                    fprintf(stderr, "ok!\n");
+                } else {
+                    fprintf(stderr, "oh, no luck :-(\n");
+                }
             }
         }
         if (is_my_bug) {
