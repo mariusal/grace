@@ -491,11 +491,6 @@ int gapp_set_active_project(GraceApp *gapp, GProject *gp)
         }
     }
 
-#ifndef NONE_GUI
-    xdrawgraph(gp);
-    update_all();
-#endif
-
     return RETURN_SUCCESS;
 }
 

@@ -286,6 +286,9 @@ static void close_cb(Widget but, void *data)
     gproject_free(gp);
     gapp_set_active_project(gapp, gapp->gplist[gapp->gpcount - 1]);
 
+    xdrawgraph(gapp->gp);
+    update_all();
+
     if (gapp->gpcount == 1) {
         SetSensitive(but, FALSE);
     }
