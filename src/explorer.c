@@ -277,6 +277,15 @@ static int menu_cb(TreeEvent *event)
     return TRUE;
 }
 
+static void explorer_snapshot(GraceApp *gapp, GProject *gp, int all)
+{
+    if (gp == gapp->gp) {
+        snapshot_and_update(gp, all);
+    } else {
+        amem_snapshot(quark_get_amem(gproject_get_top(gp)));
+    }
+}
+
 static void add_to_list(GProject **gplist, int *gpcount, GProject *gp)
 {
     int i, add = TRUE;
@@ -321,7 +330,7 @@ static int drop_cb(TreeEvent *event)
 
             if (parent && parent != drop_q &&
                 quark_fid_get(parent) == quark_fid_get(drop_q)) {
-                int i, all;
+                int i;
 
                 for (i = 0; i < count; i++) {
                     Quark *q = TreeGetQuark(items.items[i]);
@@ -344,14 +353,12 @@ static int drop_cb(TreeEvent *event)
 
                 switch (event->drop_action) {
                 case DROP_ACTION_COPY:
-                    all = (drop_gp == gapp->gp) ? TRUE : FALSE;
-                    snapshot_and_update(drop_gp, all);
+                    explorer_snapshot(gapp, drop_gp, TRUE);
                     break;
                 case DROP_ACTION_MOVE:
                     add_to_list(gplist, &gpcount, drop_gp);
                     for (i = 0; i < gpcount; i++) {
-                        all = (gplist[i] == gapp->gp) ? TRUE : FALSE;
-                        snapshot_and_update(gplist[i], all);
+                        explorer_snapshot(gapp, gplist[i], TRUE);
                     }
                     xfree(gplist);
                     break;
@@ -529,6 +536,9 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
 {
     TreeItemList items;
     int count, i, res = RETURN_SUCCESS;
+
+    int gpcount = 0;
+    GProject **gplist;
     
     if (caller && !GetToggleButtonState(ui->instantupdate)) {
         return RETURN_FAILURE;
@@ -537,9 +547,20 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     TreeGetHighlighted(ui->tree, &items);
     count = items.count;
 
+    if (!count) {
+        xfree(items.items);
+        return RETURN_FAILURE;
+    }
+
+    gplist = xmalloc(gapp->gpcount*sizeof(GProject));
+    if (!gplist) {
+        return RETURN_FAILURE;
+    }
+
     for (i = 0; i < count && res == RETURN_SUCCESS; i++) {
-        TreeItem *item = items.items[i];
-        Quark *q = TreeGetQuark(item);
+        Quark *q = TreeGetQuark(items.items[i]);
+
+        add_to_list(gplist, &gpcount, gproject_from_quark(q));
 
         if (count == 1 && (!caller || caller == ui->idstr)) {
             char *s = GetTextString(ui->idstr);
@@ -606,7 +627,11 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     xfree(items.items);
     
     TreeRefresh(ui->tree);
-    snapshot_and_update(gapp->gp, FALSE);
+
+    for (i = 0; i < gpcount; i++) {
+        explorer_snapshot(gapp, gplist[i], FALSE);
+    }
+    xfree(gplist);
 
     return res;
 }
@@ -782,8 +807,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
 
     if (do_snapshot) {
         for (i = 0; i < gpcount; i++) {
-            snapshot_and_update(gplist[i],
-                                (gplist[i] == gapp->gp) ? TRUE : FALSE);
+            explorer_snapshot(gapp, gplist[i], TRUE);
         }
         xfree(gplist);
     }
