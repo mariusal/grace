@@ -985,12 +985,6 @@ int update_set_from_file(Quark *pset)
 
 static int project_cb(Quark *pr, int etype, void *data)
 {
-    if (etype == QUARK_ETYPE_DELETE) {
-        GraceApp *gapp = gapp_from_quark(pr);
-        if (pr == gproject_get_top(gapp->gp)) {
-            gapp->gp = NULL;
-        }
-    } else
     if (etype == QUARK_ETYPE_MODIFY) {
 #if 0
         /* TODO: */
@@ -1052,17 +1046,19 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
         errmsg("Failed loading project file");
         return RETURN_FAILURE;
     }
-    
-    project = gproject_get_top(gp);
-
-    gapp->rt->print_file[0] = '\0';
 
     gapp_add_project(gapp, gp);
+    
+    gapp->rt->print_file[0] = '\0';
 
     if (as_template) {
         grfile_free(gp->grf);
         gp->grf = NULL;
     }
+
+    project = gproject_get_top(gp);
+
+    quark_set_active2(project, FALSE);
 
     amem = quark_get_amem(project);
 
@@ -1080,8 +1076,6 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
         }
     }
     xfree(graphs);
-
-    gapp_set_active_project(gapp, gp);
 
     if (project) {
         return RETURN_SUCCESS;

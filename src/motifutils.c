@@ -4949,15 +4949,6 @@ void update_undo_buttons(GProject *gp)
     }
 }
 
-static void update_close_button(GraceApp *gapp)
-{
-    if (gapp->gpcount == 1) {
-        SetSensitive(gapp->gui->mwui->close_button, FALSE);
-    } else {
-        SetSensitive(gapp->gui->mwui->close_button, TRUE);
-    }
-}
-
 void update_all(void)
 {
     if (!gapp->gui->inwin) {
@@ -4984,7 +4975,6 @@ void update_all(void)
         gapp->gui->need_fontsel_update = FALSE;
     }
 
-    update_close_button(gapp);
     update_undo_buttons(gapp->gp);
     update_props_items();
     set_left_footer(NULL);

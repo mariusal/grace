@@ -105,6 +105,7 @@ static int highlight_cb(TreeEvent *event)
     
     ui->homogeneous_selection = TRUE;
     ui->all_siblings = TRUE;
+    ui->show_project_popup = FALSE;
 
     if (count > 0) {
         int i;
@@ -149,6 +150,7 @@ static int highlight_cb(TreeEvent *event)
             case QFlavorProject:
                 update_project_ui(ui->project_ui, q);
                 managed_top = ui->project_ui->top;
+                ui->show_project_popup = TRUE;
                 break;
             case QFlavorSSD:
                 update_ssd_ui(ui->ssd_ui, q);
@@ -195,7 +197,7 @@ static int highlight_cb(TreeEvent *event)
         }
     }
 
-    if (!count || fid == QFlavorProject) {
+    if (!count) {
         SetSensitive(ui->popup_hide_bt,           FALSE);
         SetSensitive(ui->popup_show_bt,           FALSE);
     } else {
@@ -203,11 +205,7 @@ static int highlight_cb(TreeEvent *event)
         SetSensitive(ui->popup_show_bt, !all_shown);
     }
 
-    if (fid == QFlavorProject && count == 1 && all_hidden) {
-        SetSensitive(ui->popup_show_bt,           TRUE);
-    }
-        
-    if (!count || !ui->all_siblings || fid == QFlavorProject) {
+    if (!count || !ui->all_siblings) {
         SetSensitive(ui->popup_delete_bt,         FALSE);
         SetSensitive(ui->popup_duplicate_bt,      FALSE);
         SetSensitive(ui->popup_bring_to_front_bt, FALSE);
@@ -221,6 +219,18 @@ static int highlight_cb(TreeEvent *event)
         SetSensitive(ui->popup_send_to_back_bt,   TRUE);
         SetSensitive(ui->popup_move_up_bt,        TRUE);
         SetSensitive(ui->popup_move_down_bt,      TRUE);
+    }
+
+    if (all_shown) {
+        SetSensitive(ui->project_popup_show_bt,   FALSE);
+    } else {
+        SetSensitive(ui->project_popup_show_bt,   TRUE);
+    }
+
+    if (gapp->gpcount > 1) {
+        SetSensitive(ui->project_popup_close_bt,  TRUE);
+    } else {
+        SetSensitive(ui->project_popup_close_bt,  FALSE);
     }
 
     SetSensitive(ui->insert_frame_bt,    FALSE);
@@ -272,7 +282,11 @@ static int menu_cb(TreeEvent *event)
 {
     ExplorerUI *ui = (ExplorerUI *) event->anydata;
 
-    ShowMenu(ui->popup, event->udata);
+    if (ui->show_project_popup) {
+        ShowMenu(ui->project_popup, event->udata);
+    } else {
+        ShowMenu(ui->popup, event->udata);
+    }
 
     return TRUE;
 }
@@ -373,13 +387,16 @@ static int drop_cb(TreeEvent *event)
 
 static void init_item(ExplorerUI *eui, TreeItem *item, Quark *q)
 {
+    int active;
     char *s;
 
     s = q_labeling(q);
     TreeSetItemText(eui->tree, item, s);
     xfree(s);
 
-    if (quark_is_active(q) && quark_count_children(q) > 0) {
+    active = quark_is_active(q);
+
+    if (active && quark_count_children(q) > 0) {
         TreeSetItemOpen(eui->tree, item, TRUE);
     } else {
         if (quark_fid_get(q) != QFlavorProject) {
@@ -387,7 +404,7 @@ static void init_item(ExplorerUI *eui, TreeItem *item, Quark *q)
         }
     }
 
-    if (quark_is_active(q)) {
+    if (active) {
         TreeSetItemPixmap(eui->tree, item, eui->a_icon);
     } else {
         TreeSetItemPixmap(eui->tree, item, eui->h_icon);
@@ -701,7 +718,6 @@ static void popup_any_cb(ExplorerUI *eui, int type)
 {
     TreeItemList items;
     int count, i;
-    int do_snapshot = TRUE;
     Quark *qnew = NULL;
     Quark *q;
     GProject *gp;
@@ -744,12 +760,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             quark_set_active(q, FALSE);
             break;
         case SHOW_CB:
-            if (quark_fid_get(q) == QFlavorProject) {
-                gapp_set_active_project(gapp, gp);
-                do_snapshot = FALSE;
-            } else {
-                quark_set_active(q, TRUE);
-            }
+            quark_set_active(q, TRUE);
             break;
         case DELETE_CB:
             quark_free(q);
@@ -805,12 +816,10 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     
     TreeRefresh(eui->tree);
 
-    if (do_snapshot) {
-        for (i = 0; i < gpcount; i++) {
-            explorer_snapshot(gapp, gplist[i], TRUE);
-        }
-        xfree(gplist);
+    for (i = 0; i < gpcount; i++) {
+        explorer_snapshot(gapp, gplist[i], TRUE);
     }
+    xfree(gplist);
 
     if (qnew) {
         select_quark_explorer(qnew);
@@ -905,6 +914,80 @@ static void add_object_cb(Widget but, void *udata)
     if (but == eui->insert_text_bt) {
         popup_any_cb(eui, ADD_TEXT_CB);
     }
+}
+
+#define PROJECT_SHOW_CB            0
+#define PROJECT_SAVE_CB            1
+#define PROJECT_SAVE_AS_CB         2
+#define PROJECT_REVERT_TO_SAVED_CB 3
+#define PROJECT_CLOSE_CB           4
+
+static void project_popup_any_cb(ExplorerUI *eui, int type)
+{
+    TreeItemList items;
+    TreeItem *item;
+    Quark *q;
+    GraceApp *gapp;
+    GProject *gp;
+
+    TreeGetHighlighted(eui->tree, &items);
+
+    if (!items.count || items.count > 1) {
+        xfree(items.items);
+        return;
+    }
+
+    item = items.items[0];
+    q = TreeGetQuark(item);
+    gapp = gapp_from_quark(q);
+    gp = gproject_from_quark(q);
+
+    switch (type) {
+    case PROJECT_SHOW_CB:
+        gapp_set_active_project(gapp, gp);
+        break;
+    case PROJECT_SAVE_CB:
+        project_save(gp);
+        break;
+    case PROJECT_SAVE_AS_CB:
+        project_save_as(gp);
+        break;
+    case PROJECT_REVERT_TO_SAVED_CB:
+        revert_project(gapp, gp);
+        break;
+    case PROJECT_CLOSE_CB:
+        close_project(gapp, gp);
+        break;
+    }
+
+    xfree(items.items);
+
+    TreeRefresh(eui->tree);
+}
+
+static void project_show_cb(Widget but, void *udata)
+{
+    project_popup_any_cb((ExplorerUI *) udata, PROJECT_SHOW_CB);
+}
+
+static void project_save_cb(Widget but, void *udata)
+{
+    project_popup_any_cb((ExplorerUI *) udata, PROJECT_SAVE_CB);
+}
+
+static void project_save_as_cb(Widget but, void *udata)
+{
+    project_popup_any_cb((ExplorerUI *) udata, PROJECT_SAVE_AS_CB);
+}
+
+static void project_revert_to_saved_cb(Widget but, void *udata)
+{
+    project_popup_any_cb((ExplorerUI *) udata, PROJECT_REVERT_TO_SAVED_CB);
+}
+
+static void project_close_cb(Widget but, void *udata)
+{
+    project_popup_any_cb((ExplorerUI *) udata, PROJECT_CLOSE_CB);
 }
 
 void raise_explorer(GUI *gui, Quark *q)
@@ -1087,18 +1170,24 @@ void raise_explorer(GUI *gui, Quark *q)
         eui->project_popup = CreatePopupMenu(eui->tree);
         eui->project_popup_show_bt = CreateMenuButton(eui->project_popup,
             "Show", '\0', project_show_cb, eui);
+
+        CreateMenuSeparator(eui->project_popup);
+
         eui->project_popup_save_bt = CreateMenuButton(eui->project_popup,
-            "Save", '\0', project_save_as_cb, eui);
+            "Save", '\0', project_save_cb, eui);
         eui->project_popup_save_as_bt = CreateMenuButton(eui->project_popup,
             "Save as...", '\0', project_save_as_cb, eui);
         eui->project_popup_revert_to_saved_bt = CreateMenuButton(eui->project_popup,
             "Revert to saved", '\0', project_revert_to_saved_cb, eui);
+
+        CreateMenuSeparator(eui->project_popup);
+
         eui->project_popup_close_bt = CreateMenuButton(eui->project_popup,
             "Close", '\0', project_close_cb, eui);
 
         init_quark_tree(eui);
 
-        if (!q) {
+        if (!q && gapp->gp) {
             select_quark_explorer(gproject_get_top(gapp->gp));
         }
     }

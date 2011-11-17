@@ -235,47 +235,68 @@ static void open_cb(Widget but, void *data)
     create_openproject_popup();
 }
 
+void project_save(GProject *gp)
+{
+    if (gproject_get_docname(gp)) {
+        set_wait_cursor();
+
+        save_project(gp, gproject_get_docname(gp));
+        update_all();
+
+        unset_wait_cursor();
+    } else {
+        create_saveproject_popup(gp);
+    }
+}
+
 static void save_cb(Widget but, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
-    if (gproject_get_docname(gapp->gp)) {
-	set_wait_cursor();
 
-	save_project(gapp->gp, gproject_get_docname(gapp->gp));
-        update_all();
+    project_save(gapp->gp);
+}
 
-	unset_wait_cursor();
-    } else {
-	create_saveproject_popup();
-    }
+void project_save_as(GProject *gp)
+{
+    create_saveproject_popup(gp);
 }
 
 static void save_as_cb(Widget but, void *data)
 {
-    create_saveproject_popup();
+    GraceApp *gapp = (GraceApp *) data;
+
+    project_save_as(gapp->gp);
+}
+
+void revert_project(GraceApp *gapp, GProject *gp)
+{
+    char *docname;
+
+    set_wait_cursor();
+    docname = gproject_get_docname(gp);
+    if (docname) {
+        load_project(gapp, docname);
+    } else {
+        new_project(gapp, NULL);
+    }
+
+    gapp_remove_project(gapp, gp);
+    gproject_free(gp);
+
+    xdrawgraph(gapp->gp);
+    update_all();
+    unset_wait_cursor();
 }
 
 static void revert_cb(Widget but, void *data)
 {
-    char *docname;
     GraceApp *gapp = (GraceApp *) data;
 
-    set_wait_cursor();
-    docname = gproject_get_docname(gapp->gp);
-    if (docname) {
-        load_project(gapp, docname);
-    } else {
-	new_project(gapp, NULL);
-    }
-    xdrawgraph(gapp->gp);
-    unset_wait_cursor();
+    revert_project(gapp, gapp->gp);
 }
 
-static void close_cb(Widget but, void *data)
+void close_project(GraceApp *gapp, GProject *gp)
 {
-    GraceApp *gapp = (GraceApp *) data;
-    GProject *gp = gapp->gp;
-
     if (gp && gproject_get_top(gp) &&
         quark_dirtystate_get(gproject_get_top(gp)) &&
         !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
@@ -288,10 +309,13 @@ static void close_cb(Widget but, void *data)
 
     xdrawgraph(gapp->gp);
     update_all();
+}
 
-    if (gapp->gpcount == 1) {
-        SetSensitive(but, FALSE);
-    }
+static void close_cb(Widget but, void *data)
+{
+    GraceApp *gapp = (GraceApp *) data;
+
+    close_project(gapp, gapp->gp);
 }
 
 static void print_cb(Widget but, void *data)
@@ -337,8 +361,6 @@ Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Save as...", 'a', save_as_cb, gapp);
     CreateMenuButton(menupane, "Revert to saved", 'v', revert_cb, gapp);
 
-    CreateMenuSeparator(menupane);
-    mwui->close_button = CreateMenuButtonA(menupane, "Close", 'C', "Ctrl+W", close_cb, gapp);
     CreateMenuSeparator(menupane);
 
     CreateMenuButtonA(menupane, "Print setup...", 't', "Ctrl+P", create_printer_setup, &gapp->rt->hdevice);

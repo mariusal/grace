@@ -402,6 +402,7 @@ struct _ExplorerUI {
     int          homogeneous_selection;
     int          all_siblings;
     int          row;
+    int          show_project_popup;
 
     ProjectUI    *project_ui;
     SSDataUI     *ssd_ui;
@@ -428,10 +429,13 @@ struct _ExplorerUI {
     Widget       popup_move_down_bt;
 
     Widget       project_popup;
+
     Widget       project_popup_show_bt;
+
     Widget       project_popup_save_bt;
     Widget       project_popup_save_as_bt;
     Widget       project_popup_revert_to_saved_bt;
+
     Widget       project_popup_close_bt;
 
     Widget       edit_undo_bt;

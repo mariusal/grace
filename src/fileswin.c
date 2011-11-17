@@ -66,7 +66,7 @@ static void set_load_proc(OptionStructure *opt, int value, void *data);
 static void set_src_proc(OptionStructure *opt, int value, void *data);
 static int write_ssd_proc(FSBStructure *fsb, char *filename, void *data);
 
-void create_saveproject_popup(void)
+void create_saveproject_popup(GProject *gp)
 {
     static FSBStructure *fsb = NULL;
 
@@ -74,7 +74,7 @@ void create_saveproject_popup(void)
 
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell, "Save project");
-	AddFileSelectionBoxCB(fsb, save_proc, NULL);
+        AddFileSelectionBoxCB(fsb, save_proc, gp);
 #ifdef QT_GUI
         SetFileSelectionBoxPattern(fsb, "*.xgr");
 #endif
@@ -91,7 +91,9 @@ void create_saveproject_popup(void)
  */
 static int save_proc(FSBStructure *fsb, char *filename, void *data)
 {
-    if (save_project(gapp->gp, filename) == RETURN_SUCCESS) {
+    GProject *gp = (GProject *) data;
+
+    if (save_project(gp, filename) == RETURN_SUCCESS) {
         update_all();
         return TRUE;
     } else {

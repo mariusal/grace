@@ -391,30 +391,6 @@ GProject *gproject_from_quark(const Quark *q)
     return NULL;
 }
 
-static int gapp_set_project(GraceApp *gapp, GProject *gp)
-{
-    if (gapp && gp) {
-        gapp->gp = gp;
-        /* reset graal ? */
-        
-        /* Set dimensions of all devices */
-        grace_sync_canvas_devices(gp);
-        
-        /* Reset set autocolorization index */
-        gapp->rt->setcolor = 0;
-        
-        /* Request update of color selectors */
-        gapp->gui->need_colorsel_update = TRUE;
-
-        /* Request update of font selectors */
-        gapp->gui->need_fontsel_update = TRUE;
-
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
 int gapp_add_project(GraceApp *gapp, GProject *gp)
 {
     void *p;
@@ -470,26 +446,29 @@ int gapp_remove_project(GraceApp *gapp, GProject *gp)
 
 int gapp_set_active_project(GraceApp *gapp, GProject *gp)
 {
-    unsigned int i;
-    GProject *p;
-    Quark *project;
-
     if (!gapp || !gp) {
         return RETURN_FAILURE;
     }
 
-    gapp_set_project(gapp, gp);
-
-    for (i = 0; i < gapp->gpcount; i++) {
-        p = gapp->gplist[i];
-        project = gproject_get_top(p);
-
-        if (p == gp) {
-            quark_set_active2(project, TRUE);
-        } else {
-            quark_set_active2(project, FALSE);
-        }
+    if (gapp->gp) {
+        quark_set_active2(gproject_get_top(gapp->gp), FALSE);
     }
+    quark_set_active2(gproject_get_top(gp), TRUE);
+
+    gapp->gp = gp;
+    /* reset graal ? */
+
+    /* Set dimensions of all devices */
+    grace_sync_canvas_devices(gp);
+
+    /* Reset set autocolorization index */
+    gapp->rt->setcolor = 0;
+
+    /* Request update of color selectors */
+    gapp->gui->need_colorsel_update = TRUE;
+
+    /* Request update of font selectors */
+    gapp->gui->need_fontsel_update = TRUE;
 
     return RETURN_SUCCESS;
 }

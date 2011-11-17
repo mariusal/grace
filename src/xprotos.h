@@ -122,7 +122,6 @@ struct _MainWinUI {
     Widget statlab;          /* status line at the bottom */
     Widget undo_button;
     Widget redo_button;
-    Widget close_button;
 };
 
 typedef void (*DevSetupProc)(const Canvas *canvas, void *ui);
@@ -182,7 +181,7 @@ void do_hotupdate_proc(void *data);
 
 void create_file_popup(Widget but, void *data);
 void create_netcdfs_popup(Widget but, void *data);
-void create_saveproject_popup(void);
+void create_saveproject_popup(GProject *gp);
 void create_openproject_popup(void);
 void create_write_popup(Widget but, void *data);
 
@@ -286,6 +285,10 @@ void recreate_pixmap(unsigned int w, unsigned int h);
 Widget CreateMainMenuBar(Widget parent);
 void CreateToolBar(Widget parent);
 void set_view_items(void);
+void project_save(GProject *gp);
+void project_save_as(GProject *gp);
+void revert_project(GraceApp *gapp, GProject *gp);
+void close_project(GraceApp *gapp, GProject *gp);
 
 #endif /* NONE_GUI */
 
