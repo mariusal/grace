@@ -128,6 +128,7 @@ static void load_example_cb(Widget but, void *data)
     load_project(gapp, buf);
 
     xdrawgraph(gapp->gp);
+    update_all();
 
     unset_wait_cursor();
 }
@@ -226,6 +227,7 @@ static void new_cb(Widget but, void *data)
     GraceApp *gapp = (GraceApp *) data;
     new_project(gapp, NULL);
     xdrawgraph(gapp->gp);
+    update_all();
 }
 
 

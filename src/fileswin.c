@@ -259,6 +259,8 @@ void create_openproject_popup(void)
 static int open_proc(FSBStructure *fsb, char *filename, void *data)
 {
     if (load_project(gapp, filename) == RETURN_SUCCESS) {
+        xdrawgraph(gapp->gp);
+        update_all();
         return TRUE;
     } else {
         return FALSE;

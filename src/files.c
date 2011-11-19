@@ -1047,8 +1047,6 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
         return RETURN_FAILURE;
     }
 
-    gapp_add_project(gapp, gp);
-    
     gapp->rt->print_file[0] = '\0';
 
     if (as_template) {
@@ -1056,9 +1054,9 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
         gp->grf = NULL;
     }
 
+    gapp_add_project(gapp, gp);
+    gapp_set_active_project(gapp, gp);
     project = gproject_get_top(gp);
-
-    quark_set_active2(project, FALSE);
 
     amem = quark_get_amem(project);
 

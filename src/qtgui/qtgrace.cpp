@@ -172,7 +172,7 @@ void startup_gui(GraceApp *gapp)
     set_view_items();
 
     set_tracker_string(NULL);
-    set_left_footer(NULL);
+//    set_left_footer(NULL);
 
 /*
  * set icon
@@ -184,10 +184,10 @@ void startup_gui(GraceApp *gapp)
 /*
  * set the title
  */
-    update_app_title(gapp->gp);
+//    update_app_title(gapp->gp);
 
-    update_all();
     xdrawgraph(gapp->gp);
+    update_all();
 
     //XtAppMainLoop(app_con);
     mainWin->show();
