@@ -216,6 +216,11 @@ static void zoom_1_cb(Widget but, void *data)
     page_zoom_inout(gapp, 0);
 }
 
+void update_all_cb(Widget but, void *data)
+{
+    update_all();
+}
+
 static void new_cb(Widget but, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
@@ -612,4 +617,3 @@ void CreateToolBar(Widget parent)
     bt = CreateBitmapButton(rcleft, 16, 16, exit_bits);
     AddButtonCB(bt, exit_cb, gapp);
 }
-

@@ -219,7 +219,6 @@ void update_undo_buttons(GProject *gp);
 void update_set_lists(Quark *gr);
 void update_props_items(void);
 void update_all(void);
-void update_all_cb(Widget but, void *data);
 
 void update_set_selectors(Quark *gr);
 
