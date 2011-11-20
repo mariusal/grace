@@ -947,6 +947,8 @@ static void project_popup_any_cb(ExplorerUI *eui, int type)
     switch (type) {
     case PROJECT_SHOW_CB:
         gapp_set_active_project(gapp, gp);
+        xdrawgraph(gp);
+        update_all();
         break;
     case PROJECT_SAVE_CB:
         project_save(gp);
