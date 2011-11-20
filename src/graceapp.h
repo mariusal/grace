@@ -207,7 +207,7 @@ void gui_set_page_free(GUI *gui, int onoff);
 void gui_set_barebones(GUI *gui);
 
 int gapp_add_project(GraceApp *gapp, GProject *gp);
-int gapp_remove_project(GraceApp *gapp, GProject *gp);
+int gapp_delete_project(GraceApp *gapp, GProject *gp);
 int gapp_set_active_project(GraceApp *gapp, GProject *gp);
 
 int set_page_dimensions(GraceApp *gapp, int wpp, int hpp, int rescale);

@@ -287,8 +287,7 @@ void revert_project(GraceApp *gapp, GProject *gp)
         new_project(gapp, NULL);
     }
 
-    gapp_remove_project(gapp, gp);
-    gproject_free(gp);
+    gapp_delete_project(gapp, gp);
 
     xdrawgraph(gapp->gp);
     update_all();
@@ -300,29 +299,6 @@ static void revert_cb(Widget but, void *data)
     GraceApp *gapp = (GraceApp *) data;
 
     revert_project(gapp, gapp->gp);
-}
-
-void close_project(GraceApp *gapp, GProject *gp)
-{
-    if (gp && gproject_get_top(gp) &&
-        quark_dirtystate_get(gproject_get_top(gp)) &&
-        !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
-        return;
-    }
-
-    gapp_remove_project(gapp, gp);
-    gproject_free(gp);
-    gapp_set_active_project(gapp, gapp->gplist[gapp->gpcount - 1]);
-
-    xdrawgraph(gapp->gp);
-    update_all();
-}
-
-static void close_cb(Widget but, void *data)
-{
-    GraceApp *gapp = (GraceApp *) data;
-
-    close_project(gapp, gapp->gp);
 }
 
 static void print_cb(Widget but, void *data)

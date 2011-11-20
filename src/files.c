@@ -1056,6 +1056,7 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
 
     gapp_add_project(gapp, gp);
     gapp_set_active_project(gapp, gp);
+
     project = gproject_get_top(gp);
 
     amem = quark_get_amem(project);

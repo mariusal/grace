@@ -927,7 +927,6 @@ static void add_object_cb(Widget but, void *udata)
 static void project_popup_any_cb(ExplorerUI *eui, int type)
 {
     TreeItemList items;
-    TreeItem *item;
     Quark *q;
     GraceApp *gapp;
     GProject *gp;
@@ -939,8 +938,7 @@ static void project_popup_any_cb(ExplorerUI *eui, int type)
         return;
     }
 
-    item = items.items[0];
-    q = TreeGetQuark(item);
+    q = TreeGetQuark(items.items[0]);
     gapp = gapp_from_quark(q);
     gp = gproject_from_quark(q);
 
@@ -960,7 +958,25 @@ static void project_popup_any_cb(ExplorerUI *eui, int type)
         revert_project(gapp, gp);
         break;
     case PROJECT_CLOSE_CB:
-        close_project(gapp, gp);
+        if (gapp->gpcount == 1) {
+            errmsg("Can't close the last project");
+            return;
+        }
+
+        if (gp && gproject_get_top(gp) &&
+            quark_dirtystate_get(gproject_get_top(gp)) &&
+            !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
+            return;
+        }
+
+        gapp_delete_project(gapp, gp);
+
+        if (gapp->gp == NULL) {
+            gapp_set_active_project(gapp, gapp->gplist[0]);
+        }
+
+        xdrawgraph(gapp->gp);
+        update_all();
         break;
     }
 

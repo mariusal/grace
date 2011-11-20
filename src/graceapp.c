@@ -411,9 +411,9 @@ int gapp_add_project(GraceApp *gapp, GProject *gp)
     return RETURN_SUCCESS;
 }
 
-int gapp_remove_project(GraceApp *gapp, GProject *gp)
+int gapp_delete_project(GraceApp *gapp, GProject *gp)
 {
-    unsigned int i, j;
+    unsigned int i, j = 0;
     GProject **p;
     GProject *gpr;
 
@@ -426,7 +426,6 @@ int gapp_remove_project(GraceApp *gapp, GProject *gp)
         return RETURN_FAILURE;
     }
 
-    j = 0;
     for (i = 0; i < gapp->gpcount; i++) {
         gpr = gapp->gplist[i];
 
@@ -440,6 +439,12 @@ int gapp_remove_project(GraceApp *gapp, GProject *gp)
 
     gapp->gplist = p;
     gapp->gpcount--;
+
+    if (gapp->gp == gp) {
+        gapp->gp = NULL;
+    }
+
+    gproject_free(gp);
 
     return RETURN_SUCCESS;
 }
