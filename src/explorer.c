@@ -660,40 +660,42 @@ static int explorer_aac(void *data)
     return explorer_apply(ui, NULL);
 }
 
-void explorer_undo(GraceApp *gapp, int undo)
+void explorer_before_undo(GraceApp *gapp, Quark *pr)
 {
     ExplorerUI *eui = gapp->gui->eui;
-    Quark *q = gproject_get_top(gapp->gp);
-    TreeItem *item = quark_get_udata(q);
-    AMem *amem = quark_get_amem(q);
+    TreeItem *item;
 
+    if (!eui) {
+        return;
+    }
+
+    explorer_save_quark_state(eui);
+
+    item = quark_get_udata(pr);
     if (item) {
-        Storage *sto = quark_get_children(quark_parent_get(q));
-        if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
+        Storage *sto = quark_get_children(quark_parent_get(pr));
+        if (storage_scroll_to_data(sto, pr) == RETURN_SUCCESS) {
             eui->row = storage_get_id(sto);
         }
         TreeDeleteItem(eui->tree, item);
     } else {
         errmsg("Can't delete the project tree");
     }
+}
 
-    if (undo) {
-        amem_undo(amem);
-    } else {
-        amem_redo(amem);
+void explorer_after_undo(GraceApp *gapp, Quark *pr)
+{
+    ExplorerUI *eui = gapp->gui->eui;
+
+    if (!eui) {
+        return;
     }
 
-    explorer_save_quark_state(eui);
-    quark_traverse(q, create_hook, eui);
+    quark_traverse(pr, create_hook, eui);
     eui->row = -1;
-    quark_set_active2(q, TRUE);
     explorer_restore_quark_state(eui);
-
-    TreeSelectItem(eui->tree, quark_get_udata(q));
-
-    xdrawgraph(gapp->gp);
-    update_all();
 }
+
 
 #define HIDE_CB           0
 #define SHOW_CB           1

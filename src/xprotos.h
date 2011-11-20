@@ -209,7 +209,8 @@ void create_autos_frame(Widget but, void *data);
 
 void raise_explorer(GUI *gui, Quark *q);
 void define_explorer_popup(Widget but, void *data);
-void explorer_undo(GraceApp *gapp, int undo);
+void explorer_before_undo(GraceApp *gapp, Quark *pr);
+void explorer_after_undo(GraceApp *gapp, Quark *pr);
 
 void create_about_grtool(Widget but, void *data);
 
