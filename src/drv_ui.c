@@ -29,6 +29,8 @@
  *  UI setup for print drivers
  */
 
+#include <string.h>
+
 #define CANVAS_BACKEND_API
 #include "xprotos.h"
 
