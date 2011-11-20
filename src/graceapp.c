@@ -391,7 +391,7 @@ GProject *gproject_from_quark(const Quark *q)
     return NULL;
 }
 
-int gapp_add_project(GraceApp *gapp, GProject *gp)
+int gapp_add_gproject(GraceApp *gapp, GProject *gp)
 {
     void *p;
 
@@ -411,7 +411,7 @@ int gapp_add_project(GraceApp *gapp, GProject *gp)
     return RETURN_SUCCESS;
 }
 
-int gapp_delete_project(GraceApp *gapp, GProject *gp)
+int gapp_delete_gproject(GraceApp *gapp, GProject *gp)
 {
     unsigned int i, j = 0;
     GProject **p;
@@ -449,7 +449,7 @@ int gapp_delete_project(GraceApp *gapp, GProject *gp)
     return RETURN_SUCCESS;
 }
 
-int gapp_set_active_project(GraceApp *gapp, GProject *gp)
+int gapp_set_active_gproject(GraceApp *gapp, GProject *gp)
 {
     if (!gapp || !gp) {
         return RETURN_FAILURE;

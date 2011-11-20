@@ -276,7 +276,7 @@ static int open_proc(FSBStructure *fsb, char *filename, void *data)
     xfree(epath);
 
     if (is_open && gapp->gplist[i] != gapp->gp) {
-        gapp_set_active_project(gapp, gapp->gplist[i]);
+        gapp_set_active_gproject(gapp, gapp->gplist[i]);
         xdrawgraph(gapp->gp);
         update_all();
     }

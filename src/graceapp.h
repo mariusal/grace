@@ -206,9 +206,9 @@ int gui_is_page_free(const GUI *gui);
 void gui_set_page_free(GUI *gui, int onoff);
 void gui_set_barebones(GUI *gui);
 
-int gapp_add_project(GraceApp *gapp, GProject *gp);
-int gapp_delete_project(GraceApp *gapp, GProject *gp);
-int gapp_set_active_project(GraceApp *gapp, GProject *gp);
+int gapp_add_gproject(GraceApp *gapp, GProject *gp);
+int gapp_delete_gproject(GraceApp *gapp, GProject *gp);
+int gapp_set_active_gproject(GraceApp *gapp, GProject *gp);
 
 int set_page_dimensions(GraceApp *gapp, int wpp, int hpp, int rescale);
 int set_printer(GraceApp *gapp, int device);

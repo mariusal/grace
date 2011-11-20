@@ -287,7 +287,7 @@ void revert_project(GraceApp *gapp, GProject *gp)
         new_project(gapp, NULL);
     }
 
-    gapp_delete_project(gapp, gp);
+    gapp_delete_gproject(gapp, gp);
 
     xdrawgraph(gapp->gp);
     update_all();

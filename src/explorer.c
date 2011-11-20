@@ -944,7 +944,7 @@ static void project_popup_any_cb(ExplorerUI *eui, int type)
 
     switch (type) {
     case PROJECT_SHOW_CB:
-        gapp_set_active_project(gapp, gp);
+        gapp_set_active_gproject(gapp, gp);
         xdrawgraph(gp);
         update_all();
         break;
@@ -969,10 +969,10 @@ static void project_popup_any_cb(ExplorerUI *eui, int type)
             return;
         }
 
-        gapp_delete_project(gapp, gp);
+        gapp_delete_gproject(gapp, gp);
 
         if (gapp->gp == NULL) {
-            gapp_set_active_project(gapp, gapp->gplist[0]);
+            gapp_set_active_gproject(gapp, gapp->gplist[0]);
         }
 
         xdrawgraph(gapp->gp);

@@ -1054,8 +1054,8 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
         gp->grf = NULL;
     }
 
-    gapp_add_project(gapp, gp);
-    gapp_set_active_project(gapp, gp);
+    gapp_add_gproject(gapp, gp);
+    gapp_set_active_gproject(gapp, gp);
 
     project = gproject_get_top(gp);
 
