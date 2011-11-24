@@ -179,6 +179,7 @@ lib/canvas/xrstdrv.c \
 lib/canvas/xrstdrv.h \
 lib/core/atext.c \
 lib/core/axis.c \
+lib/core/container.c \
 lib/core/ctrans.c \
 lib/core/dobject.c \
 lib/core/frame.c \
