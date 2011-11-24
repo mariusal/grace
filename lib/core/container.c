@@ -33,22 +33,13 @@ void *container_data_new(AMem *amem)
     return NULL;
 }
 
-void container_data_free(AMem *amem, void *data)
-{
-}
-
-void *container_data_copy(AMem *amem, void *data)
-{
-    return data;
-}
-
 int container_qf_register(QuarkFactory *qfactory)
 {
     QuarkFlavor qf = {
         QFlavorContainer,
         container_data_new,
-        container_data_free,
-        container_data_copy
+        NULL,
+        NULL
     };
 
     return quark_flavor_add(qfactory, &qf);
