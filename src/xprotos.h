@@ -287,7 +287,6 @@ void CreateToolBar(Widget parent);
 void set_view_items(void);
 void project_save(GProject *gp);
 void project_save_as(GProject *gp);
-void revert_project(GraceApp *gapp, GProject *gp);
 
 #endif /* NONE_GUI */
 

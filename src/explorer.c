@@ -31,6 +31,7 @@
 #include "utils.h"
 #include "explorer.h"
 #include "xprotos.h"
+#include "files.h"
 
 #ifdef MOTIF_GUI
 #include <Xm/Form.h>
@@ -956,6 +957,8 @@ static void project_popup_any_cb(ExplorerUI *eui, int type)
         break;
     case PROJECT_REVERT_TO_SAVED_CB:
         revert_project(gapp, gp);
+        xdrawgraph(gapp->gp);
+        update_all();
         break;
     case PROJECT_CLOSE_CB:
         if (gapp->gpcount == 1) {

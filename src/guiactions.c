@@ -275,30 +275,15 @@ static void save_as_cb(Widget but, void *data)
     project_save_as(gapp->gp);
 }
 
-void revert_project(GraceApp *gapp, GProject *gp)
-{
-    char *docname;
-
-    set_wait_cursor();
-    docname = gproject_get_docname(gp);
-    if (docname) {
-        load_project(gapp, docname);
-    } else {
-        new_project(gapp, NULL);
-    }
-
-    gapp_delete_gproject(gapp, gp);
-
-    xdrawgraph(gapp->gp);
-    update_all();
-    unset_wait_cursor();
-}
-
 static void revert_cb(Widget but, void *data)
 {
     GraceApp *gapp = (GraceApp *) data;
 
+    set_wait_cursor();
     revert_project(gapp, gapp->gp);
+    xdrawgraph(gapp->gp);
+    update_all();
+    unset_wait_cursor();
 }
 
 static void print_cb(Widget but, void *data)

@@ -478,6 +478,30 @@ int gapp_set_active_gproject(GraceApp *gapp, GProject *gp)
     return RETURN_SUCCESS;
 }
 
+int gapp_set_gproject_id(GraceApp *gapp, GProject *gp, int id)
+{
+    int old_id = gapp_get_gproject_id(gapp, gp);
+    Quark *q = gproject_get_top(gp);
+
+    if (id != old_id) {
+        return quark_move(q, id - old_id);
+    } else {
+        return RETURN_SUCCESS;
+    }
+}
+
+int gapp_get_gproject_id(GraceApp *gapp, GProject *gp)
+{
+    Quark *q = gproject_get_top(gp);
+    Storage *sto = quark_get_children(quark_parent_get(q));
+
+    if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
+        return storage_get_id(sto);
+    } else {
+        return -1;
+    }
+}
+
 /*
  * flag to indicate destination of hardcopy output,
  * ptofile = 0 means print to printer, otherwise print to file

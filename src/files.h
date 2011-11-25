@@ -58,6 +58,7 @@ GProject *load_any_project(GraceApp *gapp, const char *fn);
 
 int new_project(GraceApp *gapp, char *pr_template);
 int load_project(GraceApp *gapp, char *fn);
+int revert_project(GraceApp *gapp, GProject *gp);
 int save_project(GProject *gp, char *fn);
 
 int add_io_filter( int type, int method, const char *id, const char *comm );

@@ -1034,7 +1034,7 @@ GProject *load_any_project(GraceApp *gapp, const char *fn)
     return gp;
 }
 
-static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
+static GProject *load_project_file(GraceApp *gapp, const char *fn, int as_template)
 {    
     GProject *gp;
     Quark *project, *gr, **graphs;
@@ -1044,7 +1044,7 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
     gp = load_any_project(gapp, fn);
     if (!gp) {
         errmsg("Failed loading project file");
-        return RETURN_FAILURE;
+        return NULL;
     }
 
     gapp->rt->print_file[0] = '\0';
@@ -1055,7 +1055,6 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
     }
 
     gapp_add_gproject(gapp, gp);
-    gapp_set_active_gproject(gapp, gp);
 
     project = gproject_get_top(gp);
 
@@ -1076,39 +1075,77 @@ static int load_project_file(GraceApp *gapp, const char *fn, int as_template)
     }
     xfree(graphs);
 
-    if (project) {
+    return gp;
+}
+
+int load_project(GraceApp *gapp, char *fn)
+{
+    GProject *gp = load_project_file(gapp, fn, FALSE);
+
+    if (gp) {
+        gapp_set_active_gproject(gapp, gp);
+
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
 }
 
-int load_project(GraceApp *gapp, char *fn)
+int revert_project(GraceApp *gapp, GProject *gp)
 {
-    return load_project_file(gapp, fn, FALSE);
+    char *docname;
+    GProject *rgp = NULL;
+
+    docname = gproject_get_docname(gp);
+    if (docname) {
+        rgp = load_project_file(gapp, docname, FALSE);
+    } else {
+        rgp = load_project_file(gapp, "templates/Default.xgr", TRUE);
+    }
+
+    if (rgp) {
+        gapp_set_gproject_id(gapp, rgp, gapp_get_gproject_id(gapp, gp));
+
+        if (gapp->gp == gp) {
+            gapp_set_active_gproject(gapp, rgp);
+        } else {
+            quark_set_active2(gproject_get_top(rgp), FALSE);
+        }
+
+        gapp_delete_gproject(gapp, gp);
+
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+
 }
 
 int new_project(GraceApp *gapp, char *pr_template)
 {
-    int retval;
+    GProject *gp = NULL;
     char *s;
     
     if (string_is_empty(pr_template)) {
-        retval = load_project_file(gapp, "templates/Default.xgr", TRUE);
+        gp = load_project_file(gapp, "templates/Default.xgr", TRUE);
     } else if (pr_template[0] == '/') {
-        retval = load_project_file(gapp, pr_template, TRUE);
+        gp = load_project_file(gapp, pr_template, TRUE);
     } else {
         s = xmalloc(strlen("templates/") + strlen(pr_template) + 1);
-        if (s == NULL) {
-            retval = RETURN_FAILURE;
-        } else {
+        if (s) {
             sprintf(s, "templates/%s", pr_template);
-            retval = load_project_file(gapp, s, TRUE);
+            gp = load_project_file(gapp, s, TRUE);
             xfree(s);
         }
     }
     
-    return retval;
+    if (gp) {
+        gapp_set_active_gproject(gapp, gp);
+
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
 
 
