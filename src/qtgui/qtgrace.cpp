@@ -8905,22 +8905,6 @@ Widget CreateTree(Widget parent)
     return treeView;
 }
 
-TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
-{
-    TreeView *treeView = (TreeView *) w;
-    QStandardItemModel *model = (QStandardItemModel *) treeView->model();
-
-    QStandardItem *parentItem;
-
-    if (parent) {
-        parentItem = (QStandardItem *) parent;
-    } else {
-        parentItem = model->invisibleRootItem();
-    }
-
-    return TreeInsertItem(w, parent, q, parentItem->rowCount());
-}
-
 TreeItem *TreeInsertItem(Widget w, TreeItem *parent, Quark *q, int row)
 {
     TreeView *treeView = (TreeView *) w;
@@ -8938,7 +8922,12 @@ TreeItem *TreeInsertItem(Widget w, TreeItem *parent, Quark *q, int row)
     item = new QStandardItem;
 
     item->setData(qVariantFromValue((void *) q));
-    parentItem->insertRow(row, item);
+
+    if (row < 0) {
+        parentItem->insertRow(parentItem->rowCount() + row + 1, item);
+    } else {
+        parentItem->insertRow(row, item);
+    }
 
     return item;
 }

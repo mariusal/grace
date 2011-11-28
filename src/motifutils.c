@@ -5131,21 +5131,16 @@ Widget CreateTree(Widget parent)
     return w;
 }
 
-TreeItem *TreeAddItem(Widget w, TreeItem *parent, Quark *q)
-{
-    ListTreeItem *item;
-
-    item = ListTreeAdd(w, parent, "");
-    item->user_data = q;
-
-    return item;
-}
-
 TreeItem *TreeInsertItem(Widget w, TreeItem *parent, Quark *q, int row)
 {
     ListTreeItem *item;
+    ListTreeItem *parent_item = parent;
 
-    item = ListTreeInsert(w, parent, "", row);
+    if (row < 0) {
+        item = ListTreeInsert(w, parent, "", parent_item->count + row + 1);
+    } else {
+        item = ListTreeInsert(w, parent, "", row);
+    }
     item->user_data = q;
 
     return item;

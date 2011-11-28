@@ -419,14 +419,10 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     Quark *qparent = quark_parent_get(q);
 
     if (quark_fid_get(qparent) == QFlavorContainer) {
-        if (eui->row == -1) {
-            item = TreeAddItem(eui->tree, NULL, q);
-        } else {
-            item = TreeInsertItem(eui->tree, NULL, q, eui->row);
-        }
+        item = TreeInsertItem(eui->tree, NULL, q, eui->row);
     } else {
         TreeItem *parent = quark_get_udata(qparent);
-        item = TreeAddItem(eui->tree, parent, q);
+        item = TreeInsertItem(eui->tree, parent, q, -1);
     }
 
     init_item(eui, item, q);
