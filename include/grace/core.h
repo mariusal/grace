@@ -31,11 +31,10 @@
 #include "grace/baseP.h"
 #include "grace/canvas.h"
 
-#define QUARK_ETYPE_MODIFY   1
-#define QUARK_ETYPE_DELETE   2
-#define QUARK_ETYPE_REPARENT 3
-#define QUARK_ETYPE_NEW      4
-#define QUARK_ETYPE_MOVE     5
+#define QUARK_ETYPE_NEW    1
+#define QUARK_ETYPE_DELETE 2
+#define QUARK_ETYPE_MODIFY 3
+#define QUARK_ETYPE_MOVE   4
 
 /*
  * axis types

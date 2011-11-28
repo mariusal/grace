@@ -171,7 +171,7 @@ static int graph_cb(Quark *gr, int etype, void *data)
             }
         }
     } else
-    if (etype == QUARK_ETYPE_REPARENT) {
+    if (etype == QUARK_ETYPE_MOVE) {
         update_graph_ccache(gr);
     }
     return RETURN_SUCCESS;

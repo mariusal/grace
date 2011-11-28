@@ -485,12 +485,6 @@ static int explorer_cb(Quark *q, int etype, void *udata)
     case QUARK_ETYPE_MODIFY:
         init_item(eui, item, q);
         break;
-    case QUARK_ETYPE_REPARENT:
-        explorer_save_quark_state(eui);
-        TreeDeleteItem(eui->tree, item);
-        quark_traverse(q, create_hook, eui);
-        explorer_restore_quark_state(eui);
-        break;
     case QUARK_ETYPE_NEW:
         create_hook(q, eui, NULL);
         break;

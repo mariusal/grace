@@ -584,7 +584,7 @@ int quark_reparent(Quark *q, Quark *newparent)
         newparent->refcount++;
         storage_add(newparent->children, q);
         quark_dirtystate_set(newparent, TRUE);
-        quark_call_cblist(q, QUARK_ETYPE_REPARENT);
+        quark_call_cblist(q, QUARK_ETYPE_MOVE);
         
         return RETURN_SUCCESS;
     }
