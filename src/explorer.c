@@ -417,13 +417,10 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     TreeItem *item;
     ExplorerUI *eui = (ExplorerUI *) udata;
     Quark *qparent = quark_parent_get(q);
+    int row;
 
-    if (quark_fid_get(qparent) == QFlavorContainer) {
-        item = TreeInsertItem(eui->tree, NULL, q, eui->row);
-    } else {
-        TreeItem *parent = quark_get_udata(qparent);
-        item = TreeInsertItem(eui->tree, parent, q, -1);
-    }
+    row = (quark_fid_get(qparent) == QFlavorContainer) ? eui->row : -1;
+    item = TreeInsertItem(eui->tree, quark_get_udata(qparent), q, row);
 
     init_item(eui, item, q);
 
@@ -480,9 +477,6 @@ static int explorer_cb(Quark *q, int etype, void *udata)
     ExplorerUI *eui = (ExplorerUI *) udata;
     TreeItem *item = quark_get_udata(q);
     TreeItem *parent_item;
-    int row;
-    Quark *parent;
-    Storage *sto;
 
     switch (etype) {
     case QUARK_ETYPE_DELETE:
@@ -504,17 +498,12 @@ static int explorer_cb(Quark *q, int etype, void *udata)
         explorer_save_quark_state(eui);
         TreeDeleteItem(eui->tree, item);
 
-        parent = quark_parent_get(q);
-        sto = quark_get_children(parent);
-        if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
-            if ((row = storage_get_id(sto)) != -1) {
-                parent_item = quark_get_udata(parent);
-                item = TreeInsertItem(eui->tree, parent_item, q, row);
-                init_item(eui, item, q);
-                quark_set_udata(q, item);
-                storage_traverse(quark_get_children(q), create_children_hook, eui);
-            }
-        }
+        parent_item = quark_get_udata(quark_parent_get(q));
+        item = TreeInsertItem(eui->tree, parent_item, q, quark_get_id(q));
+        init_item(eui, item, q);
+        quark_set_udata(q, item);
+        storage_traverse(quark_get_children(q), create_children_hook, eui);
+
         explorer_restore_quark_state(eui);
         break;
     default:
@@ -670,10 +659,7 @@ void explorer_before_undo(GraceApp *gapp, Quark *pr)
 
     item = quark_get_udata(pr);
     if (item) {
-        Storage *sto = quark_get_children(quark_parent_get(pr));
-        if (storage_scroll_to_data(sto, pr) == RETURN_SUCCESS) {
-            eui->row = storage_get_id(sto);
-        }
+        eui->row = quark_get_id(pr);
         TreeDeleteItem(eui->tree, item);
     } else {
         errmsg("Can't delete the project tree");

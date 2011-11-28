@@ -541,6 +541,18 @@ Storage *quark_get_children(const Quark *q)
     return q->children;
 }
 
+int quark_get_id(const Quark *q)
+{
+    Quark *parent = quark_parent_get(q);
+    if (parent) {
+        Storage *sto = parent->children;
+        if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
+            return storage_get_id(sto);
+        }
+    }
+    return -1;
+}
+
 int quark_child_exist(const Quark *parent, const Quark *child)
 {
     if (parent && child         &&

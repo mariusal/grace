@@ -752,6 +752,7 @@ int quark_reparent(Quark *q, Quark *newparent);
 int quark_reparent_children(Quark *parent, Quark *newparent);
 
 Storage *quark_get_children(const Quark *q);
+int quark_get_id(const Quark *q);
 
 int quark_move(Quark *q, int steps);
 int quark_push(Quark *q, int forward);
