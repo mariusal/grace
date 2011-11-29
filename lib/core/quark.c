@@ -611,12 +611,16 @@ int quark_reparent_children(Quark *parent, Quark *newparent)
 int quark_move2(Quark *q, Quark *newparent, int id)
 {
     Quark *parent;
-    if (!q || !newparent || q == newparent || id < 0) {
+    int old_id;
+
+    if (!q || !newparent || q == newparent ||
+        id < 0 || id >= newparent->refcount) {
         return RETURN_FAILURE;
     }
 
+    old_id = quark_get_id(q);
     parent = q->parent;
-    if (parent == newparent && id == quark_get_id(q)) {
+    if (parent == newparent && (id == old_id || id == old_id + 1)) {
         return RETURN_SUCCESS;
     } else {
         storage_extract_data(parent->children, q);
@@ -627,9 +631,16 @@ int quark_move2(Quark *q, Quark *newparent, int id)
 
             q->parent = newparent;
             newparent->refcount++;
+
+            storage_insert(newparent->children, q, id);
+        } else {
+            if (id <= old_id) {
+                storage_insert(newparent->children, q, id);
+            } else {
+                storage_insert(newparent->children, q, id - 1);
+            }
         }
 
-        storage_insert(newparent->children, q, id);
         quark_dirtystate_set(newparent, TRUE);
         quark_call_cblist(q, QUARK_ETYPE_MOVE);
 
@@ -637,8 +648,12 @@ int quark_move2(Quark *q, Quark *newparent, int id)
     }
 }
 
-int quark_move(Quark *q, int id)
+int quark_move(Quark *q, int forward)
 {
+    int id = quark_get_id(q);
+
+    id = forward ? id + 2 : id - 1;
+
     return quark_move2(q, q->parent, id);
 }
 

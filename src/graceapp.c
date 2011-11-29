@@ -480,14 +480,9 @@ int gapp_set_active_gproject(GraceApp *gapp, GProject *gp)
 
 int gapp_set_gproject_id(GraceApp *gapp, GProject *gp, int id)
 {
-    int old_id = gapp_get_gproject_id(gapp, gp);
     Quark *q = gproject_get_top(gp);
 
-    if (id != old_id) {
-        return quark_move(q, id);
-    } else {
-        return RETURN_SUCCESS;
-    }
+    return quark_move2(q, quark_parent_get(q), id);
 }
 
 int gapp_get_gproject_id(GraceApp *gapp, GProject *gp)
