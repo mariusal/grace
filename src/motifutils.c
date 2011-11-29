@@ -1056,10 +1056,10 @@ static void ss_any_cb(StorageStructure *ss, int type)
             quark_push(q, FALSE);
             break;
         case SS_MOVE_UP_CB:
-            quark_move(q, 1);
+            quark_move(q, quark_get_id(q) + 1);
             break;
         case SS_MOVE_DOWN_CB:
-            quark_move(q, -1);
+            quark_move(q, quark_get_id(q) - 1);
             break;
         case SS_DUPLICATE_CB:
             quark_copy(q);

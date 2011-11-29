@@ -301,10 +301,10 @@ static void popup_any_cb(canvas_target *ct, int type)
         quark_push(q, FALSE);
         break;
     case MOVE_UP_CB:
-        quark_move(q, 1);
+        quark_move(q, quark_get_id(q) + 1);
         break;
     case MOVE_DOWN_CB:
-        quark_move(q, -1);
+        quark_move(q, quark_get_id(q) - 1);
         break;
     case DROP_POINT_CB:
         if (quark_fid_get(q) == QFlavorSet && ct->part >= 0) {

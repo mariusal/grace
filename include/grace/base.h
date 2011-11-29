@@ -304,6 +304,7 @@ int storage_id_exists(Storage *sto, int id);
 int storage_data_exists(Storage *sto, const void *data);
 
 int storage_add(Storage *sto, void *data);
+int storage_insert(Storage *sto, void *data, int id);
 int storage_delete(Storage *sto);
 
 void *storage_duplicate(Storage *sto);

@@ -449,6 +449,48 @@ int storage_add(Storage *sto, void *data)
     }
 }
 
+static void storage_insert_node(Storage *sto, LLNode *llnode, int id)
+{
+    if (id < sto->count) {
+        LLNode *cllnode, *prev;
+
+        storage_scroll_to_id(sto, id);
+
+        cllnode = sto->cp;
+
+        prev = cllnode->prev;
+        if (prev) {
+            prev->next = llnode;
+        } else {
+            sto->start = llnode;
+        }
+        llnode->prev = prev;
+        llnode->next = cllnode;
+        cllnode->prev = llnode;
+
+        sto->cp = llnode;
+        sto->count++;
+    } else {
+        storage_add_node(sto, llnode, TRUE);
+    }
+}
+
+int storage_insert(Storage *sto, void *data, int id)
+{
+    LLNode *new;
+
+    STORAGE_SAFETY_CHECK(sto, return RETURN_FAILURE)
+
+    new = storage_allocate_node(sto, data);
+    if (!new) {
+        return RETURN_FAILURE;
+    }
+
+    storage_insert_node(sto, new, id);
+
+    return RETURN_SUCCESS;
+}
+
 int storage_delete(Storage *sto)
 {
     LLNode *llnode;
