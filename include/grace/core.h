@@ -717,7 +717,7 @@ Quark *quark_root(Quark *parent, int mmodel, QuarkFactory *qfactory, unsigned in
 Quark *quark_new(Quark *parent, unsigned int fid);
 void quark_free(Quark *q);
 Quark *quark_copy(const Quark *q);
-Quark *quark_copy2(Quark *newparent, const Quark *q);
+Quark *quark_copy2(const Quark *q, Quark *newparent, int id);
 
 Quark *quark_parent_get(const Quark *q);
 

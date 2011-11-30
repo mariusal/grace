@@ -400,6 +400,7 @@ struct _ExplorerUI {
     Widget       scrolled_window;
     
     int          homogeneous_selection;
+    int          homogeneous_parent;
     int          all_siblings;
     int          row;
     int          show_project_popup;

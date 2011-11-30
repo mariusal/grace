@@ -98,6 +98,7 @@ static int highlight_cb(TreeEvent *event)
     int count;
     Quark *q = NULL;
     int fid = -1;
+    int parent_fid = -1;
     int all_shown = TRUE;
     int all_hidden = TRUE;
 
@@ -105,6 +106,7 @@ static int highlight_cb(TreeEvent *event)
     count = items.count;
     
     ui->homogeneous_selection = TRUE;
+    ui->homogeneous_parent = TRUE;
     ui->all_siblings = TRUE;
     ui->show_project_popup = FALSE;
 
@@ -115,6 +117,7 @@ static int highlight_cb(TreeEvent *event)
         q = TreeGetQuark(items.items[0]);
         fid = quark_fid_get(q);
         parent = quark_parent_get(q);
+        parent_fid = quark_fid_get(parent);
         all_shown  = quark_is_active(q);
         all_hidden = !all_shown;
 
@@ -123,6 +126,9 @@ static int highlight_cb(TreeEvent *event)
             
             if ((int) quark_fid_get(q) != fid) {
                 ui->homogeneous_selection = FALSE;
+            }
+            if ((int) quark_fid_get(quark_parent_get(q)) != parent_fid) {
+                ui->homogeneous_parent = FALSE;
             }
             if (quark_parent_get(q) != parent) {
                 ui->all_siblings = FALSE;
@@ -320,43 +326,53 @@ static void add_to_list(GProject **gplist, int *gpcount, GProject *gp)
 static int drop_cb(TreeEvent *event)
 {
     ExplorerUI *ui = (ExplorerUI *) event->anydata;
-    TreeItem *item = (TreeItem *) event->udata;
-    Quark *drop_q = TreeGetQuark(item);
-    GProject *drop_gp = gproject_from_quark(drop_q);
 
     int gpcount = 0;
     GProject **gplist;
 
-    if (ui->homogeneous_selection) {
+    if (ui->homogeneous_parent) {
         int count;
         TreeItemList items;
 
         TreeGetHighlighted(ui->tree, &items);
         count = items.count;
         if (count > 0) {
-            Quark *parent;
-
-            parent = quark_parent_get(TreeGetQuark(items.items[0]));
+            TreeItem *item = (TreeItem *) event->udata;
+            Quark *drop_q = TreeGetQuark(item);
+            Quark *drop_parent = quark_parent_get(drop_q);
+            GProject *drop_gp = gproject_from_quark(drop_q);
+            Quark *parent = quark_parent_get(TreeGetQuark(items.items[0]));
 
             gplist = xmalloc(gapp->gpcount*sizeof(GProject));
             if (!gplist) {
                 return FALSE;
             }
 
-            if (parent && parent != drop_q &&
-                quark_fid_get(parent) == quark_fid_get(drop_q)) {
-                int i;
+            if (parent) {
+                int i, id;
+                Quark *newparent;
+
+                if (quark_fid_get(parent) == quark_fid_get(drop_q)) {
+                    id = 0;
+                    newparent = drop_q;
+                } else if (quark_fid_get(parent) == quark_fid_get(drop_parent)) {
+                    id = quark_get_id(drop_q) + 1;
+                    newparent = quark_parent_get(drop_q);
+                } else {
+                    printf("fids are return false");
+                    return FALSE;
+                }
 
                 for (i = 0; i < count; i++) {
                     Quark *q = TreeGetQuark(items.items[i]);
 
                     switch (event->drop_action) {
                     case DROP_ACTION_COPY:
-                        quark_copy2(drop_q, q);
+                        quark_copy2(q, newparent, id);
                         break;
                     case DROP_ACTION_MOVE:
                         add_to_list(gplist, &gpcount, gproject_from_quark(q));
-                        quark_reparent(q, drop_q);
+                        quark_move2(q, newparent, id);
                         break;
                     default:
                         errmsg("unknown drop type");
@@ -419,7 +435,7 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     Quark *qparent = quark_parent_get(q);
     int row;
 
-    row = (quark_fid_get(qparent) == QFlavorContainer) ? eui->row : -1;
+    row = (quark_fid_get(qparent) == QFlavorContainer) ? eui->row : quark_get_id(q);
     item = TreeInsertItem(eui->tree, quark_get_udata(qparent), q, row);
 
     init_item(eui, item, q);

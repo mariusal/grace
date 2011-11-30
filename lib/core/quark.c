@@ -62,7 +62,7 @@ static void quark_call_cblist(Quark *q, int etype)
 }
 
 static Quark *quark_new_raw(AMem *amem,
-    Quark *parent, unsigned int fid, void *data)
+    Quark *parent, unsigned int fid, void *data, int id)
 {
     Quark *q;
 
@@ -92,7 +92,11 @@ static Quark *quark_new_raw(AMem *amem,
             q->parent   = parent;
             q->qfactory = parent->qfactory;
             parent->refcount++;
-            storage_add(parent->children, q);
+            if (id == -1) {
+                storage_add(parent->children, q);
+            } else {
+                storage_insert(parent->children, q, id);
+            }
             
             quark_dirtystate_set(parent, TRUE);
         }
@@ -113,7 +117,7 @@ Quark *quark_root(Quark *parent, int mmodel, QuarkFactory *qfactory, unsigned in
     qf = quark_flavor_get(qfactory, fid);
     
     data = qf->data_new(amem);
-    q = quark_new_raw(amem, parent, fid, data);
+    q = quark_new_raw(amem, parent, fid, data, -1);
     q->qfactory = qfactory;
 
     quark_call_cblist(q, QUARK_ETYPE_NEW);
@@ -138,7 +142,7 @@ Quark *quark_new(Quark *parent, unsigned int fid)
     }
     
     data = qf->data_new(parent->amem);
-    q = quark_new_raw(parent->amem, parent, fid, data);
+    q = quark_new_raw(parent->amem, parent, fid, data, -1);
 
     quark_call_cblist(q, QUARK_ETYPE_NEW);
 
@@ -233,12 +237,12 @@ static int copy_hook(unsigned int step, void *data, void *udata)
     Quark *newparent = (Quark *) udata;
     Quark *newchild;
 
-    newchild = quark_copy2(newparent, child);
+    newchild = quark_copy2(child, newparent, -1);
         
     return TRUE;
 }
 
-Quark *quark_copy2(Quark *newparent, const Quark *q)
+Quark *quark_copy2(const Quark *q, Quark *newparent, int id)
 {
     Quark *new;
     QuarkFlavor *qf;
@@ -246,7 +250,7 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
     
     qf = quark_flavor_get(q->qfactory, q->fid);
     data = qf->data_copy(q->amem, q->data);
-    new = quark_new_raw(newparent->amem, newparent, q->fid, data);
+    new = quark_new_raw(newparent->amem, newparent, q->fid, data, id);
     new->active = q->active;
 
     new->cblist = amem_malloc(new->amem, q->cbcount*sizeof(QuarkCBEntry));
@@ -272,7 +276,7 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
 
 Quark *quark_copy(const Quark *q)
 {
-    return quark_copy2(q->parent, q);
+    return quark_copy2(q, q->parent, quark_get_id(q) + 1);
 }
 
 static int dirtystate_hook(unsigned int step, void *data, void *udata)
