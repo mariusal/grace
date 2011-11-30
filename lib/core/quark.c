@@ -614,7 +614,7 @@ int quark_move2(Quark *q, Quark *newparent, int id)
     int old_id;
 
     if (!q || !newparent || q == newparent ||
-        id < 0 || id >= newparent->refcount) {
+        id < 0 || id > newparent->refcount) {
         return RETURN_FAILURE;
     }
 
