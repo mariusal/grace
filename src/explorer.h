@@ -402,7 +402,6 @@ struct _ExplorerUI {
     int          homogeneous_selection;
     int          homogeneous_parent;
     int          all_siblings;
-    int          row;
     int          show_project_popup;
 
     ProjectUI    *project_ui;

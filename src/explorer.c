@@ -433,10 +433,8 @@ static int create_hook(Quark *q, void *udata, QTraverseClosure *closure)
     TreeItem *item;
     ExplorerUI *eui = (ExplorerUI *) udata;
     Quark *qparent = quark_parent_get(q);
-    int row;
 
-    row = (quark_fid_get(qparent) == QFlavorContainer) ? eui->row : quark_get_id(q);
-    item = TreeInsertItem(eui->tree, quark_get_udata(qparent), q, row);
+    item = TreeInsertItem(eui->tree, quark_get_udata(qparent), q, quark_get_id(q));
 
     init_item(eui, item, q);
 
@@ -525,7 +523,6 @@ static int explorer_cb(Quark *q, int etype, void *udata)
 
 static void init_quark_tree(ExplorerUI *eui)
 {
-    eui->row = -1;
     storage_traverse(quark_get_children(gapp->pc), create_children_hook, eui);
     quark_cb_add(gapp->pc, explorer_cb, eui);
 }
@@ -659,21 +656,13 @@ static int explorer_aac(void *data)
 void explorer_before_undo(GraceApp *gapp, Quark *pr)
 {
     ExplorerUI *eui = gapp->gui->eui;
-    TreeItem *item;
 
     if (!eui) {
         return;
     }
 
     explorer_save_quark_state(eui);
-
-    item = quark_get_udata(pr);
-    if (item) {
-        eui->row = quark_get_id(pr);
-        TreeDeleteItem(eui->tree, item);
-    } else {
-        errmsg("Can't delete the project tree");
-    }
+    TreeDeleteItem(eui->tree, quark_get_udata(pr));
 }
 
 void explorer_after_undo(GraceApp *gapp, Quark *pr)
@@ -685,7 +674,6 @@ void explorer_after_undo(GraceApp *gapp, Quark *pr)
     }
 
     quark_traverse(pr, create_hook, eui);
-    eui->row = -1;
     explorer_restore_quark_state(eui);
 }
 
