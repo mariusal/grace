@@ -285,8 +285,12 @@ public:
         drop_cbdata = cbdata;
     }
 
+signals:
+    void released(const QModelIndex &index);
+
 protected:
     void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);

@@ -8816,6 +8816,12 @@ void TreeView::mousePressEvent(QMouseEvent *event)
     }
 }
 
+void TreeView::mouseReleaseEvent(QMouseEvent *event)
+{
+    emit released(indexAt(event->pos()));
+    QTreeView::mouseReleaseEvent(event);
+}
+
 void TreeView::mouseMoveEvent(QMouseEvent *event)
 {
     QPersistentModelIndex index = indexAt(event->pos());
@@ -9011,7 +9017,7 @@ void TreeSelectItem(Widget w, TreeItem *item)
     QModelIndex index = model->indexFromItem(treeItem);
     selectionModel->setCurrentIndex(index, QItemSelectionModel::Select);
 
-    QMetaObject::invokeMethod(treeView, "pressed", Qt::QueuedConnection,
+    QMetaObject::invokeMethod(treeView, "released", Qt::QueuedConnection,
                               Q_ARG(const QModelIndex&, index));
 }
 
@@ -9083,7 +9089,7 @@ void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    QtAddCallback(w, SIGNAL(pressed(const QModelIndex&)),
+    QtAddCallback(w, SIGNAL(released(const QModelIndex&)),
                   tree_highlight_cb_proc, (XtPointer) cbdata);
 }
 
