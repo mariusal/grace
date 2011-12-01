@@ -303,6 +303,7 @@ void undo_cb(Widget but, void *data)
     explorer_before_undo(gapp, pr);
     amem_undo(amem);
     explorer_after_undo(gapp, pr);
+    quark_set_active2(pr, TRUE);
 
     xdrawgraph(gapp->gp);
     update_all();
@@ -317,6 +318,7 @@ void redo_cb(Widget but, void *data)
     explorer_before_undo(gapp, pr);
     amem_redo(amem);
     explorer_after_undo(gapp, pr);
+    quark_set_active2(pr, TRUE);
 
     xdrawgraph(gapp->gp);
     update_all();
