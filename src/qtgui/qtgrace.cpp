@@ -8986,7 +8986,7 @@ Quark *TreeGetQuark(TreeItem *item)
 
 void TreeGetHighlighted(Widget w, TreeItemList *items)
 {
-    QTreeView *treeView = (TreeView *) w;
+    TreeView *treeView = (TreeView *) w;
     QStandardItemModel *model = (QStandardItemModel *) treeView->model();
     QItemSelectionModel *selectionModel = treeView->selectionModel();
 
@@ -9000,7 +9000,7 @@ void TreeGetHighlighted(Widget w, TreeItemList *items)
 
 void TreeSelectItem(Widget w, TreeItem *item)
 {
-    QTreeView *treeView = (TreeView *) w;
+    TreeView *treeView = (TreeView *) w;
     QStandardItemModel *model = (QStandardItemModel *) treeView->model();
     QItemSelectionModel *selectionModel = treeView->selectionModel();
     QStandardItem *treeItem = (QStandardItem *) item;
@@ -9017,14 +9017,14 @@ void TreeSelectItem(Widget w, TreeItem *item)
 
 void TreeClearSelection(Widget w)
 {
-    QTreeView *treeView = (TreeView *) w;
+    TreeView *treeView = (TreeView *) w;
 
     treeView->clearSelection();
 }
 
 void TreeScrollToItem(Widget w, TreeItem *item)
 {
-    QTreeView *treeView = (TreeView *) w;
+    TreeView *treeView = (TreeView *) w;
     QStandardItemModel *model = (QStandardItemModel *) treeView->model();
     QStandardItem *treeItem = (QStandardItem *) item;
 
