@@ -215,17 +215,9 @@ static int highlight_cb(TreeEvent *event)
     if (!count || !ui->all_siblings) {
         SetSensitive(ui->popup_delete_bt,         FALSE);
         SetSensitive(ui->popup_duplicate_bt,      FALSE);
-        SetSensitive(ui->popup_bring_to_front_bt, FALSE);
-        SetSensitive(ui->popup_send_to_back_bt,   FALSE);
-        SetSensitive(ui->popup_move_up_bt,        FALSE);
-        SetSensitive(ui->popup_move_down_bt,      FALSE);
     } else {
         SetSensitive(ui->popup_delete_bt,         TRUE);
         SetSensitive(ui->popup_duplicate_bt,      TRUE);
-        SetSensitive(ui->popup_bring_to_front_bt, TRUE);
-        SetSensitive(ui->popup_send_to_back_bt,   TRUE);
-        SetSensitive(ui->popup_move_up_bt,        TRUE);
-        SetSensitive(ui->popup_move_down_bt,      TRUE);
     }
 
     if (all_shown) {
@@ -679,20 +671,16 @@ void explorer_after_undo(GraceApp *gapp, Quark *pr)
 #define SHOW_CB           1
 #define DELETE_CB         2
 #define DUPLICATE_CB      3
-#define BRING_TO_FRONT_CB 4
-#define SEND_TO_BACK_CB   5
-#define MOVE_UP_CB        6
-#define MOVE_DOWN_CB      7
-#define ADD_FRAME_CB      8
-#define ADD_GRAPH_CB      9
-#define ADD_SSD_CB       10
-#define ADD_SET_CB       11
-#define ADD_AXISGRID_CB  12
-#define ADD_AXIS_CB      13
-#define ADD_LINE_CB      14
-#define ADD_BOX_CB       15
-#define ADD_ARC_CB       16
-#define ADD_TEXT_CB      17
+#define ADD_FRAME_CB      4
+#define ADD_GRAPH_CB      5
+#define ADD_SSD_CB        6
+#define ADD_SET_CB        7
+#define ADD_AXISGRID_CB   8
+#define ADD_AXIS_CB       9
+#define ADD_LINE_CB      10
+#define ADD_BOX_CB       11
+#define ADD_ARC_CB       12
+#define ADD_TEXT_CB      13
 
 static void popup_any_cb(ExplorerUI *eui, int type)
 {
@@ -719,19 +707,8 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     }
     
     for (i = 0; i < count; i++) {
-        TreeItem *item;
         
-        switch (type) {
-        case SEND_TO_BACK_CB:
-        case MOVE_UP_CB:
-            item = items.items[count - i - 1];
-            break;
-        default:
-            item = items.items[i];
-            break;
-        }
-
-        q = TreeGetQuark(item);
+        q = TreeGetQuark(items.items[i]);
         gp = gproject_from_quark(q);
         add_to_list(gplist, &gpcount, gp);
         
@@ -744,18 +721,6 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             break;
         case DELETE_CB:
             quark_free(q);
-            break;
-        case BRING_TO_FRONT_CB:
-            quark_push(q, TRUE);
-            break;
-        case SEND_TO_BACK_CB:
-            quark_push(q, FALSE);
-            break;
-        case MOVE_UP_CB:
-            quark_move(q, TRUE);
-            break;
-        case MOVE_DOWN_CB:
-            quark_move(q, FALSE);
             break;
         case DUPLICATE_CB:
             quark_copy(q);
@@ -824,26 +789,6 @@ static void delete_cb(Widget but, void *udata)
 static void duplicate_cb(Widget but, void *udata)
 {
     popup_any_cb((ExplorerUI *) udata, DUPLICATE_CB);
-}
-
-static void bring_to_front_cb(Widget but, void *udata)
-{
-    popup_any_cb((ExplorerUI *) udata, BRING_TO_FRONT_CB);
-}
-
-static void send_to_back_cb(Widget but, void *udata)
-{
-    popup_any_cb((ExplorerUI *) udata, SEND_TO_BACK_CB);
-}
-
-static void move_up_cb(Widget but, void *udata)
-{
-    popup_any_cb((ExplorerUI *) udata, MOVE_UP_CB);
-}
-
-static void move_down_cb(Widget but, void *udata)
-{
-    popup_any_cb((ExplorerUI *) udata, MOVE_DOWN_CB);
 }
 
 static void add_frame_cb(Widget but, void *udata)
@@ -1149,17 +1094,6 @@ void raise_explorer(GUI *gui, Quark *q)
             "Delete", '\0', delete_cb, eui);
         eui->popup_duplicate_bt = CreateMenuButton(eui->popup,
             "Duplicate", '\0', duplicate_cb, eui);
-
-        CreateMenuSeparator(eui->popup);
-
-        eui->popup_bring_to_front_bt = CreateMenuButton(eui->popup,
-            "Bring to front", '\0', bring_to_front_cb, eui);
-        eui->popup_move_up_bt = CreateMenuButton(eui->popup,
-            "Move up", '\0', move_up_cb, eui);
-        eui->popup_move_down_bt = CreateMenuButton(eui->popup,
-            "Move down", '\0', move_down_cb, eui);
-        eui->popup_send_to_back_bt = CreateMenuButton(eui->popup,
-            "Send to back", '\0', send_to_back_cb, eui);
 
         /* Project menu popup */
         eui->project_popup = CreatePopupMenu(eui->tree);

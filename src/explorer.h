@@ -423,11 +423,6 @@ struct _ExplorerUI {
     Widget       popup_delete_bt;
     Widget       popup_duplicate_bt;
 
-    Widget       popup_bring_to_front_bt;
-    Widget       popup_send_to_back_bt;
-    Widget       popup_move_up_bt;
-    Widget       popup_move_down_bt;
-
     Widget       project_popup;
 
     Widget       project_popup_show_bt;
