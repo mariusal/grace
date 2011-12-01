@@ -5120,13 +5120,24 @@ void set_title(char *title, char *icon_name)
 }
 
 /* Tree Widget */
+typedef struct {
+    Widget w;
+    XtIntervalId timeout_id;
+} TreeRefresh_CBdata;
 
 Widget CreateTree(Widget parent)
 {
     Widget w;
+    TreeRefresh_CBdata *cbdata;
 
     w = XmCreateScrolledListTree(parent, "tree", NULL, 0);
     ListTreeRefreshOff(w);
+
+    cbdata = (TreeRefresh_CBdata *) xmalloc(sizeof(TreeRefresh_CBdata));
+    cbdata->w = w;
+    cbdata->timeout_id = (XtIntervalId) 0;
+
+    SetUserData(w, cbdata);
 
     return w;
 }
@@ -5219,6 +5230,10 @@ void TreeScrollToItem(Widget w, TreeItem *item)
     ListTreeItem *titem = item;
     int top, visible;
 
+    ListTreeRefreshOn(w);
+    ListTreeRefresh(w);
+    ListTreeRefreshOff(w);
+
     XtVaGetValues(w,
                   XtNtopItemPosition, &top,
                   XtNvisibleItemCount, &visible,
@@ -5232,11 +5247,28 @@ void TreeScrollToItem(Widget w, TreeItem *item)
         }
 }
 
+static void tree_refresh_timer_proc(XtPointer client_data, XtIntervalId *id)
+{
+    TreeRefresh_CBdata *cbdata = (TreeRefresh_CBdata *) client_data;
+
+    ListTreeRefreshOn(cbdata->w);
+    ListTreeRefresh(cbdata->w);
+    ListTreeRefreshOff(cbdata->w);
+
+    cbdata->timeout_id = (XtIntervalId) 0;
+}
+
 void TreeRefresh(Widget w)
 {
-    ListTreeRefreshOn(w);
-    ListTreeRefresh(w);
-    ListTreeRefreshOff(w);
+    TreeRefresh_CBdata *cbdata;
+
+    cbdata = (TreeRefresh_CBdata *) GetUserData(w);
+
+    if (cbdata->timeout_id) {
+        XtRemoveTimeOut(cbdata->timeout_id);
+    }
+    cbdata->timeout_id = XtAppAddTimeOut(app_con,
+        100 /* 0.1 second */, tree_refresh_timer_proc, cbdata);
 }
 
 static void tree_context_menu_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
@@ -5251,7 +5283,6 @@ static void tree_context_menu_cb_proc(Widget w, XtPointer client_data, XtPointer
     event.udata = xbe;
 
     cbdata->cbproc(&event);
-    TreeRefresh(cbdata->w);
 }
 
 void AddTreeContextMenuCB(Widget w, Tree_CBProc cbproc, void *anydata)
