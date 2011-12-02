@@ -1080,8 +1080,33 @@ static GProject *load_project_file(GraceApp *gapp, const char *fn, int as_templa
 
 int load_project(GraceApp *gapp, char *fn)
 {
-    GProject *gp = load_project_file(gapp, fn, FALSE);
+    unsigned int i;
+    int is_open;
+    char *epath;
+    char *docname;
+    GProject *gp;
 
+    is_open = FALSE;
+    epath = grace_path(gapp->grace, fn);
+
+    for (i = 0; i < gapp->gpcount; i++) {
+        docname = gproject_get_docname(gapp->gplist[i]);
+        if (epath && docname && !strcmp(epath, docname)) {
+            is_open = TRUE;
+            break;
+        }
+    }
+    xfree(epath);
+
+    if (is_open && gapp->gplist[i] != gapp->gp) {
+        gapp_set_active_gproject(gapp, gapp->gplist[i]);
+    }
+
+    if (is_open) {
+        return RETURN_SUCCESS;
+    }
+
+    gp = load_project_file(gapp, fn, FALSE);
     if (gp) {
         gapp_set_active_gproject(gapp, gp);
 

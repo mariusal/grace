@@ -258,33 +258,6 @@ void create_openproject_popup(void)
  */
 static int open_proc(FSBStructure *fsb, char *filename, void *data)
 {
-    unsigned int i;
-    int is_open;
-    char *epath;
-    char *docname;
-
-    is_open = FALSE;
-    epath = grace_path(gapp->grace, filename);
-
-    for (i = 0; i < gapp->gpcount; i++) {
-        docname = gproject_get_docname(gapp->gplist[i]);
-        if (epath && docname && !strcmp(epath, docname)) {
-            is_open = TRUE;
-            break;
-        }
-    }
-    xfree(epath);
-
-    if (is_open && gapp->gplist[i] != gapp->gp) {
-        gapp_set_active_gproject(gapp, gapp->gplist[i]);
-        xdrawgraph(gapp->gp);
-        update_all();
-    }
-
-    if (is_open) {
-        return TRUE;
-    }
-
     if (load_project(gapp, filename) == RETURN_SUCCESS) {
         xdrawgraph(gapp->gp);
         update_all();
