@@ -374,7 +374,6 @@ static int drop_cb(TreeEvent *event)
                     id = quark_get_id(drop_q) + 1;
                     newparent = quark_parent_get(drop_q);
                 } else {
-                    printf("fids are return false");
                     return FALSE;
                 }
 
@@ -527,8 +526,6 @@ static int explorer_cb(Quark *q, int etype, void *udata)
 
         explorer_restore_quark_state(eui);
         break;
-    default:
-        printf("Else event Quark\n");
     }
 
     TreeRefresh(eui->tree);
