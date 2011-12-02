@@ -399,9 +399,7 @@ struct _ExplorerUI {
     TextStructure *idstr;
     Widget       scrolled_window;
     
-    int          homogeneous_selection;
     int          homogeneous_parent;
-    int          all_siblings;
     int          show_project_popup;
 
     ProjectUI    *project_ui;

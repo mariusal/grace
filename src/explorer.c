@@ -99,15 +99,15 @@ static int highlight_cb(TreeEvent *event)
     Quark *q = NULL;
     int fid = -1;
     int parent_fid = -1;
+    int homogeneous_selection = TRUE;
+    int all_siblings = TRUE;
     int all_shown = TRUE;
     int all_hidden = TRUE;
 
     TreeGetHighlighted(event->w, &items);
     count = items.count;
     
-    ui->homogeneous_selection = TRUE;
     ui->homogeneous_parent = TRUE;
-    ui->all_siblings = TRUE;
     ui->show_project_popup = FALSE;
 
     if (count > 0) {
@@ -125,13 +125,13 @@ static int highlight_cb(TreeEvent *event)
             q = TreeGetQuark(items.items[i]);
             
             if ((int) quark_fid_get(q) != fid) {
-                ui->homogeneous_selection = FALSE;
+                homogeneous_selection = FALSE;
             }
             if ((int) quark_fid_get(quark_parent_get(q)) != parent_fid) {
                 ui->homogeneous_parent = FALSE;
             }
             if (quark_parent_get(q) != parent) {
-                ui->all_siblings = FALSE;
+                all_siblings = FALSE;
             }
             if (quark_is_active(q)) {
                 all_hidden = FALSE;
@@ -142,7 +142,7 @@ static int highlight_cb(TreeEvent *event)
     }
     xfree(items.items);
 
-    if (!count || !ui->homogeneous_selection) {
+    if (!count || !homogeneous_selection) {
         SetSensitive(ui->aacbuts[0], FALSE);
         SetSensitive(ui->aacbuts[1], FALSE);
         
@@ -212,7 +212,7 @@ static int highlight_cb(TreeEvent *event)
         SetSensitive(ui->popup_show_bt, !all_shown);
     }
 
-    if (!count || !ui->all_siblings) {
+    if (!count || !all_siblings) {
         SetSensitive(ui->popup_delete_bt,         FALSE);
         SetSensitive(ui->popup_duplicate_bt,      FALSE);
     } else {
