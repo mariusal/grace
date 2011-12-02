@@ -1786,11 +1786,17 @@ InsertChild(ListTreeWidget w, ListTreeItem *parent, ListTreeItem *item, int row)
       i->nextsibling = item;
       item->prevsibling = i;
       item->nextsibling = next;
+      if (next) {
+          next->prevsibling = item;
+      }
     }
     else {
       next = parent->firstchild;
       parent->firstchild = item;
       item->nextsibling = next;
+      if (next) {
+          next->prevsibling = item;
+      }
     }
 
   }
@@ -1805,11 +1811,17 @@ InsertChild(ListTreeWidget w, ListTreeItem *parent, ListTreeItem *item, int row)
       i->nextsibling = item;
       item->prevsibling = i;
       item->nextsibling = next;
+      if (next) {
+          next->prevsibling = item;
+      }
     }
     else {
       next = w->list.first;
       w->list.first = w->list.topItem = item;
       item->nextsibling = next;
+      if (next) {
+          next->prevsibling = item;
+      }
     }
   }
   w->list.recount = True;
