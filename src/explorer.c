@@ -127,21 +127,21 @@ static int highlight_cb(TreeEvent *event)
         }
 
         for (i = 1; i < count; i++) {
-            q = TreeGetQuark(items.items[i]);
+            Quark *iq = TreeGetQuark(items.items[i]);
             
-            if ((int) quark_fid_get(q) != fid) {
+            if ((int) quark_fid_get(iq) != fid) {
                 homogeneous_selection = FALSE;
             }
-            if ((int) quark_fid_get(quark_parent_get(q)) != parent_fid) {
+            if ((int) quark_fid_get(quark_parent_get(iq)) != parent_fid) {
                 ui->homogeneous_parent = FALSE;
             }
-            if (quark_fid_get(q) == QFlavorProject) {
+            if (quark_fid_get(iq) == QFlavorProject) {
                 any_fid_project = TRUE;
             }
-            if (quark_parent_get(q) != parent) {
+            if (quark_parent_get(iq) != parent) {
                 all_siblings = FALSE;
             }
-            if (quark_is_active(q)) {
+            if (quark_is_active(iq)) {
                 all_hidden = FALSE;
             } else {
                 all_shown = FALSE;
@@ -156,59 +156,58 @@ static int highlight_cb(TreeEvent *event)
         
         manage_plugin(ui, NULL);
     } else {
+        Widget managed_top;
+
         SetSensitive(ui->aacbuts[0], TRUE);
         SetSensitive(ui->aacbuts[1], TRUE);
         
-        if (count == 1) {
-            Widget managed_top;
-            switch (fid) {
-            case QFlavorProject:
-                update_project_ui(ui->project_ui, q);
-                managed_top = ui->project_ui->top;
-                break;
-            case QFlavorSSD:
-                update_ssd_ui(ui->ssd_ui, q);
-                managed_top = ui->ssd_ui->top;
-                break;
-            case QFlavorFrame:
-                update_frame_ui(ui->frame_ui, q);
-                managed_top = ui->frame_ui->top;
-                break;
-            case QFlavorGraph:
-                update_graph_ui(ui->graph_ui, q);
-                managed_top = ui->graph_ui->top;
-                break;
-            case QFlavorSet:
-                update_set_ui(ui->set_ui, q);
-                managed_top = ui->set_ui->top;
-                break;
-            case QFlavorAGrid:
-                update_axisgrid_ui(ui->axisgrid_ui, q);
-                managed_top = ui->axisgrid_ui->top;
-                break;
-            case QFlavorAxis:
-                update_axis_ui(ui->axis_ui, q);
-                managed_top = ui->axis_ui->top;
-                break;
-            case QFlavorDObject:
-                update_object_ui(ui->object_ui, q);
-                managed_top = ui->object_ui->top;
-                break;
-            case QFlavorAText:
-                update_atext_ui(ui->atext_ui, q);
-                managed_top = ui->atext_ui->top;
-                break;
-            case QFlavorRegion:
-                update_region_ui(ui->region_ui, q);
-                managed_top = ui->region_ui->top;
-                break;
-            default:
-                managed_top = NULL;
-                break;
-            }
-            
-            manage_plugin(ui, managed_top);
+        switch (fid) {
+        case QFlavorProject:
+            update_project_ui(ui->project_ui, q);
+            managed_top = ui->project_ui->top;
+            break;
+        case QFlavorSSD:
+            update_ssd_ui(ui->ssd_ui, q);
+            managed_top = ui->ssd_ui->top;
+            break;
+        case QFlavorFrame:
+            update_frame_ui(ui->frame_ui, q);
+            managed_top = ui->frame_ui->top;
+            break;
+        case QFlavorGraph:
+            update_graph_ui(ui->graph_ui, q);
+            managed_top = ui->graph_ui->top;
+            break;
+        case QFlavorSet:
+            update_set_ui(ui->set_ui, q);
+            managed_top = ui->set_ui->top;
+            break;
+        case QFlavorAGrid:
+            update_axisgrid_ui(ui->axisgrid_ui, q);
+            managed_top = ui->axisgrid_ui->top;
+            break;
+        case QFlavorAxis:
+            update_axis_ui(ui->axis_ui, q);
+            managed_top = ui->axis_ui->top;
+            break;
+        case QFlavorDObject:
+            update_object_ui(ui->object_ui, q);
+            managed_top = ui->object_ui->top;
+            break;
+        case QFlavorAText:
+            update_atext_ui(ui->atext_ui, q);
+            managed_top = ui->atext_ui->top;
+            break;
+        case QFlavorRegion:
+            update_region_ui(ui->region_ui, q);
+            managed_top = ui->region_ui->top;
+            break;
+        default:
+            managed_top = NULL;
+            break;
         }
+
+        manage_plugin(ui, managed_top);
     }
 
     if (!count) {
