@@ -100,6 +100,7 @@ static int highlight_cb(TreeEvent *event)
     int fid = -1;
     int parent_fid = -1;
     int homogeneous_selection = TRUE;
+    int any_fid_project = FALSE;
     int all_siblings = TRUE;
     int all_shown = TRUE;
     int all_hidden = TRUE;
@@ -121,6 +122,10 @@ static int highlight_cb(TreeEvent *event)
         all_shown  = quark_is_active(q);
         all_hidden = !all_shown;
 
+        if (fid == QFlavorProject) {
+            any_fid_project = TRUE;
+        }
+
         for (i = 1; i < count; i++) {
             q = TreeGetQuark(items.items[i]);
             
@@ -129,6 +134,9 @@ static int highlight_cb(TreeEvent *event)
             }
             if ((int) quark_fid_get(quark_parent_get(q)) != parent_fid) {
                 ui->homogeneous_parent = FALSE;
+            }
+            if (quark_fid_get(q) == QFlavorProject) {
+                any_fid_project = TRUE;
             }
             if (quark_parent_get(q) != parent) {
                 all_siblings = FALSE;
@@ -157,7 +165,6 @@ static int highlight_cb(TreeEvent *event)
             case QFlavorProject:
                 update_project_ui(ui->project_ui, q);
                 managed_top = ui->project_ui->top;
-                ui->show_project_popup = TRUE;
                 break;
             case QFlavorSSD:
                 update_ssd_ui(ui->ssd_ui, q);
@@ -220,17 +227,34 @@ static int highlight_cb(TreeEvent *event)
         SetSensitive(ui->popup_duplicate_bt,      TRUE);
     }
 
-    if (all_shown) {
-        SetSensitive(ui->project_popup_show_bt,   FALSE);
-    } else {
-        SetSensitive(ui->project_popup_show_bt,   TRUE);
+
+    SetSensitive(ui->project_popup_show_bt,            FALSE);
+    SetSensitive(ui->project_popup_save_bt,            FALSE);
+    SetSensitive(ui->project_popup_save_as_bt,         FALSE);
+    SetSensitive(ui->project_popup_revert_to_saved_bt, FALSE);
+    SetSensitive(ui->project_popup_close_bt,           FALSE);
+    if (any_fid_project) {
+        ui->show_project_popup = TRUE;
     }
 
-    if (gapp->gpcount > 1) {
-        SetSensitive(ui->project_popup_close_bt,  TRUE);
-    } else {
-        SetSensitive(ui->project_popup_close_bt,  FALSE);
+    if (count == 1 && fid == QFlavorProject) {
+        if (all_shown) {
+            SetSensitive(ui->project_popup_show_bt,   FALSE);
+        } else {
+            SetSensitive(ui->project_popup_show_bt,   TRUE);
+        }
+
+        SetSensitive(ui->project_popup_save_bt,            TRUE);
+        SetSensitive(ui->project_popup_save_as_bt,         TRUE);
+        SetSensitive(ui->project_popup_revert_to_saved_bt, TRUE);
+
+        if (gapp->gpcount > 1) {
+            SetSensitive(ui->project_popup_close_bt,  TRUE);
+        } else {
+            SetSensitive(ui->project_popup_close_bt,  FALSE);
+        }
     }
+
 
     SetSensitive(ui->insert_frame_bt,    FALSE);
     SetSensitive(ui->insert_graph_bt,    FALSE);
