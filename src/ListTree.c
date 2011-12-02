@@ -1776,7 +1776,7 @@ InsertChild(ListTreeWidget w, ListTreeItem *parent, ListTreeItem *item, int row)
   item->parent = parent;
   item->nextsibling = item->prevsibling = NULL;
   if (parent) {
-    if (parent->firstchild && row != 0) {
+    if (parent->firstchild && (row != 0 || row == -1)) {
       i = parent->firstchild;
       while (i->nextsibling && irow < row) {
 	i = i->nextsibling;
@@ -1797,7 +1797,7 @@ InsertChild(ListTreeWidget w, ListTreeItem *parent, ListTreeItem *item, int row)
   else {			/* if parent==NULL, this is a top level entry */
     if (w->list.first && row != 0) {
       i = w->list.first;
-      while (i->nextsibling && irow < row) {
+      while (i->nextsibling && (irow < row || row == -1)) {
 	i = i->nextsibling;
         irow++;
       }
