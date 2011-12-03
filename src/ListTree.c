@@ -516,6 +516,7 @@ Initialize(Widget request, Widget tnew, ArgList args, Cardinal * num)
   w = (ListTreeWidget) tnew;
 
   w->list.ret_item_list = NULL;
+  w->list.ret_item_count = 0;
   w->list.ret_item_alloc = 0;
   w->list.first = w->list.highlighted = w->list.topItem = NULL;
   w->list.topItemPos = w->list.lastItemPos = w->list.bottomItemPos =
@@ -871,17 +872,60 @@ TreeCheck(ListTreeWidget w, char *txt)
 /* Highlighting Utilities ----------------------------------------------- */
 
 static void
+AddItemToReturnList(ListTreeWidget w, ListTreeItem * item, int loc)
+{
+  if (loc >= w->list.ret_item_alloc) {
+    w->list.ret_item_alloc += ListTreeRET_ALLOC;
+    w->list.ret_item_list = (ListTreeItem **) XtRealloc((char *) w->list.ret_item_list, w->list.ret_item_alloc * sizeof(ListTreeItem *));
+  }
+  w->list.ret_item_list[loc] = item;
+}
+
+static void
+MultiAddToReturn(ListTreeWidget w, ListTreeItem * item)
+{
+  AddItemToReturnList(w, item, w->list.ret_item_count);
+  w->list.ret_item_count++;
+}
+
+static void
+MultiRemoveFromReturn(ListTreeWidget w, ListTreeItem * item)
+{
+    int i, move = FALSE;
+
+    for (i = 0; i < w->list.ret_item_count; i++) {
+        if (w->list.ret_item_list[i] == item) {
+            move = TRUE;
+        }
+
+        if (move) {
+            w->list.ret_item_list[i] = w->list.ret_item_list[i + 1];
+        }
+    }
+
+    if (move) {
+        w->list.ret_item_count--;
+    }
+}
+
+static void
 HighlightItem(ListTreeWidget w, ListTreeItem * item, Boolean state, Boolean draw)
 {
   if (item) {
     if (item == w->list.highlighted && !state) {
       w->list.highlighted = NULL;
+      MultiRemoveFromReturn(w, item);
       if (draw && item->count>=w->list.topItemPos)
 	DrawItemHighlightClear(w, item);
     }
     else if (state != item->highlighted) {
       /*      printf("Highlighting '%s' state=%d x=%d y=%d\n", item->text, draw, item->x, item->ytext); */
       item->highlighted = state;
+      if (state) {
+          MultiAddToReturn(w, item);
+      } else {
+          MultiRemoveFromReturn(w, item);
+      }
       if (draw &&
         item->count>=w->list.topItemPos &&
         item->count<=w->list.bottomItemPos) DrawItemHighlightClear(w, item);
@@ -942,50 +986,10 @@ HighlightAllVisible(ListTreeWidget w, Boolean state, Boolean draw)
 }
 
 static void
-AddItemToReturnList(ListTreeWidget w, ListTreeItem * item, int loc)
-{
-  if (loc >= w->list.ret_item_alloc) {
-    w->list.ret_item_alloc += ListTreeRET_ALLOC;
-    w->list.ret_item_list = (ListTreeItem **) XtRealloc((char *) w->list.ret_item_list, w->list.ret_item_alloc * sizeof(ListTreeItem *));
-  }
-  w->list.ret_item_list[loc] = item;
-}
-
-static void
-MultiAddToReturn(ListTreeWidget w, ListTreeItem * item, ListTreeMultiReturnStruct * ret)
-{
-  AddItemToReturnList(w, item, ret->count);
-  ret->items = w->list.ret_item_list;
-  ret->count++;
-}
-
-static void
-HighlightCount(ListTreeWidget w, ListTreeItem * item, ListTreeMultiReturnStruct * ret)
-{
-  while (item) {
-    if (item->highlighted)
-      MultiAddToReturn(w, item, ret);
-    if (item->firstchild && item->open)
-      HighlightCount(w, item->firstchild, ret);
-    item = item->nextsibling;
-  }
-}
-
-static void
 MakeMultiCallbackStruct(ListTreeWidget w, ListTreeMultiReturnStruct * ret)
 {
-  ListTreeItem *item;
-
-  ret->items = NULL;
-  ret->count = 0;
-  item = w->list.first;
-  while (item) {
-    if (item->highlighted)
-      MultiAddToReturn(w, item, ret);
-    if (item->firstchild && item->open)
-      HighlightCount(w, item->firstchild, ret);
-    item = item->nextsibling;
-  }
+  ret->items = w->list.ret_item_list;
+  ret->count = w->list.ret_item_count;
 }
 
 static void
@@ -1005,6 +1009,7 @@ HighlightDoCallback(ListTreeWidget w)
 static void
 MakeActivateCallbackStruct(ListTreeWidget w, ListTreeItem * item, ListTreeActivateStruct * ret)
 {
+  ListTreeItem **items;
   int count;
   ListTreeItem *parent;
 
@@ -1022,12 +1027,13 @@ MakeActivateCallbackStruct(ListTreeWidget w, ListTreeItem * item, ListTreeActiva
     ret->reason = XtBRANCH;
   else
     ret->reason = XtLEAF;
+  items = (ListTreeItem **) XtMalloc(count * sizeof(ListTreeItem *));
   while (count > 0) {
     count--;
-    AddItemToReturnList(w, item, count);
+    items[count] = item;
     item = item->parent;
   }
-  ret->path = w->list.ret_item_list;
+  ret->path = items;
 }
 
 static void
@@ -1043,6 +1049,8 @@ SelectDouble(ListTreeWidget w, Boolean highlight_selected)
     if (highlight_selected ||
         (!item->firstchild && item->type != ItemBranchType)) {
       w->list.highlighted = item;
+      MultiRemoveFromReturn(w, item);
+      MultiAddToReturn(w, item);
       HighlightAll(w, False, True);
     }
 
@@ -1063,10 +1071,13 @@ SelectDouble(ListTreeWidget w, Boolean highlight_selected)
     if (w->list.ActivateCallback) {
       XtCallCallbacks((Widget) w, XtNactivateCallback, (XtPointer) & ret);
     }
-    
+    XtFree((char *) ret.path);
+
     if (highlight_selected ||
         (!item->firstchild && item->type != ItemBranchType)) {
       item->highlighted = True;
+      MultiRemoveFromReturn(w, item);
+      MultiAddToReturn(w, item);
     }
     w->list.recount = True;
     DrawChanged(w);
@@ -1760,6 +1771,10 @@ DeleteChildren(ListTreeWidget w, ListTreeItem *item)
       XtCallCallbacks((Widget) w, XtNdestroyItemCallback, &ret);
     }
 
+    if (item->highlighted) {
+        MultiRemoveFromReturn(w, item);
+    }
+
     XtFree((char *) item->text);
     XtFree((char *) item);
     item = sibling;
@@ -2113,6 +2128,10 @@ ListTreeDelete(Widget w, ListTreeItem * item)
   item->firstchild = NULL;
 
   RemoveReference((ListTreeWidget)w, item);
+
+  if (item->highlighted) {
+      MultiRemoveFromReturn((ListTreeWidget)w, item);
+  }
 
   XtFree((char *) item->text);
   XtFree((char *) item);

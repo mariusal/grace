@@ -127,6 +127,7 @@ typedef struct {
   int multi_click_time;
 
   ListTreeItem **ret_item_list;
+  int ret_item_count;
   int ret_item_alloc;
 
   Boolean Refresh;
