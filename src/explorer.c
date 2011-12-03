@@ -482,7 +482,7 @@ static void explorer_restore_quark_state(ExplorerUI *eui)
 
     for (i = 0; i < nsquarks; i++) {
         TreeItem *item = quark_get_udata(squarks[i]);
-        TreeSelectItem(eui->tree, item);
+        TreeHighlightItem(eui->tree, item);
     }
 
     xfree(squarks);
@@ -548,7 +548,7 @@ static void select_quark_explorer(Quark *q)
         TreeItem *item = quark_get_udata(q);
 
         TreeClearSelection(gui->eui->tree);
-        TreeSelectItem(gui->eui->tree, item);
+        TreeHighlightItem(gui->eui->tree, item);
         TreeScrollToItem(gui->eui->tree, item);
     }
 }

@@ -5205,7 +5205,7 @@ void TreeGetHighlighted(Widget w, TreeItemList *items)
     }
 }
 
-void TreeSelectItem(Widget w, TreeItem *item)
+void TreeHighlightItem(Widget w, TreeItem *item)
 {
     ListTreeItem *titem = item;
     ListTreeMultiReturnStruct ret;

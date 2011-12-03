@@ -9004,7 +9004,7 @@ void TreeGetHighlighted(Widget w, TreeItemList *items)
     }
 }
 
-void TreeSelectItem(Widget w, TreeItem *item)
+void TreeHighlightItem(Widget w, TreeItem *item)
 {
     TreeView *treeView = (TreeView *) w;
     QStandardItemModel *model = (QStandardItemModel *) treeView->model();

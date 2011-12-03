@@ -691,7 +691,7 @@ void TreeSetItemText(Widget w, TreeItem *item, char *text);
 void TreeSetItemPixmap(Widget w, TreeItem *item, Pixmap pixmap);
 Quark *TreeGetQuark(TreeItem *item);
 void TreeGetHighlighted(Widget w, TreeItemList *items);
-void TreeSelectItem(Widget w, TreeItem *item);
+void TreeHighlightItem(Widget w, TreeItem *item);
 void TreeClearSelection(Widget w);
 void TreeScrollToItem(Widget w, TreeItem *item);
 void TreeRefresh(Widget w);
