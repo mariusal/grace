@@ -286,7 +286,8 @@ public:
     }
 
 signals:
-    void released(const QModelIndex &index);
+    void released();
+    void releasedRMB();
 
 protected:
     void mousePressEvent(QMouseEvent *event);

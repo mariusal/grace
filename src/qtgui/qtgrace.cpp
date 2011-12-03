@@ -8818,7 +8818,10 @@ void TreeView::mousePressEvent(QMouseEvent *event)
 
 void TreeView::mouseReleaseEvent(QMouseEvent *event)
 {
-    emit released(indexAt(event->pos()));
+    emit released();
+    if (event->button() == Qt::RightButton) {
+        emit releasedRMB();
+    }
     QTreeView::mouseReleaseEvent(event);
 }
 
@@ -8897,7 +8900,6 @@ Widget CreateTree(Widget parent)
     treeView->setModel(model);
 
     treeView->setHeaderHidden(true);
-    treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     treeView->header()->setResizeMode(QHeaderView::ResizeToContents);
     treeView->header()->setStretchLastSection(false);
@@ -9017,8 +9019,7 @@ void TreeHighlightItem(Widget w, TreeItem *item)
     QModelIndex index = model->indexFromItem(treeItem);
     selectionModel->setCurrentIndex(index, QItemSelectionModel::Select);
 
-    QMetaObject::invokeMethod(treeView, "released", Qt::QueuedConnection,
-                              Q_ARG(const QModelIndex&, index));
+    QMetaObject::invokeMethod(treeView, "released", Qt::QueuedConnection);
 }
 
 void TreeClearSelection(Widget w)
@@ -9065,7 +9066,7 @@ void AddTreeContextMenuCB(Widget w, Tree_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    QtAddCallback(w, SIGNAL(customContextMenuRequested(const QPoint)),
+    QtAddCallback(w, SIGNAL(releasedRMB()),
                   tree_context_menu_cb_proc, cbdata);
 }
 
@@ -9089,7 +9090,7 @@ void AddTreeHighlightItemsCB(Widget w, Tree_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    QtAddCallback(w, SIGNAL(released(const QModelIndex&)),
+    QtAddCallback(w, SIGNAL(released()),
                   tree_highlight_cb_proc, (XtPointer) cbdata);
 }
 
