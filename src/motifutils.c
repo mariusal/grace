@@ -5283,7 +5283,6 @@ static void tree_context_menu_cb_proc(Widget w, XtPointer client_data, XtPointer
     event.udata = xbe;
 
     cbdata->cbproc(&event);
-    TreeRefresh(cbdata->w);
 }
 
 void AddTreeContextMenuCB(Widget w, Tree_CBProc cbproc, void *anydata)
