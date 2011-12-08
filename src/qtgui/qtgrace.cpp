@@ -8805,29 +8805,38 @@ TreeView::TreeView(QWidget *parent)
     setAcceptDrops(true);
 
     drop_cbdata = 0;
+    wasSelected = false;
 }
 
 void TreeView::mousePressEvent(QMouseEvent *event)
 {
+    QPoint pos = event->pos();
+    QItemSelectionModel *model = selectionModel();
+
     if (event->button() == Qt::MidButton) {
-        dragStartPosition = event->pos();
+        dragStartPosition = pos;
     } else {
+        wasSelected = model->isSelected(indexAt(pos));
         QTreeView::mousePressEvent(event);
     }
 }
 
 void TreeView::mouseReleaseEvent(QMouseEvent *event)
 {
-    emit released();
-    if (event->button() == Qt::RightButton) {
-        emit releasedRMB();
-    }
     QTreeView::mouseReleaseEvent(event);
+
+    if (event->button() == Qt::RightButton) {
+        if (!wasSelected) {
+            emit released();
+        }
+        emit releasedRMB();
+    } else {
+        emit released();
+    }
 }
 
 void TreeView::mouseMoveEvent(QMouseEvent *event)
 {
-    QPersistentModelIndex index = indexAt(event->pos());
     QItemSelectionModel *model = selectionModel();
 
     if (event->buttons() & Qt::MidButton) {

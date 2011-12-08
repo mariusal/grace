@@ -299,6 +299,7 @@ protected:
 
 private:
     QPoint dragStartPosition;
+    bool wasSelected;
     Tree_CBData *drop_cbdata;
 
 };
