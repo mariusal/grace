@@ -400,7 +400,6 @@ struct _ExplorerUI {
     Widget       scrolled_window;
     
     int          homogeneous_parent;
-    int          show_project_popup;
 
     ProjectUI    *project_ui;
     SSDataUI     *ssd_ui;

@@ -100,31 +100,18 @@ static int highlight_cb(TreeEvent *event)
     int fid = -1;
     int parent_fid = -1;
     int homogeneous_selection = TRUE;
-    int any_fid_project = FALSE;
-    int all_siblings = TRUE;
-    int all_shown = TRUE;
-    int all_hidden = TRUE;
 
     TreeGetHighlighted(event->w, &items);
     count = items.count;
     
     ui->homogeneous_parent = TRUE;
-    ui->show_project_popup = FALSE;
 
     if (count > 0) {
         int i;
-        Quark *parent;
 
         q = TreeGetQuark(items.items[0]);
         fid = quark_fid_get(q);
-        parent = quark_parent_get(q);
-        parent_fid = quark_fid_get(parent);
-        all_shown  = quark_is_active(q);
-        all_hidden = !all_shown;
-
-        if (fid == QFlavorProject) {
-            any_fid_project = TRUE;
-        }
+        parent_fid = quark_fid_get(quark_parent_get(q));
 
         for (i = 1; i < count; i++) {
             Quark *iq = TreeGetQuark(items.items[i]);
@@ -134,17 +121,6 @@ static int highlight_cb(TreeEvent *event)
             }
             if ((int) quark_fid_get(quark_parent_get(iq)) != parent_fid) {
                 ui->homogeneous_parent = FALSE;
-            }
-            if (quark_fid_get(iq) == QFlavorProject) {
-                any_fid_project = TRUE;
-            }
-            if (quark_parent_get(iq) != parent) {
-                all_siblings = FALSE;
-            }
-            if (quark_is_active(iq)) {
-                all_hidden = FALSE;
-            } else {
-                all_shown = FALSE;
             }
         }
     }
@@ -210,51 +186,6 @@ static int highlight_cb(TreeEvent *event)
         manage_plugin(ui, managed_top);
     }
 
-    if (!count) {
-        SetSensitive(ui->popup_hide_bt,           FALSE);
-        SetSensitive(ui->popup_show_bt,           FALSE);
-    } else {
-        SetSensitive(ui->popup_hide_bt, !all_hidden);
-        SetSensitive(ui->popup_show_bt, !all_shown);
-    }
-
-    if (!count || !all_siblings) {
-        SetSensitive(ui->popup_delete_bt,         FALSE);
-        SetSensitive(ui->popup_duplicate_bt,      FALSE);
-    } else {
-        SetSensitive(ui->popup_delete_bt,         TRUE);
-        SetSensitive(ui->popup_duplicate_bt,      TRUE);
-    }
-
-
-    SetSensitive(ui->project_popup_show_bt,            FALSE);
-    SetSensitive(ui->project_popup_save_bt,            FALSE);
-    SetSensitive(ui->project_popup_save_as_bt,         FALSE);
-    SetSensitive(ui->project_popup_revert_to_saved_bt, FALSE);
-    SetSensitive(ui->project_popup_close_bt,           FALSE);
-    if (any_fid_project) {
-        ui->show_project_popup = TRUE;
-    }
-
-    if (count == 1 && fid == QFlavorProject) {
-        if (all_shown) {
-            SetSensitive(ui->project_popup_show_bt,   FALSE);
-        } else {
-            SetSensitive(ui->project_popup_show_bt,   TRUE);
-        }
-
-        SetSensitive(ui->project_popup_save_bt,            TRUE);
-        SetSensitive(ui->project_popup_save_as_bt,         TRUE);
-        SetSensitive(ui->project_popup_revert_to_saved_bt, TRUE);
-
-        if (gapp->gpcount > 1) {
-            SetSensitive(ui->project_popup_close_bt,  TRUE);
-        } else {
-            SetSensitive(ui->project_popup_close_bt,  FALSE);
-        }
-    }
-
-
     SetSensitive(ui->insert_frame_bt,    FALSE);
     SetSensitive(ui->insert_graph_bt,    FALSE);
     SetSensitive(ui->insert_set_bt,      FALSE);
@@ -275,7 +206,7 @@ static int highlight_cb(TreeEvent *event)
             SetSensitive(ui->insert_object_pane, TRUE);
             break;
         case QFlavorGraph:
-            SetSensitive(ui->insert_ssd_bt, TRUE);
+            SetSensitive(ui->insert_ssd_bt,      TRUE);
             SetSensitive(ui->insert_axisgrid_bt, TRUE);
             SetSensitive(ui->insert_object_pane, TRUE);
             break;
@@ -303,12 +234,83 @@ static int highlight_cb(TreeEvent *event)
 static int menu_cb(TreeEvent *event)
 {
     ExplorerUI *ui = (ExplorerUI *) event->anydata;
+    TreeItemList items;
+    int count;
+    Quark *q = NULL;
+    Quark *p = NULL;
+    int parent_child_selection = FALSE;
+    int all_shown = TRUE;
+    int all_hidden = TRUE;
 
-    if (ui->show_project_popup) {
-        ShowMenu(ui->project_popup, event->udata);
-    } else {
-        ShowMenu(ui->popup, event->udata);
+    TreeGetHighlighted(event->w, &items);
+    count = items.count;
+
+    if (count > 0) {
+        int i, j;
+
+        q = TreeGetQuark(items.items[0]);
+
+        for (i = 0; i < count; i++) {
+            Quark *iq = TreeGetQuark(items.items[i]);
+
+            p = quark_parent_get(iq);
+            while (p) {
+                for (j = 0; j < count; j++) {
+                    if (TreeGetQuark(items.items[j]) == p) {
+                        parent_child_selection = TRUE;
+                    }
+                }
+                p = quark_parent_get(p);
+            }
+
+            if (quark_is_active(iq)) {
+                all_hidden = FALSE;
+            } else {
+                all_shown = FALSE;
+            }
+        }
+
+        if (count == 1 && quark_fid_get(q) == QFlavorProject) {
+            SetSensitive(ui->project_popup_show_bt,            FALSE);
+            SetSensitive(ui->project_popup_save_bt,            FALSE);
+            SetSensitive(ui->project_popup_save_as_bt,         FALSE);
+            SetSensitive(ui->project_popup_revert_to_saved_bt, FALSE);
+            SetSensitive(ui->project_popup_close_bt,           FALSE);
+
+            if (quark_is_active(q)) {
+                SetSensitive(ui->project_popup_show_bt,   FALSE);
+            } else {
+                SetSensitive(ui->project_popup_show_bt,   TRUE);
+            }
+
+            SetSensitive(ui->project_popup_save_bt,            TRUE);
+            SetSensitive(ui->project_popup_save_as_bt,         TRUE);
+            SetSensitive(ui->project_popup_revert_to_saved_bt, TRUE);
+
+            if (gapp->gpcount > 1) {
+                SetSensitive(ui->project_popup_close_bt,  TRUE);
+            } else {
+                SetSensitive(ui->project_popup_close_bt,  FALSE);
+            }
+
+            ShowMenu(ui->project_popup, event->udata);
+        } else {
+            SetSensitive(ui->popup_hide_bt, !all_hidden);
+            SetSensitive(ui->popup_show_bt, !all_shown);
+
+            if (parent_child_selection) {
+                SetSensitive(ui->popup_delete_bt,         FALSE);
+                SetSensitive(ui->popup_duplicate_bt,      FALSE);
+            } else {
+                SetSensitive(ui->popup_delete_bt,         TRUE);
+                SetSensitive(ui->popup_duplicate_bt,      TRUE);
+            }
+
+            ShowMenu(ui->popup, event->udata);
+        }
     }
+
+    xfree(items.items);
 
     return TRUE;
 }
