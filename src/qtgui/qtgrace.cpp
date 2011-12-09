@@ -67,6 +67,7 @@
 #include <QTableView>
 #include <QTextCodec>
 #include <QWhatsThis>
+#include <QShortcut>
 #include <mainwindow.h>
 #include <canvaswidget.h>
 #include <fileselectiondialog.h>
@@ -3757,12 +3758,25 @@ void SetTextInputLength(TextStructure *cst, int len)
 //        
 //    return retval;
 //}
+
+static void cstext_edit_action(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    TextStructure *cst = (TextStructure *) client_data;
+    create_fonttool(cst);
+}
+
 TextStructure *CreateCSText(Widget parent, char *s)
 {
     TextStructure *retval;
+    QShortcut *shortcut;
 
     retval = CreateTextInput(parent, s);
-    SetUserData(retval->text, retval);
+
+    shortcut = new QShortcut(QKeySequence("Ctrl+E"), retval->text,
+                             0, 0, Qt::WidgetShortcut);
+
+    QtAddCallback(shortcut, SIGNAL(activated()),
+                  cstext_edit_action, retval);
 
     return retval;
 }
@@ -3781,9 +3795,15 @@ TextStructure *CreateCSText(Widget parent, char *s)
 TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows)
 {
     TextStructure *retval;
+    QShortcut *shortcut;
 
     retval = CreateScrolledTextInput(parent, s, nrows);
-    SetUserData(retval->text, retval);
+
+    shortcut = new QShortcut(QKeySequence("Ctrl+E"), retval->text,
+                             0, 0, Qt::WidgetShortcut);
+
+    QtAddCallback(shortcut, SIGNAL(activated()),
+                  cstext_edit_action, retval);
 
     return retval;
 }
@@ -4037,10 +4057,16 @@ void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata)
 //}
 int GetTextCursorPos(TextStructure *cst)
 {
-    int pos;
-    QLineEdit *text = (QLineEdit*) cst->text;
+    int pos = 0;
 
-    pos = text->cursorPosition();
+    if (QPlainTextEdit *text = qobject_cast<QPlainTextEdit *>(cst->text)) {
+        QTextCursor textCursor = text->textCursor();
+        pos = textCursor.position();
+    }
+
+    if (QLineEdit *text = qobject_cast<QLineEdit *>(cst->text)) {
+        pos = text->cursorPosition();
+    }
 
     return pos;
 }
@@ -4051,11 +4077,15 @@ int GetTextCursorPos(TextStructure *cst)
 //}
 void SetTextCursorPos(TextStructure *cst, int pos)
 {
-    QPlainTextEdit *text = (QPlainTextEdit*) cst->text;
+    if (QPlainTextEdit *text = qobject_cast<QPlainTextEdit *>(cst->text)) {
+        QTextCursor textCursor = text->textCursor();
+        textCursor.setPosition(pos);
+        text->setTextCursor(textCursor);
+    }
 
-    QTextCursor textCursor = text->textCursor();
-    textCursor.setPosition(pos);
-    text->setTextCursor(textCursor);
+    if (QLineEdit *text = qobject_cast<QLineEdit *>(cst->text)) {
+        text->setCursorPosition(pos);
+    }
 }
 
 int GetTextLastPosition(TextStructure *cst)
