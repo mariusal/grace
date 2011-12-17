@@ -226,7 +226,7 @@ static int EditStringCB(char **value, int *length, void *data)
     int len = *length;
     
     if (ui->enable_edit_cb != TRUE) {
-        return FALSE;
+        return TRUE;
     }
 
     text = *value;
