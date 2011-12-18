@@ -114,7 +114,6 @@ int hpdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstat
     HPDF_data *pdfdata = (HPDF_data *) data;
     unsigned int i;
     Page_geometry *pg;
-    char *s;
    
     pg = get_page_geometry(canvas);
     
@@ -167,23 +166,51 @@ int hpdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstat
     for (i = 0; i < cstats->nfonts; i++) {
         int font;
         char *fontname, *encscheme;
-        char *pdflibenc;
         HPDF_Font hfont;
         
+        int isolatin_id, iso8859_id = 0;
+        char hpdfenc[32];
+
         font = cstats->fonts[i].font;
         
         fontname = get_fontalias(canvas, font);
         
         encscheme = get_encodingscheme(canvas, font);
         if (strcmp(encscheme, "FontSpecific") == 0) {
-            pdflibenc = "FontSpecific";
+            strcpy(hpdfenc, "FontSpecific");
+        } else
+        if (sscanf(encscheme, "ISOLatin%dEncoding", &isolatin_id) == 1) {
+            switch (isolatin_id) {
+            case  1:
+            case  2:
+            case  3:
+            case  4:
+                iso8859_id = isolatin_id;
+                break;
+            case  5:
+            case  6:
+                iso8859_id = isolatin_id + 4;
+                break;
+            case  7:
+            case  8:
+            case  9:
+            case 10:
+                iso8859_id = isolatin_id + 6;
+                break;
+            }
+            
+            if (isolatin_id > 1) {
+                sprintf(hpdfenc, "ISO8859-%d", iso8859_id);
+            } else {
+                strcpy(hpdfenc, "WinAnsiEncoding");
+            }
         } else {
-            pdflibenc = "WinAnsiEncoding";
+            strcpy(hpdfenc, "WinAnsiEncoding");
         }
         
         
         if (hpdf_builtin_font(fontname)) {
-            hfont = HPDF_GetFont(pdfdata->pdf, fontname, pdflibenc);
+            hfont = HPDF_GetFont(pdfdata->pdf, fontname, hpdfenc);
         } else {
             const char *hpdf_fontname;
             hpdf_fontname = HPDF_LoadType1FontFromFile(pdfdata->pdf,
