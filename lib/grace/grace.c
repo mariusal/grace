@@ -128,7 +128,11 @@ static int set_proc(void *obj,
         break;
     case QFlavorSet:
         if ((col = get_dataset_col_by_name(grace, name)) != DATA_BAD) {
-            return set_set_darray(q, col, prop.arr);
+            if (set_set_length(q, prop.arr->size) != RETURN_SUCCESS) {
+                return RETURN_FAILURE;
+            } else {
+                return set_set_darray(q, col, prop.arr);
+            }
         } else {
             return RETURN_FAILURE;
         }
