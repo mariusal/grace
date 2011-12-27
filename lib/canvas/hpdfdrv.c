@@ -109,12 +109,39 @@ static int hpdf_builtin_font(const char *fname)
     return FALSE;
 }
 
+static unsigned int latin_to_8859(int isolatin_id)
+{
+    unsigned short iso8859_id;
+    
+    switch (isolatin_id) {
+    case  1:
+    case  2:
+    case  3:
+    case  4:
+        iso8859_id = isolatin_id;
+        break;
+    case  5:
+    case  6:
+        iso8859_id = isolatin_id + 4;
+        break;
+    case  7:
+    case  8:
+    case  9:
+    case 10:
+        iso8859_id = isolatin_id + 6;
+        break;
+    default:
+        iso8859_id = 0;
+    }
+    
+    return iso8859_id;
+}
+
 int hpdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     HPDF_data *pdfdata = (HPDF_data *) data;
     unsigned int i;
     Page_geometry *pg;
-    char *s;
    
     pg = get_page_geometry(canvas);
     
@@ -167,23 +194,44 @@ int hpdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstat
     for (i = 0; i < cstats->nfonts; i++) {
         int font;
         char *fontname, *encscheme;
-        char *pdflibenc;
         HPDF_Font hfont;
         
+        int id, iso8859_id = 0;
+        char hpdfenc[32];
+
         font = cstats->fonts[i].font;
         
         fontname = get_fontalias(canvas, font);
         
         encscheme = get_encodingscheme(canvas, font);
         if (strcmp(encscheme, "FontSpecific") == 0) {
-            pdflibenc = "FontSpecific";
+            strcpy(hpdfenc, "FontSpecific");
+        } else
+        if (sscanf(encscheme, "ISOLatin%dEncoding", &id) == 1) {
+            iso8859_id = latin_to_8859(id);
+            
+            if (iso8859_id > 1) {
+                sprintf(hpdfenc, "ISO8859-%d", iso8859_id);
+            } else {
+                strcpy(hpdfenc, "WinAnsiEncoding");
+            }
+        } else
+        if (sscanf(encscheme, "CP125%d", &id) == 1) {
+            if (id >= 0 && id < 9) {
+                strcpy(hpdfenc, encscheme);
+            } else {
+                strcpy(hpdfenc, "WinAnsiEncoding");
+            }
+        } else
+        if (strcmp(encscheme, "KOI8-R") == 0) {
+            strcpy(hpdfenc, encscheme);
         } else {
-            pdflibenc = "WinAnsiEncoding";
+            strcpy(hpdfenc, "WinAnsiEncoding");
         }
         
         
         if (hpdf_builtin_font(fontname)) {
-            hfont = HPDF_GetFont(pdfdata->pdf, fontname, pdflibenc);
+            hfont = HPDF_GetFont(pdfdata->pdf, fontname, hpdfenc);
         } else {
             const char *hpdf_fontname;
             hpdf_fontname = HPDF_LoadType1FontFromFile(pdfdata->pdf,
