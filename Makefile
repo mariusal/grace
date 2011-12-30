@@ -18,7 +18,8 @@ install : subdirs
 tests : subdirs
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) tests) || exit 1; done
 
-check : tests
+check : subdirs
+	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) check) || exit 1; done
 
 links : subdirs
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) links) || exit 1; done

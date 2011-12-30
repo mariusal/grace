@@ -27,4 +27,6 @@ links : dummy
 
 tests : dummy
 
+check : dummy
+
 dummy :

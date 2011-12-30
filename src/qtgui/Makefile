@@ -8,6 +8,10 @@ all : lib
 
 install : lib
 
+tests : dummy
+
+check : dummy
+
 Makefile.qt : qtgrace.pro
 	qmake -o Makefile.qt qtgrace.pro
 
@@ -22,3 +26,4 @@ distclean: Makefile.qt
 	$(RM) Makefile.qt
 	$(RM) object_script.libqtgrace
 
+dummy :

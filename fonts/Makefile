@@ -56,6 +56,8 @@ all : dummy
 
 tests : dummy
 
+check : dummy
+
 clean : dummy
 
 distclean : dummy

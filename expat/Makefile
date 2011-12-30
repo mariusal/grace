@@ -27,6 +27,8 @@ install : $(LIB)
 
 tests : dummy
 
+check : dummy
+
 links : dummy
 
 clean :

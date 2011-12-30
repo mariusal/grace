@@ -87,6 +87,8 @@ install : $(GRACE)
 
 tests : dummy
 
+check : dummy
+
 $(DESTDIR)$(GRACE_HOME)/bin/$(GRACE) : $(GRACE)
 	$(MAKE) install
 

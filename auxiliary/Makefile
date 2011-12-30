@@ -30,6 +30,8 @@ install : $(AUXILIARIES) $(PROGRAMS) $(SCRIPTS)
 
 tests : dummy
 
+check : dummy
+
 links : dummy
 
 dummy :

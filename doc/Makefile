@@ -110,4 +110,6 @@ links : $(DESTDIR)$(GRACE_HOME)/doc/grace.1
 
 tests : dummy
 
+check : dummy
+
 dummy :

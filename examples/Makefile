@@ -40,4 +40,6 @@ links : dummy
 tests : $(EXAMPLES) $(DOTEST)
 	./$(DOTEST)
 
+check : dummy
+
 dummy :
