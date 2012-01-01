@@ -37,7 +37,7 @@
 /* for Widget */
 #include <X11/Intrinsic.h>
 #else
-#include <qtgui/qtinc.h>
+#include "qtgui/qtinc.h"
 #endif /* QT_GUI */
 
 #include "graceapp.h"

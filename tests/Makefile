@@ -29,9 +29,21 @@ CPPFLAGS += -I$(GTEST_DIR)/include
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra
 
+CFLAGS= $(CXXFLAGS) -I$(TOP)/include -I. \
+	$(T1_INC) $(EXPAT_INC) $(GSL_CFLAGS) $(CUPS_CFLAGS) \
+	$(CPPFLAGS) $(XBAE_INC) $(GUI_FLAGS)
+
+LIBS=$(GUI_LIBS) \
+	$(GRACE_LIB) $(EXPAT_LIB) $(GRACE_PLOT_LIB) $(GRACE_GRAAL_LIB) \
+	$(GRACE_CORE_LIB) $(GRACE_CANVAS_LIB) $(T1_LIB) $(XMI_LIB) \
+	$(PDF_LIB) $(HARU_LIB) $(JPEG_LIB) $(PNG_LIB) $(Z_LIB) \
+	$(GRACE_BASE_LIB) $(UNDO_LIB) \
+	$(GSL_LIBS) $(NETCDF_LIBS) $(FFTW_LIB) $(CUPS_LIBS) \
+	$(WINDOWS_LIBS) $(NOGUI_LIBS) $(DL_LIB)
+
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = check_grace$(EXE)
+TESTS = check_lib$(EXE)
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -78,8 +90,18 @@ gtest_main.a : gtest-all.o gtest_main.o
 #sample1.o : $(USER_DIR)/sample1.cc $(USER_DIR)/sample1.h $(GTEST_HEADERS)
 #	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/sample1.cc
 
+#include ../src/Make.common
+
 check_grace.o : $(USER_DIR)/check_grace.c $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/check_grace.c
+	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/check_grace.c
 
 check_grace$(EXE) : check_grace.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+	$(CXX) $(CFLAGS) $^ $(GRACE_QTGUI_LIB) -o $@ $(LDFLAGS) $(LIBS) -lpthread 
+
+
+check_lib.o : $(USER_DIR)/check_lib.c $(GTEST_HEADERS)
+	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/check_lib.c
+
+check_lib$(EXE) : check_lib.o gtest_main.a
+	$(CXX) $(CFLAGS) -lpthread $^ -o $@ $(LDFLAGS) $(LIBS)
+

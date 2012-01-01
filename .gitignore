@@ -36,4 +36,8 @@ src/qtgrace.exe
 src/pars.c
 src/tags
 autom4te.cache/
+tests/check_grace
+tests/check_grace.exe
+tests/check_lib
+tests/check_lib.exe
 
