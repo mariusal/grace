@@ -7722,13 +7722,13 @@ Widget CreateGrid(Widget parent, int ncols, int nrows)
 //}
 void PlaceGridChild(Widget grid, Widget w, int col, int row)
 {
-    QGridLayout *gridLayout = (QGridLayout *) grid->layout();
-
-    // scrollArea for explorer
-    if (QScrollArea *scrollArea = qobject_cast<QScrollArea *>(w->parent()->parent())) {
-        gridLayout->addWidget(scrollArea, row, col);
-    } else {
-        gridLayout->addWidget(w, row, col);
+    if (QGridLayout *gridLayout = qobject_cast<QGridLayout *>(grid->layout())) {
+        // scrollArea for explorer
+        if (QScrollArea *scrollArea = qobject_cast<QScrollArea *>(w->parent()->parent())) {
+            gridLayout->addWidget(scrollArea, row, col);
+        } else {
+            gridLayout->addWidget(w, row, col);
+        }
     }
 }
 
