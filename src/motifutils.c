@@ -4272,10 +4272,14 @@ Widget CreateScrolledWindow(Widget parent)
 
 Widget CreatePanedWindow(Widget parent)
 {
+#if USE_PANEDW
     return XtVaCreateWidget("panedWindow",
                             xmPanedWindowWidgetClass, parent,
                             XmNorientation, XmHORIZONTAL,
                             NULL);
+#else
+    return CreateGrid(parent, 2, 1);
+#endif
 }
 
 typedef struct {
@@ -4325,7 +4329,7 @@ void PlaceGridChild(Widget grid, Widget w, int col, int row)
         NULL);
     
     if (gd == NULL) {
-        errmsg("PlaceGridChild() called with a non-grid widget");
+        /* errmsg("PlaceGridChild() called with a non-grid widget"); */
         return;
     }
     if (col < 0 || col >= gd->ncols) {

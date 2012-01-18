@@ -1021,6 +1021,7 @@ void raise_explorer(GUI *gui, Quark *q)
         panel = CreatePanedWindow(eui->top);
 
         form = CreateForm(panel);
+        PlaceGridChild(panel, form, 0, 0); /* in case if CreatePanedWindow creates a grid */
 
         eui->tree = CreateTree(form);
         AddTreeHighlightItemsCB(eui->tree, highlight_cb, eui);
@@ -1037,6 +1038,7 @@ void raise_explorer(GUI *gui, Quark *q)
 	ManageChild(form);
         
         eui->scrolled_window = CreateScrolledWindow(panel);
+        PlaceGridChild(panel, eui->scrolled_window, 1, 0); /* in case if CreatePanedWindow creates a grid */
 
         ManageChild(panel);
         SetMinimumDimensions(form, 150, 0);
