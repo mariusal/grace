@@ -440,8 +440,6 @@ void SetUserData(Widget w, void *udata);
 
 void CreatePixmaps(ExplorerUI *eui);
 
-Widget CreateForm(Widget parent);
-
 Widget CreateDialogForm(Widget parent, const char *s);
 void SetDialogFormResizable(Widget form, int onoff);
 void AddDialogFormChild(Widget form, Widget child);

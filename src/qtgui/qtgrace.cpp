@@ -7049,29 +7049,6 @@ void CreatePixmaps(ExplorerUI *eui)
     eui->h_icon = (Pixmap) new QIcon(hidden_xpm);
 }
 
-//Widget CreateForm(Widget parent)
-//{
-//    return XmCreateForm(parent, s, NULL, 0);
-//}
-Widget CreateForm(Widget parent)
-{
-    QWidget *widget = new QWidget(parent);
-//    // width for explorer
-//    widget->setMaximumWidth(250);
-//    widget->setMinimumWidth(250);
-
-    QVBoxLayout *vLayout = new QVBoxLayout;
-    vLayout->setContentsMargins(3,3,3,3);
-    widget->setLayout(vLayout);
-
-    QLayout *layout = parent->layout();
-    if (layout != 0) {
-        layout->addWidget(widget);
-    }
-
-    return widget;
-}
-
 //Widget CreateDialogForm(Widget parent, const char *s)
 //{
 //    X11Stuff *xstuff = gapp->gui->xstuff;

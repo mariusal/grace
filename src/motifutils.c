@@ -3860,11 +3860,6 @@ void CreatePixmaps(ExplorerUI *eui)
         hidden_xpm, &eui->h_icon, NULL, &attrib);
 }
 
-Widget CreateForm(Widget parent)
-{
-    return XmCreateForm(parent, "form", NULL, 0);
-}
-
 Widget CreateDialogForm(Widget parent, const char *s)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
@@ -4272,10 +4267,14 @@ Widget CreateScrolledWindow(Widget parent)
 
 Widget CreatePanedWindow(Widget parent)
 {
+#if USE_PANEDW
     return XtVaCreateWidget("panedWindow",
                             xmPanedWindowWidgetClass, parent,
                             XmNorientation, XmHORIZONTAL,
                             NULL);
+#else
+    return CreateGrid(parent, 2, 1);
+#endif
 }
 
 typedef struct {
