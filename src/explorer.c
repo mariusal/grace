@@ -960,7 +960,7 @@ void raise_explorer(GUI *gui, Quark *q)
     
     if (!gui->eui) {
         ExplorerUI *eui;
-        Widget menubar, menupane, panel, grid, fr;
+        Widget menubar, menupane, panel, form, fr;
 
         eui = xmalloc(sizeof(ExplorerUI));
         gui->eui = eui;
@@ -1024,23 +1024,38 @@ void raise_explorer(GUI *gui, Quark *q)
 
         panel = CreatePanedWindow(eui->top);
 
-        grid = CreateGrid(panel, 1, 2);
+        form = CreateForm(panel);
 
-        eui->tree = CreateTree(grid);
+        eui->tree = CreateTree(form);
         AddTreeHighlightItemsCB(eui->tree, highlight_cb, eui);
         AddTreeContextMenuCB(eui->tree, menu_cb, eui);
         AddTreeDropItemsCB(eui->tree, drop_cb, eui);
 
-        fr = CreateFrame(grid, NULL);
+        fr = CreateFrame(form, NULL);
         eui->idstr = CreateTextInput(fr, "ID string:");
         AddTextInputCB(eui->idstr, text_explorer_cb, eui);
-
-        PlaceGridChild(grid, eui->tree, 0, 0);
-        PlaceGridChild(grid, fr, 0, 1);
+#ifdef MOTIF_GUI
+        XtVaSetValues(GetParent(eui->tree),
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNtopAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_WIDGET,
+            XmNbottomWidget, fr,
+            NULL);
+        XtVaSetValues(fr,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNtopAttachment, XmATTACH_NONE,
+            XmNbottomAttachment, XmATTACH_FORM,
+            NULL);
+#endif
+	ManageChild(form);
         
         eui->scrolled_window = CreateScrolledWindow(panel);
 
         ManageChild(panel);
+        SetMinimumDimensions(form, 150, 0);
+        SetDimensions(form, 250, 0);
 
 #ifdef HAVE_LESSTIF
 # if !defined(SF_BUG_993209_FIXED) && !defined(SF_BUG_993209_NOT_FIXED)
