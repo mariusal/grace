@@ -33,10 +33,6 @@
 #include "xprotos.h"
 #include "files.h"
 
-#ifdef MOTIF_GUI
-#include <Xm/Form.h>
-#endif
-
 static void manage_plugin(ExplorerUI *ui, Widget managed_top)
 {
     if (managed_top == ui->project_ui->top) {
@@ -1030,25 +1026,14 @@ void raise_explorer(GUI *gui, Quark *q)
         AddTreeHighlightItemsCB(eui->tree, highlight_cb, eui);
         AddTreeContextMenuCB(eui->tree, menu_cb, eui);
         AddTreeDropItemsCB(eui->tree, drop_cb, eui);
+        AddDialogFormChild(form, GetParent(eui->tree));
 
         fr = CreateFrame(form, NULL);
         eui->idstr = CreateTextInput(fr, "ID string:");
         AddTextInputCB(eui->idstr, text_explorer_cb, eui);
-#ifdef MOTIF_GUI
-        XtVaSetValues(GetParent(eui->tree),
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            XmNtopAttachment, XmATTACH_FORM,
-            XmNbottomAttachment, XmATTACH_WIDGET,
-            XmNbottomWidget, fr,
-            NULL);
-        XtVaSetValues(fr,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            XmNtopAttachment, XmATTACH_NONE,
-            XmNbottomAttachment, XmATTACH_FORM,
-            NULL);
-#endif
+        AddDialogFormChild(form, fr);
+        FixateDialogFormChild(fr);
+
 	ManageChild(form);
         
         eui->scrolled_window = CreateScrolledWindow(panel);
