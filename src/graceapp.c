@@ -330,6 +330,7 @@ void gapp_free(GraceApp *gapp)
     }
     xfree(gapp->gplist);
 
+    quark_free(gapp->pc);
     gui_free(gapp->gui);
     runtime_free(gapp->rt);
     grace_free(gapp->grace);

@@ -110,13 +110,15 @@ Quark *quark_root(Quark *parent, int mmodel, QuarkFactory *qfactory, unsigned in
     AMem *amem;
     Quark *q;
     QuarkFlavor *qf;
-    void *data;
+    void *data = NULL;
     
     amem = amem_amem_new(mmodel);
     
     qf = quark_flavor_get(qfactory, fid);
     
-    data = qf->data_new(amem);
+    if (qf->data_new) {
+        data = qf->data_new(amem);
+    }
     q = quark_new_raw(amem, parent, fid, data, -1);
     q->qfactory = qfactory;
 
@@ -129,7 +131,7 @@ Quark *quark_new(Quark *parent, unsigned int fid)
 {
     Quark *q;
     QuarkFlavor *qf;
-    void *data;
+    void *data = NULL;
     
     if (!parent) {
         return NULL;
@@ -141,7 +143,9 @@ Quark *quark_new(Quark *parent, unsigned int fid)
         return NULL;
     }
     
-    data = qf->data_new(parent->amem);
+    if (qf->data_new) {
+        data = qf->data_new(parent->amem);
+    }
     q = quark_new_raw(parent->amem, parent, fid, data, -1);
 
     quark_call_cblist(q, QUARK_ETYPE_NEW);
@@ -171,7 +175,9 @@ void quark_free(Quark *q)
         
         quark_call_cblist(q, QUARK_ETYPE_DELETE);
 
-        qf->data_free(amem, q->data);
+        if (qf->data_free) {
+            qf->data_free(amem, q->data);
+        }
         amem_free(amem, q->idstr);
         if (q->refcount != 0) {
             errmsg("Freed a referenced quark!");
@@ -246,10 +252,12 @@ Quark *quark_copy2(const Quark *q, Quark *newparent, int id)
 {
     Quark *new;
     QuarkFlavor *qf;
-    void *data;
+    void *data = NULL;
     
     qf = quark_flavor_get(q->qfactory, q->fid);
-    data = qf->data_copy(q->amem, q->data);
+    if (qf->data_copy) {
+        data = qf->data_copy(q->amem, q->data);
+    }
     new = quark_new_raw(newparent->amem, newparent, q->fid, data, id);
     new->active = q->active;
 

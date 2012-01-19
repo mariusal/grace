@@ -28,16 +28,11 @@
 #define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
-void *container_data_new(AMem *amem)
-{
-    return NULL;
-}
-
 int container_qf_register(QuarkFactory *qfactory)
 {
     QuarkFlavor qf = {
         QFlavorContainer,
-        container_data_new,
+        NULL,
         NULL,
         NULL
     };
