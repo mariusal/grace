@@ -467,6 +467,7 @@ static void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *
 
     cevent.modifiers = NO_MODIFIER;
     cevent.button    = NO_BUTTON;
+    cevent.key       = KEY_NONE;
     cevent.x = event->xmotion.x;
     cevent.y = event->xmotion.y;
 
