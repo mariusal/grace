@@ -56,10 +56,11 @@
 #define WHEEL_DOWN_BUTTON 0x10
 
 /* Keys */
-#define KEY_ESCAPE 0
-#define KEY_1      1
-#define KEY_PLUS   2
-#define KEY_MINUS  3
+#define KEY_NONE   0
+#define KEY_ESCAPE 1
+#define KEY_1      2
+#define KEY_PLUS   3
+#define KEY_MINUS  4
 
 /* Modifiers */
 #define NO_MODIFIER      0x00
