@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
     int cli = FALSE;            /* command line interface only */
     int noprint = FALSE;	/* if gracebat, then don't print if true */
     int sigcatch = TRUE;	/* we handle signals ourselves */
+    int nogui = FALSE;
     
     int curtype = SET_XY;
 
@@ -117,9 +118,17 @@ int main(int argc, char *argv[])
         }
     }
 
-    /* initialize devices */
 #ifndef NONE_GUI
     if (cli == TRUE || gracebat == TRUE) {
+        nogui = TRUE;
+    }
+#else
+    nogui = TRUE;
+#endif
+
+    /* initialize devices */
+#ifndef NONE_GUI
+    if (nogui) {
         rt->tdevice = register_dummy_drv(canvas);
     } else {
         Device_entry *d;
@@ -151,23 +160,31 @@ int main(int argc, char *argv[])
 
     rt->hdevice = register_ps_drv(canvas);
 #ifndef NONE_GUI
-    attach_ps_drv_setup(canvas, rt->hdevice);
+    if (!nogui) {
+        attach_ps_drv_setup(canvas, rt->hdevice);
+    }
 #endif
     device_id = register_eps_drv(canvas);
 #ifndef NONE_GUI
-    attach_eps_drv_setup(canvas, device_id);
+    if (!nogui) {
+        attach_eps_drv_setup(canvas, device_id);
+    }
 #endif
 
 #ifdef HAVE_LIBPDF
     device_id = register_pdf_drv(canvas);
 #ifndef NONE_GUI
-    attach_pdf_drv_setup(canvas, device_id);
+    if (!nogui) {
+        attach_pdf_drv_setup(canvas, device_id);
+    }
 #endif
 #endif
 #ifdef HAVE_HARU
     device_id = register_hpdf_drv(canvas);
 #ifndef NONE_GUI
-    attach_hpdf_drv_setup(canvas, device_id);
+    if (!nogui) {
+        attach_hpdf_drv_setup(canvas, device_id);
+    }
 #endif
 #endif
     register_mif_drv(canvas);
@@ -176,18 +193,24 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBXMI
     device_id = register_pnm_drv(canvas);
 #ifndef NONE_GUI
-    attach_pnm_drv_setup(canvas, device_id);
+    if (!nogui) {
+        attach_pnm_drv_setup(canvas, device_id);
+    }
 #endif
 #  ifdef HAVE_LIBJPEG
     device_id = register_jpg_drv(canvas);
 #ifndef NONE_GUI
-    attach_jpg_drv_setup(canvas, device_id);
+    if (!nogui) {
+        attach_jpg_drv_setup(canvas, device_id);
+    }
 #endif
 #  endif
 #  ifdef HAVE_LIBPNG
     device_id = register_png_drv(canvas);
 #ifndef NONE_GUI
-    attach_png_drv_setup(canvas, device_id);
+    if (!nogui) {
+        attach_png_drv_setup(canvas, device_id);
+    }
 #endif
 #  endif
 #endif
