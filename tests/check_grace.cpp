@@ -1,6 +1,7 @@
 extern "C" {
 #include <config.h>
 
+
 typedef struct QWidget QWidget;
 #include "../src/motifinc.h"
 }

@@ -43,7 +43,7 @@ LIBS=$(GUI_LIBS) \
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = check_lib$(EXE)
+TESTS = check_grace$(EXE)
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -92,15 +92,15 @@ gtest_main.a : gtest-all.o gtest_main.o
 
 #include ../src/Make.common
 
-check_grace.o : $(USER_DIR)/check_grace.c $(GTEST_HEADERS)
-	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/check_grace.c
+check_grace.o : $(USER_DIR)/check_grace.cpp $(GTEST_HEADERS)
+	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/check_grace.cpp
 
 check_grace$(EXE) : check_grace.o gtest_main.a
 	$(CXX) $(CFLAGS) $^ $(GRACE_QTGUI_LIB) -o $@ $(LDFLAGS) $(LIBS) -lpthread 
 
 
-check_lib.o : $(USER_DIR)/check_lib.c $(GTEST_HEADERS)
-	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/check_lib.c
+check_lib.o : $(USER_DIR)/check_lib.cpp $(GTEST_HEADERS)
+	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/check_lib.cpp
 
 check_lib$(EXE) : check_lib.o gtest_main.a
 	$(CXX) $(CFLAGS) -lpthread $^ -o $@ $(LDFLAGS) $(LIBS)
