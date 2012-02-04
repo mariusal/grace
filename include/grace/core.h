@@ -216,6 +216,11 @@ typedef struct {
     char *cname;
 } Colordef;
 
+typedef struct {
+    Colordef *colormap;
+    unsigned int ncolors;
+} ColorList;
+
 typedef struct _Project {
     /* Version ID */
     int version_id;
@@ -235,6 +240,7 @@ typedef struct _Project {
     /* color map */
     unsigned int ncolors;
     Colordef *colormap;
+    ColorList colorlist;
     
     /* font map */
     unsigned int nfonts;
@@ -795,6 +801,7 @@ int project_update_timestamp(Quark *q, time_t t);
 int project_add_font(Quark *project, const Fontdef *f);
 int project_add_color(Quark *project, const Colordef *c);
 
+ColorList project_get_colorlist(const Quark *q);
 unsigned int project_get_ncolors(const Quark *q);
 
 Quark *get_parent_project(const Quark *q);
@@ -1105,5 +1112,9 @@ BarLine *barline_new(void);
 RiserLine *riserline_new(void);
 Format *format_new(void);
 void format_free(Format *f);
+
+/* colorlist comparison etc */
+int colorlists_are_equal(const ColorList *clist1, const ColorList *clist2);
+ColorList *colorlist_merge_colors(ColorList *dest, const ColorList *src);
 
 #endif /* __CORE_H_ */

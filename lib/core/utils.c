@@ -514,3 +514,37 @@ void format_free(Format *f)
         xfree(f);
     }
 }
+
+
+/* ColorList comparison etc */
+
+int colorlists_are_equal(const ColorList *clist1, const ColorList *clist2)
+{
+    int i;
+
+    if (!clist1 || !clist2) return FALSE;
+
+    if (!clist1->colormap || !clist1->colormap) return FALSE;
+
+    if (clist1->ncolors != clist2->ncolors) return FALSE;
+
+    for (i = 0; i < clist1->ncolors; i++) {
+
+    }
+    return TRUE;
+}
+
+ColorList *colorlist_merge_colors(ColorList *dest, const ColorList *src)
+{
+//    if (src == dest) {
+//        ;
+//    } else if (src == NULL) {
+//        xfree(dest);
+//        dest = NULL;
+//    } else {
+//
+//        dest = xrealloc(dest, (strlen(src) + 1)*SIZEOF_CHAR);
+//        strcpy(dest, src);
+//    }
+    return dest;
+}

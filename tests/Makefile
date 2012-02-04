@@ -95,7 +95,9 @@ gtest_main.a : gtest-all.o gtest_main.o
 check_grace.o : $(USER_DIR)/check_grace.cpp $(GTEST_HEADERS)
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/check_grace.cpp
 
-check_grace$(EXE) : check_grace.o gtest_main.a
+check_grace$(EXE) : check_grace.o gtest_main.a \
+    $(GRACE_LIB) $(GRACE_PLOT_LIB) $(GRACE_CORE_LIB) \
+	$(GRACE_GRAAL_LIB) $(GRACE_CANVAS_LIB) $(GRACE_BASE_LIB)
 	$(CXX) $(CFLAGS) $^ $(GRACE_QTGUI_LIB) -o $@ $(LDFLAGS) $(LIBS) -lpthread 
 
 

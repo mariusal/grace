@@ -384,7 +384,21 @@ int project_add_color(Quark *project, const Colordef *c)
     cbuf->cname = amem_strdup(project->amem, c->cname);
     pr->ncolors++;
     
+    pr->colorlist.colormap = pr->colormap;
+    pr->colorlist.ncolors  = pr->ncolors;
+
     return RETURN_SUCCESS;
+}
+
+ColorList project_get_colorlist(const Quark *q)
+{
+    Project *pr = project_get_data(q);
+    if (pr) {
+        return pr->colorlist;
+    } else {
+        ColorList list = {NULL, 0};
+        return list;
+    }
 }
 
 unsigned int project_get_ncolors(const Quark *q)
