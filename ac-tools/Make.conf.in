@@ -103,6 +103,9 @@ YACC=@YACC@
 # C compiler
 CC=@CC@
 
+# C++ compiler
+CXX=@CXX@
+
 # F77 compiler
 FC=@FC@
 

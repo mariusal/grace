@@ -3,6 +3,7 @@ CONFIG -= debug_and_release debug release
 CONFIG += debug
 CONFIG += staticlib
 include(../../Make.conf)
+QMAKE_CXX = $$CXX
 INCLUDEPATH += . ../ ../../include $$replace(CPPFLAGS, "-I", "")
 
 # Input
