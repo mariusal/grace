@@ -388,6 +388,7 @@ void avalue_free(AValue *av)
     if (av) {
         xfree(av->prestr);
         xfree(av->appstr);
+        xfree(av->format.fstring);
         xfree(av);
     }
 }
@@ -1153,16 +1154,14 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrXformat" minOccurs="1" maxOccurs="1">
-            AMem *amem = quark_get_amem($0);
             $$->fx = *$?;
-            $$->fx.fstring = amem_strdup(amem, $?->fstring);
-            format_free($?);
+            /* $?->fstring will be free'd by glocator_free() */
+            xfree($?);
         </child>
         <child name="#EStrYformat" minOccurs="1" maxOccurs="1">
-            AMem *amem = quark_get_amem($0);
             $$->fy = *$?;
-            $$->fy.fstring = amem_strdup(amem, $?->fstring);
-            format_free($?);
+            /* $?->fstring will be free'd by glocator_free() */
+            xfree($?);
         </child>
     </element>
     <element name="#EStrFixedpoint" type="fixedpoint">
@@ -1871,10 +1870,9 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrFormat" minOccurs="1" maxOccurs="1">
-            AMem *amem = quark_get_amem($0);
             $$->format = *$?;
-            $$->format.fstring = amem_strdup(amem, $?->fstring);
-            format_free($?);
+            /* $?->fstring will be free'd by avalue_free() */
+            xfree($?);
         </child>
         <child name="#EStrTextFrame" minOccurs="1" maxOccurs="1">
             $$->frame = *$?;
