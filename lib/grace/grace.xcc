@@ -205,6 +205,15 @@ GLocator *glocator_new()
     return retval;
 }
 
+void glocator_free(GLocator *gl)
+{
+    if (gl) {
+        xfree(gl->fx.fstring);
+        xfree(gl->fy.fstring);
+        xfree(gl);
+    }
+}
+
 TextProps *textprops_new(void)
 {
     TextProps *retval;
@@ -950,7 +959,7 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrLocator" minOccurs="1" maxOccurs="1">
             graph_set_locator($$, $?);
-            xfree($?);
+            glocator_free($?);
         </child>
         <child name="#EStrSSD" minOccurs="0" maxOccurs="unbounded"/>
         <child name="#EStrAGrid" minOccurs="0" maxOccurs="unbounded"/>
