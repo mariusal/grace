@@ -393,6 +393,47 @@ void avalue_free(AValue *av)
     }
 }
 
+
+static Symbol *symbol_new(void)
+{
+    Symbol *retval;
+    retval = xmalloc(sizeof(Symbol));
+    if (retval) {
+        memset(retval, 0, sizeof(Symbol));
+    }
+    return retval;
+}
+
+static SetLine *setline_new(void)
+{
+    SetLine *retval;
+    retval = xmalloc(sizeof(SetLine));
+    if (retval) {
+        memset(retval, 0, sizeof(SetLine));
+    }
+    return retval;
+}
+
+static BarLine *barline_new(void)
+{
+    BarLine *retval;
+    retval = xmalloc(sizeof(BarLine));
+    if (retval) {
+        memset(retval, 0, sizeof(BarLine));
+    }
+    return retval;
+}
+
+static RiserLine *riserline_new(void)
+{
+    RiserLine *retval;
+    retval = xmalloc(sizeof(RiserLine));
+    if (retval) {
+        memset(retval, 0, sizeof(RiserLine));
+    }
+    return retval;
+}
+
 char *utf2iso(const char *s)
 {
     char *retval;
