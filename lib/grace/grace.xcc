@@ -1450,10 +1450,9 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrFormat" minOccurs="1" maxOccurs="1">
-            AMem *amem = quark_get_amem($0);
             $$->format = *($?);
-            $$->format.fstring = amem_strdup(amem, $?->fstring);
-            format_free($?);
+            /* $?->fstring will be free'd by avalue_free() */
+            xfree($?);
         </child>
     </element>
     <element name="#EStrTick" type="tick">
