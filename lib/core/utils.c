@@ -446,56 +446,6 @@ int ssd_coalesce(Quark *toq, Quark *fromq)
 
 /* Misc (de)allocation utilities */
 
-Symbol *symbol_new(void)
-{
-    Symbol *retval;
-    retval = xmalloc(sizeof(Symbol));
-    if (retval) {
-        memset(retval, 0, sizeof(Symbol));
-    }
-    return retval;
-}
-
-void symbol_free(Symbol *sym)
-{
-    xfree(sym);
-}
-
-SetLine *setline_new(void)
-{
-    SetLine *retval;
-    retval = xmalloc(sizeof(SetLine));
-    if (retval) {
-        memset(retval, 0, sizeof(SetLine));
-    }
-    return retval;
-}
-
-void setline_free(SetLine *sl)
-{
-    xfree(sl);
-}
-
-BarLine *barline_new(void)
-{
-    BarLine *retval;
-    retval = xmalloc(sizeof(BarLine));
-    if (retval) {
-        memset(retval, 0, sizeof(BarLine));
-    }
-    return retval;
-}
-
-RiserLine *riserline_new(void)
-{
-    RiserLine *retval;
-    retval = xmalloc(sizeof(RiserLine));
-    if (retval) {
-        memset(retval, 0, sizeof(RiserLine));
-    }
-    return retval;
-}
-
 
 Format *format_new(void)
 {

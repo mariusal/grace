@@ -1104,12 +1104,6 @@ int Vpoint2Apoint(const Quark *q, const VPoint *vp, APoint *ap);
 int update_graph_ccache(Quark *gr);
 
 /* Misc (de)allocation utilities */
-Symbol *symbol_new(void);
-void symbol_free(Symbol *sym);
-SetLine *setline_new(void);
-void setline_free(SetLine *sl);
-BarLine *barline_new(void);
-RiserLine *riserline_new(void);
 Format *format_new(void);
 void format_free(Format *f);
 
