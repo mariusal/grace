@@ -29,6 +29,7 @@ bool CanvasWidget::event(QEvent *event)
     CanvasEvent cevent;
     cevent.modifiers = NO_MODIFIER;
     cevent.button    = NO_BUTTON;
+    cevent.key       = KEY_NONE;
 
     QMouseEvent *xbe;
     QWheelEvent *wheelEvent;
