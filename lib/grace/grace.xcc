@@ -1294,6 +1294,7 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrUserticks" minOccurs="1" maxOccurs="1"><![CDATA[
+            AMem *amem = quark_get_amem($$);
             tickmarks *t = axisgrid_get_data($$);
             t->t_spec    = $?->type;
             if (t->t_spec != TICKS_SPEC_NONE) {
@@ -1301,6 +1302,8 @@ char *utf2iso(const char *s)
                 t->nticks = $?->nticks;
                 for (i = 0; i < t->nticks; i++) {
                     t->tloc[i] = $?->tloc[i];
+                    t->tloc[i].label = amem_strdup(amem, $?->tloc[i].label);
+                    xfree($?->tloc[i].label);
                 }
             }
             xfree($?);
