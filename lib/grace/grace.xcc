@@ -273,6 +273,7 @@ void tlabels_free(TLabels *tl)
         xfree(tl->transform);
         xfree(tl->prepend);
         xfree(tl->append);
+        xfree(tl->format.fstring);
         xfree(tl);
     }
 }
@@ -1324,19 +1325,20 @@ char *utf2iso(const char *s)
         <child name="#EStrTicklabels" minOccurs="1" maxOccurs="1">
             AMem *amem = quark_get_amem($$);
             tickmarks *t = axisgrid_get_data($$);
-            t->tl_formula   = amem_strdup(amem, $?->transform);
-            t->tl_tprops    = $?->tprops;
-            t->tl_skip      = $?->skip;
-            t->tl_staggered = $?->stagger;
-            t->tl_format    = $?->format;
-            t->tl_gap.x     = $?->offset.x;
-            t->tl_gap.y     = $?->offset.y;
-            t->tl_starttype = $?->autostart ? TYPE_AUTO:TYPE_SPEC;
-            t->tl_start     = $?->start;
-            t->tl_stoptype  = $?->autostop ? TYPE_AUTO:TYPE_SPEC;
-            t->tl_stop      = $?->stop;
-            t->tl_prestr    = amem_strdup(amem, $?->prepend);
-            t->tl_appstr    = amem_strdup(amem, $?->append);
+            t->tl_formula        = amem_strdup(amem, $?->transform);
+            t->tl_tprops         = $?->tprops;
+            t->tl_skip           = $?->skip;
+            t->tl_staggered      = $?->stagger;
+            t->tl_format         = $?->format;
+            t->tl_format.fstring = amem_strdup(amem, $?->format.fstring);
+            t->tl_gap.x          = $?->offset.x;
+            t->tl_gap.y          = $?->offset.y;
+            t->tl_starttype      = $?->autostart ? TYPE_AUTO:TYPE_SPEC;
+            t->tl_start          = $?->start;
+            t->tl_stoptype       = $?->autostop ? TYPE_AUTO:TYPE_SPEC;
+            t->tl_stop           = $?->stop;
+            t->tl_prestr         = amem_strdup(amem, $?->prepend);
+            t->tl_appstr         = amem_strdup(amem, $?->append);
             tlabels_free($?);
         </child>
         <child name="#EStrAxis" minOccurs="0" maxOccurs="unbounded"/>
