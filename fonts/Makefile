@@ -42,6 +42,7 @@ AFMS =  type1/d050000l.afm \
 
 ENCODINGS = enc/IsoLatin1.enc \
 	enc/IsoLatin2.enc \
+	enc/IsoLatin5.enc \
 	enc/IsoLatin7.enc \
 	enc/IsoLatin9.enc \
 	enc/PSLatin1.enc \
