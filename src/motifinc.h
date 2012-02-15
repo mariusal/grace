@@ -33,13 +33,7 @@
 #ifndef __MOTIFINC_H_
 #define __MOTIFINC_H_
 
-#ifndef QT_GUI
-/* for Widget */
-#include <X11/Intrinsic.h>
-#else
-#include "qtgui/qtinc.h"
-#endif /* QT_GUI */
-
+#include "gui.h"
 #include "graceapp.h"
 
 /* 

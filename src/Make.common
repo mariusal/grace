@@ -37,7 +37,7 @@ GUIISRCS = guiactions.c events.c guiutils.c \
            fileswin.c \
            miscwin.c \
            monwin.c \
-	   compwin.c \
+           compwin.c \
            helpwin.c \
            worldwin.c \
            setwin.c \
@@ -52,7 +52,7 @@ GUIIOBJS = guiactions$(O) events$(O) guiutils$(O) \
            fileswin$(O) \
            miscwin$(O) \
            monwin$(O) \
-	   compwin$(O) \
+           compwin$(O) \
            helpwin$(O) \
            worldwin$(O) \
            setwin$(O) \
@@ -63,8 +63,8 @@ GUIIOBJS = guiactions$(O) events$(O) guiutils$(O) \
 # X/MOTIF sources
 #
 
-GUISRCS = Tab.c ListTree.c motifutils.c \
+GUISRCS = Tab.c ListTree.c motif.c motifutils.c \
         xutil.c x11drv.c xmgrace.c
 
-GUIOBJS = Tab$(O) ListTree$(O) motifutils$(O) \
+GUIOBJS = Tab$(O) ListTree$(O) motif$(O) motifutils$(O) \
         xutil$(O) x11drv$(O) xmgrace$(O)

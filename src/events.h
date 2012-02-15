@@ -61,6 +61,8 @@
 #define KEY_1      2
 #define KEY_PLUS   3
 #define KEY_MINUS  4
+#define KEY_UP     5
+#define KEY_DOWN   6
 
 /* Modifiers */
 #define NO_MODIFIER      0x00

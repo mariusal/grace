@@ -35,22 +35,14 @@
 #include <config.h>
 
 #include <stdio.h>
-
-#ifndef QT_GUI
-#include <Xm/Xm.h>
-#include <Xm/Text.h>
-#else
 #include <string.h>
-#endif
 
 #include "globals.h"
 #include "files.h"
 #include "motifinc.h"
 #include "xprotos.h"
+#include "events.h"
 
-#ifndef QT_GUI
-extern XtAppContext app_con;
-#endif
 
 static void clear_results(Widget but, void *data);
 static void popup_on(Widget tbut, int onoff, void *data);
@@ -73,46 +65,35 @@ typedef struct _console_ui
     int auto_update;
 } console_ui;
 
-#ifndef QT_GUI
-static void command_hist_prev(Widget w, XEvent *e, String *par, Cardinal *npar)
+
+static void command_hist(KeyEvent *event)
 {
     char *s;
     void *p;
-    console_ui *ui = (console_ui *) GetUserData(w);
-    if (!ui->eohistory) {
-        storage_scroll(ui->history, -1, FALSE);
+    console_ui *ui = (console_ui *) event->anydata;
+
+    if (event->key == KEY_UP) {
+        if (!ui->eohistory) {
+            storage_scroll(ui->history, -1, FALSE);
+        }
+        if (storage_get_data(ui->history, &p) == RETURN_SUCCESS) {
+            s = p;
+            SetTextString(ui->cmd, s);
+        }
+        ui->eohistory = FALSE;
     }
-    if (storage_get_data(ui->history, &p) == RETURN_SUCCESS) {
-        s = p;
+
+    if (event->key == KEY_DOWN) {
+        if (storage_scroll(ui->history, +1, FALSE) == RETURN_SUCCESS) {
+            storage_get_data(ui->history, &p);
+            s = p;
+        } else {
+            ui->eohistory = TRUE;
+            s = "";
+        }
         SetTextString(ui->cmd, s);
     }
-    ui->eohistory = FALSE;
 }
-
-static void command_hist_next(Widget w, XEvent *e, String *par, Cardinal *npar)
-{
-    char *s;
-    void *p;
-    console_ui *ui = GetUserData(w);
-    if (storage_scroll(ui->history, +1, FALSE) == RETURN_SUCCESS) {
-        storage_get_data(ui->history, &p);
-        s = p;
-    } else {
-        ui->eohistory = TRUE;
-        s = "";
-    }
-    SetTextString(ui->cmd, s);
-}
-
-static char command_hist_table[] = "\
-    <Key>osfUp: command_hist_prev()\n\
-    <Key>osfDown: command_hist_next()";
-
-static XtActionsRec command_hist_actions[] = {
-    {"command_hist_prev", command_hist_prev},
-    {"command_hist_next", command_hist_next}
-};
-#endif
 
 static void *wrap_str_copy(AMem *amem, void *data)
 {
@@ -174,15 +155,9 @@ static void create_monitor_frame(int force, char *msg)
 
         fr = CreateFrame(ui->mon_frame, NULL);
         ui->cmd = CreateTextInput(fr, "Command:");
-        SetUserData(ui->cmd->text, ui);
         AddTextInputCB(ui->cmd, cmd_cb, ui);
+        AddWidgetKeyPressCB(ui->cmd->text, command_hist, ui);
 
-#ifndef QT_GUI
-	XtOverrideTranslations(ui->cmd->text,
-            XtParseTranslationTable(command_hist_table));
-        XtAppAddActions(app_con,
-            command_hist_actions, XtNumber(command_hist_actions));
-#endif
         AddDialogFormChild(ui->mon_frame, fr);
         FixateDialogFormChild(fr);
 
