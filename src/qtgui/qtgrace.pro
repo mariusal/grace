@@ -16,7 +16,8 @@ HEADERS += qtgrace.h \
            qtinc.h \
            fileselectiondialog.h 
 
-SOURCES += qtgrace.cpp \
+SOURCES += qt.cpp \
+           qtgrace.cpp \
            qtutil.cpp \
            mainwindow.cpp \
            canvaswidget.cpp \

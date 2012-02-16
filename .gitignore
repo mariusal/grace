@@ -26,6 +26,7 @@ src/qtgui/moc_fileselectiondialog.cpp
 src/qtgui/ui_mainwindow.h
 src/qtgui/ui_fileselectiondialog.h
 src/qtgui/object_script.libqtgrace
+src/qtgui/qt.moc
 src/buildinfo
 src/buildinfo.exe
 src/buildinfo.h

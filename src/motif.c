@@ -27,8 +27,6 @@
 
 /* Motif widgets */
 
-#include <config.h>
-
 #include "widgets.h"
 
 #include "events.h"

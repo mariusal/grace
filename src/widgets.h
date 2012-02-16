@@ -30,6 +30,8 @@
 #ifndef __WIDGETS_H_
 #define __WIDGETS_H_
 
+#include <config.h>
+
 #ifdef MOTIF_GUI
 /* for Widget */
 #include <X11/Intrinsic.h>
