@@ -41,6 +41,12 @@
 #include "qtgui/qtinc.h"
 #endif /* QT_GUI */
 
+void ManageChild(Widget w);
+void UnmanageChild(Widget w);
+int IsManaged(Widget w);
+void *GetUserData(Widget w);
+void SetUserData(Widget w, void *udata);
+void SetSensitive(Widget w, int onoff);
 
 typedef struct {
     int key;

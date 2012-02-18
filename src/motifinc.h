@@ -415,10 +415,6 @@ void Beep(void);
 void InitWidgets(void);
 
 void ShowMenu(Widget w, void *data);
-void ManageChild(Widget w);
-void UnmanageChild(Widget w);
-int IsManaged(Widget w);
-void SetSensitive(Widget w, int onoff);
 
 Widget GetParent(Widget w);
 
@@ -428,9 +424,6 @@ void SetHeight(Widget w, unsigned int height);
 void SetDimensions(Widget w, unsigned int width, unsigned int height);
 void GetDimensions(Widget w, unsigned int *width, unsigned int *height);
 void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height);
-
-void *GetUserData(Widget w);
-void SetUserData(Widget w, void *udata);
 
 void CreatePixmaps(ExplorerUI *eui);
 

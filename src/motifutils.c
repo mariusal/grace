@@ -158,26 +158,6 @@ void ShowMenu(Widget w, void *data)
     ManageChild(w);
 }
 
-void ManageChild(Widget w)
-{
-    XtManageChild(w);
-}
-
-void UnmanageChild(Widget w)
-{
-    XtUnmanageChild(w);
-}
-
-int IsManaged(Widget w)
-{
-    return (XtIsManaged(w) == True) ? TRUE:FALSE;
-}
-
-void SetSensitive(Widget w, int onoff)
-{
-    XtSetSensitive(w, onoff ? True : False);
-}
-
 Widget GetParent(Widget w)
 {
     if (w) {
@@ -225,20 +205,6 @@ void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height)
 {
     XtVaSetValues(w, XmNpaneMinimum, width, NULL);
 }
-
-void *GetUserData(Widget w)
-{
-    void *udata = NULL;
-    XtVaGetValues(w, XmNuserData, &udata, NULL);
-    
-    return udata;
-}
-
-void SetUserData(Widget w, void *udata)
-{
-    XtVaSetValues(w, XmNuserData, udata, NULL);
-}
-
 
 #define MAX_PULLDOWN_LENGTH 30
 

@@ -31,6 +31,43 @@
 
 #include "events.h"
 
+#include <Xm/Xm.h>
+
+
+void ManageChild(Widget w)
+{
+    XtManageChild(w);
+}
+
+void UnmanageChild(Widget w)
+{
+    XtUnmanageChild(w);
+}
+
+int IsManaged(Widget w)
+{
+    return (XtIsManaged(w) == True) ? TRUE:FALSE;
+}
+
+void *GetUserData(Widget w)
+{
+    void *udata = NULL;
+    XtVaGetValues(w, XmNuserData, &udata, NULL);
+
+    return udata;
+}
+
+void SetUserData(Widget w, void *udata)
+{
+    XtVaSetValues(w, XmNuserData, udata, NULL);
+}
+
+void SetSensitive(Widget w, int onoff)
+{
+    XtSetSensitive(w, onoff ? True : False);
+}
+
+
 static void keyCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
 {
     XKeyEvent *xke;
