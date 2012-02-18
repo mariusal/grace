@@ -33,11 +33,6 @@
 #include "utils.h"
 #include "xprotos.h"
 
-#ifndef QT_GUI
-#include <Xm/Text.h>
-#endif
-
-
 static void wrap_year_cb(Widget but, int onoff, void *data)
 {
     Widget wrap_year = (Widget) data;
