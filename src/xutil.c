@@ -284,6 +284,7 @@ void x11_redraw_all()
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
     x11_redraw(xstuff->xwin, 0, 0, xstuff->win_w, xstuff->win_h);
+    XFlush(xstuff->disp);
 }
 
 static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId)

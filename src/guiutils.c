@@ -396,9 +396,7 @@ void xdrawgraph(const GProject *gp)
         region_need_erasing = FALSE;
 
         x11_redraw_all();
-#ifndef QT_GUI
-        XFlush(xstuff->disp);
-#endif
+
         unset_wait_cursor();
     }
 }
