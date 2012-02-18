@@ -155,7 +155,7 @@ void Beep(void)
 void ShowMenu(Widget w, void *data)
 {
     XmMenuPosition(w, (XButtonEvent *) data);
-    XtManageChild(w);
+    ManageChild(w);
 }
 
 void ManageChild(Widget w)
@@ -269,7 +269,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
 
     XmStringFree(str);
 
-    XtManageChild(retval->menu);
+    ManageChild(retval->menu);
     
     return retval;
 }
@@ -467,7 +467,7 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
                                 
     }
     for (i = 0; i < nchoices; i++) {
-        XtManageChild(retval->options[i].widget);
+        ManageChild(retval->options[i].widget);
     }
 
     retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
@@ -477,7 +477,7 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
 		  XmNsubMenuId, retval->pulldown,
 		  NULL);
     XmStringFree(str);
-    XtManageChild(retval->menu);
+    ManageChild(retval->menu);
     
     return retval;
 }
@@ -551,7 +551,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
 	                     NULL);
     }
     for (i = 0; i < nchoices; i++) {
-        XtManageChild(retval->options[i].widget);
+        ManageChild(retval->options[i].widget);
     }
 
     retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
@@ -561,7 +561,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
 		  XmNsubMenuId, retval->pulldown,
 		  NULL);
     XmStringFree(str);
-    XtManageChild(retval->menu);
+    ManageChild(retval->menu);
     
     fontid = xmalloc(SIZEOF_INT);
     *fontid = -1;
@@ -714,7 +714,7 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
 
     lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
-    XtManageChild(lab);
+    ManageChild(lab);
     
     XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
     XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
@@ -734,9 +734,9 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     
     UpdateListChoice(retval, nchoices, items);
 
-    XtManageChild(retval->list);
+    ManageChild(retval->list);
     
-    XtManageChild(retval->rc);
+    ManageChild(retval->rc);
     
     return retval;
 }
@@ -1016,7 +1016,7 @@ static void storage_popup(Widget parent,
     }
     
     XmMenuPosition(popup, e);
-    XtManageChild(popup);
+    ManageChild(popup);
 }
 
 static void ss_any_cb(StorageStructure *ss, int type)
@@ -1223,7 +1223,7 @@ StorageStructure *CreateStorageChoice(Widget parent,
     AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
 
     lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
-    XtManageChild(lab);
+    ManageChild(lab);
     
     XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
     XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
@@ -1245,9 +1245,9 @@ StorageStructure *CreateStorageChoice(Widget parent,
     XtOverrideTranslations(retval->list, 
                              XtParseTranslationTable(list_translation_table));
 
-    XtManageChild(retval->list);
+    ManageChild(retval->list);
     
-    XtManageChild(retval->rc);
+    ManageChild(retval->rc);
     
     return retval;
 }
@@ -1625,12 +1625,12 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
         XmNleftWidget, retval->arrow_down,
         NULL);
     
-    XtManageChild(retval->text);
-    XtManageChild(retval->arrow_up);
-    XtManageChild(retval->arrow_down);
-    XtManageChild(form);
-    XtManageChild(fr);
-    XtManageChild(retval->rc);
+    ManageChild(retval->text);
+    ManageChild(retval->arrow_up);
+    ManageChild(retval->arrow_down);
+    ManageChild(form);
+    ManageChild(fr);
+    ManageChild(retval->rc);
     
     return retval;
 }
@@ -1708,7 +1708,7 @@ TextStructure *CreateTextInput(Widget parent, char *s)
         XmNrightAttachment, XmATTACH_FORM,
         NULL);
 
-    XtManageChild(retval->form);
+    ManageChild(retval->form);
 
     return retval;
 }
@@ -1753,9 +1753,9 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 	XmNrightAttachment, XmATTACH_FORM,
 	XmNbottomAttachment, XmATTACH_FORM,
 	NULL);
-    XtManageChild(retval->text);
+    ManageChild(retval->text);
     
-    XtManageChild(retval->form);
+    ManageChild(retval->form);
     return retval;
 }
 
@@ -2025,7 +2025,7 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
  */
 static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    XtUnmanageChild((Widget) client_data);
+    UnmanageChild((Widget) client_data);
 }
 
 /*
@@ -2033,7 +2033,7 @@ static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
  */
 void destroy_dialog_cb(Widget but, void *data)
 {
-    XtUnmanageChild((Widget) data);
+    UnmanageChild((Widget) data);
 }
 
 static void fsb_setcwd_cb(Widget but, void *data)
@@ -2161,9 +2161,9 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
         XmNbottomAttachment, XmATTACH_FORM,
         XmNrightAttachment, XmATTACH_FORM,
         NULL);
-    XtManageChild(form);
+    ManageChild(form);
 
-    XtManageChild(retval->rc);
+    ManageChild(retval->rc);
 
     AddMouseWheelSupport(XmFileSelectionBoxGetChild(retval->FSB,
         XmDIALOG_LIST));
@@ -2199,7 +2199,7 @@ static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data
     ok = cbdata->cbproc(cbdata->fsb, s, cbdata->anydata);
     XtFree(s);
     if (ok) {
-        XtUnmanageChild(cbdata->fsb->dialog);
+        UnmanageChild(cbdata->fsb->dialog);
     }
     unset_wait_cursor();
 }
@@ -2539,7 +2539,7 @@ RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)
     retval->r_sel = CreateOptionChoice(rc,
         "Restriction:", 1, 7, restr_items);
     retval->negate = CreateToggleButton(rc, "Negated");
-    XtManageChild(rc);
+    ManageChild(rc);
 
     return retval;
 }
@@ -2629,7 +2629,7 @@ static void pen_popup(Widget parent,
     SetUserData(popup, parent);
     
     XmMenuPosition(popup, e);
-    XtManageChild(popup);
+    ManageChild(popup);
 }
 
 static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
@@ -2840,7 +2840,7 @@ Widget CreatePenChoice(Widget parent, char *s)
     pen.pattern = 0;
     SetPenChoice_int(button, &pen, FALSE);
     
-    XtManageChild(button);
+    ManageChild(button);
     
     return button;
 }
@@ -3311,7 +3311,7 @@ GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
     AddStorageChoiceCB(retval->graph_sel, update_sets_cb, (void *) retval);
     UpdateSetChoice(retval->set_sel);
     retval->set_sel->governor = retval->graph_sel;
-    XtManageChild(rc);
+    ManageChild(rc);
 
     return retval;
 }
@@ -3330,7 +3330,7 @@ SSDSetStructure *CreateSSDSetSelector(Widget parent, char *s, int sel_type)
     AddStorageChoiceCB(retval->ssd_sel, update_sets_cb, (void *) retval);
     UpdateSetChoice(retval->set_sel);
     retval->set_sel->governor = retval->ssd_sel;
-    XtManageChild(rc);
+    ManageChild(rc);
 
     return retval;
 }
@@ -3410,7 +3410,7 @@ SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
         sel_type == LIST_TYPE_SINGLE ? "Column:" : "Column(s):", sel_type);
     AddStorageChoiceCB(retval->ssd_sel, update_ssd_cb, (void *) retval);
 
-    XtManageChild(rc);
+    ManageChild(rc);
 
     return retval;
 }
@@ -3445,7 +3445,7 @@ SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
         XmNrightAttachment, XmATTACH_FORM,
         NULL);
 
-    XtManageChild(retval->form);
+    ManageChild(retval->form);
 
     return retval;
 }
@@ -3971,7 +3971,7 @@ static Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l
 					  XmNshowAsDefault, (i == 0) ? True : False,
 					  NULL);
     }
-    XtManageChild(form);
+    ManageChild(form);
     XtVaGetValues(buts[0], XmNheight, &h, NULL);
     XtVaSetValues(form, XmNpaneMaximum, h, XmNpaneMinimum, h, NULL);
     
@@ -3997,7 +3997,7 @@ void aacdialog_int_cb_proc(Widget but, void *data)
     retval = cbdata->cbproc(cbdata->anydata);
 
     if (cbdata->close && retval == RETURN_SUCCESS) {
-        XtUnmanageChild(XtParent(cbdata->form));
+        UnmanageChild(XtParent(cbdata->form));
     }
     
     unset_wait_cursor();
@@ -4046,8 +4046,8 @@ WidgetList CreateAACDialog(Widget form,
     AddButtonCB(aacbut[1], aacdialog_int_cb_proc, cbdata_accept);
     AddButtonCB(aacbut[2], destroy_dialog_cb, XtParent(form));
     
-    XtManageChild(container);
-    XtManageChild(form);
+    ManageChild(container);
+    ManageChild(form);
     
     return aacbut;
 }
@@ -4231,7 +4231,7 @@ Widget CreateVContainer(Widget parent)
     Widget rc;
     
     rc = XmCreateRowColumn(parent, "VContainer", NULL, 0);
-    XtManageChild(rc);
+    ManageChild(rc);
     
     return rc;
 }
@@ -4242,7 +4242,7 @@ Widget CreateHContainer(Widget parent)
     
     rc = XmCreateRowColumn(parent, "HContainer", NULL, 0);
     XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-    XtManageChild(rc);
+    ManageChild(rc);
     
     return rc;
 }
@@ -4314,7 +4314,7 @@ Widget CreateGrid(Widget parent, int ncols, int nrows)
         XmNuserData, gd,
         NULL);
 
-    XtManageChild(w);
+    ManageChild(w);
     return w;
 }
 
@@ -4375,7 +4375,7 @@ Widget CreateTabPage(Widget parent, char *s)
     str = XmStringCreateLocalized(s);
     XtVaSetValues(w, XmNtabLabel, str, NULL);
     XmStringFree(str);
-    XtManageChild(w);
+    ManageChild(w);
     
     return (w);
 }
@@ -4401,7 +4401,7 @@ Widget CreateTextItem(Widget parent, int len, char *s)
 				XmNtraversalOn, True,
 				XmNcolumns, len,
 				NULL);
-    XtManageChild(rc);
+    ManageChild(rc);
     return w;
 }
 
@@ -4563,7 +4563,7 @@ void handle_close(Widget w)
  */
 void RaiseWindow(Widget w)
 {
-    XtManageChild(w);
+    ManageChild(w);
     XMapRaised(XtDisplay(w), XtWindow(w));
 }
 
@@ -4595,7 +4595,7 @@ Widget CreateSeparator(Widget parent)
     Widget sep;
     
     sep = XmCreateSeparator(parent, "sep", NULL, 0);
-    XtManageChild(sep);
+    ManageChild(sep);
     return sep;
 }
 
@@ -4654,13 +4654,13 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
 void ManageMenu(Widget menupane)
 {
     Widget cascade = GetUserData(menupane);
-    XtManageChild(cascade);
+    ManageChild(cascade);
 }
 
 void UnmanageMenu(Widget menupane)
 {
     Widget cascade = GetUserData(menupane);
-    XtUnmanageChild(cascade);
+    UnmanageChild(cascade);
 }
 
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
@@ -4754,7 +4754,7 @@ Widget CreateMenuLabel(Widget parent, char *name)
     Widget lab;
     
     lab = XmCreateLabel(parent, name, NULL, 0);
-    XtManageChild(lab);
+    ManageChild(lab);
     return lab;
 }
 
@@ -4809,7 +4809,7 @@ void yesnoCB(Widget w, XtPointer client_data, XtPointer call_data)
     keep_grab = False;
     
     XtRemoveGrab(XtParent(w));
-    XtUnmanageChild(w);
+    UnmanageChild(w);
     switch (why) {
     case XmCR_OK:
 	yesno_retval = TRUE;
@@ -4872,9 +4872,9 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
     
     but = XtNameToWidget(dialog, "Help");
     if (ha) {
-        XtManageChild(but);
+        ManageChild(but);
     } else {    
-        XtUnmanageChild(but);
+        UnmanageChild(but);
     }
 
     RaiseWindow(dialog);
