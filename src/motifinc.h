@@ -366,13 +366,6 @@ typedef struct {
     void *anydata;
 } TextValidate_CBData;
 
-/* Text item CB procedure */
-typedef void (*TItem_CBProc)(
-    Widget ti,
-    char *,              /* text string */
-    void *               /* data the application registered */
-);
-
 /* Scale input CB procedure */
 typedef void (*Scale_CBProc )(
     Widget scale,
@@ -529,8 +522,6 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s);
 void AddFileSelectionBoxCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);
 void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern);
 
-Widget CreateLabel(Widget parent, char *s);
-
 OptionStructure *CreateFontChoice(Widget parent, char *s);
 OptionStructure *CreatePatternChoice(Widget parent, char *s);
 OptionStructure *CreateLineStyleChoice(Widget parent, char *s);
@@ -586,9 +577,6 @@ OptionStructure *CreatePrecisionChoice(Widget parent, char *s);
 OptionStructure *CreatePaperOrientationChoice(Widget parent, char *s);
 OptionStructure *CreatePaperFormatChoice(Widget parent, char *s);
 
-Widget CreateTextItem(Widget parent, int len, char *s);
-void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
-
 WidgetList CreateAACDialog(Widget form,
     Widget container, AACDialog_CBProc cbproc, void *data);
 
@@ -598,8 +586,6 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
     int *nssrc, Quark ***srcsets, Quark ***destsets);
 void RaiseTransformationDialog(TransformStructure *tdialog);
 
-void SetLabel(Widget w, char *s);
-void AlignLabel(Widget w, int alignment);
 void SetFixedFont(Widget w);
 
 Widget CreatePopupMenu(Widget parent);

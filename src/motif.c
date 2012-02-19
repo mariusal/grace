@@ -33,6 +33,8 @@
 
 #include <Xm/Xm.h>
 #include <Xm/Form.h>
+#include <Xm/Label.h>
+#include <Xm/Text.h>
 
 
 void ManageChild(Widget w)
@@ -158,4 +160,94 @@ void FixateDialogFormChild(Widget w)
     XtVaSetValues(prev, XmNbottomAttachment, XmATTACH_WIDGET,
         XmNbottomWidget, w,
         NULL);
+}
+
+Widget CreateLabel(Widget parent, char *s)
+{
+    Widget label;
+
+    label = XtVaCreateManagedWidget(s ? s:"",
+        xmLabelWidgetClass, parent,
+        XmNalignment, XmALIGNMENT_BEGINNING,
+        XmNrecomputeSize, True,
+        NULL);
+    return label;
+}
+
+void SetLabel(Widget w, char *s)
+{
+    XmString str;
+
+    str = XmStringCreateLocalized(s);
+    XtVaSetValues(w, XmNlabelString, str, NULL);
+    XmStringFree(str);
+}
+
+void AlignLabel(Widget w, int alignment)
+{
+    unsigned char xm_alignment;
+
+    switch(alignment) {
+    case ALIGN_BEGINNING:
+        xm_alignment = XmALIGNMENT_BEGINNING;
+        break;
+    case ALIGN_CENTER:
+        xm_alignment = XmALIGNMENT_CENTER;
+        break;
+    case ALIGN_END:
+        xm_alignment = XmALIGNMENT_END;
+        break;
+    default:
+        errmsg("Internal error in AlignLabel()");
+        return;
+        break;
+    }
+    XtVaSetValues(w,
+        XmNalignment, xm_alignment,
+        NULL);
+}
+
+Widget CreateTextItem(Widget parent, int len, char *s)
+{
+    Widget w;
+    Widget rc;
+    XmString str;
+    rc = XmCreateRowColumn(parent, "rc", NULL, 0);
+    XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+    str = XmStringCreateLocalized(s);
+    XtVaCreateManagedWidget("label", xmLabelWidgetClass, rc,
+                            XmNlabelString, str,
+                            NULL);
+    XmStringFree(str);
+    w = XtVaCreateManagedWidget("text", xmTextWidgetClass, rc,
+                                XmNtraversalOn, True,
+                                XmNcolumns, len,
+                                NULL);
+    ManageChild(rc);
+    return w;
+}
+
+typedef struct {
+    TItem_CBProc cbproc;
+    void *anydata;
+} TItem_CBdata;
+
+static void titem_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    char *s;
+    TItem_CBdata *cbdata = (TItem_CBdata *) client_data;
+    s = XmTextGetString(w);
+    cbdata->cbproc(w, s, cbdata->anydata);
+    XtFree(s);
+}
+
+
+void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
+{
+    TItem_CBdata *cbdata;
+
+    cbdata = xmalloc(sizeof(TItem_CBdata));
+    cbdata->anydata = data;
+    cbdata->cbproc = cbproc;
+    XtAddCallback(ti, XmNactivateCallback, titem_int_cb_proc, (XtPointer) cbdata);
 }

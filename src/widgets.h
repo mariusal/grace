@@ -64,10 +64,27 @@ typedef struct {
 
 void AddWidgetKeyPressCB(Widget w, Key_CBProc cbproc, void *anydata);
 
+
 Widget CreateForm(Widget parent);
 Widget CreateDialogForm(Widget parent, const char *s);
 void SetDialogFormResizable(Widget form, int onoff);
 void AddDialogFormChild(Widget form, Widget child);
 void FixateDialogFormChild(Widget w);
+
+
+Widget CreateLabel(Widget parent, char *s);
+void SetLabel(Widget w, char *s);
+void AlignLabel(Widget w, int alignment);
+
+
+/* Text item CB procedure */
+typedef void (*TItem_CBProc)(
+    Widget ti,
+    char *,              /* text string */
+    void *               /* data the application registered */
+);
+
+Widget CreateTextItem(Widget parent, int len, char *s);
+void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
 
 #endif /* __WIDGETS_H_ */
