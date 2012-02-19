@@ -3826,18 +3826,13 @@ void CreatePixmaps(ExplorerUI *eui)
         hidden_xpm, &eui->h_icon, NULL, &attrib);
 }
 
-Widget CreateForm(Widget parent)
-{
-    return XmCreateForm(parent, "form", NULL, 0);
-}
-
 Widget CreateDialogForm(Widget parent, const char *s)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
     Widget dialog, w;
     char *bufp;
     int standalone;
-    
+
     if (parent == NULL) {
         standalone = TRUE;
         parent = XtAppCreateShell("XMgapp", "XMgapp",
@@ -3849,11 +3844,11 @@ Widget CreateDialogForm(Widget parent, const char *s)
     bufp = label_to_resname(s, "Dialog");
     dialog = XmCreateDialogShell(parent, bufp, NULL, 0);
     xfree(bufp);
-    
+
     if (standalone) {
         RegisterEditRes(dialog);
     }
-    
+
     handle_close(dialog);
 
     bufp = copy_string(NULL, "Grace: ");
@@ -3864,54 +3859,8 @@ Widget CreateDialogForm(Widget parent, const char *s)
     xfree(bufp);
 
     w = XmCreateForm(dialog, "form", NULL, 0);
-    
+
     return w;
-}
-
-void SetDialogFormResizable(Widget form, int onoff)
-{
-    XtVaSetValues(form,
-        XmNresizePolicy, onoff ? XmRESIZE_ANY:XmRESIZE_NONE,
-        NULL);
-    XtVaSetValues(XtParent(form),
-        XmNallowShellResize, onoff ? True:False,
-        NULL);
-}
-
-void AddDialogFormChild(Widget form, Widget child)
-{
-    Widget last_widget;
-    
-    last_widget = GetUserData(form);
-    if (last_widget) {
-        XtVaSetValues(child,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, last_widget,
-            NULL);
-        XtVaSetValues(last_widget,
-            XmNbottomAttachment, XmATTACH_NONE,
-            NULL);
-    } else {
-        XtVaSetValues(child,
-            XmNtopAttachment, XmATTACH_FORM,
-            NULL);
-    }
-    XtVaSetValues(child,
-        XmNleftAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        NULL);
-    SetUserData(form, child);
-}
-
-void FixateDialogFormChild(Widget w)
-{
-    Widget prev;
-    XtVaGetValues(w, XmNtopWidget, &prev, NULL);
-    XtVaSetValues(w, XmNtopAttachment, XmATTACH_NONE, NULL);
-    XtVaSetValues(prev, XmNbottomAttachment, XmATTACH_WIDGET,
-        XmNbottomWidget, w,
-        NULL);
 }
 
 static Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)

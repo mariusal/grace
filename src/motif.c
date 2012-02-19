@@ -32,6 +32,7 @@
 #include "events.h"
 
 #include <Xm/Xm.h>
+#include <Xm/Form.h>
 
 
 void ManageChild(Widget w)
@@ -106,4 +107,55 @@ void AddWidgetKeyPressCB(Widget w, Key_CBProc cbproc, void *anydata)
     cbdata->anydata = anydata;
 
     XtAddEventHandler(w, KeyPressMask, False, keyCB, cbdata);
+}
+
+Widget CreateForm(Widget parent)
+{
+    return XmCreateForm(parent, "form", NULL, 0);
+}
+
+void SetDialogFormResizable(Widget form, int onoff)
+{
+    XtVaSetValues(form,
+        XmNresizePolicy, onoff ? XmRESIZE_ANY:XmRESIZE_NONE,
+        NULL);
+    XtVaSetValues(XtParent(form),
+        XmNallowShellResize, onoff ? True:False,
+        NULL);
+}
+
+void AddDialogFormChild(Widget form, Widget child)
+{
+    Widget last_widget;
+
+    last_widget = GetUserData(form);
+    if (last_widget) {
+        XtVaSetValues(child,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, last_widget,
+            NULL);
+        XtVaSetValues(last_widget,
+            XmNbottomAttachment, XmATTACH_NONE,
+            NULL);
+    } else {
+        XtVaSetValues(child,
+            XmNtopAttachment, XmATTACH_FORM,
+            NULL);
+    }
+    XtVaSetValues(child,
+        XmNleftAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        NULL);
+    SetUserData(form, child);
+}
+
+void FixateDialogFormChild(Widget w)
+{
+    Widget prev;
+    XtVaGetValues(w, XmNtopWidget, &prev, NULL);
+    XtVaSetValues(w, XmNtopAttachment, XmATTACH_NONE, NULL);
+    XtVaSetValues(prev, XmNbottomAttachment, XmATTACH_WIDGET,
+        XmNbottomWidget, w,
+        NULL);
 }

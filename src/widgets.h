@@ -64,4 +64,10 @@ typedef struct {
 
 void AddWidgetKeyPressCB(Widget w, Key_CBProc cbproc, void *anydata);
 
+Widget CreateForm(Widget parent);
+Widget CreateDialogForm(Widget parent, const char *s);
+void SetDialogFormResizable(Widget form, int onoff);
+void AddDialogFormChild(Widget form, Widget child);
+void FixateDialogFormChild(Widget w);
+
 #endif /* __WIDGETS_H_ */

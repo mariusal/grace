@@ -427,13 +427,6 @@ void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height);
 
 void CreatePixmaps(ExplorerUI *eui);
 
-Widget CreateForm(Widget parent);
-
-Widget CreateDialogForm(Widget parent, const char *s);
-void SetDialogFormResizable(Widget form, int onoff);
-void AddDialogFormChild(Widget form, Widget child);
-void FixateDialogFormChild(Widget w);
-
 Widget CreateFrame(Widget parent, char *s);
 
 Widget CreateScrolledWindow(Widget parent);
