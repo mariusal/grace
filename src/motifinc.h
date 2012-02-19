@@ -428,9 +428,6 @@ Widget CreatePanedWindow(Widget parent);
 Widget CreateSeparator(Widget parent);
 Widget CreateMenuSeparator(Widget parent);
 
-Widget CreateVContainer(Widget parent);
-Widget CreateHContainer(Widget parent);
-
 Widget CreateGrid(Widget parent, int ncols, int nrows);
 void PlaceGridChild(Widget grid, Widget w, int col, int row);
 

@@ -4105,28 +4105,6 @@ void RaiseTransformationDialog(TransformStructure *tdialog)
     RaiseWindow(GetParent(tdialog->form));
 }
 
-Widget CreateVContainer(Widget parent)
-{
-    Widget rc;
-    
-    rc = XmCreateRowColumn(parent, "VContainer", NULL, 0);
-    ManageChild(rc);
-    
-    return rc;
-}
-
-Widget CreateHContainer(Widget parent)
-{
-    Widget rc;
-    
-    rc = XmCreateRowColumn(parent, "HContainer", NULL, 0);
-    XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-    ManageChild(rc);
-    
-    return rc;
-}
-
-
 Widget CreateFrame(Widget parent, char *s)
 {
     Widget fr;

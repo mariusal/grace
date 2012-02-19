@@ -36,7 +36,6 @@
 #include <Xm/Label.h>
 #include <Xm/Text.h>
 
-
 void ManageChild(Widget w)
 {
     XtManageChild(w);
@@ -109,6 +108,27 @@ void AddWidgetKeyPressCB(Widget w, Key_CBProc cbproc, void *anydata)
     cbdata->anydata = anydata;
 
     XtAddEventHandler(w, KeyPressMask, False, keyCB, cbdata);
+}
+
+Widget CreateVContainer(Widget parent)
+{
+    Widget rc;
+
+    rc = XmCreateRowColumn(parent, "VContainer", NULL, 0);
+    ManageChild(rc);
+
+    return rc;
+}
+
+Widget CreateHContainer(Widget parent)
+{
+    Widget rc;
+
+    rc = XmCreateRowColumn(parent, "HContainer", NULL, 0);
+    XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+    ManageChild(rc);
+
+    return rc;
 }
 
 Widget CreateForm(Widget parent)
