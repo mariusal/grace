@@ -181,6 +181,32 @@ void SetDialogFormResizable(Widget form, int onoff)
         NULL);
 }
 
+void FormAddHChild(Widget form, Widget child)
+{
+    Widget last_widget;
+
+    last_widget = GetUserData(form);
+    if (last_widget) {
+        XtVaSetValues(child,
+            XmNleftAttachment, XmATTACH_WIDGET,
+            XmNleftWidget, last_widget,
+            NULL);
+        XtVaSetValues(last_widget,
+            XmNrightAttachment, XmATTACH_NONE,
+            NULL);
+    } else {
+        XtVaSetValues(child,
+            XmNleftAttachment, XmATTACH_FORM,
+            NULL);
+    }
+    XtVaSetValues(child,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_FORM,
+        NULL);
+    SetUserData(form, child);
+}
+
 void AddDialogFormChild(Widget form, Widget child)
 {
     Widget last_widget;
@@ -267,10 +293,16 @@ void AlignLabel(Widget w, int alignment)
 
 Widget CreateLineTextEdit(Widget parent, int len)
 {
-    return XtVaCreateManagedWidget("text", xmTextWidgetClass, parent,
+    Widget w;
+
+    w = XtVaCreateManagedWidget("text", xmTextWidgetClass, parent,
                                    XmNtraversalOn, True,
-                                   XmNcolumns, len,
                                    NULL);
+    if (len > 0) {
+        XtVaSetValues(w, XmNcolumns, len, NULL);
+    }
+
+    return w;
 }
 
 Widget CreateTextItem(Widget parent, int len, char *label)
@@ -311,31 +343,15 @@ void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
 TextStructure *CreateTextInput(Widget parent, char *s)
 {
     TextStructure *retval;
-    XmString str;
 
     retval = xmalloc(sizeof(TextStructure));
-    retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL);
+    retval->form = CreateForm(parent);
 
-    str = XmStringCreateLocalized(s);
-    retval->label = XtVaCreateManagedWidget("label",
-        xmLabelWidgetClass, retval->form,
-        XmNlabelString, str,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNleftAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_NONE,
-        NULL);
-    XmStringFree(str);
+    retval->label = CreateLabel(retval->form, s);
+    FormAddHChild(retval->form, retval->label);
 
-    retval->text = XtVaCreateManagedWidget("cstext",
-        xmTextWidgetClass, retval->form,
-        XmNtraversalOn, True,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNleftAttachment, XmATTACH_WIDGET,
-        XmNleftWidget, retval->label,
-        XmNrightAttachment, XmATTACH_FORM,
-        NULL);
+    retval->text = CreateLineTextEdit(retval->form, 0);
+    FormAddHChild(retval->form, retval->text);
 
     ManageChild(retval->form);
 
