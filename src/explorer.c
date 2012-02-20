@@ -1034,13 +1034,10 @@ void raise_explorer(GUI *gui, Quark *q)
         AddTextInputCB(eui->idstr, text_explorer_cb, eui);
         FormAddVChild(form, fr);
         FormFixateVChild(fr);
-
-	ManageChild(form);
         
         eui->scrolled_window = CreateScrolledWindow(panel);
         PlaceGridChild(panel, eui->scrolled_window, 1, 0); /* in case if CreatePanedWindow creates a grid */
 
-        ManageChild(panel);
         SetMinimumDimensions(form, 150, 0);
         SetDimensions(form, 250, 0);
 

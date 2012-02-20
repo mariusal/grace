@@ -3872,10 +3872,10 @@ Widget CreateScrolledWindow(Widget parent)
 Widget CreatePanedWindow(Widget parent)
 {
 #if USE_PANEDW
-    return XtVaCreateWidget("panedWindow",
-                            xmPanedWindowWidgetClass, parent,
-                            XmNorientation, XmHORIZONTAL,
-                            NULL);
+    return XtVaCreateManagedWidget("panedWindow",
+                                   xmPanedWindowWidgetClass, parent,
+                                   XmNorientation, XmHORIZONTAL,
+                                   NULL);
 #else
     return CreateGrid(parent, 2, 1);
 #endif
