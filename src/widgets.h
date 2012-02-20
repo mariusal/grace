@@ -84,7 +84,8 @@ typedef void (*TItem_CBProc)(
     void *               /* data the application registered */
 );
 
-Widget CreateTextItem(Widget parent, int len, char *s);
+Widget CreateLineTextEdit(Widget parent, int len);
+Widget CreateTextItem(Widget parent, int len, char *label);
 void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
 
 #endif /* __WIDGETS_H_ */

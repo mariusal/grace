@@ -35,6 +35,7 @@
 #include <Xm/Form.h>
 #include <Xm/Label.h>
 #include <Xm/Text.h>
+#include <Xm/RowColumn.h>
 
 void ManageChild(Widget w)
 {
@@ -186,11 +187,14 @@ Widget CreateLabel(Widget parent, char *s)
 {
     Widget label;
 
-    label = XtVaCreateManagedWidget(s ? s:"",
+    label = XtVaCreateManagedWidget("label",
         xmLabelWidgetClass, parent,
         XmNalignment, XmALIGNMENT_BEGINNING,
         XmNrecomputeSize, True,
         NULL);
+
+    SetLabel(label, s);
+
     return label;
 }
 
@@ -227,24 +231,22 @@ void AlignLabel(Widget w, int alignment)
         NULL);
 }
 
-Widget CreateTextItem(Widget parent, int len, char *s)
+Widget CreateLineTextEdit(Widget parent, int len)
 {
-    Widget w;
+    return XtVaCreateManagedWidget("text", xmTextWidgetClass, parent,
+                                   XmNtraversalOn, True,
+                                   XmNcolumns, len,
+                                   NULL);
+}
+
+Widget CreateTextItem(Widget parent, int len, char *label)
+{
     Widget rc;
-    XmString str;
-    rc = XmCreateRowColumn(parent, "rc", NULL, 0);
-    XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-    str = XmStringCreateLocalized(s);
-    XtVaCreateManagedWidget("label", xmLabelWidgetClass, rc,
-                            XmNlabelString, str,
-                            NULL);
-    XmStringFree(str);
-    w = XtVaCreateManagedWidget("text", xmTextWidgetClass, rc,
-                                XmNtraversalOn, True,
-                                XmNcolumns, len,
-                                NULL);
-    ManageChild(rc);
-    return w;
+
+    rc = CreateHContainer(parent);
+    CreateLabel(rc, label);
+
+    return CreateLineTextEdit(rc, len);
 }
 
 typedef struct {
