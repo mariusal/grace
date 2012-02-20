@@ -498,11 +498,11 @@ static void text_int_mv_cb_proc(Widget w, XtPointer client_data, XtPointer call_
     }
 }
 
-static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void text_int_cb_proc(KeyEvent *event)
 {
     char *s;
-    Text_CBdata *cbdata = (Text_CBdata *) client_data;
-    s = XmTextGetString(w);
+    Text_CBdata *cbdata = (Text_CBdata *) event->anydata;
+    s = XmTextGetString(event->w);
     cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
     XtFree(s);
 }
@@ -518,8 +518,7 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     cbdata->timeout_id = (XtIntervalId) 0;
     cbdata->cst->locked = FALSE;
 
-    XtAddCallback(cst->text,
-        XmNactivateCallback, text_int_cb_proc, (XtPointer) cbdata);
+    AddWidgetKeyPressCB(cst->text, KEY_RETURN, text_int_cb_proc, cbdata);
     XtAddCallback(cst->text,
         XmNmodifyVerifyCallback, text_int_mv_cb_proc, (XtPointer) cbdata);
 }
