@@ -86,11 +86,11 @@ void create_datasetprop_popup(Widget but, void *data)
 
         menubar = CreateMenuBar(tui.top);
         ManageChild(menubar);
-        AddDialogFormChild(tui.top, menubar);
+        FormAddVChild(tui.top, menubar);
 
         tui.sel = CreateGraphSetSelector(tui.top,
             "Data sets:", LIST_TYPE_SINGLE);
-        AddDialogFormChild(tui.top, tui.sel->frame);
+        FormAddVChild(tui.top, tui.sel->frame);
         AddStorageChoiceCB(tui.sel->set_sel, changetypeCB, tui.sel);
 
 
@@ -123,7 +123,7 @@ void create_datasetprop_popup(Widget but, void *data)
 
         AddTableEnterCellCB(tui.mw, enterCB, NULL);
 
-        AddDialogFormChild(tui.top, fr);
+        FormAddVChild(tui.top, fr);
         ManageChild(tui.top);
     }
     
@@ -229,11 +229,11 @@ void create_datasetop_popup(Widget but, void *data)
     if (datasetopui.top == NULL) {
         
         datasetopui.top = CreateDialogForm(app_shell, "Data set operations");
-        SetDialogFormResizable(datasetopui.top, TRUE);
+        DialogSetResizable(datasetopui.top, TRUE);
 
         menubar = CreateMenuBar(datasetopui.top);
         ManageChild(menubar);
-        AddDialogFormChild(datasetopui.top, menubar);
+        FormAddVChild(datasetopui.top, menubar);
 
 
         dialog = CreateVContainer(datasetopui.top);
@@ -489,14 +489,14 @@ void create_leval_frame(Widget but, void *data)
         levalui.top = CreateDialogForm(app_shell, "Load & evaluate");
 
         fr = CreateFrame(levalui.top, "Parameter mesh ($t)");
-        AddDialogFormChild(levalui.top, fr);
+        FormAddVChild(levalui.top, fr);
         rc1 = CreateHContainer(fr);
         levalui.start = CreateTextItem(rc1, 10, "Start at:");
         levalui.stop = CreateTextItem(rc1, 10, "Stop at:");
         levalui.npts = CreateTextItem(rc1, 6, "Length:");
 
         levalui.set_type = CreateSetTypeChoice(levalui.top, "Set type:");
-        AddDialogFormChild(levalui.top, levalui.set_type->menu);
+        FormAddVChild(levalui.top, levalui.set_type->menu);
         AddOptionChoiceCB(levalui.set_type, set_type_cb, (void *) &levalui);
         
         nscols = 2;

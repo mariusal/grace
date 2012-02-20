@@ -68,11 +68,12 @@ void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
 Widget CreateVContainer(Widget parent);
 Widget CreateHContainer(Widget parent);
 
+void DialogSetResizable(Widget form, int onoff);
+
 Widget CreateForm(Widget parent);
-Widget CreateDialogForm(Widget parent, const char *s);
-void SetDialogFormResizable(Widget form, int onoff);
-void AddDialogFormChild(Widget form, Widget child);
-void FixateDialogFormChild(Widget w);
+void FormAddHChild(Widget form, Widget child);
+void FormAddVChild(Widget form, Widget child);
+void FormFixateVChild(Widget w);
 
 Widget CreateLabel(Widget parent, char *s);
 void SetLabel(Widget w, char *s);

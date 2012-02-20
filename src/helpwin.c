@@ -138,7 +138,7 @@ void create_about_grtool(Widget but, void *data)
 	about_frame = CreateDialogForm(app_shell, "About");
 	
         about_panel = CreateVContainer(about_frame);
-        AddDialogFormChild(about_frame, about_panel);
+        FormAddVChild(about_frame, about_panel);
 
 	fr = CreateFrame(about_panel, NULL);
         rc = CreateVContainer(fr);

@@ -216,7 +216,7 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
 
     
     fr = CreateFrame(form, "Page background");
-    AddDialogFormChild(form, fr);
+    FormAddVChild(form, fr);
     rc = CreateHContainer(fr);
     ui->bg_color = CreateColorChoice(rc, "Color:");
     AddOptionChoiceCB(ui->bg_color, oc_explorer_cb, eui);
@@ -224,7 +224,7 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     AddToggleButtonCB(ui->bg_fill, tb_explorer_cb, eui);
 
     fr = CreateFrame(form, "Scaling factors");
-    AddDialogFormChild(form, fr);
+    FormAddVChild(form, fr);
     rc = CreateVContainer(fr);
     ui->fsize_scale = CreateSpinChoice(rc, "Font size:", 5,
         SPIN_TYPE_FLOAT, 0.0, 1.0, 0.005);

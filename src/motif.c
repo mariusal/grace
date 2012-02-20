@@ -166,12 +166,7 @@ Widget CreateHContainer(Widget parent)
     return rc;
 }
 
-Widget CreateForm(Widget parent)
-{
-    return XmCreateForm(parent, "form", NULL, 0);
-}
-
-void SetDialogFormResizable(Widget form, int onoff)
+void DialogSetResizable(Widget form, int onoff)
 {
     XtVaSetValues(form,
         XmNresizePolicy, onoff ? XmRESIZE_ANY:XmRESIZE_NONE,
@@ -179,6 +174,11 @@ void SetDialogFormResizable(Widget form, int onoff)
     XtVaSetValues(XtParent(form),
         XmNallowShellResize, onoff ? True:False,
         NULL);
+}
+
+Widget CreateForm(Widget parent)
+{
+    return XmCreateForm(parent, "form", NULL, 0);
 }
 
 void FormAddHChild(Widget form, Widget child)
@@ -207,7 +207,7 @@ void FormAddHChild(Widget form, Widget child)
     SetUserData(form, child);
 }
 
-void AddDialogFormChild(Widget form, Widget child)
+void FormAddVChild(Widget form, Widget child)
 {
     Widget last_widget;
 
@@ -233,7 +233,7 @@ void AddDialogFormChild(Widget form, Widget child)
     SetUserData(form, child);
 }
 
-void FixateDialogFormChild(Widget w)
+void FormFixateVChild(Widget w)
 {
     Widget prev;
     XtVaGetValues(w, XmNtopWidget, &prev, NULL);

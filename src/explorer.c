@@ -967,7 +967,7 @@ void raise_explorer(GUI *gui, Quark *q)
         eui->top = CreateDialogForm(app_shell, "Explorer");
         menubar = CreateMenuBar(eui->top);
         ManageChild(menubar);
-        AddDialogFormChild(eui->top, menubar);
+        FormAddVChild(eui->top, menubar);
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButton(menupane,
@@ -1027,13 +1027,13 @@ void raise_explorer(GUI *gui, Quark *q)
         AddTreeHighlightItemsCB(eui->tree, highlight_cb, eui);
         AddTreeContextMenuCB(eui->tree, menu_cb, eui);
         AddTreeDropItemsCB(eui->tree, drop_cb, eui);
-        AddDialogFormChild(form, GetParent(eui->tree));
+        FormAddVChild(form, GetParent(eui->tree));
 
         fr = CreateFrame(form, NULL);
         eui->idstr = CreateTextInput(fr, "ID string:");
         AddTextInputCB(eui->idstr, text_explorer_cb, eui);
-        AddDialogFormChild(form, fr);
-        FixateDialogFormChild(fr);
+        FormAddVChild(form, fr);
+        FormFixateVChild(fr);
 
 	ManageChild(form);
         

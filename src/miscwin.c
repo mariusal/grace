@@ -78,7 +78,7 @@ void create_props_frame(Widget but, void *data)
 	props_frame = CreateDialogForm(app_shell, "Preferences");
 
 	fr = CreateFrame(props_frame, "Responsiveness");
-        AddDialogFormChild(props_frame, fr);
+	FormAddVChild(props_frame, fr);
         rc1 = CreateVContainer(fr);
 
 	noask_item = CreateToggleButton(rc1, "Don't ask questions");
@@ -98,7 +98,7 @@ void create_props_frame(Widget but, void *data)
             "Use external help viewer for local documents");
 #endif        
 	fr = CreateFrame(props_frame, "Restrictions");
-        AddDialogFormChild(props_frame, fr);
+	FormAddVChild(props_frame, fr);
         rc1 = CreateVContainer(fr);
 	max_path_item = CreateSpinChoice(rc1,
             "Max drawing path length:", 6, SPIN_TYPE_INT, 0.0, 1.0e6, 1000);

@@ -126,7 +126,7 @@ static void create_monitor_frame(int force, char *msg)
 
         menubar = CreateMenuBar(ui->mon_frame);
         ManageChild(menubar);
-        AddDialogFormChild(ui->mon_frame, menubar);
+        FormAddVChild(ui->mon_frame, menubar);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButtonA(menupane, "Save...", 'S', "Ctrl+S", create_wmon_frame, ui);
@@ -151,7 +151,7 @@ static void create_monitor_frame(int force, char *msg)
         fr = CreateFrame(ui->mon_frame, NULL);
 	ui->monText = CreateScrolledTextInput(fr, "Messages:", 0);
         SetTextEditable(ui->monText, FALSE);
-        AddDialogFormChild(ui->mon_frame, fr);
+        FormAddVChild(ui->mon_frame, fr);
 
         fr = CreateFrame(ui->mon_frame, NULL);
         ui->cmd = CreateTextInput(fr, "Command:");
@@ -159,8 +159,8 @@ static void create_monitor_frame(int force, char *msg)
         AddWidgetKeyPressCB(ui->cmd->text, KEY_UP, command_hist_prev, ui);
         AddWidgetKeyPressCB(ui->cmd->text, KEY_DOWN, command_hist_next, ui);
 
-        AddDialogFormChild(ui->mon_frame, fr);
-        FixateDialogFormChild(fr);
+        FormAddVChild(ui->mon_frame, fr);
+        FormFixateVChild(fr);
 
         ManageChild(ui->mon_frame);
     }

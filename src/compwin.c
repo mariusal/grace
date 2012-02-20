@@ -1488,7 +1488,7 @@ void create_featext_frame(Widget but, void *data)
         
         ui->top = CreateDialogForm(app_shell, "Feature extraction");
         grid = CreateGrid(ui->top, 2, 1);
-        AddDialogFormChild(ui->top, grid);
+        FormAddVChild(ui->top, grid);
 	ui->src = CreateGraphSetSelector(grid,
             "Source group", LIST_TYPE_MULTIPLE);
 	ui->dst = CreateSSDColSelector(grid,
@@ -1622,7 +1622,7 @@ void create_cumulative_frame(Widget but, void *data)
         
         ui->top = CreateDialogForm(app_shell, "Cumulative properties");
         grid = CreateGrid(ui->top, 2, 1);
-        AddDialogFormChild(ui->top, grid);
+        FormAddVChild(ui->top, grid);
 	ui->src = CreateSSDColSelector(grid,
             "Source group", LIST_TYPE_MULTIPLE);
 	ui->dst = CreateSSDColSelector(grid,

@@ -84,7 +84,7 @@ void create_fonttool(TextStructure *cstext_parent)
         ui->fonttool_panel = CreateDialogForm(app_shell, "Font tool");
 
         ui->font_select = CreateFontChoice(ui->fonttool_panel, "Font:");
-        AddDialogFormChild(ui->fonttool_panel, ui->font_select->menu);
+        FormAddVChild(ui->fonttool_panel, ui->font_select->menu);
         
         ui->font_table = CreateTable("fontTable", ui->fonttool_panel,
                                      FONT_TOOL_ROWS, FONT_TOOL_COLS,
@@ -98,7 +98,7 @@ void create_fonttool(TextStructure *cstext_parent)
         AddTableEnterCellCB(ui->font_table, EnterCB, ui);
         AddOptionChoiceCB(ui->font_select, update_fonttool_cb, ui);
 
-        AddDialogFormChild(ui->fonttool_panel, ui->font_table);
+        FormAddVChild(ui->fonttool_panel, ui->font_table);
 
         ui->cstext = CreateCSText(ui->fonttool_panel, "CString:");
 
@@ -107,7 +107,7 @@ void create_fonttool(TextStructure *cstext_parent)
         ui->aac_buts = CreateAACDialog(ui->fonttool_panel,
             ui->cstext->form, fonttool_aac_cb, ui);
 
-        FixateDialogFormChild(ui->cstext->form);
+        FormFixateVChild(ui->cstext->form);
         
         update_fonttool_cb(NULL, 0, ui);
     }

@@ -129,10 +129,10 @@ void create_printer_setup(Widget but, void *data)
         pui->destopts = xcalloc(gapp->rt->num_print_dests, sizeof(DestSetupUI));
         
         pui->top = CreateDialogForm(app_shell, "Device setup");
-        SetDialogFormResizable(pui->top, TRUE);
+        DialogSetResizable(pui->top, TRUE);
 
         menubar = CreateMenuBar(pui->top);
-        AddDialogFormChild(pui->top, menubar);
+        FormAddVChild(pui->top, menubar);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButton(menupane, "Print", 'P', do_print_cb, NULL);

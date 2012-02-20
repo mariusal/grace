@@ -3643,7 +3643,7 @@ WidgetList CreateAACDialog(Widget form,
         NULL);
     CreateCommandButtons(fr, 3, aacbut, aaclab);
 
-    AddDialogFormChild(form, container);
+    FormAddVChild(form, container);
     XtVaSetValues(container,
         XmNbottomAttachment, XmATTACH_WIDGET,
         XmNbottomWidget, fr,
@@ -3746,10 +3746,10 @@ TransformStructure *CreateTransformDialogForm(Widget parent,
     retval->form = CreateDialogForm(parent, s);
 
     retval->menubar = CreateMenuBar(retval->form);
-    AddDialogFormChild(retval->form, retval->menubar);
+    FormAddVChild(retval->form, retval->menubar);
     
     retval->srcdest = CreateSrcDestSelector(retval->form, sel_type);
-    AddDialogFormChild(retval->form, retval->srcdest->form);
+    FormAddVChild(retval->form, retval->srcdest->form);
 
     retval->frame = CreateFrame(retval->form, NULL);
     retval->gui = retval->build_cb(retval);
