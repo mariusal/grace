@@ -65,34 +65,34 @@ typedef struct _console_ui
     int auto_update;
 } console_ui;
 
-
-static void command_hist(KeyEvent *event)
+static void command_hist_prev(KeyEvent *event)
 {
     char *s;
     void *p;
     console_ui *ui = (console_ui *) event->anydata;
-
-    if (event->key == KEY_UP) {
-        if (!ui->eohistory) {
-            storage_scroll(ui->history, -1, FALSE);
-        }
-        if (storage_get_data(ui->history, &p) == RETURN_SUCCESS) {
-            s = p;
-            SetTextString(ui->cmd, s);
-        }
-        ui->eohistory = FALSE;
+    if (!ui->eohistory) {
+        storage_scroll(ui->history, -1, FALSE);
     }
-
-    if (event->key == KEY_DOWN) {
-        if (storage_scroll(ui->history, +1, FALSE) == RETURN_SUCCESS) {
-            storage_get_data(ui->history, &p);
-            s = p;
-        } else {
-            ui->eohistory = TRUE;
-            s = "";
-        }
+    if (storage_get_data(ui->history, &p) == RETURN_SUCCESS) {
+        s = p;
         SetTextString(ui->cmd, s);
     }
+    ui->eohistory = FALSE;
+}
+
+static void command_hist_next(KeyEvent *event)
+{
+    char *s;
+    void *p;
+    console_ui *ui = (console_ui *) event->anydata;
+    if (storage_scroll(ui->history, +1, FALSE) == RETURN_SUCCESS) {
+        storage_get_data(ui->history, &p);
+        s = p;
+    } else {
+        ui->eohistory = TRUE;
+        s = "";
+    }
+    SetTextString(ui->cmd, s);
 }
 
 static void *wrap_str_copy(AMem *amem, void *data)
@@ -156,7 +156,8 @@ static void create_monitor_frame(int force, char *msg)
         fr = CreateFrame(ui->mon_frame, NULL);
         ui->cmd = CreateTextInput(fr, "Command:");
         AddTextInputCB(ui->cmd, cmd_cb, ui);
-        AddWidgetKeyPressCB(ui->cmd->text, command_hist, ui);
+        AddWidgetKeyPressCB(ui->cmd->text, KEY_UP, command_hist_prev, ui);
+        AddWidgetKeyPressCB(ui->cmd->text, KEY_DOWN, command_hist_next, ui);
 
         AddDialogFormChild(ui->mon_frame, fr);
         FixateDialogFormChild(fr);

@@ -70,44 +70,46 @@ void SetSensitive(Widget w, int onoff)
     XtSetSensitive(w, onoff ? True : False);
 }
 
-
-static void keyCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
+static int toolkit_key_to_grace_key(void *event)
 {
     XKeyEvent *xke;
     KeySym keybuf;
-    KeyEvent kevent;
-    Key_CBData *cbdata = (Key_CBData *) client_data;
-
-    if (event->type != KeyPress) return;
-
-    kevent.key = KEY_NONE;
-    kevent.w = w;
-    kevent.anydata = cbdata->anydata;
 
     xke = (XKeyEvent *) event;
     keybuf = XLookupKeysym(xke, 0);
 
     switch (keybuf) {
     case XK_Up: /* Up */
-        kevent.key = KEY_UP;
-        break;
+        return KEY_UP;
     case XK_Down: /* Down */
-        kevent.key = KEY_DOWN;
-        break;
+        return KEY_DOWN;
     case XK_Return: /* Return */
-        kevent.key = KEY_RETURN;
-        break;
+        return KEY_RETURN;
+    default:
+        return KEY_NONE;
     }
-
-    cbdata->cbproc(&kevent);
 }
 
-void AddWidgetKeyPressCB(Widget w, Key_CBProc cbproc, void *anydata)
+static void keyCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
+{
+    KeyEvent kevent;
+    Key_CBData *cbdata = (Key_CBData *) client_data;
+
+    kevent.w = w;
+    kevent.anydata = cbdata->anydata;
+
+    if (cbdata->key == toolkit_key_to_grace_key(event)) {
+        cbdata->cbproc(&kevent);
+    }
+}
+
+void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata)
 {
     Key_CBData *cbdata;
 
     cbdata = (Key_CBData *) xmalloc(sizeof(Key_CBData));
     cbdata->w = w;
+    cbdata->key = key;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
@@ -262,11 +264,9 @@ static void titem_int_cb_proc(KeyEvent *event)
     char *s;
     TItem_CBdata *cbdata = (TItem_CBdata *) event->anydata;
 
-    if (event->key == KEY_RETURN) {
-        s = XmTextGetString(event->w);
-        cbdata->cbproc(event->w, s, cbdata->anydata);
-        XtFree(s);
-    }
+    s = XmTextGetString(event->w);
+    cbdata->cbproc(event->w, s, cbdata->anydata);
+    XtFree(s);
 }
 
 
@@ -277,5 +277,5 @@ void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
     cbdata = xmalloc(sizeof(TItem_CBdata));
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
-    AddWidgetKeyPressCB(ti, titem_int_cb_proc, cbdata);
+    AddWidgetKeyPressCB(ti, KEY_RETURN, titem_int_cb_proc, cbdata);
 }

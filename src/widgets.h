@@ -49,8 +49,6 @@ void SetUserData(Widget w, void *udata);
 void SetSensitive(Widget w, int onoff);
 
 typedef struct {
-    int key;
-
     Widget w;
     void *anydata;
 } KeyEvent;
@@ -58,11 +56,12 @@ typedef struct {
 typedef void (*Key_CBProc)(KeyEvent *event);
 typedef struct {
     Widget w;
+    int key;
     Key_CBProc cbproc;
     void *anydata;
 } Key_CBData;
 
-void AddWidgetKeyPressCB(Widget w, Key_CBProc cbproc, void *anydata);
+void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
 
 Widget CreateVContainer(Widget parent);
 Widget CreateHContainer(Widget parent);
