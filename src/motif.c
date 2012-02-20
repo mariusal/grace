@@ -94,6 +94,9 @@ static void keyCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
     case XK_Down: /* Down */
         kevent.key = KEY_DOWN;
         break;
+    case XK_Return: /* Return */
+        kevent.key = KEY_RETURN;
+        break;
     }
 
     cbdata->cbproc(&kevent);
@@ -254,13 +257,16 @@ typedef struct {
     void *anydata;
 } TItem_CBdata;
 
-static void titem_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void titem_int_cb_proc(KeyEvent *event)
 {
     char *s;
-    TItem_CBdata *cbdata = (TItem_CBdata *) client_data;
-    s = XmTextGetString(w);
-    cbdata->cbproc(w, s, cbdata->anydata);
-    XtFree(s);
+    TItem_CBdata *cbdata = (TItem_CBdata *) event->anydata;
+
+    if (event->key == KEY_RETURN) {
+        s = XmTextGetString(event->w);
+        cbdata->cbproc(event->w, s, cbdata->anydata);
+        XtFree(s);
+    }
 }
 
 
@@ -271,5 +277,5 @@ void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
     cbdata = xmalloc(sizeof(TItem_CBdata));
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
-    XtAddCallback(ti, XmNactivateCallback, titem_int_cb_proc, (XtPointer) cbdata);
+    AddWidgetKeyPressCB(ti, titem_int_cb_proc, cbdata);
 }
