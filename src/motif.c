@@ -524,16 +524,16 @@ static void text_int_validate_cb_proc(Widget w, XtPointer client_data, XtPointer
     }
 }
 
-void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata)
+void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *anydata)
 {
     TextValidate_CBData *cbdata;
 
     cbdata = (TextValidate_CBData *) xmalloc(sizeof(TextValidate_CBData));
-    cbdata->w = w;
+    cbdata->w = cst->text;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    XtAddCallback(w, XmNmodifyVerifyCallback, text_int_validate_cb_proc, cbdata);
+    XtAddCallback(cst->text, XmNmodifyVerifyCallback, text_int_validate_cb_proc, cbdata);
 }
 
 int GetTextCursorPos(TextStructure *cst)

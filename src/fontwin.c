@@ -102,7 +102,7 @@ void create_fonttool(TextStructure *cstext_parent)
 
         ui->cstext = CreateCSText(ui->fonttool_panel, "CString:");
 
-        AddTextValidateCB(ui->cstext->text, EditStringCB, ui);
+        AddTextValidateCB(ui->cstext, EditStringCB, ui);
         
         ui->aac_buts = CreateAACDialog(ui->fonttool_panel,
             ui->cstext->form, fonttool_aac_cb, ui);

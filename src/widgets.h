@@ -118,7 +118,7 @@ typedef int (*TextValidate_CBProc)(
         int *length,
         void *data
 );
-void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata);
+void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *anydata);
 int GetTextCursorPos(TextStructure *cst);
 void SetTextCursorPos(TextStructure *cst, int pos);
 int GetTextLastPosition(TextStructure *cst);
