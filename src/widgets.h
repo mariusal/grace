@@ -56,11 +56,13 @@ typedef struct {
 typedef void (*Key_CBProc)(KeyEvent *event);
 typedef struct {
     Widget w;
+    int modifiers;
     int key;
     Key_CBProc cbproc;
     void *anydata;
 } Key_CBData;
 
+void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata);
 void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
 
 Widget CreateVContainer(Widget parent);

@@ -70,6 +70,24 @@ void SetSensitive(Widget w, int onoff)
     XtSetSensitive(w, onoff ? True : False);
 }
 
+static int toolkit_modifiers_to_grace_modifiers(void *event)
+{
+    XKeyEvent *xke;
+    int modifiers = NO_MODIFIER;
+
+    xke = (XKeyEvent *) event;
+
+    if (xke->state & ControlMask) {
+        modifiers = modifiers ^ CONTROL_MODIFIER;
+    }
+
+    if (xke->state & ShiftMask) {
+        modifiers = modifiers ^ SHIFT_MODIFIER;
+    }
+
+    return modifiers;
+}
+
 static int toolkit_key_to_grace_key(void *event)
 {
     XKeyEvent *xke;
@@ -79,6 +97,8 @@ static int toolkit_key_to_grace_key(void *event)
     keybuf = XLookupKeysym(xke, 0);
 
     switch (keybuf) {
+    case XK_e: /* e */
+        return KEY_E;
     case XK_Up: /* Up */
         return KEY_UP;
     case XK_Down: /* Down */
@@ -98,22 +118,31 @@ static void keyCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
     kevent.w = w;
     kevent.anydata = cbdata->anydata;
 
-    if (cbdata->key == toolkit_key_to_grace_key(event)) {
-        cbdata->cbproc(&kevent);
-    }
+    if (cbdata->key != toolkit_key_to_grace_key(event)) return;
+    if (cbdata->modifiers != toolkit_modifiers_to_grace_modifiers(event)) return;
+
+    cbdata->cbproc(&kevent);
+
+    *cont = False;
 }
 
-void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata)
+void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata)
 {
     Key_CBData *cbdata;
 
     cbdata = (Key_CBData *) xmalloc(sizeof(Key_CBData));
     cbdata->w = w;
+    cbdata->modifiers = modifiers;
     cbdata->key = key;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
     XtAddEventHandler(w, KeyPressMask, False, keyCB, cbdata);
+}
+
+void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata)
+{
+    AddWidgetKeyPressCB2(w, NO_MODIFIER, key, cbproc, anydata);
 }
 
 Widget CreateVContainer(Widget parent)
@@ -360,23 +389,18 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 }
 
 
-//static void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
-//{
-//    TextStructure *cst = (TextStructure *) GetUserData(w);
-//    create_fonttool(cst);
-//}
-//
-//static char cstext_translation_table[] = "\
-//    Ctrl<Key>E: cstext_edit_action()";
+static void cstext_edit_action(KeyEvent *event)
+{
+    TextStructure *cst = (TextStructure *) event->anydata;
+    create_fonttool(cst);
+}
 
 TextStructure *CreateCSText(Widget parent, char *s)
 {
     TextStructure *retval;
 
     retval = CreateTextInput(parent, s);
-    SetUserData(retval->text, retval);
-//    XtOverrideTranslations(retval->text,
-//        XtParseTranslationTable(cstext_translation_table));
+    AddWidgetKeyPressCB2(retval->text, CONTROL_MODIFIER, KEY_E, cstext_edit_action, retval);
 
     return retval;
 }
@@ -386,9 +410,7 @@ TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows)
     TextStructure *retval;
 
     retval = CreateScrolledTextInput(parent, s, nrows);
-    SetUserData(retval->text, retval);
-//    XtOverrideTranslations(retval->text,
-//        XtParseTranslationTable(cstext_translation_table));
+    AddWidgetKeyPressCB2(retval->text, CONTROL_MODIFIER, KEY_E, cstext_edit_action, retval);
 
     return retval;
 }
