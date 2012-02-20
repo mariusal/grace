@@ -178,7 +178,12 @@ void DialogSetResizable(Widget form, int onoff)
 
 Widget CreateForm(Widget parent)
 {
-    return XmCreateForm(parent, "form", NULL, 0);
+    Widget w;
+
+    w = XmCreateForm(parent, "form", NULL, 0);
+    ManageChild(w);
+
+    return w;
 }
 
 void FormAddHChild(Widget form, Widget child)
@@ -305,6 +310,25 @@ Widget CreateLineTextEdit(Widget parent, int len)
     return w;
 }
 
+Widget CreateMultiLineTextEdit(Widget parent, int nrows)
+{
+    Widget w;
+    Arg args[3];
+    int ac;
+
+    ac = 0;
+    if (nrows > 0) {
+        XtSetArg(args[ac], XmNrows, nrows); ac++;
+    }
+    XtSetArg(args[ac], XmNeditMode, XmMULTI_LINE_EDIT); ac++;
+    XtSetArg(args[ac], XmNvisualPolicy, XmVARIABLE); ac++;
+
+    w = XmCreateScrolledText(parent, "text", args, ac);
+    ManageChild(w);
+
+    return w;
+}
+
 Widget CreateTextItem(Widget parent, int len, char *label)
 {
     Widget rc;
@@ -353,8 +377,6 @@ TextStructure *CreateTextInput(Widget parent, char *s)
     retval->text = CreateLineTextEdit(retval->form, 0);
     FormAddHChild(retval->form, retval->text);
 
-    ManageChild(retval->form);
-
     return retval;
 }
 
@@ -367,40 +389,16 @@ TextStructure *CreateTextInput(Widget parent, char *s)
 TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 {
     TextStructure *retval;
-    XmString str;
-    Arg args[3];
-    int ac;
 
     retval = xmalloc(sizeof(TextStructure));
-    retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL);
+    retval->form = CreateForm(parent);
 
-    str = XmStringCreateLocalized(s);
-    retval->label = XtVaCreateManagedWidget("label",
-        xmLabelWidgetClass, retval->form,
-        XmNlabelString, str,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNleftAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_FORM,
-        NULL);
-    XmStringFree(str);
+    retval->label = CreateLabel(retval->form, s);
+    FormAddVChild(retval->form, retval->label);
 
-    ac = 0;
-    if (nrows > 0) {
-        XtSetArg(args[ac], XmNrows, nrows); ac++;
-    }
-    XtSetArg(args[ac], XmNeditMode, XmMULTI_LINE_EDIT); ac++;
-    XtSetArg(args[ac], XmNvisualPolicy, XmVARIABLE); ac++;
-    retval->text = XmCreateScrolledText(retval->form, "text", args, ac);
-    XtVaSetValues(XtParent(retval->text),
-        XmNtopAttachment, XmATTACH_WIDGET,
-        XmNtopWidget, retval->label,
-        XmNleftAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        NULL);
-    ManageChild(retval->text);
+    retval->text = CreateMultiLineTextEdit(retval->form, nrows);
+    FormAddVChild(retval->form, XtParent(retval->text));
 
-    ManageChild(retval->form);
     return retval;
 }
 

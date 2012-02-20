@@ -87,6 +87,7 @@ typedef void (*TItem_CBProc)(
 );
 
 Widget CreateLineTextEdit(Widget parent, int len);
+Widget CreateMultiLineTextEdit(Widget parent, int nrows);
 Widget CreateTextItem(Widget parent, int len, char *label);
 void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
 
