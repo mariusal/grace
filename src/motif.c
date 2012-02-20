@@ -518,7 +518,7 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     cbdata->timeout_id = (XtIntervalId) 0;
     cbdata->cst->locked = FALSE;
 
-    AddWidgetKeyPressCB(cst->text, KEY_RETURN, text_int_cb_proc, cbdata);
+    AddWidgetKeyPressCB2(cst->text, CONTROL_MODIFIER, KEY_RETURN, text_int_cb_proc, cbdata);
     XtAddCallback(cst->text,
         XmNmodifyVerifyCallback, text_int_mv_cb_proc, (XtPointer) cbdata);
 }
