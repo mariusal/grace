@@ -172,13 +172,6 @@ typedef struct {
 } SpinStructure;
 
 typedef struct {
-    Widget label;
-    Widget form;
-    Widget text;
-    Boolean locked;
-} TextStructure;
-
-typedef struct {
     Widget popup;
     Widget label_item;
     Widget shownd_item;
@@ -346,20 +339,6 @@ typedef void (*Spin_CBProc)(
     void *              /* data the application registered */
 );
 
-/* Text input CB procedure */
-typedef void (*Text_CBProc)(
-    TextStructure *cst,
-    char *,              /* text string */
-    void *               /* data the application registered */
-);
-
-/* Text validate CB procedure */
-typedef int (*TextValidate_CBProc)(
-        char **value,
-        int *length,
-        void *data
-);
-
 typedef struct {
     Widget w;
     TextValidate_CBProc cbproc;
@@ -497,23 +476,6 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 double GetSpinChoice(SpinStructure *spinp);
 void SetSpinChoice(SpinStructure *spinp, double value);
 void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
-
-TextStructure *CreateTextInput(Widget parent, char *s);
-TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows);
-TextStructure *CreateCSText(Widget parent, char *s);
-TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows);
-
-void SetTextInputLength(TextStructure *cst, int len);
-
-char *GetTextString(TextStructure *cst);
-void SetTextString(TextStructure *cst, char *s);
-void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data);
-void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata);
-int GetTextCursorPos(TextStructure *cst);
-void SetTextCursorPos(TextStructure *cst, int pos);
-int GetTextLastPosition(TextStructure *cst);
-void TextInsert(TextStructure *cst, int pos, char *s);
-void SetTextEditable(TextStructure *cst, int onoff);
 
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s);
 void AddFileSelectionBoxCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);

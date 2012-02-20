@@ -87,4 +87,40 @@ Widget CreateLineTextEdit(Widget parent, int len);
 Widget CreateTextItem(Widget parent, int len, char *label);
 void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
 
+typedef struct {
+    Widget label;
+    Widget form;
+    Widget text;
+    Boolean locked;
+} TextStructure;
+
+TextStructure *CreateTextInput(Widget parent, char *s);
+TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows);
+TextStructure *CreateCSText(Widget parent, char *s);
+TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows);
+void SetTextInputLength(TextStructure *cst, int len);
+char *GetTextString(TextStructure *cst);
+void SetTextString(TextStructure *cst, char *s);
+
+/* Text input CB procedure */
+typedef void (*Text_CBProc)(
+    TextStructure *cst,
+    char *,              /* text string */
+    void *               /* data the application registered */
+);
+void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data);
+
+/* Text validate CB procedure */
+typedef int (*TextValidate_CBProc)(
+        char **value,
+        int *length,
+        void *data
+);
+void AddTextValidateCB(Widget w, TextValidate_CBProc cbproc, void *anydata);
+int GetTextCursorPos(TextStructure *cst);
+void SetTextCursorPos(TextStructure *cst, int pos);
+int GetTextLastPosition(TextStructure *cst);
+void TextInsert(TextStructure *cst, int pos, char *s);
+void SetTextEditable(TextStructure *cst, int onoff);
+
 #endif /* __WIDGETS_H_ */
