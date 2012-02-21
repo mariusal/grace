@@ -150,12 +150,12 @@ void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, v
     XtAddEventHandler(w, KeyPressMask, False, keyCB, cbdata);
 }
 
-void DialogRaise(Widget w)
+void DialogRaise(Widget form)
 {
-    Widget parent = WidgetGetParent(w);
+    Widget w = WidgetGetParent(form);
 
-    ManageChild(parent);
-    XMapRaised(XtDisplay(parent), XtWindow(parent));
+    ManageChild(w);
+    XMapRaised(XtDisplay(w), XtWindow(w));
 }
 
 void DialogSetResizable(Widget form, int onoff)
