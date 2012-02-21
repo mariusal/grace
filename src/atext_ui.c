@@ -59,7 +59,7 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     SetHeight(GetParent(ui->text->text), 100);
 #endif
     
-    AddTextInputCB(ui->text, text_explorer_cb, eui);
+    AddTextActivateCB(ui->text, text_explorer_cb, eui);
     ui->font = CreateFontChoice(rc, "Font:");
     AddOptionChoiceCB(ui->font, oc_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
@@ -72,10 +72,10 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
 
     fr = CreateFrame(ui->main_tp, "Anchor point");
     rc = CreateHContainer(fr);
-    ui->x = CreateTextInput2(rc, "X:", 10);
-    AddTextInputCB(ui->x, text_explorer_cb, eui);
-    ui->y = CreateTextInput2(rc, "Y:", 10);
-    AddTextInputCB(ui->y, text_explorer_cb, eui);
+    ui->x = CreateText2(rc, "X:", 10);
+    AddTextActivateCB(ui->x, text_explorer_cb, eui);
+    ui->y = CreateText2(rc, "Y:", 10);
+    AddTextActivateCB(ui->y, text_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Placement");
     rc = CreateVContainer(fr);
@@ -146,7 +146,7 @@ void update_atext_ui(ATextUI *ui, Quark *q)
         char *format, buf[32];
         AText *at = atext_get_data(q);
 
-        SetTextString(ui->text,    at->s);
+        TextSetString(ui->text,    at->s);
 
 
         if (object_get_loctype(q) == COORD_WORLD) {
@@ -155,9 +155,9 @@ void update_atext_ui(ATextUI *ui, Quark *q)
             format = "%.4f";
         }
         sprintf(buf, format, at->ap.x);
-        SetTextString(ui->x, buf);
+        TextSetString(ui->x, buf);
         sprintf(buf, format, at->ap.y);
-        SetTextString(ui->y, buf);
+        TextSetString(ui->y, buf);
         
         SetSpinChoice(ui->offsetx, at->offset.x);
         SetSpinChoice(ui->offsety, at->offset.y);
@@ -189,7 +189,7 @@ int set_atext_data(ATextUI *ui, Quark *q, void *caller)
         AText *at = atext_get_data(q);
 
         if (!caller || caller == ui->text) {
-            char *s = GetTextString(ui->text);
+            char *s = TextGetString(ui->text);
             atext_set_string(q, s);
             xfree(s);
         }

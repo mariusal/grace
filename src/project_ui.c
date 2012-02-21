@@ -94,14 +94,14 @@ static void do_format_toggle(OptionStructure *opt, int value, void *data)
     if ((orientation == PAGE_ORIENT_LANDSCAPE && px > py) ||
         (orientation == PAGE_ORIENT_PORTRAIT  && px < py) ) {
         sprintf (buf, "%.2f", px);
-        SetTextString(ui->page_x, buf);
+        TextSetString(ui->page_x, buf);
         sprintf (buf, "%.2f", py);
-        SetTextString(ui->page_y, buf);
+        TextSetString(ui->page_y, buf);
     } else {
         sprintf (buf, "%.2f", py);
-        SetTextString(ui->page_x, buf);
+        TextSetString(ui->page_x, buf);
         sprintf (buf, "%.2f", px);
-        SetTextString(ui->page_y, buf);
+        TextSetString(ui->page_y, buf);
     }
 }
 
@@ -121,9 +121,9 @@ static void do_orient_toggle(OptionStructure *opt, int value, void *data)
     if ((orientation == PAGE_ORIENT_LANDSCAPE && px < py) ||
         (orientation == PAGE_ORIENT_PORTRAIT  && px > py) ) {
         sprintf (buf, "%.2f", py);
-        SetTextString(ui->page_x, buf);
+        TextSetString(ui->page_x, buf);
         sprintf (buf, "%.2f", px);
-        SetTextString(ui->page_y, buf);
+        TextSetString(ui->page_y, buf);
     }
 }
 
@@ -169,9 +169,9 @@ static void do_units_toggle(OptionStructure *opt, int value, void *data)
     ui->current_page_units = page_units;
     
     sprintf (buf, "%.2f", page_x); 
-    SetTextString(ui->page_x, buf);
+    TextSetString(ui->page_x, buf);
     sprintf (buf, "%.2f", page_y); 
-    SetTextString(ui->page_y, buf);
+    TextSetString(ui->page_y, buf);
 }
 
 ProjectUI *create_project_ui(ExplorerUI *eui)
@@ -186,8 +186,8 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     ui->current_page_units = PAGE_UNITS_PP;
 
     fr = CreateFrame(form, "Project description");
-    ui->description  = CreateScrolledTextInput(fr, "", 5);
-    AddTextInputCB(ui->description, text_explorer_cb, eui);
+    ui->description  = CreateScrolledText(fr, "", 5);
+    AddTextActivateCB(ui->description, text_explorer_cb, eui);
 
     fr = CreateFrame(form, "Page dimensions");
     rc1 = CreateVContainer(fr);
@@ -202,10 +202,10 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->page_format, oc_explorer_cb, eui);
 
     rc = CreateHContainer(rc1);
-    ui->page_x = CreateTextInput2(rc, "Dimensions:", 7);
-    AddTextInputCB(ui->page_x, text_explorer_cb, eui);
-    ui->page_y = CreateTextInput2(rc, "x ", 7);
-    AddTextInputCB(ui->page_y, text_explorer_cb, eui);
+    ui->page_x = CreateText2(rc, "Dimensions:", 7);
+    AddTextActivateCB(ui->page_x, text_explorer_cb, eui);
+    ui->page_y = CreateText2(rc, "x ", 7);
+    AddTextActivateCB(ui->page_y, text_explorer_cb, eui);
     ui->page_size_unit = CreateOptionChoiceVA(rc, " ",
         "pp", PAGE_UNITS_PP,
         "in", PAGE_UNITS_IN,
@@ -238,13 +238,13 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     ui->prec = CreateSpinChoice(rc1, "Data precision:", 3,
         SPIN_TYPE_INT, DATA_PREC_MIN, DATA_PREC_MAX, 1);
     AddSpinChoiceCB(ui->prec, sp_explorer_cb, eui);
-    ui->refdate = CreateTextInput2(rc1, "Reference date:", 20);
-    AddTextInputCB(ui->refdate, text_explorer_cb, eui);
+    ui->refdate = CreateText2(rc1, "Reference date:", 20);
+    AddTextActivateCB(ui->refdate, text_explorer_cb, eui);
     rc = CreateHContainer(rc1);
     ui->two_digits_years = CreateToggleButton(rc, "Two-digit year span");
     AddToggleButtonCB(ui->two_digits_years, tb_explorer_cb, eui);
-    ui->wrap_year = CreateTextInput2(rc, "Wrap year:", 4);
-    AddTextInputCB(ui->wrap_year, text_explorer_cb, eui);
+    ui->wrap_year = CreateText2(rc, "Wrap year:", 4);
+    AddTextActivateCB(ui->wrap_year, text_explorer_cb, eui);
     AddToggleButtonCB(ui->two_digits_years, wrap_year_cb, ui->wrap_year);
     
     ui->top = form;
@@ -262,7 +262,7 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         int format;
 
         SetSpinChoice(ui->prec, project_get_prec(q));
-        SetTextString(ui->description, project_get_description(q));
+        TextSetString(ui->description, project_get_description(q));
 
         switch (GetOptionChoice(ui->page_size_unit)) {
         case PAGE_UNITS_IN:
@@ -276,9 +276,9 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         }
 
         sprintf (buf, "%.2f", factor*pr->page_wpp); 
-        SetTextString(ui->page_x, buf);
+        TextSetString(ui->page_x, buf);
         sprintf (buf, "%.2f", factor*pr->page_hpp); 
-        SetTextString(ui->page_y, buf);
+        TextSetString(ui->page_y, buf);
 
         if ((pr->page_wpp == 612 && pr->page_hpp == 792) ||
             (pr->page_hpp == 612 && pr->page_wpp == 792)) {
@@ -316,10 +316,10 @@ void update_project_ui(ProjectUI *ui, Quark *q)
 	    jdate_to_datetime(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
         sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
             y, m, d, h, mm, sec);
-        SetTextString(ui->refdate, date_string);
+        TextSetString(ui->refdate, date_string);
         SetToggleButtonState(ui->two_digits_years, pr->two_digits_years);
         sprintf(wrap_year_string, "%04d", pr->wrap_year);
-        SetTextString(ui->wrap_year, wrap_year_string);
+        TextSetString(ui->wrap_year, wrap_year_string);
         SetSensitive(ui->wrap_year->form, pr->two_digits_years ? TRUE:FALSE);
     }
 }
@@ -337,7 +337,7 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             project_set_prec(q, GetSpinChoice(ui->prec));
         }
         if (!caller || caller == ui->description) {
-            char *s = GetTextString(ui->description);
+            char *s = TextGetString(ui->description);
             project_set_description(q, s);
             xfree(s);
         }
@@ -422,7 +422,7 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
         }
 
         if (!caller || caller == ui->refdate) {
-            char *s = GetTextString(ui->refdate);
+            char *s = TextGetString(ui->refdate);
             if (parse_date_or_number(q, s, TRUE,
                     get_date_hint(gapp), &jul) == RETURN_SUCCESS) {
                 pr->ref_date = jul;
@@ -436,7 +436,7 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             pr->two_digits_years = GetToggleButtonState(ui->two_digits_years);
         }
         if (!caller || caller == ui->wrap_year) {
-            char *s = GetTextString(ui->wrap_year);
+            char *s = TextGetString(ui->wrap_year);
             pr->wrap_year = atoi(s);
             xfree(s);
         }

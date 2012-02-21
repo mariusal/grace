@@ -54,16 +54,16 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
 
     rc1 = CreateHContainer(rc);
-    ui->view_xv1 = CreateTextInput2(rc1, "Xmin:", 8);
-    AddTextInputCB(ui->view_xv1, text_explorer_cb, eui);
-    ui->view_xv2 = CreateTextInput2(rc1, "Xmax:", 8);
-    AddTextInputCB(ui->view_xv2, text_explorer_cb, eui);
+    ui->view_xv1 = CreateText2(rc1, "Xmin:", 8);
+    AddTextActivateCB(ui->view_xv1, text_explorer_cb, eui);
+    ui->view_xv2 = CreateText2(rc1, "Xmax:", 8);
+    AddTextActivateCB(ui->view_xv2, text_explorer_cb, eui);
 
     rc1 = CreateHContainer(rc);
-    ui->view_yv1 = CreateTextInput2(rc1, "Ymin:", 8);
-    AddTextInputCB(ui->view_yv1, text_explorer_cb, eui);
-    ui->view_yv2 = CreateTextInput2(rc1, "Ymax:", 8);
-    AddTextInputCB(ui->view_yv2, text_explorer_cb, eui);
+    ui->view_yv1 = CreateText2(rc1, "Ymin:", 8);
+    AddTextActivateCB(ui->view_yv1, text_explorer_cb, eui);
+    ui->view_yv2 = CreateText2(rc1, "Ymax:", 8);
+    AddTextActivateCB(ui->view_yv2, text_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Frame box");
     rc = CreateVContainer(fr);
@@ -181,13 +181,13 @@ void update_frame_ui(FrameUI *ui, Quark *q)
         l = frame_get_legend(q);
 
         sprintf(buf, "%.9g", v.xv1);
-        SetTextString(ui->view_xv1, buf);
+        TextSetString(ui->view_xv1, buf);
         sprintf(buf, "%.9g", v.xv2);
-        SetTextString(ui->view_xv2, buf);
+        TextSetString(ui->view_xv2, buf);
         sprintf(buf, "%.9g", v.yv1);
-        SetTextString(ui->view_yv1, buf);
+        TextSetString(ui->view_yv1, buf);
         sprintf(buf, "%.9g", v.yv2);
-        SetTextString(ui->view_yv2, buf);
+        TextSetString(ui->view_yv2, buf);
 
         SetOptionChoice(ui->frame_framestyle_choice, f->type);
         SetPenChoice(ui->frame_pen, &f->outline.pen);

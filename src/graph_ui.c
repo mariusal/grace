@@ -81,10 +81,10 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     rc1 = CreateVContainer(fr);
     
     rc = CreateHContainer(rc1);
-    ui->start_x = CreateTextInput2(rc, "Start:", 10);
-    AddTextInputCB(ui->start_x, text_explorer_cb, eui);
-    ui->stop_x = CreateTextInput2(rc, "Stop:", 10);
-    AddTextInputCB(ui->stop_x, text_explorer_cb, eui);
+    ui->start_x = CreateText2(rc, "Start:", 10);
+    AddTextActivateCB(ui->start_x, text_explorer_cb, eui);
+    ui->stop_x = CreateText2(rc, "Stop:", 10);
+    AddTextActivateCB(ui->stop_x, text_explorer_cb, eui);
 
     rc = CreateHContainer(rc1);
     ui->scale_x = CreateOptionChoice(rc, "Scale:", 0, 4, opitems);
@@ -98,10 +98,10 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     rc1 = CreateVContainer(fr);
     
     rc = CreateHContainer(rc1);
-    ui->start_y = CreateTextInput2(rc, "Start:", 10);
-    AddTextInputCB(ui->start_y, text_explorer_cb, eui);
-    ui->stop_y = CreateTextInput2(rc, "Stop:", 10);
-    AddTextInputCB(ui->stop_y, text_explorer_cb, eui);
+    ui->start_y = CreateText2(rc, "Start:", 10);
+    AddTextActivateCB(ui->start_y, text_explorer_cb, eui);
+    ui->stop_y = CreateText2(rc, "Stop:", 10);
+    AddTextActivateCB(ui->stop_y, text_explorer_cb, eui);
 
     rc = CreateHContainer(rc1);
     ui->scale_y = CreateOptionChoice(rc, "Scale:", 0, 4, opitems);
@@ -112,8 +112,8 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     AddToggleButtonCB(ui->invert_y, tb_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "2D+ graphs");
-    ui->znorm = CreateTextInput2(fr, "Z normalization", 10);
-    AddTextInputCB(ui->znorm, text_explorer_cb, eui);
+    ui->znorm = CreateText2(fr, "Z normalization", 10);
+    AddTextActivateCB(ui->znorm, text_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "XY charts");
     ui->bargap = CreateSpinChoice(fr, "Bar gap:", 5,
@@ -145,10 +145,10 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     ui->fixedp = CreateToggleButton(rc, "Enable");
     AddToggleButtonCB(ui->fixedp, tb_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
-    ui->locx = CreateTextInput2(rc1, "X:", 10);
-    AddTextInputCB(ui->locx, text_explorer_cb, eui);
-    ui->locy = CreateTextInput2(rc1, "Y:", 10);
-    AddTextInputCB(ui->locy, text_explorer_cb, eui);
+    ui->locx = CreateText2(rc1, "X:", 10);
+    AddTextActivateCB(ui->locx, text_explorer_cb, eui);
+    ui->locy = CreateText2(rc1, "Y:", 10);
+    AddTextActivateCB(ui->locy, text_explorer_cb, eui);
 
 
     SelectTabPage(tab, ui->main_tp);
@@ -173,21 +173,21 @@ void update_graph_ui(GraphUI *ui, Quark *q)
         SetToggleButtonState(ui->flip_xy, graph_get_xyflip(q));
 
         sprintf(buf, "%.9g", w.xg1);
-        SetTextString(ui->start_x, buf);
+        TextSetString(ui->start_x, buf);
         sprintf(buf, "%.9g", w.xg2);
-        SetTextString(ui->stop_x, buf);
+        TextSetString(ui->stop_x, buf);
         SetOptionChoice(ui->scale_x, graph_get_xscale(q));
         SetToggleButtonState(ui->invert_x, graph_is_xinvert(q));
 
         sprintf(buf, "%.9g", w.yg1);
-        SetTextString(ui->start_y, buf);
+        TextSetString(ui->start_y, buf);
         sprintf(buf, "%.9g", w.yg2);
-        SetTextString(ui->stop_y, buf);
+        TextSetString(ui->stop_y, buf);
         SetOptionChoice(ui->scale_y, graph_get_yscale(q));
         SetToggleButtonState(ui->invert_y, graph_is_yinvert(q));
 
         sprintf(buf, "%g", graph_get_znorm(q));
-        SetTextString(ui->znorm, buf);
+        TextSetString(ui->znorm, buf);
 
         SetSpinChoice(ui->bargap, graph_get_bargap(q));
 
@@ -197,9 +197,9 @@ void update_graph_ui(GraphUI *ui, Quark *q)
         SetFormatChoice(ui->loc_fx, &locator->fx);
         SetFormatChoice(ui->loc_fy, &locator->fy);
         sprintf(buf, "%g", locator->origin.x);
-        SetTextString(ui->locx, buf);
+        TextSetString(ui->locx, buf);
         sprintf(buf, "%g", locator->origin.y);
-        SetTextString(ui->locy, buf);
+        TextSetString(ui->locy, buf);
     }
 }
 
@@ -358,7 +358,7 @@ static void axis_scale_cb(OptionStructure *opt, int value, void *data)
         } else if (axestart <= 0.0) {
             axestart = axestop/1.0e3;
             sprintf(buf, "%g", axestart);
-            SetTextString(axis_world_start, buf);
+            TextSetString(axis_world_start, buf);
         }
         break;
     case SCALE_LOGIT:
@@ -370,12 +370,12 @@ static void axis_scale_cb(OptionStructure *opt, int value, void *data)
         if (axestart <= 0.0) {
             axestart = 0.1;
             sprintf(buf, "%g", axestart);
-            SetTextString(axis_world_start, buf);
+            TextSetString(axis_world_start, buf);
         }
         if (axestop >= 1.0) {
             axestop = 0.95;
             sprintf(buf, "%g", axestop);
-            SetTextString(axis_world_stop, buf);
+            TextSetString(axis_world_stop, buf);
         }
         break;
     }

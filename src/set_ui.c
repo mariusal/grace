@@ -178,7 +178,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     fr = CreateFrame(ui->main_tp, "Legend");
     ui->legend_str = CreateCSText(fr, "String:");
-    AddTextInputCB(ui->legend_str, text_explorer_cb, eui);
+    AddTextActivateCB(ui->legend_str, text_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Display options");
     rc2 = CreateHContainer(fr);
@@ -373,12 +373,12 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->avalue_angle, sp_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->avalue_prestr = CreateTextInput(rc2, "Prepend:");
-    SetTextInputLength(ui->avalue_prestr, 13);
-    AddTextInputCB(ui->avalue_prestr, text_explorer_cb, eui);
-    ui->avalue_appstr = CreateTextInput(rc2, "Append:");
-    SetTextInputLength(ui->avalue_appstr, 13);
-    AddTextInputCB(ui->avalue_appstr, text_explorer_cb, eui);
+    ui->avalue_prestr = CreateText(rc2, "Prepend:");
+    TextSetLength(ui->avalue_prestr, 13);
+    AddTextActivateCB(ui->avalue_prestr, text_explorer_cb, eui);
+    ui->avalue_appstr = CreateText(rc2, "Append:");
+    TextSetLength(ui->avalue_appstr, 13);
+    AddTextActivateCB(ui->avalue_appstr, text_explorer_cb, eui);
 
     fr = CreateFrame(ui->avalue_tp, "Format options");
     rc = CreateVContainer(fr);
@@ -389,10 +389,10 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->avalue_tp, "Placement");
     rc = CreateVContainer(fr);
     rc2 = CreateHContainer(rc);
-    ui->avalue_offsetx = CreateTextInput2(rc2, "X offset:", 10);
-    AddTextInputCB(ui->avalue_offsetx, text_explorer_cb, eui);
-    ui->avalue_offsety = CreateTextInput2(rc2, "Y offset:", 10);
-    AddTextInputCB(ui->avalue_offsety, text_explorer_cb, eui);
+    ui->avalue_offsetx = CreateText2(rc2, "X offset:", 10);
+    AddTextActivateCB(ui->avalue_offsetx, text_explorer_cb, eui);
+    ui->avalue_offsety = CreateText2(rc2, "Y offset:", 10);
+    AddTextActivateCB(ui->avalue_offsety, text_explorer_cb, eui);
     ui->avalue_just = CreateTextJustChoice(rc, "Justification:");
     AddOptionChoiceCB(ui->avalue_just, oc_explorer_cb, eui);
 
@@ -515,7 +515,7 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetToggleButtonState(ui->baseline, p->line.baseline);
         SetOptionChoice(ui->baselinetype, p->line.baseline_type);
 
-        SetTextString(ui->legend_str, p->legstr);
+        TextSetString(ui->legend_str, p->legstr);
         
         SetToggleButtonState(ui->errbar_active, p->errbar.active);
         
@@ -535,13 +535,13 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetAngleChoice(ui->avalue_angle, p->avalue.tprops.angle);
         SetFormatChoice(ui->avalue_format, &p->avalue.format);
         
-        SetTextString(ui->avalue_prestr, p->avalue.prestr);
-        SetTextString(ui->avalue_appstr, p->avalue.appstr);
+        TextSetString(ui->avalue_prestr, p->avalue.prestr);
+        TextSetString(ui->avalue_appstr, p->avalue.appstr);
 
         sprintf(val, "%f", p->avalue.offset.x);
-        SetTextString(ui->avalue_offsetx, val);
+        TextSetString(ui->avalue_offsetx, val);
         sprintf(val, "%f", p->avalue.offset.y);
-        SetTextString(ui->avalue_offsety, val);
+        TextSetString(ui->avalue_offsety, val);
 
         SetOptionChoice(ui->avalue_just, p->avalue.tprops.just);
 
@@ -606,7 +606,7 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->fillpen, &p->line.fillpen);
         }
         if (!caller || caller == ui->legend_str) {
-            char *s = GetTextString(ui->legend_str);
+            char *s = TextGetString(ui->legend_str);
             p->legstr = amem_strcpy(amem, p->legstr, s);
             xfree(s);
         }
@@ -691,12 +691,12 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             format_free(format);
         }
         if (!caller || caller == ui->avalue_prestr) {
-            char *s = GetTextString(ui->avalue_prestr);
+            char *s = TextGetString(ui->avalue_prestr);
             p->avalue.prestr = amem_strcpy(amem, p->avalue.prestr, s);
             xfree(s);
         }
         if (!caller || caller == ui->avalue_appstr) {
-            char *s = GetTextString(ui->avalue_appstr);
+            char *s = TextGetString(ui->avalue_appstr);
             p->avalue.appstr = amem_strcpy(amem, p->avalue.appstr, s);
             xfree(s);
         }

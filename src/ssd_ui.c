@@ -59,7 +59,7 @@ static int do_hotlinkfile_proc(FSBStructure *fsb, char *filename, void *data)
 {
     SSDataUI *ui = (SSDataUI *) data;
     
-    SetTextString(ui->hotfile, filename);
+    TextSetString(ui->hotfile, filename);
     
     return TRUE;
 }
@@ -341,7 +341,7 @@ static void col_cb(ListStructure *sel, int n, int *values, void *data)
     if (ssd && n == 1) {
         int col = values[0];
         SetSensitive(ui->col_label->text, TRUE);
-        SetTextString(ui->col_label, ssd_get_col_label(ssd, col));
+        TextSetString(ui->col_label, ssd_get_col_label(ssd, col));
     } else {
         SetSensitive(ui->col_label->text, FALSE);
     }
@@ -394,7 +394,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
 
     ui->col_label = CreateCSText(ui->column_tp, "Label:");
     SetSensitive(ui->col_label->text, FALSE);
-    AddTextInputCB(ui->col_label, text_explorer_cb, eui);
+    AddTextActivateCB(ui->col_label, text_explorer_cb, eui);
 
     
     /* ------------ Hotlink tab -------------- */
@@ -409,7 +409,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
         "Pipe", SOURCE_PIPE,
         NULL);
     rc1 = CreateHContainer(rc);
-    ui->hotfile = CreateTextInput2(rc1, "File name:", 20);
+    ui->hotfile = CreateText2(rc1, "File name:", 20);
     wbut = CreateButton(rc1, "Browse...");
     AddButtonCB(wbut, create_hotfiles_popup, ui);
 
@@ -527,7 +527,7 @@ int set_ssd_data(SSDataUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->col_label) {
             int col;
             if (GetSingleListChoice(ui->col_sel, &col) == RETURN_SUCCESS) {
-                char *s = GetTextString(ui->col_label);
+                char *s = TextGetString(ui->col_label);
                 ssd_set_col_label(q, col, s);
                 xfree(s);
                 

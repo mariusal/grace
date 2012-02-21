@@ -307,12 +307,12 @@ Widget CreateMultiLineTextEdit(Widget parent, int nrows)
     return w;
 }
 
-TextStructure *CreateTextInput(Widget parent, char *s)
+TextStructure *CreateText(Widget parent, char *s)
 {
-    return CreateTextInput2(parent, s, 0);
+    return CreateText2(parent, s, 0);
 }
 
-TextStructure *CreateTextInput2(Widget parent, char *s, int len)
+TextStructure *CreateText2(Widget parent, char *s, int len)
 {
     TextStructure *retval;
 
@@ -336,7 +336,7 @@ TextStructure *CreateTextInput2(Widget parent, char *s, int len)
  * nrows  = number of lines in the window
  * s      = label for window
  */
-TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
+TextStructure *CreateScrolledText(Widget parent, char *s, int nrows)
 {
     TextStructure *retval;
 
@@ -365,7 +365,7 @@ TextStructure *CreateCSText(Widget parent, char *s)
 {
     TextStructure *retval;
 
-    retval = CreateTextInput(parent, s);
+    retval = CreateText(parent, s);
     AddWidgetKeyPressCB2(retval->text, CONTROL_MODIFIER, KEY_E, cstext_edit_action, retval);
 
     return retval;
@@ -375,18 +375,18 @@ TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows)
 {
     TextStructure *retval;
 
-    retval = CreateScrolledTextInput(parent, s, nrows);
+    retval = CreateScrolledText(parent, s, nrows);
     AddWidgetKeyPressCB2(retval->text, CONTROL_MODIFIER, KEY_E, cstext_edit_action, retval);
 
     return retval;
 }
 
-void SetTextInputLength(TextStructure *cst, int len)
+void TextSetLength(TextStructure *cst, int len)
 {
     XtVaSetValues(cst->text, XmNcolumns, len, NULL);
 }
 
-char *GetTextString(TextStructure *cst)
+char *TextGetString(TextStructure *cst)
 {
     char *s, *buf;
 
@@ -397,7 +397,7 @@ char *GetTextString(TextStructure *cst)
     return buf;
 }
 
-void SetTextString(TextStructure *cst, char *s)
+void TextSetString(TextStructure *cst, char *s)
 {
     XmTextSetString(cst->text, s ? s : "");
     XmTextSetInsertionPosition(cst->text, s ? strlen(s):0);
@@ -411,7 +411,7 @@ int xv_evalexpr(TextStructure *cst, double *answer)
     int retval;
     char *s;
 
-    s = GetTextString(cst);
+    s = TextGetString(cst);
 
     retval = graal_eval_expr(grace_get_graal(gapp->grace),
         s, answer, gproject_get_top(gapp->gp));
@@ -447,12 +447,12 @@ static void text_int_cb_proc(KeyEvent *event)
     char *s;
     Text_CBdata *cbdata = (Text_CBdata *) event->anydata;
 
-    s = GetTextString(cbdata->cst);
+    s = TextGetString(cbdata->cst);
     cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
     xfree(s);
 }
 
-void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
+void AddTextActivateCB(TextStructure *cst, Text_CBProc cbproc, void *data)
 {
     Text_CBdata *cbdata;
 
@@ -494,17 +494,17 @@ void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *any
     XtAddCallback(cst->text, XmNmodifyVerifyCallback, text_int_validate_cb_proc, cbdata);
 }
 
-int GetTextCursorPos(TextStructure *cst)
+int TextGetCursorPos(TextStructure *cst)
 {
     return XmTextGetInsertionPosition(cst->text);
 }
 
-void SetTextCursorPos(TextStructure *cst, int pos)
+void TextSetCursorPos(TextStructure *cst, int pos)
 {
     XmTextSetInsertionPosition(cst->text, pos);
 }
 
-int GetTextLastPosition(TextStructure *cst)
+int TextGetLastPosition(TextStructure *cst)
 {
     return XmTextGetLastPosition(cst->text);
 }
@@ -514,7 +514,7 @@ void TextInsert(TextStructure *cst, int pos, char *s)
     XmTextInsert(cst->text, pos, s);
 }
 
-void SetTextEditable(TextStructure *cst, int onoff)
+void TextSetEditable(TextStructure *cst, int onoff)
 {
     XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
 }

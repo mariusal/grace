@@ -194,7 +194,7 @@ void create_points_frame(void *data)
 	wbut = CreateButton(rc, "Goto point");
 	AddButtonCB(wbut, do_gotopt_proc, NULL);
 
-	locate_point_item = CreateTextInput(dialog, "Point data:");
+	locate_point_item = CreateText(dialog, "Point data:");
 
 	CreateSeparator(dialog);
 
@@ -257,7 +257,7 @@ void update_point_locator(int gno, int setno, int loc)
             s = concat_strings(s, "\"");
         }
         s = concat_strings(s, ")");
-        SetTextString(locate_point_item, s);
+        TextSetString(locate_point_item, s);
         xfree(s);
 
         sprintf(buf, "%d", loc);
@@ -265,7 +265,7 @@ void update_point_locator(int gno, int setno, int loc)
     } else {
         track_setno = -1;
         SelectListChoices(track_set_sel, 0, NULL);
-        SetTextString(locate_point_item, "");
+        TextSetString(locate_point_item, "");
         xv_setstr(goto_index_item, "");
     }
 }

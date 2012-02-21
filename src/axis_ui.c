@@ -66,8 +66,8 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
 
     rc2 = CreateHContainer(rc);
-    ui->tmajor = CreateTextInput2(rc2, "Major spacing:", 8);
-    AddTextInputCB(ui->tmajor, text_explorer_cb, eui);
+    ui->tmajor = CreateText2(rc2, "Major spacing:", 8);
+    AddTextActivateCB(ui->tmajor, text_explorer_cb, eui);
     ui->nminor = CreateSpinChoice(rc2, "Minor ticks:",
         2, SPIN_TYPE_INT, 0.0, (double) MAX_TICKS - 1, 1.0);
     AddSpinChoiceCB(ui->nminor, sp_explorer_cb, eui);
@@ -191,15 +191,15 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     ui->tlstarttype = CreatePanelChoice(rc3, "Start at:",
                                     "Axis min", "Specified:", NULL);
     AddOptionChoiceCB(ui->tlstarttype, oc_explorer_cb, eui);
-    ui->tlstart = CreateTextInput2(rc3, "", 8);
-    AddTextInputCB(ui->tlstart, text_explorer_cb, eui);
+    ui->tlstart = CreateText2(rc3, "", 8);
+    AddTextActivateCB(ui->tlstart, text_explorer_cb, eui);
 
     rc3 = CreateHContainer(rc2);
     ui->tlstoptype = CreatePanelChoice(rc3, "Stop at:",
                                    "Axis max", "Specified:", NULL);
     AddOptionChoiceCB(ui->tlstoptype, oc_explorer_cb, eui);
-    ui->tlstop = CreateTextInput2(rc3, "", 8);
-    AddTextInputCB(ui->tlstop, text_explorer_cb, eui);
+    ui->tlstop = CreateText2(rc3, "", 8);
+    AddTextActivateCB(ui->tlstop, text_explorer_cb, eui);
 
     fr = CreateFrame(ui->ticklabel_tp, "Extra");
     rc = CreateVContainer(fr);
@@ -213,22 +213,22 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->tlstagger, oc_explorer_cb, eui);
 
 
-    ui->tlformula = CreateTextInput(rc, "Axis transform:");
-    AddTextInputCB(ui->tlformula, text_explorer_cb, eui);
+    ui->tlformula = CreateText(rc, "Axis transform:");
+    AddTextActivateCB(ui->tlformula, text_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->tlprestr = CreateTextInput(rc2, "Prepend:");
-    SetTextInputLength(ui->tlprestr, 13);
-    AddTextInputCB(ui->tlprestr, text_explorer_cb, eui);
-    ui->tlappstr = CreateTextInput(rc2, "Append:");
-    SetTextInputLength(ui->tlappstr, 13);
-    AddTextInputCB(ui->tlappstr, text_explorer_cb, eui);
+    ui->tlprestr = CreateText(rc2, "Prepend:");
+    TextSetLength(ui->tlprestr, 13);
+    AddTextActivateCB(ui->tlprestr, text_explorer_cb, eui);
+    ui->tlappstr = CreateText(rc2, "Append:");
+    TextSetLength(ui->tlappstr, 13);
+    AddTextActivateCB(ui->tlappstr, text_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->tlgap_para = CreateTextInput2(rc2, "Parallel offset:", 5);
-    AddTextInputCB(ui->tlgap_para, text_explorer_cb, eui);
-    ui->tlgap_perp = CreateTextInput2(rc2, "Perpendicular offset:", 5);
-    AddTextInputCB(ui->tlgap_perp, text_explorer_cb, eui);
+    ui->tlgap_para = CreateText2(rc2, "Parallel offset:", 5);
+    AddTextActivateCB(ui->tlgap_para, text_explorer_cb, eui);
+    ui->tlgap_perp = CreateText2(rc2, "Perpendicular offset:", 5);
+    AddTextActivateCB(ui->tlgap_perp, text_explorer_cb, eui);
 
 
     ui->special_tp = CreateTabPage(tab, "Special");
@@ -255,10 +255,10 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     for (i = 0; i < MAX_TICKS; i++) {
         rc3 = CreateHContainer(rc);
         sprintf(buf, "%2d", i);
-        ui->specloc[i]   = CreateTextInput2(rc3, buf, 12);
-        AddTextInputCB(ui->specloc[i], text_explorer_cb, eui);
-        ui->speclabel[i] = CreateTextInput2(rc3, "", 30);
-        AddTextInputCB(ui->speclabel[i], text_explorer_cb, eui);
+        ui->specloc[i]   = CreateText2(rc3, buf, 12);
+        AddTextActivateCB(ui->specloc[i], text_explorer_cb, eui);
+        ui->speclabel[i] = CreateText2(rc3, "", 30);
+        AddTextActivateCB(ui->speclabel[i], text_explorer_cb, eui);
     }
 
     SelectTabPage(tab, ui->main_tp);
@@ -300,7 +300,7 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
         } else {
             strcpy(buf, "UNDEFINED");
         }
-        SetTextString(ui->tmajor, buf);
+        TextSetString(ui->tmajor, buf);
  
         SetSpinChoice(ui->nminor, t->nminor);
 
@@ -308,27 +308,27 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
         SetOptionChoice(ui->tlcolor, t->tl_tprops.color);
         SetOptionChoice(ui->tlskip, t->tl_skip);
         SetOptionChoice(ui->tlstagger, t->tl_staggered);
-        SetTextString(ui->tlappstr, t->tl_appstr);
-        SetTextString(ui->tlprestr, t->tl_prestr);
+        TextSetString(ui->tlappstr, t->tl_appstr);
+        TextSetString(ui->tlprestr, t->tl_prestr);
         SetOptionChoice(ui->tlstarttype, t->tl_starttype == TYPE_SPEC);
         if (t->tl_starttype == TYPE_SPEC) {
             sprintf(buf, "%f", t->tl_start);
-            SetTextString(ui->tlstart, buf);
+            TextSetString(ui->tlstart, buf);
             sprintf(buf, "%f", t->tl_stop);
-            SetTextString(ui->tlstop, buf);
+            TextSetString(ui->tlstop, buf);
         }
         SetOptionChoice(ui->tlstoptype, t->tl_stoptype == TYPE_SPEC);
         if (t->tl_stoptype == TYPE_SPEC) {
             sprintf(buf, "%f", t->tl_stop);
-            SetTextString(ui->tlstop, buf);
+            TextSetString(ui->tlstop, buf);
         }
         SetFormatChoice(ui->tlform, &t->tl_format);
-        SetTextString(ui->tlformula, t->tl_formula);
+        TextSetString(ui->tlformula, t->tl_formula);
 
         sprintf(buf, "%.2f", t->tl_gap.x);
-        SetTextString(ui->tlgap_para, buf);
+        TextSetString(ui->tlgap_para, buf);
         sprintf(buf, "%.2f", t->tl_gap.y);
-        SetTextString(ui->tlgap_perp, buf);
+        TextSetString(ui->tlgap_perp, buf);
 
         SetSpinChoice(ui->tlcharsize, t->tl_tprops.charsize);
         SetAngleChoice(ui->tlangle, t->tl_tprops.angle);
@@ -368,11 +368,11 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
         SetSpinChoice(ui->nspec, t->nticks);
         for (i = 0; i < t->nticks; i++) {
             sprintf(buf, "%.9g", t->tloc[i].wtpos);
-            SetTextString(ui->specloc[i], buf);
+            TextSetString(ui->specloc[i], buf);
             if (t->tloc[i].type == TICK_TYPE_MAJOR) {
-                SetTextString(ui->speclabel[i], t->tloc[i].label);
+                TextSetString(ui->speclabel[i], t->tloc[i].label);
             } else {
-                SetTextString(ui->speclabel[i], "");
+                TextSetString(ui->speclabel[i], "");
             }
         }
 
@@ -468,17 +468,17 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->tl_skip = GetOptionChoice(ui->tlskip);
         }
         if (!caller || caller == ui->tlformula) {
-            char *s = GetTextString(ui->tlformula);
+            char *s = TextGetString(ui->tlformula);
             t->tl_formula = amem_strcpy(amem, t->tl_formula, s);
             xfree(s);
         }
         if (!caller || caller == ui->tlprestr) {
-            char *s = GetTextString(ui->tlprestr);
+            char *s = TextGetString(ui->tlprestr);
             t->tl_prestr = amem_strcpy(amem, t->tl_prestr, s);
             xfree(s);
         }
         if (!caller || caller == ui->tlappstr) {
-            char *s = GetTextString(ui->tlappstr);
+            char *s = TextGetString(ui->tlappstr);
             t->tl_appstr = amem_strcpy(amem, t->tl_appstr, s);
             xfree(s);
         }
@@ -564,7 +564,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
                     if (xv_evalexpr(ui->specloc[i], &t->tloc[i].wtpos) ==
                                                         RETURN_SUCCESS) {
                         char *cp, *s;
-                        cp = GetTextString(ui->speclabel[i]);
+                        cp = TextGetString(ui->speclabel[i]);
                         if (cp[0] == '\0') {
                             t->tloc[i].type = TICK_TYPE_MINOR;
                         } else {

@@ -198,7 +198,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         
         nonl_main = CreateTabPage(nonl_tab, "Main");
     	
-	ui->formula_item = CreateTextInput(nonl_main, "Formula:");
+	ui->formula_item = CreateText(nonl_main, "Formula:");
 	rc1 = CreateHContainer(nonl_main);
 	
 	for (i = 0; i < MAXPARM + 1; i++) {
@@ -314,7 +314,7 @@ static void *nonl_get_cb(void *gui)
         NLFit *nlfit = &pars->nlfit;
         
         pars->nlfit.title   = NULL;
-        nlfit->formula = GetTextString(ui->formula_item);
+        nlfit->formula = TextGetString(ui->formula_item);
         nlfit->tolerance = atof(xv_getstr(ui->tol_item));
         nlfit->parnum = GetOptionChoice(ui->nparm_item);
         
@@ -571,7 +571,7 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
     	XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_BEGINNING, NULL);
         XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_CENTER, NULL);
         
-        SetTextString(ui->formula_item, nlfit->formula);
+        TextSetString(ui->formula_item, nlfit->formula);
         sprintf(buf, "%g", nlfit->tolerance);
         xv_setstr(ui->tol_item, buf);
         SetOptionChoice(ui->nparm_item, nlfit->parnum);

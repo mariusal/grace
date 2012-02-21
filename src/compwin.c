@@ -65,7 +65,7 @@ static void *eval_build_cb(TransformStructure *tdialog)
         Widget rc_trans;
         
         rc_trans = CreateVContainer(tdialog->frame);
-        ui->formula_item = CreateScrolledTextInput(rc_trans, "Formula:", 3);
+        ui->formula_item = CreateScrolledText(rc_trans, "Formula:", 3);
         ui->restr_item = CreateRestrictionChoice(rc_trans, "Source data filtering");
     }
 
@@ -81,7 +81,7 @@ static void *eval_get_cb(void *gui)
     if (pars) {
         pars->restr_type = GetOptionChoice(ui->restr_item->r_sel);
         pars->restr_negate = GetToggleButtonState(ui->restr_item->negate);
-        pars->fstr = GetTextString(ui->formula_item);
+        pars->fstr = TextGetString(ui->formula_item);
     }
     
     return (void *) pars;
@@ -209,9 +209,9 @@ static void *interp_build_cb(TransformStructure *tdialog)
         AddOptionChoiceCB(ui->sampling, sampling_cb, ui);
 
         ui->mrc = CreateHContainer(rc);
-        ui->mstart  = CreateTextInput2(ui->mrc, "Start at:", 10);
-        ui->mstop   = CreateTextInput2(ui->mrc, "Stop at:", 10);
-        ui->mlength = CreateTextInput2(ui->mrc, "Length:", 6);
+        ui->mstart  = CreateText2(ui->mrc, "Start at:", 10);
+        ui->mstop   = CreateText2(ui->mrc, "Stop at:", 10);
+        ui->mlength = CreateText2(ui->mrc, "Length:", 6);
 
         ui->sel = CreateGraphSetSelector(rc, "Sampling set", LIST_TYPE_SINGLE);
         SetSensitive(ui->sel->frame, FALSE);
@@ -374,9 +374,9 @@ static void *histo_build_cb(TransformStructure *tdialog)
         AddOptionChoiceCB(ui->sampling, binsampling_cb, ui);
 
         ui->mrc = CreateHContainer(rc);
-	ui->mstart  = CreateTextInput2(ui->mrc, "Start at:", 10);
-	ui->mstop   = CreateTextInput2(ui->mrc, "Stop at:", 10);
-	ui->mlength = CreateTextInput2(ui->mrc, "# of bins", 6);
+	ui->mstart  = CreateText2(ui->mrc, "Start at:", 10);
+	ui->mstop   = CreateText2(ui->mrc, "Stop at:", 10);
+	ui->mlength = CreateText2(ui->mrc, "# of bins", 6);
         
         ui->sel = CreateGraphSetSelector(rc, "Sampling set", LIST_TYPE_SINGLE);
         SetSensitive(ui->sel->frame, FALSE);
@@ -834,10 +834,10 @@ static void run_type_cb(OptionStructure *opt, int value, void *data)
     }
     
     if (formula) {
-        SetTextString(ui->formula, formula);
-        SetTextEditable(ui->formula, FALSE);
+        TextSetString(ui->formula, formula);
+        TextSetEditable(ui->formula, FALSE);
     } else {
-        SetTextEditable(ui->formula, TRUE);
+        TextSetEditable(ui->formula, TRUE);
     }
 }
 
@@ -865,7 +865,7 @@ static void *run_build_cb(TransformStructure *tdialog)
 	rc = CreateVContainer(tdialog->frame);
         type = CreateOptionChoice(rc, "Type:", 0, 5, topitems);
         AddOptionChoiceCB(type, run_type_cb, (void *) ui);
-	ui->formula = CreateTextInput(rc, "Formula:");
+	ui->formula = CreateText(rc, "Formula:");
 	ui->length = CreateSpinChoice(rc, "Length of sample", 6, SPIN_TYPE_INT,
             (double) 1, (double) 999999, (double) 1);
         ui->xplace = CreateOptionChoice(rc, "X placement:", 0, 3, xopitems);
@@ -886,7 +886,7 @@ static void *run_get_cb(void *gui)
     pars = xmalloc(sizeof(Run_pars));
     if (pars) {
         pars->length  = (int) GetSpinChoice(ui->length);
-        pars->formula = GetTextString(ui->formula);
+        pars->formula = TextGetString(ui->formula);
         pars->xplace  = GetOptionChoice(ui->xplace);
     }
     
@@ -1207,7 +1207,7 @@ static void *samp_build_cb(TransformStructure *tdialog)
 
     ui = xmalloc(sizeof(Samp_ui));
     if (ui) {
-	ui->formula = CreateTextInput(tdialog->frame, "Logical expression:");
+	ui->formula = CreateText(tdialog->frame, "Logical expression:");
     }
 
     return (void *) ui;
@@ -1229,7 +1229,7 @@ static void *samp_get_cb(void *gui)
     
     pars = xmalloc(sizeof(Samp_pars));
     if (pars) {
-        pars->formula = GetTextString(ui->formula);
+        pars->formula = TextGetString(ui->formula);
     }
     
     return (void *) pars;
@@ -1319,11 +1319,11 @@ static void *prune_build_cb(TransformStructure *tdialog)
         ui->area = CreateOptionChoice(rc, "Prune area:", 0, 2, aopitems);
 
 	rc2 = CreateHContainer(rc);
-	ui->dx = CreateTextInput2(rc2, "DX:", 16);
+	ui->dx = CreateText2(rc2, "DX:", 16);
 	ui->dxtype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
 	
 	rc2 = CreateHContainer(rc);
-	ui->dy = CreateTextInput2(rc2, "DY:", 16);
+	ui->dy = CreateText2(rc2, "DY:", 16);
 	ui->dytype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
     }
 
@@ -1449,7 +1449,7 @@ static int do_fext_proc(void *data)
         }
     }
     
-    formula = GetTextString(ui->formula);
+    formula = TextGetString(ui->formula);
     
     da = featext(srcsets, nsrc, formula);
 
@@ -1497,7 +1497,7 @@ void create_featext_frame(Widget but, void *data)
         PlaceGridChild(grid, ui->src->frame, 0, 0);
         PlaceGridChild(grid, ui->dst->frame, 1, 0);
 
-	ui->formula = CreateTextInput(ui->top, "Formula:");
+	ui->formula = CreateText(ui->top, "Formula:");
 
 	CreateAACDialog(ui->top, ui->formula->form, do_fext_proc, ui);
     }

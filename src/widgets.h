@@ -88,14 +88,14 @@ typedef struct {
     int multiline;
 } TextStructure;
 
-TextStructure *CreateTextInput(Widget parent, char *s);
-TextStructure *CreateTextInput2(Widget parent, char *s, int len);
-TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows);
+TextStructure *CreateText(Widget parent, char *s);
+TextStructure *CreateText2(Widget parent, char *s, int len);
+TextStructure *CreateScrolledText(Widget parent, char *s, int nrows);
 TextStructure *CreateCSText(Widget parent, char *s);
 TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows);
-void SetTextInputLength(TextStructure *cst, int len);
-char *GetTextString(TextStructure *cst);
-void SetTextString(TextStructure *cst, char *s);
+void TextSetLength(TextStructure *cst, int len);
+char *TextGetString(TextStructure *cst);
+void TextSetString(TextStructure *cst, char *s);
 int xv_evalexpr(TextStructure *cst, double *);
 int xv_evalexpri(TextStructure *cst, int *);
 
@@ -105,7 +105,7 @@ typedef void (*Text_CBProc)(
     char *,              /* text string */
     void *               /* data the application registered */
 );
-void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data);
+void AddTextActivateCB(TextStructure *cst, Text_CBProc cbproc, void *data);
 
 /* Text validate CB procedure */
 typedef int (*TextValidate_CBProc)(
@@ -114,10 +114,10 @@ typedef int (*TextValidate_CBProc)(
         void *data
 );
 void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *anydata);
-int GetTextCursorPos(TextStructure *cst);
-void SetTextCursorPos(TextStructure *cst, int pos);
-int GetTextLastPosition(TextStructure *cst);
+int TextGetCursorPos(TextStructure *cst);
+void TextSetCursorPos(TextStructure *cst, int pos);
+int TextGetLastPosition(TextStructure *cst);
 void TextInsert(TextStructure *cst, int pos, char *s);
-void SetTextEditable(TextStructure *cst, int onoff);
+void TextSetEditable(TextStructure *cst, int onoff);
 
 #endif /* __WIDGETS_H_ */

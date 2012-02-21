@@ -312,7 +312,7 @@ static void anchorCB(Widget w, XtPointer client_data, XtPointer call_data)
             
             ui->url = copy_string(ui->url, ui->base);
             ui->url = concat_strings(ui->url, href_data->href);
-            SetTextString(ui->location, ui->url);
+            TextSetString(ui->location, ui->url);
         }
         break;
     /* let HelpCB check all other types */
@@ -354,7 +354,7 @@ static int find_cb(void *data)
         return RETURN_FAILURE;
     }
     
-    s = GetTextString(ui->input);
+    s = TextGetString(ui->input);
 
     if (string_is_empty(s)) {
         xfree(s);
@@ -441,7 +441,7 @@ static void create_find_dialog(Widget but, void *data)
         dialog = CreateDialogForm(ui->html, "Find Dialog");
         
         rc = CreateVContainer(dialog);
-        ui->input = CreateTextInput(rc, "Find:");
+        ui->input = CreateText(rc, "Find:");
         rc2 = CreateHContainer(rc);
         ui->case_sensitive = CreateToggleButton(rc2, "Case sensitive");
         ui->find_backwards = CreateToggleButton(rc2, "Find backwards (N/I)");
@@ -525,8 +525,8 @@ void create_helper_frame(char *URL)
         CreateMenuSeparator(menupane);
         CreateMenuButton(menupane, "License terms", 'L', HelpCB, "doc/GPL.html");
 
-        ui->location = CreateTextInput(ui->top, "Location:");
-        AddTextInputCB(ui->location, location_cb, ui->location);
+        ui->location = CreateText(ui->top, "Location:");
+        AddTextActivateCB(ui->location, location_cb, ui->location);
         AddDialogFormChild(ui->top, ui->location->form);
         
 	fr1 = CreateFrame(ui->top, NULL);
@@ -578,7 +578,7 @@ void create_helper_frame(char *URL)
         }
     }
     
-    SetTextString(ui->location, ui->url);
+    TextSetString(ui->location, ui->url);
 
     if (ui->finder) {
         XmHTMLTextFinderDestroy(ui->finder);

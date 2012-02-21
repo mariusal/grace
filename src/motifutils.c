@@ -3246,7 +3246,7 @@ static void format_call_cb(FormatStructure *fstr)
         Format format;
         format.type    = GetOptionChoice(fstr->type);
         format.prec   = GetOptionChoice(fstr->prec);
-        format.fstring = GetTextString(fstr->fstring);
+        format.fstring = TextGetString(fstr->fstring);
         
         fstr->cb_proc(fstr, &format, fstr->cb_data);
         
@@ -3293,8 +3293,8 @@ FormatStructure *CreateFormatChoice(Widget parent)
     AddOptionChoiceCB(retval->type, format_oc_cb, retval);
     retval->prec = CreatePrecisionChoice(rc1, "Precision:");
     AddOptionChoiceCB(retval->prec, format_oc_cb, retval);
-    retval->fstring = CreateTextInput(rc, "Format string:");
-    AddTextInputCB(retval->fstring, format_text_cb, retval);
+    retval->fstring = CreateText(rc, "Format string:");
+    AddTextActivateCB(retval->fstring, format_text_cb, retval);
     
     return retval;
 }
@@ -3303,7 +3303,7 @@ void SetFormatChoice(FormatStructure *fstr, const Format *format)
 {
     SetOptionChoice(fstr->type, format->type);
     SetOptionChoice(fstr->prec, format->prec);
-    SetTextString(fstr->fstring, format->fstring);
+    TextSetString(fstr->fstring, format->fstring);
     SetSensitive(fstr->fstring->form,
         format->type == FORMAT_DATETIME || format->type == FORMAT_GEOGRAPHIC);
 }
@@ -3314,7 +3314,7 @@ Format *GetFormatChoice(FormatStructure *fstr)
     if (format) {
         format->type    = GetOptionChoice(fstr->type);
         format->prec   = GetOptionChoice(fstr->prec);
-        format->fstring = GetTextString(fstr->fstring);
+        format->fstring = TextGetString(fstr->fstring);
     }
     
     return format;

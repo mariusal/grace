@@ -121,14 +121,14 @@ void create_fonttool(TextStructure *cstext_parent)
     
     ui->enable_edit_cb = FALSE;
     if (ui->cstext_parent == NULL) {
-        SetTextString(ui->cstext, "");
+        TextSetString(ui->cstext, "");
         SetSensitive(ui->aac_buts[0], FALSE);
         SetSensitive(ui->aac_buts[1], FALSE);
     } else {
-        char *s = GetTextString(ui->cstext_parent);
-        int pos = GetTextCursorPos(ui->cstext_parent);
-        SetTextString(ui->cstext, s);
-        SetTextCursorPos(ui->cstext, pos);
+        char *s = TextGetString(ui->cstext_parent);
+        int pos = TextGetCursorPos(ui->cstext_parent);
+        TextSetString(ui->cstext, s);
+        TextSetCursorPos(ui->cstext, pos);
         xfree(s);
         SetSensitive(ui->aac_buts[0], TRUE);
         SetSensitive(ui->aac_buts[1], TRUE);
@@ -170,7 +170,7 @@ static void insert_into_string(TextStructure *cstext, char *s)
 {
     int pos;
     
-    pos = GetTextCursorPos(cstext);
+    pos = TextGetCursorPos(cstext);
     TextInsert(cstext, pos, s);
 }
 
@@ -270,10 +270,10 @@ static int fonttool_aac_cb(void *data)
 {
     fonttool_ui *ui = (fonttool_ui *) data;
     if (ui->cstext_parent != NULL) {
-        char *s = GetTextString(ui->cstext);
-        int pos = GetTextCursorPos(ui->cstext);
-        SetTextString(ui->cstext_parent, s);
-        SetTextCursorPos(ui->cstext_parent, pos);
+        char *s = TextGetString(ui->cstext);
+        int pos = TextGetCursorPos(ui->cstext);
+        TextSetString(ui->cstext_parent, s);
+        TextSetCursorPos(ui->cstext_parent, pos);
         xfree(s);
     }
     

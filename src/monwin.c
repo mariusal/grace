@@ -75,7 +75,7 @@ static void command_hist_prev(KeyEvent *event)
     }
     if (storage_get_data(ui->history, &p) == RETURN_SUCCESS) {
         s = p;
-        SetTextString(ui->cmd, s);
+        TextSetString(ui->cmd, s);
     }
     ui->eohistory = FALSE;
 }
@@ -92,7 +92,7 @@ static void command_hist_next(KeyEvent *event)
         ui->eohistory = TRUE;
         s = "";
     }
-    SetTextString(ui->cmd, s);
+    TextSetString(ui->cmd, s);
 }
 
 static void *wrap_str_copy(AMem *amem, void *data)
@@ -149,13 +149,13 @@ static void create_monitor_frame(int force, char *msg)
             ui->mon_frame, "doc/UsersGuide.html#console");
 	
         fr = CreateFrame(ui->mon_frame, NULL);
-	ui->monText = CreateScrolledTextInput(fr, "Messages:", 0);
-        SetTextEditable(ui->monText, FALSE);
+	ui->monText = CreateScrolledText(fr, "Messages:", 0);
+	TextSetEditable(ui->monText, FALSE);
         FormAddVChild(ui->mon_frame, fr);
 
         fr = CreateFrame(ui->mon_frame, NULL);
-        ui->cmd = CreateTextInput(fr, "Command:");
-        AddTextInputCB(ui->cmd, cmd_cb, ui);
+        ui->cmd = CreateText(fr, "Command:");
+        AddTextActivateCB(ui->cmd, cmd_cb, ui);
         AddWidgetKeyPressCB(ui->cmd->text, KEY_UP, command_hist_prev, ui);
         AddWidgetKeyPressCB(ui->cmd->text, KEY_DOWN, command_hist_next, ui);
 
@@ -167,7 +167,7 @@ static void create_monitor_frame(int force, char *msg)
     
     if (msg != NULL) {
         int pos;
-        pos = GetTextLastPosition(ui->monText);
+        pos = TextGetLastPosition(ui->monText);
         TextInsert(ui->monText, pos, msg);
     }
     
@@ -199,7 +199,7 @@ static void auto_update_cb(Widget tbut, int onoff, void *data)
 static void clear_results(Widget but, void *data)
 {
     console_ui *ui = (console_ui *) data;
-    SetTextString(ui->monText, "");
+    TextSetString(ui->monText, "");
 }
 
 /*
@@ -239,7 +239,7 @@ static int save_logs_proc(FSBStructure *fsb, char *filename, void *data)
     if (pp == NULL) {
         return FALSE;
     } else {
-        char *text = GetTextString(ui->monText);
+        char *text = TextGetString(ui->monText);
         
         if (text) {
             fwrite(text, SIZEOF_CHAR, strlen(text), pp);
@@ -274,7 +274,7 @@ static void cmd_cb(TextStructure *cst, char *s, void *data)
         storage_eod(ui->history);
         
         
-        SetTextString(ui->cmd, "");
+        TextSetString(ui->cmd, "");
     }
 }
 

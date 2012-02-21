@@ -191,7 +191,7 @@ static int highlight_cb(TreeEvent *event)
     SetSensitive(ui->insert_object_pane, FALSE);
     if (count == 1) {
         SetSensitive(ui->idstr->form, TRUE);
-        SetTextString(ui->idstr, QIDSTR(q));
+        TextSetString(ui->idstr, QIDSTR(q));
         switch (fid) {
         case QFlavorProject:
             SetSensitive(ui->insert_frame_bt,    TRUE);
@@ -220,7 +220,7 @@ static int highlight_cb(TreeEvent *event)
         }
     } else {
         SetSensitive(ui->idstr->form, FALSE);
-        SetTextString(ui->idstr, NULL);
+        TextSetString(ui->idstr, NULL);
     }
 
     return TRUE;
@@ -582,7 +582,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
         add_to_list(gplist, &gpcount, gproject_from_quark(q));
 
         if (count == 1 && (!caller || caller == ui->idstr)) {
-            char *s = GetTextString(ui->idstr);
+            char *s = TextGetString(ui->idstr);
             quark_idstr_set(q, s);
             xfree(s);
         }
@@ -1030,8 +1030,8 @@ void raise_explorer(GUI *gui, Quark *q)
         FormAddVChild(form, GetParent(eui->tree));
 
         fr = CreateFrame(form, NULL);
-        eui->idstr = CreateTextInput(fr, "ID string:");
-        AddTextInputCB(eui->idstr, text_explorer_cb, eui);
+        eui->idstr = CreateText(fr, "ID string:");
+        AddTextActivateCB(eui->idstr, text_explorer_cb, eui);
         FormAddVChild(form, fr);
         FormFixateVChild(fr);
         
