@@ -99,7 +99,6 @@ void SetTextInputLength(TextStructure *cst, int len);
 char *GetTextString(TextStructure *cst);
 void SetTextString(TextStructure *cst, char *s);
 int xv_evalexpr(TextStructure *cst, double *);
-int xv_evalexpr2(Widget w, double *);
 int xv_evalexpri(TextStructure *cst, int *);
 
 /* Text input CB procedure */

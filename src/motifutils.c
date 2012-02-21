@@ -1625,8 +1625,16 @@ void SetSpinChoice(SpinStructure *spinp, double value)
 double GetSpinChoice(SpinStructure *spinp)
 {
     double retval;
+    char *s;
+
+    s = XmTextGetString(spinp->text);
+
+    graal_eval_expr(grace_get_graal(gapp->grace),
+                    s, &retval,
+                    gproject_get_top(gapp->gp));
+
+    XtFree(s);
     
-    xv_evalexpr2(spinp->text, &retval);
     if (retval < spinp->min) {
         errmsg("Input value below min limit in GetSpinChoice()");
         retval = spinp->min;

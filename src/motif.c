@@ -432,24 +432,6 @@ void SetTextString(TextStructure *cst, char *s)
 /*
  * xv_evalexpr - take a text field and pass it to the parser to evaluate
  */
-int xv_evalexpr2(Widget w, double *answer)
-{
-    int retval;
-    char *s;
-
-    s = XmTextGetString(w);
-
-    retval = graal_eval_expr(grace_get_graal(gapp->grace),
-        s, answer, gproject_get_top(gapp->gp));
-
-    XtFree(s);
-
-    return retval;
-}
-
-/*
- * xv_evalexpr - take a text field and pass it to the parser to evaluate
- */
 int xv_evalexpr(TextStructure *cst, double *answer)
 {
     int retval;
