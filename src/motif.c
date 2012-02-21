@@ -150,6 +150,22 @@ void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, v
     XtAddEventHandler(w, KeyPressMask, False, keyCB, cbdata);
 }
 
+void RaiseWindow(Widget w)
+{
+    ManageChild(w);
+    XMapRaised(XtDisplay(w), XtWindow(w));
+}
+
+void DialogSetResizable(Widget form, int onoff)
+{
+    XtVaSetValues(form,
+        XmNresizePolicy, onoff ? XmRESIZE_ANY:XmRESIZE_NONE,
+        NULL);
+    XtVaSetValues(XtParent(form),
+        XmNallowShellResize, onoff ? True:False,
+        NULL);
+}
+
 Widget CreateVContainer(Widget parent)
 {
     Widget rc;
@@ -169,16 +185,6 @@ Widget CreateHContainer(Widget parent)
     ManageChild(rc);
 
     return rc;
-}
-
-void DialogSetResizable(Widget form, int onoff)
-{
-    XtVaSetValues(form,
-        XmNresizePolicy, onoff ? XmRESIZE_ANY:XmRESIZE_NONE,
-        NULL);
-    XtVaSetValues(XtParent(form),
-        XmNallowShellResize, onoff ? True:False,
-        NULL);
 }
 
 Widget CreateForm(Widget parent)

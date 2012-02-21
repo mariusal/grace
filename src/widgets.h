@@ -67,16 +67,21 @@ typedef struct {
 void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
 void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata);
 
+/* Dialog */
+void RaiseWindow(Widget w);
+void DialogSetResizable(Widget form, int onoff);
+
+/* Containers */
 Widget CreateVContainer(Widget parent);
 Widget CreateHContainer(Widget parent);
 
-void DialogSetResizable(Widget form, int onoff);
-
+/* Form */
 Widget CreateForm(Widget parent);
 void FormAddHChild(Widget form, Widget child);
 void FormAddVChild(Widget form, Widget child);
 void FormFixateVChild(Widget w);
 
+/* Label */
 Widget CreateLabel(Widget parent, char *s);
 void SetLabel(Widget w, char *s);
 

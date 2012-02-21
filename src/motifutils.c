@@ -4056,16 +4056,6 @@ void handle_close(Widget w)
     savewidget(w);
 }
 
-/*
- * Manage and raise
- */
-void RaiseWindow(Widget w)
-{
-    ManageChild(w);
-    XMapRaised(XtDisplay(w), XtWindow(w));
-}
-
-
 void DefineDialogCursor(Cursor c)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
