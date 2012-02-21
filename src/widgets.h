@@ -96,6 +96,7 @@ typedef struct {
     Widget form;
     Widget text;
     Boolean locked;
+    int multiline;
 } TextStructure;
 
 TextStructure *CreateTextInput(Widget parent, char *s);

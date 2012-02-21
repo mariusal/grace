@@ -377,6 +377,8 @@ TextStructure *CreateTextInput(Widget parent, char *s)
     retval->text = CreateLineTextEdit(retval->form, 0);
     FormAddHChild(retval->form, retval->text);
 
+    retval->multiline = FALSE;
+
     return retval;
 }
 
@@ -398,6 +400,8 @@ TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
 
     retval->text = CreateMultiLineTextEdit(retval->form, nrows);
     FormAddVChild(retval->form, XtParent(retval->text));
+
+    retval->multiline = TRUE;
 
     return retval;
 }
@@ -518,7 +522,11 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     cbdata->timeout_id = (XtIntervalId) 0;
     cbdata->cst->locked = FALSE;
 
-    AddWidgetKeyPressCB2(cst->text, CONTROL_MODIFIER, KEY_RETURN, text_int_cb_proc, cbdata);
+    if (cst->multiline) {
+        AddWidgetKeyPressCB2(cst->text, CONTROL_MODIFIER, KEY_RETURN, text_int_cb_proc, cbdata);
+    } else {
+        AddWidgetKeyPressCB(cst->text, KEY_RETURN, text_int_cb_proc, cbdata);
+    }
     XtAddCallback(cst->text,
         XmNmodifyVerifyCallback, text_int_mv_cb_proc, (XtPointer) cbdata);
 }
