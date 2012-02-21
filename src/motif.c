@@ -399,8 +399,6 @@ char *GetTextString(TextStructure *cst)
 
 void SetTextString(TextStructure *cst, char *s)
 {
-    cst->locked = TRUE;
-
     XmTextSetString(cst->text, s ? s : "");
     XmTextSetInsertionPosition(cst->text, s ? strlen(s):0);
 }
@@ -442,45 +440,7 @@ typedef struct {
     TextStructure *cst;
     Text_CBProc cbproc;
     void *anydata;
-    Widget w;
-    XtIntervalId timeout_id;
 } Text_CBdata;
-
-static void text_timer_proc(XtPointer client_data, XtIntervalId *id)
-{
-    char *s;
-    Text_CBdata *cbdata = (Text_CBdata *) client_data;
-
-    s = XmTextGetString(cbdata->w);
-    cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
-    XtFree(s);
-    cbdata->timeout_id = (XtIntervalId) 0;
-}
-
-/* Text input timeout [ms] */
-#define TEXT_TIMEOUT    0
-extern XtAppContext app_con;
-
-static void text_int_mv_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Text_CBdata *cbdata = (Text_CBdata *) client_data;
-
-    if (cbdata->cst->locked) {
-        cbdata->cst->locked = FALSE;
-        return;
-    }
-    cbdata->w = w;
-    /* we count elapsed time since the last event, so first remove
-       an existing timeout, if there is one */
-    if (cbdata->timeout_id) {
-        XtRemoveTimeOut(cbdata->timeout_id);
-    }
-
-    if (TEXT_TIMEOUT) {
-        cbdata->timeout_id = XtAppAddTimeOut(app_con,
-            TEXT_TIMEOUT, text_timer_proc, client_data);
-    }
-}
 
 static void text_int_cb_proc(KeyEvent *event)
 {
@@ -499,16 +459,12 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     cbdata->cst = cst;
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
-    cbdata->timeout_id = (XtIntervalId) 0;
-    cbdata->cst->locked = FALSE;
 
     if (cst->multiline) {
         AddWidgetKeyPressCB2(cst->text, CONTROL_MODIFIER, KEY_RETURN, text_int_cb_proc, cbdata);
     } else {
         AddWidgetKeyPressCB(cst->text, KEY_RETURN, text_int_cb_proc, cbdata);
     }
-    XtAddCallback(cst->text,
-        XmNmodifyVerifyCallback, text_int_mv_cb_proc, (XtPointer) cbdata);
 }
 
 static void text_int_validate_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
