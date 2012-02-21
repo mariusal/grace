@@ -59,7 +59,7 @@ static int do_hotlinkfile_proc(FSBStructure *fsb, char *filename, void *data)
 {
     SSDataUI *ui = (SSDataUI *) data;
     
-    xv_setstr(ui->hotfile, filename);
+    SetTextString(ui->hotfile, filename);
     
     return TRUE;
 }
@@ -409,7 +409,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
         "Pipe", SOURCE_PIPE,
         NULL);
     rc1 = CreateHContainer(rc);
-    ui->hotfile = CreateTextItem(rc1, 20, "File name:");
+    ui->hotfile = CreateTextInput2(rc1, "File name:", 20);
     wbut = CreateButton(rc1, "Browse...");
     AddButtonCB(wbut, create_hotfiles_popup, ui);
 

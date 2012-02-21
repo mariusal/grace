@@ -59,11 +59,11 @@ typedef struct {
     Widget          device_opts;
     Widget          printto;
     OptionStructure *destination;
-    Widget          print_string;
+    TextStructure   *print_string;
     Widget          rc_filesel;
     Widget          rc_printsel;
     Widget          dest_opts;
-    Widget          printfile;
+    TextStructure   *printfile;
     Widget          pdev_rc;
     OptionStructure *devices;
     Widget          output_frame;
@@ -72,10 +72,10 @@ typedef struct {
     OptionStructure *page_orient;
     OptionStructure *page_format;
 
-    Widget          page_x;
-    Widget          page_y;
+    TextStructure   *page_x;
+    TextStructure   *page_y;
     OptionStructure *page_size_unit;
-    Widget          dev_res;
+    TextStructure   *dev_res;
 
     Widget          autocrop;
 
@@ -190,12 +190,12 @@ void create_printer_setup(Widget but, void *data)
 	    AddButtonCB(pui->dest_opts, create_destopts_popup, pui);
         
         } else {
-	    pui->print_string = CreateTextItem(pui->rc_printsel,
-                25, "Print command:");
+	    pui->print_string = CreateTextInput2(pui->rc_printsel,
+	            "Print command:", 25);
         }
 
 	pui->rc_filesel = CreateHContainer(rc1);
-	pui->printfile = CreateTextItem(pui->rc_filesel, 20, "File name:");
+	pui->printfile = CreateTextInput2(pui->rc_filesel, "File name:", 20);
 	wbut = CreateButton(pui->rc_filesel, "Browse...");
 	AddButtonCB(wbut, create_printfiles_popup, pui);
 
@@ -213,8 +213,8 @@ void create_printer_setup(Widget but, void *data)
 	AddOptionChoiceCB(pui->page_format, do_format_toggle, pui);
 
 	rc = CreateHContainer(rc1);
-        pui->page_x = CreateTextItem(rc, 7, "Dimensions:");
-        pui->page_y = CreateTextItem(rc, 7, "x ");
+        pui->page_x = CreateTextInput2(rc, "Dimensions:", 7);
+        pui->page_y = CreateTextInput2(rc, "x ", 7);
         options = xmalloc(3*sizeof(OptionItem));
         options[0].value = 0;
         options[0].label = "pix";
@@ -228,7 +228,7 @@ void create_printer_setup(Widget but, void *data)
         xfree(options);
         SetOptionChoice(pui->page_size_unit, pui->current_page_units);
 
-        pui->dev_res = CreateTextItem(rc1, 4, "Resolution (dpi):");
+        pui->dev_res = CreateTextInput2(rc1, "Resolution (dpi):", 4);
 
 	pui->autocrop = CreateToggleButton(rc1, "Auto crop");
 
@@ -330,9 +330,9 @@ static void update_device_setup(PrintUI *ui, int device_id)
         if (gapp->rt->use_cups) {
             SetOptionChoice(ui->destination, get_print_dest(gapp));
         } else {
-            xv_setstr(ui->print_string, get_print_cmd(gapp));
+            SetTextString(ui->print_string, get_print_cmd(gapp));
         }
-        xv_setstr(ui->printfile, gapp->rt->print_file);
+        SetTextString(ui->printfile, gapp->rt->print_file);
         
         switch (dev->type) {
         case DEVICE_TERM:
@@ -368,17 +368,17 @@ static void update_device_setup(PrintUI *ui, int device_id)
         pf = get_page_format(canvas, device_id);
         SetOptionChoice(ui->page_format, pf); 
         if (pf == PAGE_FORMAT_CUSTOM) {
-            SetSensitive(ui->page_x, TRUE);
-            SetSensitive(ui->page_y, TRUE);
+            SetSensitive(ui->page_x->form, TRUE);
+            SetSensitive(ui->page_y->form, TRUE);
             SetSensitive(ui->page_orient->menu, FALSE);
         } else {
-            SetSensitive(ui->page_x, FALSE);
-            SetSensitive(ui->page_y, FALSE);
+            SetSensitive(ui->page_x->form, FALSE);
+            SetSensitive(ui->page_y->form, FALSE);
             SetSensitive(ui->page_orient->menu, TRUE);
         }
         
         sprintf (buf, "%.0f", pg.dpi); 
-        xv_setstr(ui->dev_res, buf);
+        SetTextString(ui->dev_res, buf);
 
         if (dev->type == DEVICE_TERM || dev->type == DEVICE_PRINT) {
             SetToggleButtonState(ui->autocrop, FALSE);
@@ -409,9 +409,9 @@ static void update_device_setup(PrintUI *ui, int device_id)
         }
         
         sprintf (buf, "%.2f", page_x); 
-        xv_setstr(ui->page_x, buf);
+        SetTextString(ui->page_x, buf);
         sprintf (buf, "%.2f", page_y); 
-        xv_setstr(ui->page_y, buf);
+        SetTextString(ui->page_y, buf);
         
         SetOptionChoice(ui->fontrast, dev->fontrast);
         SetOptionChoice(ui->color_trans, dev->color_trans);
@@ -434,15 +434,21 @@ static int set_printer_proc(void *data)
     dev = get_device_props(canvas, seldevice);
 
     if (dev->type != DEVICE_TERM) {
+        char *s;
+
         gapp->rt->hdevice = seldevice;
         set_ptofile(gapp, GetToggleButtonState(ui->printto));
         if (get_ptofile(gapp)) {
-            strcpy(gapp->rt->print_file, xv_getstr(ui->printfile));
+            s = GetTextString(ui->printfile);
+            strcpy(gapp->rt->print_file, s);
+            xfree(s);
         } else {
             if (gapp->rt->use_cups) {
                 set_print_dest(gapp, GetOptionChoice(ui->destination));
             } else {
-                set_print_cmd(gapp, xv_getstr(ui->print_string));
+                s = GetTextString(ui->print_string);
+                set_print_cmd(gapp, s);
+                xfree(s);
             }
         }
 
@@ -533,12 +539,12 @@ static void do_format_toggle(OptionStructure *opt, int value, void *data)
     char buf[32];
     
     if (value == PAGE_FORMAT_CUSTOM) {
-        SetSensitive(ui->page_x, TRUE);
-        SetSensitive(ui->page_y, TRUE);
+        SetSensitive(ui->page_x->form, TRUE);
+        SetSensitive(ui->page_y->form, TRUE);
         SetSensitive(ui->page_orient->menu, FALSE);
     } else {
-        SetSensitive(ui->page_x, FALSE);
-        SetSensitive(ui->page_y, FALSE);
+        SetSensitive(ui->page_x->form, FALSE);
+        SetSensitive(ui->page_y->form, FALSE);
         SetSensitive(ui->page_orient->menu, TRUE);
     }
     
@@ -587,14 +593,14 @@ static void do_format_toggle(OptionStructure *opt, int value, void *data)
     if ((orientation == PAGE_ORIENT_LANDSCAPE && px > py) ||
         (orientation == PAGE_ORIENT_PORTRAIT  && px < py) ) {
         sprintf (buf, "%.2f", px);
-        xv_setstr(ui->page_x, buf);
+        SetTextString(ui->page_x, buf);
         sprintf (buf, "%.2f", py);
-        xv_setstr(ui->page_y, buf);
+        SetTextString(ui->page_y, buf);
     } else {
         sprintf (buf, "%.2f", py);
-        xv_setstr(ui->page_x, buf);
+        SetTextString(ui->page_x, buf);
         sprintf (buf, "%.2f", px);
-        xv_setstr(ui->page_y, buf);
+        SetTextString(ui->page_y, buf);
     }
 }
 
@@ -614,14 +620,14 @@ static void do_orient_toggle(OptionStructure *opt, int value, void *data)
     if ((orientation == PAGE_ORIENT_LANDSCAPE && px > py) ||
         (orientation == PAGE_ORIENT_PORTRAIT  && px < py) ) {
         sprintf (buf, "%.2f", px);
-        xv_setstr(ui->page_x, buf);
+        SetTextString(ui->page_x, buf);
         sprintf (buf, "%.2f", py);
-        xv_setstr(ui->page_y, buf);
+        SetTextString(ui->page_y, buf);
     } else {
         sprintf (buf, "%.2f", py);
-        xv_setstr(ui->page_x, buf);
+        SetTextString(ui->page_x, buf);
         sprintf (buf, "%.2f", px);
-        xv_setstr(ui->page_y, buf);
+        SetTextString(ui->page_y, buf);
     }
 }
 
@@ -629,11 +635,9 @@ static int do_prfilesel_proc(FSBStructure *fsb, char *filename, void *data)
 {
     PrintUI *ui = (PrintUI *) data;
     
-    xv_setstr(ui->printfile, filename);
+    SetTextString(ui->printfile, filename);
     strcpy(gapp->rt->print_file, filename);
-#ifndef QT_GUI
-    XtVaSetValues(ui->printfile, XmNcursorPosition, strlen(filename), NULL);
-#endif
+
     return TRUE;
 }
 
@@ -822,9 +826,9 @@ static void do_units_toggle(OptionStructure *opt, int value, void *data)
     ui->current_page_units = page_units;
     
     sprintf (buf, "%.2f", page_x); 
-    xv_setstr(ui->page_x, buf);
+    SetTextString(ui->page_x, buf);
     sprintf (buf, "%.2f", page_y); 
-    xv_setstr(ui->page_y, buf);
+    SetTextString(ui->page_y, buf);
 }
 
 static void do_print_cb(Widget but, void *data)

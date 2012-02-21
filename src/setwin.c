@@ -212,9 +212,9 @@ typedef struct _Datasetop_ui {
     StorageStructure *sel;
     OptionStructure *optype_item;
     OptionStructure *up_down_item;
-    Widget length_item;
-    Widget start_item;
-    Widget stop_item;
+    TextStructure   *length_item;
+    TextStructure   *start_item;
+    TextStructure   *stop_item;
 } Datasetop_ui;
 
 static Datasetop_ui datasetopui;
@@ -294,13 +294,13 @@ void create_datasetop_popup(Widget but, void *data)
 
         /* Split */
         rc = CreateVContainer(dialog);
-        datasetopui.length_item = CreateTextItem(rc, 6, "Length:");
+        datasetopui.length_item = CreateTextInput2(rc, "Length:", 6);
         datasettype_controls[4] = rc;
 
         /* Drop rows */
         rc = CreateHContainer(dialog);
-        datasetopui.start_item = CreateTextItem(rc, 6, "Start at:");
-        datasetopui.stop_item  = CreateTextItem(rc, 6, "Stop at:");
+        datasetopui.start_item = CreateTextInput2(rc, "Start at:", 6);
+        datasetopui.stop_item  = CreateTextInput2(rc, "Stop at:", 6);
         datasettype_controls[5] = rc;
 
         UnmanageChild(datasettype_controls[0]);
@@ -420,9 +420,9 @@ static int datasetop_aac_cb(void *data)
 typedef struct _Leval_ui {
     Widget top;
     OptionStructure *set_type;
-    Widget start;
-    Widget stop;
-    Widget npts;
+    TextStructure   *start;
+    TextStructure   *stop;
+    TextStructure   *npts;
     Widget mw;
     Quark *gr;
 } Leval_ui;
@@ -491,9 +491,9 @@ void create_leval_frame(Widget but, void *data)
         fr = CreateFrame(levalui.top, "Parameter mesh ($t)");
         FormAddVChild(levalui.top, fr);
         rc1 = CreateHContainer(fr);
-        levalui.start = CreateTextItem(rc1, 10, "Start at:");
-        levalui.stop = CreateTextItem(rc1, 10, "Stop at:");
-        levalui.npts = CreateTextItem(rc1, 6, "Length:");
+        levalui.start = CreateTextInput2(rc1, "Start at:", 10);
+        levalui.stop = CreateTextInput2(rc1, "Stop at:", 10);
+        levalui.npts = CreateTextInput2(rc1, "Length:", 6);
 
         levalui.set_type = CreateSetTypeChoice(levalui.top, "Set type:");
         FormAddVChild(levalui.top, levalui.set_type->menu);

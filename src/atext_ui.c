@@ -72,10 +72,10 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
 
     fr = CreateFrame(ui->main_tp, "Anchor point");
     rc = CreateHContainer(fr);
-    ui->x = CreateTextItem(rc, 10, "X:");
-    AddTextItemCB(ui->x, titem_explorer_cb, eui);
-    ui->y = CreateTextItem(rc, 10, "Y:");
-    AddTextItemCB(ui->y, titem_explorer_cb, eui);
+    ui->x = CreateTextInput2(rc, "X:", 10);
+    AddTextInputCB(ui->x, text_explorer_cb, eui);
+    ui->y = CreateTextInput2(rc, "Y:", 10);
+    AddTextInputCB(ui->y, text_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Placement");
     rc = CreateVContainer(fr);
@@ -155,9 +155,9 @@ void update_atext_ui(ATextUI *ui, Quark *q)
             format = "%.4f";
         }
         sprintf(buf, format, at->ap.x);
-        xv_setstr(ui->x, buf);
+        SetTextString(ui->x, buf);
         sprintf(buf, format, at->ap.y);
-        xv_setstr(ui->y, buf);
+        SetTextString(ui->y, buf);
         
         SetSpinChoice(ui->offsetx, at->offset.x);
         SetSpinChoice(ui->offsety, at->offset.y);

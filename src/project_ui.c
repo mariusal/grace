@@ -53,13 +53,13 @@ static void do_format_toggle(OptionStructure *opt, int value, void *data)
     char buf[32];
     
     if (value == PAGE_FORMAT_CUSTOM) {
-        SetSensitive(ui->page_x, TRUE);
-        SetSensitive(ui->page_y, TRUE);
+        SetSensitive(ui->page_x->form, TRUE);
+        SetSensitive(ui->page_y->form, TRUE);
         SetSensitive(ui->page_orient->menu, FALSE);
         return;
     } else {
-        SetSensitive(ui->page_x, FALSE);
-        SetSensitive(ui->page_y, FALSE);
+        SetSensitive(ui->page_x->form, FALSE);
+        SetSensitive(ui->page_y->form, FALSE);
         SetSensitive(ui->page_orient->menu, TRUE);
     }
     
@@ -94,14 +94,14 @@ static void do_format_toggle(OptionStructure *opt, int value, void *data)
     if ((orientation == PAGE_ORIENT_LANDSCAPE && px > py) ||
         (orientation == PAGE_ORIENT_PORTRAIT  && px < py) ) {
         sprintf (buf, "%.2f", px);
-        xv_setstr(ui->page_x, buf);
+        SetTextString(ui->page_x, buf);
         sprintf (buf, "%.2f", py);
-        xv_setstr(ui->page_y, buf);
+        SetTextString(ui->page_y, buf);
     } else {
         sprintf (buf, "%.2f", py);
-        xv_setstr(ui->page_x, buf);
+        SetTextString(ui->page_x, buf);
         sprintf (buf, "%.2f", px);
-        xv_setstr(ui->page_y, buf);
+        SetTextString(ui->page_y, buf);
     }
 }
 
@@ -112,7 +112,7 @@ static void do_orient_toggle(OptionStructure *opt, int value, void *data)
     char buf[32];
     int orientation = value;
 
-    if (xv_evalexpr(ui->page_x, &px) != RETURN_SUCCESS || 
+    if (xv_evalexpr(ui->page_x, &px) != RETURN_SUCCESS ||
         xv_evalexpr(ui->page_y, &py) != RETURN_SUCCESS ) {
         errmsg("Invalid page dimension(s)");
         return;
@@ -121,9 +121,9 @@ static void do_orient_toggle(OptionStructure *opt, int value, void *data)
     if ((orientation == PAGE_ORIENT_LANDSCAPE && px < py) ||
         (orientation == PAGE_ORIENT_PORTRAIT  && px > py) ) {
         sprintf (buf, "%.2f", py);
-        xv_setstr(ui->page_x, buf);
+        SetTextString(ui->page_x, buf);
         sprintf (buf, "%.2f", px);
-        xv_setstr(ui->page_y, buf);
+        SetTextString(ui->page_y, buf);
     }
 }
 
@@ -134,7 +134,7 @@ static void do_units_toggle(OptionStructure *opt, int value, void *data)
     double page_x, page_y;
     int page_units = value;
     
-    if (xv_evalexpr(ui->page_x, &page_x) != RETURN_SUCCESS || 
+    if (xv_evalexpr(ui->page_x, &page_x) != RETURN_SUCCESS ||
         xv_evalexpr(ui->page_y, &page_y) != RETURN_SUCCESS ) {
         errmsg("Invalid page dimension(s)");
         return;
@@ -169,9 +169,9 @@ static void do_units_toggle(OptionStructure *opt, int value, void *data)
     ui->current_page_units = page_units;
     
     sprintf (buf, "%.2f", page_x); 
-    xv_setstr(ui->page_x, buf);
+    SetTextString(ui->page_x, buf);
     sprintf (buf, "%.2f", page_y); 
-    xv_setstr(ui->page_y, buf);
+    SetTextString(ui->page_y, buf);
 }
 
 ProjectUI *create_project_ui(ExplorerUI *eui)
@@ -202,10 +202,10 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->page_format, oc_explorer_cb, eui);
 
     rc = CreateHContainer(rc1);
-    ui->page_x = CreateTextItem(rc, 7, "Dimensions:");
-    AddTextItemCB(ui->page_x, titem_explorer_cb, eui);
-    ui->page_y = CreateTextItem(rc, 7, "x ");
-    AddTextItemCB(ui->page_y, titem_explorer_cb, eui);
+    ui->page_x = CreateTextInput2(rc, "Dimensions:", 7);
+    AddTextInputCB(ui->page_x, text_explorer_cb, eui);
+    ui->page_y = CreateTextInput2(rc, "x ", 7);
+    AddTextInputCB(ui->page_y, text_explorer_cb, eui);
     ui->page_size_unit = CreateOptionChoiceVA(rc, " ",
         "pp", PAGE_UNITS_PP,
         "in", PAGE_UNITS_IN,
@@ -238,13 +238,13 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     ui->prec = CreateSpinChoice(rc1, "Data precision:", 3,
         SPIN_TYPE_INT, DATA_PREC_MIN, DATA_PREC_MAX, 1);
     AddSpinChoiceCB(ui->prec, sp_explorer_cb, eui);
-    ui->refdate = CreateTextItem(rc1, 20, "Reference date:");
-    AddTextItemCB(ui->refdate, titem_explorer_cb, eui);
+    ui->refdate = CreateTextInput2(rc1, "Reference date:", 20);
+    AddTextInputCB(ui->refdate, text_explorer_cb, eui);
     rc = CreateHContainer(rc1);
     ui->two_digits_years = CreateToggleButton(rc, "Two-digit year span");
     AddToggleButtonCB(ui->two_digits_years, tb_explorer_cb, eui);
-    ui->wrap_year = CreateTextItem(rc, 4, "Wrap year:");
-    AddTextItemCB(ui->wrap_year, titem_explorer_cb, eui);
+    ui->wrap_year = CreateTextInput2(rc, "Wrap year:", 4);
+    AddTextInputCB(ui->wrap_year, text_explorer_cb, eui);
     AddToggleButtonCB(ui->two_digits_years, wrap_year_cb, ui->wrap_year);
     
     ui->top = form;
@@ -276,9 +276,9 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         }
 
         sprintf (buf, "%.2f", factor*pr->page_wpp); 
-        xv_setstr(ui->page_x, buf);
+        SetTextString(ui->page_x, buf);
         sprintf (buf, "%.2f", factor*pr->page_hpp); 
-        xv_setstr(ui->page_y, buf);
+        SetTextString(ui->page_y, buf);
 
         if ((pr->page_wpp == 612 && pr->page_hpp == 792) ||
             (pr->page_hpp == 612 && pr->page_wpp == 792)) {
@@ -291,12 +291,12 @@ void update_project_ui(ProjectUI *ui, Quark *q)
             format = PAGE_FORMAT_CUSTOM;
         }
         if (format == PAGE_FORMAT_CUSTOM) {
-            SetSensitive(ui->page_x, TRUE);
-            SetSensitive(ui->page_y, TRUE);
+            SetSensitive(ui->page_x->form, TRUE);
+            SetSensitive(ui->page_y->form, TRUE);
             SetSensitive(ui->page_orient->menu, FALSE);
         } else {
-            SetSensitive(ui->page_x, FALSE);
-            SetSensitive(ui->page_y, FALSE);
+            SetSensitive(ui->page_x->form, FALSE);
+            SetSensitive(ui->page_y->form, FALSE);
             SetSensitive(ui->page_orient->menu, TRUE);
         }
         SetOptionChoice(ui->page_format, format);
@@ -316,11 +316,11 @@ void update_project_ui(ProjectUI *ui, Quark *q)
 	    jdate_to_datetime(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
         sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
             y, m, d, h, mm, sec);
-        xv_setstr(ui->refdate, date_string);
+        SetTextString(ui->refdate, date_string);
         SetToggleButtonState(ui->two_digits_years, pr->two_digits_years);
         sprintf(wrap_year_string, "%04d", pr->wrap_year);
-        xv_setstr(ui->wrap_year, wrap_year_string);
-        SetSensitive(ui->wrap_year, pr->two_digits_years ? TRUE:FALSE);
+        SetTextString(ui->wrap_year, wrap_year_string);
+        SetSensitive(ui->wrap_year->form, pr->two_digits_years ? TRUE:FALSE);
     }
 }
 
@@ -422,20 +422,23 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
         }
 
         if (!caller || caller == ui->refdate) {
-            if (parse_date_or_number(q, xv_getstr(ui->refdate),
-                TRUE, get_date_hint(gapp), &jul) ==
-                RETURN_SUCCESS) {
+            char *s = GetTextString(ui->refdate);
+            if (parse_date_or_number(q, s, TRUE,
+                    get_date_hint(gapp), &jul) == RETURN_SUCCESS) {
                 pr->ref_date = jul;
             } else {
                 errmsg("Invalid date");
                 retval = RETURN_FAILURE;
             }
+            xfree(s);
         }
         if (!caller || caller == ui->two_digits_years) {
             pr->two_digits_years = GetToggleButtonState(ui->two_digits_years);
         }
         if (!caller || caller == ui->wrap_year) {
-            pr->wrap_year = atoi(xv_getstr(ui->wrap_year));
+            char *s = GetTextString(ui->wrap_year);
+            pr->wrap_year = atoi(s);
+            xfree(s);
         }
 
         quark_dirtystate_set(q, TRUE);

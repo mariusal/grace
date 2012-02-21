@@ -573,11 +573,6 @@ void UndefineDialogCursor(void);
 
 void RaiseWindow(Widget w);
 
-char *xv_getstr(Widget w);
-int xv_evalexpr(Widget w, double *);
-int xv_evalexpri(Widget w, int *);
-void xv_setstr(Widget w, char *s);
-
 void handle_close(Widget w);
 void destroy_dialog_cb(Widget but, void *data);
 

@@ -62,8 +62,8 @@ typedef struct {
     void *anydata;
 } Key_CBData;
 
-void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata);
 void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
+void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata);
 
 Widget CreateVContainer(Widget parent);
 Widget CreateHContainer(Widget parent);
@@ -79,17 +79,8 @@ Widget CreateLabel(Widget parent, char *s);
 void SetLabel(Widget w, char *s);
 void AlignLabel(Widget w, int alignment);
 
-/* Text item CB procedure */
-typedef void (*TItem_CBProc)(
-    Widget ti,
-    char *,              /* text string */
-    void *               /* data the application registered */
-);
-
 Widget CreateLineTextEdit(Widget parent, int len);
 Widget CreateMultiLineTextEdit(Widget parent, int nrows);
-Widget CreateTextItem(Widget parent, int len, char *label);
-void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
 
 typedef struct {
     Widget label;
@@ -100,12 +91,16 @@ typedef struct {
 } TextStructure;
 
 TextStructure *CreateTextInput(Widget parent, char *s);
+TextStructure *CreateTextInput2(Widget parent, char *s, int len);
 TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows);
 TextStructure *CreateCSText(Widget parent, char *s);
 TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows);
 void SetTextInputLength(TextStructure *cst, int len);
 char *GetTextString(TextStructure *cst);
 void SetTextString(TextStructure *cst, char *s);
+int xv_evalexpr(TextStructure *cst, double *);
+int xv_evalexpr2(Widget w, double *);
+int xv_evalexpri(TextStructure *cst, int *);
 
 /* Text input CB procedure */
 typedef void (*Text_CBProc)(

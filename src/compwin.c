@@ -149,9 +149,9 @@ typedef struct {
     OptionStructure *sampling;
     Widget strict;
     Widget mrc;
-    Widget mstart;
-    Widget mstop;
-    Widget mlength;
+    TextStructure   *mstart;
+    TextStructure   *mstop;
+    TextStructure   *mlength;
     GraphSetStructure *sel;
 } Interp_ui;
 
@@ -209,9 +209,9 @@ static void *interp_build_cb(TransformStructure *tdialog)
         AddOptionChoiceCB(ui->sampling, sampling_cb, ui);
 
         ui->mrc = CreateHContainer(rc);
-        ui->mstart  = CreateTextItem(ui->mrc, 10, "Start at:");
-        ui->mstop   = CreateTextItem(ui->mrc, 10, "Stop at:");
-        ui->mlength = CreateTextItem(ui->mrc,  6, "Length:");
+        ui->mstart  = CreateTextInput2(ui->mrc, "Start at:", 10);
+        ui->mstop   = CreateTextInput2(ui->mrc, "Stop at:", 10);
+        ui->mlength = CreateTextInput2(ui->mrc, "Length:", 6);
 
         ui->sel = CreateGraphSetSelector(rc, "Sampling set", LIST_TYPE_SINGLE);
         SetSensitive(ui->sel->frame, FALSE);
@@ -322,9 +322,9 @@ typedef struct {
     Widget normalize;
     OptionStructure *sampling;
     Widget mrc;
-    Widget mstart;
-    Widget mstop;
-    Widget mlength;
+    TextStructure   *mstart;
+    TextStructure   *mstop;
+    TextStructure   *mlength;
     GraphSetStructure *sel;
 } Histo_ui;
 
@@ -374,9 +374,9 @@ static void *histo_build_cb(TransformStructure *tdialog)
         AddOptionChoiceCB(ui->sampling, binsampling_cb, ui);
 
         ui->mrc = CreateHContainer(rc);
-	ui->mstart  = CreateTextItem(ui->mrc, 10, "Start at:");
-	ui->mstop   = CreateTextItem(ui->mrc, 10, "Stop at:");
-	ui->mlength = CreateTextItem(ui->mrc,  6, "# of bins");
+	ui->mstart  = CreateTextInput2(ui->mrc, "Start at:", 10);
+	ui->mstop   = CreateTextInput2(ui->mrc, "Stop at:", 10);
+	ui->mlength = CreateTextInput2(ui->mrc, "# of bins", 6);
         
         ui->sel = CreateGraphSetSelector(rc, "Sampling set", LIST_TYPE_SINGLE);
         SetSensitive(ui->sel->frame, FALSE);
@@ -1278,9 +1278,9 @@ void create_samp_frame(Widget but, void *data)
 typedef struct {
     OptionStructure *type;
     OptionStructure *area;
-    Widget dx;
+    TextStructure   *dx;
     OptionStructure *dxtype;
-    Widget dy;
+    TextStructure   *dy;
     OptionStructure *dytype;
 } Prune_ui;
 
@@ -1319,11 +1319,11 @@ static void *prune_build_cb(TransformStructure *tdialog)
         ui->area = CreateOptionChoice(rc, "Prune area:", 0, 2, aopitems);
 
 	rc2 = CreateHContainer(rc);
-	ui->dx = CreateTextItem(rc2, 16, "DX:");
+	ui->dx = CreateTextInput2(rc2, "DX:", 16);
 	ui->dxtype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
 	
 	rc2 = CreateHContainer(rc);
-	ui->dy = CreateTextItem(rc2, 16, "DY:");
+	ui->dy = CreateTextInput2(rc2, "DY:", 16);
 	ui->dytype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
     }
 

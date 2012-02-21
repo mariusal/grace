@@ -54,16 +54,16 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
 
     rc1 = CreateHContainer(rc);
-    ui->view_xv1 = CreateTextItem(rc1, 8, "Xmin:");
-    AddTextItemCB(ui->view_xv1, titem_explorer_cb, eui);
-    ui->view_xv2 = CreateTextItem(rc1, 8, "Xmax:");
-    AddTextItemCB(ui->view_xv2, titem_explorer_cb, eui);
+    ui->view_xv1 = CreateTextInput2(rc1, "Xmin:", 8);
+    AddTextInputCB(ui->view_xv1, text_explorer_cb, eui);
+    ui->view_xv2 = CreateTextInput2(rc1, "Xmax:", 8);
+    AddTextInputCB(ui->view_xv2, text_explorer_cb, eui);
 
     rc1 = CreateHContainer(rc);
-    ui->view_yv1 = CreateTextItem(rc1, 8, "Ymin:");
-    AddTextItemCB(ui->view_yv1, titem_explorer_cb, eui);
-    ui->view_yv2 = CreateTextItem(rc1, 8, "Ymax:");
-    AddTextItemCB(ui->view_yv2, titem_explorer_cb, eui);
+    ui->view_yv1 = CreateTextInput2(rc1, "Ymin:", 8);
+    AddTextInputCB(ui->view_yv1, text_explorer_cb, eui);
+    ui->view_yv2 = CreateTextInput2(rc1, "Ymax:", 8);
+    AddTextInputCB(ui->view_yv2, text_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Frame box");
     rc = CreateVContainer(fr);
@@ -176,47 +176,47 @@ void update_frame_ui(FrameUI *ui, Quark *q)
         char buf[32];
         view v;
         legend *l;
-    
-	frame_get_view(q, &v);
-	l = frame_get_legend(q);
-        
-        sprintf(buf, "%.9g", v.xv1);
-	xv_setstr(ui->view_xv1, buf);
-	sprintf(buf, "%.9g", v.xv2);
-	xv_setstr(ui->view_xv2, buf);
-	sprintf(buf, "%.9g", v.yv1);
-	xv_setstr(ui->view_yv1, buf);
-	sprintf(buf, "%.9g", v.yv2);
-	xv_setstr(ui->view_yv2, buf);
 
-	SetOptionChoice(ui->frame_framestyle_choice, f->type);
-	SetPenChoice(ui->frame_pen, &f->outline.pen);
-	SetSpinChoice(ui->frame_linew_choice, f->outline.width);
-	SetOptionChoice(ui->frame_lines_choice, f->outline.style);
-	SetPenChoice(ui->frame_fillpen, &f->fillpen);
- 
+        frame_get_view(q, &v);
+        l = frame_get_legend(q);
+
+        sprintf(buf, "%.9g", v.xv1);
+        SetTextString(ui->view_xv1, buf);
+        sprintf(buf, "%.9g", v.xv2);
+        SetTextString(ui->view_xv2, buf);
+        sprintf(buf, "%.9g", v.yv1);
+        SetTextString(ui->view_yv1, buf);
+        sprintf(buf, "%.9g", v.yv2);
+        SetTextString(ui->view_yv2, buf);
+
+        SetOptionChoice(ui->frame_framestyle_choice, f->type);
+        SetPenChoice(ui->frame_pen, &f->outline.pen);
+        SetSpinChoice(ui->frame_linew_choice, f->outline.width);
+        SetOptionChoice(ui->frame_lines_choice, f->outline.style);
+        SetPenChoice(ui->frame_fillpen, &f->fillpen);
+
         SetSpinChoice(ui->legend_charsize, l->charsize);
 
-	SetToggleButtonState(ui->toggle_legends, l->active == TRUE);
+        SetToggleButtonState(ui->toggle_legends, l->active == TRUE);
 
-	SetSpinChoice(ui->legend_anchor_x, l->anchor.x);
-	SetSpinChoice(ui->legend_anchor_y, l->anchor.y);
-	SetOptionChoice(ui->legend_just, l->just);
-	SetSpinChoice(ui->legend_dx, l->offset.x);
-	SetSpinChoice(ui->legend_dy, l->offset.y);
+        SetSpinChoice(ui->legend_anchor_x, l->anchor.x);
+        SetSpinChoice(ui->legend_anchor_y, l->anchor.y);
+        SetOptionChoice(ui->legend_just, l->just);
+        SetSpinChoice(ui->legend_dx, l->offset.x);
+        SetSpinChoice(ui->legend_dy, l->offset.y);
 
-	SetSpinChoice(ui->legends_vgap, l->vgap);
-	SetSpinChoice(ui->legends_hgap, l->hgap);
-	SetSpinChoice(ui->legends_len, l->len);
-	SetToggleButtonState(ui->legends_invert, l->invert);
-	SetToggleButtonState(ui->legends_singlesym, l->singlesym);
+        SetSpinChoice(ui->legends_vgap, l->vgap);
+        SetSpinChoice(ui->legends_hgap, l->hgap);
+        SetSpinChoice(ui->legends_len, l->len);
+        SetToggleButtonState(ui->legends_invert, l->invert);
+        SetToggleButtonState(ui->legends_singlesym, l->singlesym);
 
-	SetOptionChoice(ui->legend_font, l->font);
-	SetOptionChoice(ui->legend_color, l->color);
-	SetSpinChoice(ui->legend_boxlinew, l->boxline.width);
-	SetOptionChoice(ui->legend_boxlines, l->boxline.style);
-	SetPenChoice(ui->legend_boxpen, &l->boxline.pen);
-	SetPenChoice(ui->legend_boxfillpen, &l->boxfillpen);
+        SetOptionChoice(ui->legend_font, l->font);
+        SetOptionChoice(ui->legend_color, l->color);
+        SetSpinChoice(ui->legend_boxlinew, l->boxline.width);
+        SetOptionChoice(ui->legend_boxlines, l->boxline.style);
+        SetPenChoice(ui->legend_boxpen, &l->boxline.pen);
+        SetPenChoice(ui->legend_boxfillpen, &l->boxfillpen);
     }
 }
 
@@ -231,16 +231,16 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
         l = frame_get_legend(q);
 
         if (!caller || caller == ui->view_xv1) {
-            xv_evalexpr(ui->view_xv1, &vtmp.xv1);  
+            xv_evalexpr(ui->view_xv1, &vtmp.xv1);
         }
         if (!caller || caller == ui->view_xv2) {
-            xv_evalexpr(ui->view_xv2, &vtmp.xv2);  
+            xv_evalexpr(ui->view_xv2, &vtmp.xv2);
         }
         if (!caller || caller == ui->view_yv1) {
-            xv_evalexpr(ui->view_yv1, &vtmp.yv1);  
+            xv_evalexpr(ui->view_yv1, &vtmp.yv1);
         }
         if (!caller || caller == ui->view_yv2) {
-            xv_evalexpr(ui->view_yv2, &vtmp.yv2);  
+            xv_evalexpr(ui->view_yv2, &vtmp.yv2);
         }
         if (!isvalid_viewport(&vtmp)) {
             errmsg("Invalid viewport coordinates");

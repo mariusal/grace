@@ -1626,7 +1626,7 @@ double GetSpinChoice(SpinStructure *spinp)
 {
     double retval;
     
-    xv_evalexpr(spinp->text, &retval);
+    xv_evalexpr2(spinp->text, &retval);
     if (retval < spinp->min) {
         errmsg("Input value below min limit in GetSpinChoice()");
         retval = spinp->min;
@@ -3982,73 +3982,6 @@ Widget CreateTabPage(Widget parent, char *s)
 void SelectTabPage(Widget tab, Widget w)
 {
     XmTabSetTabWidget(tab, w, True);
-}
-
-/* FIXME: get rid of xv_getstr()!!! */
-#define MAX_STRING_LENGTH 512
-char *xv_getstr(Widget w)
-/* 
- * return the string from a text widget
- *
- * NB - newlines are converted to spaces
- */
-{
-    char *s;
-    int i;
-    static char buf[MAX_STRING_LENGTH];
-
-    strncpy(buf, s = XmTextGetString(w), MAX_STRING_LENGTH - 1);
-    XtFree(s);
-    
-    i=strlen(buf);
-    for (i--; i >= 0; i--) {
-        if (buf[i] == '\n') {
-            buf[i] = ' ';
-        }
-    }
-    return buf;
-}
-
-
-/*
- * xv_evalexpr - take a text field and pass it to the parser to evaluate
- */
-int xv_evalexpr(Widget w, double *answer)
-{
-    int retval;
-    char *s;
-	
-    s = XmTextGetString(w);
-    
-    retval = graal_eval_expr(grace_get_graal(gapp->grace),
-        s, answer, gproject_get_top(gapp->gp));
-    
-    XtFree(s);
-    
-    return retval;
-}
-
-/*
- * xv_evalexpri - as xv_evalexpr, but for integers
- */
-int xv_evalexpri(Widget w, int *answer)
-{
-    int retval;
-    double buf;
-    
-    retval = xv_evalexpr(w, &buf);
-    
-    *answer = rint(buf);
-    
-    return retval;
-}
-
-
-void xv_setstr(Widget w, char *s)
-{
-    if (w != NULL) {
-        XmTextSetString(w, s ? s : "");
-    }
 }
 
 /* if user tried to close from WM */

@@ -389,10 +389,10 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->avalue_tp, "Placement");
     rc = CreateVContainer(fr);
     rc2 = CreateHContainer(rc);
-    ui->avalue_offsetx = CreateTextItem(rc2, 10, "X offset:");
-    AddTextItemCB(ui->avalue_offsetx, titem_explorer_cb, eui);
-    ui->avalue_offsety = CreateTextItem(rc2, 10, "Y offset:");
-    AddTextItemCB(ui->avalue_offsety, titem_explorer_cb, eui);
+    ui->avalue_offsetx = CreateTextInput2(rc2, "X offset:", 10);
+    AddTextInputCB(ui->avalue_offsetx, text_explorer_cb, eui);
+    ui->avalue_offsety = CreateTextInput2(rc2, "Y offset:", 10);
+    AddTextInputCB(ui->avalue_offsety, text_explorer_cb, eui);
     ui->avalue_just = CreateTextJustChoice(rc, "Justification:");
     AddOptionChoiceCB(ui->avalue_just, oc_explorer_cb, eui);
 
@@ -539,9 +539,9 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetTextString(ui->avalue_appstr, p->avalue.appstr);
 
         sprintf(val, "%f", p->avalue.offset.x);
-        xv_setstr(ui->avalue_offsetx, val);
+        SetTextString(ui->avalue_offsetx, val);
         sprintf(val, "%f", p->avalue.offset.y);
-        xv_setstr(ui->avalue_offsety, val);
+        SetTextString(ui->avalue_offsety, val);
 
         SetOptionChoice(ui->avalue_just, p->avalue.tprops.just);
 

@@ -42,8 +42,8 @@ typedef struct {
     OptionStructure *page_orient;
     OptionStructure *page_format;
     OptionStructure *page_size_unit;
-    Widget          page_x;
-    Widget          page_y;
+    TextStructure   *page_x;
+    TextStructure   *page_y;
 
     OptionStructure *bg_color;
     Widget          bg_fill;
@@ -51,8 +51,8 @@ typedef struct {
     SpinStructure   *fsize_scale;
     SpinStructure   *lwidth_scale;
 
-    Widget          refdate;
-    Widget          wrap_year;
+    TextStructure   *refdate;
+    TextStructure   *wrap_year;
     Widget          two_digits_years;
 
     int             current_page_units;
@@ -74,7 +74,7 @@ typedef struct {
 
     Widget          hotlink;
     OptionStructure *hotsrc;
-    Widget          hotfile;
+    TextStructure   *hotfile;
     
     Widget          popup;
     Widget          index_btn;
@@ -91,10 +91,10 @@ typedef struct {
     Widget          legends_tp;
     Widget          legendbox_tp;
 
-    Widget          view_xv1;
-    Widget          view_xv2;
-    Widget          view_yv1;
-    Widget          view_yv2;
+    TextStructure   *view_xv1;
+    TextStructure   *view_xv2;
+    TextStructure   *view_yv1;
+    TextStructure   *view_yv2;
 
     OptionStructure *frame_framestyle_choice;
     Widget          frame_pen;
@@ -131,24 +131,24 @@ typedef struct {
     OptionStructure *graph_type;
     Widget          stacked;
 
-    Widget          start_x;
-    Widget          stop_x;
+    TextStructure   *start_x;
+    TextStructure   *stop_x;
     OptionStructure *scale_x;
     Widget          invert_x;
-    Widget          start_y;
-    Widget          stop_y;
+    TextStructure   *start_y;
+    TextStructure   *stop_y;
     OptionStructure *scale_y;
     Widget          invert_y;
 
     Widget          flip_xy;
     SpinStructure   *bargap;
-    Widget          znorm;
+    TextStructure   *znorm;
 
     OptionStructure *loc_type;
     FormatStructure *loc_fx;
     FormatStructure *loc_fy;
-    Widget          locx;
-    Widget          locy;
+    TextStructure   *locx;
+    TextStructure   *locy;
     Widget          fixedp;
     
 } GraphUI;
@@ -208,8 +208,8 @@ typedef struct {
     SpinStructure   *avalue_charsize;
     SpinStructure   *avalue_angle;
     FormatStructure *avalue_format;
-    Widget          avalue_offsetx;
-    Widget          avalue_offsety;
+    TextStructure   *avalue_offsetx;
+    TextStructure   *avalue_offsety;
     OptionStructure *avalue_just;
     TextStructure   *avalue_prestr;
     TextStructure   *avalue_appstr;
@@ -244,7 +244,7 @@ typedef struct {
 
     OptionStructure *type;
     
-    Widget          tmajor;
+    TextStructure   *tmajor;
     SpinStructure   *nminor;
     
     Widget          tgrid;
@@ -264,11 +264,11 @@ typedef struct {
     TextStructure   *tlprestr;
     OptionStructure *tlskip;
     OptionStructure *tlstarttype;
-    Widget          tlstart;
+    TextStructure   *tlstart;
     OptionStructure *tlstoptype;
-    Widget          tlstop;
-    Widget          tlgap_para;
-    Widget          tlgap_perp;
+    TextStructure   *tlstop;
+    TextStructure   *tlgap_para;
+    TextStructure   *tlgap_perp;
     SpinStructure   *tlangle;
     OptionStructure *tlstagger;
     TextStructure   *tlformula;
@@ -291,8 +291,8 @@ typedef struct {
 
     OptionStructure *specticks;
     SpinStructure   *nspec;
-    Widget          specloc[MAX_TICKS];
-    Widget          speclabel[MAX_TICKS];
+    TextStructure   *specloc[MAX_TICKS];
+    TextStructure   *speclabel[MAX_TICKS];
 } AGridUI;
 
 typedef struct {
@@ -334,8 +334,8 @@ typedef struct {
     Widget          main_tp;
     Widget          odata_tp;
 
-    Widget          x;
-    Widget          y;
+    TextStructure   *x;
+    TextStructure   *y;
     
     SpinStructure   *offsetx;
     SpinStructure   *offsety;
@@ -356,8 +356,8 @@ typedef struct {
     Widget          main_tp;
     Widget          frame_tp;
     
-    Widget          x;
-    Widget          y;
+    TextStructure   *x;
+    TextStructure   *y;
     
     SpinStructure   *offsetx;
     SpinStructure   *offsety;
@@ -454,7 +454,6 @@ void tb_explorer_cb(Widget but, int a, void *data);
 void scale_explorer_cb(Widget scale, int a, void *data);
 void sp_explorer_cb(SpinStructure *spinp, double a, void *data);
 void text_explorer_cb(TextStructure *cst, char *s, void *data);
-void titem_explorer_cb(Widget w, char *s, void *data);
 void pen_explorer_cb(Widget but, const Pen *pen, void *data);
 void format_explorer_cb(FormatStructure *fstr, const Format *format, void *data);
 

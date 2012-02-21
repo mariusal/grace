@@ -37,6 +37,8 @@
 #include <Xm/Text.h>
 #include <Xm/RowColumn.h>
 
+#include "globals.h"
+
 void ManageChild(Widget w)
 {
     XtManageChild(w);
@@ -126,6 +128,11 @@ static void keyCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
     *cont = False;
 }
 
+void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata)
+{
+    AddWidgetKeyPressCB2(w, NO_MODIFIER, key, cbproc, anydata);
+}
+
 void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata)
 {
     Key_CBData *cbdata;
@@ -138,11 +145,6 @@ void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, v
     cbdata->anydata = anydata;
 
     XtAddEventHandler(w, KeyPressMask, False, keyCB, cbdata);
-}
-
-void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata)
-{
-    AddWidgetKeyPressCB2(w, NO_MODIFIER, key, cbproc, anydata);
 }
 
 Widget CreateVContainer(Widget parent)
@@ -329,42 +331,12 @@ Widget CreateMultiLineTextEdit(Widget parent, int nrows)
     return w;
 }
 
-Widget CreateTextItem(Widget parent, int len, char *label)
-{
-    Widget rc;
-
-    rc = CreateHContainer(parent);
-    CreateLabel(rc, label);
-
-    return CreateLineTextEdit(rc, len);
-}
-
-typedef struct {
-    TItem_CBProc cbproc;
-    void *anydata;
-} TItem_CBdata;
-
-static void titem_int_cb_proc(KeyEvent *event)
-{
-    char *s;
-    TItem_CBdata *cbdata = (TItem_CBdata *) event->anydata;
-
-    s = XmTextGetString(event->w);
-    cbdata->cbproc(event->w, s, cbdata->anydata);
-    XtFree(s);
-}
-
-void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
-{
-    TItem_CBdata *cbdata;
-
-    cbdata = xmalloc(sizeof(TItem_CBdata));
-    cbdata->anydata = data;
-    cbdata->cbproc = cbproc;
-    AddWidgetKeyPressCB(ti, KEY_RETURN, titem_int_cb_proc, cbdata);
-}
-
 TextStructure *CreateTextInput(Widget parent, char *s)
+{
+    return CreateTextInput2(parent, s, 0);
+}
+
+TextStructure *CreateTextInput2(Widget parent, char *s, int len)
 {
     TextStructure *retval;
 
@@ -374,7 +346,7 @@ TextStructure *CreateTextInput(Widget parent, char *s)
     retval->label = CreateLabel(retval->form, s);
     FormAddHChild(retval->form, retval->label);
 
-    retval->text = CreateLineTextEdit(retval->form, 0);
+    retval->text = CreateLineTextEdit(retval->form, len);
     FormAddHChild(retval->form, retval->text);
 
     retval->multiline = FALSE;
@@ -457,6 +429,56 @@ void SetTextString(TextStructure *cst, char *s)
     XmTextSetInsertionPosition(cst->text, s ? strlen(s):0);
 }
 
+/*
+ * xv_evalexpr - take a text field and pass it to the parser to evaluate
+ */
+int xv_evalexpr2(Widget w, double *answer)
+{
+    int retval;
+    char *s;
+
+    s = XmTextGetString(w);
+
+    retval = graal_eval_expr(grace_get_graal(gapp->grace),
+        s, answer, gproject_get_top(gapp->gp));
+
+    XtFree(s);
+
+    return retval;
+}
+
+/*
+ * xv_evalexpr - take a text field and pass it to the parser to evaluate
+ */
+int xv_evalexpr(TextStructure *cst, double *answer)
+{
+    int retval;
+    char *s;
+
+    s = GetTextString(cst);
+
+    retval = graal_eval_expr(grace_get_graal(gapp->grace),
+        s, answer, gproject_get_top(gapp->gp));
+
+    xfree(s);
+
+    return retval;
+}
+
+/*
+ * xv_evalexpri - as xv_evalexpr, but for integers
+ */
+int xv_evalexpri(TextStructure *cst, int *answer)
+{
+    int retval;
+    double buf;
+
+    retval = xv_evalexpr(cst, &buf);
+
+    *answer = rint(buf);
+
+    return retval;
+}
 
 typedef struct {
     TextStructure *cst;

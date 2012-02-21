@@ -1173,11 +1173,6 @@ void text_explorer_cb(TextStructure *cst, char *s, void *data)
     ExplorerUI *eui = (ExplorerUI *) data;
     explorer_apply(eui, cst);
 }
-void titem_explorer_cb(Widget w, char *s, void *data)
-{
-    ExplorerUI *eui = (ExplorerUI *) data;
-    explorer_apply(eui, w);
-}
 void pen_explorer_cb(Widget but, const Pen *pen, void *data)
 {
     ExplorerUI *eui = (ExplorerUI *) data;
