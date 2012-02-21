@@ -650,7 +650,7 @@ static void create_openfit_popup(Widget but, void *data)
         ManageChild(fsb->FSB);
     }
     
-    RaiseWindow(fsb->dialog);
+    DialogRaise(fsb->FSB);
 
     unset_wait_cursor();
 }
@@ -682,7 +682,7 @@ static void create_savefit_popup(Widget but, void *data)
     
     /* xv_setstr(title_item, ui->nlfit.title); */
     
-    RaiseWindow(fsb->dialog);
+    DialogRaise(fsb->FSB);
 
     unset_wait_cursor();
 }

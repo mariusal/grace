@@ -1502,7 +1502,7 @@ void create_featext_frame(Widget but, void *data)
 	CreateAACDialog(ui->top, ui->formula->form, do_fext_proc, ui);
     }
     
-    RaiseWindow(GetParent(ui->top));
+    DialogRaise(ui->top);
     
     unset_wait_cursor();
 }
@@ -1640,7 +1640,7 @@ void create_cumulative_frame(Widget but, void *data)
 	CreateAACDialog(ui->top, rc, do_cumulative_proc, (void *) ui);
     }
     
-    RaiseWindow(GetParent(ui->top));
+    DialogRaise(ui->top);
     
     unset_wait_cursor();
 }

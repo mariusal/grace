@@ -1130,7 +1130,7 @@ void raise_explorer(GUI *gui, Quark *q)
     /* TODO: use resources */
     SetDimensions(gui->eui->top, 650, 600);
 #endif
-    RaiseWindow(GetParent(gui->eui->top));
+    DialogRaise(gui->eui->top);
     
     if (q) {
         select_quark_explorer(q);

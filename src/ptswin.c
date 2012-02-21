@@ -226,7 +226,7 @@ void create_points_frame(void *data)
         ManageChild(points_frame);
     }
     
-    RaiseWindow(GetParent(points_frame));
+    DialogRaise(points_frame);
     unset_wait_cursor();
 }
 

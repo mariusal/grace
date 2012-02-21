@@ -68,7 +68,7 @@ void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
 void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata);
 
 /* Dialog */
-void RaiseWindow(Widget w);
+void DialogRaise(Widget w);
 void DialogSetResizable(Widget form, int onoff);
 
 /* Containers */

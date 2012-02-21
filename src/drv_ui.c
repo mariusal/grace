@@ -146,7 +146,7 @@ static void ps_gui_setup(const Canvas *canvas, void *data)
     }
     update_ps_setup_frame(ui);
     
-    RaiseWindow(GetParent(ui->frame));
+    DialogRaise(ui->frame);
     unset_wait_cursor();
 }
 
@@ -302,7 +302,7 @@ void pdf_gui_setup(const Canvas *canvas, void *data)
 	CreateAACDialog(ui->frame, fr, set_pdf_setup_proc, ui);
     }
     update_pdf_setup_frame(ui);
-    RaiseWindow(GetParent(ui->frame));
+    DialogRaise(ui->frame);
     unset_wait_cursor();
 }
 
@@ -382,7 +382,7 @@ void hpdf_gui_setup(const Canvas *canvas, void *data)
 	CreateAACDialog(ui->frame, fr, set_hpdf_setup_proc, ui);
     }
     update_hpdf_setup_frame(ui);
-    RaiseWindow(GetParent(ui->frame));
+    DialogRaise(ui->frame);
     unset_wait_cursor();
 }
 
@@ -460,7 +460,7 @@ static void pnm_gui_setup(const Canvas *canvas, void *data)
     }
     update_pnm_setup_frame(ui);
 
-    RaiseWindow(GetParent(ui->frame));
+    DialogRaise(ui->frame);
     unset_wait_cursor();
 }
 
@@ -542,7 +542,7 @@ static void png_gui_setup(const Canvas *canvas, void *data)
     }
     update_png_setup_frame(ui);
     
-    RaiseWindow(GetParent(ui->frame));
+    DialogRaise(ui->frame);
     unset_wait_cursor();
 }
 
@@ -649,7 +649,7 @@ static void jpg_gui_setup(const Canvas *canvas, void *data)
     }
     update_jpg_setup_frame(ui);
 
-    RaiseWindow(GetParent(ui->frame));
+    DialogRaise(ui->frame);
     unset_wait_cursor();
 }
 

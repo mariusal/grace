@@ -272,7 +272,7 @@ void create_printer_setup(Widget but, void *data)
     
     update_printer_setup(pui, device);
     
-    RaiseWindow(GetParent(pui->top));
+    DialogRaise(pui->top);
     unset_wait_cursor();
 }
 
@@ -663,7 +663,7 @@ void create_printfiles_popup(Widget but, void *data)
     sprintf(buf, "*.%s", dev->fext);
     SetFileSelectionBoxPattern(fsb, buf);
     
-    RaiseWindow(fsb->dialog);
+    DialogRaise(fsb->FSB);
 
     unset_wait_cursor();
 }
@@ -771,7 +771,7 @@ void create_destopts_popup(Widget but, void *data)
         dsui->top = top;
     }
     
-    RaiseWindow(GetParent(dsui->top));
+    DialogRaise(dsui->top);
 }
 
 static void do_units_toggle(OptionStructure *opt, int value, void *data)

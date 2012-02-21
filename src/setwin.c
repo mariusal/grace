@@ -127,7 +127,7 @@ void create_datasetprop_popup(Widget but, void *data)
         ManageChild(tui.top);
     }
     
-    RaiseWindow(GetParent(tui.top));
+    DialogRaise(tui.top);
     unset_wait_cursor();
 }
 
@@ -314,7 +314,7 @@ void create_datasetop_popup(Widget but, void *data)
             &datasetopui);
     }
     
-    RaiseWindow(GetParent(datasetopui.top));
+    DialogRaise(datasetopui.top);
     
     unset_wait_cursor();
 }
@@ -528,7 +528,7 @@ void create_leval_frame(Widget but, void *data)
         CreateAACDialog(levalui.top, levalui.mw, leval_aac_cb, &levalui);
     }
     
-    RaiseWindow(GetParent(levalui.top));
+    DialogRaise(levalui.top);
     unset_wait_cursor();
 }
 

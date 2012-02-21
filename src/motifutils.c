@@ -2489,7 +2489,7 @@ static void define_pen_choice_dialog(Widget but, void *data)
         SetOptionChoice(ui->pattern, pen.pattern);
     }
 
-    RaiseWindow(GetParent(ui->top));
+    DialogRaise(ui->top);
     unset_wait_cursor();
 }
 
@@ -3855,7 +3855,7 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
 
 void RaiseTransformationDialog(TransformStructure *tdialog)
 {
-    RaiseWindow(GetParent(tdialog->form));
+    DialogRaise(tdialog->form);
 }
 
 Widget CreateFrame(Widget parent, char *s)
@@ -4365,7 +4365,8 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
         UnmanageChild(but);
     }
 
-    RaiseWindow(dialog);
+    ManageChild(dialog);
+    XMapRaised(XtDisplay(dialog), XtWindow(dialog));
     
     XtAddGrab(XtParent(dialog), True, False);
     while (keep_grab || XtAppPending(app_con)) {

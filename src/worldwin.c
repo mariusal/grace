@@ -240,7 +240,7 @@ void create_arrange_frame(Widget but, void *data)
         SetToggleButtonState(ui->add, TRUE);
     }
 
-    RaiseWindow(GetParent(ui->top));
+    DialogRaise(ui->top);
     
     unset_wait_cursor();
 }
@@ -297,6 +297,6 @@ void create_autos_frame(Widget but, void *data)
 	CreateAACDialog(aui->top, rc, define_autos_proc, aui);
     }
     
-    RaiseWindow(GetParent(aui->top));
+    DialogRaise(aui->top);
     unset_wait_cursor();
 }

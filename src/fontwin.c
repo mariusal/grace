@@ -131,7 +131,7 @@ void create_fonttool(TextStructure *cstext_parent)
         SetSensitive(ui->aac_buts[1], TRUE);
     }
     
-    RaiseWindow(GetParent(ui->fonttool_panel));
+    DialogRaise(ui->fonttool_panel);
 }
 
 static int DrawCB(TableEvent *event)

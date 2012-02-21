@@ -81,7 +81,7 @@ void create_saveproject_popup(GProject *gp)
         ManageChild(fsb->FSB);
     }
     
-    RaiseWindow(fsb->dialog);
+    DialogRaise(fsb->FSB);
 
     unset_wait_cursor();
 }
@@ -248,7 +248,7 @@ void create_openproject_popup(void)
 #endif
         ManageChild(ui->fsb->FSB);
     }
-    RaiseWindow(ui->fsb->dialog);
+    DialogRaise(ui->fsb->FSB);
 
     unset_wait_cursor();
 }
@@ -336,7 +336,7 @@ void create_file_popup(Widget but, void *data)
     }
     
     
-    RaiseWindow(rdata_dialog->dialog);
+    DialogRaise(rdata_dialog->FSB);
     
     unset_wait_cursor();
 }
@@ -412,7 +412,7 @@ void create_write_popup(Widget but, void *data)
 
         ManageChild(fsb->FSB);
     }
-    RaiseWindow(fsb->dialog);
+    DialogRaise(fsb->FSB);
 
     unset_wait_cursor();
 }

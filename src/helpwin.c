@@ -197,7 +197,7 @@ void create_about_grtool(Widget but, void *data)
         ManageChild(about_frame);
     }
 
-    RaiseWindow(GetParent(about_frame));
+    DialogRaise(about_frame);
 
     unset_wait_cursor();
 }
@@ -451,7 +451,7 @@ static void create_find_dialog(Widget but, void *data)
         ManageChild(dialog);
     }
 
-    RaiseWindow(GetParent(dialog));
+    DialogRaise(dialog);
 }
 
 static void refresh_cb(Widget but, void *data)
@@ -599,7 +599,7 @@ void create_helper_frame(char *URL)
         }
         xfree(content);
 
-        RaiseWindow(GetParent(ui->top));
+        DialogRaise(ui->top);
     }
     
     unset_wait_cursor();

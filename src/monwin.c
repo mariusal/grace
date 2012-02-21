@@ -172,7 +172,7 @@ static void create_monitor_frame(int force, char *msg)
     }
     
     if (force || ui->popup_only_on_errors == FALSE) {
-        RaiseWindow(GetParent(ui->mon_frame));
+        DialogRaise(ui->mon_frame);
     }
     
     unset_wait_cursor();
@@ -224,7 +224,7 @@ static void create_wmon_frame(Widget but, void *data)
         ManageChild(ui->save_logs_fsb->FSB);
     }
     
-    RaiseWindow(ui->save_logs_fsb->dialog);
+    DialogRaise(ui->save_logs_fsb->FSB);
 
     unset_wait_cursor();
 }

@@ -79,7 +79,7 @@ static void create_hotfiles_popup(Widget but, void *data)
         ManageChild(fsb->FSB);
     }
     
-    RaiseWindow(fsb->dialog);
+    DialogRaise(fsb->FSB);
 
     unset_wait_cursor();
 }

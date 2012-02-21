@@ -114,7 +114,7 @@ void create_props_frame(Widget but, void *data)
     
     update_props_items();
     
-    RaiseWindow(GetParent(props_frame));
+    DialogRaise(props_frame);
     unset_wait_cursor();
 }
 
