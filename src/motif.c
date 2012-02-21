@@ -39,6 +39,11 @@
 
 #include "globals.h"
 
+Widget WidgetGetParent(Widget w)
+{
+    return XtParent(w);
+}
+
 void ManageChild(Widget w)
 {
     XtManageChild(w);
@@ -347,7 +352,7 @@ TextStructure *CreateScrolledText(Widget parent, char *s, int nrows)
     FormAddVChild(retval->form, retval->label);
 
     retval->text = CreateMultiLineTextEdit(retval->form, nrows);
-    FormAddVChild(retval->form, XtParent(retval->text));
+    FormAddVChild(retval->form, WidgetGetParent(retval->text));
 
     retval->multiline = TRUE;
 

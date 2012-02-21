@@ -41,6 +41,7 @@
 #include "qtgui/qtinc.h"
 #endif /* QT_GUI */
 
+Widget WidgetGetParent(Widget w);
 void ManageChild(Widget w);
 void UnmanageChild(Widget w);
 int IsManaged(Widget w);
