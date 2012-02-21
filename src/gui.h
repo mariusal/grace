@@ -25,12 +25,28 @@
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* GUI */
+/* GUI independent functions */
 
 #ifndef __GUI_H_
 #define __GUI_H_
 
 #include "widgets.h"
 
+/* Text */
+TextStructure *CreateText(Widget parent, char *s);
+TextStructure *CreateText2(Widget parent, char *s, int len);
+TextStructure *CreateScrolledText(Widget parent, char *s, int nrows);
+TextStructure *CreateCSText(Widget parent, char *s);
+TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows);
+int xv_evalexpr(TextStructure *cst, double *);
+int xv_evalexpri(TextStructure *cst, int *);
+
+/* Text input CB procedure */
+typedef void (*Text_CBProc)(
+    TextStructure *cst,
+    char *,              /* text string */
+    void *               /* data the application registered */
+);
+void AddTextActivateCB(TextStructure *cst, Text_CBProc cbproc, void *data);
 
 #endif /* __GUI_H_ */

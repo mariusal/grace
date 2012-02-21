@@ -41,6 +41,7 @@
 #include "qtgui/qtinc.h"
 #endif /* QT_GUI */
 
+/* Widgets */
 Widget WidgetGetParent(Widget w);
 void ManageChild(Widget w);
 void UnmanageChild(Widget w);
@@ -79,6 +80,7 @@ void FormFixateVChild(Widget w);
 Widget CreateLabel(Widget parent, char *s);
 void SetLabel(Widget w, char *s);
 
+/* Text */
 Widget CreateLineTextEdit(Widget parent, int len);
 Widget CreateMultiLineTextEdit(Widget parent, int nrows);
 
@@ -90,26 +92,10 @@ typedef struct {
     int locked;
 } TextStructure;
 
-TextStructure *CreateText(Widget parent, char *s);
-TextStructure *CreateText2(Widget parent, char *s, int len);
-TextStructure *CreateScrolledText(Widget parent, char *s, int nrows);
-TextStructure *CreateCSText(Widget parent, char *s);
-TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows);
 void TextSetLength(TextStructure *cst, int len);
 char *TextGetString(TextStructure *cst);
 void TextSetString(TextStructure *cst, char *s);
-int xv_evalexpr(TextStructure *cst, double *);
-int xv_evalexpri(TextStructure *cst, int *);
 
-/* Text input CB procedure */
-typedef void (*Text_CBProc)(
-    TextStructure *cst,
-    char *,              /* text string */
-    void *               /* data the application registered */
-);
-void AddTextActivateCB(TextStructure *cst, Text_CBProc cbproc, void *data);
-
-/* Text validate CB procedure */
 typedef int (*TextValidate_CBProc)(
         char **value,
         int *length,

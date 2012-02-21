@@ -28,7 +28,7 @@ GROBJS = main$(O) graceapp$(O) \
 # GUI independent sources
 #
 
-GUIISRCS = guiactions.c events.c guiutils.c \
+GUIISRCS = gui.c guiactions.c events.c guiutils.c \
            drv_ui.c \
            explorer.c \
            project_ui.c ssd_ui.c frame_ui.c graph_ui.c set_ui.c axis_ui.c \
@@ -43,7 +43,7 @@ GUIISRCS = guiactions.c events.c guiutils.c \
            setwin.c \
            fontwin.c
 
-GUIIOBJS = guiactions$(O) events$(O) guiutils$(O) \
+GUIIOBJS = gui$(O) guiactions$(O) events$(O) guiutils$(O) \
            drv_ui$(O) \
            explorer$(O) \
            project_ui$(O) ssd_ui$(O) frame_ui$(O) graph_ui$(O) set_ui$(O) axis_ui$(O) \
