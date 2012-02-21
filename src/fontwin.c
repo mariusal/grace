@@ -56,8 +56,6 @@ typedef struct _fonttool_ui
     int font_id;
     int csize;
 
-    int enable_edit_cb;
-
     char valid_chars[256];
 } fonttool_ui;
 
@@ -119,7 +117,6 @@ void create_fonttool(TextStructure *cstext_parent)
     
     ui->cstext_parent = cstext_parent;
     
-    ui->enable_edit_cb = FALSE;
     if (ui->cstext_parent == NULL) {
         TextSetString(ui->cstext, "");
         SetSensitive(ui->aac_buts[0], FALSE);
@@ -133,7 +130,6 @@ void create_fonttool(TextStructure *cstext_parent)
         SetSensitive(ui->aac_buts[0], TRUE);
         SetSensitive(ui->aac_buts[1], TRUE);
     }
-    ui->enable_edit_cb = TRUE;
     
     RaiseWindow(GetParent(ui->fonttool_panel));
 }
@@ -224,10 +220,6 @@ static int EditStringCB(char **value, int *length, void *data)
     static int column = 0, row = 0;
     char *text;
     int len = *length;
-    
-    if (ui->enable_edit_cb != TRUE) {
-        return TRUE;
-    }
 
     text = *value;
     

@@ -339,12 +339,6 @@ typedef void (*Spin_CBProc)(
     void *              /* data the application registered */
 );
 
-typedef struct {
-    Widget w;
-    TextValidate_CBProc cbproc;
-    void *anydata;
-} TextValidate_CBData;
-
 /* Scale input CB procedure */
 typedef void (*Scale_CBProc )(
     Widget scale,

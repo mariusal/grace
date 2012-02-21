@@ -87,6 +87,7 @@ typedef struct {
     Widget form;
     Widget text;
     int multiline;
+    int locked;
 } TextStructure;
 
 TextStructure *CreateText(Widget parent, char *s);

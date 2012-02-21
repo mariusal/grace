@@ -404,8 +404,10 @@ char *TextGetString(TextStructure *cst)
 
 void TextSetString(TextStructure *cst, char *s)
 {
+    cst->locked = TRUE;
     XmTextSetString(cst->text, s ? s : "");
     XmTextSetInsertionPosition(cst->text, s ? strlen(s):0);
+    cst->locked = FALSE;
 }
 
 /*
@@ -473,6 +475,12 @@ void AddTextActivateCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     }
 }
 
+typedef struct {
+    TextStructure *cst;
+    TextValidate_CBProc cbproc;
+    void *anydata;
+} TextValidate_CBData;
+
 static void text_int_validate_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     XmTextBlock text;
@@ -480,10 +488,15 @@ static void text_int_validate_cb_proc(Widget w, XtPointer client_data, XtPointer
     XmTextVerifyCallbackStruct *tcbs =
             (XmTextVerifyCallbackStruct *) call_data;
 
+    if (cbdata->cst->locked) {
+        tcbs->doit = False;
+        return;
+    }
+
     text = tcbs->text;
 
     if (!cbdata->cbproc(&text->ptr, &text->length, cbdata->anydata)) {
-        tcbs->doit = FALSE;
+        tcbs->doit = False;
     }
 }
 
@@ -492,9 +505,10 @@ void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *any
     TextValidate_CBData *cbdata;
 
     cbdata = (TextValidate_CBData *) xmalloc(sizeof(TextValidate_CBData));
-    cbdata->w = cst->text;
+    cbdata->cst = cst;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
+    cst->locked = FALSE;
 
     XtAddCallback(cst->text, XmNmodifyVerifyCallback, text_int_validate_cb_proc, cbdata);
 }
