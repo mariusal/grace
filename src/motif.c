@@ -446,9 +446,10 @@ static void text_int_cb_proc(KeyEvent *event)
 {
     char *s;
     Text_CBdata *cbdata = (Text_CBdata *) event->anydata;
-    s = XmTextGetString(event->w);
+
+    s = GetTextString(cbdata->cst);
     cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
-    XtFree(s);
+    xfree(s);
 }
 
 void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
