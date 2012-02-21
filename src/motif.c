@@ -274,30 +274,6 @@ void SetLabel(Widget w, char *s)
     XmStringFree(str);
 }
 
-void AlignLabel(Widget w, int alignment)
-{
-    unsigned char xm_alignment;
-
-    switch(alignment) {
-    case ALIGN_BEGINNING:
-        xm_alignment = XmALIGNMENT_BEGINNING;
-        break;
-    case ALIGN_CENTER:
-        xm_alignment = XmALIGNMENT_CENTER;
-        break;
-    case ALIGN_END:
-        xm_alignment = XmALIGNMENT_END;
-        break;
-    default:
-        errmsg("Internal error in AlignLabel()");
-        return;
-        break;
-    }
-    XtVaSetValues(w,
-        XmNalignment, xm_alignment,
-        NULL);
-}
-
 Widget CreateLineTextEdit(Widget parent, int len)
 {
     Widget w;

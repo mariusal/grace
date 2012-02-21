@@ -1677,7 +1677,6 @@ Widget CreateButton(Widget parent, char *label)
     xmstr = XmStringCreateLocalized(label);
     button = XtVaCreateManagedWidget("button",
         xmPushButtonWidgetClass, parent, 
-        XmNalignment, XmALIGNMENT_CENTER,
     	XmNlabelString, xmstr,
 /*
  *         XmNmarginLeft, 5,
@@ -1687,6 +1686,10 @@ Widget CreateButton(Widget parent, char *label)
  */
     	NULL);
     XmStringFree(xmstr);
+
+    XtVaSetValues(button,
+            XmNalignment, XmALIGNMENT_CENTER,
+            NULL);
 
     return button;
 }

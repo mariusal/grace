@@ -130,76 +130,75 @@ static Widget about_frame;
 void create_about_grtool(Widget but, void *data)
 {
     set_wait_cursor();
-    
+
     if (about_frame == NULL) {
         Widget wbut, fr, rc, about_panel;
         char buf[1024];
-        
-	about_frame = CreateDialogForm(app_shell, "About");
-	
+
+        about_frame = CreateDialogForm(app_shell, "About");
+
         about_panel = CreateVContainer(about_frame);
         FormAddVChild(about_frame, about_panel);
 
-	fr = CreateFrame(about_panel, NULL);
+        fr = CreateFrame(about_panel, NULL);
         rc = CreateVContainer(fr);
-	CreateLabel(rc, bi_version_string());
+        CreateLabel(rc, bi_version_string());
 
-	fr = CreateFrame(about_panel, "Legal stuff");
+        fr = CreateFrame(about_panel, "Legal stuff");
         rc = CreateVContainer(fr);
-	CreateLabel(rc, "Copyright (c) 1996-2007 Grace Development Team");
-	CreateLabel(rc, "Portions Copyright (c) 1991-1995 Paul J Turner");
-	CreateLabel(rc, "Maintained by Evgeny Stambulchik");
-	CreateLabel(rc, "All rights reserved");
-	CreateLabel(rc,
-            "The program is distributed under the terms of the GNU General Public License");
+        CreateLabel(rc, "Copyright (c) 1996-2007 Grace Development Team");
+        CreateLabel(rc, "Portions Copyright (c) 1991-1995 Paul J Turner");
+        CreateLabel(rc, "Maintained by Evgeny Stambulchik");
+        CreateLabel(rc, "All rights reserved");
+        CreateLabel(rc,
+                "The program is distributed under the terms of the GNU General Public License");
 
 #if defined(MOTIF_GUI) || defined(HAVE_LIBPDF)
-	fr = CreateFrame(about_panel, "Third party copyrights");
+        fr = CreateFrame(about_panel, "Third party copyrights");
         rc = CreateVContainer(fr);
 #ifdef MOTIF_GUI
-	CreateLabel(rc,
-            "Tab widget, Copyright (c) 1997 Pralay Dakua");
-	CreateLabel(rc, "Xbae widget,");
-	CreateLabel(rc,
-            "      Copyright (c) 1991, 1992 Bell Communications Research, Inc. (Bellcore)");
-	CreateLabel(rc,
-            "      Copyright (c) 1995-1999 Andrew Lister");
+        CreateLabel(rc,
+                "Tab widget, Copyright (c) 1997 Pralay Dakua");
+        CreateLabel(rc, "Xbae widget,");
+        CreateLabel(rc,
+                "      Copyright (c) 1991, 1992 Bell Communications Research, Inc. (Bellcore)");
+        CreateLabel(rc,
+                "      Copyright (c) 1995-1999 Andrew Lister");
 #endif
 #ifdef HAVE_LIBPDF
-	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-2004 Thomas Merz and PDFlib GmbH");
+        CreateLabel(rc, "PDFlib library, Copyright (c) 1997-2004 Thomas Merz and PDFlib GmbH");
 #endif
 #endif
 
-	fr = CreateFrame(about_panel, "Build info");
+        fr = CreateFrame(about_panel, "Build info");
         rc = CreateVContainer(fr);
         sprintf(buf, "Host: %s", bi_system());
-	CreateLabel(rc, buf);
-	sprintf(buf, "Time: %s", bi_date());
-	CreateLabel(rc, buf);
-	sprintf(buf, "GUI toolkit: %s ", bi_gui());
-	CreateLabel(rc, buf);
+        CreateLabel(rc, buf);
+        sprintf(buf, "Time: %s", bi_date());
+        CreateLabel(rc, buf);
+        sprintf(buf, "GUI toolkit: %s ", bi_gui());
+        CreateLabel(rc, buf);
 #ifdef MOTIF_GUI
-	sprintf(buf, "Xbae version: %s ", bi_gui_xbae());
-	CreateLabel(rc, buf);
+        sprintf(buf, "Xbae version: %s ", bi_gui_xbae());
+        CreateLabel(rc, buf);
 #endif
-	sprintf(buf, "T1lib: %s ", bi_t1lib());
-	CreateLabel(rc, buf);
+        sprintf(buf, "T1lib: %s ", bi_t1lib());
+        CreateLabel(rc, buf);
 
-	fr = CreateFrame(about_panel, "Home page");
+        fr = CreateFrame(about_panel, "Home page");
         rc = CreateVContainer(fr);
-	CreateLabel(rc, "http://plasma-gate.weizmann.ac.il/Grace/");
-	
-	CreateSeparator(about_panel);
+        CreateLabel(rc, "http://plasma-gate.weizmann.ac.il/Grace/");
 
-	wbut = CreateButton(about_panel, "Close");
-	AlignLabel(wbut, ALIGN_CENTER);
+        CreateSeparator(about_panel);
+
+        wbut = CreateButton(about_panel, "Close");
         AddButtonCB(wbut, destroy_dialog_cb, GetParent(about_frame));
-        
+
         ManageChild(about_frame);
     }
-    
+
     RaiseWindow(GetParent(about_frame));
-    
+
     unset_wait_cursor();
 }
 

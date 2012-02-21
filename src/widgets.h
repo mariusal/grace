@@ -77,7 +77,6 @@ void FormFixateVChild(Widget w);
 
 Widget CreateLabel(Widget parent, char *s);
 void SetLabel(Widget w, char *s);
-void AlignLabel(Widget w, int alignment);
 
 Widget CreateLineTextEdit(Widget parent, int len);
 Widget CreateMultiLineTextEdit(Widget parent, int nrows);
