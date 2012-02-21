@@ -355,10 +355,7 @@ static void text_int_validate_cb_proc(Widget w, XtPointer client_data, XtPointer
     XmTextVerifyCallbackStruct *tcbs =
             (XmTextVerifyCallbackStruct *) call_data;
 
-    if (cbdata->cst->locked) {
-        tcbs->doit = False;
-        return;
-    }
+    if (cbdata->cst->locked) return;
 
     text = tcbs->text;
 
