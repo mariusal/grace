@@ -113,6 +113,8 @@ static int toolkit_key_to_grace_key(void *event)
         return KEY_DOWN;
     case XK_Return: /* Return */
         return KEY_RETURN;
+    case XK_space: /* Space */
+        return KEY_SPACE;
     default:
         return KEY_NONE;
     }
@@ -151,6 +153,59 @@ void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, v
     cbdata->anydata = anydata;
 
     XtAddEventHandler(w, KeyPressMask, False, keyCB, cbdata);
+}
+
+static int toolkit_button_to_grace_button(void *event)
+{
+    XButtonEvent *xbe;
+
+    xbe = (XButtonEvent *) event;
+
+    switch (xbe->button) {
+    case Button1:
+        return LEFT_BUTTON;
+    case Button2:
+        return MIDDLE_BUTTON;
+    case Button3:
+        return RIGHT_BUTTON;
+    case Button4:
+        return WHEEL_UP_BUTTON;
+    case Button5:
+        return WHEEL_DOWN_BUTTON;
+    default:
+        return NO_BUTTON;
+    }
+}
+
+static void buttonCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
+{
+    MouseEvent mevent;
+    Mouse_CBData *cbdata = (Mouse_CBData *) client_data;
+    unsigned int width, heigth;
+
+    GetDimensions(w, &width, &heigth);
+
+    if (event->xbutton.x > width || event->xbutton.y > heigth) return;
+
+    mevent.w = w;
+    mevent.anydata = cbdata->anydata;
+
+    if (cbdata->button != toolkit_button_to_grace_button(event)) return;
+
+    cbdata->cbproc(&mevent);
+}
+
+void AddWidgetMouseReleaseCB(Widget w, int button, Mouse_CBProc cbproc, void *anydata)
+{
+    Mouse_CBData *cbdata;
+
+    cbdata = (Mouse_CBData *) xmalloc(sizeof(Mouse_CBData));
+    cbdata->w = w;
+    cbdata->button = button;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    XtAddEventHandler(w, ButtonReleaseMask, False, buttonCB, cbdata);
 }
 
 /* Dialog */
@@ -474,9 +529,6 @@ Widget CreateBitmapButton(Widget parent,
         xmPushButtonWidgetClass, parent,
         NULL);
 
-/*
- * We need to get right fore- and background colors for pixmap.
- */
     pm = CreatePixmapFromBitmap(button, width, height, bits);
 
     XtVaSetValues(button,
@@ -487,22 +539,31 @@ Widget CreateBitmapButton(Widget parent,
     return button;
 }
 
-static void button_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void button_release_int_cb_proc(MouseEvent *event)
 {
-    Button_CBdata *cbdata = (Button_CBdata *) client_data;
+    Button_CBdata *cbdata = (Button_CBdata *) event->anydata;
+
     cbdata->cbproc(cbdata->but, cbdata->anydata);
 }
 
-void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
+static void button_int_cb_proc(KeyEvent *event)
+{
+    Button_CBdata *cbdata = (Button_CBdata *) event->anydata;
+
+    cbdata->cbproc(cbdata->but, cbdata->anydata);
+}
+
+void AddButtonCB(Widget w, Button_CBProc cbproc, void *data)
 {
     Button_CBdata *cbdata;
 
     cbdata = xmalloc(sizeof(Button_CBdata));
-    cbdata->but = button;
+    cbdata->but = w;
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
-    XtAddCallback(button,
-        XmNactivateCallback, button_int_cb_proc, (XtPointer) cbdata);
+
+    AddWidgetKeyPressCB(w, KEY_SPACE, button_int_cb_proc, cbdata);
+    AddWidgetMouseReleaseCB(w, LEFT_BUTTON, button_release_int_cb_proc, cbdata);
 }
 
 

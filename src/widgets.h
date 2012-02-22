@@ -67,6 +67,20 @@ typedef struct {
 void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
 void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata);
 
+typedef struct {
+    Widget w;
+    void *anydata;
+} MouseEvent;
+
+typedef void (*Mouse_CBProc)(MouseEvent *event);
+typedef struct {
+    Widget w;
+    int button;
+    Mouse_CBProc cbproc;
+    void *anydata;
+} Mouse_CBData;
+void AddWidgetMouseReleaseCB(Widget w, int button, Mouse_CBProc cbproc, void *anydata);
+
 /* Dialog */
 void DialogRaise(Widget form);
 void DialogSetResizable(Widget form, int onoff);
@@ -127,6 +141,6 @@ typedef void (*Button_CBProc)(
     Widget but,
     void *               /* data the application registered */
 );
-void AddButtonCB(Widget button, Button_CBProc cbproc, void *data);
+void AddButtonCB(Widget w, Button_CBProc cbproc, void *data);
 
 #endif /* __WIDGETS_H_ */
