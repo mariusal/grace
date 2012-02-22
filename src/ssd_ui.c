@@ -364,8 +364,6 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     tab = CreateTab(eui->scrolled_window);        
     AddHelpCB(tab, "doc/UsersGuide.html#ssd-properties");
 
-    ui->top = tab;
-
     /* ------------ Main tab -------------- */
     ui->main_tp = CreateTabPage(tab, "Data");
 
@@ -396,7 +394,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     SetSensitive(ui->col_label->text, FALSE);
     AddTextActivateCB(ui->col_label, text_explorer_cb, eui);
 
-    
+
     /* ------------ Hotlink tab -------------- */
     ui->hotlink_tp = CreateTabPage(tab, "Hotlink");
 
@@ -412,6 +410,10 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     ui->hotfile = CreateText2(rc1, "File name:", 20);
     wbut = CreateButton(rc1, "Browse...");
     AddButtonCB(wbut, create_hotfiles_popup, ui);
+
+    SelectTabPage(tab, ui->main_tp);
+
+    ui->top = tab;
 
     return ui;
 }

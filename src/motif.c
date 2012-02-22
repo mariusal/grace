@@ -416,7 +416,7 @@ Widget CreateTab(Widget parent)
 
     tab = XtVaCreateManagedWidget("tab", xmTabWidgetClass, parent, NULL);
 
-    return (tab);
+    return tab;
 }
 
 Widget CreateTabPage(Widget parent, char *s)
@@ -424,13 +424,12 @@ Widget CreateTabPage(Widget parent, char *s)
     Widget w;
     XmString str;
 
-    w = XmCreateRowColumn(parent, "tabPage", NULL, 0);
+    w = CreateVContainer(parent);
     str = XmStringCreateLocalized(s);
     XtVaSetValues(w, XmNtabLabel, str, NULL);
     XmStringFree(str);
-    ManageChild(w);
 
-    return (w);
+    return w;
 }
 
 void SelectTabPage(Widget tab, Widget w)
