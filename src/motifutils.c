@@ -429,9 +429,6 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
         }
                                 
     }
-    for (i = 0; i < nchoices; i++) {
-        ManageChild(retval->options[i].widget);
-    }
 
     retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
     str = XmStringCreateLocalized(labelstr);
@@ -497,9 +494,6 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
     for (i = 0; i < nchoices; i++) {
 	retval->options[i].value = (char) i;
         retval->options[i].widget = CreateBitmapButton(retval->pulldown, 16, 16, dummy_bits);
-    }
-    for (i = 0; i < nchoices; i++) {
-        ManageChild(retval->options[i].widget);
     }
 
     retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);

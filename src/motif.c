@@ -519,7 +519,7 @@ Widget CreateBitmapButton(Widget parent,
     Widget button;
     Pixmap pm;
 
-    button = XtVaCreateManagedWidget("button",
+    button = XtVaCreateWidget("button",
         xmPushButtonWidgetClass, parent,
         NULL);
 
@@ -529,6 +529,8 @@ Widget CreateBitmapButton(Widget parent,
             XmNlabelType, XmPIXMAP,
             XmNlabelPixmap, pm,
             NULL);
+
+    ManageChild(button);
 
     return button;
 }
