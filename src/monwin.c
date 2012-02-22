@@ -65,11 +65,11 @@ typedef struct _console_ui
     int auto_update;
 } console_ui;
 
-static void command_hist_prev(KeyEvent *event)
+static void command_hist_prev(void *anydata)
 {
     char *s;
     void *p;
-    console_ui *ui = (console_ui *) event->anydata;
+    console_ui *ui = (console_ui *) anydata;
     if (!ui->eohistory) {
         storage_scroll(ui->history, -1, FALSE);
     }
@@ -80,11 +80,11 @@ static void command_hist_prev(KeyEvent *event)
     ui->eohistory = FALSE;
 }
 
-static void command_hist_next(KeyEvent *event)
+static void command_hist_next(void *anydata)
 {
     char *s;
     void *p;
-    console_ui *ui = (console_ui *) event->anydata;
+    console_ui *ui = (console_ui *) anydata;
     if (storage_scroll(ui->history, +1, FALSE) == RETURN_SUCCESS) {
         storage_get_data(ui->history, &p);
         s = p;

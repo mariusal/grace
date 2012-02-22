@@ -82,9 +82,9 @@ TextStructure *CreateScrolledText(Widget parent, char *s, int nrows)
 }
 
 
-static void cstext_edit_action(KeyEvent *event)
+static void cstext_edit_action(void *anydata)
 {
-    TextStructure *cst = (TextStructure *) event->anydata;
+    TextStructure *cst = (TextStructure *) anydata;
     create_fonttool(cst);
 }
 
@@ -147,10 +147,10 @@ typedef struct {
     void *anydata;
 } Text_CBdata;
 
-static void text_int_cb_proc(KeyEvent *event)
+static void text_int_cb_proc(void *anydata)
 {
     char *s;
-    Text_CBdata *cbdata = (Text_CBdata *) event->anydata;
+    Text_CBdata *cbdata = (Text_CBdata *) anydata;
 
     s = TextGetString(cbdata->cst);
     cbdata->cbproc(cbdata->cst, s, cbdata->anydata);

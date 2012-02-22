@@ -50,12 +50,7 @@ void *GetUserData(Widget w);
 void SetUserData(Widget w, void *udata);
 void SetSensitive(Widget w, int onoff);
 
-typedef struct {
-    Widget w;
-    void *anydata;
-} KeyEvent;
-
-typedef void (*Key_CBProc)(KeyEvent *event);
+typedef void (*Key_CBProc)(void *anydata);
 typedef struct {
     Widget w;
     int modifiers;
@@ -67,12 +62,7 @@ typedef struct {
 void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
 void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata);
 
-typedef struct {
-    Widget w;
-    void *anydata;
-} MouseEvent;
-
-typedef void (*Mouse_CBProc)(MouseEvent *event);
+typedef void (*Mouse_CBProc)(void *anydata);
 typedef struct {
     Widget w;
     int button;

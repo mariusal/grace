@@ -122,16 +122,12 @@ static int toolkit_key_to_grace_key(void *event)
 
 static void keyCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
 {
-    KeyEvent kevent;
     Key_CBData *cbdata = (Key_CBData *) client_data;
-
-    kevent.w = w;
-    kevent.anydata = cbdata->anydata;
 
     if (cbdata->key != toolkit_key_to_grace_key(event)) return;
     if (cbdata->modifiers != toolkit_modifiers_to_grace_modifiers(event)) return;
 
-    cbdata->cbproc(&kevent);
+    cbdata->cbproc(cbdata->anydata);
 
     *cont = False;
 }
@@ -179,7 +175,6 @@ static int toolkit_button_to_grace_button(void *event)
 
 static void buttonCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
 {
-    MouseEvent mevent;
     Mouse_CBData *cbdata = (Mouse_CBData *) client_data;
     unsigned int width, heigth;
 
@@ -187,12 +182,9 @@ static void buttonCB(Widget w, XtPointer client_data, XEvent *event, Boolean *co
 
     if (event->xbutton.x > width || event->xbutton.y > heigth) return;
 
-    mevent.w = w;
-    mevent.anydata = cbdata->anydata;
-
     if (cbdata->button != toolkit_button_to_grace_button(event)) return;
 
-    cbdata->cbproc(&mevent);
+    cbdata->cbproc(cbdata->anydata);
 }
 
 void AddWidgetMouseReleaseCB(Widget w, int button, Mouse_CBProc cbproc, void *anydata)
@@ -495,7 +487,7 @@ void SelectTabPage(Widget tab, Widget w)
 
 /* Button */
 typedef struct {
-    Widget but;
+    Widget w;
     Button_CBProc cbproc;
     void *anydata;
 } Button_CBdata;
@@ -539,18 +531,11 @@ Widget CreateBitmapButton(Widget parent,
     return button;
 }
 
-static void button_release_int_cb_proc(MouseEvent *event)
+static void button_int_cb_proc(void *anydata)
 {
-    Button_CBdata *cbdata = (Button_CBdata *) event->anydata;
+    Button_CBdata *cbdata = (Button_CBdata *) anydata;
 
-    cbdata->cbproc(cbdata->but, cbdata->anydata);
-}
-
-static void button_int_cb_proc(KeyEvent *event)
-{
-    Button_CBdata *cbdata = (Button_CBdata *) event->anydata;
-
-    cbdata->cbproc(cbdata->but, cbdata->anydata);
+    cbdata->cbproc(cbdata->w, cbdata->anydata);
 }
 
 void AddButtonCB(Widget w, Button_CBProc cbproc, void *data)
@@ -558,12 +543,12 @@ void AddButtonCB(Widget w, Button_CBProc cbproc, void *data)
     Button_CBdata *cbdata;
 
     cbdata = xmalloc(sizeof(Button_CBdata));
-    cbdata->but = w;
+    cbdata->w = w;
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
 
     AddWidgetKeyPressCB(w, KEY_SPACE, button_int_cb_proc, cbdata);
-    AddWidgetMouseReleaseCB(w, LEFT_BUTTON, button_release_int_cb_proc, cbdata);
+    AddWidgetMouseReleaseCB(w, LEFT_BUTTON, button_int_cb_proc, cbdata);
 }
 
 
