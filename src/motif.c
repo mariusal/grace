@@ -580,7 +580,7 @@ void SetToggleButtonState(Widget w, int value)
 }
 
 typedef struct {
-    Widget tbut;
+    Widget w;
     TB_CBProc cbproc;
     void *anydata;
 } TB_CBdata;
@@ -591,8 +591,8 @@ static void tb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 
     TB_CBdata *cbdata = (TB_CBdata *) client_data;
 
-    onoff = GetToggleButtonState(w);
-    cbdata->cbproc(cbdata->tbut, onoff, cbdata->anydata);
+    onoff = GetToggleButtonState(cbdata->w);
+    cbdata->cbproc(cbdata->w, onoff, cbdata->anydata);
 }
 
 void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
@@ -601,7 +601,7 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
 
     cbdata = xmalloc(sizeof(TB_CBdata));
 
-    cbdata->tbut = w;
+    cbdata->w = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
     XtAddCallback(w,
