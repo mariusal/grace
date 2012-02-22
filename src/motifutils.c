@@ -392,7 +392,6 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     int i;
     XmString str;
     OptionStructure *retval;
-    Pixmap ptmp;
 
     retval = xcalloc(1, sizeof(OptionStructure));
     if (!retval) {
@@ -422,17 +421,12 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     for (i = 0; i < nchoices; i++) {
 	retval->options[i].value = items[i].value;
         if (items[i].bitmap != NULL) {
-            ptmp = CreatePixmapFromBitmap(retval->pulldown, width, height, items[i].bitmap);
 
-            retval->options[i].widget = 
-                XtVaCreateWidget("pixButton", xmPushButtonWidgetClass,
-                                 retval->pulldown,
-	                         XmNlabelType, XmPIXMAP,
-	                         XmNlabelPixmap, ptmp,
-	                         NULL);
+            retval->options[i].widget =
+                    CreateBitmapButton(retval->pulldown, width, height, items[i].bitmap);
         } else {
-	    retval->options[i].widget = 
-                  XmCreatePushButton(retval->pulldown, "None", NULL, 0);
+	    retval->options[i].widget =
+	            CreateButton(retval->pulldown, "None");
         }
                                 
     }
