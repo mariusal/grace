@@ -389,11 +389,9 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items)
 {
-    X11Stuff *xstuff = gapp->gui->xstuff;
     int i;
     XmString str;
     OptionStructure *retval;
-    Pixel fg, bg;
     Pixmap ptmp;
 
     retval = xcalloc(1, sizeof(OptionStructure));
@@ -421,17 +419,11 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
                       NULL);
     }
     
-    XtVaGetValues(retval->pulldown,
-                  XmNforeground, &fg,
-                  XmNbackground, &bg,
-                  NULL);
-    
     for (i = 0; i < nchoices; i++) {
 	retval->options[i].value = items[i].value;
         if (items[i].bitmap != NULL) {
-            ptmp = XCreatePixmapFromBitmapData(xstuff->disp, xstuff->root, 
-                                    (char *) items[i].bitmap, width, height,
-                                    fg, bg, xstuff->depth);
+            ptmp = CreatePixmapFromBitmap(retval->pulldown, width, height, items[i].bitmap);
+
             retval->options[i].widget = 
                 XtVaCreateWidget("pixButton", xmPushButtonWidgetClass,
                                  retval->pulldown,
@@ -483,12 +475,10 @@ static unsigned char dummy_bits[] = {
 
 OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
 {
-    X11Stuff *xstuff = gapp->gui->xstuff;
     int i;
     int ncols = 16, nchoices = 256;
     XmString str;
     OptionStructure *retval;
-    long bg, fg;
     Pixmap ptmp;
     int *fontid;
 
@@ -512,12 +502,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
                   XmNnumColumns, ncols,
                   NULL);
 
-    XtVaGetValues(retval->pulldown,
-                  XmNforeground, &fg,
-                  XmNbackground, &bg,
-                  NULL);
-    ptmp = XCreatePixmapFromBitmapData(xstuff->disp,
-        xstuff->root, (char *) dummy_bits, 16, 16, fg, bg, xstuff->depth);
+    ptmp = CreatePixmapFromBitmap(retval->pulldown, 16, 16, dummy_bits);
 
     for (i = 0; i < nchoices; i++) {
 	retval->options[i].value = (char) i;
