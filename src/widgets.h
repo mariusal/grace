@@ -118,4 +118,15 @@ Widget CreateTab(Widget parent);
 Widget CreateTabPage(Widget parent, char *s);
 void SelectTabPage(Widget tab, Widget w);
 
+/* Button */
+Widget CreateButton(Widget parent, char *label);
+Widget CreateBitmapButton(Widget parent,
+    int width, int height, const unsigned char *bits);
+
+typedef void (*Button_CBProc)(
+    Widget but,
+    void *               /* data the application registered */
+);
+void AddButtonCB(Widget button, Button_CBProc cbproc, void *data);
+
 #endif /* __WIDGETS_H_ */

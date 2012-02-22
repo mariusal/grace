@@ -303,12 +303,6 @@ typedef int (*FSB_CBProc)(
     void *               /* data the application registered */
 );
 
-/* Button CB procedure */
-typedef void (*Button_CBProc)(
-    Widget but,
-    void *               /* data the application registered */
-);
-
 /* List CB procedure */
 typedef void (*List_CBProc)(
     ListStructure *listp,
@@ -422,11 +416,6 @@ Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);
 void SetToggleButtonState(Widget w, int value);
 void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata);
-
-Widget CreateButton(Widget parent, char *label);
-Widget CreateBitmapButton(Widget parent,
-    int width, int height, const unsigned char *bits);
-void AddButtonCB(Widget button, Button_CBProc cbproc, void *data);
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items);

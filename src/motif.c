@@ -34,9 +34,12 @@
 #include <Xm/Xm.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
-#include <Xm/Text.h>
+#include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
+#include <Xm/Text.h>
 #include "Tab.h"
+
+#include "globals.h"
 
 /* Widgets */
 Widget WidgetGetParent(Widget w)
@@ -435,6 +438,83 @@ Widget CreateTabPage(Widget parent, char *s)
 void SelectTabPage(Widget tab, Widget w)
 {
     XmTabSetTabWidget(tab, w, True);
+}
+
+/* Button */
+typedef struct {
+    Widget but;
+    Button_CBProc cbproc;
+    void *anydata;
+} Button_CBdata;
+
+Widget CreateButton(Widget parent, char *label)
+{
+    Widget button;
+    XmString xmstr;
+
+    xmstr = XmStringCreateLocalized(label);
+    button = XtVaCreateManagedWidget("button",
+        xmPushButtonWidgetClass, parent,
+        XmNlabelString, xmstr,
+/*
+ *         XmNmarginLeft, 5,
+ *         XmNmarginRight, 5,
+ *         XmNmarginTop, 3,
+ *         XmNmarginBottom, 2,
+ */
+        NULL);
+    XmStringFree(xmstr);
+
+    XtVaSetValues(button,
+            XmNalignment, XmALIGNMENT_CENTER,
+            NULL);
+
+    return button;
+}
+
+Widget CreateBitmapButton(Widget parent,
+    int width, int height, const unsigned char *bits)
+{
+    X11Stuff *xstuff = gapp->gui->xstuff;
+    Widget button;
+    Pixmap pm;
+    Pixel fg, bg;
+
+    button = XtVaCreateManagedWidget("button",
+        xmPushButtonWidgetClass, parent,
+        XmNlabelType, XmPIXMAP,
+        NULL);
+
+/*
+ * We need to get right fore- and background colors for pixmap.
+ */
+    XtVaGetValues(button,
+                  XmNforeground, &fg,
+                  XmNbackground, &bg,
+                  NULL);
+    pm = XCreatePixmapFromBitmapData(xstuff->disp,
+        xstuff->root, (char *) bits, width, height, fg, bg, xstuff->depth);
+    XtVaSetValues(button, XmNlabelPixmap, pm, NULL);
+
+    return button;
+}
+
+static void button_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Button_CBdata *cbdata = (Button_CBdata *) client_data;
+    cbdata->cbproc(cbdata->but, cbdata->anydata);
+}
+
+void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
+{
+    Button_CBdata *cbdata;
+
+    cbdata = xmalloc(sizeof(Button_CBdata));
+    cbdata->but = button;
+    cbdata->anydata = data;
+    cbdata->cbproc = cbproc;
+    XtAddCallback(button,
+        XmNactivateCallback, button_int_cb_proc, (XtPointer) cbdata);
 }
 
 
