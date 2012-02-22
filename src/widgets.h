@@ -113,4 +113,9 @@ int TextGetLastPosition(TextStructure *cst);
 void TextInsert(TextStructure *cst, int pos, char *s);
 void TextSetEditable(TextStructure *cst, int onoff);
 
+/* Tab */
+Widget CreateTab(Widget parent);
+Widget CreateTabPage(Widget parent, char *s);
+void SelectTabPage(Widget tab, Widget w);
+
 #endif /* __WIDGETS_H_ */

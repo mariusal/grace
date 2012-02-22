@@ -406,10 +406,6 @@ Widget CreateMenuSeparator(Widget parent);
 Widget CreateGrid(Widget parent, int ncols, int nrows);
 void PlaceGridChild(Widget grid, Widget w, int col, int row);
 
-Widget CreateTab(Widget parent);
-Widget CreateTabPage(Widget parent, char *s);
-void SelectTabPage(Widget tab, Widget w);
-
 Widget CreateScale(Widget parent, char *s, int min, int max, int delta);
 void SetScaleValue(Widget w, int value);
 int GetScaleValue(Widget w);

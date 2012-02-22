@@ -36,7 +36,9 @@
 #include <Xm/Label.h>
 #include <Xm/Text.h>
 #include <Xm/RowColumn.h>
+#include "Tab.h"
 
+/* Widgets */
 Widget WidgetGetParent(Widget w)
 {
     return XtParent(w);
@@ -150,6 +152,7 @@ void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, v
     XtAddEventHandler(w, KeyPressMask, False, keyCB, cbdata);
 }
 
+/* Dialog */
 void DialogRaise(Widget form)
 {
     Widget w = WidgetGetParent(form);
@@ -168,6 +171,7 @@ void DialogSetResizable(Widget form, int onoff)
         NULL);
 }
 
+/* Containers */
 Widget CreateVContainer(Widget parent)
 {
     Widget rc;
@@ -189,6 +193,7 @@ Widget CreateHContainer(Widget parent)
     return rc;
 }
 
+/* Form */
 Widget CreateForm(Widget parent)
 {
     Widget w;
@@ -261,6 +266,7 @@ void FormFixateVChild(Widget w)
         NULL);
 }
 
+/* Label */
 Widget CreateLabel(Widget parent, char *s)
 {
     Widget label;
@@ -285,6 +291,7 @@ void SetLabel(Widget w, char *s)
     XmStringFree(str);
 }
 
+/* Text */
 Widget CreateLineTextEdit(Widget parent, int len)
 {
     Widget w;
@@ -401,4 +408,34 @@ void TextSetEditable(TextStructure *cst, int onoff)
 {
     XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
 }
+
+/* Tab */
+Widget CreateTab(Widget parent)
+{
+    Widget tab;
+
+    tab = XtVaCreateManagedWidget("tab", xmTabWidgetClass, parent, NULL);
+
+    return (tab);
+}
+
+Widget CreateTabPage(Widget parent, char *s)
+{
+    Widget w;
+    XmString str;
+
+    w = XmCreateRowColumn(parent, "tabPage", NULL, 0);
+    str = XmStringCreateLocalized(s);
+    XtVaSetValues(w, XmNtabLabel, str, NULL);
+    XmStringFree(str);
+    ManageChild(w);
+
+    return (w);
+}
+
+void SelectTabPage(Widget tab, Widget w)
+{
+    XmTabSetTabWidget(tab, w, True);
+}
+
 

@@ -33,6 +33,7 @@
 
 #include "globals.h"
 
+/* Text */
 TextStructure *CreateText(Widget parent, char *s)
 {
     return CreateText2(parent, s, 0);

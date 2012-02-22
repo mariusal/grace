@@ -87,7 +87,6 @@
 #  define XmStringConcatAndFree(a, b) XmStringConcat(a, b); XmStringFree(a); XmStringFree(b)
 #endif
 
-#include "Tab.h"
 #include "motifinc.h"
 #include "explorer.h"
 
@@ -3966,34 +3965,6 @@ void PlaceGridChild(Widget grid, Widget w, int col, int row)
         NULL);
 }
 
-
-Widget CreateTab(Widget parent)
-{
-    Widget tab;
-    
-    tab = XtVaCreateManagedWidget("tab", xmTabWidgetClass, parent, NULL);
-    
-    return (tab);
-}
-
-Widget CreateTabPage(Widget parent, char *s)
-{
-    Widget w;
-    XmString str;
-    
-    w = XmCreateRowColumn(parent, "tabPage", NULL, 0);
-    str = XmStringCreateLocalized(s);
-    XtVaSetValues(w, XmNtabLabel, str, NULL);
-    XmStringFree(str);
-    ManageChild(w);
-    
-    return (w);
-}
-
-void SelectTabPage(Widget tab, Widget w)
-{
-    XmTabSetTabWidget(tab, w, True);
-}
 
 /* if user tried to close from WM */
 static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
