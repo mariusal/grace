@@ -473,7 +473,6 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
     int ncols = 16, nchoices = 256;
     XmString str;
     OptionStructure *retval;
-    Pixmap ptmp;
     int *fontid;
 
     retval = xcalloc(1, sizeof(OptionStructure));
@@ -496,16 +495,9 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
                   XmNnumColumns, ncols,
                   NULL);
 
-    ptmp = CreatePixmapFromBitmap(retval->pulldown, 16, 16, dummy_bits);
-
     for (i = 0; i < nchoices; i++) {
 	retval->options[i].value = (char) i;
-        retval->options[i].widget =
-            XtVaCreateWidget("pixButton", xmPushButtonWidgetClass,
-                             retval->pulldown,
-	                     XmNlabelType, XmPIXMAP,
-	                     XmNlabelPixmap, ptmp,
-	                     NULL);
+        retval->options[i].widget = CreateBitmapButton(retval->pulldown, 16, 16, dummy_bits);
     }
     for (i = 0; i < nchoices; i++) {
         ManageChild(retval->options[i].widget);
