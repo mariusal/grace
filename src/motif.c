@@ -39,8 +39,6 @@
 #include <Xm/Text.h>
 #include "Tab.h"
 
-#include "globals.h"
-
 /* Widgets */
 Widget WidgetGetParent(Widget w)
 {
@@ -456,12 +454,6 @@ Widget CreateButton(Widget parent, char *label)
     button = XtVaCreateManagedWidget("button",
         xmPushButtonWidgetClass, parent,
         XmNlabelString, xmstr,
-/*
- *         XmNmarginLeft, 5,
- *         XmNmarginRight, 5,
- *         XmNmarginTop, 3,
- *         XmNmarginBottom, 2,
- */
         NULL);
     XmStringFree(xmstr);
 
@@ -475,26 +467,22 @@ Widget CreateButton(Widget parent, char *label)
 Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits)
 {
-    X11Stuff *xstuff = gapp->gui->xstuff;
     Widget button;
     Pixmap pm;
-    Pixel fg, bg;
 
     button = XtVaCreateManagedWidget("button",
         xmPushButtonWidgetClass, parent,
-        XmNlabelType, XmPIXMAP,
         NULL);
 
 /*
  * We need to get right fore- and background colors for pixmap.
  */
-    XtVaGetValues(button,
-                  XmNforeground, &fg,
-                  XmNbackground, &bg,
-                  NULL);
-    pm = XCreatePixmapFromBitmapData(xstuff->disp,
-        xstuff->root, (char *) bits, width, height, fg, bg, xstuff->depth);
-    XtVaSetValues(button, XmNlabelPixmap, pm, NULL);
+    pm = CreatePixmapFromBitmap(button, width, height, bits);
+
+    XtVaSetValues(button,
+            XmNlabelType, XmPIXMAP,
+            XmNlabelPixmap, pm,
+            NULL);
 
     return button;
 }

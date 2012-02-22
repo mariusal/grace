@@ -116,6 +116,19 @@ static unsigned int ncolor_selectors = 0;
 
 static Widget color_choice_popup = NULL;
 
+Pixmap CreatePixmapFromBitmap(Widget w, int width, int height, const unsigned char *bits)
+{
+    X11Stuff *xstuff = gapp->gui->xstuff;
+    Pixel fg, bg;
+
+    XtVaGetValues(w,
+                  XmNforeground, &fg,
+                  XmNbackground, &bg,
+                  NULL);
+    return XCreatePixmapFromBitmapData(xstuff->disp,
+            xstuff->root, (char *) bits, width, height, fg, bg, xstuff->depth);
+}
+
 static char *label_to_resname(const char *s, const char *suffix)
 {
     char *retval, *rs;

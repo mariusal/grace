@@ -281,6 +281,7 @@ void init_xstream(X11stream *xstream);
 
 void create_pixmap(unsigned int w, unsigned int h);
 void recreate_pixmap(unsigned int w, unsigned int h);
+Pixmap CreatePixmapFromBitmap(Widget w, int width, int height, const unsigned char *bits);
 
 Widget CreateMainMenuBar(Widget parent);
 void CreateToolBar(Widget parent);
