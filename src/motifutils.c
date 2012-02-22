@@ -66,7 +66,6 @@
 #include <Xm/ScrolledW.h>
 #include <Xm/Separator.h>
 #include <Xm/Text.h>
-#include <Xm/ToggleB.h>
 #include <Xm/ArrowBG.h>
 #include <Xm/ScrollBar.h>
 #if XmVersion >= 2000
@@ -3375,61 +3374,6 @@ SpinStructure *CreateCharSizeChoice(Widget parent, char *s)
     return CreateSpinChoice(parent, s, 4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
 }
 
-
-Widget CreateToggleButton(Widget parent, char *s)
-{
-    return (XtVaCreateManagedWidget(s, xmToggleButtonWidgetClass, parent, NULL));
-}
-
-int GetToggleButtonState(Widget w)
-{
-    if (!w) {
-        errmsg("Internal error: GetToggleButtonState() called with NULL widget");
-        return 0;
-    } else {
-        return XmToggleButtonGetState(w);
-    }
-}
-
-void SetToggleButtonState(Widget w, int value)
-{
-    if (w == NULL) {
-        return;
-    }
-    XmToggleButtonSetState(w, value ? True:False, False);
-    
-    return;
-}
-
-typedef struct {
-    Widget tbut;
-    TB_CBProc cbproc;
-    void *anydata;
-} TB_CBdata;
-
-static void tb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int onoff;
-    
-    TB_CBdata *cbdata = (TB_CBdata *) client_data;
-
-    onoff = GetToggleButtonState(w);
-    cbdata->cbproc(cbdata->tbut, onoff, cbdata->anydata);
-}
-
-void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
-{
-    TB_CBdata *cbdata;
-    
-    cbdata = xmalloc(sizeof(TB_CBdata));
-    
-    cbdata->tbut = w;
-    cbdata->cbproc = cbproc;
-    cbdata->anydata = anydata;
-    XtAddCallback(w,
-        XmNvalueChangedCallback, tb_int_cb_proc, (XtPointer) cbdata);
-}
-
 void CreatePixmaps(ExplorerUI *eui)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
@@ -4099,13 +4043,14 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
     
     str = XmStringCreateLocalized(label);
     name = label_to_resname(label, NULL);
-    button = XtVaCreateManagedWidget(name,
-        xmToggleButtonWidgetClass, parent, 
-    	XmNlabelString, str,
-    	XmNmnemonic, XStringToKeysym(ms),
-    	XmNvisibleWhenOff, True,
-    	XmNindicatorOn, True,
-    	NULL);
+    button = CreateToggleButton(parent, name);
+
+    XtVaSetValues(button,
+            XmNlabelString, str,
+            XmNmnemonic, XStringToKeysym(ms),
+            XmNvisibleWhenOff, True,
+            XmNindicatorOn, True,
+            NULL);
     xfree(name);
     XmStringFree(str);
 

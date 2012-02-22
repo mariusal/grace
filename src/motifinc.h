@@ -289,13 +289,6 @@ typedef struct {
     TDRun_CBProc   run_cb;
 } TD_CBProcs;
 
-/* ToggleButton CB procedure */
-typedef void (*TB_CBProc)(
-    Widget but,
-    int onoff,           /* True/False */
-    void *               /* data the application registered */
-);
-
 /* FileSelectionBox CB procedure */
 typedef int (*FSB_CBProc)(
     FSBStructure *fsbp,
@@ -411,11 +404,6 @@ SpinStructure *CreateCharSizeChoice(Widget parent, char *s);
 SpinStructure *CreateAngleChoice(Widget parent, char *s);
 double GetAngleChoice(SpinStructure *sp);
 void SetAngleChoice(SpinStructure *sp, double angle);
-
-Widget CreateToggleButton(Widget parent, char *s);
-int GetToggleButtonState(Widget w);
-void SetToggleButtonState(Widget w, int value);
-void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata);
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items);

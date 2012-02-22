@@ -37,6 +37,7 @@
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Text.h>
+#include <Xm/ToggleB.h>
 #include "Tab.h"
 
 /* Widgets */
@@ -550,6 +551,61 @@ void AddButtonCB(Widget w, Button_CBProc cbproc, void *data)
 
     AddWidgetKeyPressCB(w, KEY_SPACE, button_int_cb_proc, cbdata);
     AddWidgetMouseReleaseCB(w, LEFT_BUTTON, button_int_cb_proc, cbdata);
+}
+
+/* ToggleButton */
+Widget CreateToggleButton(Widget parent, char *s)
+{
+    return (XtVaCreateManagedWidget(s, xmToggleButtonWidgetClass, parent, NULL));
+}
+
+int GetToggleButtonState(Widget w)
+{
+    if (!w) {
+        errmsg("Internal error: GetToggleButtonState() called with NULL widget");
+        return 0;
+    } else {
+        return XmToggleButtonGetState(w);
+    }
+}
+
+void SetToggleButtonState(Widget w, int value)
+{
+    if (w == NULL) {
+        return;
+    }
+    XmToggleButtonSetState(w, value ? True:False, False);
+
+    return;
+}
+
+typedef struct {
+    Widget tbut;
+    TB_CBProc cbproc;
+    void *anydata;
+} TB_CBdata;
+
+static void tb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int onoff;
+
+    TB_CBdata *cbdata = (TB_CBdata *) client_data;
+
+    onoff = GetToggleButtonState(w);
+    cbdata->cbproc(cbdata->tbut, onoff, cbdata->anydata);
+}
+
+void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
+{
+    TB_CBdata *cbdata;
+
+    cbdata = xmalloc(sizeof(TB_CBdata));
+
+    cbdata->tbut = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+    XtAddCallback(w,
+        XmNvalueChangedCallback, tb_int_cb_proc, (XtPointer) cbdata);
 }
 
 
