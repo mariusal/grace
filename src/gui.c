@@ -143,10 +143,10 @@ typedef struct {
     void *anydata;
 } Text_CBdata;
 
-static void text_int_cb_proc(void *anydata)
+static void text_int_cb_proc(Widget_CBData *wcbdata)
 {
     char *s;
-    Text_CBdata *cbdata = (Text_CBdata *) anydata;
+    Text_CBdata *cbdata = (Text_CBdata *) wcbdata->anydata;
 
     s = TextGetString(cbdata->cst);
     cbdata->cbproc(cbdata->cst, s, cbdata->anydata);

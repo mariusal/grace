@@ -62,12 +62,14 @@ typedef struct {
 void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
 void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata);
 
-typedef void (*Widget_CBProc)(void *anydata);
-typedef struct {
+typedef struct _Widget_CBData Widget_CBData;
+typedef void (*Widget_CBProc)(Widget_CBData *wcbdata);
+struct _Widget_CBData {
     Widget w;
     Widget_CBProc cbproc;
     void *anydata;
-} Widget_CBData;
+    void *calldata;
+};
 void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata);
 
 /* Dialog */

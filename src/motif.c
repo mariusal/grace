@@ -154,7 +154,9 @@ static void widgetCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget_CBData *cbdata = (Widget_CBData *) client_data;
 
-    cbdata->cbproc(cbdata->anydata);
+    cbdata->calldata = call_data;
+
+    cbdata->cbproc(cbdata);
 }
 
 void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata)
@@ -171,6 +173,9 @@ void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *any
 
     if (!strcmp(callback, "activate"))
         XtAddCallback(w,  XmNactivateCallback, widgetCB, (XtPointer) cbdata);
+
+    if (!strcmp(callback, "modifyVerify"))
+        XtAddCallback(w,  XmNmodifyVerifyCallback, widgetCB, (XtPointer) cbdata);
 }
 
 /* Dialog */
@@ -376,12 +381,12 @@ typedef struct {
     void *anydata;
 } TextValidate_CBData;
 
-static void text_int_validate_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void text_int_validate_cb_proc(Widget_CBData *wcbdata)
 {
     XmTextBlock text;
-    TextValidate_CBData *cbdata = (TextValidate_CBData *) client_data;
+    TextValidate_CBData *cbdata = (TextValidate_CBData *) wcbdata->anydata;
     XmTextVerifyCallbackStruct *tcbs =
-            (XmTextVerifyCallbackStruct *) call_data;
+            (XmTextVerifyCallbackStruct *) wcbdata->calldata;
 
     if (cbdata->cst->locked) return;
 
@@ -402,7 +407,7 @@ void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *any
     cbdata->anydata = anydata;
     cst->locked = FALSE;
 
-    XtAddCallback(cst->text, XmNmodifyVerifyCallback, text_int_validate_cb_proc, cbdata);
+    AddWidgetCB(cst->text, "modifyVerify", text_int_validate_cb_proc, cbdata);
 }
 
 int TextGetCursorPos(TextStructure *cst)
@@ -507,9 +512,9 @@ Widget CreateBitmapButton(Widget parent,
     return button;
 }
 
-static void button_int_cb_proc(void *anydata)
+static void button_int_cb_proc(Widget_CBData *wcbdata)
 {
-    Button_CBdata *cbdata = (Button_CBdata *) anydata;
+    Button_CBdata *cbdata = (Button_CBdata *) wcbdata->anydata;
 
     cbdata->cbproc(cbdata->w, cbdata->anydata);
 }
@@ -558,11 +563,11 @@ typedef struct {
     void *anydata;
 } TB_CBdata;
 
-static void tb_int_cb_proc(void *anydata)
+static void tb_int_cb_proc(Widget_CBData *wcbdata)
 {
     int onoff;
 
-    TB_CBdata *cbdata = (TB_CBdata *) anydata;
+    TB_CBdata *cbdata = (TB_CBdata *) wcbdata->anydata;
 
     onoff = GetToggleButtonState(cbdata->w);
     cbdata->cbproc(cbdata->w, onoff, cbdata->anydata);
