@@ -62,15 +62,6 @@ typedef struct {
 void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
 void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata);
 
-typedef void (*Mouse_CBProc)(void *anydata);
-typedef struct {
-    Widget w;
-    int button;
-    Mouse_CBProc cbproc;
-    void *anydata;
-} Mouse_CBData;
-void AddWidgetMouseReleaseCB(Widget w, int button, Mouse_CBProc cbproc, void *anydata);
-
 typedef void (*Widget_CBProc)(void *anydata);
 typedef struct {
     Widget w;

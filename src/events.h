@@ -65,7 +65,6 @@
 #define KEY_DOWN   6
 #define KEY_RETURN 7
 #define KEY_E      8
-#define KEY_SPACE  9
 
 /* Modifiers */
 #define NO_MODIFIER      0x00

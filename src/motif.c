@@ -114,8 +114,6 @@ static int toolkit_key_to_grace_key(void *event)
         return KEY_DOWN;
     case XK_Return: /* Return */
         return KEY_RETURN;
-    case XK_space: /* Space */
-        return KEY_SPACE;
     default:
         return KEY_NONE;
     }
@@ -150,55 +148,6 @@ void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, v
     cbdata->anydata = anydata;
 
     XtAddEventHandler(w, KeyPressMask, False, keyCB, cbdata);
-}
-
-static int toolkit_button_to_grace_button(void *event)
-{
-    XButtonEvent *xbe;
-
-    xbe = (XButtonEvent *) event;
-
-    switch (xbe->button) {
-    case Button1:
-        return LEFT_BUTTON;
-    case Button2:
-        return MIDDLE_BUTTON;
-    case Button3:
-        return RIGHT_BUTTON;
-    case Button4:
-        return WHEEL_UP_BUTTON;
-    case Button5:
-        return WHEEL_DOWN_BUTTON;
-    default:
-        return NO_BUTTON;
-    }
-}
-
-static void buttonCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
-{
-    Mouse_CBData *cbdata = (Mouse_CBData *) client_data;
-    unsigned int width, heigth;
-
-    GetDimensions(w, &width, &heigth);
-
-    if (event->xbutton.x > width || event->xbutton.y > heigth) return;
-
-    if (cbdata->button != toolkit_button_to_grace_button(event)) return;
-
-    cbdata->cbproc(cbdata->anydata);
-}
-
-void AddWidgetMouseReleaseCB(Widget w, int button, Mouse_CBProc cbproc, void *anydata)
-{
-    Mouse_CBData *cbdata;
-
-    cbdata = (Mouse_CBData *) xmalloc(sizeof(Mouse_CBData));
-    cbdata->w = w;
-    cbdata->button = button;
-    cbdata->cbproc = cbproc;
-    cbdata->anydata = anydata;
-
-    XtAddEventHandler(w, ButtonReleaseMask, False, buttonCB, cbdata);
 }
 
 static void widgetCB(Widget w, XtPointer client_data, XtPointer call_data)
