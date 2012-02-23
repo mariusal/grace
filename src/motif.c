@@ -219,6 +219,9 @@ void AddCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata)
 
     if (!strcmp(callback, "valueChanged"))
         XtAddCallback(w, XmNvalueChangedCallback, widgetCB, (XtPointer) cbdata);
+
+    if (!strcmp(callback, "activate"))
+        XtAddCallback(w,  XmNactivateCallback, widgetCB, (XtPointer) cbdata);
 }
 
 /* Dialog */
@@ -571,8 +574,7 @@ void AddButtonCB(Widget w, Button_CBProc cbproc, void *data)
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
 
-    AddWidgetKeyPressCB(w, KEY_SPACE, button_int_cb_proc, cbdata);
-    AddWidgetMouseReleaseCB(w, LEFT_BUTTON, button_int_cb_proc, cbdata);
+    AddCB(w, "activate", button_int_cb_proc, cbdata);
 }
 
 /* ToggleButton */
@@ -628,5 +630,3 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
 
     AddCB(w, "valueChanged", tb_int_cb_proc, cbdata);
 }
-
-
