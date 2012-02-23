@@ -201,6 +201,26 @@ void AddWidgetMouseReleaseCB(Widget w, int button, Mouse_CBProc cbproc, void *an
     XtAddEventHandler(w, ButtonReleaseMask, False, buttonCB, cbdata);
 }
 
+static void widgetCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Widget_CBData *cbdata = (Widget_CBData *) client_data;
+
+    cbdata->cbproc(cbdata->anydata);
+}
+
+void AddCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata)
+{
+    Widget_CBData *cbdata;
+
+    cbdata = (Widget_CBData *) xmalloc(sizeof(Widget_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    if (!strcmp(callback, "valueChanged"))
+        XtAddCallback(w, XmNvalueChangedCallback, widgetCB, (XtPointer) cbdata);
+}
+
 /* Dialog */
 void DialogRaise(Widget form)
 {
@@ -587,11 +607,11 @@ typedef struct {
     void *anydata;
 } TB_CBdata;
 
-static void tb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void tb_int_cb_proc(void *anydata)
 {
     int onoff;
 
-    TB_CBdata *cbdata = (TB_CBdata *) client_data;
+    TB_CBdata *cbdata = (TB_CBdata *) anydata;
 
     onoff = GetToggleButtonState(cbdata->w);
     cbdata->cbproc(cbdata->w, onoff, cbdata->anydata);
@@ -602,12 +622,11 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
     TB_CBdata *cbdata;
 
     cbdata = xmalloc(sizeof(TB_CBdata));
-
     cbdata->w = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
-    XtAddCallback(w,
-        XmNvalueChangedCallback, tb_int_cb_proc, (XtPointer) cbdata);
+
+    AddCB(w, "valueChanged", tb_int_cb_proc, cbdata);
 }
 
 

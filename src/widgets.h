@@ -71,6 +71,15 @@ typedef struct {
 } Mouse_CBData;
 void AddWidgetMouseReleaseCB(Widget w, int button, Mouse_CBProc cbproc, void *anydata);
 
+typedef void (*Widget_CBProc)(void *anydata);
+typedef struct {
+    Widget w;
+    Widget_CBProc cbproc;
+    void *anydata;
+} Widget_CBData;
+
+void AddCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata);
+
 /* Dialog */
 void DialogRaise(Widget form);
 void DialogSetResizable(Widget form, int onoff);
