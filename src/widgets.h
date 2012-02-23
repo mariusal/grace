@@ -77,8 +77,7 @@ typedef struct {
     Widget_CBProc cbproc;
     void *anydata;
 } Widget_CBData;
-
-void AddCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata);
+void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata);
 
 /* Dialog */
 void DialogRaise(Widget form);

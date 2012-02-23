@@ -208,7 +208,7 @@ static void widgetCB(Widget w, XtPointer client_data, XtPointer call_data)
     cbdata->cbproc(cbdata->anydata);
 }
 
-void AddCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata)
+void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata)
 {
     Widget_CBData *cbdata;
 
@@ -574,7 +574,7 @@ void AddButtonCB(Widget w, Button_CBProc cbproc, void *data)
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
 
-    AddCB(w, "activate", button_int_cb_proc, cbdata);
+    AddWidgetCB(w, "activate", button_int_cb_proc, cbdata);
 }
 
 /* ToggleButton */
@@ -628,5 +628,5 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    AddCB(w, "valueChanged", tb_int_cb_proc, cbdata);
+    AddWidgetCB(w, "valueChanged", tb_int_cb_proc, cbdata);
 }
