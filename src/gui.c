@@ -52,8 +52,6 @@ TextStructure *CreateText2(Widget parent, char *s, int len)
     retval->text = CreateLineTextEdit(retval->form, len);
     FormAddHChild(retval->form, retval->text);
 
-    retval->multiline = FALSE;
-
     return retval;
 }
 
@@ -75,8 +73,6 @@ TextStructure *CreateScrolledText(Widget parent, char *s, int nrows)
 
     retval->text = CreateMultiLineTextEdit(retval->form, nrows);
     FormAddVChild(retval->form, WidgetGetParent(retval->text));
-
-    retval->multiline = TRUE;
 
     return retval;
 }
@@ -166,10 +162,6 @@ void AddTextActivateCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
 
-    if (cst->multiline) {
-        AddWidgetKeyPressCB2(cst->text, CONTROL_MODIFIER, KEY_RETURN, text_int_cb_proc, cbdata);
-    } else {
-        AddWidgetKeyPressCB(cst->text, KEY_RETURN, text_int_cb_proc, cbdata);
-    }
+    AddWidgetCB(cst->text, "activate", text_int_cb_proc, cbdata);
 }
 

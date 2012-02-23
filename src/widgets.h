@@ -96,7 +96,6 @@ typedef struct {
     Widget label;
     Widget form;
     Widget text;
-    int multiline;
     int locked;
 } TextStructure;
 
