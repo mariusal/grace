@@ -127,22 +127,9 @@ Widget CreateButton(Widget parent, char *label);
 Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits);
 
-typedef void (*Button_CBProc)(
-    Widget but,
-    void *               /* data the application registered */
-);
-void AddButtonCB(Widget w, Button_CBProc cbproc, void *data);
-
 /* ToggleButton */
 Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);
 void SetToggleButtonState(Widget w, int value);
-
-typedef void (*TB_CBProc)(
-    Widget but,
-    int onoff,           /* True/False */
-    void *               /* data the application registered */
-);
-void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata);
 
 #endif /* __WIDGETS_H_ */

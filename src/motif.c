@@ -464,12 +464,6 @@ void SelectTabPage(Widget tab, Widget w)
 }
 
 /* Button */
-typedef struct {
-    Widget w;
-    Button_CBProc cbproc;
-    void *anydata;
-} Button_CBdata;
-
 Widget CreateButton(Widget parent, char *label)
 {
     Widget button;
@@ -512,25 +506,6 @@ Widget CreateBitmapButton(Widget parent,
     return button;
 }
 
-static void button_int_cb_proc(Widget_CBData *wcbdata)
-{
-    Button_CBdata *cbdata = (Button_CBdata *) wcbdata->anydata;
-
-    cbdata->cbproc(cbdata->w, cbdata->anydata);
-}
-
-void AddButtonCB(Widget w, Button_CBProc cbproc, void *data)
-{
-    Button_CBdata *cbdata;
-
-    cbdata = xmalloc(sizeof(Button_CBdata));
-    cbdata->w = w;
-    cbdata->anydata = data;
-    cbdata->cbproc = cbproc;
-
-    AddWidgetCB(w, "activate", button_int_cb_proc, cbdata);
-}
-
 /* ToggleButton */
 Widget CreateToggleButton(Widget parent, char *s)
 {
@@ -555,32 +530,4 @@ void SetToggleButtonState(Widget w, int value)
     XmToggleButtonSetState(w, value ? True:False, False);
 
     return;
-}
-
-typedef struct {
-    Widget w;
-    TB_CBProc cbproc;
-    void *anydata;
-} TB_CBdata;
-
-static void tb_int_cb_proc(Widget_CBData *wcbdata)
-{
-    int onoff;
-
-    TB_CBdata *cbdata = (TB_CBdata *) wcbdata->anydata;
-
-    onoff = GetToggleButtonState(cbdata->w);
-    cbdata->cbproc(cbdata->w, onoff, cbdata->anydata);
-}
-
-void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
-{
-    TB_CBdata *cbdata;
-
-    cbdata = xmalloc(sizeof(TB_CBdata));
-    cbdata->w = w;
-    cbdata->cbproc = cbproc;
-    cbdata->anydata = anydata;
-
-    AddWidgetCB(w, "valueChanged", tb_int_cb_proc, cbdata);
 }

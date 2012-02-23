@@ -41,12 +41,26 @@ TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows);
 int xv_evalexpr(TextStructure *cst, double *);
 int xv_evalexpri(TextStructure *cst, int *);
 
-/* Text input CB procedure */
 typedef void (*Text_CBProc)(
     TextStructure *cst,
     char *,              /* text string */
     void *               /* data the application registered */
 );
 void AddTextActivateCB(TextStructure *cst, Text_CBProc cbproc, void *data);
+
+/* Button */
+typedef void (*Button_CBProc)(
+    Widget but,
+    void *               /* data the application registered */
+);
+void AddButtonCB(Widget w, Button_CBProc cbproc, void *data);
+
+/* ToggleButton */
+typedef void (*TB_CBProc)(
+    Widget but,
+    int onoff,           /* True/False */
+    void *               /* data the application registered */
+);
+void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata);
 
 #endif /* __GUI_H_ */
