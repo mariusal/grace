@@ -780,8 +780,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 
     for (i = nold; i < nchoices; i++) {
         unsigned int j;
-        optp->options[i].widget =
-                  XmCreatePushButton(optp->pulldown, "button", NULL, 0);
+        optp->options[i].widget = CreateButton(optp->pulldown, "");
         for (j = 0; j < optp->cbnum; j++) {
             OC_CBdata *cbdata = optp->cblist[j];
             AddWidgetCB(optp->options[i].widget, "activate", oc_int_cb_proc, cbdata);
