@@ -507,19 +507,16 @@ void SelectTabPage(Widget tab, Widget w)
 Widget CreateButton(Widget parent, char *label)
 {
     Widget button;
-    XmString xmstr;
 
     button = XtVaCreateManagedWidget("button",
         xmPushButtonWidgetClass, parent,
-
         NULL);
 
-    xmstr = XmStringCreateLocalized(label);
     XtVaSetValues(button,
-            XmNlabelString, xmstr,
             XmNalignment, XmALIGNMENT_CENTER,
             NULL);
-    XmStringFree(xmstr);
+
+    SetLabel(button, label);
 
     return button;
 }
@@ -887,21 +884,19 @@ Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
         Button_CBProc cb, void *data)
 {
     Widget button;
-    XmString str;
     char *name, ms[2];
 
     ms[0] = mnemonic;
     ms[1] = '\0';
 
-    str = XmStringCreateLocalized(label);
     name = label_to_resname(label, "Button");
     button = XtVaCreateManagedWidget(name,
         xmPushButtonWidgetClass, parent,
-        XmNlabelString, str,
         XmNmnemonic, XStringToKeysym(ms),
         NULL);
     xfree(name);
-    XmStringFree(str);
+
+    SetLabel(button, label);
 
     AddButtonCB(button, cb, data);
 
@@ -944,24 +939,22 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
         TB_CBProc cb, void *data)
 {
     Widget button;
-    XmString str;
     char *name, ms[2];
 
     ms[0] = mnemonic;
     ms[1] = '\0';
 
-    str = XmStringCreateLocalized(label);
     name = label_to_resname(label, NULL);
     button = CreateToggleButton(parent, name);
+    xfree(name);
 
     XtVaSetValues(button,
-            XmNlabelString, str,
             XmNmnemonic, XStringToKeysym(ms),
             XmNvisibleWhenOff, True,
             XmNindicatorOn, True,
             NULL);
-    xfree(name);
-    XmStringFree(str);
+
+    SetLabel(button, label);
 
     if (cb) {
         AddToggleButtonCB(button, cb, data);
@@ -974,7 +967,8 @@ Widget CreateMenuLabel(Widget parent, char *name)
 {
     Widget lab;
 
-    lab = XmCreateLabel(parent, name, NULL, 0);
+    lab = CreateLabel(parent, name);
     ManageChild(lab);
+
     return lab;
 }
