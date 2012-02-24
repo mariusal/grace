@@ -710,11 +710,11 @@ OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...)
     return retval;
 }
 
-static void oc_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void oc_int_cb_proc(Widget_CBData *wcbdata)
 {
     int value;
 
-    OC_CBdata *cbdata = (OC_CBdata *) client_data;
+    OC_CBdata *cbdata = (OC_CBdata *) wcbdata->anydata;
 
     value = GetOptionChoice(cbdata->opt);
     cbdata->cbproc(cbdata->opt, value, cbdata->anydata);
@@ -736,8 +736,7 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
     opt->cbnum++;
 
     for (i = 0; i < opt->nchoices; i++) {
-        XtAddCallback(opt->options[i].widget, XmNactivateCallback,
-                                    oc_int_cb_proc, (XtPointer) cbdata);
+        AddWidgetCB(opt->options[i].widget, "activate", oc_int_cb_proc, cbdata);
     }
 }
 
@@ -785,8 +784,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
                   XmCreatePushButton(optp->pulldown, "button", NULL, 0);
         for (j = 0; j < optp->cbnum; j++) {
             OC_CBdata *cbdata = optp->cblist[j];
-            XtAddCallback(optp->options[i].widget, XmNactivateCallback,
-                                    oc_int_cb_proc, (XtPointer) cbdata);
+            AddWidgetCB(optp->options[i].widget, "activate", oc_int_cb_proc, cbdata);
         }
     }
 
