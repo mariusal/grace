@@ -281,8 +281,8 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         /* defaults */
         SetToggleButtonState(ui->autol_item, TRUE);
         SetOptionChoice(ui->load_item, LOAD_VALUES);
-        SetSensitive(ui->fload_rc, FALSE);
-        SetSensitive(GetParent(ui->wfunc_item), FALSE);
+        WidgetSetSensitive(ui->fload_rc, FALSE);
+        WidgetSetSensitive(GetParent(ui->wfunc_item), FALSE);
         xv_setstr(ui->start_item, "0.0");
         xv_setstr(ui->stop_item,  "1.0");
         xv_setstr(ui->npts_item,  "10");
@@ -582,10 +582,10 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
             SetToggleButtonState(ui->constr_item[i], nlp->constr);
             sprintf(buf, "%g", nlp->min);
             xv_setstr(ui->lowb_item[i], buf);
-            SetSensitive(ui->lowb_item[i], nlp->constr);
+            WidgetSetSensitive(ui->lowb_item[i], nlp->constr);
             sprintf(buf, "%g", nlp->max);
             xv_setstr(ui->uppb_item[i], buf);
-            SetSensitive(ui->uppb_item[i], nlp->constr);
+            WidgetSetSensitive(ui->uppb_item[i], nlp->constr);
             if (i < nlfit->parnum) {
                 if (!IsManaged (ui->parm_item[i])) {
                     ManageChild(ui->parm_item[i]);
@@ -604,9 +604,9 @@ static void nonl_wf_cb(OptionStructure *opt, int value, void *data)
     Widget rc = GetParent((Widget) data);
     
     if (value == WEIGHT_CUSTOM) {
-    	SetSensitive(rc, True);
+    	WidgetSetSensitive(rc, True);
     } else {
-    	SetSensitive(rc, False);
+    	WidgetSetSensitive(rc, False);
     }
 }
 
@@ -615,9 +615,9 @@ static void do_nonl_toggle(OptionStructure *opt, int value, void *data)
     Widget rc = (Widget) data;
     
     if (value == LOAD_FUNCTION) {
-    	SetSensitive(rc, True);
+    	WidgetSetSensitive(rc, True);
     } else {
-    	SetSensitive(rc, False);
+    	WidgetSetSensitive(rc, False);
     }
 }
 
@@ -626,12 +626,12 @@ static void do_constr_toggle(Widget tbut, int onoff, void *data)
 #if 0
     int value = (int) data;
     if (onoff) {
-    	SetSensitive(ui->lowb_item[value], True);
-    	SetSensitive(ui->uppb_item[value], True);
+    	WidgetSetSensitive(ui->lowb_item[value], True);
+    	WidgetSetSensitive(ui->uppb_item[value], True);
     	nlfit.parms[value].constr = TRUE;
     } else {
-    	SetSensitive(ui->lowb_item[value], False);
-    	SetSensitive(ui->uppb_item[value], False);
+    	WidgetSetSensitive(ui->lowb_item[value], False);
+    	WidgetSetSensitive(ui->uppb_item[value], False);
     	nlfit.parms[value].constr = FALSE;
     }
 #endif

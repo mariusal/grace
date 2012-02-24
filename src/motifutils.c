@@ -284,7 +284,7 @@ void UpdateCharOptionChoice(OptionStructure *opt, int font)
             Widget w = opt->options[i].widget;
             Pixmap ptmp = char_to_pixmap(opt->pulldown, font, (char) i, csize);
             XtVaSetValues(w, XmNlabelPixmap, ptmp, NULL);
-            SetSensitive(w, ptmp ? TRUE:FALSE);
+            WidgetSetSensitive(w, ptmp ? TRUE:FALSE);
         }
         *old_font = font;
     }
@@ -774,16 +774,16 @@ static void storage_popup(Widget parent,
         selected = FALSE;
     }
     
-    SetSensitive(ss->popup_hide_bt, selected);
-    SetSensitive(ss->popup_show_bt, selected);
-    SetSensitive(ss->popup_delete_bt, selected);
-    SetSensitive(ss->popup_duplicate_bt, selected);
-    SetSensitive(ss->popup_bring_to_front_bt, selected);
-    SetSensitive(ss->popup_send_to_back_bt, selected);
-    SetSensitive(ss->popup_move_up_bt, selected);
-    SetSensitive(ss->popup_move_down_bt, selected);
+    WidgetSetSensitive(ss->popup_hide_bt, selected);
+    WidgetSetSensitive(ss->popup_show_bt, selected);
+    WidgetSetSensitive(ss->popup_delete_bt, selected);
+    WidgetSetSensitive(ss->popup_duplicate_bt, selected);
+    WidgetSetSensitive(ss->popup_bring_to_front_bt, selected);
+    WidgetSetSensitive(ss->popup_send_to_back_bt, selected);
+    WidgetSetSensitive(ss->popup_move_up_bt, selected);
+    WidgetSetSensitive(ss->popup_move_down_bt, selected);
 
-    SetSensitive(ss->popup_properties_bt, n == 1);
+    WidgetSetSensitive(ss->popup_properties_bt, n == 1);
     
     if (ss->popup_cb) {
         ss->popup_cb(ss, n);
@@ -2405,7 +2405,7 @@ static void g_popup_cb(StorageStructure *ss, int nselected)
 {
     GSSData *gssdata = (GSSData *) ss->data;
     
-    SetSensitive(gssdata->focus_bt, (nselected == 1));
+    WidgetSetSensitive(gssdata->focus_bt, (nselected == 1));
 }
 
 static void g_new_cb(Widget but, void *udata)
@@ -2994,7 +2994,7 @@ static void format_oc_cb(OptionStructure *opt, int a, void *data)
     }
     
     if (opt == fstr->type) {
-        SetSensitive(fstr->fstring->form,
+        WidgetSetSensitive(fstr->fstring->form,
             a == FORMAT_DATETIME || a == FORMAT_GEOGRAPHIC);
     }
     
@@ -3036,7 +3036,7 @@ void SetFormatChoice(FormatStructure *fstr, const Format *format)
     SetOptionChoice(fstr->type, format->type);
     SetOptionChoice(fstr->prec, format->prec);
     TextSetString(fstr->fstring, format->fstring);
-    SetSensitive(fstr->fstring->form,
+    WidgetSetSensitive(fstr->fstring->form,
         format->type == FORMAT_DATETIME || format->type == FORMAT_GEOGRAPHIC);
 }
 

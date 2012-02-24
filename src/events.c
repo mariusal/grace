@@ -651,18 +651,18 @@ void canvas_event(CanvasEvent *event)
                     LabelSetString(poplab, s);
                     xfree(s);
                     if (quark_is_last_child(ct.q)) {
-                        SetSensitive(bring_to_front_bt, FALSE);
-                        SetSensitive(move_up_bt, FALSE);
+                        WidgetSetSensitive(bring_to_front_bt, FALSE);
+                        WidgetSetSensitive(move_up_bt, FALSE);
                     } else {
-                        SetSensitive(bring_to_front_bt, TRUE);
-                        SetSensitive(move_up_bt, TRUE);
+                        WidgetSetSensitive(bring_to_front_bt, TRUE);
+                        WidgetSetSensitive(move_up_bt, TRUE);
                     }
                     if (quark_is_first_child(ct.q)) {
-                        SetSensitive(send_to_back_bt, FALSE);
-                        SetSensitive(move_down_bt, FALSE);
+                        WidgetSetSensitive(send_to_back_bt, FALSE);
+                        WidgetSetSensitive(move_down_bt, FALSE);
                     } else {
-                        SetSensitive(send_to_back_bt, TRUE);
-                        SetSensitive(move_down_bt, TRUE);
+                        WidgetSetSensitive(send_to_back_bt, TRUE);
+                        WidgetSetSensitive(move_down_bt, TRUE);
                     }
                     
                     if ((quark_fid_get(ct.q) == QFlavorFrame && ct.part == 0) ||

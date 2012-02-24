@@ -50,18 +50,18 @@ void update_undo_buttons(GProject *gp)
 
     sprintf(buf, "Undo (%d)", undo_count);
     LabelSetString(gui->mwui->undo_button, buf);
-    SetSensitive(gui->mwui->undo_button, undo_count);
+    WidgetSetSensitive(gui->mwui->undo_button, undo_count);
     if (gui->eui) {
         LabelSetString(gui->eui->edit_undo_bt, buf);
-        SetSensitive(gui->eui->edit_undo_bt, undo_count);
+        WidgetSetSensitive(gui->eui->edit_undo_bt, undo_count);
     }
 
     sprintf(buf, "Redo (%d)", redo_count);
     LabelSetString(gui->mwui->redo_button, buf);
-    SetSensitive(gui->mwui->redo_button, redo_count);
+    WidgetSetSensitive(gui->mwui->redo_button, redo_count);
     if (gui->eui) {
         LabelSetString(gui->eui->edit_redo_bt, buf);
-        SetSensitive(gui->eui->edit_redo_bt, redo_count);
+        WidgetSetSensitive(gui->eui->edit_redo_bt, redo_count);
     }
 }
 

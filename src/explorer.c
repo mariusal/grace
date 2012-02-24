@@ -123,15 +123,15 @@ static int highlight_cb(TreeEvent *event)
     xfree(items.items);
 
     if (!count || !homogeneous_selection) {
-        SetSensitive(ui->aacbuts[0], FALSE);
-        SetSensitive(ui->aacbuts[1], FALSE);
+        WidgetSetSensitive(ui->aacbuts[0], FALSE);
+        WidgetSetSensitive(ui->aacbuts[1], FALSE);
         
         manage_plugin(ui, NULL);
     } else {
         Widget managed_top;
 
-        SetSensitive(ui->aacbuts[0], TRUE);
-        SetSensitive(ui->aacbuts[1], TRUE);
+        WidgetSetSensitive(ui->aacbuts[0], TRUE);
+        WidgetSetSensitive(ui->aacbuts[1], TRUE);
         
         switch (fid) {
         case QFlavorProject:
@@ -182,44 +182,44 @@ static int highlight_cb(TreeEvent *event)
         manage_plugin(ui, managed_top);
     }
 
-    SetSensitive(ui->insert_frame_bt,    FALSE);
-    SetSensitive(ui->insert_graph_bt,    FALSE);
-    SetSensitive(ui->insert_set_bt,      FALSE);
-    SetSensitive(ui->insert_ssd_bt,      FALSE);
-    SetSensitive(ui->insert_axisgrid_bt, FALSE);
-    SetSensitive(ui->insert_axis_bt,     FALSE);
-    SetSensitive(ui->insert_object_pane, FALSE);
+    WidgetSetSensitive(ui->insert_frame_bt,    FALSE);
+    WidgetSetSensitive(ui->insert_graph_bt,    FALSE);
+    WidgetSetSensitive(ui->insert_set_bt,      FALSE);
+    WidgetSetSensitive(ui->insert_ssd_bt,      FALSE);
+    WidgetSetSensitive(ui->insert_axisgrid_bt, FALSE);
+    WidgetSetSensitive(ui->insert_axis_bt,     FALSE);
+    WidgetSetSensitive(ui->insert_object_pane, FALSE);
     if (count == 1) {
-        SetSensitive(ui->idstr->form, TRUE);
+        WidgetSetSensitive(ui->idstr->form, TRUE);
         TextSetString(ui->idstr, QIDSTR(q));
         switch (fid) {
         case QFlavorProject:
-            SetSensitive(ui->insert_frame_bt,    TRUE);
-            SetSensitive(ui->insert_object_pane, TRUE);
+            WidgetSetSensitive(ui->insert_frame_bt,    TRUE);
+            WidgetSetSensitive(ui->insert_object_pane, TRUE);
             break;
         case QFlavorFrame:
-            SetSensitive(ui->insert_graph_bt,    TRUE);
-            SetSensitive(ui->insert_object_pane, TRUE);
+            WidgetSetSensitive(ui->insert_graph_bt,    TRUE);
+            WidgetSetSensitive(ui->insert_object_pane, TRUE);
             break;
         case QFlavorGraph:
-            SetSensitive(ui->insert_ssd_bt,      TRUE);
-            SetSensitive(ui->insert_axisgrid_bt, TRUE);
-            SetSensitive(ui->insert_object_pane, TRUE);
+            WidgetSetSensitive(ui->insert_ssd_bt,      TRUE);
+            WidgetSetSensitive(ui->insert_axisgrid_bt, TRUE);
+            WidgetSetSensitive(ui->insert_object_pane, TRUE);
             break;
         case QFlavorAGrid:
-            SetSensitive(ui->insert_axis_bt,     TRUE);
+            WidgetSetSensitive(ui->insert_axis_bt,     TRUE);
             break;
         case QFlavorAxis:
-            SetSensitive(ui->insert_object_pane, TRUE);
+            WidgetSetSensitive(ui->insert_object_pane, TRUE);
             break;
         }
         
         if (get_parent_ssd(q) &&
             (fid == QFlavorGraph || fid == QFlavorSSD)) {
-            SetSensitive(ui->insert_set_bt,      TRUE);
+            WidgetSetSensitive(ui->insert_set_bt,      TRUE);
         }
     } else {
-        SetSensitive(ui->idstr->form, FALSE);
+        WidgetSetSensitive(ui->idstr->form, FALSE);
         TextSetString(ui->idstr, NULL);
     }
 
@@ -267,39 +267,39 @@ static int menu_cb(TreeEvent *event)
         }
 
         if (count == 1 && quark_fid_get(q) == QFlavorProject) {
-            SetSensitive(ui->project_popup_show_bt,            FALSE);
-            SetSensitive(ui->project_popup_save_bt,            FALSE);
-            SetSensitive(ui->project_popup_save_as_bt,         FALSE);
-            SetSensitive(ui->project_popup_revert_to_saved_bt, FALSE);
-            SetSensitive(ui->project_popup_close_bt,           FALSE);
+            WidgetSetSensitive(ui->project_popup_show_bt,            FALSE);
+            WidgetSetSensitive(ui->project_popup_save_bt,            FALSE);
+            WidgetSetSensitive(ui->project_popup_save_as_bt,         FALSE);
+            WidgetSetSensitive(ui->project_popup_revert_to_saved_bt, FALSE);
+            WidgetSetSensitive(ui->project_popup_close_bt,           FALSE);
 
             if (quark_is_active(q)) {
-                SetSensitive(ui->project_popup_show_bt,   FALSE);
+                WidgetSetSensitive(ui->project_popup_show_bt,   FALSE);
             } else {
-                SetSensitive(ui->project_popup_show_bt,   TRUE);
+                WidgetSetSensitive(ui->project_popup_show_bt,   TRUE);
             }
 
-            SetSensitive(ui->project_popup_save_bt,            TRUE);
-            SetSensitive(ui->project_popup_save_as_bt,         TRUE);
-            SetSensitive(ui->project_popup_revert_to_saved_bt, TRUE);
+            WidgetSetSensitive(ui->project_popup_save_bt,            TRUE);
+            WidgetSetSensitive(ui->project_popup_save_as_bt,         TRUE);
+            WidgetSetSensitive(ui->project_popup_revert_to_saved_bt, TRUE);
 
             if (gapp->gpcount > 1) {
-                SetSensitive(ui->project_popup_close_bt,  TRUE);
+                WidgetSetSensitive(ui->project_popup_close_bt,  TRUE);
             } else {
-                SetSensitive(ui->project_popup_close_bt,  FALSE);
+                WidgetSetSensitive(ui->project_popup_close_bt,  FALSE);
             }
 
             ShowMenu(ui->project_popup, event->udata);
         } else {
-            SetSensitive(ui->popup_hide_bt, !all_hidden);
-            SetSensitive(ui->popup_show_bt, !all_shown);
+            WidgetSetSensitive(ui->popup_hide_bt, !all_hidden);
+            WidgetSetSensitive(ui->popup_show_bt, !all_shown);
 
             if (parent_child_selection) {
-                SetSensitive(ui->popup_delete_bt,         FALSE);
-                SetSensitive(ui->popup_duplicate_bt,      FALSE);
+                WidgetSetSensitive(ui->popup_delete_bt,         FALSE);
+                WidgetSetSensitive(ui->popup_duplicate_bt,      FALSE);
             } else {
-                SetSensitive(ui->popup_delete_bt,         TRUE);
-                SetSensitive(ui->popup_duplicate_bt,      TRUE);
+                WidgetSetSensitive(ui->popup_delete_bt,         TRUE);
+                WidgetSetSensitive(ui->popup_duplicate_bt,      TRUE);
             }
 
             ShowMenu(ui->popup, event->udata);
@@ -982,24 +982,24 @@ void raise_explorer(GUI *gui, Quark *q)
         menupane = CreateMenu(menubar, "Insert", 'I', FALSE);
         eui->insert_frame_bt = CreateMenuButton(menupane,
             "Frame", '\0', add_frame_cb, eui);
-        SetSensitive(eui->insert_frame_bt,  FALSE);
+        WidgetSetSensitive(eui->insert_frame_bt,  FALSE);
         eui->insert_graph_bt = CreateMenuButton(menupane,
             "Graph", '\0', add_graph_cb, eui);
-        SetSensitive(eui->insert_graph_bt,  FALSE);
+        WidgetSetSensitive(eui->insert_graph_bt,  FALSE);
         eui->insert_ssd_bt = CreateMenuButton(menupane,
             "SSData", '\0', add_ssd_cb, eui);
-        SetSensitive(eui->insert_ssd_bt,    FALSE);
+        WidgetSetSensitive(eui->insert_ssd_bt,    FALSE);
         eui->insert_set_bt = CreateMenuButton(menupane,
             "Set", '\0', add_set_cb, eui);
-        SetSensitive(eui->insert_set_bt,    FALSE);
+        WidgetSetSensitive(eui->insert_set_bt,    FALSE);
         eui->insert_axisgrid_bt = CreateMenuButton(menupane,
             "Axis grid", '\0', add_axisgrid_cb, eui);
-        SetSensitive(eui->insert_axisgrid_bt,   FALSE);
+        WidgetSetSensitive(eui->insert_axisgrid_bt,   FALSE);
         eui->insert_axis_bt = CreateMenuButton(menupane,
             "Axis", '\0', add_axis_cb, eui);
-        SetSensitive(eui->insert_axis_bt,   FALSE);
+        WidgetSetSensitive(eui->insert_axis_bt,   FALSE);
         eui->insert_object_pane = CreateMenu(menupane, "Annotating objects", 'o', FALSE);
-        SetSensitive(eui->insert_object_pane, FALSE);
+        WidgetSetSensitive(eui->insert_object_pane, FALSE);
         eui->insert_text_bt = CreateMenuButton(eui->insert_object_pane,
             "Text", '\0', add_object_cb, eui);
         eui->insert_line_bt = CreateMenuButton(eui->insert_object_pane,

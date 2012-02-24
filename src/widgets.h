@@ -48,7 +48,7 @@ void UnmanageChild(Widget w);
 int IsManaged(Widget w);
 void *GetUserData(Widget w);
 void SetUserData(Widget w, void *udata);
-void SetSensitive(Widget w, int onoff);
+void WidgetSetSensitive(Widget w, int onoff);
 
 typedef void (*Key_CBProc)(void *anydata);
 typedef struct {

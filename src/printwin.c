@@ -303,9 +303,9 @@ static void update_device_setup(PrintUI *ui, int device_id)
         setup_data = (dev_gui_setup *) device_get_udata(canvas, device_id);
         
         if (setup_data == NULL) {
-            SetSensitive(ui->device_opts, FALSE);
+            WidgetSetSensitive(ui->device_opts, FALSE);
         } else {
-            SetSensitive(ui->device_opts, TRUE);
+            WidgetSetSensitive(ui->device_opts, TRUE);
         }
 
         if (string_is_empty(gapp->rt->print_file)) {
@@ -343,21 +343,21 @@ static void update_device_setup(PrintUI *ui, int device_id)
             ManageChild(ui->output_frame);
             ManageChild(ui->page_frame);
             SetToggleButtonState(ui->printto, TRUE);
-            SetSensitive(ui->printto, FALSE);
-            SetSensitive(ui->rc_printsel, FALSE);
-            SetSensitive(ui->rc_filesel, TRUE);
+            WidgetSetSensitive(ui->printto, FALSE);
+            WidgetSetSensitive(ui->rc_printsel, FALSE);
+            WidgetSetSensitive(ui->rc_filesel, TRUE);
             break;
         case DEVICE_PRINT:
             ManageChild(ui->output_frame);
             ManageChild(ui->page_frame);
             SetToggleButtonState(ui->printto, get_ptofile(gapp));
-            SetSensitive(ui->printto, TRUE);
+            WidgetSetSensitive(ui->printto, TRUE);
             if (get_ptofile(gapp) == TRUE) {
-                SetSensitive(ui->rc_filesel, TRUE);
-                SetSensitive(ui->rc_printsel, FALSE);
+                WidgetSetSensitive(ui->rc_filesel, TRUE);
+                WidgetSetSensitive(ui->rc_printsel, FALSE);
             } else {
-                SetSensitive(ui->rc_filesel, FALSE);
-                SetSensitive(ui->rc_printsel, TRUE);
+                WidgetSetSensitive(ui->rc_filesel, FALSE);
+                WidgetSetSensitive(ui->rc_printsel, TRUE);
             }
             break;
         }
@@ -368,13 +368,13 @@ static void update_device_setup(PrintUI *ui, int device_id)
         pf = get_page_format(canvas, device_id);
         SetOptionChoice(ui->page_format, pf); 
         if (pf == PAGE_FORMAT_CUSTOM) {
-            SetSensitive(ui->page_x->form, TRUE);
-            SetSensitive(ui->page_y->form, TRUE);
-            SetSensitive(ui->page_orient->menu, FALSE);
+            WidgetSetSensitive(ui->page_x->form, TRUE);
+            WidgetSetSensitive(ui->page_y->form, TRUE);
+            WidgetSetSensitive(ui->page_orient->menu, FALSE);
         } else {
-            SetSensitive(ui->page_x->form, FALSE);
-            SetSensitive(ui->page_y->form, FALSE);
-            SetSensitive(ui->page_orient->menu, TRUE);
+            WidgetSetSensitive(ui->page_x->form, FALSE);
+            WidgetSetSensitive(ui->page_y->form, FALSE);
+            WidgetSetSensitive(ui->page_orient->menu, TRUE);
         }
         
         sprintf (buf, "%.0f", pg.dpi); 
@@ -382,10 +382,10 @@ static void update_device_setup(PrintUI *ui, int device_id)
 
         if (dev->type == DEVICE_TERM || dev->type == DEVICE_PRINT) {
             SetToggleButtonState(ui->autocrop, FALSE);
-            SetSensitive(ui->autocrop, FALSE);
+            WidgetSetSensitive(ui->autocrop, FALSE);
         } else {
             SetToggleButtonState(ui->autocrop, dev->autocrop);
-            SetSensitive(ui->autocrop, TRUE);
+            WidgetSetSensitive(ui->autocrop, TRUE);
         }
         
         page_units = GetOptionChoice(ui->page_size_unit);
@@ -520,11 +520,11 @@ static void do_pr_toggle(Widget tbut, int onoff, void *data)
     PrintUI *ui = (PrintUI *) data;
     
     if (onoff == TRUE) {
-        SetSensitive(ui->rc_filesel, TRUE);
-        SetSensitive(ui->rc_printsel, FALSE);
+        WidgetSetSensitive(ui->rc_filesel, TRUE);
+        WidgetSetSensitive(ui->rc_printsel, FALSE);
     } else {
-        SetSensitive(ui->rc_filesel, FALSE);
-        SetSensitive(ui->rc_printsel, TRUE);
+        WidgetSetSensitive(ui->rc_filesel, FALSE);
+        WidgetSetSensitive(ui->rc_printsel, TRUE);
     }
 }
 
@@ -539,13 +539,13 @@ static void do_format_toggle(OptionStructure *opt, int value, void *data)
     char buf[32];
     
     if (value == PAGE_FORMAT_CUSTOM) {
-        SetSensitive(ui->page_x->form, TRUE);
-        SetSensitive(ui->page_y->form, TRUE);
-        SetSensitive(ui->page_orient->menu, FALSE);
+        WidgetSetSensitive(ui->page_x->form, TRUE);
+        WidgetSetSensitive(ui->page_y->form, TRUE);
+        WidgetSetSensitive(ui->page_orient->menu, FALSE);
     } else {
-        SetSensitive(ui->page_x->form, FALSE);
-        SetSensitive(ui->page_y->form, FALSE);
-        SetSensitive(ui->page_orient->menu, TRUE);
+        WidgetSetSensitive(ui->page_x->form, FALSE);
+        WidgetSetSensitive(ui->page_y->form, FALSE);
+        WidgetSetSensitive(ui->page_orient->menu, TRUE);
     }
     
     

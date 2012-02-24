@@ -297,10 +297,10 @@ static int labelCB(TableEvent *event)
         }
 
         col = ssd_get_col(ui->q, ui->cb_column);
-        SetSensitive(ui->delete_btn, col != NULL);
-        SetSensitive(ui->index_btn, col != NULL && ui->cb_column != 0 &&
+        WidgetSetSensitive(ui->delete_btn, col != NULL);
+        WidgetSetSensitive(ui->index_btn, col != NULL && ui->cb_column != 0 &&
             (col->format == FFORMAT_NUMBER || col->format == FFORMAT_DATE));
-        SetSensitive(ui->unindex_btn, ui->cb_column == 0 && col != NULL &&
+        WidgetSetSensitive(ui->unindex_btn, ui->cb_column == 0 && col != NULL &&
             ssd_is_indexed(ui->q));
         
         ShowMenu(ui->popup, event->udata);
@@ -340,10 +340,10 @@ static void col_cb(ListStructure *sel, int n, int *values, void *data)
     
     if (ssd && n == 1) {
         int col = values[0];
-        SetSensitive(ui->col_label->text, TRUE);
+        WidgetSetSensitive(ui->col_label->text, TRUE);
         TextSetString(ui->col_label, ssd_get_col_label(ssd, col));
     } else {
-        SetSensitive(ui->col_label->text, FALSE);
+        WidgetSetSensitive(ui->col_label->text, FALSE);
     }
 }
 
@@ -391,7 +391,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     AddListChoiceCB(ui->col_sel, col_cb, ui);
 
     ui->col_label = CreateCSText(ui->column_tp, "Label:");
-    SetSensitive(ui->col_label->text, FALSE);
+    WidgetSetSensitive(ui->col_label->text, FALSE);
     AddTextActivateCB(ui->col_label, text_explorer_cb, eui);
 
 

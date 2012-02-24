@@ -379,10 +379,10 @@ static void set_load_proc(OptionStructure *opt, int value, void *data)
     rdataGUI *gui = (rdataGUI *) data;
     
     if (value == LOAD_SINGLE) {
-        SetSensitive(gui->ftype_item->menu, TRUE);
+        WidgetSetSensitive(gui->ftype_item->menu, TRUE);
     } else {
         SetOptionChoice(gui->ftype_item, SET_XY);
-        SetSensitive(gui->ftype_item->menu, FALSE);
+        WidgetSetSensitive(gui->ftype_item->menu, FALSE);
     }
 }
 

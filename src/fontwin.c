@@ -119,16 +119,16 @@ void create_fonttool(TextStructure *cstext_parent)
     
     if (ui->cstext_parent == NULL) {
         TextSetString(ui->cstext, "");
-        SetSensitive(ui->aac_buts[0], FALSE);
-        SetSensitive(ui->aac_buts[1], FALSE);
+        WidgetSetSensitive(ui->aac_buts[0], FALSE);
+        WidgetSetSensitive(ui->aac_buts[1], FALSE);
     } else {
         char *s = TextGetString(ui->cstext_parent);
         int pos = TextGetCursorPos(ui->cstext_parent);
         TextSetString(ui->cstext, s);
         TextSetCursorPos(ui->cstext, pos);
         xfree(s);
-        SetSensitive(ui->aac_buts[0], TRUE);
-        SetSensitive(ui->aac_buts[1], TRUE);
+        WidgetSetSensitive(ui->aac_buts[0], TRUE);
+        WidgetSetSensitive(ui->aac_buts[1], TRUE);
     }
     
     DialogRaise(ui->fonttool_panel);

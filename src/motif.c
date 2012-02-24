@@ -77,7 +77,7 @@ void SetUserData(Widget w, void *udata)
     XtVaSetValues(w, XmNuserData, udata, NULL);
 }
 
-void SetSensitive(Widget w, int onoff)
+void WidgetSetSensitive(Widget w, int onoff)
 {
     XtSetSensitive(w, onoff ? True : False);
 }

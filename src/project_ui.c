@@ -37,7 +37,7 @@ static void wrap_year_cb(Widget but, int onoff, void *data)
 {
     Widget wrap_year = (Widget) data;
     
-    SetSensitive(wrap_year, onoff);
+    WidgetSetSensitive(wrap_year, onoff);
 }
 
 #define PAGE_UNITS_PP   0
@@ -53,14 +53,14 @@ static void do_format_toggle(OptionStructure *opt, int value, void *data)
     char buf[32];
     
     if (value == PAGE_FORMAT_CUSTOM) {
-        SetSensitive(ui->page_x->form, TRUE);
-        SetSensitive(ui->page_y->form, TRUE);
-        SetSensitive(ui->page_orient->menu, FALSE);
+        WidgetSetSensitive(ui->page_x->form, TRUE);
+        WidgetSetSensitive(ui->page_y->form, TRUE);
+        WidgetSetSensitive(ui->page_orient->menu, FALSE);
         return;
     } else {
-        SetSensitive(ui->page_x->form, FALSE);
-        SetSensitive(ui->page_y->form, FALSE);
-        SetSensitive(ui->page_orient->menu, TRUE);
+        WidgetSetSensitive(ui->page_x->form, FALSE);
+        WidgetSetSensitive(ui->page_y->form, FALSE);
+        WidgetSetSensitive(ui->page_orient->menu, TRUE);
     }
     
     switch (value) {
@@ -291,13 +291,13 @@ void update_project_ui(ProjectUI *ui, Quark *q)
             format = PAGE_FORMAT_CUSTOM;
         }
         if (format == PAGE_FORMAT_CUSTOM) {
-            SetSensitive(ui->page_x->form, TRUE);
-            SetSensitive(ui->page_y->form, TRUE);
-            SetSensitive(ui->page_orient->menu, FALSE);
+            WidgetSetSensitive(ui->page_x->form, TRUE);
+            WidgetSetSensitive(ui->page_y->form, TRUE);
+            WidgetSetSensitive(ui->page_orient->menu, FALSE);
         } else {
-            SetSensitive(ui->page_x->form, FALSE);
-            SetSensitive(ui->page_y->form, FALSE);
-            SetSensitive(ui->page_orient->menu, TRUE);
+            WidgetSetSensitive(ui->page_x->form, FALSE);
+            WidgetSetSensitive(ui->page_y->form, FALSE);
+            WidgetSetSensitive(ui->page_orient->menu, TRUE);
         }
         SetOptionChoice(ui->page_format, format);
         
@@ -320,7 +320,7 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         SetToggleButtonState(ui->two_digits_years, pr->two_digits_years);
         sprintf(wrap_year_string, "%04d", pr->wrap_year);
         TextSetString(ui->wrap_year, wrap_year_string);
-        SetSensitive(ui->wrap_year->form, pr->two_digits_years ? TRUE:FALSE);
+        WidgetSetSensitive(ui->wrap_year->form, pr->two_digits_years ? TRUE:FALSE);
     }
 }
 

@@ -142,12 +142,12 @@ static int define_arrange_proc(void *data)
 void hpack_cb(Widget but, int onoff, void *data)
 {
     Arrange_ui *ui = (Arrange_ui *) data;
-    SetSensitive(ui->hgap->rc, !onoff);
+    WidgetSetSensitive(ui->hgap->rc, !onoff);
 }
 void vpack_cb(Widget but, int onoff, void *data)
 {
     Arrange_ui *ui = (Arrange_ui *) data;
-    SetSensitive(ui->vgap->rc, !onoff);
+    WidgetSetSensitive(ui->vgap->rc, !onoff);
 }
 
 void create_arrange_frame(Widget but, void *data)

@@ -168,11 +168,11 @@ static void sampling_cb(OptionStructure *opt, int value, void *data)
     Interp_ui *ui = (Interp_ui *) data;
     
     if (value == SAMPLING_MESH) {
-        SetSensitive(ui->mrc, TRUE);
-        SetSensitive(ui->sel->frame, FALSE);
+        WidgetSetSensitive(ui->mrc, TRUE);
+        WidgetSetSensitive(ui->sel->frame, FALSE);
     } else {
-        SetSensitive(ui->mrc, FALSE);
-        SetSensitive(ui->sel->frame, TRUE);
+        WidgetSetSensitive(ui->mrc, FALSE);
+        WidgetSetSensitive(ui->sel->frame, TRUE);
     }
 }
 
@@ -214,7 +214,7 @@ static void *interp_build_cb(TransformStructure *tdialog)
         ui->mlength = CreateText2(ui->mrc, "Length:", 6);
 
         ui->sel = CreateGraphSetSelector(rc, "Sampling set", LIST_TYPE_SINGLE);
-        SetSensitive(ui->sel->frame, FALSE);
+        WidgetSetSensitive(ui->sel->frame, FALSE);
     }
 
     return (void *) ui;
@@ -341,11 +341,11 @@ static void binsampling_cb(OptionStructure *opt, int value, void *data)
     Histo_ui *ui = (Histo_ui *) data;
     
     if (value == SAMPLING_MESH) {
-        SetSensitive(ui->mrc, TRUE);
-        SetSensitive(ui->sel->frame, FALSE);
+        WidgetSetSensitive(ui->mrc, TRUE);
+        WidgetSetSensitive(ui->sel->frame, FALSE);
     } else {
-        SetSensitive(ui->mrc, FALSE);
-        SetSensitive(ui->sel->frame, TRUE);
+        WidgetSetSensitive(ui->mrc, FALSE);
+        WidgetSetSensitive(ui->sel->frame, TRUE);
     }
 }
 
@@ -379,7 +379,7 @@ static void *histo_build_cb(TransformStructure *tdialog)
 	ui->mlength = CreateText2(ui->mrc, "# of bins", 6);
         
         ui->sel = CreateGraphSetSelector(rc, "Sampling set", LIST_TYPE_SINGLE);
-        SetSensitive(ui->sel->frame, FALSE);
+        WidgetSetSensitive(ui->sel->frame, FALSE);
     }
 
     return (void *) ui;
@@ -518,20 +518,20 @@ static void toggle_inverse_cb(Widget but, int onoff, void *data)
     Four_ui *ui = (Four_ui *) data;
     if (onoff) {
         SetToggleButtonState(ui->halflen, FALSE);
-        SetSensitive(ui->halflen, FALSE);
+        WidgetSetSensitive(ui->halflen, FALSE);
         
         SetToggleButtonState(ui->dcdump, FALSE);
-        SetSensitive(ui->dcdump, FALSE);
+        WidgetSetSensitive(ui->dcdump, FALSE);
 
         SetOptionChoice(ui->window, FFT_WINDOW_NONE);
-        SetSensitive(ui->window->menu, FALSE);
+        WidgetSetSensitive(ui->window->menu, FALSE);
     } else {
         SetToggleButtonState(ui->halflen, TRUE);
-        SetSensitive(ui->halflen, TRUE);
+        WidgetSetSensitive(ui->halflen, TRUE);
         
-        SetSensitive(ui->dcdump, TRUE);
+        WidgetSetSensitive(ui->dcdump, TRUE);
 
-        SetSensitive(ui->window->menu, TRUE);
+        WidgetSetSensitive(ui->window->menu, TRUE);
     }
 }
 
@@ -540,10 +540,10 @@ static void toggle_complex_cb(Widget but, int onoff, void *data)
     Four_ui *ui = (Four_ui *) data;
     if (onoff) {
         SetToggleButtonState(ui->halflen, FALSE);
-        SetSensitive(ui->halflen, FALSE);
+        WidgetSetSensitive(ui->halflen, FALSE);
     } else {
         SetToggleButtonState(ui->halflen, TRUE);
-        SetSensitive(ui->halflen, TRUE);
+        WidgetSetSensitive(ui->halflen, TRUE);
     }
 }
 
@@ -551,7 +551,7 @@ static void option_window_cb(OptionStructure *opt, int value, void *data)
 {
     Four_ui *ui = (Four_ui *) data;
 #ifdef HAVE_GSL
-    SetSensitive(ui->winpar->rc, value == FFT_WINDOW_KAISER);
+    WidgetSetSensitive(ui->winpar->rc, value == FFT_WINDOW_KAISER);
 #endif
 }
 
@@ -632,7 +632,7 @@ static void *fourier_build_cb(TransformStructure *tdialog)
         SetOptionChoice(ui->xscale, FFT_XSCALE_NU);
         SetOptionChoice(ui->norm, FFT_NORM_FORWARD);
         SetSpinChoice(ui->winpar, 1.0);
-        SetSensitive(ui->winpar->rc, FALSE);
+        WidgetSetSensitive(ui->winpar->rc, FALSE);
         SetToggleButtonState(ui->halflen, TRUE);
         SetSpinChoice(ui->oversampling, 1.0);
 #ifndef HAVE_FFTW
@@ -1099,7 +1099,7 @@ static void xcor_self_toggle(Widget but, int onoff, void *data)
 {
     Cross_ui *ui = (Cross_ui *) data;
     
-    SetSensitive(ui->corsel->frame, !onoff);
+    WidgetSetSensitive(ui->corsel->frame, !onoff);
 }
 
 static void *cross_build_cb(TransformStructure *tdialog)
