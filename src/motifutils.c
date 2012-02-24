@@ -3666,65 +3666,6 @@ Widget CreateMenuSeparator(Widget parent)
     return CreateSeparator(parent);
 }
 
-Widget CreatePopupMenu(Widget parent)
-{
-    return XmCreatePopupMenu(parent, "popupMenu", NULL, 0);
-}
-
-Widget CreateMenuBar(Widget parent)
-{
-    Widget menubar;
-    
-    menubar = XmCreateMenuBar(parent, "menuBar", NULL, 0);
-    return menubar;
-}
-
-Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
-{
-    Widget menupane, cascade;
-    XmString str;
-    char *name, ms[2];
-    
-    name = label_to_resname(label, "Menu");
-    menupane = XmCreatePulldownMenu(parent, name, NULL, 0);
-    xfree(name);
-
-    ms[0] = mnemonic;
-    ms[1] = '\0';
-    
-    str = XmStringCreateLocalized(label);
-    cascade = XtVaCreateManagedWidget("cascade",
-        xmCascadeButtonGadgetClass, parent, 
-    	XmNsubMenuId, menupane, 
-    	XmNlabelString, str, 
-    	XmNmnemonic, XStringToKeysym(ms),
-    	NULL);
-    XmStringFree(str);
-
-    if (help) {
-        XtVaSetValues(parent, XmNmenuHelpWidget, cascade, NULL);
-        CreateMenuButton(menupane, "On context", 'x',
-            ContextHelpCB, NULL);
-        CreateSeparator(menupane);
-    }
-    
-    SetUserData(menupane, cascade);
-
-    return menupane;
-}
-
-void ManageMenu(Widget menupane)
-{
-    Widget cascade = GetUserData(menupane);
-    ManageChild(cascade);
-}
-
-void UnmanageMenu(Widget menupane)
-{
-    Widget cascade = GetUserData(menupane);
-    UnmanageChild(cascade);
-}
-
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
 	Button_CBProc cb, void *data)
 {

@@ -31,8 +31,10 @@
 
 #include "events.h"
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <Xm/Xm.h>
+#include <Xm/CascadeBG.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
@@ -809,5 +811,93 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
         XtManageChildren(wlist, nw);
         xfree(wlist);
     }
+}
+
+/* Menu */
+Widget CreatePopupMenu(Widget parent)
+{
+    return XmCreatePopupMenu(parent, "popupMenu", NULL, 0);
+}
+
+Widget CreateMenuBar(Widget parent)
+{
+    Widget menubar;
+
+    menubar = XmCreateMenuBar(parent, "menuBar", NULL, 0);
+    return menubar;
+}
+
+static char *label_to_resname(const char *s, const char *suffix)
+{
+    char *retval, *rs;
+    int capitalize = FALSE;
+
+    retval = copy_string(NULL, s);
+    rs = retval;
+    while (*s) {
+        if (isalnum(*s)) {
+            if (capitalize == TRUE) {
+                *rs = toupper(*s);
+                capitalize = FALSE;
+            } else {
+                *rs = tolower(*s);
+            }
+            rs++;
+        } else {
+            capitalize = TRUE;
+        }
+        s++;
+    }
+    *rs = '\0';
+    if (suffix != NULL) {
+        retval = concat_strings(retval, suffix);
+    }
+    return retval;
+}
+
+Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
+{
+    Widget menupane, cascade;
+    XmString str;
+    char *name, ms[2];
+
+    name = label_to_resname(label, "Menu");
+    menupane = XmCreatePulldownMenu(parent, name, NULL, 0);
+    xfree(name);
+
+    ms[0] = mnemonic;
+    ms[1] = '\0';
+
+    str = XmStringCreateLocalized(label);
+    cascade = XtVaCreateManagedWidget("cascade",
+        xmCascadeButtonGadgetClass, parent,
+        XmNsubMenuId, menupane,
+        XmNlabelString, str,
+        XmNmnemonic, XStringToKeysym(ms),
+        NULL);
+    XmStringFree(str);
+
+    if (help) {
+        XtVaSetValues(parent, XmNmenuHelpWidget, cascade, NULL);
+        CreateMenuButton(menupane, "On context", 'x',
+            ContextHelpCB, NULL);
+        CreateSeparator(menupane);
+    }
+
+    SetUserData(menupane, cascade);
+
+    return menupane;
+}
+
+void ManageMenu(Widget menupane)
+{
+    Widget cascade = GetUserData(menupane);
+    ManageChild(cascade);
+}
+
+void UnmanageMenu(Widget menupane)
+{
+    Widget cascade = GetUserData(menupane);
+    UnmanageChild(cascade);
 }
 

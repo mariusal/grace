@@ -470,11 +470,6 @@ void RaiseTransformationDialog(TransformStructure *tdialog);
 
 void SetFixedFont(Widget w);
 
-Widget CreatePopupMenu(Widget parent);
-Widget CreateMenuBar(Widget parent);
-Widget CreateMenu(Widget parent, char *label, char mnemonic, int help);
-void ManageMenu(Widget menupane);
-void UnmanageMenu(Widget menupane);
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
 	Button_CBProc cb, void *data);
 Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
