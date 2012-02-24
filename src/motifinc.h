@@ -390,9 +390,6 @@ Widget CreatePanedWindow(Widget parent);
 Widget CreateSeparator(Widget parent);
 Widget CreateMenuSeparator(Widget parent);
 
-Widget CreateGrid(Widget parent, int ncols, int nrows);
-void PlaceGridChild(Widget grid, Widget w, int col, int row);
-
 Widget CreateScale(Widget parent, char *s, int min, int max, int delta);
 void SetScaleValue(Widget w, int value);
 int GetScaleValue(Widget w);

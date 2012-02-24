@@ -132,4 +132,8 @@ Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);
 void SetToggleButtonState(Widget w, int value);
 
+/* Grid */
+Widget CreateGrid(Widget parent, int ncols, int nrows);
+void PlaceGridChild(Widget grid, Widget w, int col, int row);
+
 #endif /* __WIDGETS_H_ */
