@@ -59,7 +59,7 @@ static Widget goto_index_item;
 static void do_track_proc(void *data)
 {
     set_action(DO_NOTHING);
-    SetLabel(locate_point_message, "Track points");
+    LabelSetString(locate_point_message, "Track points");
     set_action(TRACKER);
 }
 
@@ -88,7 +88,7 @@ static void do_add_proc(void *data)
         return;
     }
 
-    SetLabel(locate_point_message, s);
+    LabelSetString(locate_point_message, s);
 
     set_action(ADD_POINT);
 }
@@ -99,7 +99,7 @@ static void do_add_proc(void *data)
 static void do_del_proc(void *data)
 {
     set_action(DO_NOTHING);
-    SetLabel(locate_point_message, "Delete points");
+    LabelSetString(locate_point_message, "Delete points");
     set_action(DEL_POINT);
 }
 
@@ -127,7 +127,7 @@ static void do_ptsmove_proc(void *data)
     default:
         return;
     }
-    SetLabel(locate_point_message, s);
+    LabelSetString(locate_point_message, s);
 
     set_action(MOVE_POINT1ST);
 }

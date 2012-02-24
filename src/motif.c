@@ -343,12 +343,12 @@ Widget CreateLabel(Widget parent, char *s)
         XmNrecomputeSize, True,
         NULL);
 
-    SetLabel(label, s);
+    LabelSetString(label, s);
 
     return label;
 }
 
-void SetLabel(Widget w, char *s)
+void LabelSetString(Widget w, char *s)
 {
     XmString str;
 
@@ -837,7 +837,7 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
         XmNmnemonic, XStringToKeysym(ms),
         NULL);
 
-    SetLabel(cascade, label);
+    LabelSetString(cascade, label);
 
     if (help) {
         XtVaSetValues(parent, XmNmenuHelpWidget, cascade, NULL);
@@ -911,7 +911,7 @@ Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
         XmStringFree(str);
     }
 
-    SetLabel(button, label);
+    LabelSetString(button, label);
 
     AddButtonCB(button, cb, data);
 
@@ -963,7 +963,7 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
             XmNindicatorOn, True,
             NULL);
 
-    SetLabel(button, label);
+    LabelSetString(button, label);
 
     if (cb) {
         AddToggleButtonCB(button, cb, data);

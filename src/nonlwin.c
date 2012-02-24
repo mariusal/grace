@@ -564,7 +564,7 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
     
     if (ui) {
         char buf[256];
-        SetLabel(ui->title_item, nlfit->title);
+        LabelSetString(ui->title_item, nlfit->title);
 /* 
  * If I define only XmALIGNMENT_CENTER (default!) then it's ignored - bug in Motif???
  */

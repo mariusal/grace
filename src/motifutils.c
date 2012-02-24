@@ -3766,16 +3766,16 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
     
     but = XtNameToWidget(dialog, "OK");
     if (s1) {
-    	SetLabel(but, s1);
+    	LabelSetString(but, s1);
     } else {    
-    	SetLabel(but, "OK");
+    	LabelSetString(but, "OK");
     }
     
     but = XtNameToWidget(dialog, "Cancel");
     if (s2) {
-    	SetLabel(but, s2);
+    	LabelSetString(but, s2);
     } else {    
-    	SetLabel(but, "Cancel");
+    	LabelSetString(but, "Cancel");
     }
     
     but = XtNameToWidget(dialog, "Help");

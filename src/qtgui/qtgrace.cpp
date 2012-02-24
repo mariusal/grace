@@ -8622,7 +8622,7 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 //    XtVaSetValues(w, XmNlabelString, str, NULL);
 //    XmStringFree(str);
 //}
-void SetLabel(Widget w, char *s)
+void LabelSetString(Widget w, char *s)
 {
     //qDebug("SetLabel %s", s);
     if (QAction *action = qobject_cast<QAction *>(w)) {

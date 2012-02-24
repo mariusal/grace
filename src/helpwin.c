@@ -340,10 +340,10 @@ static void trackCB(Widget w, XtPointer client_data, XtPointer call_data)
 
     if (href_data->href) {
         /* a valid anchor, eg, moving into an anchor */
-        SetLabel(ui->track, href_data->href);
+        LabelSetString(ui->track, href_data->href);
     } else {
         /* a valid anchor, eg, moving away from an anchor */
-        SetLabel(ui->track, "");
+        LabelSetString(ui->track, "");
     }
 }
 

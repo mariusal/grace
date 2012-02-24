@@ -49,18 +49,18 @@ void update_undo_buttons(GProject *gp)
     redo_count = amem_get_redo_count(amem);
 
     sprintf(buf, "Undo (%d)", undo_count);
-    SetLabel(gui->mwui->undo_button, buf);
+    LabelSetString(gui->mwui->undo_button, buf);
     SetSensitive(gui->mwui->undo_button, undo_count);
     if (gui->eui) {
-        SetLabel(gui->eui->edit_undo_bt, buf);
+        LabelSetString(gui->eui->edit_undo_bt, buf);
         SetSensitive(gui->eui->edit_undo_bt, undo_count);
     }
 
     sprintf(buf, "Redo (%d)", redo_count);
-    SetLabel(gui->mwui->redo_button, buf);
+    LabelSetString(gui->mwui->redo_button, buf);
     SetSensitive(gui->mwui->redo_button, redo_count);
     if (gui->eui) {
-        SetLabel(gui->eui->edit_redo_bt, buf);
+        LabelSetString(gui->eui->edit_redo_bt, buf);
         SetSensitive(gui->eui->edit_redo_bt, redo_count);
     }
 }
@@ -501,9 +501,9 @@ void set_left_footer(char *s)
         } else {
             sprintf(buf, "%s, %s", hbuf, display_name(gapp->gui));
         }
-        SetLabel(statlab, buf);
+        LabelSetString(statlab, buf);
     } else {
-        SetLabel(statlab, s);
+        LabelSetString(statlab, s);
     }
 #ifndef QT_GUI
     XmUpdateDisplay(statlab);
@@ -515,9 +515,9 @@ void set_tracker_string(char *s)
     Widget loclab = gapp->gui->mwui->loclab;
     
     if (s == NULL) {
-        SetLabel(loclab, "[Out of frame]");
+        LabelSetString(loclab, "[Out of frame]");
     } else {
-        SetLabel(loclab, s);
+        LabelSetString(loclab, s);
     }
 }
 

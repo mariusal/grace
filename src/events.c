@@ -648,7 +648,7 @@ void canvas_event(CanvasEvent *event)
                             "Clear locator fixed point", '\0', do_clear_point, &ct);
                     }
                     s = q_labeling(ct.q);
-                    SetLabel(poplab, s);
+                    LabelSetString(poplab, s);
                     xfree(s);
                     if (quark_is_last_child(ct.q)) {
                         SetSensitive(bring_to_front_bt, FALSE);
