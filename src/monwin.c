@@ -129,7 +129,7 @@ static void create_monitor_frame(int force, char *msg)
         FormAddVChild(ui->mon_frame, menubar);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
-        CreateMenuButtonA(menupane, "Save...", 'S', "Ctrl+S", create_wmon_frame, ui);
+        CreateMenuButtonA(menupane, "Save...", 'S', "Ctrl<Key>s", "Ctrl+S", create_wmon_frame, ui);
         CreateMenuSeparator(menupane);
         CreateMenuCloseButton(menupane, ui->mon_frame);
         

@@ -37,6 +37,7 @@
 #include "xprotos.h"
 
 #include "motifinc.h"
+#include <Xm/Label.h>
 
 #define NO_HELP "doc/nohelp.html"
 
@@ -192,6 +193,9 @@ void create_about_grtool(Widget but, void *data)
         CreateSeparator(about_panel);
 
         wbut = CreateButton(about_panel, "Close");
+        XtVaSetValues(wbut,
+                XmNalignment, XmALIGNMENT_CENTER,
+                NULL);
         AddButtonCB(wbut, destroy_dialog_cb, GetParent(about_frame));
 
         ManageChild(about_frame);
@@ -512,8 +516,8 @@ void create_helper_frame(char *URL)
         CreateMenuCloseButton(menupane, ui->top);
         
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
-        CreateMenuButtonA(menupane, "Find", 'F', "Ctrl+F", create_find_dialog, ui);
-        CreateMenuButtonA(menupane, "Find again", 'g', "Ctrl+G", find_again_cb, ui);
+        CreateMenuButtonA(menupane, "Find", 'F', "Ctrl<Key>f", "Ctrl+F", create_find_dialog, ui);
+        CreateMenuButtonA(menupane, "Find again", 'g', "Ctrl<Key>g", "Ctrl+G", find_again_cb, ui);
 
         menupane = CreateMenu(menubar, "View", 'V', FALSE);
         CreateMenuButton(menupane, "Refresh", 'R', refresh_cb, ui);

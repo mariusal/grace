@@ -974,9 +974,9 @@ void raise_explorer(GUI *gui, Quark *q)
             "Close", 'C', destroy_dialog_cb, GetParent(eui->top));
 
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
-        eui->edit_undo_bt = CreateMenuButtonA(menupane, "Undo", 'U', "Ctrl+Z",
+        eui->edit_undo_bt = CreateMenuButtonA(menupane, "Undo", 'U', "Ctrl<Key>z", "Ctrl+Z",
             undo_cb, gapp);
-        eui->edit_redo_bt = CreateMenuButtonA(menupane, "Redo", 'R', "Ctrl+Shift+Z",
+        eui->edit_redo_bt = CreateMenuButtonA(menupane, "Redo", 'R', "Ctrl Shift<Key>z", "Ctrl+Shift+Z",
             redo_cb, gapp);
 
         menupane = CreateMenu(menubar, "Insert", 'I', FALSE);

@@ -339,28 +339,28 @@ Widget CreateMainMenuBar(Widget parent)
     /* File menu */
     menupane = CreateMenu(menubar, "File", 'F', FALSE);
 
-    CreateMenuButtonA(menupane, "New", 'N', "Ctrl+N", new_cb, gapp);
-    CreateMenuButtonA(menupane, "Open...", 'O', "Ctrl+O", open_cb, gapp);
-    CreateMenuButtonA(menupane, "Save", 'S', "Ctrl+S", save_cb, gapp);
+    CreateMenuButtonA(menupane, "New", 'N', "Ctrl<Key>n", "Ctrl+N", new_cb, gapp);
+    CreateMenuButtonA(menupane, "Open...", 'O', "Ctrl<Key>o", "Ctrl+O", open_cb, gapp);
+    CreateMenuButtonA(menupane, "Save", 'S', "Ctrl<Key>s", "Ctrl+S", save_cb, gapp);
     CreateMenuButton(menupane, "Save as...", 'a', save_as_cb, gapp);
     CreateMenuButton(menupane, "Revert to saved", 'v', revert_cb, gapp);
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButtonA(menupane, "Print setup...", 't', "Ctrl+P", create_printer_setup, &gapp->rt->hdevice);
-    CreateMenuButtonA(menupane, "Print", 'P', "Ctrl+Alt+P", print_cb, gapp);
+    CreateMenuButtonA(menupane, "Print setup...", 't', "Ctrl<Key>p", "Ctrl+P", create_printer_setup, &gapp->rt->hdevice);
+    CreateMenuButtonA(menupane, "Print", 'P', "Ctrl Alt<Key>p", "Ctrl+Alt+P", print_cb, gapp);
     CreateMenuSeparator(menupane);
-    CreateMenuButtonA(menupane, "Exit", 'x', "Ctrl+Q", exit_cb, gapp);
+    CreateMenuButtonA(menupane, "Exit", 'x', "Ctrl<Key>q", "Ctrl+Q", exit_cb, gapp);
 
     /* Edit menu */
     menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
-    mwui->undo_button = CreateMenuButtonA(menupane, "Undo", 'U', "Ctrl+Z", undo_cb, gapp);
-    mwui->redo_button = CreateMenuButtonA(menupane, "Redo", 'R', "Ctrl+Shift+Z", redo_cb, gapp);
+    mwui->undo_button = CreateMenuButtonA(menupane, "Undo", 'U', "Ctrl<Key>z", "Ctrl+Z", undo_cb, gapp);
+    mwui->redo_button = CreateMenuButtonA(menupane, "Redo", 'R', "Ctrl Shift<Key>z", "Ctrl+Shift+Z", redo_cb, gapp);
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButtonA(menupane, "Explorer...", 'E', "Ctrl+E", define_explorer_popup, gapp->gui);
+    CreateMenuButtonA(menupane, "Explorer...", 'E', "Ctrl<Key>e", "Ctrl+E", define_explorer_popup, gapp->gui);
 
     CreateMenuSeparator(menupane);
 
@@ -417,10 +417,10 @@ Widget CreateMainMenuBar(Widget parent)
 
     if (!gui_is_page_free(gapp->gui)) {
         submenupane = CreateMenu(menupane, "Page zoom", 'z', FALSE);
-        CreateMenuButtonA(submenupane, "Smaller", 'S', "Ctrl+-", zoom_out_cb, gapp);
-        CreateMenuButtonA(submenupane, "Larger", 'L', "Ctrl++", zoom_in_cb, gapp);
+        CreateMenuButtonA(submenupane, "Smaller", 'S', "Ctrl<Key>minus", "Ctrl+-", zoom_out_cb, gapp);
+        CreateMenuButtonA(submenupane, "Larger", 'L', "Ctrl<Key>plus", "Ctrl++", zoom_in_cb, gapp);
         CreateMenuSeparator(submenupane);
-        CreateMenuButtonA(submenupane, "Original size", 'O', "Ctrl+1", zoom_1_cb, gapp);
+        CreateMenuButtonA(submenupane, "Original size", 'O', "Ctrl<Key>1", "Ctrl+1", zoom_1_cb, gapp);
     }
 
     CreateMenuSeparator(menupane);
@@ -429,7 +429,7 @@ Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButtonA(menupane, "Redraw", 'R', "Ctrl+L", do_drawgraph, NULL);
+    CreateMenuButtonA(menupane, "Redraw", 'R', "Ctrl<Key>l", "Ctrl+L", do_drawgraph, NULL);
 
     CreateMenuSeparator(menupane);
 

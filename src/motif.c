@@ -508,15 +508,9 @@ Widget CreateButton(Widget parent, char *label)
 {
     Widget button;
 
-    button = XtVaCreateManagedWidget("button",
+    button = XtVaCreateManagedWidget(label,
         xmPushButtonWidgetClass, parent,
         NULL);
-
-    XtVaSetValues(button,
-            XmNalignment, XmALIGNMENT_CENTER,
-            NULL);
-
-    SetLabel(button, label);
 
     return button;
 }
@@ -527,9 +521,7 @@ Widget CreateBitmapButton(Widget parent,
     Widget button;
     Pixmap pm;
 
-    button = XtVaCreateWidget("button",
-        xmPushButtonWidgetClass, parent,
-        NULL);
+    button = CreateButton(parent, "button");
 
     pm = CreatePixmapFromBitmap(button, width, height, bits);
 
@@ -883,30 +875,42 @@ static char *label_to_resname(const char *s, const char *suffix)
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
         Button_CBProc cb, void *data)
 {
+    return CreateMenuButtonA(parent, label, mnemonic, NULL, NULL, cb, data);
+}
+
+Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
+        char *accelerator, char* acceleratorText, Button_CBProc cb, void *data)
+{
     Widget button;
+    XmString str;
     char *name, ms[2];
 
     ms[0] = mnemonic;
     ms[1] = '\0';
 
     name = label_to_resname(label, "Button");
-    button = XtVaCreateManagedWidget(name,
-        xmPushButtonWidgetClass, parent,
+
+    button = CreateButton(parent, name);
+    xfree(name);
+
+    XtVaSetValues(button,
         XmNmnemonic, XStringToKeysym(ms),
         NULL);
-    xfree(name);
+
+    if (accelerator && acceleratorText) {
+        str = XmStringCreateLocalized(acceleratorText);
+        XtVaSetValues(button,
+                XmNaccelerator, accelerator,
+                XmNacceleratorText, str,
+                NULL);
+        XmStringFree(str);
+    }
 
     SetLabel(button, label);
 
     AddButtonCB(button, cb, data);
 
     return button;
-}
-
-Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
-        char *accelerator, Button_CBProc cb, void *data)
-{
-    return CreateMenuButton(parent, label, mnemonic, cb, data);
 }
 
 Widget CreateMenuCloseButton(Widget parent, Widget form)
