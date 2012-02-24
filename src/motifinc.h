@@ -64,44 +64,8 @@ extern Widget app_shell;        /* defined in xmgapp.c */
 
 typedef struct {
     int value;
-    char *label;
-} OptionItem;
-
-typedef struct {
-    int value;
     unsigned char *bitmap;
 } BitmapOptionItem;
-
-typedef struct {
-    int value;
-    Widget widget;
-} OptionWidgetItem;
-
-typedef struct _OptionStructure OptionStructure;
-
-/* OptionChoice CB procedure */
-typedef void (*OC_CBProc)(
-    OptionStructure *opt,
-    int value,           /* value */
-    void *               /* data the application registered */
-);
-
-typedef struct {
-    OptionStructure *opt;
-    OC_CBProc cbproc;
-    void *anydata;
-} OC_CBdata;
-
-struct _OptionStructure {
-    int nchoices;
-    int ncols;  /* preferred number of columns */
-    Widget menu;
-    Widget pulldown;
-    OptionWidgetItem *options;
-    
-    unsigned int cbnum;
-    OC_CBdata **cblist;
-};
 
 typedef struct {
     int nchoices;
@@ -402,16 +366,9 @@ SpinStructure *CreateAngleChoice(Widget parent, char *s);
 double GetAngleChoice(SpinStructure *sp);
 void SetAngleChoice(SpinStructure *sp, double angle);
 
-OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
-                                                int nchoices, OptionItem *items);
-OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...);
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items);
 void SetOptionChoice(OptionStructure *opt, int value);
-int GetOptionChoice(OptionStructure *opt);
-void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items);
-
-void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata);
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items);

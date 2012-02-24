@@ -136,4 +136,45 @@ void SetToggleButtonState(Widget w, int value);
 Widget CreateGrid(Widget parent, int ncols, int nrows);
 void PlaceGridChild(Widget grid, Widget w, int col, int row);
 
+/* OptionChoice */
+typedef struct _OptionStructure OptionStructure;
+typedef struct {
+    int value;
+    char *label;
+} OptionItem;
+OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
+                                                int nchoices, OptionItem *items);
+OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...);
+int GetOptionChoice(OptionStructure *opt);
+void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items);
+
+typedef void (*OC_CBProc)(
+    OptionStructure *opt,
+    int value,           /* value */
+    void *               /* data the application registered */
+);
+
+typedef struct {
+    int value;
+    Widget widget;
+} OptionWidgetItem;
+
+typedef struct {
+    OptionStructure *opt;
+    OC_CBProc cbproc;
+    void *anydata;
+} OC_CBdata;
+
+struct _OptionStructure {
+    int nchoices;
+    int ncols;  /* preferred number of columns */
+    Widget menu;
+    Widget pulldown;
+    OptionWidgetItem *options;
+
+    unsigned int cbnum;
+    OC_CBdata **cblist;
+};
+void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata);
+
 #endif /* __WIDGETS_H_ */
