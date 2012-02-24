@@ -596,13 +596,13 @@ Widget CreateGrid(Widget parent, int ncols, int nrows)
     gd->ncols = ncols;
     gd->nrows = nrows;
 
-    w = XmCreateForm(parent, "grid_form", NULL, 0);
+    w = CreateForm(parent);
+
     XtVaSetValues(w,
         XmNfractionBase, nfractions,
         XmNuserData, gd,
         NULL);
 
-    ManageChild(w);
     return w;
 }
 
