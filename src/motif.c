@@ -854,3 +854,127 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
 
     return menupane;
 }
+
+static char *label_to_resname(const char *s, const char *suffix)
+{
+    char *retval, *rs;
+    int capitalize = FALSE;
+
+    retval = copy_string(NULL, s);
+    rs = retval;
+    while (*s) {
+        if (isalnum(*s)) {
+            if (capitalize == TRUE) {
+                *rs = toupper(*s);
+                capitalize = FALSE;
+            } else {
+                *rs = tolower(*s);
+            }
+            rs++;
+        } else {
+            capitalize = TRUE;
+        }
+        s++;
+    }
+    *rs = '\0';
+    if (suffix != NULL) {
+        retval = concat_strings(retval, suffix);
+    }
+    return retval;
+}
+
+Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
+        Button_CBProc cb, void *data)
+{
+    Widget button;
+    XmString str;
+    char *name, ms[2];
+
+    ms[0] = mnemonic;
+    ms[1] = '\0';
+
+    str = XmStringCreateLocalized(label);
+    name = label_to_resname(label, "Button");
+    button = XtVaCreateManagedWidget(name,
+        xmPushButtonWidgetClass, parent,
+        XmNlabelString, str,
+        XmNmnemonic, XStringToKeysym(ms),
+        NULL);
+    xfree(name);
+    XmStringFree(str);
+
+    AddButtonCB(button, cb, data);
+
+    return button;
+}
+
+Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
+        char *accelerator, Button_CBProc cb, void *data)
+{
+    return CreateMenuButton(parent, label, mnemonic, cb, data);
+}
+
+Widget CreateMenuCloseButton(Widget parent, Widget form)
+{
+    Widget wbut;
+    XmString str;
+
+    wbut = CreateMenuButton(parent,
+        "Close", 'C', destroy_dialog_cb, XtParent(form));
+    str = XmStringCreateLocalized("Esc");
+    XtVaSetValues(wbut, XmNacceleratorText, str, NULL);
+    XmStringFree(str);
+    XtVaSetValues(form, XmNcancelButton, wbut, NULL);
+
+    return wbut;
+}
+
+Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
+    Widget form, char *ha)
+{
+    Widget wbut;
+
+    wbut = CreateMenuButton(parent, label, mnemonic, HelpCB, ha);
+    AddHelpCB(form, ha);
+
+    return wbut;
+}
+
+Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
+        TB_CBProc cb, void *data)
+{
+    Widget button;
+    XmString str;
+    char *name, ms[2];
+
+    ms[0] = mnemonic;
+    ms[1] = '\0';
+
+    str = XmStringCreateLocalized(label);
+    name = label_to_resname(label, NULL);
+    button = CreateToggleButton(parent, name);
+
+    XtVaSetValues(button,
+            XmNlabelString, str,
+            XmNmnemonic, XStringToKeysym(ms),
+            XmNvisibleWhenOff, True,
+            XmNindicatorOn, True,
+            NULL);
+    xfree(name);
+    XmStringFree(str);
+
+    if (cb) {
+        AddToggleButtonCB(button, cb, data);
+    }
+
+    return button;
+}
+
+Widget CreateMenuLabel(Widget parent, char *name)
+{
+    Widget lab;
+
+    lab = XmCreateLabel(parent, name, NULL, 0);
+    ManageChild(lab);
+    return lab;
+}

@@ -470,17 +470,6 @@ void RaiseTransformationDialog(TransformStructure *tdialog);
 
 void SetFixedFont(Widget w);
 
-Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
-	Button_CBProc cb, void *data);
-Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
-        char *accelerator, Button_CBProc cb, void *data);
-Widget CreateMenuCloseButton(Widget parent, Widget shell);
-Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
-    Widget form, char *ha);
-Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
-	TB_CBProc cb, void *data);
-Widget CreateMenuLabel(Widget parent, char *name);
-
 void AddHelpCB(Widget w, char *ha);
 void ContextHelpCB(Widget w, void *data);
 

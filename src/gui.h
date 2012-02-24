@@ -49,18 +49,9 @@ typedef void (*Text_CBProc)(
 void AddTextActivateCB(TextStructure *cst, Text_CBProc cbproc, void *data);
 
 /* Button */
-typedef void (*Button_CBProc)(
-    Widget but,
-    void *               /* data the application registered */
-);
 void AddButtonCB(Widget w, Button_CBProc cbproc, void *data);
 
 /* ToggleButton */
-typedef void (*TB_CBProc)(
-    Widget but,
-    int onoff,           /* True/False */
-    void *               /* data the application registered */
-);
 void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata);
 
 #endif /* __GUI_H_ */

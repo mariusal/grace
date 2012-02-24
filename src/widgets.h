@@ -123,11 +123,20 @@ Widget CreateTabPage(Widget parent, char *s);
 void SelectTabPage(Widget tab, Widget w);
 
 /* Button */
+typedef void (*Button_CBProc)(
+    Widget but,
+    void *               /* data the application registered */
+);
 Widget CreateButton(Widget parent, char *label);
 Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits);
 
 /* ToggleButton */
+typedef void (*TB_CBProc)(
+    Widget but,
+    int onoff,           /* True/False */
+    void *               /* data the application registered */
+);
 Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);
 void SetToggleButtonState(Widget w, int value);
@@ -181,5 +190,15 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata);
 Widget CreatePopupMenu(Widget parent);
 Widget CreateMenuBar(Widget parent);
 Widget CreateMenu(Widget parent, char *label, char mnemonic, int help);
+Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
+        Button_CBProc cb, void *data);
+Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
+        char *accelerator, Button_CBProc cb, void *data);
+Widget CreateMenuCloseButton(Widget parent, Widget shell);
+Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
+    Widget form, char *ha);
+Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
+        TB_CBProc cb, void *data);
+Widget CreateMenuLabel(Widget parent, char *name);
 
 #endif /* __WIDGETS_H_ */
