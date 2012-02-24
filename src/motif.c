@@ -830,7 +830,6 @@ Widget CreateMenuBar(Widget parent)
 Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
 {
     Widget menupane, cascade;
-    XmString str;
     char ms[2];
 
     menupane = XmCreatePulldownMenu(parent, "menu", NULL, 0);
@@ -838,14 +837,13 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
     ms[0] = mnemonic;
     ms[1] = '\0';
 
-    str = XmStringCreateLocalized(label);
     cascade = XtVaCreateManagedWidget("cascade",
         xmCascadeButtonGadgetClass, parent,
         XmNsubMenuId, menupane,
-        XmNlabelString, str,
         XmNmnemonic, XStringToKeysym(ms),
         NULL);
-    XmStringFree(str);
+
+    SetLabel(cascade, label);
 
     if (help) {
         XtVaSetValues(parent, XmNmenuHelpWidget, cascade, NULL);
