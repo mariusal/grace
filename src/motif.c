@@ -112,24 +112,35 @@ static int toolkit_key_to_grace_key(void *event)
         return KEY_UP;
     case XK_Down: /* Down */
         return KEY_DOWN;
-    case XK_Return: /* Return */
-        return KEY_RETURN;
     default:
         return KEY_NONE;
     }
 }
 
-static void keyCB(Widget w, XtPointer client_data, XEvent *event, Boolean *cont)
+static void action(Widget w, XEvent *event, String *par, Cardinal *npar)
+{
+    Key_CBData *cbdata = (Key_CBData *) GetUserData(w);
+
+    cbdata->cbproc(cbdata->anydata);
+}
+
+static void keyHook(Widget w, XtPointer client_data, String action_name,
+                    XEvent *event, String *params, Cardinal *num_params)
 {
     Key_CBData *cbdata = (Key_CBData *) client_data;
 
+    if (strcmp(action_name, "action")) return;
+
+    /* In case if we have the same widget */
     if (cbdata->key != toolkit_key_to_grace_key(event)) return;
     if (cbdata->modifiers != toolkit_modifiers_to_grace_modifiers(event)) return;
 
-    cbdata->cbproc(cbdata->anydata);
+    if (w != cbdata->w) return;
 
-    *cont = False;
+    SetUserData(w, cbdata);
 }
+
+extern XtAppContext app_con;
 
 void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata)
 {
@@ -138,6 +149,8 @@ void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata)
 
 void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata)
 {
+    char *table = NULL;
+    XtActionsRec actions[1];
     Key_CBData *cbdata;
 
     cbdata = (Key_CBData *) xmalloc(sizeof(Key_CBData));
@@ -147,7 +160,34 @@ void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, v
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    XtAddEventHandler(w, KeyPressMask, False, keyCB, cbdata);
+    modifiers = modifiers ^ NO_MODIFIER;
+
+    if (modifiers & CONTROL_MODIFIER) {
+        table = copy_string(table, "Ctrl");
+    }
+
+    switch (key) {
+    case KEY_E:
+        table = concat_strings(table, "<Key>E: action()");
+        break;
+    case KEY_UP:
+        table = concat_strings(table, "<Key>osfUp: action()");
+        break;
+    case KEY_DOWN:
+        table = concat_strings(table, "<Key>osfDown: action()");
+        break;
+    default:
+        return;
+    }
+
+    actions[0].string = "action";
+    actions[0].proc = action;
+
+    XtOverrideTranslations(w, XtParseTranslationTable(table));
+    XtAppAddActions(app_con, actions, XtNumber(actions));
+    XtAppAddActionHook(app_con, keyHook, cbdata);
+
+    xfree(table);
 }
 
 static void widgetCB(Widget w, XtPointer client_data, XtPointer call_data)
