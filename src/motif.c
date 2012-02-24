@@ -357,6 +357,19 @@ void SetLabel(Widget w, char *s)
     XmStringFree(str);
 }
 
+
+void LabelSetPixmap(Widget w, int width, int height, const unsigned char *bits)
+{
+    Pixmap pm;
+
+    pm = CreatePixmapFromBitmap(w, width, height, bits);
+
+    XtVaSetValues(w,
+            XmNlabelType, XmPIXMAP,
+            XmNlabelPixmap, pm,
+            NULL);
+}
+
 /* Text */
 Widget CreateLineTextEdit(Widget parent, int len)
 {
@@ -519,17 +532,9 @@ Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits)
 {
     Widget button;
-    Pixmap pm;
 
     button = CreateButton(parent, "button");
-
-    pm = CreatePixmapFromBitmap(button, width, height, bits);
-
-    XtVaSetValues(button,
-            XmNlabelType, XmPIXMAP,
-            XmNlabelPixmap, pm,
-            NULL);
-
+    LabelSetPixmap(button, width, height, bits);
     ManageChild(button);
 
     return button;

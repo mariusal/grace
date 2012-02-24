@@ -89,6 +89,7 @@ void FormFixateVChild(Widget w);
 /* Label */
 Widget CreateLabel(Widget parent, char *s);
 void SetLabel(Widget w, char *s);
+void LabelSetPixmap(Widget w, int width, int height, const unsigned char *bits);
 
 /* Text */
 Widget CreateLineTextEdit(Widget parent, int len);
