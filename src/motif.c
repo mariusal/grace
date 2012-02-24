@@ -119,9 +119,6 @@ static int toolkit_key_to_grace_key(void *event)
 
 static void action(Widget w, XEvent *event, String *par, Cardinal *npar)
 {
-    Key_CBData *cbdata = (Key_CBData *) GetUserData(w);
-
-    cbdata->cbproc(cbdata->anydata);
 }
 
 static void keyHook(Widget w, XtPointer client_data, String action_name,
@@ -137,7 +134,7 @@ static void keyHook(Widget w, XtPointer client_data, String action_name,
 
     if (w != cbdata->w) return;
 
-    SetUserData(w, cbdata);
+    cbdata->cbproc(cbdata->anydata);
 }
 
 extern XtAppContext app_con;
