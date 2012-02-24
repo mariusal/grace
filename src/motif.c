@@ -827,43 +827,13 @@ Widget CreateMenuBar(Widget parent)
     return menubar;
 }
 
-static char *label_to_resname(const char *s, const char *suffix)
-{
-    char *retval, *rs;
-    int capitalize = FALSE;
-
-    retval = copy_string(NULL, s);
-    rs = retval;
-    while (*s) {
-        if (isalnum(*s)) {
-            if (capitalize == TRUE) {
-                *rs = toupper(*s);
-                capitalize = FALSE;
-            } else {
-                *rs = tolower(*s);
-            }
-            rs++;
-        } else {
-            capitalize = TRUE;
-        }
-        s++;
-    }
-    *rs = '\0';
-    if (suffix != NULL) {
-        retval = concat_strings(retval, suffix);
-    }
-    return retval;
-}
-
 Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
 {
     Widget menupane, cascade;
     XmString str;
-    char *name, ms[2];
+    char ms[2];
 
-    name = label_to_resname(label, "Menu");
-    menupane = XmCreatePulldownMenu(parent, name, NULL, 0);
-    xfree(name);
+    menupane = XmCreatePulldownMenu(parent, "menu", NULL, 0);
 
     ms[0] = mnemonic;
     ms[1] = '\0';
