@@ -884,20 +884,5 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
         CreateSeparator(menupane);
     }
 
-    SetUserData(menupane, cascade);
-
     return menupane;
 }
-
-void ManageMenu(Widget menupane)
-{
-    Widget cascade = GetUserData(menupane);
-    ManageChild(cascade);
-}
-
-void UnmanageMenu(Widget menupane)
-{
-    Widget cascade = GetUserData(menupane);
-    UnmanageChild(cascade);
-}
-
