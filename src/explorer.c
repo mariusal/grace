@@ -1026,7 +1026,7 @@ void raise_explorer(GUI *gui, Quark *q)
         AddTreeHighlightItemsCB(eui->tree, highlight_cb, eui);
         AddTreeContextMenuCB(eui->tree, menu_cb, eui);
         AddTreeDropItemsCB(eui->tree, drop_cb, eui);
-        FormAddVChild(form, GetParent(eui->tree));
+        FormAddVChild(form, eui->tree);
 
         fr = CreateFrame(form, NULL);
         eui->idstr = CreateText(fr, "ID string:");

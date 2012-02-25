@@ -164,16 +164,6 @@ void ShowMenu(Widget w, void *data)
     ManageChild(w);
 }
 
-Widget GetParent(Widget w)
-{
-    if (w) {
-        return (XtParent(w));
-    } else {
-        errmsg("Internal error: GetParent() called with NULL widget");
-        return NULL;
-    }
-}
-
 void SetHeight(Widget w, unsigned int height)
 {
     XtVaSetValues(w, XmNheight, height, NULL);
@@ -2040,7 +2030,7 @@ static void pen_popup(Widget parent,
 static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Pen pen;
-    Widget button = GetUserData(GetParent(w));
+    Widget button = GetUserData(XtParent(w));
     Button_PData *pdata;
     
     pdata = GetUserData(button);
@@ -3649,7 +3639,7 @@ void ContextHelpCB(Widget but, void *data)
             ok = TRUE;
             break;
         } else {
-            whelp = GetParent(whelp);
+            whelp = XtParent(whelp);
         }
     }
     if (!ok) {

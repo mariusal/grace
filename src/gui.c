@@ -75,7 +75,7 @@ TextStructure *CreateScrolledText(Widget parent, char *s, int nrows)
     FormAddVChild(retval->form, retval->label);
 
     retval->text = CreateMultiLineTextEdit(retval->form, nrows);
-    FormAddVChild(retval->form, WidgetGetParent(retval->text));
+    FormAddVChild(retval->form, retval->text);
 
     ManageChild(retval->form);
 

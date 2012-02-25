@@ -561,7 +561,7 @@ void create_helper_frame(char *URL)
         
         XtVaSetValues(rc, XmNresizeHeight, False, NULL);
         
-        ManageChild(GetParent(ui->top));
+        DialogRaise(ui->top);
     }
     
     ui->url  = copy_string(ui->url, URL);

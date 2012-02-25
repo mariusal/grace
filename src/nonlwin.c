@@ -282,7 +282,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         SetToggleButtonState(ui->autol_item, TRUE);
         SetOptionChoice(ui->load_item, LOAD_VALUES);
         WidgetSetSensitive(ui->fload_rc, FALSE);
-        WidgetSetSensitive(GetParent(ui->wfunc_item), FALSE);
+        WidgetSetSensitive(XtParent(ui->wfunc_item), FALSE);
         xv_setstr(ui->start_item, "0.0");
         xv_setstr(ui->stop_item,  "1.0");
         xv_setstr(ui->npts_item,  "10");
@@ -601,7 +601,7 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
 
 static void nonl_wf_cb(OptionStructure *opt, int value, void *data)
 {
-    Widget rc = GetParent((Widget) data);
+    Widget rc = XtParent((Widget) data);
     
     if (value == WEIGHT_CUSTOM) {
     	WidgetSetSensitive(rc, True);

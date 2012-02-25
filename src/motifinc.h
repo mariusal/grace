@@ -333,8 +333,6 @@ void InitWidgets(void);
 
 void ShowMenu(Widget w, void *data);
 
-Widget GetParent(Widget w);
-
 void SetHeight(Widget w, unsigned int height);
 void SetDimensions(Widget w, unsigned int width, unsigned int height);
 void GetDimensions(Widget w, unsigned int *width, unsigned int *height);

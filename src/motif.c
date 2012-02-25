@@ -43,14 +43,10 @@
 #include <Xm/Text.h>
 #include <Xm/ToggleB.h>
 #include "Tab.h"
+#include "ListTree.h"
 
 
 /* Widgets */
-Widget WidgetGetParent(Widget w)
-{
-    return XtParent(w);
-}
-
 void ManageChild(Widget w)
 {
     XtManageChild(w);
@@ -274,7 +270,7 @@ Widget CreateDialog(Widget parent, const char *s)
 
 void DialogRaise(Widget form)
 {
-    Widget w = WidgetGetParent(form);
+    Widget w = XtParent(form);
 
     ManageChild(w);
     XMapRaised(XtDisplay(w), XtWindow(w));
@@ -351,6 +347,11 @@ void FormAddHChild(Widget form, Widget child)
 void FormAddVChild(Widget form, Widget child)
 {
     Widget last_widget;
+
+    if (XtIsSubclass(child, listtreeWidgetClass) ||
+        (XmIsText(child) && XmIsScrolledWindow(XtParent(child)))) {
+        child = XtParent(child);
+    }
 
     last_widget = GetUserData(form);
     if (last_widget) {
