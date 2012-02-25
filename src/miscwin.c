@@ -75,7 +75,7 @@ void create_props_frame(Widget but, void *data)
     if (props_frame == NULL) {
         Widget fr, rc1;
 
-	props_frame = CreateDialogForm(app_shell, "Preferences");
+	props_frame = CreateDialog(app_shell, "Preferences");
 
 	fr = CreateFrame(props_frame, "Responsiveness");
 	FormAddVChild(props_frame, fr);

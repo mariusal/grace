@@ -128,7 +128,7 @@ void create_printer_setup(Widget but, void *data)
         
         pui->destopts = xcalloc(gapp->rt->num_print_dests, sizeof(DestSetupUI));
         
-        pui->top = CreateDialogForm(app_shell, "Device setup");
+        pui->top = CreateDialog(app_shell, "Device setup");
         DialogSetResizable(pui->top, TRUE);
 
         menubar = CreateMenuBar(pui->top);
@@ -724,7 +724,7 @@ void create_destopts_popup(Widget but, void *data)
         dsui->opts = xmalloc(pd->nopts*SIZEOF_VOID_P);
 
         sprintf(buf, "CUPS setup: %s", pd->printer);
-        top = CreateDialogForm(app_shell, buf);
+        top = CreateDialog(app_shell, buf);
 
 	tab = CreateTab(top);
         

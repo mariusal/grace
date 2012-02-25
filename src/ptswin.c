@@ -176,7 +176,7 @@ void create_points_frame(void *data)
     if (points_frame == NULL) {
         Widget dialog, wbut, rc, fr;
         
-	points_frame = CreateDialogForm(app_shell, "Point explorer");
+	points_frame = CreateDialog(app_shell, "Point explorer");
 	
 	fr = CreateFrame(points_frame, NULL);
         AddDialogFormChild(points_frame, fr);

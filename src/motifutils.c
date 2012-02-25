@@ -2198,7 +2198,7 @@ static void define_pen_choice_dialog(Widget but, void *data)
 
         ui = xmalloc(sizeof(PenChoiceDialog));
         
-        ui->top = CreateDialogForm(app_shell, "Pen properties");
+        ui->top = CreateDialog(app_shell, "Pen properties");
         
         fr = CreateFrame(ui->top, "Pen");
         rc = CreateVContainer(fr);
@@ -3395,7 +3395,7 @@ TransformStructure *CreateTransformDialogForm(Widget parent,
     retval->run_cb   = cbs->run_cb;
     retval->free_cb  = cbs->free_cb;
 
-    retval->form = CreateDialogForm(parent, s);
+    retval->form = CreateDialog(parent, s);
 
     retval->menubar = CreateMenuBar(retval->form);
     FormAddVChild(retval->form, retval->menubar);

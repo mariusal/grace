@@ -82,7 +82,7 @@ void create_datasetprop_popup(Widget but, void *data)
         int column_widths[DATA_STAT_COLS] = {12, 6, 12, 6, 12, 12};
         GraceApp *gapp = (GraceApp *) data;
 
-        tui.top = CreateDialogForm(app_shell, "Data set statistics");
+        tui.top = CreateDialog(app_shell, "Data set statistics");
 
         menubar = CreateMenuBar(tui.top);
         ManageChild(menubar);
@@ -228,7 +228,7 @@ void create_datasetop_popup(Widget but, void *data)
     set_wait_cursor();
     if (datasetopui.top == NULL) {
         
-        datasetopui.top = CreateDialogForm(app_shell, "Data set operations");
+        datasetopui.top = CreateDialog(app_shell, "Data set operations");
         DialogSetResizable(datasetopui.top, TRUE);
 
         menubar = CreateMenuBar(datasetopui.top);
@@ -485,7 +485,7 @@ void create_leval_frame(Widget but, void *data)
         int column_maxlengths[1] = {256};
         Grace *grace = grace_from_quark(gr);
 
-        levalui.top = CreateDialogForm(app_shell, "Load & evaluate");
+        levalui.top = CreateDialog(app_shell, "Load & evaluate");
 
         fr = CreateFrame(levalui.top, "Parameter mesh ($t)");
         FormAddVChild(levalui.top, fr);

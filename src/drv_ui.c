@@ -107,7 +107,7 @@ static void ps_gui_setup(const Canvas *canvas, void *data)
         } else {
             title = "EPS options";
         }
-	ui->frame = CreateDialogForm(app_shell, title);
+	ui->frame = CreateDialog(app_shell, title);
 
         ps_setup_rc = CreateVContainer(ui->frame);
 
@@ -286,7 +286,7 @@ void pdf_gui_setup(const Canvas *canvas, void *data)
             {PDF_COLORSPACE_CMYK,      "CMYK"     }
         };
     
-	ui->frame = CreateDialogForm(app_shell, "PDF options");
+	ui->frame = CreateDialog(app_shell, "PDF options");
 
 	fr = CreateFrame(ui->frame, "PDF options");
         rc = CreateVContainer(fr);
@@ -371,7 +371,7 @@ void hpdf_gui_setup(const Canvas *canvas, void *data)
             {HPDF_COLORSPACE_CMYK,      "CMYK"     }
         };
     
-	ui->frame = CreateDialogForm(app_shell, "hPDF options");
+	ui->frame = CreateDialog(app_shell, "hPDF options");
 
 	fr = CreateFrame(ui->frame, "hPDF options");
         rc = CreateVContainer(fr);
@@ -445,7 +445,7 @@ static void pnm_gui_setup(const Canvas *canvas, void *data)
     if (ui->frame == NULL) {
         Widget fr, rc;
         
-	ui->frame = CreateDialogForm(app_shell, "PNM options");
+	ui->frame = CreateDialog(app_shell, "PNM options");
 
 	fr = CreateFrame(ui->frame, "PNM options");
         rc = CreateVContainer(fr);
@@ -528,7 +528,7 @@ static void png_gui_setup(const Canvas *canvas, void *data)
     if (ui->frame == NULL) {
         Widget fr, rc;
         
-	ui->frame = CreateDialogForm(app_shell, "PNG options");
+	ui->frame = CreateDialog(app_shell, "PNG options");
 
 	fr = CreateFrame(ui->frame, "PNG options");
         rc = CreateVContainer(fr);
@@ -622,7 +622,7 @@ static void jpg_gui_setup(const Canvas *canvas, void *data)
     if (ui->frame == NULL) {
         Widget rc, fr, rc1;
         
-	ui->frame = CreateDialogForm(app_shell, "JPEG options");
+	ui->frame = CreateDialog(app_shell, "JPEG options");
 
         rc = CreateVContainer(ui->frame);
 

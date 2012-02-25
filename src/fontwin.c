@@ -79,7 +79,7 @@ void create_fonttool(TextStructure *cstext_parent)
         ui = xmalloc(sizeof(fonttool_ui));
         memset(ui, 0, sizeof(fonttool_ui));
 	
-        ui->fonttool_panel = CreateDialogForm(app_shell, "Font tool");
+        ui->fonttool_panel = CreateDialog(app_shell, "Font tool");
 
         ui->font_select = CreateFontChoice(ui->fonttool_panel, "Font:");
         FormAddVChild(ui->fonttool_panel, ui->font_select->menu);

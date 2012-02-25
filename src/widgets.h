@@ -73,7 +73,7 @@ struct _Widget_CBData {
 void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata);
 
 /* Dialog */
-Widget CreateDialogForm(Widget parent, const char *s);
+Widget CreateDialog(Widget parent, const char *s);
 void DialogRaise(Widget form);
 void DialogSetResizable(Widget form, int onoff);
 

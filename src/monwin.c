@@ -116,7 +116,7 @@ static void create_monitor_frame(int force, char *msg)
         amem = amem_amem_new(AMEM_MODEL_SIMPLE);
 
 	ui = xmalloc(sizeof(console_ui));
-        ui->mon_frame = CreateDialogForm(app_shell, "Console");
+        ui->mon_frame = CreateDialog(app_shell, "Console");
         ui->save_logs_fsb = NULL;
         ui->history = storage_new(amem, amem_free, wrap_str_copy, NULL);
         ui->eohistory = TRUE;

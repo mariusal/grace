@@ -170,7 +170,7 @@ void create_arrange_frame(Widget but, void *data)
         
         ui = xmalloc(sizeof(Arrange_ui));
     
-	ui->top = CreateDialogForm(app_shell, "Arrange frames");
+	ui->top = CreateDialog(app_shell, "Arrange frames");
         AddHelpCB(ui->top, "doc/UsersGuide.html#arrange-frames");
 
 	arrange_panel = CreateVContainer(ui->top);
@@ -288,7 +288,7 @@ void create_autos_frame(Widget but, void *data)
         
         aui = xmalloc(sizeof(Auto_ui));
         
-        aui->top = CreateDialogForm(app_shell, "Autoscale graphs");
+        aui->top = CreateDialog(app_shell, "Autoscale graphs");
 
 	rc = CreateVContainer(aui->top);
         aui->sel = CreateGraphSetSelector(rc, NULL, LIST_TYPE_MULTIPLE);

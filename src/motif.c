@@ -250,7 +250,7 @@ static char *label_to_resname(const char *s, const char *suffix)
 }
 
 /* Dialog */
-Widget CreateDialogForm(Widget parent, const char *s)
+Widget CreateDialog(Widget parent, const char *s)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
     Widget dialog, w;

@@ -964,7 +964,7 @@ void raise_explorer(GUI *gui, Quark *q)
         /* Create pixmaps */
         CreatePixmaps(eui);
 
-        eui->top = CreateDialogForm(app_shell, "Explorer");
+        eui->top = CreateDialog(app_shell, "Explorer");
         menubar = CreateMenuBar(eui->top);
         ManageChild(menubar);
         FormAddVChild(eui->top, menubar);

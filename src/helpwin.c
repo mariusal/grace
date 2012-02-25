@@ -135,7 +135,7 @@ void create_about_grtool(Widget but, void *data)
         Widget wbut, fr, rc, about_panel;
         char buf[1024];
 
-        about_frame = CreateDialogForm(app_shell, "About");
+        about_frame = CreateDialog(app_shell, "About");
 
         about_panel = CreateVContainer(about_frame);
         FormAddVChild(about_frame, about_panel);
@@ -438,7 +438,7 @@ static void create_find_dialog(Widget but, void *data)
     if (!dialog) {
         Widget rc, rc2;
         
-        dialog = CreateDialogForm(ui->html, "Find Dialog");
+        dialog = CreateDialog(ui->html, "Find Dialog");
         
         rc = CreateVContainer(dialog);
         ui->input = CreateText(rc, "Find:");
@@ -502,7 +502,7 @@ void create_helper_frame(char *URL)
 	ui = xmalloc(sizeof(html_ui));
         memset(ui, 0, sizeof(html_ui));
         
-        ui->top = CreateDialogForm(app_shell, "Gracilla");
+        ui->top = CreateDialog(app_shell, "Gracilla");
 	
         menubar = CreateMenuBar(ui->top);
         ManageChild(menubar);
