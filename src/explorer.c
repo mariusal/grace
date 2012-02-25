@@ -970,8 +970,7 @@ void raise_explorer(GUI *gui, Quark *q)
         FormAddVChild(eui->top, menubar);
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
-        CreateMenuButton(menupane,
-            "Close", 'C', destroy_dialog_cb, GetParent(eui->top));
+        CreateMenuButtonA(menupane, "Close", 'C', "<Key>Escape", "Esc", destroy_dialog_cb, eui->top);
 
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
         eui->edit_undo_bt = CreateMenuButtonA(menupane, "Undo", 'U', "Ctrl<Key>z", "Ctrl+Z",

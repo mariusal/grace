@@ -195,7 +195,6 @@ Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
         Button_CBProc cb, void *data);
 Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
         char *accelerator, char* acceleratorText, Button_CBProc cb, void *data);
-Widget CreateMenuCloseButton(Widget parent, Widget shell);
 Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
     Widget form, char *ha);
 Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,

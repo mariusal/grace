@@ -37,7 +37,6 @@
 #include "xprotos.h"
 
 #include "motifinc.h"
-#include <Xm/Label.h>
 
 #define NO_HELP "doc/nohelp.html"
 
@@ -193,10 +192,7 @@ void create_about_grtool(Widget but, void *data)
         CreateSeparator(about_panel);
 
         wbut = CreateButton(about_panel, "Close");
-        XtVaSetValues(wbut,
-                XmNalignment, XmALIGNMENT_CENTER,
-                NULL);
-        AddButtonCB(wbut, destroy_dialog_cb, GetParent(about_frame));
+        AddButtonCB(wbut, destroy_dialog_cb, about_frame);
 
         ManageChild(about_frame);
     }

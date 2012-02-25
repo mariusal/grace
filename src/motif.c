@@ -525,6 +525,10 @@ Widget CreateButton(Widget parent, char *label)
         xmPushButtonWidgetClass, parent,
         NULL);
 
+    XtVaSetValues(button,
+        XmNalignment, XmALIGNMENT_CENTER,
+        NULL);
+
     return button;
 }
 
@@ -902,6 +906,7 @@ Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
 
     XtVaSetValues(button,
         XmNmnemonic, XStringToKeysym(ms),
+        XmNalignment, XmALIGNMENT_BEGINNING,
         NULL);
 
     if (accelerator && acceleratorText) {
@@ -918,21 +923,6 @@ Widget CreateMenuButtonA(Widget parent, char *label, char mnemonic,
     AddButtonCB(button, cb, data);
 
     return button;
-}
-
-Widget CreateMenuCloseButton(Widget parent, Widget form)
-{
-    Widget wbut;
-    XmString str;
-
-    wbut = CreateMenuButton(parent,
-        "Close", 'C', destroy_dialog_cb, XtParent(form));
-    str = XmStringCreateLocalized("Esc");
-    XtVaSetValues(wbut, XmNacceleratorText, str, NULL);
-    XmStringFree(str);
-    XtVaSetValues(form, XmNcancelButton, wbut, NULL);
-
-    return wbut;
 }
 
 Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,

@@ -95,7 +95,7 @@ void create_datasetprop_popup(Widget but, void *data)
 
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
-        CreateMenuCloseButton(menupane, tui.top);
+        CreateMenuButtonA(menupane, "Close", 'C', "<Key>Escape", "Esc", destroy_dialog_cb, tui.top);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On data sets", 's',
@@ -245,8 +245,7 @@ void create_datasetop_popup(Widget but, void *data)
             "Data sets:", LIST_TYPE_MULTIPLE);
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
-        CreateMenuButton(menupane,
-            "Close", 'C', destroy_dialog_cb, GetParent(datasetopui.top));
+        CreateMenuButtonA(menupane, "Close", 'C', "<Key>Escape", "Esc", destroy_dialog_cb, datasetopui.top);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On dataset operations", 's',

@@ -131,7 +131,7 @@ static void create_monitor_frame(int force, char *msg)
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButtonA(menupane, "Save...", 'S', "Ctrl<Key>s", "Ctrl+S", create_wmon_frame, ui);
         CreateMenuSeparator(menupane);
-        CreateMenuCloseButton(menupane, ui->mon_frame);
+        CreateMenuButtonA(menupane, "Close", 'C', "<Key>Escape", "Esc", destroy_dialog_cb, ui->mon_frame);
         
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
         CreateMenuButton(menupane, "Clear", 'C', clear_results, ui);

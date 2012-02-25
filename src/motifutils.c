@@ -1484,7 +1484,9 @@ static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
  */
 void destroy_dialog_cb(Widget but, void *data)
 {
-    UnmanageChild((Widget) data);
+    Widget w = (Widget) data;
+
+    UnmanageChild(XtParent(w));
 }
 
 static void fsb_setcwd_cb(Widget but, void *data)
@@ -3353,7 +3355,7 @@ WidgetList CreateAACDialog(Widget form,
 
     AddButtonCB(aacbut[0], aacdialog_int_cb_proc, cbdata_apply);
     AddButtonCB(aacbut[1], aacdialog_int_cb_proc, cbdata_accept);
-    AddButtonCB(aacbut[2], destroy_dialog_cb, XtParent(form));
+    AddButtonCB(aacbut[2], destroy_dialog_cb, form);
     
     ManageChild(container);
     ManageChild(form);

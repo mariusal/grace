@@ -166,7 +166,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         CreateMenuButton(menupane, "Open...", 'O', create_openfit_popup, (void *) ui);
         CreateMenuButton(menupane, "Save...", 'S', create_savefit_popup, (void *) ui);
         CreateMenuSeparator(menupane);
-        CreateMenuButton(menupane, "Close", 'C', destroy_dialog_cb, GetParent(frame));
+        CreateMenuButtonA(menupane, "Close", 'C', "<Key>Escape", "Esc", destroy_dialog_cb, frame);
 
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 

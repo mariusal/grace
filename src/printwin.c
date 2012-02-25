@@ -137,7 +137,7 @@ void create_printer_setup(Widget but, void *data)
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButton(menupane, "Print", 'P', do_print_cb, NULL);
         CreateMenuSeparator(menupane);
-        CreateMenuCloseButton(menupane, pui->top);
+        CreateMenuButtonA(menupane, "Close", 'C', "<Key>Escape", "Esc", destroy_dialog_cb, pui->top);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On device setup", 'd',
