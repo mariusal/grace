@@ -153,7 +153,7 @@ void ShowMenu(Widget w, void *data)
 
 void SetHeight(Widget w, unsigned int height)
 {
-    XtVaSetValues(w, XmNheight, height, NULL);
+    XtVaSetValues(w, XmNheight, (Dimension) height, NULL);
 }
 
 void SetDimensions(Widget w, unsigned int width, unsigned int height)
