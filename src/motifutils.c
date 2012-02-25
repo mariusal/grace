@@ -2124,7 +2124,7 @@ static Widget CreatePatternChoicePopup(Widget button)
     Widget popup;
     
     popup = XmCreatePopupMenu(button, "patternPopupMenu", NULL, 0);
-    CreateMenuLabel(popup, "Pattern:");
+    CreateLabel(popup, "Pattern:");
     CreateMenuSeparator(popup);
     
     return popup;

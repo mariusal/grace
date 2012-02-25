@@ -600,7 +600,7 @@ void canvas_event(CanvasEvent *event)
                     if (!popup) {
                         popup = CreatePopupMenu(gapp->gui->xstuff->canvas);
                         
-                        poplab = CreateMenuLabel(popup, "");
+                        poplab = CreateLabel(popup, "");
                         
                         CreateMenuSeparator(popup);
 

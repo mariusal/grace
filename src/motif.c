@@ -1000,13 +1000,3 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 
     return button;
 }
-
-Widget CreateMenuLabel(Widget parent, char *name)
-{
-    Widget lab;
-
-    lab = CreateLabel(parent, name);
-    ManageChild(lab);
-
-    return lab;
-}

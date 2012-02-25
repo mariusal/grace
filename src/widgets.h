@@ -199,6 +199,5 @@ Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
     Widget form, char *ha);
 Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
         TB_CBProc cb, void *data);
-Widget CreateMenuLabel(Widget parent, char *name);
 
 #endif /* __WIDGETS_H_ */
