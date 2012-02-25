@@ -35,6 +35,7 @@
 #include <stdarg.h>
 #include <Xm/Xm.h>
 #include <Xm/CascadeBG.h>
+#include <Xm/DialogS.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
@@ -42,6 +43,8 @@
 #include <Xm/Text.h>
 #include <Xm/ToggleB.h>
 #include "Tab.h"
+
+#include "globals.h"
 
 /* Widgets */
 Widget WidgetGetParent(Widget w)
@@ -218,7 +221,72 @@ void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *any
         XtAddCallback(w,  XmNmodifyVerifyCallback, widgetCB, (XtPointer) cbdata);
 }
 
+static char *label_to_resname(const char *s, const char *suffix)
+{
+    char *retval, *rs;
+    int capitalize = FALSE;
+
+    retval = copy_string(NULL, s);
+    rs = retval;
+    while (*s) {
+        if (isalnum(*s)) {
+            if (capitalize == TRUE) {
+                *rs = toupper(*s);
+                capitalize = FALSE;
+            } else {
+                *rs = tolower(*s);
+            }
+            rs++;
+        } else {
+            capitalize = TRUE;
+        }
+        s++;
+    }
+    *rs = '\0';
+    if (suffix != NULL) {
+        retval = concat_strings(retval, suffix);
+    }
+    return retval;
+}
+
 /* Dialog */
+Widget CreateDialogForm(Widget parent, const char *s)
+{
+    X11Stuff *xstuff = gapp->gui->xstuff;
+    Widget dialog, w;
+    char *bufp;
+    int standalone;
+
+    if (parent == NULL) {
+        standalone = TRUE;
+        parent = XtAppCreateShell("XMgapp", "XMgapp",
+            topLevelShellWidgetClass, xstuff->disp,
+            NULL, 0);
+    } else {
+        standalone = FALSE;
+    }
+    bufp = label_to_resname(s, "Dialog");
+    dialog = XmCreateDialogShell(parent, bufp, NULL, 0);
+    xfree(bufp);
+
+    if (standalone) {
+        RegisterEditRes(dialog);
+    }
+
+    handle_close(dialog);
+
+    bufp = copy_string(NULL, "Grace: ");
+    bufp = concat_strings(bufp, s);
+    XtVaSetValues(dialog,
+        XmNtitle, bufp,
+        NULL);
+    xfree(bufp);
+
+    w = XmCreateForm(dialog, "form", NULL, 0);
+
+    return w;
+}
+
 void DialogRaise(Widget form)
 {
     Widget w = WidgetGetParent(form);
@@ -853,34 +921,6 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
     }
 
     return menupane;
-}
-
-static char *label_to_resname(const char *s, const char *suffix)
-{
-    char *retval, *rs;
-    int capitalize = FALSE;
-
-    retval = copy_string(NULL, s);
-    rs = retval;
-    while (*s) {
-        if (isalnum(*s)) {
-            if (capitalize == TRUE) {
-                *rs = toupper(*s);
-                capitalize = FALSE;
-            } else {
-                *rs = tolower(*s);
-            }
-            rs++;
-        } else {
-            capitalize = TRUE;
-        }
-        s++;
-    }
-    *rs = '\0';
-    if (suffix != NULL) {
-        retval = concat_strings(retval, suffix);
-    }
-    return retval;
 }
 
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,

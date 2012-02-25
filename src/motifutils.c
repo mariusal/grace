@@ -52,7 +52,6 @@
 #include <Xm/Protocols.h>
 #include <Xm/BulletinB.h>
 #include <Xm/MessageB.h>
-#include <Xm/DialogS.h>
 #include <Xm/FileSB.h>
 #include <Xm/Frame.h>
 #include <Xm/Form.h>
@@ -3220,43 +3219,6 @@ void CreatePixmaps(ExplorerUI *eui)
         active_xpm, &eui->a_icon, NULL, &attrib);
     XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
         hidden_xpm, &eui->h_icon, NULL, &attrib);
-}
-
-Widget CreateDialogForm(Widget parent, const char *s)
-{
-    X11Stuff *xstuff = gapp->gui->xstuff;
-    Widget dialog, w;
-    char *bufp;
-    int standalone;
-
-    if (parent == NULL) {
-        standalone = TRUE;
-        parent = XtAppCreateShell("XMgapp", "XMgapp",
-            topLevelShellWidgetClass, xstuff->disp,
-            NULL, 0);
-    } else {
-        standalone = FALSE;
-    }
-    bufp = label_to_resname(s, "Dialog");
-    dialog = XmCreateDialogShell(parent, bufp, NULL, 0);
-    xfree(bufp);
-
-    if (standalone) {
-        RegisterEditRes(dialog);
-    }
-
-    handle_close(dialog);
-
-    bufp = copy_string(NULL, "Grace: ");
-    bufp = concat_strings(bufp, s);
-    XtVaSetValues(dialog,
-        XmNtitle, bufp,
-        NULL);
-    xfree(bufp);
-
-    w = XmCreateForm(dialog, "form", NULL, 0);
-
-    return w;
 }
 
 static Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
