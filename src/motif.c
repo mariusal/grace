@@ -44,7 +44,6 @@
 #include <Xm/ToggleB.h>
 #include "Tab.h"
 
-#include "globals.h"
 
 /* Widgets */
 Widget WidgetGetParent(Widget w)
@@ -252,26 +251,12 @@ static char *label_to_resname(const char *s, const char *suffix)
 /* Dialog */
 Widget CreateDialog(Widget parent, const char *s)
 {
-    X11Stuff *xstuff = gapp->gui->xstuff;
     Widget dialog, w;
     char *bufp;
-    int standalone;
 
-    if (parent == NULL) {
-        standalone = TRUE;
-        parent = XtAppCreateShell("XMgapp", "XMgapp",
-            topLevelShellWidgetClass, xstuff->disp,
-            NULL, 0);
-    } else {
-        standalone = FALSE;
-    }
     bufp = label_to_resname(s, "Dialog");
     dialog = XmCreateDialogShell(parent, bufp, NULL, 0);
     xfree(bufp);
-
-    if (standalone) {
-        RegisterEditRes(dialog);
-    }
 
     handle_close(dialog);
 
@@ -282,7 +267,7 @@ Widget CreateDialog(Widget parent, const char *s)
         NULL);
     xfree(bufp);
 
-    w = XmCreateForm(dialog, "form", NULL, 0);
+    w = CreateForm(dialog);
 
     return w;
 }
@@ -333,7 +318,6 @@ Widget CreateForm(Widget parent)
     Widget w;
 
     w = XmCreateForm(parent, "form", NULL, 0);
-    ManageChild(w);
 
     return w;
 }
@@ -673,6 +657,8 @@ Widget CreateGrid(Widget parent, int ncols, int nrows)
         XmNfractionBase, nfractions,
         XmNuserData, gd,
         NULL);
+
+    ManageChild(w);
 
     return w;
 }

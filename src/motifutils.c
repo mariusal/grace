@@ -77,10 +77,6 @@
 #include <Xbae/Matrix.h>
 #include "ListTree.h"
 
-#ifdef WITH_EDITRES
-#  include <X11/Xmu/Editres.h>
-#endif
-
 #if XmVersion < 2000
 #  define XmStringConcatAndFree(a, b) XmStringConcat(a, b); XmStringFree(a); XmStringFree(b)
 #endif
@@ -176,13 +172,6 @@ Widget GetParent(Widget w)
         errmsg("Internal error: GetParent() called with NULL widget");
         return NULL;
     }
-}
-
-void RegisterEditRes(Widget shell)
-{
-#ifdef WITH_EDITRES    
-    XtAddEventHandler(shell, (EventMask) 0, True, _XEditResCheckMessages, NULL);
-#endif
 }
 
 void SetHeight(Widget w, unsigned int height)

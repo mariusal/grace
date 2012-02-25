@@ -50,6 +50,10 @@
 #  include <X11/xpm.h>
 #endif
 
+#ifdef WITH_EDITRES
+#  include <X11/Xmu/Editres.h>
+#endif
+
 #include "globals.h"
 #include "bitmaps.h"
 #include "utils.h"
@@ -541,7 +545,9 @@ void startup_gui(GraceApp *gapp)
  */
     XmRepTypeInstallTearOffModelConverter();
     
-    RegisterEditRes(app_shell);
+#ifdef WITH_EDITRES
+    XtAddEventHandler(app_shell, (EventMask) 0, True, _XEditResCheckMessages, NULL);
+#endif
 
 /*
  * We handle important WM events ourselves
@@ -559,7 +565,7 @@ void startup_gui(GraceApp *gapp)
     menu_bar = CreateMainMenuBar(main_frame);
     ManageChild(menu_bar);
 
-    form = XmCreateForm(main_frame, "form", NULL, 0);
+    form = CreateForm(main_frame);
 
     mwui->frleft = CreateFrame(form, NULL);
     rcleft = XtVaCreateManagedWidget("toolBar", xmRowColumnWidgetClass,

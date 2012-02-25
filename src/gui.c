@@ -53,6 +53,8 @@ TextStructure *CreateText2(Widget parent, char *s, int len)
     retval->text = CreateLineTextEdit(retval->form, len);
     FormAddHChild(retval->form, retval->text);
 
+    ManageChild(retval->form);
+
     return retval;
 }
 
@@ -74,6 +76,8 @@ TextStructure *CreateScrolledText(Widget parent, char *s, int nrows)
 
     retval->text = CreateMultiLineTextEdit(retval->form, nrows);
     FormAddVChild(retval->form, WidgetGetParent(retval->text));
+
+    ManageChild(retval->form);
 
     return retval;
 }

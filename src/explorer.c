@@ -1040,6 +1040,8 @@ void raise_explorer(GUI *gui, Quark *q)
         SetMinimumDimensions(form, 150, 0);
         SetDimensions(form, 250, 0);
 
+        ManageChild(form);
+
 #ifdef HAVE_LESSTIF
 # if !defined(SF_BUG_993209_FIXED) && !defined(SF_BUG_993209_NOT_FIXED)
 #  error "You should check whether SF bug #993209 is fixed in your version of LessTif."
