@@ -45,6 +45,7 @@
 #include "Tab.h"
 #include "ListTree.h"
 
+#include "globals.h"
 
 /* Widgets */
 void ManageChild(Widget w)
@@ -415,7 +416,16 @@ void LabelSetPixmap(Widget w, int width, int height, const unsigned char *bits)
 {
     Pixmap pm;
 
-    pm = CreatePixmapFromBitmap(w, width, height, bits);
+    X11Stuff *xstuff = gapp->gui->xstuff;
+    Pixel fg, bg;
+
+    XtVaGetValues(w,
+            XmNforeground, &fg,
+            XmNbackground, &bg,
+            NULL);
+
+    pm = XCreatePixmapFromBitmapData(xstuff->disp,
+            xstuff->root, (char *) bits, width, height, fg, bg, xstuff->depth);
 
     XtVaSetValues(w,
             XmNlabelType, XmPIXMAP,
