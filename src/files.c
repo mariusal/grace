@@ -994,10 +994,7 @@ static int project_cb(Quark *pr, int etype, void *data)
 	}
 #endif
     }
-#ifndef NONE_GUI
-    clean_graph_selectors(pr, etype, data);
-    clean_frame_selectors(pr, etype, data);
-#endif
+
     return RETURN_SUCCESS;
 }
 

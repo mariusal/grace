@@ -476,6 +476,9 @@ int gapp_set_active_gproject(GraceApp *gapp, GProject *gp)
     /* Request update of font selectors */
     gapp->gui->need_fontsel_update = TRUE;
 
+    clean_graph_selectors(NULL, QUARK_ETYPE_DELETE, NULL);
+    clean_frame_selectors(NULL, QUARK_ETYPE_DELETE, NULL);
+
     return RETURN_SUCCESS;
 }
 
