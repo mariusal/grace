@@ -74,6 +74,7 @@ void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *any
 /* Dialog */
 Widget CreateDialog(Widget parent, const char *s);
 void DialogRaise(Widget form);
+void DialogClose(Widget form);
 void DialogSetResizable(Widget form, int onoff);
 
 /* Containers */

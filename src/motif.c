@@ -277,6 +277,11 @@ void DialogRaise(Widget form)
     XMapRaised(XtDisplay(w), XtWindow(w));
 }
 
+void DialogClose(Widget form)
+{
+    UnmanageChild(XtParent(form));
+}
+
 void DialogSetResizable(Widget form, int onoff)
 {
     XtVaSetValues(form,

@@ -157,7 +157,7 @@ static void do_gotopt_proc(void *data)
 static void points_done_proc(void *data)
 {
     set_action(DO_NOTHING);
-    destroy_dialog_cb(NULL, data);
+    DialogClose(data);
 }
 
 static void track_set_cbproc(int n, int *values, void *data)

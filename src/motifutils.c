@@ -1449,9 +1449,7 @@ static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
  */
 void destroy_dialog_cb(Widget but, void *data)
 {
-    Widget w = (Widget) data;
-
-    UnmanageChild(XtParent(w));
+    DialogClose(data);
 }
 
 static void fsb_setcwd_cb(Widget but, void *data)
