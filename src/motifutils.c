@@ -98,8 +98,6 @@
 
 extern XtAppContext app_con;
 
-static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
-
 static unsigned long *xvlibcolors;
 
 
@@ -109,34 +107,6 @@ static OptionStructure **color_selectors = NULL;
 static unsigned int ncolor_selectors = 0;
 
 static Widget color_choice_popup = NULL;
-
-static char *label_to_resname(const char *s, const char *suffix)
-{
-    char *retval, *rs;
-    int capitalize = FALSE;
-
-    retval = copy_string(NULL, s);
-    rs = retval;
-    while (*s) {
-        if (isalnum(*s)) {
-            if (capitalize == TRUE) {
-                *rs = toupper(*s);
-                capitalize = FALSE;
-            } else {
-                *rs = tolower(*s);
-            }
-            rs++;
-        } else {
-            capitalize = TRUE;
-        }
-        s++;
-    }
-    *rs = '\0';
-    if (suffix != NULL) {
-        retval = concat_strings(retval, suffix);
-    }
-    return retval;
-}
 
 void Beep(void)
 {
@@ -1425,222 +1395,12 @@ double GetSpinChoice(SpinStructure *spinp)
     }
 }
 
-static char *GetStringSimple(XmString xms)
-{
-    char *s;
-
-    if (XmStringGetLtoR(xms, charset, &s)) {
-        return s;
-    } else {
-        return NULL;
-    }
-}
-
-/*
- * generic unmanage popup routine, used elswhere
- */
-static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    UnmanageChild((Widget) client_data);
-}
-
 /*
  * same for AddButtonCB
  */
 void destroy_dialog_cb(Widget but, void *data)
 {
     DialogClose(data);
-}
-
-static void fsb_setcwd_cb(Widget but, void *data)
-{
-    char *bufp;
-    XmString directory;
-    Widget fsb = (Widget) data;
-    
-    XtVaGetValues(fsb, XmNdirectory, &directory, NULL);
-    bufp = GetStringSimple(directory);
-    XmStringFree(directory);
-    if (bufp != NULL) {
-        set_workingdir(gapp, bufp);
-        XtFree(bufp);
-    }
-}
-
-#define FSB_CWD     0
-#define FSB_HOME    1
-#define FSB_ROOT    2
-#define FSB_CYGDRV  3
-
-static void fsb_cd_cb(OptionStructure *opt, int value, void *data)
-{
-    char *bufp;
-    XmString dir, pattern, dirmask;
-    Widget FSB = (Widget) data;
-    
-    switch (value) {
-    case FSB_CWD:
-        bufp = get_workingdir(gapp);
-        break;
-    case FSB_HOME:
-	bufp = grace_get_userhome(gapp->grace);
-        break;
-    case FSB_ROOT:
-        bufp = "/";
-        break;
-    case FSB_CYGDRV:
-        bufp = "/cygdrive/";
-        break;
-    default:
-        return;
-    }
-    
-    XtVaGetValues(FSB, XmNpattern, &pattern, NULL);
-    
-    dir = XmStringCreateLocalized(bufp);
-    dirmask = XmStringConcatAndFree(dir, pattern);
-
-    XmFileSelectionDoSearch(FSB, dirmask);
-    XmStringFree(dirmask);
-}
-
-static OptionItem fsb_items[] = {
-    {FSB_CWD,  "Cwd"},
-    {FSB_HOME, "Home"},
-    {FSB_ROOT, "/"}
-#ifdef __CYGWIN__
-    ,{FSB_CYGDRV, "My Computer"}
-#endif
-};
-
-#define FSB_ITEMS_NUM   sizeof(fsb_items)/sizeof(OptionItem)
-
-#if XmVersion >= 2000    
-static void show_hidden_cb(Widget but, int onoff, void *data)
-{
-    FSBStructure *fsb = (FSBStructure *) data;
-    XtVaSetValues(fsb->FSB, XmNfileFilterStyle,
-        onoff ? XmFILTER_NONE:XmFILTER_HIDDEN_FILES, NULL);
-}
-#endif
-
-
-FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
-{
-    FSBStructure *retval;
-    OptionStructure *opt;
-    Widget fr, form, button;
-    XmString xmstr;
-    char *bufp, *resname;
-    
-    retval = xmalloc(sizeof(FSBStructure));
-    resname = label_to_resname(s, "FSB");
-    retval->FSB = XmCreateFileSelectionDialog(parent, resname, NULL, 0);
-    xfree(resname);
-    retval->dialog = XtParent(retval->FSB);
-    handle_close(retval->dialog);
-    bufp = copy_string(NULL, "Grace: ");
-    bufp = concat_strings(bufp, s);
-    XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
-    xfree(bufp);
-    
-    xmstr = XmStringCreateLocalized(get_workingdir(gapp));
-    XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);
-    XmStringFree(xmstr);
-    
-    XtAddCallback(retval->FSB,
-        XmNcancelCallback, destroy_dialog, retval->dialog);
-    AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
-    
-    retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
-#if XmVersion >= 2000    
-    button = CreateToggleButton(retval->rc, "Show hidden files");
-    AddToggleButtonCB(button, show_hidden_cb, retval);
-    XtVaSetValues(retval->FSB, XmNfileFilterStyle, XmFILTER_HIDDEN_FILES, NULL);
-#endif
-    fr = CreateFrame(retval->rc, NULL);
-    form = XtVaCreateWidget("form", xmFormWidgetClass, fr, NULL);
-    opt = CreateOptionChoice(form, "Chdir to:", 1, FSB_ITEMS_NUM, fsb_items);
-    AddOptionChoiceCB(opt, fsb_cd_cb, (void *) retval->FSB);
-    button = CreateButton(form, "Set as cwd");
-    AddButtonCB(button, fsb_setcwd_cb, (void *) retval->FSB);
-
-    XtVaSetValues(opt->menu,
-        XmNleftAttachment, XmATTACH_FORM,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_NONE,
-        NULL);
-    XtVaSetValues(button,
-        XmNleftAttachment, XmATTACH_NONE,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_FORM,
-        NULL);
-    ManageChild(form);
-
-    ManageChild(retval->rc);
-
-    AddMouseWheelSupport(XmFileSelectionBoxGetChild(retval->FSB,
-        XmDIALOG_LIST));
-    AddMouseWheelSupport(XmFileSelectionBoxGetChild(retval->FSB,
-        XmDIALOG_DIR_LIST));
-        
-    return retval;
-}
-
-typedef struct {
-    FSBStructure *fsb;
-    FSB_CBProc cbproc;
-    void *anydata;
-} FSB_CBdata;
-
-static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    char *s;
-    int ok;
-    
-    FSB_CBdata *cbdata = (FSB_CBdata *) client_data;
-    XmFileSelectionBoxCallbackStruct *cbs =
-        (XmFileSelectionBoxCallbackStruct *) call_data;
-
-    s = GetStringSimple(cbs->value);
-    if (s == NULL) {
-	errmsg("Error converting XmString to char string");
-	return;
-    }
-
-    set_wait_cursor();
-
-    ok = cbdata->cbproc(cbdata->fsb, s, cbdata->anydata);
-    XtFree(s);
-    if (ok) {
-        UnmanageChild(cbdata->fsb->dialog);
-    }
-    unset_wait_cursor();
-}
-
-void AddFileSelectionBoxCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
-{
-    FSB_CBdata *cbdata;
-    
-    cbdata = xmalloc(sizeof(FSB_CBdata));
-    cbdata->fsb = fsb;
-    cbdata->cbproc = (FSB_CBProc) cbproc;
-    cbdata->anydata = anydata;
-    XtAddCallback(fsb->FSB,
-        XmNokCallback, fsb_int_cb_proc, (XtPointer) cbdata);
-}
-
-void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern)
-{
-    XmString xmstr;
-    
-    if (pattern != NULL) {
-        xmstr = XmStringCreateLocalized(pattern);
-        XtVaSetValues(fsb->FSB, XmNpattern, xmstr, NULL);
-        XmStringFree(xmstr);
-    }
 }
 
 static OptionItem *settype_option_items;
@@ -3541,6 +3301,10 @@ static void deletewidget(Widget w)
 }
 #endif
 
+static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    UnmanageChild((Widget) client_data);
+}
 /*
  * handle the close item on the WM menu
  */
@@ -3724,6 +3488,7 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
     return yesno_retval;
 }
 
+static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
 void SetFixedFont(Widget w)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;

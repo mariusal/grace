@@ -77,6 +77,22 @@ void DialogRaise(Widget form);
 void DialogClose(Widget form);
 void DialogSetResizable(Widget form, int onoff);
 
+/* File selection dialog */
+typedef struct {
+    Widget dialog;
+    Widget FSB;
+    Widget rc;
+} FSBStructure;
+FSBStructure *CreateFileSelectionBox(Widget parent, char *s);
+
+typedef int (*FSB_CBProc)(
+    FSBStructure *fsbp,
+    char *,              /* filename */
+    void *               /* data the application registered */
+);
+void AddFileSelectionBoxCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);
+void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern);
+
 /* Containers */
 Widget CreateVContainer(Widget parent);
 Widget CreateHContainer(Widget parent);

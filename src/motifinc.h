@@ -202,12 +202,6 @@ typedef struct {
 } SrcDestStructure;
 
 typedef struct {
-    Widget dialog;
-    Widget FSB;
-    Widget rc;
-} FSBStructure;
-
-typedef struct {
     Widget frame;
     OptionStructure *r_sel;
     Widget negate;
@@ -252,13 +246,6 @@ typedef struct {
     TDFree_CBProc  free_cb;
     TDRun_CBProc   run_cb;
 } TD_CBProcs;
-
-/* FileSelectionBox CB procedure */
-typedef int (*FSB_CBProc)(
-    FSBStructure *fsbp,
-    char *,              /* filename */
-    void *               /* data the application registered */
-);
 
 /* List CB procedure */
 typedef void (*List_CBProc)(
@@ -393,10 +380,6 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 double GetSpinChoice(SpinStructure *spinp);
 void SetSpinChoice(SpinStructure *spinp, double value);
 void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
-
-FSBStructure *CreateFileSelectionBox(Widget parent, char *s);
-void AddFileSelectionBoxCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);
-void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern);
 
 OptionStructure *CreateFontChoice(Widget parent, char *s);
 OptionStructure *CreatePatternChoice(Widget parent, char *s);
