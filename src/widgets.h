@@ -109,6 +109,9 @@ void FormFixateVChild(Widget w);
 /* Frame */
 Widget CreateFrame(Widget parent, char *s);
 
+/* Scrolled window */
+Widget CreateScrolledWindow(Widget parent);
+
 /* Label */
 Widget CreateLabel(Widget parent, char *s);
 void LabelSetString(Widget w, char *s);

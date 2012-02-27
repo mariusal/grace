@@ -59,7 +59,6 @@
 #include <Xm/PushB.h>
 #include <Xm/CascadeBG.h>
 #include <Xm/RowColumn.h>
-#include <Xm/ScrolledW.h>
 #include <Xm/Separator.h>
 #include <Xm/Text.h>
 #include <Xm/ScrollBar.h>
@@ -2869,14 +2868,6 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
 void RaiseTransformationDialog(TransformStructure *tdialog)
 {
     DialogRaise(tdialog->form);
-}
-
-Widget CreateScrolledWindow(Widget parent)
-{
-    return XtVaCreateManagedWidget("scrolledWindow",
-                                   xmScrolledWindowWidgetClass, parent,
-                                   XmNscrollingPolicy, XmAUTOMATIC,
-                                   NULL);
 }
 
 /* if user tried to close from WM */

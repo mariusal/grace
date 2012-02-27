@@ -295,8 +295,6 @@ void InitWidgets(void);
 
 Pixmap XpmToPixmap(char **xpm);
 
-Widget CreateScrolledWindow(Widget parent);
-
 Widget CreateSeparator(Widget parent);
 Widget CreateMenuSeparator(Widget parent);
 

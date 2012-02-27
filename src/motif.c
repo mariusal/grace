@@ -52,6 +52,7 @@
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Scale.h>
+#include <Xm/ScrolledW.h>
 #include <Xm/Text.h>
 #include <Xm/ToggleB.h>
 #include "Tab.h"
@@ -652,6 +653,15 @@ Widget CreateFrame(Widget parent, char *s)
     }
 
     return fr;
+}
+
+/* Scrolled window */
+Widget CreateScrolledWindow(Widget parent)
+{
+    return XtVaCreateManagedWidget("scrolledWindow",
+                                   xmScrolledWindowWidgetClass, parent,
+                                   XmNscrollingPolicy, XmAUTOMATIC,
+                                   NULL);
 }
 
 /* Label */
