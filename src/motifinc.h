@@ -125,17 +125,6 @@ struct _StorageStructure {
 };
 
 typedef struct {
-    int type;
-    double min;
-    double max;
-    double incr;
-    Widget rc;
-    Widget text;
-    Widget arrow_up;
-    Widget arrow_down;
-} SpinStructure;
-
-typedef struct {
     Widget popup;
     Widget label_item;
     Widget shownd_item;
@@ -270,13 +259,6 @@ typedef void (*Storage_DCCBProc)(
     void *data           /* data the application registered */
 );
 
-/* Spin Button CB procedure */
-typedef void (*Spin_CBProc)(
-    SpinStructure *spinp,
-    double,             /* value of spinner                 */
-    void *              /* data the application registered */
-);
-
 /* AAC Dialog CB procedure */
 typedef int (*AACDialog_CBProc)(
     void *               /* data the application registered */
@@ -353,12 +335,6 @@ void AddStorageChoiceCB(StorageStructure *ss,
     Storage_CBProc cbproc, void *anydata);
 void AddStorageChoiceDblClickCB(StorageStructure *ss,
     Storage_DCCBProc cbproc, void *anydata);
-
-SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
-                        int type, double min, double max, double incr);
-double GetSpinChoice(SpinStructure *spinp);
-void SetSpinChoice(SpinStructure *spinp, double value);
-void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
 
 OptionStructure *CreateFontChoice(Widget parent, char *s);
 OptionStructure *CreatePatternChoice(Widget parent, char *s);

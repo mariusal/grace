@@ -64,7 +64,6 @@
 #include <Xm/ScrolledW.h>
 #include <Xm/Separator.h>
 #include <Xm/Text.h>
-#include <Xm/ArrowBG.h>
 #include <Xm/ScrollBar.h>
 
 #include <Xbae/Matrix.h>
@@ -276,14 +275,6 @@ int GetOptionChoice(OptionStructure *opt)
     errmsg("Internal error in GetOptionChoice()");
     return 0;
 }
-
-typedef struct {
-    SpinStructure *spin;
-    Spin_CBProc cbproc;
-    void *anydata;
-    XtIntervalId timeout_id;
-} Spin_CBdata;
-
 
 static char list_translation_table[] = "\
     Ctrl<Key>E: list_activate_action()\n\
@@ -1116,233 +1107,6 @@ void AddStorageChoiceDblClickCB(StorageStructure *ss,
 }
 
 
-static void spin_arrow_cb(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    SpinStructure *spinp;
-    double value, incr;
-    
-    spinp = (SpinStructure *) client_data;
-    value = GetSpinChoice(spinp);
-    incr = spinp->incr;
-    
-    if (w == spinp->arrow_up) {
-        incr =  spinp->incr;
-    } else if (w == spinp->arrow_down) {
-        incr = -spinp->incr;
-    } else {
-        errmsg("Wrong call to spin_arrow_cb()");
-        return;
-    }
-    value += incr;
-    SetSpinChoice(spinp, value);
-}
-
-static void sp_double_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
-    XmAnyCallbackStruct* xmcb = call_data;
-
-    if (w == cbdata->spin->arrow_up   ||
-        w == cbdata->spin->arrow_down ||
-        xmcb->reason == XmCR_ACTIVATE) {
-        cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
-    }
-}
-
-static void sp_timer_proc(XtPointer client_data, XtIntervalId *id)
-{
-    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
-
-    cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
-    cbdata->timeout_id = (XtIntervalId) 0;
-}
-
-static void sp_ev_proc(Widget w,
-    XtPointer client_data, XEvent *event, Boolean *cont)
-{
-    XButtonPressedEvent *e = (XButtonPressedEvent *) event;
-    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
-
-    if (e->button == 4 || e->button == 5) {
-        /* we count elapsed time since the last event, so first remove
-           an existing timeout, if there is one */
-        if (cbdata->timeout_id) {
-            XtRemoveTimeOut(cbdata->timeout_id);
-        }
-        cbdata->timeout_id = XtAppAddTimeOut(app_con,
-            250 /* 0.25 second */, sp_timer_proc, client_data);
-    }
-}
-
-void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
-{
-    Spin_CBdata *cbdata;
-    
-    cbdata = xmalloc(sizeof(Spin_CBdata));
-    
-    cbdata->spin = spinp;
-    cbdata->cbproc = cbproc;
-    cbdata->anydata = anydata;
-    cbdata->timeout_id = (XtIntervalId) 0;
-    XtAddCallback(spinp->text,
-        XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
-    XtAddCallback(spinp->arrow_up,
-        XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
-    XtAddCallback(spinp->arrow_down,
-        XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
-    XtAddEventHandler(spinp->text,
-        ButtonPressMask, False, sp_ev_proc, (XtPointer) cbdata);
-}
-
-static void spin_updown(Widget parent,
-    XtPointer closure, XEvent *event, Boolean *cont)
-{
-    XButtonPressedEvent *e = (XButtonPressedEvent *) event;
-    SpinStructure *spinp = (SpinStructure *) closure;
-    double value, incr;
-    
-    if (e->button == 4) {
-        incr =  spinp->incr;
-    } else
-    if (e->button == 5) {
-        incr = -spinp->incr;
-    } else {
-        return;
-    }
-    value = GetSpinChoice(spinp) + incr;
-    SetSpinChoice(spinp, value);
-}
-
-SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
-                        int type, double min, double max, double incr)
-{
-    SpinStructure *retval;
-    Widget fr, form;
-    XmString str;
-    
-    if (min >= max) {
-        errmsg("min >= max in CreateSpinChoice()!");
-        return NULL;
-    }
-    
-    retval = xmalloc(sizeof(SpinStructure));
-    
-    retval->type = type;
-    retval->min = min;
-    retval->max = max;
-    retval->incr = incr;
-    
-    retval->rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, parent,
-        XmNorientation, XmHORIZONTAL,
-        NULL);
-    str = XmStringCreateLocalized(s);
-    XtVaCreateManagedWidget("label", xmLabelWidgetClass, retval->rc,
-	XmNlabelString, str,
-	NULL);
-    XmStringFree(str);
-    fr = XtVaCreateWidget("fr", xmFrameWidgetClass, retval->rc,
-        XmNshadowType, XmSHADOW_ETCHED_OUT,
-        NULL);
-    form = XtVaCreateWidget("form", xmFormWidgetClass, fr,
-        NULL);
-    retval->text = XtVaCreateWidget("text", xmTextWidgetClass, form,
-	XmNtraversalOn, True,
-	XmNcolumns, len,
-	NULL);
-
-    XtAddEventHandler(retval->text, ButtonPressMask, False, spin_updown, retval);
-
-    retval->arrow_up = XtVaCreateWidget("form", xmArrowButtonGadgetClass, form,
-        XmNarrowDirection, XmARROW_UP,
-        NULL);
-    XtAddCallback(retval->arrow_up, XmNactivateCallback,
-        spin_arrow_cb, (XtPointer) retval);
-    retval->arrow_down = XtVaCreateWidget("form", xmArrowButtonGadgetClass, form,
-        XmNarrowDirection, XmARROW_DOWN,
-        NULL);
-    XtAddCallback(retval->arrow_down, XmNactivateCallback,
-        spin_arrow_cb, (XtPointer) retval);
-    XtVaSetValues(retval->text,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNleftAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_NONE,
-        NULL);
-    XtVaSetValues(retval->arrow_down,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNleftAttachment, XmATTACH_WIDGET,
-        XmNleftWidget, retval->text,
-        XmNrightAttachment, XmATTACH_NONE,
-        NULL);
-    XtVaSetValues(retval->arrow_up,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_FORM,
-        XmNleftAttachment, XmATTACH_WIDGET,
-        XmNleftWidget, retval->arrow_down,
-        NULL);
-    
-    WidgetManage(retval->text);
-    WidgetManage(retval->arrow_up);
-    WidgetManage(retval->arrow_down);
-    WidgetManage(form);
-    WidgetManage(fr);
-    WidgetManage(retval->rc);
-    
-    return retval;
-}
-
-void SetSpinChoice(SpinStructure *spinp, double value)
-{
-    X11Stuff *xstuff = gapp->gui->xstuff;
-    char buf[64];
-    
-    if (value < spinp->min) {
-        XBell(xstuff->disp, 50);
-        value = spinp->min;
-    } else if (value > spinp->max) {
-        XBell(xstuff->disp, 50);
-        value = spinp->max;
-    }
-    
-    if (spinp->type == SPIN_TYPE_FLOAT) {
-        sprintf(buf, "%g", value);
-    } else {
-        sprintf(buf, "%d", (int) rint(value));
-    }
-    XmTextSetString(spinp->text, buf);
-}
-
-double GetSpinChoice(SpinStructure *spinp)
-{
-    double retval;
-    char *s;
-
-    s = XmTextGetString(spinp->text);
-
-    graal_eval_expr(grace_get_graal(gapp->grace),
-                    s, &retval,
-                    gproject_get_top(gapp->gp));
-
-    XtFree(s);
-    
-    if (retval < spinp->min) {
-        errmsg("Input value below min limit in GetSpinChoice()");
-        retval = spinp->min;
-        SetSpinChoice(spinp, retval);
-    } else if (retval > spinp->max) {
-        errmsg("Input value above max limit in GetSpinChoice()");
-        retval = spinp->max;
-        SetSpinChoice(spinp, retval);
-    }
-    
-    if (spinp->type == SPIN_TYPE_INT) {
-        return rint(retval);
-    } else {
-        return retval;
-    }
-}
 
 /*
  * same for AddButtonCB
@@ -3112,15 +2876,15 @@ void RaiseTransformationDialog(TransformStructure *tdialog)
 Widget CreateFrame(Widget parent, char *s)
 {
     Widget fr;
-    
+
     fr = XtVaCreateManagedWidget("frame", xmFrameWidgetClass, parent, NULL);
     if (s != NULL) {
         XtVaCreateManagedWidget(s, xmLabelGadgetClass, fr,
 				XmNchildType, XmFRAME_TITLE_CHILD,
 				NULL);
     }
-    
-    return (fr);   
+
+    return (fr);
 }
 
 Widget CreateScrolledWindow(Widget parent)

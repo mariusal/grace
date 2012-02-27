@@ -167,6 +167,29 @@ Widget CreateScale(Widget parent, char *s, int min, int max, int delta);
 void SetScaleValue(Widget w, int value);
 int GetScaleValue(Widget w);
 
+/* SpinChoice */
+typedef struct {
+    int type;
+    double min;
+    double max;
+    double incr;
+    Widget rc;
+    Widget text;
+    Widget arrow_up;
+    Widget arrow_down;
+} SpinStructure;
+SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
+                        int type, double min, double max, double incr);
+double GetSpinChoice(SpinStructure *spinp);
+void SetSpinChoice(SpinStructure *spinp, double value);
+
+typedef void (*Spin_CBProc)(
+    SpinStructure *spinp,
+    double,             /* value of spinner                 */
+    void *              /* data the application registered */
+);
+void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
+
 /* Paned window */
 Widget CreatePanedWindow(Widget parent);
 void PanedWindowSetMinWidth(Widget w, unsigned int width);
