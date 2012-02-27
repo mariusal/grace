@@ -2868,12 +2868,6 @@ void RaiseTransformationDialog(TransformStructure *tdialog)
     DialogRaise(tdialog->form);
 }
 
-/* if user tried to close from WM */
-static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    bailout(gapp);
-}
-
 static Widget *savewidgets = NULL;
 static int nsavedwidgets = 0;
 
@@ -2914,8 +2908,13 @@ static void deletewidget(Widget w)
 
 static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    WidgetUnmanage((Widget) client_data);
+    if (w == app_shell) {
+        bailout(gapp);
+    } else {
+        WidgetUnmanage((Widget) client_data);
+    }
 }
+
 /*
  * handle the close item on the WM menu
  */
@@ -2925,10 +2924,9 @@ void handle_close(Widget w)
     Atom WM_DELETE_WINDOW;
     
     XtVaSetValues(w, XmNdeleteResponse, XmDO_NOTHING, NULL);
+
     WM_DELETE_WINDOW = XmInternAtom(xstuff->disp, "WM_DELETE_WINDOW", False);
-    XmAddProtocolCallback(w,
-        XM_WM_PROTOCOL_ATOM(w), WM_DELETE_WINDOW,
-        (w == app_shell) ? wm_exit_cb : destroy_dialog, w);
+    XmAddWMProtocolCallback(w, WM_DELETE_WINDOW, destroy_dialog, w);
     
     savewidget(w);
 }
