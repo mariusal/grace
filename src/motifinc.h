@@ -318,7 +318,7 @@ void Beep(void);
 
 void InitWidgets(void);
 
-Pixmap XpmToPixmap(char *xpm);
+Pixmap XpmToPixmap(char **xpm);
 
 Widget CreateFrame(Widget parent, char *s);
 

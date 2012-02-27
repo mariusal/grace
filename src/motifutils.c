@@ -2881,7 +2881,7 @@ SpinStructure *CreateCharSizeChoice(Widget parent, char *s)
     return CreateSpinChoice(parent, s, 4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
 }
 
-Pixmap XpmToPixmap(char *xpm)
+Pixmap XpmToPixmap(char **xpm)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
     Pixel bg;
@@ -2898,7 +2898,7 @@ Pixmap XpmToPixmap(char *xpm)
     attrib.numsymbols   = 1;
 
     XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
-        xpm, &pixmap, NULL, &attrib);
+                            xpm, &pixmap, NULL, &attrib);
 
     return pixmap;
 }
