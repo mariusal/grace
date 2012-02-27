@@ -443,11 +443,11 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
     resname = label_to_resname(s, "FSB");
     retval->FSB = XmCreateFileSelectionDialog(parent, resname, NULL, 0);
     xfree(resname);
-    retval->dialog = XtParent(retval->FSB);
-    handle_close(retval->dialog);
+
+    handle_close(XtParent(retval->FSB));
     bufp = copy_string(NULL, "Grace: ");
     bufp = concat_strings(bufp, s);
-    XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
+    XtVaSetValues(XtParent(retval->FSB), XmNtitle, bufp, NULL);
     xfree(bufp);
 
     xmstr = XmStringCreateLocalized(get_workingdir(gapp));
@@ -455,7 +455,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
     XmStringFree(xmstr);
 
     XtAddCallback(retval->FSB,
-        XmNcancelCallback, destroy_dialog, retval->dialog);
+        XmNcancelCallback, destroy_dialog, XtParent(retval->FSB));
     AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
 
     retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
@@ -521,7 +521,7 @@ static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data
     ok = cbdata->cbproc(cbdata->fsb, s, cbdata->anydata);
     XtFree(s);
     if (ok) {
-        WidgetUnmanage(cbdata->fsb->dialog);
+        DialogClose(cbdata->fsb->FSB);
     }
     unset_wait_cursor();
 }

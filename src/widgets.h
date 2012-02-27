@@ -83,7 +83,6 @@ void DialogSetResizable(Widget form, int onoff);
 
 /* File selection dialog */
 typedef struct {
-    Widget dialog;
     Widget FSB;
     Widget rc;
 } FSBStructure;
