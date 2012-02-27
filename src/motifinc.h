@@ -277,13 +277,6 @@ typedef void (*Spin_CBProc)(
     void *              /* data the application registered */
 );
 
-/* Scale input CB procedure */
-typedef void (*Scale_CBProc )(
-    Widget scale,
-    int,                /* scale value                     */
-    void *              /* data the application registered */
-);
-
 /* AAC Dialog CB procedure */
 typedef int (*AACDialog_CBProc)(
     void *               /* data the application registered */
@@ -330,8 +323,6 @@ Widget CreateMenuSeparator(Widget parent);
 Widget CreateScale(Widget parent, char *s, int min, int max, int delta);
 void SetScaleValue(Widget w, int value);
 int GetScaleValue(Widget w);
-void SetScaleWidth(Widget w, int width);
-void AddScaleCB(Widget w, Scale_CBProc cbproc, void *);
 
 SpinStructure *CreateCharSizeChoice(Widget parent, char *s);
 

@@ -285,12 +285,6 @@ typedef struct {
     XtIntervalId timeout_id;
 } Spin_CBdata;
 
-typedef struct {
-    Widget scale;
-    Scale_CBProc cbproc;
-    void *anydata;
-} Scale_CBdata;
-
 
 static char list_translation_table[] = "\
     Ctrl<Key>E: list_activate_action()\n\
@@ -2820,27 +2814,6 @@ Widget CreateScale(Widget parent, char *s, int min, int max, int delta)
     return w;
 }
 
-void scale_int_cb_proc( Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Scale_CBdata *cbdata = (Scale_CBdata *) client_data;
- 
-    cbdata->cbproc(cbdata->scale, GetScaleValue(cbdata->scale), cbdata->anydata);
-}
-
-void AddScaleCB(Widget w, Scale_CBProc cbproc, void *anydata)
-{
-    Scale_CBdata *cbdata;
-    
-    cbdata = xmalloc(sizeof(Scale_CBdata));
-    
-    cbdata->scale = w;
-    cbdata->cbproc = cbproc;
-    cbdata->anydata = anydata;
-    XtAddCallback(w,
-        XmNvalueChangedCallback, scale_int_cb_proc, (XtPointer) cbdata);
-}
-
-
 void SetScaleValue(Widget w, int value)
 {
     XtVaSetValues(w, XmNvalue, value, NULL);
@@ -2851,11 +2824,6 @@ int GetScaleValue(Widget w)
     int value;
     XtVaGetValues(w, XmNvalue, &value, NULL);
     return value;
-}
-
-void SetScaleWidth(Widget w, int width)
-{
-    XtVaSetValues(w, XmNscaleWidth, (Dimension) width, NULL);
 }
 
 SpinStructure *CreateAngleChoice(Widget parent, char *s)
