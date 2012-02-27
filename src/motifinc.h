@@ -428,8 +428,6 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
     int *nssrc, Quark ***srcsets, Quark ***destsets);
 void RaiseTransformationDialog(TransformStructure *tdialog);
 
-void SetFixedFont(Widget w);
-
 void AddHelpCB(Widget w, char *ha);
 void ContextHelpCB(Widget w, void *data);
 

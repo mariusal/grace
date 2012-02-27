@@ -3402,24 +3402,6 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
     return yesno_retval;
 }
 
-static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
-void SetFixedFont(Widget w)
-{
-    X11Stuff *xstuff = gapp->gui->xstuff;
-    XFontStruct *f;
-    XmFontList xmf;
-
-    f = XLoadQueryFont(xstuff->disp, "fixed");
-    xmf = XmFontListCreate(f, charset);
-    if (xmf == NULL) {
-        errmsg("Can't load font \"fixed\"");
-        return;
-    } else {
-        XtVaSetValues(w, XmNfontList, xmf, NULL);
-        XmFontListFree(xmf);
-    }
-}
-
 void update_set_lists(Quark *gr)
 {
     update_set_selectors(gr);
