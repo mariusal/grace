@@ -97,6 +97,11 @@ void WidgetSetSensitive(Widget w, int onoff)
     XtSetSensitive(w, onoff ? True : False);
 }
 
+void WidgetSetWidth(Widget w, unsigned int width)
+{
+    XtVaSetValues(w, XmNwidth, (Dimension) width, NULL);
+}
+
 void WidgetSetHeight(Widget w, unsigned int height)
 {
     XtVaSetValues(w, XmNheight, (Dimension) height, NULL);

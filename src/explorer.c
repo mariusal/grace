@@ -1039,7 +1039,7 @@ void raise_explorer(GUI *gui, Quark *q)
         PlaceGridChild(panel, eui->scrolled_window, 1, 0); /* in case if CreatePanedWindow creates a grid */
 
         PanedWindowSetMinWidth(form, 150);
-        WidgetSetSize(form, 250, 0);
+        WidgetSetWidth(form, 250);
 
         WidgetManage(form);
 
