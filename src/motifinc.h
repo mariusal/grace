@@ -325,7 +325,6 @@ void CreatePixmaps(ExplorerUI *eui);
 Widget CreateFrame(Widget parent, char *s);
 
 Widget CreateScrolledWindow(Widget parent);
-Widget CreatePanedWindow(Widget parent);
 
 Widget CreateSeparator(Widget parent);
 Widget CreateMenuSeparator(Widget parent);

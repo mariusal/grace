@@ -67,12 +67,6 @@
 #include <Xm/Text.h>
 #include <Xm/ArrowBG.h>
 #include <Xm/ScrollBar.h>
-#if XmVersion >= 2000
-# define USE_PANEDW 1
-#  include <Xm/PanedW.h>
-#else
-# define USE_PANEDW 0
-#endif
 
 #include <Xbae/Matrix.h>
 #include "ListTree.h"
@@ -3212,18 +3206,6 @@ Widget CreateScrolledWindow(Widget parent)
                                    xmScrolledWindowWidgetClass, parent,
                                    XmNscrollingPolicy, XmAUTOMATIC,
                                    NULL);
-}
-
-Widget CreatePanedWindow(Widget parent)
-{
-#if USE_PANEDW
-    return XtVaCreateManagedWidget("panedWindow",
-                                   xmPanedWindowWidgetClass, parent,
-                                   XmNorientation, XmHORIZONTAL,
-                                   NULL);
-#else
-    return CreateGrid(parent, 2, 1);
-#endif
 }
 
 /* if user tried to close from WM */

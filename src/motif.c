@@ -38,6 +38,14 @@
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
+
+#if XmVersion >= 2000
+# define USE_PANEDW 1
+#  include <Xm/PanedW.h>
+#else
+# define USE_PANEDW 0
+#endif
+
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Text.h>
@@ -879,6 +887,19 @@ void SetToggleButtonState(Widget w, int value)
     XmToggleButtonSetState(w, value ? True:False, False);
 
     return;
+}
+
+/* Paned window */
+Widget CreatePanedWindow(Widget parent)
+{
+#if USE_PANEDW
+    return XtVaCreateManagedWidget("panedWindow",
+                                   xmPanedWindowWidgetClass, parent,
+                                   XmNorientation, XmHORIZONTAL,
+                                   NULL);
+#else
+    return CreateGrid(parent, 2, 1);
+#endif
 }
 
 /* Grid */

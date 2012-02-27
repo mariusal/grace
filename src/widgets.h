@@ -163,6 +163,9 @@ Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);
 void SetToggleButtonState(Widget w, int value);
 
+/* Paned window */
+Widget CreatePanedWindow(Widget parent);
+
 /* Grid */
 Widget CreateGrid(Widget parent, int ncols, int nrows);
 void PlaceGridChild(Widget grid, Widget w, int col, int row);
