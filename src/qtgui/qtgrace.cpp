@@ -929,7 +929,7 @@ Widget GetParent(Widget w)
 //#endif
 //}
 
-void SetHeight(Widget w, unsigned int height)
+void WidgetSetHeight(Widget w, unsigned int height)
 {
     if (QScrollArea *scrollArea = qobject_cast<QScrollArea *>(w->parent()->parent())) {
         scrollArea->setMinimumHeight(height);

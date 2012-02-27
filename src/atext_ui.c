@@ -56,7 +56,7 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     
     /* A dirty workaround, since Tab's geomanager chokes on this one */
 #ifdef MOTIF_GUI
-    SetHeight(XtParent(ui->text->text), 100);
+    WidgetSetHeight(XtParent(ui->text->text), 100);
 #endif
     
     AddTextActivateCB(ui->text, text_explorer_cb, eui);

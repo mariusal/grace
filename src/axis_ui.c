@@ -248,7 +248,7 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     CreateLabel(ui->special_tp, "Tick location - Label:");
 
     ui->sw = CreateScrolledWindow(ui->special_tp);
-    SetHeight(ui->sw, 320);
+    WidgetSetHeight(ui->sw, 320);
 
     rc = CreateVContainer(ui->sw);
 
