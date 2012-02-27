@@ -55,7 +55,6 @@
 #include <Xm/FileSB.h>
 #include <Xm/Frame.h>
 #include <Xm/Form.h>
-#include <Xm/Scale.h>
 #include <Xm/Label.h>
 #include <Xm/LabelG.h>
 #include <Xm/List.h>
@@ -2786,45 +2785,6 @@ OptionStructure *CreatePaperFormatChoice(Widget parent, char *s)
         NULL);
 }
 
-
-Widget CreateScale(Widget parent, char *s, int min, int max, int delta)
-{
-    Widget w;
-    XmString str;
-
-    str = XmStringCreateLocalized(s);
-    
-    w = XtVaCreateManagedWidget("scroll",
-        xmScaleWidgetClass, parent,
-	XmNtitleString, str,
-	XmNminimum, min,
-	XmNmaximum, max,
-        XmNscaleMultiple, delta,
-	XmNvalue, 0,
-	XmNshowValue, True,
-	XmNprocessingDirection, XmMAX_ON_RIGHT,
-	XmNorientation, XmHORIZONTAL,
-#if XmVersion >= 2000    
-	XmNsliderMark, XmROUND_MARK,
-#endif
-	NULL);
-
-    XmStringFree(str);
-    
-    return w;
-}
-
-void SetScaleValue(Widget w, int value)
-{
-    XtVaSetValues(w, XmNvalue, value, NULL);
-}
-
-int GetScaleValue(Widget w)
-{
-    int value;
-    XtVaGetValues(w, XmNvalue, &value, NULL);
-    return value;
-}
 
 SpinStructure *CreateAngleChoice(Widget parent, char *s)
 {

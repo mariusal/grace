@@ -162,6 +162,11 @@ Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);
 void SetToggleButtonState(Widget w, int value);
 
+/* Scale */
+Widget CreateScale(Widget parent, char *s, int min, int max, int delta);
+void SetScaleValue(Widget w, int value);
+int GetScaleValue(Widget w);
+
 /* Paned window */
 Widget CreatePanedWindow(Widget parent);
 void PanedWindowSetMinWidth(Widget w, unsigned int width);

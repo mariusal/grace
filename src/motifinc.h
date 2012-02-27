@@ -320,10 +320,6 @@ Widget CreateScrolledWindow(Widget parent);
 Widget CreateSeparator(Widget parent);
 Widget CreateMenuSeparator(Widget parent);
 
-Widget CreateScale(Widget parent, char *s, int min, int max, int delta);
-void SetScaleValue(Widget w, int value);
-int GetScaleValue(Widget w);
-
 SpinStructure *CreateCharSizeChoice(Widget parent, char *s);
 
 SpinStructure *CreateAngleChoice(Widget parent, char *s);
