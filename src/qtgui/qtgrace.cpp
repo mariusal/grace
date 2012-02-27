@@ -884,7 +884,7 @@ void WidgetUnmanage(Widget w)
 //{
 //    return (XtIsManaged(w) == True) ? TRUE:FALSE;
 //}
-int IsManaged(Widget w)
+int WidgetIsManaged(Widget w)
 {
     return TRUE;
 }

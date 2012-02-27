@@ -44,7 +44,7 @@
 /* Widgets */
 void WidgetManage(Widget w);
 void WidgetUnmanage(Widget w);
-int IsManaged(Widget w);
+int WidgetIsManaged(Widget w);
 void *GetUserData(Widget w);
 void SetUserData(Widget w, void *udata);
 void WidgetSetSensitive(Widget w, int onoff);

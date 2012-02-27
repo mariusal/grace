@@ -120,7 +120,7 @@ static void update_line_ui(LineUI *ui, DOLineData *odata)
 
 static void set_line_odata(LineUI *ui, DOLineData *odata, void *caller)
 {
-    if (ui && odata && IsManaged(ui->top)) {
+    if (ui && odata && WidgetIsManaged(ui->top)) {
         if (!caller || caller == ui->v_x) {
             odata->vector.x = GetSpinChoice(ui->v_x);
         }
@@ -201,7 +201,7 @@ static void update_box_ui(BoxUI *ui, DOBoxData *odata)
 
 static void set_box_odata(BoxUI *ui, DOBoxData *odata, void *caller)
 {
-    if (ui && odata && IsManaged(ui->top)) {
+    if (ui && odata && WidgetIsManaged(ui->top)) {
         if (!caller || caller == ui->width) {
             odata->width  = GetSpinChoice(ui->width);
         }
@@ -244,7 +244,7 @@ static void update_arc_ui(ArcUI *ui, DOArcData *odata)
 
 static void set_arc_odata(ArcUI *ui, DOArcData *odata, void *caller)
 {
-    if (ui && odata && IsManaged(ui->top)) {
+    if (ui && odata && WidgetIsManaged(ui->top)) {
         if (!caller || caller == ui->width) {
             odata->width  = GetSpinChoice(ui->width);
         }

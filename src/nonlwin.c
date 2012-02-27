@@ -587,11 +587,11 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
             xv_setstr(ui->uppb_item[i], buf);
             WidgetSetSensitive(ui->uppb_item[i], nlp->constr);
             if (i < nlfit->parnum) {
-                if (!IsManaged (ui->parm_item[i])) {
+                if (!WidgetIsManaged (ui->parm_item[i])) {
                     WidgetManage(ui->parm_item[i]);
                 }
             } else {
-                if (IsManaged (ui->parm_item[i])) {
+                if (WidgetIsManaged (ui->parm_item[i])) {
                     WidgetUnmanage(ui->parm_item[i]);
                 }
             }
