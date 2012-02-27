@@ -51,7 +51,6 @@ void WidgetSetSensitive(Widget w, int onoff);
 void WidgetSetHeight(Widget w, unsigned int height);
 void WidgetSetSize(Widget w, unsigned int width, unsigned int height);
 void WidgetGetSize(Widget w, unsigned int *width, unsigned int *height);
-void WidgetSetMinWidth(Widget w, unsigned int width);
 
 typedef void (*Key_CBProc)(void *anydata);
 typedef struct {
@@ -165,6 +164,7 @@ void SetToggleButtonState(Widget w, int value);
 
 /* Paned window */
 Widget CreatePanedWindow(Widget parent);
+void PanedWindowSetMinWidth(Widget w, unsigned int width);
 
 /* Grid */
 Widget CreateGrid(Widget parent, int ncols, int nrows);

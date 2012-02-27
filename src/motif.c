@@ -115,11 +115,6 @@ void WidgetGetSize(Widget w, unsigned int *width, unsigned int *height)
     *height = (unsigned int) wh;
 }
 
-void WidgetSetMinWidth(Widget w, unsigned int width)
-{
-    XtVaSetValues(w, XmNpaneMinimum, (Dimension) width, NULL);
-}
-
 static int toolkit_modifiers_to_grace_modifiers(void *event)
 {
     XKeyEvent *xke;
@@ -900,6 +895,11 @@ Widget CreatePanedWindow(Widget parent)
 #else
     return CreateGrid(parent, 2, 1);
 #endif
+}
+
+void PanedWindowSetMinWidth(Widget w, unsigned int width)
+{
+    XtVaSetValues(w, XmNpaneMinimum, (Dimension) width, NULL);
 }
 
 /* Grid */

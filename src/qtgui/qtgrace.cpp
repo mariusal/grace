@@ -973,7 +973,7 @@ void WidgetGetSize(Widget w, unsigned int *width, unsigned int *height)
     *height = (unsigned int) wh;
 }
 
-void WidgetSetMinWidth(Widget w, unsigned int width)
+void PanedWindowSetMinWidth(Widget w, unsigned int width)
 {
     w->setMinimumSize(width, 0);
 }
