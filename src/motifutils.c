@@ -52,7 +52,6 @@
 #include <Xm/Protocols.h>
 #include <Xm/BulletinB.h>
 #include <Xm/MessageB.h>
-#include <Xm/FileSB.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
 #include <Xm/List.h>

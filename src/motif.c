@@ -30,6 +30,7 @@
 #include "widgets.h"
 
 #include "events.h"
+#include "utils.h"
 
 #include <ctype.h>
 #include <stdarg.h>
@@ -37,6 +38,7 @@
 #include <Xm/ArrowBG.h>
 #include <Xm/CascadeBG.h>
 #include <Xm/DialogS.h>
+#include <Xm/FileSB.h>
 #include <Xm/Form.h>
 #include <Xm/Frame.h>
 #include <Xm/Label.h>
