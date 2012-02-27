@@ -262,6 +262,9 @@ void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *any
 
     if (!strcmp(callback, "modifyVerify"))
         XtAddCallback(w,  XmNmodifyVerifyCallback, widgetCB, (XtPointer) cbdata);
+
+    if (!strcmp(callback, "cancel"))
+        XtAddCallback(w,  XmNcancelCallback, widgetCB, (XtPointer) cbdata);
 }
 
 static char *label_to_resname(const char *s, const char *suffix)
@@ -304,14 +307,9 @@ Widget CreateDialog(Widget parent, const char *s)
 
     handle_close(dialog);
 
-    bufp = copy_string(NULL, "Grace: ");
-    bufp = concat_strings(bufp, s);
-    XtVaSetValues(dialog,
-        XmNtitle, bufp,
-        NULL);
-    xfree(bufp);
-
     w = CreateForm(dialog);
+
+    DialogSetTitle(w, s);
 
     return w;
 }
@@ -327,6 +325,18 @@ void DialogRaise(Widget form)
 void DialogClose(Widget form)
 {
     WidgetUnmanage(XtParent(form));
+}
+
+void DialogSetTitle(Widget form, const char *s)
+{
+    char *bufp;
+
+    bufp = copy_string(NULL, "Grace: ");
+    bufp = concat_strings(bufp, s);
+    XtVaSetValues(XtParent(form),
+        XmNtitle, bufp,
+        NULL);
+    xfree(bufp);
 }
 
 void DialogSetResizable(Widget form, int onoff)
@@ -351,11 +361,6 @@ static char *GetStringSimple(XmString xms)
     } else {
         return NULL;
     }
-}
-
-static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    WidgetUnmanage((Widget) client_data);
 }
 
 static void fsb_setcwd_cb(Widget but, void *data)
@@ -430,6 +435,10 @@ static void show_hidden_cb(Widget but, int onoff, void *data)
 }
 #endif
 
+static void destroy_dialog(Widget_CBData *wcbdata)
+{
+    DialogClose(wcbdata->anydata);
+}
 
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 {
@@ -437,7 +446,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
     OptionStructure *opt;
     Widget fr, form, button;
     XmString xmstr;
-    char *bufp, *resname;
+    char *resname;
 
     retval = xmalloc(sizeof(FSBStructure));
     resname = label_to_resname(s, "FSB");
@@ -445,47 +454,36 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
     xfree(resname);
 
     handle_close(XtParent(retval->FSB));
-    bufp = copy_string(NULL, "Grace: ");
-    bufp = concat_strings(bufp, s);
-    XtVaSetValues(XtParent(retval->FSB), XmNtitle, bufp, NULL);
-    xfree(bufp);
+
+    DialogSetTitle(retval->FSB, s);
 
     xmstr = XmStringCreateLocalized(get_workingdir(gapp));
     XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);
     XmStringFree(xmstr);
 
-    XtAddCallback(retval->FSB,
-        XmNcancelCallback, destroy_dialog, XtParent(retval->FSB));
+    AddWidgetCB(retval->FSB, "cancel", destroy_dialog, retval->FSB);
     AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
 
-    retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
+    retval->rc = CreateVContainer(retval->FSB);
 #if XmVersion >= 2000
     button = CreateToggleButton(retval->rc, "Show hidden files");
     AddToggleButtonCB(button, show_hidden_cb, retval);
     XtVaSetValues(retval->FSB, XmNfileFilterStyle, XmFILTER_HIDDEN_FILES, NULL);
 #endif
     fr = CreateFrame(retval->rc, NULL);
-    form = XtVaCreateWidget("form", xmFormWidgetClass, fr, NULL);
+
+    form = CreateForm(fr);
+
     opt = CreateOptionChoice(form, "Chdir to:", 1, FSB_ITEMS_NUM, fsb_items);
     AddOptionChoiceCB(opt, fsb_cd_cb, (void *) retval->FSB);
+    FormAddHChild(form, opt->menu);
+
     button = CreateButton(form, "Set as cwd");
     AddButtonCB(button, fsb_setcwd_cb, (void *) retval->FSB);
+    FormAddHChild(form, button);
+    FormFixateHChild(button);
 
-    XtVaSetValues(opt->menu,
-        XmNleftAttachment, XmATTACH_FORM,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_NONE,
-        NULL);
-    XtVaSetValues(button,
-        XmNleftAttachment, XmATTACH_NONE,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_FORM,
-        NULL);
     WidgetManage(form);
-
-    WidgetManage(retval->rc);
 
     AddMouseWheelSupport(XmFileSelectionBoxGetChild(retval->FSB,
         XmDIALOG_LIST));
@@ -636,6 +634,16 @@ void FormAddVChild(Widget form, Widget child)
         XmNbottomAttachment, XmATTACH_FORM,
         NULL);
     WidgetSetUserData(form, child);
+}
+
+void FormFixateHChild(Widget w)
+{
+    Widget prev;
+    XtVaGetValues(w, XmNleftWidget, &prev, NULL);
+    XtVaSetValues(w, XmNleftAttachment, XmATTACH_NONE, NULL);
+    XtVaSetValues(prev, XmNrightAttachment, XmATTACH_WIDGET,
+        XmNrightWidget, w,
+        NULL);
 }
 
 void FormFixateVChild(Widget w)

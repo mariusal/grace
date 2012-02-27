@@ -79,6 +79,7 @@ void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *any
 Widget CreateDialog(Widget parent, const char *s);
 void DialogRaise(Widget form);
 void DialogClose(Widget form);
+void DialogSetTitle(Widget form, const char *s);
 void DialogSetResizable(Widget form, int onoff);
 
 /* File selection dialog */
@@ -104,6 +105,7 @@ Widget CreateHContainer(Widget parent);
 Widget CreateForm(Widget parent);
 void FormAddHChild(Widget form, Widget child);
 void FormAddVChild(Widget form, Widget child);
+void FormFixateHChild(Widget w);
 void FormFixateVChild(Widget w);
 
 /* Grid */
