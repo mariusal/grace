@@ -71,7 +71,7 @@ void *WidgetGetUserData(Widget w)
     return udata;
 }
 
-void SetUserData(Widget w, void *udata)
+void WidgetSetUserData(Widget w, void *udata)
 {
     XtVaSetValues(w, XmNuserData, udata, NULL);
 }
@@ -588,7 +588,7 @@ void FormAddHChild(Widget form, Widget child)
         XmNbottomAttachment, XmATTACH_FORM,
         XmNrightAttachment, XmATTACH_FORM,
         NULL);
-    SetUserData(form, child);
+    WidgetSetUserData(form, child);
 }
 
 void FormAddVChild(Widget form, Widget child)
@@ -619,7 +619,7 @@ void FormAddVChild(Widget form, Widget child)
         XmNrightAttachment, XmATTACH_FORM,
         XmNbottomAttachment, XmATTACH_FORM,
         NULL);
-    SetUserData(form, child);
+    WidgetSetUserData(form, child);
 }
 
 void FormFixateVChild(Widget w)

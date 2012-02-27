@@ -46,7 +46,7 @@ void WidgetManage(Widget w);
 void WidgetUnmanage(Widget w);
 int WidgetIsManaged(Widget w);
 void *WidgetGetUserData(Widget w);
-void SetUserData(Widget w, void *udata);
+void WidgetSetUserData(Widget w, void *udata);
 void WidgetSetSensitive(Widget w, int onoff);
 void SetHeight(Widget w, unsigned int height);
 void SetDimensions(Widget w, unsigned int width, unsigned int height);

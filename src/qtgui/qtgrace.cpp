@@ -997,7 +997,7 @@ void *WidgetGetUserData(Widget w)
 //{
 //    XtVaSetValues(w, XmNuserData, udata, NULL);
 //}
-void SetUserData(Widget w, void *udata)
+void WidgetSetUserData(Widget w, void *udata)
 {
     w->setUserData(0, (QObjectUserData *) udata);
 }
@@ -1680,7 +1680,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
 
     fontid = (int *) xmalloc(SIZEOF_INT);
     *fontid = -1;
-    SetUserData(retval->menu, fontid);
+    WidgetSetUserData(retval->menu, fontid);
 
     return retval;
 }
@@ -5211,7 +5211,7 @@ static void pen_popup(Widget w, XtPointer client_data, XtPointer call_data)
     //    }
 
     QMenu *menu = (QMenu *) popup->parentWidget();
-    SetUserData(popup, w);
+    WidgetSetUserData(popup, w);
 
     menu->popup(QCursor::pos());
 }
@@ -5583,7 +5583,7 @@ Widget CreatePenChoice(Widget parent, char *s)
 
     QPushButton *button = new QPushButton(parent);
 
-    SetUserData(button, pdata);
+    WidgetSetUserData(button, pdata);
 
     AddHelpCB(button, "doc/UsersGuide.html#pen-chooser");
 
@@ -9509,7 +9509,7 @@ Widget CreateTable(char *name, Widget parent, int nrows, int ncols, int nrows_vi
     td->nrows_visible = nrows_visible;
     td->ncols_visible = ncols_visible;
 
-    SetUserData(view, td);
+    WidgetSetUserData(view, td);
 
     view->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     view->setEditTriggers(QAbstractItemView::NoEditTriggers);

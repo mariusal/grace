@@ -243,7 +243,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
     
     fontid = xmalloc(SIZEOF_INT);
     *fontid = -1;
-    SetUserData(retval->menu, fontid);
+    WidgetSetUserData(retval->menu, fontid);
     
     return retval;
 }
@@ -1735,7 +1735,7 @@ static void pen_popup(Widget parent,
         popup = pdata->color_popup;
     }
     
-    SetUserData(popup, parent);
+    WidgetSetUserData(popup, parent);
     
     XmMenuPosition(popup, e);
     WidgetManage(popup);
@@ -3697,7 +3697,7 @@ Widget CreateTree(Widget parent)
     cbdata->w = w;
     cbdata->timeout_id = (XtIntervalId) 0;
 
-    SetUserData(w, cbdata);
+    WidgetSetUserData(w, cbdata);
 
     return w;
 }
@@ -3948,7 +3948,7 @@ Widget CreateTable(char *name, Widget parent, int nrows, int ncols, int nrows_vi
         XmNvisibleColumns, ncols_visible,
         NULL);
 
-    SetUserData(w, td);
+    WidgetSetUserData(w, td);
 
     return w;
 }
