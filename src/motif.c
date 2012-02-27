@@ -81,6 +81,37 @@ void WidgetSetSensitive(Widget w, int onoff)
     XtSetSensitive(w, onoff ? True : False);
 }
 
+void SetHeight(Widget w, unsigned int height)
+{
+    XtVaSetValues(w, XmNheight, (Dimension) height, NULL);
+}
+
+void SetDimensions(Widget w, unsigned int width, unsigned int height)
+{
+    XtVaSetValues(w,
+        XmNwidth, (Dimension) width,
+        XmNheight, (Dimension) height,
+        NULL);
+}
+
+void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
+{
+    Dimension ww, wh;
+
+    XtVaGetValues(w,
+        XmNwidth, &ww,
+        XmNheight, &wh,
+        NULL);
+
+    *width  = (unsigned int) ww;
+    *height = (unsigned int) wh;
+}
+
+void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height)
+{
+    XtVaSetValues(w, XmNpaneMinimum, width, NULL);
+}
+
 static int toolkit_modifiers_to_grace_modifiers(void *event)
 {
     XKeyEvent *xke;

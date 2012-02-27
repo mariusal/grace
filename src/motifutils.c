@@ -121,37 +121,6 @@ void ShowMenu(Widget w, void *data)
     ManageChild(w);
 }
 
-void SetHeight(Widget w, unsigned int height)
-{
-    XtVaSetValues(w, XmNheight, (Dimension) height, NULL);
-}
-
-void SetDimensions(Widget w, unsigned int width, unsigned int height)
-{
-    XtVaSetValues(w,
-        XmNwidth, (Dimension) width,
-        XmNheight, (Dimension) height,
-        NULL);
-}
-
-void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
-{
-    Dimension ww, wh;
-
-    XtVaGetValues(w,
-        XmNwidth, &ww,
-        XmNheight, &wh,
-        NULL);
-
-    *width  = (unsigned int) ww;
-    *height = (unsigned int) wh;
-}
-
-void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height)
-{
-    XtVaSetValues(w, XmNpaneMinimum, width, NULL);
-}
-
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items)
 {

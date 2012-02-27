@@ -320,11 +320,6 @@ void InitWidgets(void);
 
 void ShowMenu(Widget w, void *data);
 
-void SetHeight(Widget w, unsigned int height);
-void SetDimensions(Widget w, unsigned int width, unsigned int height);
-void GetDimensions(Widget w, unsigned int *width, unsigned int *height);
-void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height);
-
 void CreatePixmaps(ExplorerUI *eui);
 
 Widget CreateFrame(Widget parent, char *s);
