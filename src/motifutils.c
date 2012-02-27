@@ -181,7 +181,7 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
 void UpdateCharOptionChoice(OptionStructure *opt, int font)
 {
     int *old_font;
-    old_font = (int *) GetUserData(opt->menu);
+    old_font = (int *) WidgetGetUserData(opt->menu);
     if (*old_font != font) {
         int i, csize = 24;
         for (i = 0; i < opt->nchoices; i++) {
@@ -1682,7 +1682,7 @@ static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
         return;
     }
     
-    pdata = GetUserData(button);
+    pdata = WidgetGetUserData(button);
     pdata->pen = *pen;
     
     if (!gc_pen) {
@@ -1727,7 +1727,7 @@ static void pen_popup(Widget parent,
         return;
     }
     
-    pdata = GetUserData(parent);
+    pdata = WidgetGetUserData(parent);
     
     if (e->state & ShiftMask) {
         popup = pdata->pattern_popup;
@@ -1744,10 +1744,10 @@ static void pen_popup(Widget parent,
 static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Pen pen;
-    Widget button = GetUserData(XtParent(w));
+    Widget button = WidgetGetUserData(XtParent(w));
     Button_PData *pdata;
     
-    pdata = GetUserData(button);
+    pdata = WidgetGetUserData(button);
     pen = pdata->pen;
     pen.color = (long) client_data;
     
@@ -1907,7 +1907,7 @@ static void define_pen_choice_dialog(Widget but, void *data)
         Button_PData *pdata;
         Pen pen;
         
-        pdata = GetUserData(ui->pen_button);
+        pdata = WidgetGetUserData(ui->pen_button);
         
         pen = pdata->pen;
         
@@ -1956,7 +1956,7 @@ Widget CreatePenChoice(Widget parent, char *s)
 
 int GetPenChoice(Widget pen_button, Pen *pen)
 {
-    Button_PData *pdata = GetUserData(pen_button);
+    Button_PData *pdata = WidgetGetUserData(pen_button);
     if (pdata) {
         *pen = pdata->pen;
         return RETURN_SUCCESS;
@@ -1967,7 +1967,7 @@ int GetPenChoice(Widget pen_button, Pen *pen)
 
 void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata)
 {
-    Button_PData *pdata = GetUserData(button);
+    Button_PData *pdata = WidgetGetUserData(button);
     
     if (pdata->cb_proc) {
         errmsg("AddPenChoiceCB: only one callback is supported");
@@ -3822,7 +3822,7 @@ void TreeRefresh(Widget w)
 {
     TreeRefresh_CBdata *cbdata;
 
-    cbdata = (TreeRefresh_CBdata *) GetUserData(w);
+    cbdata = (TreeRefresh_CBdata *) WidgetGetUserData(w);
 
     if (cbdata->timeout_id) {
         XtRemoveTimeOut(cbdata->timeout_id);
@@ -4074,7 +4074,7 @@ void TableAddCols(Widget w, int ncols)
     int i;
     unsigned char *alignment, xm_alignment;
 
-    td = (TableData*) GetUserData(w);
+    td = (TableData*) WidgetGetUserData(w);
     xm_alignment = align_to_xmalign(td->default_col_label_alignment);
     widths = xmalloc(ncols*SIZEOF_SHORT);
     alignment = xmalloc(ncols);
@@ -4143,7 +4143,7 @@ void TableSetDefaultColWidth(Widget w, int width)
     short *widths;
     int ncols, i;
 
-    td = (TableData*) GetUserData(w);
+    td = (TableData*) WidgetGetUserData(w);
     td->default_col_width = width;
 
     ncols = TableGetNcols(w);
@@ -4184,7 +4184,7 @@ void TableSetDefaultColLabelAlignment(Widget w, int align)
     unsigned char *alignment, xm_alignment;
     int ncols, i;
 
-    td = (TableData*) GetUserData(w);
+    td = (TableData*) WidgetGetUserData(w);
     td->default_col_label_alignment = align;
 
     xm_alignment = align_to_xmalign(align);

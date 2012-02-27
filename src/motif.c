@@ -63,7 +63,7 @@ int WidgetIsManaged(Widget w)
     return (XtIsManaged(w) == True) ? TRUE:FALSE;
 }
 
-void *GetUserData(Widget w)
+void *WidgetGetUserData(Widget w)
 {
     void *udata = NULL;
     XtVaGetValues(w, XmNuserData, &udata, NULL);
@@ -569,7 +569,7 @@ void FormAddHChild(Widget form, Widget child)
 {
     Widget last_widget;
 
-    last_widget = GetUserData(form);
+    last_widget = WidgetGetUserData(form);
     if (last_widget) {
         XtVaSetValues(child,
             XmNleftAttachment, XmATTACH_WIDGET,
@@ -600,7 +600,7 @@ void FormAddVChild(Widget form, Widget child)
         child = XtParent(child);
     }
 
-    last_widget = GetUserData(form);
+    last_widget = WidgetGetUserData(form);
     if (last_widget) {
         XtVaSetValues(child,
             XmNtopAttachment, XmATTACH_WIDGET,

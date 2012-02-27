@@ -985,7 +985,7 @@ void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height)
 //    
 //    return udata;
 //}
-void *GetUserData(Widget w)
+void *WidgetGetUserData(Widget w)
 {
     void *udata = NULL;
     udata = w->userData(0);
@@ -1515,7 +1515,7 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
 void UpdateCharOptionChoice(OptionStructure *opt, int font)
 {
     int *old_font;
-    old_font = (int *) GetUserData(opt->menu);
+    old_font = (int *) WidgetGetUserData(opt->menu);
     if (*old_font != font) {
         int i, csize = 24;
         for (i = 0; i < opt->nchoices; i++) {
@@ -5141,7 +5141,7 @@ static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
         return;
     }
 
-    pdata = (Button_PData *) GetUserData(button);
+    pdata = (Button_PData *) WidgetGetUserData(button);
     pdata->pen = *pen;
 
     get_rgb(canvas, pen->color, &fg_rgb);
@@ -5202,7 +5202,7 @@ static void pen_popup(Widget w, XtPointer client_data, XtPointer call_data)
     Button_PData *pdata;
     Widget popup;
 
-    pdata = (Button_PData *) GetUserData(w);
+    pdata = (Button_PData *) WidgetGetUserData(w);
 
     //    if (e->state & ShiftMask) {
     //        popup = pdata->pattern_popup;
@@ -5232,12 +5232,12 @@ static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     QTableWidget *tableWidget = (QTableWidget *) w;
     QTableWidgetItem *item = tableWidget->currentItem();
-    QPushButton *button = (QPushButton *) GetUserData(tableWidget);
+    QPushButton *button = (QPushButton *) WidgetGetUserData(tableWidget);
     QMenu *menu = (QMenu *) tableWidget->parentWidget();
     Pen pen;
     Button_PData *pdata;
 
-    pdata = (Button_PData *) GetUserData(button);
+    pdata = (Button_PData *) WidgetGetUserData(button);
     pen = pdata->pen;
     pen.color = item->data(Qt::UserRole).toInt();
 
@@ -5524,7 +5524,7 @@ static void define_pen_choice_dialog(Widget but, void *data)
         Button_PData *pdata;
         Pen pen;
 
-        pdata = (Button_PData *) GetUserData(ui->pen_button);
+        pdata = (Button_PData *) WidgetGetUserData(ui->pen_button);
 
         pen = pdata->pen;
 
@@ -5629,7 +5629,7 @@ Widget CreatePenChoice(Widget parent, char *s)
 //}
 int GetPenChoice(Widget pen_button, Pen *pen)
 {
-    Button_PData *pdata = (Button_PData *) GetUserData(pen_button);
+    Button_PData *pdata = (Button_PData *) WidgetGetUserData(pen_button);
     if (pdata) {
         *pen = pdata->pen;
         return RETURN_SUCCESS;
@@ -5651,7 +5651,7 @@ int GetPenChoice(Widget pen_button, Pen *pen)
 //}
 void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata)
 {
-    Button_PData *pdata = (Button_PData *) GetUserData(button);
+    Button_PData *pdata = (Button_PData *) WidgetGetUserData(button);
 
     if (pdata->cb_proc) {
         errmsg("AddPenChoiceCB: only one callback is supported");
@@ -9617,7 +9617,7 @@ void TableAddCols(Widget w, int ncols)
 
     model->setColumnCount(cc + ncols);
 
-    td = (TableData*) GetUserData(w);
+    td = (TableData*) WidgetGetUserData(w);
     TableSetDefaultColWidth(w, td->default_col_width);
 }
 
@@ -9649,7 +9649,7 @@ void TableSetColWidths(Widget w, int *widths)
     int i, cc = TableGetNcols(w);
     QHeaderView *hHeader = view->horizontalHeader();
 
-    td = (TableData*) GetUserData(w);
+    td = (TableData*) WidgetGetUserData(w);
 
     for (i = 0; i < cc; i++) {
         hHeader->resizeSection(i, widths[i] * td->font_width + 2*td->frame_width);
@@ -9660,7 +9660,7 @@ void TableSetDefaultRowLabelWidth(Widget w, int width)
 {
     QTableView *view = (QTableView*) w;
     QHeaderView *vHeader = view->verticalHeader();
-    TableData *td = (TableData*) GetUserData(w);
+    TableData *td = (TableData*) WidgetGetUserData(w);
 
     vHeader->setFixedWidth(width * td->font_width + 2*td->frame_width);
 }
@@ -9690,7 +9690,7 @@ void TableSetDefaultColWidth(Widget w, int width)
     int i, cc = TableGetNcols(w);
     QHeaderView *hHeader = view->horizontalHeader();
 
-    td = (TableData*) GetUserData(w);
+    td = (TableData*) WidgetGetUserData(w);
 
     td->default_col_width = width;
 
@@ -9774,7 +9774,7 @@ void TableUpdateVisibleRowsCols(Widget w)
     QHeaderView *hHeader = view->horizontalHeader();
     QHeaderView *vHeader = view->verticalHeader();
 
-    td = (TableData*) GetUserData(w);
+    td = (TableData*) WidgetGetUserData(w);
 
     if (!hHeader->isHidden()) {
         height = qMax(hHeader->minimumHeight(), hHeader->sizeHint().height());
