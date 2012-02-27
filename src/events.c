@@ -693,7 +693,7 @@ void canvas_event(CanvasEvent *event)
                         WidgetUnmanage(drop_pt_bt);
                     }
                     
-                    ShowMenu(popup, event->udata);
+                    PopupMenuShow(popup, event->udata);
                 }
             }
             break;

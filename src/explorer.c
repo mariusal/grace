@@ -289,7 +289,7 @@ static int menu_cb(TreeEvent *event)
                 WidgetSetSensitive(ui->project_popup_close_bt,  FALSE);
             }
 
-            ShowMenu(ui->project_popup, event->udata);
+            PopupMenuShow(ui->project_popup, event->udata);
         } else {
             WidgetSetSensitive(ui->popup_hide_bt, !all_hidden);
             WidgetSetSensitive(ui->popup_show_bt, !all_shown);
@@ -302,7 +302,7 @@ static int menu_cb(TreeEvent *event)
                 WidgetSetSensitive(ui->popup_duplicate_bt,      TRUE);
             }
 
-            ShowMenu(ui->popup, event->udata);
+            PopupMenuShow(ui->popup, event->udata);
         }
     }
 

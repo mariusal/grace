@@ -846,7 +846,7 @@ void Beep(void)
 //    XmMenuPosition(popup, (XButtonEvent *) data);
 //    XtManageChild(popup);
 //}
-void ShowMenu(Widget w, void *data)
+void PopupMenuShow(Widget w, void *data)
 {
     QMenu *popup = (QMenu*) w;
     QPoint *point = (QPoint*) data;

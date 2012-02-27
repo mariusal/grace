@@ -303,7 +303,7 @@ static int labelCB(TableEvent *event)
         WidgetSetSensitive(ui->unindex_btn, ui->cb_column == 0 && col != NULL &&
             ssd_is_indexed(ui->q));
         
-        ShowMenu(ui->popup, event->udata);
+        PopupMenuShow(ui->popup, event->udata);
     }
 
     return TRUE;
