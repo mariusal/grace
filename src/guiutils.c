@@ -346,7 +346,7 @@ void sync_canvas_size(GraceApp *gapp)
 
     Device_entry *d = get_device_props(grace_get_canvas(gapp->grace), gapp->rt->tdevice);
 
-    GetDimensions(xstuff->canvas, &w, &h);
+    WidgetGetSize(xstuff->canvas, &w, &h);
 
     set_page_dimensions(gapp, w*72.0/d->pg.dpi, h*72.0/d->pg.dpi, TRUE);
 }

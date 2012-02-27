@@ -962,7 +962,7 @@ void WidgetSetSize(Widget w, unsigned int width, unsigned int height)
 //    *width  = (unsigned int) ww;
 //    *height = (unsigned int) wh;
 //}
-void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
+void WidgetGetSize(Widget w, unsigned int *width, unsigned int *height)
 {
     unsigned int ww, wh;
 
