@@ -640,6 +640,83 @@ void FormFixateVChild(Widget w)
         NULL);
 }
 
+/* Grid */
+typedef struct {
+    int ncols;
+    int nrows;
+} GridData;
+
+Widget CreateGrid(Widget parent, int ncols, int nrows)
+{
+    Widget w;
+    int nfractions;
+    GridData *gd;
+
+    if (ncols <= 0 || nrows <= 0) {
+        errmsg("Wrong call to CreateGrid()");
+        ncols = 1;
+        nrows = 1;
+    }
+
+    nfractions = 0;
+    do {
+        nfractions++;
+    } while (nfractions % ncols || nfractions % nrows);
+
+    gd = xmalloc(sizeof(GridData));
+    gd->ncols = ncols;
+    gd->nrows = nrows;
+
+    w = CreateForm(parent);
+
+    XtVaSetValues(w,
+        XmNfractionBase, nfractions,
+        XmNuserData, gd,
+        NULL);
+
+    WidgetManage(w);
+
+    return w;
+}
+
+void PlaceGridChild(Widget grid, Widget w, int col, int row)
+{
+    int nfractions, w1, h1;
+    GridData *gd;
+
+    XtVaGetValues(grid,
+        XmNfractionBase, &nfractions,
+        XmNuserData, &gd,
+        NULL);
+
+    if (gd == NULL) {
+        /* errmsg("PlaceGridChild() called with a non-grid widget"); */
+        return;
+    }
+    if (col < 0 || col >= gd->ncols) {
+        errmsg("PlaceGridChild() called with wrong `col' argument");
+        return;
+    }
+    if (row < 0 || row >= gd->nrows) {
+        errmsg("PlaceGridChild() called with wrong `row' argument");
+        return;
+    }
+
+    w1 = nfractions/gd->ncols;
+    h1 = nfractions/gd->nrows;
+
+    XtVaSetValues(w,
+        XmNleftAttachment  , XmATTACH_POSITION,
+        XmNleftPosition    , col*w1           ,
+        XmNrightAttachment , XmATTACH_POSITION,
+        XmNrightPosition   , (col + 1)*w1     ,
+        XmNtopAttachment   , XmATTACH_POSITION,
+        XmNtopPosition     , row*h1           ,
+        XmNbottomAttachment, XmATTACH_POSITION,
+        XmNbottomPosition  , (row + 1)*h1     ,
+        NULL);
+}
+
 /* Frame */
 Widget CreateFrame(Widget parent, char *s)
 {
@@ -662,6 +739,52 @@ Widget CreateScrolledWindow(Widget parent)
                                    xmScrolledWindowWidgetClass, parent,
                                    XmNscrollingPolicy, XmAUTOMATIC,
                                    NULL);
+}
+
+/* Paned window */
+Widget CreatePanedWindow(Widget parent)
+{
+#if USE_PANEDW
+    return XtVaCreateManagedWidget("panedWindow",
+                                   xmPanedWindowWidgetClass, parent,
+                                   XmNorientation, XmHORIZONTAL,
+                                   NULL);
+#else
+    return CreateGrid(parent, 2, 1);
+#endif
+}
+
+void PanedWindowSetMinWidth(Widget w, unsigned int width)
+{
+    XtVaSetValues(w, XmNpaneMinimum, (Dimension) width, NULL);
+}
+
+/* Tab */
+Widget CreateTab(Widget parent)
+{
+    Widget tab;
+
+    tab = XtVaCreateManagedWidget("tab", xmTabWidgetClass, parent, NULL);
+
+    return tab;
+}
+
+Widget CreateTabPage(Widget parent, char *s)
+{
+    Widget w;
+    XmString str;
+
+    w = CreateVContainer(parent);
+    str = XmStringCreateLocalized(s);
+    XtVaSetValues(w, XmNtabLabel, str, NULL);
+    XmStringFree(str);
+
+    return w;
+}
+
+void SelectTabPage(Widget tab, Widget w)
+{
+    XmTabSetTabWidget(tab, w, True);
 }
 
 /* Label */
@@ -827,34 +950,6 @@ void TextInsert(TextStructure *cst, int pos, char *s)
 void TextSetEditable(TextStructure *cst, int onoff)
 {
     XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
-}
-
-/* Tab */
-Widget CreateTab(Widget parent)
-{
-    Widget tab;
-
-    tab = XtVaCreateManagedWidget("tab", xmTabWidgetClass, parent, NULL);
-
-    return tab;
-}
-
-Widget CreateTabPage(Widget parent, char *s)
-{
-    Widget w;
-    XmString str;
-
-    w = CreateVContainer(parent);
-    str = XmStringCreateLocalized(s);
-    XtVaSetValues(w, XmNtabLabel, str, NULL);
-    XmStringFree(str);
-
-    return w;
-}
-
-void SelectTabPage(Widget tab, Widget w)
-{
-    XmTabSetTabWidget(tab, w, True);
 }
 
 /* Button */
@@ -1187,101 +1282,6 @@ double GetSpinChoice(SpinStructure *spinp)
     } else {
         return retval;
     }
-}
-
-/* Paned window */
-Widget CreatePanedWindow(Widget parent)
-{
-#if USE_PANEDW
-    return XtVaCreateManagedWidget("panedWindow",
-                                   xmPanedWindowWidgetClass, parent,
-                                   XmNorientation, XmHORIZONTAL,
-                                   NULL);
-#else
-    return CreateGrid(parent, 2, 1);
-#endif
-}
-
-void PanedWindowSetMinWidth(Widget w, unsigned int width)
-{
-    XtVaSetValues(w, XmNpaneMinimum, (Dimension) width, NULL);
-}
-
-/* Grid */
-typedef struct {
-    int ncols;
-    int nrows;
-} GridData;
-
-Widget CreateGrid(Widget parent, int ncols, int nrows)
-{
-    Widget w;
-    int nfractions;
-    GridData *gd;
-
-    if (ncols <= 0 || nrows <= 0) {
-        errmsg("Wrong call to CreateGrid()");
-        ncols = 1;
-        nrows = 1;
-    }
-
-    nfractions = 0;
-    do {
-        nfractions++;
-    } while (nfractions % ncols || nfractions % nrows);
-
-    gd = xmalloc(sizeof(GridData));
-    gd->ncols = ncols;
-    gd->nrows = nrows;
-
-    w = CreateForm(parent);
-
-    XtVaSetValues(w,
-        XmNfractionBase, nfractions,
-        XmNuserData, gd,
-        NULL);
-
-    WidgetManage(w);
-
-    return w;
-}
-
-void PlaceGridChild(Widget grid, Widget w, int col, int row)
-{
-    int nfractions, w1, h1;
-    GridData *gd;
-
-    XtVaGetValues(grid,
-        XmNfractionBase, &nfractions,
-        XmNuserData, &gd,
-        NULL);
-
-    if (gd == NULL) {
-        /* errmsg("PlaceGridChild() called with a non-grid widget"); */
-        return;
-    }
-    if (col < 0 || col >= gd->ncols) {
-        errmsg("PlaceGridChild() called with wrong `col' argument");
-        return;
-    }
-    if (row < 0 || row >= gd->nrows) {
-        errmsg("PlaceGridChild() called with wrong `row' argument");
-        return;
-    }
-
-    w1 = nfractions/gd->ncols;
-    h1 = nfractions/gd->nrows;
-
-    XtVaSetValues(w,
-        XmNleftAttachment  , XmATTACH_POSITION,
-        XmNleftPosition    , col*w1           ,
-        XmNrightAttachment , XmATTACH_POSITION,
-        XmNrightPosition   , (col + 1)*w1     ,
-        XmNtopAttachment   , XmATTACH_POSITION,
-        XmNtopPosition     , row*h1           ,
-        XmNbottomAttachment, XmATTACH_POSITION,
-        XmNbottomPosition  , (row + 1)*h1     ,
-        NULL);
 }
 
 /* OptionChoice */

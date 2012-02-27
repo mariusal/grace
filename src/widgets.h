@@ -106,11 +106,24 @@ void FormAddHChild(Widget form, Widget child);
 void FormAddVChild(Widget form, Widget child);
 void FormFixateVChild(Widget w);
 
+/* Grid */
+Widget CreateGrid(Widget parent, int ncols, int nrows);
+void PlaceGridChild(Widget grid, Widget w, int col, int row);
+
 /* Frame */
 Widget CreateFrame(Widget parent, char *s);
 
 /* Scrolled window */
 Widget CreateScrolledWindow(Widget parent);
+
+/* Paned window */
+Widget CreatePanedWindow(Widget parent);
+void PanedWindowSetMinWidth(Widget w, unsigned int width);
+
+/* Tab */
+Widget CreateTab(Widget parent);
+Widget CreateTabPage(Widget parent, char *s);
+void SelectTabPage(Widget tab, Widget w);
 
 /* Label */
 Widget CreateLabel(Widget parent, char *s);
@@ -143,11 +156,6 @@ void TextSetCursorPos(TextStructure *cst, int pos);
 int TextGetLastPosition(TextStructure *cst);
 void TextInsert(TextStructure *cst, int pos, char *s);
 void TextSetEditable(TextStructure *cst, int onoff);
-
-/* Tab */
-Widget CreateTab(Widget parent);
-Widget CreateTabPage(Widget parent, char *s);
-void SelectTabPage(Widget tab, Widget w);
 
 /* Button */
 typedef void (*Button_CBProc)(
@@ -195,14 +203,6 @@ typedef void (*Spin_CBProc)(
     void *              /* data the application registered */
 );
 void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
-
-/* Paned window */
-Widget CreatePanedWindow(Widget parent);
-void PanedWindowSetMinWidth(Widget w, unsigned int width);
-
-/* Grid */
-Widget CreateGrid(Widget parent, int ncols, int nrows);
-void PlaceGridChild(Widget grid, Widget w, int col, int row);
 
 /* OptionChoice */
 typedef struct _OptionStructure OptionStructure;
