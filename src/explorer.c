@@ -38,52 +38,52 @@ static void manage_plugin(ExplorerUI *ui, Widget managed_top)
     if (managed_top == ui->project_ui->top) {
         WidgetManage(ui->project_ui->top);
     } else {
-        UnmanageChild(ui->project_ui->top);
+        WidgetUnmanage(ui->project_ui->top);
     }
     if (managed_top == ui->ssd_ui->top) {
         WidgetManage(ui->ssd_ui->top);
     } else {
-        UnmanageChild(ui->ssd_ui->top);
+        WidgetUnmanage(ui->ssd_ui->top);
     }
     if (managed_top == ui->frame_ui->top) {
         WidgetManage(ui->frame_ui->top);
     } else {
-        UnmanageChild(ui->frame_ui->top);
+        WidgetUnmanage(ui->frame_ui->top);
     }
     if (managed_top == ui->graph_ui->top) {
         WidgetManage(ui->graph_ui->top);
     } else {
-        UnmanageChild(ui->graph_ui->top);
+        WidgetUnmanage(ui->graph_ui->top);
     }
     if (managed_top == ui->set_ui->top) {
         WidgetManage(ui->set_ui->top);
     } else {
-        UnmanageChild(ui->set_ui->top);
+        WidgetUnmanage(ui->set_ui->top);
     }
     if (managed_top == ui->axisgrid_ui->top) {
         WidgetManage(ui->axisgrid_ui->top);
     } else {
-        UnmanageChild(ui->axisgrid_ui->top);
+        WidgetUnmanage(ui->axisgrid_ui->top);
     }
     if (managed_top == ui->axis_ui->top) {
         WidgetManage(ui->axis_ui->top);
     } else {
-        UnmanageChild(ui->axis_ui->top);
+        WidgetUnmanage(ui->axis_ui->top);
     }
     if (managed_top == ui->object_ui->top) {
         WidgetManage(ui->object_ui->top);
     } else {
-        UnmanageChild(ui->object_ui->top);
+        WidgetUnmanage(ui->object_ui->top);
     }
     if (managed_top == ui->atext_ui->top) {
         WidgetManage(ui->atext_ui->top);
     } else {
-        UnmanageChild(ui->atext_ui->top);
+        WidgetUnmanage(ui->atext_ui->top);
     }
     if (managed_top == ui->region_ui->top) {
         WidgetManage(ui->region_ui->top);
     } else {
-        UnmanageChild(ui->region_ui->top);
+        WidgetUnmanage(ui->region_ui->top);
     }
 }
 
@@ -1055,34 +1055,34 @@ void raise_explorer(GUI *gui, Quark *q)
 #endif
 
         eui->project_ui = create_project_ui(eui);
-        UnmanageChild(eui->project_ui->top);
+        WidgetUnmanage(eui->project_ui->top);
 
 	eui->ssd_ui = create_ssd_ui(eui);
-        UnmanageChild(eui->ssd_ui->top);
+        WidgetUnmanage(eui->ssd_ui->top);
 
 	eui->frame_ui = create_frame_ui(eui);
-        UnmanageChild(eui->frame_ui->top);
+        WidgetUnmanage(eui->frame_ui->top);
 
 	eui->graph_ui = create_graph_ui(eui);
-        UnmanageChild(eui->graph_ui->top);
+        WidgetUnmanage(eui->graph_ui->top);
 
 	eui->set_ui = create_set_ui(eui);
-        UnmanageChild(eui->set_ui->top);
+        WidgetUnmanage(eui->set_ui->top);
 
 	eui->axisgrid_ui = create_axisgrid_ui(eui);
-        UnmanageChild(eui->axisgrid_ui->top);
+        WidgetUnmanage(eui->axisgrid_ui->top);
 
 	eui->axis_ui = create_axis_ui(eui);
-        UnmanageChild(eui->axis_ui->top);
+        WidgetUnmanage(eui->axis_ui->top);
 
 	eui->object_ui = create_object_ui(eui);
-        UnmanageChild(eui->object_ui->top);
+        WidgetUnmanage(eui->object_ui->top);
 
 	eui->atext_ui = create_atext_ui(eui);
-        UnmanageChild(eui->atext_ui->top);
+        WidgetUnmanage(eui->atext_ui->top);
 
 	eui->region_ui = create_region_ui(eui);
-        UnmanageChild(eui->region_ui->top);
+        WidgetUnmanage(eui->region_ui->top);
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 

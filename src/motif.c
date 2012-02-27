@@ -53,7 +53,7 @@ void WidgetManage(Widget w)
     XtManageChild(w);
 }
 
-void UnmanageChild(Widget w)
+void WidgetUnmanage(Widget w)
 {
     XtUnmanageChild(w);
 }
@@ -310,7 +310,7 @@ void DialogRaise(Widget form)
 
 void DialogClose(Widget form)
 {
-    UnmanageChild(XtParent(form));
+    WidgetUnmanage(XtParent(form));
 }
 
 void DialogSetResizable(Widget form, int onoff)
@@ -339,7 +339,7 @@ static char *GetStringSimple(XmString xms)
 
 static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    UnmanageChild((Widget) client_data);
+    WidgetUnmanage((Widget) client_data);
 }
 
 static void fsb_setcwd_cb(Widget but, void *data)
@@ -505,7 +505,7 @@ static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data
     ok = cbdata->cbproc(cbdata->fsb, s, cbdata->anydata);
     XtFree(s);
     if (ok) {
-        UnmanageChild(cbdata->fsb->dialog);
+        WidgetUnmanage(cbdata->fsb->dialog);
     }
     unset_wait_cursor();
 }

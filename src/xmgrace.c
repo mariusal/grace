@@ -369,7 +369,7 @@ void set_view_items(void)
 	XtVaSetValues(mwui->drawing_window,
 		      XmNbottomAttachment, XmATTACH_FORM,
 		      NULL);
-	UnmanageChild(mwui->frbot);
+	WidgetUnmanage(mwui->frbot);
 	if (gapp->gui->toolbar) {
 	    XtVaSetValues(mwui->frleft,
 			  XmNbottomAttachment, XmATTACH_FORM,
@@ -397,7 +397,7 @@ void set_view_items(void)
 		      NULL);
     } else {
 	SetToggleButtonState(mwui->windowbarw[2], FALSE);
-	UnmanageChild(mwui->frleft);
+	WidgetUnmanage(mwui->frleft);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNleftAttachment, XmATTACH_FORM,
 		      NULL);
@@ -417,7 +417,7 @@ void set_view_items(void)
 	}
     } else {
 	SetToggleButtonState(mwui->windowbarw[0], FALSE);
-	UnmanageChild(mwui->frtop);
+	WidgetUnmanage(mwui->frtop);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNtopAttachment, XmATTACH_FORM,
 		      NULL);

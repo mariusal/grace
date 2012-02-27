@@ -665,21 +665,21 @@ void set_view_items(void)
         WidgetManage(mwui->frbot);
     } else {
         SetToggleButtonState(mwui->windowbarw[1], FALSE);
-        UnmanageChild(mwui->frbot);
+        WidgetUnmanage(mwui->frbot);
     }
     if (gapp->gui->toolbar) {
         SetToggleButtonState(mwui->windowbarw[2], TRUE);
         WidgetManage(mwui->frleft);
     } else {
         SetToggleButtonState(mwui->windowbarw[2], FALSE);
-        UnmanageChild(mwui->frleft);
+        WidgetUnmanage(mwui->frleft);
     }
     if (gapp->gui->locbar) {
         SetToggleButtonState(mwui->windowbarw[0], TRUE);
         WidgetManage(mwui->frtop);
     } else {
         SetToggleButtonState(mwui->windowbarw[0], FALSE);
-        UnmanageChild(mwui->frtop);
+        WidgetUnmanage(mwui->frtop);
     }
 }
 
@@ -871,7 +871,7 @@ void WidgetManage(Widget w)
 //{
 //    XtUnmanageChild(w);
 //}
-void UnmanageChild(Widget w)
+void WidgetUnmanage(Widget w)
 {
     if (QAction *action = qobject_cast<QAction *>(w)) {
         action->setVisible(false);

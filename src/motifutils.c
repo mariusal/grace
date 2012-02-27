@@ -2963,7 +2963,7 @@ void aacdialog_int_cb_proc(Widget but, void *data)
     retval = cbdata->cbproc(cbdata->anydata);
 
     if (cbdata->close && retval == RETURN_SUCCESS) {
-        UnmanageChild(XtParent(cbdata->form));
+        WidgetUnmanage(XtParent(cbdata->form));
     }
     
     unset_wait_cursor();
@@ -3272,7 +3272,7 @@ static void deletewidget(Widget w)
 
 static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    UnmanageChild((Widget) client_data);
+    WidgetUnmanage((Widget) client_data);
 }
 /*
  * handle the close item on the WM menu
@@ -3378,7 +3378,7 @@ void yesnoCB(Widget w, XtPointer client_data, XtPointer call_data)
     keep_grab = False;
     
     XtRemoveGrab(XtParent(w));
-    UnmanageChild(w);
+    WidgetUnmanage(w);
     switch (why) {
     case XmCR_OK:
 	yesno_retval = TRUE;
@@ -3443,7 +3443,7 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
     if (ha) {
         WidgetManage(but);
     } else {    
-        UnmanageChild(but);
+        WidgetUnmanage(but);
     }
 
     WidgetManage(dialog);

@@ -302,12 +302,12 @@ void create_datasetop_popup(Widget but, void *data)
         datasetopui.stop_item  = CreateText2(rc, "Stop at:", 6);
         datasettype_controls[5] = rc;
 
-        UnmanageChild(datasettype_controls[0]);
+        WidgetUnmanage(datasettype_controls[0]);
         WidgetManage(datasettype_controls[1]);
-        UnmanageChild(datasettype_controls[2]);
-        UnmanageChild(datasettype_controls[3]);
-        UnmanageChild(datasettype_controls[4]);
-        UnmanageChild(datasettype_controls[5]);
+        WidgetUnmanage(datasettype_controls[2]);
+        WidgetUnmanage(datasettype_controls[3]);
+        WidgetUnmanage(datasettype_controls[4]);
+        WidgetUnmanage(datasettype_controls[5]);
 
         CreateAACDialog(datasetopui.top, dialog, datasetop_aac_cb,
             &datasetopui);
@@ -327,7 +327,7 @@ static void datasetoptypeCB(OptionStructure *opt, int value, void *data)
         if (i == type) {
             WidgetManage(datasettype_controls[i]);
         } else {
-            UnmanageChild(datasettype_controls[i]);
+            WidgetUnmanage(datasettype_controls[i]);
         }
     }
 }

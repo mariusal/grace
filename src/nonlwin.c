@@ -128,7 +128,7 @@ static void do_nparm_toggle(OptionStructure *opt, int value, void *data)
         if (i < value) {
             WidgetManage(ui->parm_item[i]);
         } else {
-            UnmanageChild(ui->parm_item[i]);
+            WidgetUnmanage(ui->parm_item[i]);
         }
     }
 }
@@ -225,7 +225,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
 	rc2 = CreateVContainer(sw);
 	for (i = 0; i < MAXPARM; i++) {
 	    ui->parm_item[i] = CreateHContainer(rc2);
-            UnmanageChild(ui->parm_item[i]);
+            WidgetUnmanage(ui->parm_item[i]);
 	    sprintf(buf, "A%1d: ", i);
 	    ui->value_item[i] = CreateTextItem(ui->parm_item[i], 10, buf);
 
@@ -592,7 +592,7 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
                 }
             } else {
                 if (IsManaged (ui->parm_item[i])) {
-                    UnmanageChild(ui->parm_item[i]);
+                    WidgetUnmanage(ui->parm_item[i]);
                 }
             }
         }

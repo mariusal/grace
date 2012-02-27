@@ -93,11 +93,11 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
     ui->odata_tp = CreateTabPage(tab, "Object data");
 
     ui->line_ui = create_line_ui(ui->odata_tp, eui);
-    UnmanageChild(ui->line_ui->top);
+    WidgetUnmanage(ui->line_ui->top);
     ui->box_ui = create_box_ui(ui->odata_tp, eui);
-    UnmanageChild(ui->box_ui->top);
+    WidgetUnmanage(ui->box_ui->top);
     ui->arc_ui = create_arc_ui(ui->odata_tp, eui);
-    UnmanageChild(ui->arc_ui->top);
+    WidgetUnmanage(ui->arc_ui->top);
 
     SelectTabPage(tab, ui->main_tp);
     
@@ -331,27 +331,27 @@ void update_object_ui(ObjectUI *ui, Quark *q)
             update_line_ui(ui->line_ui, (DOLineData *) o->odata);
             
             WidgetManage(ui->line_ui->top);
-            UnmanageChild(ui->box_ui->top);
-            UnmanageChild(ui->arc_ui->top);
+            WidgetUnmanage(ui->box_ui->top);
+            WidgetUnmanage(ui->arc_ui->top);
             break;
         case DO_BOX:
             update_box_ui(ui->box_ui, (DOBoxData *) o->odata);
             
-            UnmanageChild(ui->line_ui->top);
+            WidgetUnmanage(ui->line_ui->top);
             WidgetManage(ui->box_ui->top);
-            UnmanageChild(ui->arc_ui->top);
+            WidgetUnmanage(ui->arc_ui->top);
             break;
         case DO_ARC:
             update_arc_ui(ui->arc_ui, (DOArcData *) o->odata);
             
-            UnmanageChild(ui->line_ui->top);
-            UnmanageChild(ui->box_ui->top);
+            WidgetUnmanage(ui->line_ui->top);
+            WidgetUnmanage(ui->box_ui->top);
             WidgetManage(ui->arc_ui->top);
             break;
         default:
-            UnmanageChild(ui->line_ui->top);
-            UnmanageChild(ui->box_ui->top);
-            UnmanageChild(ui->arc_ui->top);
+            WidgetUnmanage(ui->line_ui->top);
+            WidgetUnmanage(ui->box_ui->top);
+            WidgetUnmanage(ui->arc_ui->top);
             break;
         }
     }

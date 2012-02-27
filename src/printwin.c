@@ -336,8 +336,8 @@ static void update_device_setup(PrintUI *ui, int device_id)
         
         switch (dev->type) {
         case DEVICE_TERM:
-            UnmanageChild(ui->output_frame);
-            UnmanageChild(ui->page_frame);
+            WidgetUnmanage(ui->output_frame);
+            WidgetUnmanage(ui->page_frame);
             break;
         case DEVICE_FILE:
             WidgetManage(ui->output_frame);
