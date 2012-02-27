@@ -109,12 +109,6 @@ void Beep(void)
     XBell(xstuff->disp, 50);
 }
 
-void ShowMenu(Widget w, void *data)
-{
-    XmMenuPosition(w, (XButtonEvent *) data);
-    WidgetManage(w);
-}
-
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items)
 {

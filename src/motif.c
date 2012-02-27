@@ -1151,6 +1151,12 @@ Widget CreatePopupMenu(Widget parent)
     return XmCreatePopupMenu(parent, "popupMenu", NULL, 0);
 }
 
+void ShowMenu(Widget w, void *data)
+{
+    XmMenuPosition(w, (XButtonEvent *) data);
+    WidgetManage(w);
+}
+
 Widget CreateMenuBar(Widget parent)
 {
     Widget menubar;

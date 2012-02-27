@@ -318,8 +318,6 @@ void Beep(void);
 
 void InitWidgets(void);
 
-void ShowMenu(Widget w, void *data);
-
 void CreatePixmaps(ExplorerUI *eui);
 
 Widget CreateFrame(Widget parent, char *s);

@@ -213,6 +213,7 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata);
 
 /* Menu */
 Widget CreatePopupMenu(Widget parent);
+void ShowMenu(Widget w, void *data);
 Widget CreateMenuBar(Widget parent);
 Widget CreateMenu(Widget parent, char *label, char mnemonic, int help);
 Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
