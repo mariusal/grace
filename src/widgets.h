@@ -106,6 +106,9 @@ void FormAddHChild(Widget form, Widget child);
 void FormAddVChild(Widget form, Widget child);
 void FormFixateVChild(Widget w);
 
+/* Frame */
+Widget CreateFrame(Widget parent, char *s);
+
 /* Label */
 Widget CreateLabel(Widget parent, char *s);
 void LabelSetString(Widget w, char *s);

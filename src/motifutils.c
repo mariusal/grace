@@ -53,10 +53,8 @@
 #include <Xm/BulletinB.h>
 #include <Xm/MessageB.h>
 #include <Xm/FileSB.h>
-#include <Xm/Frame.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
-#include <Xm/LabelG.h>
 #include <Xm/List.h>
 #include <Xm/PushB.h>
 #include <Xm/CascadeBG.h>
@@ -2871,20 +2869,6 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
 void RaiseTransformationDialog(TransformStructure *tdialog)
 {
     DialogRaise(tdialog->form);
-}
-
-Widget CreateFrame(Widget parent, char *s)
-{
-    Widget fr;
-
-    fr = XtVaCreateManagedWidget("frame", xmFrameWidgetClass, parent, NULL);
-    if (s != NULL) {
-        XtVaCreateManagedWidget(s, xmLabelGadgetClass, fr,
-				XmNchildType, XmFRAME_TITLE_CHILD,
-				NULL);
-    }
-
-    return (fr);
 }
 
 Widget CreateScrolledWindow(Widget parent)

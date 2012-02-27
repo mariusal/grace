@@ -40,6 +40,7 @@
 #include <Xm/Form.h>
 #include <Xm/Frame.h>
 #include <Xm/Label.h>
+#include <Xm/LabelG.h>
 
 #if XmVersion >= 2000
 # define USE_PANEDW 1
@@ -636,6 +637,21 @@ void FormFixateVChild(Widget w)
     XtVaSetValues(prev, XmNbottomAttachment, XmATTACH_WIDGET,
         XmNbottomWidget, w,
         NULL);
+}
+
+/* Frame */
+Widget CreateFrame(Widget parent, char *s)
+{
+    Widget fr;
+
+    fr = XtVaCreateManagedWidget("frame", xmFrameWidgetClass, parent, NULL);
+    if (s != NULL) {
+        XtVaCreateManagedWidget(s, xmLabelGadgetClass, fr,
+                                XmNchildType, XmFRAME_TITLE_CHILD,
+                                NULL);
+    }
+
+    return fr;
 }
 
 /* Label */
