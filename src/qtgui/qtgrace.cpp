@@ -7043,7 +7043,7 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
 //    XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
 //        hidden_xpm, &eui->h_icon, NULL, &attrib);
 //}
-void CreatePixmaps(ExplorerUI *eui)
+void XpmToPixmap(ExplorerUI *eui)
 {
     eui->a_icon = (Pixmap) new QIcon(active_xpm);
     eui->h_icon = (Pixmap) new QIcon(hidden_xpm);

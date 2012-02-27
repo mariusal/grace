@@ -82,7 +82,6 @@
 #include "globals.h"
 #include "grace/canvas.h"
 #include "jbitmaps.h"
-#include "qbitmaps.h"
 #include "core_utils.h"
 #include "utils.h"
 #include "xprotos.h"
@@ -2882,12 +2881,13 @@ SpinStructure *CreateCharSizeChoice(Widget parent, char *s)
     return CreateSpinChoice(parent, s, 4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
 }
 
-void CreatePixmaps(ExplorerUI *eui)
+Pixmap XpmToPixmap(char *xpm)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
     Pixel bg;
     XpmColorSymbol transparent;
     XpmAttributes attrib;
+    Pixmap pixmap;
 
     XtVaGetValues(app_shell, XtNbackground, &bg, NULL);
     transparent.name  = NULL;
@@ -2896,10 +2896,11 @@ void CreatePixmaps(ExplorerUI *eui)
     attrib.colorsymbols = &transparent;
     attrib.valuemask    = XpmColorSymbols;
     attrib.numsymbols   = 1;
+
     XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
-        active_xpm, &eui->a_icon, NULL, &attrib);
-    XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
-        hidden_xpm, &eui->h_icon, NULL, &attrib);
+        xpm, &pixmap, NULL, &attrib);
+
+    return pixmap;
 }
 
 static Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)

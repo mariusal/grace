@@ -32,6 +32,7 @@
 #include "explorer.h"
 #include "xprotos.h"
 #include "files.h"
+#include "qbitmaps.h"
 
 static void manage_plugin(ExplorerUI *ui, Widget managed_top)
 {
@@ -961,8 +962,8 @@ void raise_explorer(GUI *gui, Quark *q)
         eui = xmalloc(sizeof(ExplorerUI));
         gui->eui = eui;
 
-        /* Create pixmaps */
-        CreatePixmaps(eui);
+        eui->a_icon = XpmToPixmap(active_xpm);
+        eui->h_icon = XpmToPixmap(hidden_xpm);
 
         eui->top = CreateDialog(app_shell, "Explorer");
         menubar = CreateMenuBar(eui->top);

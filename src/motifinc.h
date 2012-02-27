@@ -318,7 +318,7 @@ void Beep(void);
 
 void InitWidgets(void);
 
-void CreatePixmaps(ExplorerUI *eui);
+Pixmap XpmToPixmap(char *xpm);
 
 Widget CreateFrame(Widget parent, char *s);
 
