@@ -49,7 +49,7 @@ void *WidgetGetUserData(Widget w);
 void WidgetSetUserData(Widget w, void *udata);
 void WidgetSetSensitive(Widget w, int onoff);
 void WidgetSetHeight(Widget w, unsigned int height);
-void SetDimensions(Widget w, unsigned int width, unsigned int height);
+void WidgetSetSize(Widget w, unsigned int width, unsigned int height);
 void GetDimensions(Widget w, unsigned int *width, unsigned int *height);
 void SetMinimumDimensions(Widget w, unsigned int width, unsigned int height);
 

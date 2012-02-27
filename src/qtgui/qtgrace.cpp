@@ -945,7 +945,7 @@ void WidgetSetHeight(Widget w, unsigned int height)
 //        XmNheight, (Dimension) height,
 //        NULL);
 //}
-void SetDimensions(Widget w, unsigned int width, unsigned int height)
+void WidgetSetSize(Widget w, unsigned int width, unsigned int height)
 {
     w->resize(width, height);
 }

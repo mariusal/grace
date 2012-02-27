@@ -86,7 +86,7 @@ void WidgetSetHeight(Widget w, unsigned int height)
     XtVaSetValues(w, XmNheight, (Dimension) height, NULL);
 }
 
-void SetDimensions(Widget w, unsigned int width, unsigned int height)
+void WidgetSetSize(Widget w, unsigned int width, unsigned int height)
 {
     XtVaSetValues(w,
         XmNwidth, (Dimension) width,

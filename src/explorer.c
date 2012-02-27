@@ -1038,7 +1038,7 @@ void raise_explorer(GUI *gui, Quark *q)
         PlaceGridChild(panel, eui->scrolled_window, 1, 0); /* in case if CreatePanedWindow creates a grid */
 
         SetMinimumDimensions(form, 150, 0);
-        SetDimensions(form, 250, 0);
+        WidgetSetSize(form, 250, 0);
 
         WidgetManage(form);
 
@@ -1129,7 +1129,7 @@ void raise_explorer(GUI *gui, Quark *q)
     }
 #ifdef QT_GUI
     /* TODO: use resources */
-    SetDimensions(gui->eui->top, 650, 600);
+    WidgetSetSize(gui->eui->top, 650, 600);
 #endif
     DialogRaise(gui->eui->top);
     

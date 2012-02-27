@@ -427,7 +427,7 @@ static void resize_drawables(unsigned int w, unsigned int h)
     xstuff->win_scale = MIN2(xstuff->win_w, xstuff->win_h);
     
     if (!gui_is_page_free(gapp->gui)) {
-        SetDimensions(xstuff->canvas, xstuff->win_w, xstuff->win_h);
+        WidgetSetSize(xstuff->canvas, xstuff->win_w, xstuff->win_h);
     }
 }
 
