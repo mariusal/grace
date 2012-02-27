@@ -107,9 +107,9 @@ void WidgetGetSize(Widget w, unsigned int *width, unsigned int *height)
     *height = (unsigned int) wh;
 }
 
-void WidgetSetMinWidth(Widget w, unsigned int width, unsigned int height)
+void WidgetSetMinWidth(Widget w, unsigned int width)
 {
-    XtVaSetValues(w, XmNpaneMinimum, width, NULL);
+    XtVaSetValues(w, XmNpaneMinimum, (Dimension) width, NULL);
 }
 
 static int toolkit_modifiers_to_grace_modifiers(void *event)
