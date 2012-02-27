@@ -58,7 +58,6 @@
 #include <Xm/PushB.h>
 #include <Xm/CascadeBG.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
 #include <Xm/Text.h>
 #include <Xm/ScrollBar.h>
 
@@ -2954,20 +2953,6 @@ void UndefineDialogCursor(void)
 	XUndefineCursor(xstuff->disp, XtWindow(savewidgets[i]));
     }
     XFlush(xstuff->disp);
-}
-
-Widget CreateSeparator(Widget parent)
-{
-    Widget sep;
-    
-    sep = XmCreateSeparator(parent, "sep", NULL, 0);
-    WidgetManage(sep);
-    return sep;
-}
-
-Widget CreateMenuSeparator(Widget parent)
-{
-    return CreateSeparator(parent);
 }
 
 static void help_int_cb(Widget w, XtPointer client_data, XtPointer call_data)

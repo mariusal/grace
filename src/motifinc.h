@@ -295,9 +295,6 @@ void InitWidgets(void);
 
 Pixmap XpmToPixmap(char **xpm);
 
-Widget CreateSeparator(Widget parent);
-Widget CreateMenuSeparator(Widget parent);
-
 SpinStructure *CreateCharSizeChoice(Widget parent, char *s);
 
 SpinStructure *CreateAngleChoice(Widget parent, char *s);

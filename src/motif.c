@@ -53,6 +53,7 @@
 
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
+#include <Xm/Separator.h>
 #include <Xm/Scale.h>
 #include <Xm/ScrolledW.h>
 #include <Xm/Text.h>
@@ -787,6 +788,17 @@ Widget CreateTabPage(Widget parent, char *s)
 void SelectTabPage(Widget tab, Widget w)
 {
     XmTabSetTabWidget(tab, w, True);
+}
+
+/* Separator */
+Widget CreateSeparator(Widget parent)
+{
+    Widget sep;
+
+    sep = XmCreateSeparator(parent, "sep", NULL, 0);
+    WidgetManage(sep);
+
+    return sep;
 }
 
 /* Label */
@@ -1580,3 +1592,9 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 
     return button;
 }
+
+Widget CreateMenuSeparator(Widget parent)
+{
+    return CreateSeparator(parent);
+}
+

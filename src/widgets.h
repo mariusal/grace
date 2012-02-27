@@ -125,6 +125,9 @@ Widget CreateTab(Widget parent);
 Widget CreateTabPage(Widget parent, char *s);
 void SelectTabPage(Widget tab, Widget w);
 
+/* Separator */
+Widget CreateSeparator(Widget parent);
+
 /* Label */
 Widget CreateLabel(Widget parent, char *s);
 void LabelSetString(Widget w, char *s);
@@ -258,5 +261,6 @@ Widget CreateMenuHelpButton(Widget parent, char *label, char mnemonic,
     Widget form, char *ha);
 Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
         TB_CBProc cb, void *data);
+Widget CreateMenuSeparator(Widget parent);
 
 #endif /* __WIDGETS_H_ */
