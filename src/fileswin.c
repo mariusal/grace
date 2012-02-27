@@ -78,7 +78,7 @@ void create_saveproject_popup(GProject *gp)
 #ifdef QT_GUI
         SetFileSelectionBoxPattern(fsb, "*.xgr");
 #endif
-        ManageChild(fsb->FSB);
+        WidgetManage(fsb->FSB);
     }
     
     DialogRaise(fsb->FSB);
@@ -246,7 +246,7 @@ void create_openproject_popup(void)
         XtAddCallback(text, XmNvalueChangedCallback,
            select_cb, (XtPointer) ui);
 #endif
-        ManageChild(ui->fsb->FSB);
+        WidgetManage(ui->fsb->FSB);
     }
     DialogRaise(ui->fsb->FSB);
 
@@ -332,7 +332,7 @@ void create_file_popup(Widget but, void *data)
         gui->datehint = CreateOptionChoice(rc2, "Date hint:", 0, 4, opitems);
 	SetOptionChoice(gui->datehint, get_date_hint(gapp));
 
-        ManageChild(rdata_dialog->FSB);
+        WidgetManage(rdata_dialog->FSB);
     }
     
     
@@ -410,7 +410,7 @@ void create_write_popup(Widget but, void *data)
 	
         gui->sel = CreateSSDColSelector(fsb->rc, NULL, LIST_TYPE_MULTIPLE);
 
-        ManageChild(fsb->FSB);
+        WidgetManage(fsb->FSB);
     }
     DialogRaise(fsb->FSB);
 

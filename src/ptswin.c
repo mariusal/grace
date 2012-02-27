@@ -223,7 +223,7 @@ void create_points_frame(void *data)
 	wbut = CreateButton(rc, "Close");
 	AddButtonCB(wbut, points_done_proc, (void *) points_frame);
         
-        ManageChild(points_frame);
+        WidgetManage(points_frame);
     }
     
     DialogRaise(points_frame);

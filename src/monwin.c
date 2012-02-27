@@ -125,7 +125,7 @@ static void create_monitor_frame(int force, char *msg)
         ui->auto_update = TRUE;
 
         menubar = CreateMenuBar(ui->mon_frame);
-        ManageChild(menubar);
+        WidgetManage(menubar);
         FormAddVChild(ui->mon_frame, menubar);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
@@ -162,7 +162,7 @@ static void create_monitor_frame(int force, char *msg)
         FormAddVChild(ui->mon_frame, fr);
         FormFixateVChild(fr);
 
-        ManageChild(ui->mon_frame);
+        WidgetManage(ui->mon_frame);
     }
     
     if (msg != NULL) {
@@ -221,7 +221,7 @@ static void create_wmon_frame(Widget but, void *data)
 #ifdef QT_GUI
         SetFileSelectionBoxPattern(ui->save_logs_fsb, "*.log");
 #endif
-        ManageChild(ui->save_logs_fsb->FSB);
+        WidgetManage(ui->save_logs_fsb->FSB);
     }
     
     DialogRaise(ui->save_logs_fsb->FSB);

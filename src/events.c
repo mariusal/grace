@@ -667,28 +667,28 @@ void canvas_event(CanvasEvent *event)
                     
                     if ((quark_fid_get(ct.q) == QFlavorFrame && ct.part == 0) ||
                         (quark_fid_get(ct.q) == QFlavorGraph && ct.part == 0)) {
-                        ManageChild(atext_bt);
+                        WidgetManage(atext_bt);
                     } else {
                         UnmanageChild(atext_bt);
                     }
                     if (quark_fid_get(ct.q) == QFlavorGraph && ct.part != 1) {
-                        ManageChild(set_locator_bt);
+                        WidgetManage(set_locator_bt);
                     } else {
                         UnmanageChild(set_locator_bt);
                     }
                     if (quark_fid_get(ct.q) == QFlavorGraph && ct.part == 1) {
-                        ManageChild(clear_locator_bt);
+                        WidgetManage(clear_locator_bt);
                     } else {
                         UnmanageChild(clear_locator_bt);
                     }
                     
                     if (quark_fid_get(ct.q) == QFlavorSet) {
-                        ManageChild(as_set_bt);
+                        WidgetManage(as_set_bt);
                     } else {
                         UnmanageChild(as_set_bt);
                     }
                     if (quark_fid_get(ct.q) == QFlavorSet && ct.part >= 0) {
-                        ManageChild(drop_pt_bt);
+                        WidgetManage(drop_pt_bt);
                     } else {
                         UnmanageChild(drop_pt_bt);
                     }

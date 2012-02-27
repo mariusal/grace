@@ -353,7 +353,7 @@ void set_view_items(void)
     
     if (gapp->gui->statusbar) {
 	SetToggleButtonState(mwui->windowbarw[1], TRUE);
-	ManageChild(mwui->frbot);
+	WidgetManage(mwui->frbot);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNbottomAttachment, XmATTACH_WIDGET,
 		      XmNbottomWidget, mwui->frbot,
@@ -378,7 +378,7 @@ void set_view_items(void)
     }
     if (gapp->gui->toolbar) {
 	SetToggleButtonState(mwui->windowbarw[2], TRUE);
-	ManageChild(mwui->frleft);
+	WidgetManage(mwui->frleft);
 	if (gapp->gui->statusbar) {
 	    XtVaSetValues(mwui->frleft,
 			  XmNbottomAttachment, XmATTACH_WIDGET,
@@ -404,7 +404,7 @@ void set_view_items(void)
     }
     if (gapp->gui->locbar) {
 	SetToggleButtonState(mwui->windowbarw[0], TRUE);
-	ManageChild(mwui->frtop);
+	WidgetManage(mwui->frtop);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNtopAttachment, XmATTACH_WIDGET,
 		      XmNtopWidget, mwui->frtop,
@@ -563,7 +563,7 @@ void startup_gui(GraceApp *gapp)
         xmMainWindowWidgetClass, app_shell, NULL);
 
     menu_bar = CreateMainMenuBar(main_frame);
-    ManageChild(menu_bar);
+    WidgetManage(menu_bar);
 
     form = CreateForm(main_frame);
 
@@ -643,7 +643,7 @@ void startup_gui(GraceApp *gapp)
 		  XmNrightAttachment, XmATTACH_FORM,
 		  NULL);
 
-    ManageChild(form);
+    WidgetManage(form);
 
     XmMainWindowSetAreas(main_frame, menu_bar, NULL, NULL, NULL, form);
 

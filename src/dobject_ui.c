@@ -330,7 +330,7 @@ void update_object_ui(ObjectUI *ui, Quark *q)
         case DO_LINE:
             update_line_ui(ui->line_ui, (DOLineData *) o->odata);
             
-            ManageChild(ui->line_ui->top);
+            WidgetManage(ui->line_ui->top);
             UnmanageChild(ui->box_ui->top);
             UnmanageChild(ui->arc_ui->top);
             break;
@@ -338,7 +338,7 @@ void update_object_ui(ObjectUI *ui, Quark *q)
             update_box_ui(ui->box_ui, (DOBoxData *) o->odata);
             
             UnmanageChild(ui->line_ui->top);
-            ManageChild(ui->box_ui->top);
+            WidgetManage(ui->box_ui->top);
             UnmanageChild(ui->arc_ui->top);
             break;
         case DO_ARC:
@@ -346,7 +346,7 @@ void update_object_ui(ObjectUI *ui, Quark *q)
             
             UnmanageChild(ui->line_ui->top);
             UnmanageChild(ui->box_ui->top);
-            ManageChild(ui->arc_ui->top);
+            WidgetManage(ui->arc_ui->top);
             break;
         default:
             UnmanageChild(ui->line_ui->top);

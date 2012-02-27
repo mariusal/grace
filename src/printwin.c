@@ -143,7 +143,7 @@ void create_printer_setup(Widget but, void *data)
         CreateMenuHelpButton(menupane, "On device setup", 'd',
             pui->top, "doc/UsersGuide.html#print-setup");
 
-        ManageChild(menubar);
+        WidgetManage(menubar);
 
 	pui->psetup_rc = CreateVContainer(pui->top);
 
@@ -340,16 +340,16 @@ static void update_device_setup(PrintUI *ui, int device_id)
             UnmanageChild(ui->page_frame);
             break;
         case DEVICE_FILE:
-            ManageChild(ui->output_frame);
-            ManageChild(ui->page_frame);
+            WidgetManage(ui->output_frame);
+            WidgetManage(ui->page_frame);
             SetToggleButtonState(ui->printto, TRUE);
             WidgetSetSensitive(ui->printto, FALSE);
             WidgetSetSensitive(ui->rc_printsel, FALSE);
             WidgetSetSensitive(ui->rc_filesel, TRUE);
             break;
         case DEVICE_PRINT:
-            ManageChild(ui->output_frame);
-            ManageChild(ui->page_frame);
+            WidgetManage(ui->output_frame);
+            WidgetManage(ui->page_frame);
             SetToggleButtonState(ui->printto, get_ptofile(gapp));
             WidgetSetSensitive(ui->printto, TRUE);
             if (get_ptofile(gapp) == TRUE) {
@@ -654,7 +654,7 @@ void create_printfiles_popup(Widget but, void *data)
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell, "Select print file");
 	AddFileSelectionBoxCB(fsb, do_prfilesel_proc, ui);
-        ManageChild(fsb->FSB);
+        WidgetManage(fsb->FSB);
     }
 
     device = GetOptionChoice(ui->devices);

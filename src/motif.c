@@ -48,7 +48,7 @@
 #include "globals.h"
 
 /* Widgets */
-void ManageChild(Widget w)
+void WidgetManage(Widget w)
 {
     XtManageChild(w);
 }
@@ -304,7 +304,7 @@ void DialogRaise(Widget form)
 {
     Widget w = XtParent(form);
 
-    ManageChild(w);
+    WidgetManage(w);
     XMapRaised(XtDisplay(w), XtWindow(w));
 }
 
@@ -467,9 +467,9 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
         XmNbottomAttachment, XmATTACH_FORM,
         XmNrightAttachment, XmATTACH_FORM,
         NULL);
-    ManageChild(form);
+    WidgetManage(form);
 
-    ManageChild(retval->rc);
+    WidgetManage(retval->rc);
 
     AddMouseWheelSupport(XmFileSelectionBoxGetChild(retval->FSB,
         XmDIALOG_LIST));
@@ -539,7 +539,7 @@ Widget CreateVContainer(Widget parent)
     Widget rc;
 
     rc = XmCreateRowColumn(parent, "VContainer", NULL, 0);
-    ManageChild(rc);
+    WidgetManage(rc);
 
     return rc;
 }
@@ -550,7 +550,7 @@ Widget CreateHContainer(Widget parent)
 
     rc = XmCreateRowColumn(parent, "HContainer", NULL, 0);
     XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-    ManageChild(rc);
+    WidgetManage(rc);
 
     return rc;
 }
@@ -708,7 +708,7 @@ Widget CreateMultiLineTextEdit(Widget parent, int nrows)
     XtSetArg(args[ac], XmNvisualPolicy, XmVARIABLE); ac++;
 
     w = XmCreateScrolledText(parent, "text", args, ac);
-    ManageChild(w);
+    WidgetManage(w);
 
     return w;
 }
@@ -850,7 +850,7 @@ Widget CreateBitmapButton(Widget parent,
         xmPushButtonWidgetClass, parent,
         NULL);
     LabelSetPixmap(button, width, height, bits);
-    ManageChild(button);
+    WidgetManage(button);
 
     return button;
 }
@@ -915,7 +915,7 @@ Widget CreateGrid(Widget parent, int ncols, int nrows)
         XmNuserData, gd,
         NULL);
 
-    ManageChild(w);
+    WidgetManage(w);
 
     return w;
 }
@@ -988,7 +988,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
 
     XmStringFree(str);
 
-    ManageChild(retval->menu);
+    WidgetManage(retval->menu);
 
     return retval;
 }

@@ -42,7 +42,7 @@
 #endif /* QT_GUI */
 
 /* Widgets */
-void ManageChild(Widget w);
+void WidgetManage(Widget w);
 void UnmanageChild(Widget w);
 int IsManaged(Widget w);
 void *GetUserData(Widget w);

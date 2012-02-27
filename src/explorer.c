@@ -36,52 +36,52 @@
 static void manage_plugin(ExplorerUI *ui, Widget managed_top)
 {
     if (managed_top == ui->project_ui->top) {
-        ManageChild(ui->project_ui->top);
+        WidgetManage(ui->project_ui->top);
     } else {
         UnmanageChild(ui->project_ui->top);
     }
     if (managed_top == ui->ssd_ui->top) {
-        ManageChild(ui->ssd_ui->top);
+        WidgetManage(ui->ssd_ui->top);
     } else {
         UnmanageChild(ui->ssd_ui->top);
     }
     if (managed_top == ui->frame_ui->top) {
-        ManageChild(ui->frame_ui->top);
+        WidgetManage(ui->frame_ui->top);
     } else {
         UnmanageChild(ui->frame_ui->top);
     }
     if (managed_top == ui->graph_ui->top) {
-        ManageChild(ui->graph_ui->top);
+        WidgetManage(ui->graph_ui->top);
     } else {
         UnmanageChild(ui->graph_ui->top);
     }
     if (managed_top == ui->set_ui->top) {
-        ManageChild(ui->set_ui->top);
+        WidgetManage(ui->set_ui->top);
     } else {
         UnmanageChild(ui->set_ui->top);
     }
     if (managed_top == ui->axisgrid_ui->top) {
-        ManageChild(ui->axisgrid_ui->top);
+        WidgetManage(ui->axisgrid_ui->top);
     } else {
         UnmanageChild(ui->axisgrid_ui->top);
     }
     if (managed_top == ui->axis_ui->top) {
-        ManageChild(ui->axis_ui->top);
+        WidgetManage(ui->axis_ui->top);
     } else {
         UnmanageChild(ui->axis_ui->top);
     }
     if (managed_top == ui->object_ui->top) {
-        ManageChild(ui->object_ui->top);
+        WidgetManage(ui->object_ui->top);
     } else {
         UnmanageChild(ui->object_ui->top);
     }
     if (managed_top == ui->atext_ui->top) {
-        ManageChild(ui->atext_ui->top);
+        WidgetManage(ui->atext_ui->top);
     } else {
         UnmanageChild(ui->atext_ui->top);
     }
     if (managed_top == ui->region_ui->top) {
-        ManageChild(ui->region_ui->top);
+        WidgetManage(ui->region_ui->top);
     } else {
         UnmanageChild(ui->region_ui->top);
     }
@@ -966,7 +966,7 @@ void raise_explorer(GUI *gui, Quark *q)
 
         eui->top = CreateDialog(app_shell, "Explorer");
         menubar = CreateMenuBar(eui->top);
-        ManageChild(menubar);
+        WidgetManage(menubar);
         FormAddVChild(eui->top, menubar);
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
@@ -1040,7 +1040,7 @@ void raise_explorer(GUI *gui, Quark *q)
         SetMinimumDimensions(form, 150, 0);
         SetDimensions(form, 250, 0);
 
-        ManageChild(form);
+        WidgetManage(form);
 
 #ifdef HAVE_LESSTIF
 # if !defined(SF_BUG_993209_FIXED) && !defined(SF_BUG_993209_NOT_FIXED)
@@ -1086,7 +1086,7 @@ void raise_explorer(GUI *gui, Quark *q)
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 
-        ManageChild(eui->tree);
+        WidgetManage(eui->tree);
 
         /* Menu popup */
         eui->popup = CreatePopupMenu(eui->tree);

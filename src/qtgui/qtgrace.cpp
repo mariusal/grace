@@ -662,21 +662,21 @@ void set_view_items(void)
 
     if (gapp->gui->statusbar) {
         SetToggleButtonState(mwui->windowbarw[1], TRUE);
-        ManageChild(mwui->frbot);
+        WidgetManage(mwui->frbot);
     } else {
         SetToggleButtonState(mwui->windowbarw[1], FALSE);
         UnmanageChild(mwui->frbot);
     }
     if (gapp->gui->toolbar) {
         SetToggleButtonState(mwui->windowbarw[2], TRUE);
-        ManageChild(mwui->frleft);
+        WidgetManage(mwui->frleft);
     } else {
         SetToggleButtonState(mwui->windowbarw[2], FALSE);
         UnmanageChild(mwui->frleft);
     }
     if (gapp->gui->locbar) {
         SetToggleButtonState(mwui->windowbarw[0], TRUE);
-        ManageChild(mwui->frtop);
+        WidgetManage(mwui->frtop);
     } else {
         SetToggleButtonState(mwui->windowbarw[0], FALSE);
         UnmanageChild(mwui->frtop);
@@ -858,7 +858,7 @@ void ShowMenu(Widget w, void *data)
 //{
 //    XtManageChild(w);
 //}
-void ManageChild(Widget w)
+void WidgetManage(Widget w)
 {
     if (QAction *action = qobject_cast<QAction *>(w)) {
         action->setVisible(true);
@@ -6402,7 +6402,7 @@ SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
     retval->dest = CreateSSDSetSelector(retval->form, "Destination", sel_type);
 
 
-    ManageChild(retval->form);
+    WidgetManage(retval->form);
 
     return retval;
 }

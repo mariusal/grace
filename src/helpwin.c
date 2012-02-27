@@ -194,7 +194,7 @@ void create_about_grtool(Widget but, void *data)
         wbut = CreateButton(about_panel, "Close");
         AddButtonCB(wbut, destroy_dialog_cb, about_frame);
 
-        ManageChild(about_frame);
+        WidgetManage(about_frame);
     }
 
     DialogRaise(about_frame);
@@ -448,7 +448,7 @@ static void create_find_dialog(Widget but, void *data)
 
         CreateAACDialog(dialog, rc, find_cb, data);
         
-        ManageChild(dialog);
+        WidgetManage(dialog);
     }
 
     DialogRaise(dialog);
@@ -505,7 +505,7 @@ void create_helper_frame(char *URL)
         ui->top = CreateDialog(app_shell, "Gracilla");
 	
         menubar = CreateMenuBar(ui->top);
-        ManageChild(menubar);
+        WidgetManage(menubar);
         AddDialogFormChild(ui->top, menubar);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
@@ -557,7 +557,7 @@ void create_helper_frame(char *URL)
             XmNtopAttachment, XmATTACH_NONE,
             NULL);
 	
-        ManageChild(ui->top);
+        WidgetManage(ui->top);
         
         XtVaSetValues(rc, XmNresizeHeight, False, NULL);
         

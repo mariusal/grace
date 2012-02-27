@@ -85,7 +85,7 @@ void create_datasetprop_popup(Widget but, void *data)
         tui.top = CreateDialog(app_shell, "Data set statistics");
 
         menubar = CreateMenuBar(tui.top);
-        ManageChild(menubar);
+        WidgetManage(menubar);
         FormAddVChild(tui.top, menubar);
 
         tui.sel = CreateGraphSetSelector(tui.top,
@@ -124,7 +124,7 @@ void create_datasetprop_popup(Widget but, void *data)
         AddTableEnterCellCB(tui.mw, enterCB, NULL);
 
         FormAddVChild(tui.top, fr);
-        ManageChild(tui.top);
+        WidgetManage(tui.top);
     }
     
     DialogRaise(tui.top);
@@ -232,7 +232,7 @@ void create_datasetop_popup(Widget but, void *data)
         DialogSetResizable(datasetopui.top, TRUE);
 
         menubar = CreateMenuBar(datasetopui.top);
-        ManageChild(menubar);
+        WidgetManage(menubar);
         FormAddVChild(datasetopui.top, menubar);
 
 
@@ -303,7 +303,7 @@ void create_datasetop_popup(Widget but, void *data)
         datasettype_controls[5] = rc;
 
         UnmanageChild(datasettype_controls[0]);
-        ManageChild(datasettype_controls[1]);
+        WidgetManage(datasettype_controls[1]);
         UnmanageChild(datasettype_controls[2]);
         UnmanageChild(datasettype_controls[3]);
         UnmanageChild(datasettype_controls[4]);
@@ -325,7 +325,7 @@ static void datasetoptypeCB(OptionStructure *opt, int value, void *data)
     
     for (i = 0; i < 6; i++) {
         if (i == type) {
-            ManageChild(datasettype_controls[i]);
+            WidgetManage(datasettype_controls[i]);
         } else {
             UnmanageChild(datasettype_controls[i]);
         }

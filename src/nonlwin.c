@@ -126,7 +126,7 @@ static void do_nparm_toggle(OptionStructure *opt, int value, void *data)
     int i;
     for (i = 0; i < MAXPARM; i++) {
         if (i < value) {
-            ManageChild(ui->parm_item[i]);
+            WidgetManage(ui->parm_item[i]);
         } else {
             UnmanageChild(ui->parm_item[i]);
         }
@@ -182,7 +182,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         CreateMenuHelpButton(menupane, "On fit", 'f',
             frame, "doc/UsersGuide.html#non-linear-fit");
 
-        ManageChild(menubar);
+        WidgetManage(menubar);
         
 	title_fr = CreateFrame(frame, NULL);
 	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
@@ -588,7 +588,7 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
             WidgetSetSensitive(ui->uppb_item[i], nlp->constr);
             if (i < nlfit->parnum) {
                 if (!IsManaged (ui->parm_item[i])) {
-                    ManageChild(ui->parm_item[i]);
+                    WidgetManage(ui->parm_item[i]);
                 }
             } else {
                 if (IsManaged (ui->parm_item[i])) {
@@ -647,7 +647,7 @@ static void create_openfit_popup(Widget but, void *data)
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell, "Open fit parameter file");
 	AddFileSelectionBoxCB(fsb, do_openfit_proc, NULL);
-        ManageChild(fsb->FSB);
+        WidgetManage(fsb->FSB);
     }
     
     DialogRaise(fsb->FSB);
@@ -677,7 +677,7 @@ static void create_savefit_popup(Widget but, void *data)
 	fr = CreateFrame(fsb->rc, NULL);
 	title_item = CreateTextItem(fr, 25, "Title: ");
 	AddFileSelectionBoxCB(fsb, do_savefit_proc, (void *) title_item);
-        ManageChild(fsb->FSB);
+        WidgetManage(fsb->FSB);
     }
     
     /* xv_setstr(title_item, ui->nlfit.title); */
