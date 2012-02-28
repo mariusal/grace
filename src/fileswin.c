@@ -75,9 +75,7 @@ void create_saveproject_popup(GProject *gp)
     if (fsb == NULL) {
         fsb = CreateFSBDialog(app_shell, "Save project");
         AddFSBDialogCB(fsb, save_proc, gp);
-#ifdef QT_GUI
         FSBDialogSetPattern(fsb, "*.xgr");
-#endif
         WidgetManage(fsb->FSB);
     }
     
@@ -227,9 +225,7 @@ void create_openproject_popup(void)
 #endif
         ui->fsb = CreateFSBDialog(app_shell, "Open project");
 	AddFSBDialogCB(ui->fsb, open_proc, NULL);
-#ifdef QT_GUI
         FSBDialogSetPattern(ui->fsb, "*.*gr");
-#endif
 #ifndef QT_GUI
         fr = CreateFrame(ui->fsb->rc, "Preview");
 
@@ -298,9 +294,7 @@ void create_file_popup(Widget but, void *data)
         
 	rdata_dialog = CreateFSBDialog(app_shell, "Read sets");
 	AddFSBDialogCB(rdata_dialog, read_sets_proc, (void *) gui);
-#ifdef QT_GUI
         FSBDialogSetPattern(rdata_dialog, "*.dat");
-#endif
 
 	fr = CreateFrame(rdata_dialog->rc, NULL);
 	rc = CreateVContainer(fr);
@@ -404,9 +398,7 @@ void create_write_popup(Widget but, void *data)
 	
         fsb = CreateFSBDialog(app_shell, "Export data");
 	AddFSBDialogCB(fsb, write_ssd_proc, (void *) gui);
-#ifdef QT_GUI
         FSBDialogSetPattern(fsb, "*.dat");
-#endif
 	
         gui->sel = CreateSSDColSelector(fsb->rc, NULL, LIST_TYPE_MULTIPLE);
 

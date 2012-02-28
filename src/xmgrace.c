@@ -132,17 +132,6 @@ String fallbackResourcesCommon[] = {
     "XmGrace*mainWin.shadowThickness: 0",
     "XmGrace*XmMenuShell*shadowThickness: 2",
     "XmGrace*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
-    "XmGrace*saveLogsFSB*pattern: *.log",
-    "XmGrace*openProjectFSB*pattern: *.*gr",
-    "XmGrace*saveProjectFSB*pattern: *.xgr",
-    "XmGrace*readSetsFSB*pattern: *.dat",
-    "XmGrace*writeSetsFSB*pattern: *.dat",
-    "XmGrace*readParametersFSB*pattern: *.par",
-    "XmGrace*writeParametersFSB*pattern: *.par",
-    "XmGrace*selectNetcdfFileFSB*pattern: *.nc",
-    "XmGrace*selectHotLinkFileFSB*pattern: *.dat",
-    "XmGrace*openFitParameterFileFSB*pattern: *.fit",
-    "XmGrace*saveFitParameterFileFSB*pattern: *.fit",
     NULL
 };
 

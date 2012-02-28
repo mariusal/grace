@@ -76,6 +76,7 @@ static void create_hotfiles_popup(Widget but, void *data)
     if (fsb == NULL) {
         fsb = CreateFSBDialog(app_shell, "Hotlinked file");
         AddFSBDialogCB(fsb, do_hotlinkfile_proc, data);
+        FSBDialogSetPattern(fsb, "*.dat");
         WidgetManage(fsb->FSB);
     }
     

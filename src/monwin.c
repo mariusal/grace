@@ -218,9 +218,7 @@ static void create_wmon_frame(Widget but, void *data)
     if (ui->save_logs_fsb == NULL) {
         ui->save_logs_fsb = CreateFSBDialog(app_shell, "Save logs");
         AddFSBDialogCB(ui->save_logs_fsb, save_logs_proc, ui);
-#ifdef QT_GUI
         FSBDialogSetPattern(ui->save_logs_fsb, "*.log");
-#endif
         WidgetManage(ui->save_logs_fsb->FSB);
     }
     
