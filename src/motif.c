@@ -440,7 +440,7 @@ static void destroy_dialog(Widget_CBData *wcbdata)
     DialogClose(wcbdata->anydata);
 }
 
-FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
+FSBStructure *CreateFSBDialog(Widget parent, char *s)
 {
     FSBStructure *retval;
     OptionStructure *opt;
@@ -524,7 +524,7 @@ static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data
     unset_wait_cursor();
 }
 
-void AddFileSelectionBoxCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
+void AddFSBDialogCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
 {
     FSB_CBdata *cbdata;
 
@@ -536,7 +536,7 @@ void AddFileSelectionBoxCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
         XmNokCallback, fsb_int_cb_proc, (XtPointer) cbdata);
 }
 
-void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern)
+void FSBDialogSetPattern(FSBStructure *fsb, char *pattern)
 {
     XmString xmstr;
 

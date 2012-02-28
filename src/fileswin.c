@@ -73,10 +73,10 @@ void create_saveproject_popup(GProject *gp)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Save project");
-        AddFileSelectionBoxCB(fsb, save_proc, gp);
+        fsb = CreateFSBDialog(app_shell, "Save project");
+        AddFSBDialogCB(fsb, save_proc, gp);
 #ifdef QT_GUI
-        SetFileSelectionBoxPattern(fsb, "*.xgr");
+        FSBDialogSetPattern(fsb, "*.xgr");
 #endif
         WidgetManage(fsb->FSB);
     }
@@ -225,10 +225,10 @@ void create_openproject_popup(void)
         ui->pixmap = XCreatePixmap(xstuff->disp, xstuff->root,
             PREVIEW_WIDTH, PREVIEW_HEIGHT, xstuff->depth);
 #endif
-        ui->fsb = CreateFileSelectionBox(app_shell, "Open project");
-	AddFileSelectionBoxCB(ui->fsb, open_proc, NULL);
+        ui->fsb = CreateFSBDialog(app_shell, "Open project");
+	AddFSBDialogCB(ui->fsb, open_proc, NULL);
 #ifdef QT_GUI
-        SetFileSelectionBoxPattern(ui->fsb, "*.*gr");
+        FSBDialogSetPattern(ui->fsb, "*.*gr");
 #endif
 #ifndef QT_GUI
         fr = CreateFrame(ui->fsb->rc, "Preview");
@@ -296,10 +296,10 @@ void create_file_popup(Widget but, void *data)
         
         gui = xmalloc(sizeof(rdataGUI));
         
-	rdata_dialog = CreateFileSelectionBox(app_shell, "Read sets");
-	AddFileSelectionBoxCB(rdata_dialog, read_sets_proc, (void *) gui);
+	rdata_dialog = CreateFSBDialog(app_shell, "Read sets");
+	AddFSBDialogCB(rdata_dialog, read_sets_proc, (void *) gui);
 #ifdef QT_GUI
-        SetFileSelectionBoxPattern(rdata_dialog, "*.dat");
+        FSBDialogSetPattern(rdata_dialog, "*.dat");
 #endif
 
 	fr = CreateFrame(rdata_dialog->rc, NULL);
@@ -402,10 +402,10 @@ void create_write_popup(Widget but, void *data)
         
 	gui = xmalloc(sizeof(wdataGUI));
 	
-        fsb = CreateFileSelectionBox(app_shell, "Export data");
-	AddFileSelectionBoxCB(fsb, write_ssd_proc, (void *) gui);
+        fsb = CreateFSBDialog(app_shell, "Export data");
+	AddFSBDialogCB(fsb, write_ssd_proc, (void *) gui);
 #ifdef QT_GUI
-        SetFileSelectionBoxPattern(fsb, "*.dat");
+        FSBDialogSetPattern(fsb, "*.dat");
 #endif
 	
         gui->sel = CreateSSDColSelector(fsb->rc, NULL, LIST_TYPE_MULTIPLE);

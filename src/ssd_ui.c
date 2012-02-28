@@ -74,8 +74,8 @@ static void create_hotfiles_popup(Widget but, void *data)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Hotlinked file");
-        AddFileSelectionBoxCB(fsb, do_hotlinkfile_proc, data);
+        fsb = CreateFSBDialog(app_shell, "Hotlinked file");
+        AddFSBDialogCB(fsb, do_hotlinkfile_proc, data);
         WidgetManage(fsb->FSB);
     }
     

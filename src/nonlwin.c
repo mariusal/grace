@@ -645,8 +645,8 @@ static void create_openfit_popup(Widget but, void *data)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Open fit parameter file");
-	AddFileSelectionBoxCB(fsb, do_openfit_proc, NULL);
+        fsb = CreateFSBDialog(app_shell, "Open fit parameter file");
+	AddFSBDialogCB(fsb, do_openfit_proc, NULL);
         WidgetManage(fsb->FSB);
     }
     
@@ -673,10 +673,10 @@ static void create_savefit_popup(Widget but, void *data)
     if (fsb == NULL) {
         Widget fr;
         
-        fsb = CreateFileSelectionBox(app_shell, "Save fit parameter file");
+        fsb = CreateFSBDialog(app_shell, "Save fit parameter file");
 	fr = CreateFrame(fsb->rc, NULL);
 	title_item = CreateTextItem(fr, 25, "Title: ");
-	AddFileSelectionBoxCB(fsb, do_savefit_proc, (void *) title_item);
+	AddFSBDialogCB(fsb, do_savefit_proc, (void *) title_item);
         WidgetManage(fsb->FSB);
     }
     

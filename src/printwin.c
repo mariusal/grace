@@ -652,8 +652,8 @@ void create_printfiles_popup(Widget but, void *data)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Select print file");
-	AddFileSelectionBoxCB(fsb, do_prfilesel_proc, ui);
+        fsb = CreateFSBDialog(app_shell, "Select print file");
+	AddFSBDialogCB(fsb, do_prfilesel_proc, ui);
         WidgetManage(fsb->FSB);
     }
 
@@ -661,7 +661,7 @@ void create_printfiles_popup(Widget but, void *data)
     dev = get_device_props(canvas, device);
 
     sprintf(buf, "*.%s", dev->fext);
-    SetFileSelectionBoxPattern(fsb, buf);
+    FSBDialogSetPattern(fsb, buf);
     
     DialogRaise(fsb->FSB);
 

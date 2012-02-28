@@ -87,15 +87,15 @@ typedef struct {
     Widget FSB;
     Widget rc;
 } FSBStructure;
-FSBStructure *CreateFileSelectionBox(Widget parent, char *s);
+FSBStructure *CreateFSBDialog(Widget parent, char *s);
 
 typedef int (*FSB_CBProc)(
     FSBStructure *fsbp,
     char *,              /* filename */
     void *               /* data the application registered */
 );
-void AddFileSelectionBoxCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);
-void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern);
+void AddFSBDialogCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);
+void FSBDialogSetPattern(FSBStructure *fsb, char *pattern);
 
 /* Containers */
 Widget CreateVContainer(Widget parent);
