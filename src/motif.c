@@ -265,6 +265,9 @@ void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *any
 
     if (!strcmp(callback, "cancel"))
         XtAddCallback(w,  XmNcancelCallback, widgetCB, (XtPointer) cbdata);
+
+    if (!strcmp(callback, "ok"))
+        XtAddCallback(w,  XmNokCallback, widgetCB, (XtPointer) cbdata);
 }
 
 static char *label_to_resname(const char *s, const char *suffix)
@@ -499,14 +502,14 @@ typedef struct {
     void *anydata;
 } FSB_CBdata;
 
-static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void fsb_int_cb_proc(Widget_CBData *wcbdata)
 {
     char *s;
     int ok;
 
-    FSB_CBdata *cbdata = (FSB_CBdata *) client_data;
+    FSB_CBdata *cbdata = (FSB_CBdata *) wcbdata->anydata;
     XmFileSelectionBoxCallbackStruct *cbs =
-        (XmFileSelectionBoxCallbackStruct *) call_data;
+        (XmFileSelectionBoxCallbackStruct *) wcbdata->calldata;
 
     s = GetStringSimple(cbs->value);
     if (s == NULL) {
@@ -532,8 +535,8 @@ void AddFSBDialogCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
     cbdata->fsb = fsb;
     cbdata->cbproc = (FSB_CBProc) cbproc;
     cbdata->anydata = anydata;
-    XtAddCallback(fsb->FSB,
-        XmNokCallback, fsb_int_cb_proc, (XtPointer) cbdata);
+
+    AddWidgetCB(fsb->FSB, "ok", fsb_int_cb_proc, cbdata);
 }
 
 void FSBDialogSetPattern(FSBStructure *fsb, char *pattern)
