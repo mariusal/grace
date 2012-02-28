@@ -247,6 +247,7 @@ static void widgetCB(Widget w, XtPointer client_data, XtPointer call_data)
 
 void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata)
 {
+    char *cb;
     Widget_CBData *cbdata;
 
     cbdata = (Widget_CBData *) xmalloc(sizeof(Widget_CBData));
@@ -254,20 +255,12 @@ void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *any
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
 
-    if (!strcmp(callback, "valueChanged"))
-        XtAddCallback(w, XmNvalueChangedCallback, widgetCB, (XtPointer) cbdata);
+    cb = copy_string(NULL, callback);
+    cb = concat_strings(cb, "Callback");
 
-    if (!strcmp(callback, "activate"))
-        XtAddCallback(w,  XmNactivateCallback, widgetCB, (XtPointer) cbdata);
+    XtAddCallback(w, cb, widgetCB, (XtPointer) cbdata);
 
-    if (!strcmp(callback, "modifyVerify"))
-        XtAddCallback(w,  XmNmodifyVerifyCallback, widgetCB, (XtPointer) cbdata);
-
-    if (!strcmp(callback, "cancel"))
-        XtAddCallback(w,  XmNcancelCallback, widgetCB, (XtPointer) cbdata);
-
-    if (!strcmp(callback, "ok"))
-        XtAddCallback(w,  XmNokCallback, widgetCB, (XtPointer) cbdata);
+    xfree(cb);
 }
 
 static char *label_to_resname(const char *s, const char *suffix)
