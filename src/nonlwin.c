@@ -72,21 +72,21 @@ typedef struct {
     TextStructure *formula_item;
     Widget title_item;
     Widget parm_item[MAXPARM];
-    Widget value_item[MAXPARM];
+    TextStructure *value_item[MAXPARM];
     Widget constr_item[MAXPARM];
-    Widget lowb_item[MAXPARM];
-    Widget uppb_item[MAXPARM];
-    Widget tol_item;
+    TextStructure *lowb_item[MAXPARM];
+    TextStructure *uppb_item[MAXPARM];
+    TextStructure *tol_item;
     OptionStructure *nparm_item;
     SpinStructure *nsteps_item;
     OptionStructure *load_item;
     Widget autol_item;
-    Widget npts_item;
-    Widget start_item, stop_item;
+    TextStructure *npts_item;
+    TextStructure *start_item, *stop_item;
     Widget fload_rc;
     RestrictionStructure *restr_item;
     OptionStructure *weigh_item;
-    Widget wfunc_item;
+    TextStructure *wfunc_item;
 } Nonl_ui;
 
 typedef struct {
@@ -154,7 +154,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         int i;
         char buf[256];
         OptionItem np_option_items[MAXPARM + 1], option_items[5];
-        Widget frame, menubar, menupane;
+        Widget frame, menubar, menupane, rc;
         Widget nonl_tab, nonl_main, nonl_advanced;
         Widget sw, title_fr, fr3, rc1, rc2, rc3, lab;
 
@@ -166,7 +166,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         CreateMenuButton(menupane, "Open...", 'O', create_openfit_popup, (void *) ui);
         CreateMenuButton(menupane, "Save...", 'S', create_savefit_popup, (void *) ui);
         CreateMenuSeparator(menupane);
-        CreateMenuButtonA(menupane, "Close", 'C', "<Key>Escape", "Esc", destroy_dialog_cb, frame);
+        CreateMenuButtonA(menupane, "Close", 'C', "<Key>Escape", "Esc", destroy_dialog_cb, tdialog->form);
 
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
@@ -184,14 +184,16 @@ static void *nonl_build_cb(TransformStructure *tdialog)
 
         WidgetManage(menubar);
         
-	title_fr = CreateFrame(frame, NULL);
+        rc = CreateVContainer(frame);
+
+	title_fr = CreateFrame(rc, NULL);
 	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
 	ui->title_item = CreateLabel(title_fr, NULL);
-        AddDialogFormChild(frame, title_fr);
+	XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_CENTER, NULL);
 
         /* ------------ Tabs --------------*/
 
-        nonl_tab = CreateTab(frame);        
+        nonl_tab = CreateTab(rc);
 
 
         /* ------------ Main tab --------------*/
@@ -210,7 +212,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
             "Parameters:", 1, MAXPARM + 1, np_option_items);
         AddOptionChoiceCB(ui->nparm_item, do_nparm_toggle, ui);
         
-	ui->tol_item = CreateTextItem(rc1, 8, "Tolerance:");
+	ui->tol_item = CreateText2(rc1, "Tolerance:", 8);
         
 	ui->nsteps_item = CreateSpinChoice(rc1, "Iterations:", 3,
             SPIN_TYPE_INT, 0.0, 500.0, 5.0);
@@ -227,17 +229,17 @@ static void *nonl_build_cb(TransformStructure *tdialog)
 	    ui->parm_item[i] = CreateHContainer(rc2);
             WidgetUnmanage(ui->parm_item[i]);
 	    sprintf(buf, "A%1d: ", i);
-	    ui->value_item[i] = CreateTextItem(ui->parm_item[i], 10, buf);
+	    ui->value_item[i] = CreateText2(ui->parm_item[i], buf, 10);
 
 	    ui->constr_item[i] = CreateToggleButton(ui->parm_item[i], "Bounds:");
 	    AddToggleButtonCB(ui->constr_item[i], do_constr_toggle, (void *) i);
 
-	    ui->lowb_item[i] = CreateTextItem(ui->parm_item[i], 6, "");
+	    ui->lowb_item[i] = CreateText2(ui->parm_item[i], "", 6);
 	    
 	    sprintf(buf, "< A%1d < ", i);
 	    lab = CreateLabel(ui->parm_item[i], buf);
 
-	    ui->uppb_item[i] = CreateTextItem(ui->parm_item[i], 6, "");
+	    ui->uppb_item[i] = CreateText2(ui->parm_item[i], "", 6);
 	}
 
         /* ------------ Advanced tab --------------*/
@@ -260,8 +262,8 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         option_items[4].value = WEIGHT_CUSTOM;
         option_items[4].label = "Custom";
 	ui->weigh_item = CreateOptionChoice(rc3, "Weights", 1, 5, option_items);
-	ui->wfunc_item = CreateTextItem(rc3, 30, "Function:");
-	AddOptionChoiceCB(ui->weigh_item, nonl_wf_cb, (void *) ui->wfunc_item);
+	ui->wfunc_item = CreateText2(rc3, "Function:", 30);
+	AddOptionChoiceCB(ui->weigh_item, nonl_wf_cb, ui->wfunc_item);
 
 	fr3 = CreateFrame(nonl_advanced, "Load options");
         rc3 = CreateVContainer(fr3);
@@ -273,19 +275,19 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         option_items[2].label = "Function";
 	ui->load_item = CreateOptionChoice(rc3, "Load", 1, 3, option_items);
 	ui->fload_rc = CreateHContainer(rc3);
-	ui->start_item = CreateTextItem(ui->fload_rc, 6, "Start load at:");
-	ui->stop_item = CreateTextItem(ui->fload_rc, 6, "Stop load at:");
-	ui->npts_item = CreateTextItem(ui->fload_rc, 4, "# of points:");
-        AddOptionChoiceCB(ui->load_item, do_nonl_toggle, (void *) ui->fload_rc);
+	ui->start_item = CreateText2(ui->fload_rc, "Start load at:", 6);
+	ui->stop_item = CreateText2(ui->fload_rc, "Stop load at:", 6);
+	ui->npts_item = CreateText2(ui->fload_rc, "# of points:", 4);
+        AddOptionChoiceCB(ui->load_item, do_nonl_toggle, ui->fload_rc);
 
         /* defaults */
         SetToggleButtonState(ui->autol_item, TRUE);
         SetOptionChoice(ui->load_item, LOAD_VALUES);
         WidgetSetSensitive(ui->fload_rc, FALSE);
-        WidgetSetSensitive(XtParent(ui->wfunc_item), FALSE);
-        xv_setstr(ui->start_item, "0.0");
-        xv_setstr(ui->stop_item,  "1.0");
-        xv_setstr(ui->npts_item,  "10");
+        WidgetSetSensitive(ui->wfunc_item->form, FALSE);
+        TextSetString(ui->start_item, "0.0");
+        TextSetString(ui->stop_item,  "1.0");
+        TextSetString(ui->npts_item,  "10");
     }
 
     return (void *) ui;
@@ -311,11 +313,14 @@ static void *nonl_get_cb(void *gui)
     pars = xmalloc(sizeof(Nonl_pars));
     if (pars) {
         int i;
+        char *s;
         NLFit *nlfit = &pars->nlfit;
         
         pars->nlfit.title   = NULL;
         nlfit->formula = TextGetString(ui->formula_item);
-        nlfit->tolerance = atof(xv_getstr(ui->tol_item));
+        s = TextGetString(ui->tol_item);
+        nlfit->tolerance = atof(s);
+        xfree(s);
         nlfit->parnum = GetOptionChoice(ui->nparm_item);
         
         pars->nsteps = (int) GetSpinChoice(ui->nsteps_item);
@@ -323,7 +328,9 @@ static void *nonl_get_cb(void *gui)
         for (i = 0; i < nlfit->parnum; i++) {
             char buf[256];
 	    nonlparm *nlp = &nlfit->parms[i];
-            strcpy(buf, xv_getstr(ui->value_item[i]));
+	    s = TextGetString(ui->value_item[i]);
+            strcpy(buf, s);
+            xfree(s);
 	    if (sscanf(buf, "%lf", &nlp->value) != 1) {
 	        errmsg("Invalid input in parameter field");
 	        nonl_free_cb(pars);
@@ -332,13 +339,17 @@ static void *nonl_get_cb(void *gui)
 
 	    nlp->constr = GetToggleButtonState(ui->constr_item[i]);
 	    if (nlp->constr) {
-	        strcpy(buf, xv_getstr(ui->lowb_item[i]));
+	        s = TextGetString(ui->lowb_item[i]);
+	        strcpy(buf, s);
+	        xfree(s);
 	        if (sscanf(buf, "%lf", &nlp->min) != 1) {
 	    	    errmsg("Invalid input in low-bound field");
 	            nonl_free_cb(pars);
                     return NULL;
 	        }
-	        strcpy(buf, xv_getstr(ui->uppb_item[i]));
+	        s = TextGetString(ui->uppb_item[i]);
+	        strcpy(buf, s);
+	        xfree(s);
 	        if (sscanf(buf, "%lf", &nlp->max) != 1) {
 	    	    errmsg("Invalid input in upper-bound field");
 	            nonl_free_cb(pars);
@@ -573,19 +584,19 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
         
         TextSetString(ui->formula_item, nlfit->formula);
         sprintf(buf, "%g", nlfit->tolerance);
-        xv_setstr(ui->tol_item, buf);
+        TextSetString(ui->tol_item, buf);
         SetOptionChoice(ui->nparm_item, nlfit->parnum);
         for (i = 0; i < MAXPARM; i++) {
             nonlparm *nlp = &nlfit->parms[i];
             sprintf(buf, "%g", nlp->value);
-            xv_setstr(ui->value_item[i], buf);
+            TextSetString(ui->value_item[i], buf);
             SetToggleButtonState(ui->constr_item[i], nlp->constr);
             sprintf(buf, "%g", nlp->min);
-            xv_setstr(ui->lowb_item[i], buf);
-            WidgetSetSensitive(ui->lowb_item[i], nlp->constr);
+            TextSetString(ui->lowb_item[i], buf);
+            WidgetSetSensitive(ui->lowb_item[i]->form, nlp->constr);
             sprintf(buf, "%g", nlp->max);
-            xv_setstr(ui->uppb_item[i], buf);
-            WidgetSetSensitive(ui->uppb_item[i], nlp->constr);
+            TextSetString(ui->uppb_item[i], buf);
+            WidgetSetSensitive(ui->uppb_item[i]->form, nlp->constr);
             if (i < nlfit->parnum) {
                 if (!WidgetIsManaged (ui->parm_item[i])) {
                     WidgetManage(ui->parm_item[i]);
@@ -667,7 +678,7 @@ static int do_openfit_proc(FSBStructure *fsb, char *filename, void *data)
 static void create_savefit_popup(Widget but, void *data)
 {
     static FSBStructure *fsb = NULL;
-    static Widget title_item = NULL;
+    static TextStructure *title_item = NULL;
 
     set_wait_cursor();
 
@@ -676,8 +687,8 @@ static void create_savefit_popup(Widget but, void *data)
 
         fsb = CreateFSBDialog(app_shell, "Save fit parameter file");
         fr = CreateFrame(fsb->rc, NULL);
-        title_item = CreateTextItem(fr, 25, "Title: ");
-        AddFSBDialogCB(fsb, do_savefit_proc, (void *) title_item);
+        title_item = CreateText2(fr, "Title: ", 25);
+        AddFSBDialogCB(fsb, do_savefit_proc, title_item);
         FSBDialogSetPattern(fsb, "*.fit");
         WidgetManage(fsb->FSB);
     }
