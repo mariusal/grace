@@ -245,7 +245,7 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     AddToggleButtonCB(ui->two_digits_years, tb_explorer_cb, eui);
     ui->wrap_year = CreateText2(rc, "Wrap year:", 4);
     AddTextActivateCB(ui->wrap_year, text_explorer_cb, eui);
-    AddToggleButtonCB(ui->two_digits_years, wrap_year_cb, ui->wrap_year);
+    AddToggleButtonCB(ui->two_digits_years, wrap_year_cb, ui->wrap_year->form);
     
     ui->top = form;
     
@@ -313,9 +313,9 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         SetSpinChoice(ui->fsize_scale, pr->fscale);
         SetSpinChoice(ui->lwidth_scale, pr->lscale);
 
-	    jdate_to_datetime(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+        jdate_to_datetime(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
         sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
-            y, m, d, h, mm, sec);
+                y, m, d, h, mm, sec);
         TextSetString(ui->refdate, date_string);
         SetToggleButtonState(ui->two_digits_years, pr->two_digits_years);
         sprintf(wrap_year_string, "%04d", pr->wrap_year);
