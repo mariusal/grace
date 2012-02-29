@@ -82,7 +82,6 @@ Widget CreateDialogWindow(Widget parent, const char *s);
 Widget CreateDialog(Widget parent, const char *s);
 void DialogRaise(Widget form);
 void DialogClose(Widget form);
-void DialogSetTitle(Widget form, const char *s);
 void DialogSetResizable(Widget form, int onoff);
 
 /* File selection dialog */

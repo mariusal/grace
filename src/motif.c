@@ -303,6 +303,11 @@ Widget CreateDialogWindow(Widget parent, const char *s)
 
     handle_close(dialog);
 
+    bufp = copy_string(NULL, "Grace: ");
+    bufp = concat_strings(bufp, s);
+    XtVaSetValues(dialog, XmNtitle, bufp, NULL);
+    xfree(bufp);
+
     return dialog;
 }
 
@@ -313,7 +318,6 @@ Widget CreateDialog(Widget parent, const char *s)
 
     w = CreateDialogWindow(parent, s);
     w = CreateForm(w);
-    DialogSetTitle(w, s);
 
     return w;
 }
@@ -329,18 +333,6 @@ void DialogRaise(Widget form)
 void DialogClose(Widget form)
 {
     WidgetUnmanage(XtParent(form));
-}
-
-void DialogSetTitle(Widget form, const char *s)
-{
-    char *bufp;
-
-    bufp = copy_string(NULL, "Grace: ");
-    bufp = concat_strings(bufp, s);
-    XtVaSetValues(XtParent(form),
-        XmNtitle, bufp,
-        NULL);
-    xfree(bufp);
 }
 
 void DialogSetResizable(Widget form, int onoff)
