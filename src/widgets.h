@@ -84,6 +84,9 @@ void DialogRaise(Widget form);
 void DialogClose(Widget form);
 void DialogSetResizable(Widget form, int onoff);
 
+/* File selection box */
+Widget CreateFileSelectionBox(Widget parent, char *directory);
+
 /* File selection dialog */
 typedef struct {
     Widget FSB;

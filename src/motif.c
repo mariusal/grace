@@ -345,6 +345,24 @@ void DialogSetResizable(Widget form, int onoff)
         NULL);
 }
 
+/* File selection box */
+Widget CreateFileSelectionBox(Widget parent, char *directory)
+{
+    Widget w;
+    XmString xmstr;
+
+    w = XmCreateFileSelectionBox(parent, "FSB", NULL, 0);
+
+    xmstr = XmStringCreateLocalized(directory);
+    XtVaSetValues(w, XmNdirectory, xmstr, NULL);
+    XmStringFree(xmstr);
+
+    AddMouseWheelSupport(XmFileSelectionBoxGetChild(w, XmDIALOG_LIST));
+    AddMouseWheelSupport(XmFileSelectionBoxGetChild(w, XmDIALOG_DIR_LIST));
+
+    return w;
+}
+
 /* File selection dialog */
 static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
 
@@ -441,17 +459,11 @@ FSBStructure *CreateFSBDialog(Widget parent, char *s)
     FSBStructure *retval;
     OptionStructure *opt;
     Widget dialog, fr, form, button;
-    XmString xmstr;
 
     retval = xmalloc(sizeof(FSBStructure));
 
     dialog = CreateDialogWindow(parent, s);
-
-    retval->FSB = XmCreateFileSelectionBox(dialog, "FSB", NULL, 0);
-
-    xmstr = XmStringCreateLocalized(get_workingdir(gapp));
-    XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);
-    XmStringFree(xmstr);
+    retval->FSB = CreateFileSelectionBox(dialog, get_workingdir(gapp));
 
     AddWidgetCB(retval->FSB, "cancel", destroy_dialog, retval->FSB);
     AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
@@ -476,11 +488,6 @@ FSBStructure *CreateFSBDialog(Widget parent, char *s)
     FormFixateHChild(button);
 
     WidgetManage(form);
-
-    AddMouseWheelSupport(XmFileSelectionBoxGetChild(retval->FSB,
-        XmDIALOG_LIST));
-    AddMouseWheelSupport(XmFileSelectionBoxGetChild(retval->FSB,
-        XmDIALOG_DIR_LIST));
 
     return retval;
 }
