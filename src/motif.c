@@ -291,10 +291,10 @@ static char *label_to_resname(const char *s, const char *suffix)
     return retval;
 }
 
-/* Dialog */
-Widget CreateDialog(Widget parent, const char *s)
+/* Dialog Window */
+Widget CreateDialogWindow(Widget parent, const char *s)
 {
-    Widget dialog, w;
+    Widget dialog;
     char *bufp;
 
     bufp = label_to_resname(s, "Dialog");
@@ -303,8 +303,16 @@ Widget CreateDialog(Widget parent, const char *s)
 
     handle_close(dialog);
 
-    w = CreateForm(dialog);
+    return dialog;
+}
 
+/* Dialog */
+Widget CreateDialog(Widget parent, const char *s)
+{
+    Widget w;
+
+    w = CreateDialogWindow(parent, s);
+    w = CreateForm(w);
     DialogSetTitle(w, s);
 
     return w;

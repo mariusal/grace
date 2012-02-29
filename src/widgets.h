@@ -75,6 +75,9 @@ struct _Widget_CBData {
 };
 void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata);
 
+/* Dialog Window */
+Widget CreateDialogWindow(Widget parent, const char *s);
+
 /* Dialog */
 Widget CreateDialog(Widget parent, const char *s);
 void DialogRaise(Widget form);
