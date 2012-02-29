@@ -440,18 +440,14 @@ FSBStructure *CreateFSBDialog(Widget parent, char *s)
 {
     FSBStructure *retval;
     OptionStructure *opt;
-    Widget fr, form, button;
+    Widget dialog, fr, form, button;
     XmString xmstr;
-    char *resname;
 
     retval = xmalloc(sizeof(FSBStructure));
-    resname = label_to_resname(s, "FSB");
-    retval->FSB = XmCreateFileSelectionDialog(parent, resname, NULL, 0);
-    xfree(resname);
 
-    handle_close(XtParent(retval->FSB));
+    dialog = CreateDialogWindow(parent, s);
 
-    DialogSetTitle(retval->FSB, s);
+    retval->FSB = XmCreateFileSelectionBox(dialog, "FSB", NULL, 0);
 
     xmstr = XmStringCreateLocalized(get_workingdir(gapp));
     XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);
