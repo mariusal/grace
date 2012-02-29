@@ -506,10 +506,10 @@ void create_helper_frame(char *URL)
 	
         menubar = CreateMenuBar(ui->top);
         WidgetManage(menubar);
-        AddDialogFormChild(ui->top, menubar);
+        FormAddVChild(ui->top, menubar);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
-        CreateMenuCloseButton(menupane, ui->top);
+        CreateMenuButtonA(menupane, "Close", 'C', "<Key>Escape", "Esc", destroy_dialog_cb, ui->top);
         
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
         CreateMenuButtonA(menupane, "Find", 'F', "Ctrl<Key>f", "Ctrl+F", create_find_dialog, ui);
@@ -521,16 +521,16 @@ void create_helper_frame(char *URL)
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuButton(menupane, "User's Guide", 'G', HelpCB, "doc/UsersGuide.html");
         CreateMenuButton(menupane, "FAQ", 'Q', HelpCB, "doc/FAQ.html");
-        CreateMenuButton(menupane, "Changes", 'C', HelpCB, "doc/CHANGES.html");
+        CreateMenuButton(menupane, "Changes", 'C', HelpCB, "doc/NEWS.html");
         CreateMenuSeparator(menupane);
         CreateMenuButton(menupane, "License terms", 'L', HelpCB, "doc/GPL.html");
 
         ui->location = CreateText(ui->top, "Location:");
         AddTextActivateCB(ui->location, location_cb, ui->location);
-        AddDialogFormChild(ui->top, ui->location->form);
+        FormAddVChild(ui->top, ui->location->form);
         
 	fr1 = CreateFrame(ui->top, NULL);
-        AddDialogFormChild(ui->top, fr1);
+	FormAddVChild(ui->top, fr1);
         ui->html = XtVaCreateManagedWidget("html",
             xmHTMLWidgetClass, fr1,
             XmNimageProc, loadImage,
@@ -545,7 +545,7 @@ void create_helper_frame(char *URL)
         XtAddCallback(ui->html, XmNanchorTrackCallback, trackCB, ui);
 
 	fr2 = CreateFrame(ui->top, NULL);
-        AddDialogFormChild(ui->top, fr2);
+	FormAddVChild(ui->top, fr2);
         rc = CreateVContainer(fr2);
         ui->track = CreateLabel(rc, "Welcome to Gracilla!");
         
