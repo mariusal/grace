@@ -171,6 +171,10 @@ Widget CreateButton(Widget parent, char *label);
 Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits);
 
+#define ARROW_UP   1
+#define ARROW_DOWN 2
+Widget CreateArrowButton(Widget parent, int arrow_type);
+
 /* ToggleButton */
 typedef void (*TB_CBProc)(
     Widget but,

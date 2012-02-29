@@ -1007,6 +1007,17 @@ Widget CreateBitmapButton(Widget parent,
     return button;
 }
 
+Widget CreateArrowButton(Widget parent, int arrow_type)
+{
+    Widget w;
+
+    w = XtVaCreateManagedWidget("arrow", xmArrowButtonGadgetClass, parent,
+            XmNarrowDirection, (arrow_type == ARROW_UP) ? XmARROW_UP : XmARROW_DOWN,
+            NULL);
+
+    return w;
+}
+
 /* ToggleButton */
 Widget CreateToggleButton(Widget parent, char *s)
 {
@@ -1074,27 +1085,6 @@ int GetScaleValue(Widget w)
 }
 
 /* SpinChoice */
-static void spin_arrow_cb(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    SpinStructure *spinp;
-    double value, incr;
-
-    spinp = (SpinStructure *) client_data;
-    value = GetSpinChoice(spinp);
-    incr = spinp->incr;
-
-    if (w == spinp->arrow_up) {
-        incr =  spinp->incr;
-    } else if (w == spinp->arrow_down) {
-        incr = -spinp->incr;
-    } else {
-        errmsg("Wrong call to spin_arrow_cb()");
-        return;
-    }
-    value += incr;
-    SetSpinChoice(spinp, value);
-}
-
 typedef struct {
     SpinStructure *spin;
     Spin_CBProc cbproc;
@@ -1159,6 +1149,27 @@ void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
         ButtonPressMask, False, sp_ev_proc, (XtPointer) cbdata);
 }
 
+static void spin_arrow_cb(Widget_CBData *wcbdata)
+{
+    SpinStructure *spinp;
+    double value, incr;
+
+    spinp = (SpinStructure *) wcbdata->anydata;
+    value = GetSpinChoice(spinp);
+    incr = spinp->incr;
+
+    if (wcbdata->w == spinp->arrow_up) {
+        incr =  spinp->incr;
+    } else if (wcbdata->w == spinp->arrow_down) {
+        incr = -spinp->incr;
+    } else {
+        errmsg("Wrong call to spin_arrow_cb()");
+        return;
+    }
+    value += incr;
+    SetSpinChoice(spinp, value);
+}
+
 static void spin_updown(Widget parent,
     XtPointer closure, XEvent *event, Boolean *cont)
 {
@@ -1183,7 +1194,6 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 {
     SpinStructure *retval;
     Widget fr, form;
-    XmString str;
 
     if (min >= max) {
         errmsg("min >= max in CreateSpinChoice()!");
@@ -1197,63 +1207,27 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
     retval->max = max;
     retval->incr = incr;
 
-    retval->rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, parent,
-        XmNorientation, XmHORIZONTAL,
-        NULL);
-    str = XmStringCreateLocalized(s);
-    XtVaCreateManagedWidget("label", xmLabelWidgetClass, retval->rc,
-        XmNlabelString, str,
-        NULL);
-    XmStringFree(str);
-    fr = XtVaCreateWidget("fr", xmFrameWidgetClass, retval->rc,
-        XmNshadowType, XmSHADOW_ETCHED_OUT,
-        NULL);
-    form = XtVaCreateWidget("form", xmFormWidgetClass, fr,
-        NULL);
-    retval->text = XtVaCreateWidget("text", xmTextWidgetClass, form,
-        XmNtraversalOn, True,
-        XmNcolumns, len,
-        NULL);
+    retval->rc = CreateHContainer(parent);
+
+    CreateLabel(retval->rc, s);
+    fr = CreateFrame(retval->rc, NULL);
+
+    form = CreateForm(fr);
+
+    retval->text = CreateLineTextEdit(form, len);
+    FormAddHChild(form, retval->text);
 
     XtAddEventHandler(retval->text, ButtonPressMask, False, spin_updown, retval);
 
-    retval->arrow_up = XtVaCreateWidget("form", xmArrowButtonGadgetClass, form,
-        XmNarrowDirection, XmARROW_UP,
-        NULL);
-    XtAddCallback(retval->arrow_up, XmNactivateCallback,
-        spin_arrow_cb, (XtPointer) retval);
-    retval->arrow_down = XtVaCreateWidget("form", xmArrowButtonGadgetClass, form,
-        XmNarrowDirection, XmARROW_DOWN,
-        NULL);
-    XtAddCallback(retval->arrow_down, XmNactivateCallback,
-        spin_arrow_cb, (XtPointer) retval);
-    XtVaSetValues(retval->text,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNleftAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_NONE,
-        NULL);
-    XtVaSetValues(retval->arrow_down,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNleftAttachment, XmATTACH_WIDGET,
-        XmNleftWidget, retval->text,
-        XmNrightAttachment, XmATTACH_NONE,
-        NULL);
-    XtVaSetValues(retval->arrow_up,
-        XmNtopAttachment, XmATTACH_FORM,
-        XmNbottomAttachment, XmATTACH_FORM,
-        XmNrightAttachment, XmATTACH_FORM,
-        XmNleftAttachment, XmATTACH_WIDGET,
-        XmNleftWidget, retval->arrow_down,
-        NULL);
+    retval->arrow_down = CreateArrowButton(form, ARROW_DOWN);
+    AddWidgetCB(retval->arrow_down, "activate", spin_arrow_cb, retval);
+    FormAddHChild(form, retval->arrow_down);
 
-    WidgetManage(retval->text);
-    WidgetManage(retval->arrow_up);
-    WidgetManage(retval->arrow_down);
+    retval->arrow_up = CreateArrowButton(form, ARROW_UP);
+    AddWidgetCB(retval->arrow_up, "activate", spin_arrow_cb, retval);
+    FormAddHChild(form, retval->arrow_up);
+
     WidgetManage(form);
-    WidgetManage(fr);
-    WidgetManage(retval->rc);
 
     return retval;
 }
