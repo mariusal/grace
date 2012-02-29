@@ -301,7 +301,7 @@ Widget CreateDialogWindow(Widget parent, const char *s)
     dialog = XmCreateDialogShell(parent, bufp, NULL, 0);
     xfree(bufp);
 
-    handle_close(dialog);
+    AddWindowCloseCB(dialog);
 
     bufp = copy_string(NULL, "Grace: ");
     bufp = concat_strings(bufp, s);

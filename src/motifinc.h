@@ -399,7 +399,7 @@ void ContextHelpCB(Widget w, void *data);
 void DefineDialogCursor(Cursor c);
 void UndefineDialogCursor(void);
 
-void handle_close(Widget w);
+void AddWindowCloseCB(Widget w);
 void destroy_dialog_cb(Widget but, void *data);
 
 void undo_cb(Widget but, void *data);

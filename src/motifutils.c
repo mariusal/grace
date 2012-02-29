@@ -2918,7 +2918,7 @@ static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  * handle the close item on the WM menu
  */
-void handle_close(Widget w)
+void AddWindowCloseCB(Widget w)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
     Atom WM_DELETE_WINDOW;

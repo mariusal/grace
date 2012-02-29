@@ -541,7 +541,7 @@ void startup_gui(GraceApp *gapp)
 /*
  * We handle important WM events ourselves
  */
-    handle_close(app_shell);
+    AddWindowCloseCB(app_shell);
     
     XtVaSetValues(app_shell, XmNcolormap, xstuff->cmap, NULL);
     
