@@ -2906,27 +2906,30 @@ static void deletewidget(Widget w)
 }
 #endif
 
-static void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
+static void windowCloseCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    if (w == app_shell) {
-        bailout(gapp);
-    } else {
-        WidgetUnmanage((Widget) client_data);
-    }
-}
+    Widget_CBData *cbdata = (Widget_CBData *) client_data;
 
+    cbdata->cbproc(cbdata);
+}
 /*
  * handle the close item on the WM menu
  */
-void AddWindowCloseCB(Widget w)
+void AddWindowCloseCB(Widget w, Widget_CBProc cbproc, void *anydata)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
     Atom WM_DELETE_WINDOW;
+    Widget_CBData *cbdata;
+
+    cbdata = (Widget_CBData *) xmalloc(sizeof(Widget_CBData));
+    cbdata->w = w;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
     
     XtVaSetValues(w, XmNdeleteResponse, XmDO_NOTHING, NULL);
 
     WM_DELETE_WINDOW = XmInternAtom(xstuff->disp, "WM_DELETE_WINDOW", False);
-    XmAddWMProtocolCallback(w, WM_DELETE_WINDOW, destroy_dialog, w);
+    XmAddWMProtocolCallback(w, WM_DELETE_WINDOW, windowCloseCB, cbdata);
     
     savewidget(w);
 }

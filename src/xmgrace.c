@@ -519,6 +519,11 @@ static void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *
     canvas_event(&cevent);
 }
 
+static void close_windowCB(Widget_CBData *wcbdata)
+{
+    bailout(wcbdata->anydata);
+}
+
 /*
  * build the GUI
  */
@@ -541,7 +546,7 @@ void startup_gui(GraceApp *gapp)
 /*
  * We handle important WM events ourselves
  */
-    AddWindowCloseCB(app_shell);
+    AddWindowCloseCB(app_shell, close_windowCB, gapp);
     
     XtVaSetValues(app_shell, XmNcolormap, xstuff->cmap, NULL);
     

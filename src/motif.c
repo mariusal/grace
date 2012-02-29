@@ -292,6 +292,11 @@ static char *label_to_resname(const char *s, const char *suffix)
 }
 
 /* Dialog Window */
+static void close_dialogCB(Widget_CBData *wcbdata)
+{
+    WidgetUnmanage(wcbdata->w);
+}
+
 Widget CreateDialogWindow(Widget parent, const char *s)
 {
     Widget dialog;
@@ -301,7 +306,7 @@ Widget CreateDialogWindow(Widget parent, const char *s)
     dialog = XmCreateDialogShell(parent, bufp, NULL, 0);
     xfree(bufp);
 
-    AddWindowCloseCB(dialog);
+    AddWindowCloseCB(dialog, close_dialogCB, NULL);
 
     bufp = copy_string(NULL, "Grace: ");
     bufp = concat_strings(bufp, s);
