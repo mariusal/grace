@@ -368,6 +368,27 @@ Widget CreateFileSelectionBox(Widget parent)
     return w;
 }
 
+/* File selection filter */
+#if XmVersion >= 2000
+static void show_hidden_cb(Widget but, int onoff, void *data)
+{
+    Widget fsb = (Widget) data;
+    XtVaSetValues(fsb, XmNfileFilterStyle,
+        onoff ? XmFILTER_NONE:XmFILTER_HIDDEN_FILES, NULL);
+}
+#endif
+
+void CreateFileSelectionFilter(Widget parent, Widget fsb)
+{
+#if XmVersion >= 2000
+    Widget button;
+
+    button = CreateToggleButton(parent, "Show hidden files");
+    AddToggleButtonCB(button, show_hidden_cb, fsb);
+    XtVaSetValues(fsb, XmNfileFilterStyle, XmFILTER_HIDDEN_FILES, NULL);
+#endif
+}
+
 /* File selection dialog */
 static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
 
@@ -438,15 +459,6 @@ static OptionItem fsb_items[] = {
 
 #define FSB_ITEMS_NUM   sizeof(fsb_items)/sizeof(OptionItem)
 
-#if XmVersion >= 2000
-static void show_hidden_cb(Widget but, int onoff, void *data)
-{
-    FSBStructure *fsb = (FSBStructure *) data;
-    XtVaSetValues(fsb->FSB, XmNfileFilterStyle,
-        onoff ? XmFILTER_NONE:XmFILTER_HIDDEN_FILES, NULL);
-}
-#endif
-
 FSBStructure *CreateFSBDialog(Widget parent, char *s)
 {
     FSBStructure *retval;
@@ -463,11 +475,9 @@ FSBStructure *CreateFSBDialog(Widget parent, char *s)
     AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
 
     retval->rc = CreateVContainer(retval->FSB);
-#if XmVersion >= 2000
-    button = CreateToggleButton(retval->rc, "Show hidden files");
-    AddToggleButtonCB(button, show_hidden_cb, retval);
-    XtVaSetValues(retval->FSB, XmNfileFilterStyle, XmFILTER_HIDDEN_FILES, NULL);
-#endif
+
+    CreateFileSelectionFilter(retval->rc, retval->FSB);
+
     fr = CreateFrame(retval->rc, NULL);
 
     form = CreateForm(fr);
@@ -477,7 +487,7 @@ FSBStructure *CreateFSBDialog(Widget parent, char *s)
     FormAddHChild(form, opt->menu);
 
     button = CreateButton(form, "Set as cwd");
-    AddButtonCB(button, fsb_setcwd_cb, (void *) retval->FSB);
+    AddButtonCB(button, fsb_setcwd_cb, retval->FSB);
     FormAddHChild(form, button);
     FormFixateHChild(button);
 
