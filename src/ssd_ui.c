@@ -343,7 +343,7 @@ static void col_cb(ListStructure *sel, int n, int *values, void *data)
         int col = values[0];
         WidgetSetSensitive(ui->col_label->text, TRUE);
         TextSetString(ui->col_label, ssd_get_col_label(ssd, col));
-        SetFocus(ui->col_label->text);
+        WidgetSetFocus(ui->col_label->text);
     } else {
         WidgetSetSensitive(ui->col_label->text, FALSE);
     }

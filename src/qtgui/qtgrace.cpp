@@ -10095,7 +10095,7 @@ Widget GetVerticalScrollBar(Widget w)
     return scrollArea->verticalScrollBar();
 }
 
-void SetFocus(Widget w)
+void WidgetSetFocus(Widget w)
 {
     w->setFocus();
 }

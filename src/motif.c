@@ -97,7 +97,7 @@ void WidgetSetSensitive(Widget w, int onoff)
     XtSetSensitive(w, onoff ? True : False);
 }
 
-void SetFocus(Widget w)
+void WidgetSetFocus(Widget w)
 {
     XmProcessTraversal(w, XmTRAVERSE_CURRENT);
 }

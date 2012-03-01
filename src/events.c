@@ -1074,7 +1074,7 @@ void set_action(GUI *gui, unsigned int npoints, int seltype,
     
     xstuff->collect_points = TRUE;
 
-    SetFocus(xstuff->canvas);
+    WidgetSetFocus(xstuff->canvas);
 }
 
 /* -------------------------------------------------------------- */
