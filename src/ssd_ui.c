@@ -343,8 +343,35 @@ static void col_cb(ListStructure *sel, int n, int *values, void *data)
         int col = values[0];
         WidgetSetSensitive(ui->col_label->text, TRUE);
         TextSetString(ui->col_label, ssd_get_col_label(ssd, col));
+        SetFocus(ui->col_label->text);
     } else {
         WidgetSetSensitive(ui->col_label->text, FALSE);
+    }
+}
+
+static void key_up_cb(void *anydata)
+{
+    SSDataUI *ui = (SSDataUI *) anydata;
+
+    int col;
+
+    if (GetListSelectedCount(ui->col_sel) != 1) return;
+
+    if (GetSingleListChoice(ui->col_sel, &col) == RETURN_SUCCESS) {
+        SelectListChoice(ui->col_sel, col - 1);
+    }
+}
+
+static void key_down_cb(void *anydata)
+{
+    SSDataUI *ui = (SSDataUI *) anydata;
+
+    int col;
+
+    if (GetListSelectedCount(ui->col_sel) != 1) return;
+
+    if (GetSingleListChoice(ui->col_sel, &col) == RETURN_SUCCESS) {
+        SelectListChoice(ui->col_sel, col + 1);
     }
 }
 
@@ -394,6 +421,8 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     ui->col_label = CreateCSText(ui->column_tp, "Label:");
     WidgetSetSensitive(ui->col_label->text, FALSE);
     AddTextActivateCB(ui->col_label, text_explorer_cb, eui);
+    AddWidgetKeyPressCB(ui->col_label->text, KEY_UP, key_up_cb, ui);
+    AddWidgetKeyPressCB(ui->col_label->text, KEY_DOWN, key_down_cb, ui);
 
 
     /* ------------ Hotlink tab -------------- */
