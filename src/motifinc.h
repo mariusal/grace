@@ -525,6 +525,4 @@ Widget GetVerticalScrollBar(Widget w);
 
 void AddMouseWheelSupport(Widget w);
 
-void SetFocus(Widget w);
-
 #endif /* __MOTIFINC_H_ */

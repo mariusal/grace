@@ -97,6 +97,11 @@ void WidgetSetSensitive(Widget w, int onoff)
     XtSetSensitive(w, onoff ? True : False);
 }
 
+void SetFocus(Widget w)
+{
+    XmProcessTraversal(w, XmTRAVERSE_CURRENT);
+}
+
 void WidgetSetWidth(Widget w, unsigned int width)
 {
     XtVaSetValues(w, XmNwidth, (Dimension) width, NULL);

@@ -4142,8 +4142,3 @@ void AddMouseWheelSupport(Widget w)
         XtOverrideTranslations(w, trans_table);
     }
 }
-
-void SetFocus(Widget w)
-{
-    XmProcessTraversal(w, XmTRAVERSE_CURRENT);
-}
