@@ -356,16 +356,11 @@ void DialogSetResizable(Widget form, int onoff)
 }
 
 /* File selection box */
-Widget CreateFileSelectionBox(Widget parent, char *directory)
+Widget CreateFileSelectionBox(Widget parent)
 {
     Widget w;
-    XmString xmstr;
 
     w = XmCreateFileSelectionBox(parent, "FSB", NULL, 0);
-
-    xmstr = XmStringCreateLocalized(directory);
-    XtVaSetValues(w, XmNdirectory, xmstr, NULL);
-    XmStringFree(xmstr);
 
     AddMouseWheelSupport(XmFileSelectionBoxGetChild(w, XmDIALOG_LIST));
     AddMouseWheelSupport(XmFileSelectionBoxGetChild(w, XmDIALOG_DIR_LIST));
@@ -409,30 +404,27 @@ static void fsb_setcwd_cb(Widget but, void *data)
 
 static void fsb_cd_cb(OptionStructure *opt, int value, void *data)
 {
-    char *bufp;
-    XmString xmstr;
-    Widget FSB = (Widget) data;
+    char *dir;
+    FSBStructure *fsb = (FSBStructure *) data;
 
     switch (value) {
     case FSB_CWD:
-        bufp = get_workingdir(gapp);
+        dir = get_workingdir(gapp);
         break;
     case FSB_HOME:
-        bufp = grace_get_userhome(gapp->grace);
+        dir = grace_get_userhome(gapp->grace);
         break;
     case FSB_ROOT:
-        bufp = "/";
+        dir = "/";
         break;
     case FSB_CYGDRV:
-        bufp = "/cygdrive/";
+        dir = "/cygdrive/";
         break;
     default:
         return;
     }
 
-    xmstr = XmStringCreateLocalized(bufp);
-    XtVaSetValues(FSB, XmNdirectory, xmstr, NULL);
-    XmStringFree(xmstr);
+    FSBDialogSetDirectory(fsb, dir);
 }
 
 static OptionItem fsb_items[] = {
@@ -464,8 +456,9 @@ FSBStructure *CreateFSBDialog(Widget parent, char *s)
     retval = xmalloc(sizeof(FSBStructure));
 
     dialog = CreateDialogWindow(parent, s);
-    retval->FSB = CreateFileSelectionBox(dialog, get_workingdir(gapp));
+    retval->FSB = CreateFileSelectionBox(dialog);
 
+    FSBDialogSetDirectory(retval, get_workingdir(gapp));
     AddWidgetCB(retval->FSB, "cancel", close_dialogCB, dialog);
     AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
 
@@ -480,7 +473,7 @@ FSBStructure *CreateFSBDialog(Widget parent, char *s)
     form = CreateForm(fr);
 
     opt = CreateOptionChoice(form, "Chdir to:", 1, FSB_ITEMS_NUM, fsb_items);
-    AddOptionChoiceCB(opt, fsb_cd_cb, (void *) retval->FSB);
+    AddOptionChoiceCB(opt, fsb_cd_cb, retval);
     FormAddHChild(form, opt->menu);
 
     button = CreateButton(form, "Set as cwd");
@@ -543,6 +536,17 @@ void FSBDialogSetPattern(FSBStructure *fsb, char *pattern)
     if (pattern != NULL) {
         xmstr = XmStringCreateLocalized(pattern);
         XtVaSetValues(fsb->FSB, XmNpattern, xmstr, NULL);
+        XmStringFree(xmstr);
+    }
+}
+
+void FSBDialogSetDirectory(FSBStructure *fsb, char *directory)
+{
+    XmString xmstr;
+
+    if (directory != NULL) {
+        xmstr = XmStringCreateLocalized(directory);
+        XtVaSetValues(fsb->FSB, XmNdirectory, xmstr, NULL);
         XmStringFree(xmstr);
     }
 }
