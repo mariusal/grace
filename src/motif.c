@@ -410,7 +410,7 @@ static void fsb_setcwd_cb(Widget but, void *data)
 static void fsb_cd_cb(OptionStructure *opt, int value, void *data)
 {
     char *bufp;
-    XmString dir, pattern, dirmask;
+    XmString xmstr;
     Widget FSB = (Widget) data;
 
     switch (value) {
@@ -430,13 +430,9 @@ static void fsb_cd_cb(OptionStructure *opt, int value, void *data)
         return;
     }
 
-    XtVaGetValues(FSB, XmNpattern, &pattern, NULL);
-
-    dir = XmStringCreateLocalized(bufp);
-    dirmask = XmStringConcatAndFree(dir, pattern);
-
-    XmFileSelectionDoSearch(FSB, dirmask);
-    XmStringFree(dirmask);
+    xmstr = XmStringCreateLocalized(bufp);
+    XtVaSetValues(FSB, XmNdirectory, xmstr, NULL);
+    XmStringFree(xmstr);
 }
 
 static OptionItem fsb_items[] = {
