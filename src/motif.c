@@ -459,11 +459,6 @@ static void show_hidden_cb(Widget but, int onoff, void *data)
 }
 #endif
 
-static void destroy_dialog(Widget_CBData *wcbdata)
-{
-    DialogClose(wcbdata->anydata);
-}
-
 FSBStructure *CreateFSBDialog(Widget parent, char *s)
 {
     FSBStructure *retval;
@@ -475,7 +470,7 @@ FSBStructure *CreateFSBDialog(Widget parent, char *s)
     dialog = CreateDialogWindow(parent, s);
     retval->FSB = CreateFileSelectionBox(dialog, get_workingdir(gapp));
 
-    AddWidgetCB(retval->FSB, "cancel", destroy_dialog, retval->FSB);
+    AddWidgetCB(retval->FSB, "cancel", close_dialogCB, dialog);
     AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
 
     retval->rc = CreateVContainer(retval->FSB);
