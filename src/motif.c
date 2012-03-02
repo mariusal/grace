@@ -63,6 +63,42 @@
 
 #include "globals.h"
 
+extern XtAppContext app_con;
+
+/* Timer */
+Timer_CBdata *CreateTimer(unsigned long interval, Timer_CBProc cbproc, void *anydata)
+{
+    Timer_CBdata *cbdata;
+
+    cbdata = xmalloc(sizeof(Timer_CBdata));
+
+    cbdata->timer_id = 0;
+    cbdata->interval = interval;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    return cbdata;
+}
+
+static void timer_proc(XtPointer client_data, XtIntervalId *id)
+{
+    Timer_CBdata *cbdata = (Timer_CBdata *) client_data;
+
+    cbdata->cbproc(cbdata->anydata);
+    cbdata->timer_id = 0;
+}
+
+void TimerStart(Timer_CBdata *cbdata)
+{
+    /* we count elapsed time since the last event, so first remove
+           an existing timeout, if there is one */
+    if (cbdata->timer_id) {
+        XtRemoveTimeOut(cbdata->timer_id);
+    }
+
+    cbdata->timer_id = XtAppAddTimeOut(app_con, cbdata->interval, timer_proc, cbdata);
+}
+
 /* Widgets */
 void WidgetManage(Widget w)
 {
@@ -231,8 +267,6 @@ static void keyHook(Widget w, XtPointer client_data, String action_name,
 
     cbdata->cbproc(cbdata->anydata);
 }
-
-extern XtAppContext app_con;
 
 void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata)
 {
@@ -1189,14 +1223,6 @@ int GetScaleValue(Widget w)
 }
 
 /* SpinChoice */
-typedef void (*Timer_CBProc)(void *anydata);
-typedef struct {
-    unsigned long timer_id;
-    unsigned long interval;
-    Timer_CBProc cbproc;
-    void *anydata;
-} Timer_CBdata;
-
 typedef struct {
     SpinStructure *spin;
     Spin_CBProc cbproc;
@@ -1218,44 +1244,11 @@ static void sp_timer_proc(void *anydata)
     cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
 }
 
-static void timer_proc(XtPointer client_data, XtIntervalId *id)
-{
-    Timer_CBdata *cbdata = (Timer_CBdata *) client_data;
-
-    cbdata->cbproc(cbdata->anydata);
-    cbdata->timer_id = 0;
-}
-
-void TimerStart(Timer_CBdata *cbdata)
-{
-    /* we count elapsed time since the last event, so first remove
-           an existing timeout, if there is one */
-    if (cbdata->timer_id) {
-        XtRemoveTimeOut(cbdata->timer_id);
-    }
-
-    cbdata->timer_id = XtAppAddTimeOut(app_con, cbdata->interval, timer_proc, cbdata);
-}
-
 static void sp_ev_proc(void *anydata)
 {
     Spin_CBdata *cbdata = (Spin_CBdata *) anydata;
 
     TimerStart(cbdata->tcbdata);
-}
-
-Timer_CBdata *CreateTimer(unsigned long interval, Timer_CBProc cbproc, void *anydata)
-{
-    Timer_CBdata *cbdata;
-
-    cbdata = xmalloc(sizeof(Timer_CBdata));
-
-    cbdata->timer_id = 0;
-    cbdata->interval = interval;
-    cbdata->cbproc = cbproc;
-    cbdata->anydata = anydata;
-
-    return cbdata;
 }
 
 void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)

@@ -41,6 +41,17 @@
 #include "qtgui/qtinc.h"
 #endif /* QT_GUI */
 
+/* Timer */
+typedef void (*Timer_CBProc)(void *anydata);
+typedef struct {
+    unsigned long timer_id;
+    unsigned long interval;
+    Timer_CBProc cbproc;
+    void *anydata;
+} Timer_CBdata;
+Timer_CBdata *CreateTimer(unsigned long interval, Timer_CBProc cbproc, void *anydata);
+void TimerStart(Timer_CBdata *cbdata);
+
 /* Widgets */
 void WidgetManage(Widget w);
 void WidgetUnmanage(Widget w);
