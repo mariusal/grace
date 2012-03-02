@@ -1193,7 +1193,7 @@ typedef struct {
     SpinStructure *spin;
     Spin_CBProc cbproc;
     void *anydata;
-    XtIntervalId timer_id;
+    unsigned long timer_id;
 } Spin_CBdata;
 
 static void sp_double_cb_proc(Widget_CBData *wcbdata)
@@ -1208,7 +1208,7 @@ static void sp_timer_proc(XtPointer client_data, XtIntervalId *id)
     Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
 
     cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
-    cbdata->timer_id = (XtIntervalId) 0;
+    cbdata->timer_id = 0;
 }
 
 static void sp_ev_proc(void *anydata)
@@ -1233,7 +1233,7 @@ void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
     cbdata->spin = spinp;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
-    cbdata->timer_id = (XtIntervalId) 0;
+    cbdata->timer_id = 0;
 
     AddWidgetCB(spinp->text, "activate", sp_double_cb_proc, cbdata);
     AddWidgetCB(spinp->arrow_up, "activate", sp_double_cb_proc, cbdata);
