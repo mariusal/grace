@@ -1186,6 +1186,7 @@ static void spin_arrow_cb(Widget_CBData *wcbdata)
     }
     value += incr;
     SetSpinChoice(spinp, value);
+    WidgetSetFocus(spinp->text);
 }
 
 static void spin_updown(Widget parent,
