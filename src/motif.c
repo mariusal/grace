@@ -1189,11 +1189,18 @@ int GetScaleValue(Widget w)
 }
 
 /* SpinChoice */
+typedef void (*Timer_CBProc)(void *anydata);
+typedef struct {
+    unsigned long timer_id;
+    Timer_CBProc cbproc;
+    void *anydata;
+} Timer_CBdata;
+
 typedef struct {
     SpinStructure *spin;
     Spin_CBProc cbproc;
     void *anydata;
-    unsigned long timer_id;
+    Timer_CBdata *tcbdata;
 } Spin_CBdata;
 
 static void sp_double_cb_proc(Widget_CBData *wcbdata)
@@ -1203,37 +1210,51 @@ static void sp_double_cb_proc(Widget_CBData *wcbdata)
     cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
 }
 
-static void sp_timer_proc(XtPointer client_data, XtIntervalId *id)
+static void sp_timer_proc(void *anydata)
 {
-    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
+    Spin_CBdata *cbdata = (Spin_CBdata *) anydata;
 
     cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
+}
+
+static void timer_proc(XtPointer client_data, XtIntervalId *id)
+{
+    Timer_CBdata *cbdata = (Timer_CBdata *) client_data;
+
+    cbdata->cbproc(cbdata->anydata);
     cbdata->timer_id = 0;
 }
 
 static void sp_ev_proc(void *anydata)
 {
     Spin_CBdata *cbdata = (Spin_CBdata *) anydata;
+    Timer_CBdata *tcbdata = (Timer_CBdata *) cbdata->tcbdata;
 
     /* we count elapsed time since the last event, so first remove
            an existing timeout, if there is one */
-    if (cbdata->timer_id) {
-        XtRemoveTimeOut(cbdata->timer_id);
+    if (tcbdata->timer_id) {
+        XtRemoveTimeOut(tcbdata->timer_id);
     }
-    cbdata->timer_id = XtAppAddTimeOut(app_con,
-            250 /* 0.25 second */, sp_timer_proc, cbdata);
+    tcbdata->timer_id = XtAppAddTimeOut(app_con,
+            250 /* 0.25 second */, timer_proc, tcbdata);
 }
 
 void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
 {
+    Timer_CBdata *tcbdata;
     Spin_CBdata *cbdata;
 
+    tcbdata = xmalloc(sizeof(Timer_CBdata));
     cbdata = xmalloc(sizeof(Spin_CBdata));
+
+    tcbdata->cbproc = sp_timer_proc;
+    tcbdata->anydata = cbdata;
+    tcbdata->timer_id = 0;
 
     cbdata->spin = spinp;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
-    cbdata->timer_id = 0;
+    cbdata->tcbdata = tcbdata;
 
     AddWidgetCB(spinp->text, "activate", sp_double_cb_proc, cbdata);
     AddWidgetCB(spinp->arrow_up, "activate", sp_double_cb_proc, cbdata);
