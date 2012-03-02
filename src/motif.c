@@ -1110,16 +1110,11 @@ typedef struct {
     XtIntervalId timeout_id;
 } Spin_CBdata;
 
-static void sp_double_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void sp_double_cb_proc(Widget_CBData *wcbdata)
 {
-    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
-    XmAnyCallbackStruct* xmcb = call_data;
+    Spin_CBdata *cbdata = (Spin_CBdata *) wcbdata->anydata;
 
-    if (w == cbdata->spin->arrow_up   ||
-        w == cbdata->spin->arrow_down ||
-        xmcb->reason == XmCR_ACTIVATE) {
-        cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
-    }
+    cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
 }
 
 static void sp_timer_proc(XtPointer client_data, XtIntervalId *id)
@@ -1157,12 +1152,11 @@ void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
     cbdata->timeout_id = (XtIntervalId) 0;
-    XtAddCallback(spinp->text,
-        XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
-    XtAddCallback(spinp->arrow_up,
-        XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
-    XtAddCallback(spinp->arrow_down,
-        XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
+
+    AddWidgetCB(spinp->text, "activate", sp_double_cb_proc, cbdata);
+    AddWidgetCB(spinp->arrow_up, "activate", sp_double_cb_proc, cbdata);
+    AddWidgetCB(spinp->arrow_down, "activate", sp_double_cb_proc, cbdata);
+
     XtAddEventHandler(spinp->text,
         ButtonPressMask, False, sp_ev_proc, (XtPointer) cbdata);
 }
