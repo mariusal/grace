@@ -3293,7 +3293,7 @@ void set_title(char *title, char *icon_name)
 /* Tree Widget */
 typedef struct {
     Widget w;
-    XtIntervalId timeout_id;
+    XtIntervalId timer_id;
 } TreeRefresh_CBdata;
 
 Widget CreateTree(Widget parent)
@@ -3306,7 +3306,7 @@ Widget CreateTree(Widget parent)
 
     cbdata = (TreeRefresh_CBdata *) xmalloc(sizeof(TreeRefresh_CBdata));
     cbdata->w = w;
-    cbdata->timeout_id = (XtIntervalId) 0;
+    cbdata->timer_id = (XtIntervalId) 0;
 
     WidgetSetUserData(w, cbdata);
 
@@ -3426,7 +3426,7 @@ static void tree_refresh_timer_proc(XtPointer client_data, XtIntervalId *id)
     ListTreeRefresh(cbdata->w);
     ListTreeRefreshOff(cbdata->w);
 
-    cbdata->timeout_id = (XtIntervalId) 0;
+    cbdata->timer_id = (XtIntervalId) 0;
 }
 
 void TreeRefresh(Widget w)
@@ -3435,10 +3435,10 @@ void TreeRefresh(Widget w)
 
     cbdata = (TreeRefresh_CBdata *) WidgetGetUserData(w);
 
-    if (cbdata->timeout_id) {
-        XtRemoveTimeOut(cbdata->timeout_id);
+    if (cbdata->timer_id) {
+        XtRemoveTimeOut(cbdata->timer_id);
     }
-    cbdata->timeout_id = XtAppAddTimeOut(app_con,
+    cbdata->timer_id = XtAppAddTimeOut(app_con,
         100 /* 0.1 second */, tree_refresh_timer_proc, cbdata);
 }
 
