@@ -66,6 +66,8 @@ typedef struct {
 void AddWidgetKeyPressCB(Widget w, int key, Key_CBProc cbproc, void *anydata);
 void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, void *anydata);
 
+void AddWidgetButtonPressCB(Widget w, int button, Key_CBProc cbproc, void *anydata);
+
 typedef struct _Widget_CBData Widget_CBData;
 typedef void (*Widget_CBProc)(Widget_CBData *wcbdata);
 struct _Widget_CBData {

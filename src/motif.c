@@ -135,16 +135,28 @@ void WidgetGetSize(Widget w, unsigned int *width, unsigned int *height)
 
 static int toolkit_modifiers_to_grace_modifiers(void *event)
 {
-    XKeyEvent *xke;
+    XEvent *e = (XEvent *) event;
+    unsigned int state;
     int modifiers = NO_MODIFIER;
 
-    xke = (XKeyEvent *) event;
+    switch (e->type) {
+    case ButtonPress:
+    case ButtonRelease:
+        state = e->xbutton.state;
+        break;
+    case KeyPress:
+    case KeyRelease:
+        state = e->xkey.state;
+        break;
+    default:
+        return modifiers;
+    }
 
-    if (xke->state & ControlMask) {
+    if (state & ControlMask) {
         modifiers = modifiers ^ CONTROL_MODIFIER;
     }
 
-    if (xke->state & ShiftMask) {
+    if (state & ShiftMask) {
         modifiers = modifiers ^ SHIFT_MODIFIER;
     }
 
@@ -153,10 +165,9 @@ static int toolkit_modifiers_to_grace_modifiers(void *event)
 
 static int toolkit_key_to_grace_key(void *event)
 {
-    XKeyEvent *xke;
+    XKeyEvent *xke = (XKeyEvent *) event;
     KeySym keybuf;
 
-    xke = (XKeyEvent *) event;
     keybuf = XLookupKeysym(xke, 0);
 
     switch (keybuf) {
@@ -166,6 +177,36 @@ static int toolkit_key_to_grace_key(void *event)
         return KEY_UP;
     case XK_Down: /* Down */
         return KEY_DOWN;
+    default:
+        return KEY_NONE;
+    }
+}
+
+static int toolkit_button_to_grace_button(void *event)
+{
+    XButtonEvent *xbe = (XButtonEvent *) event;
+
+    switch (xbe->button) {
+    case Button4:
+        return WHEEL_UP_BUTTON;
+    case Button5:
+        return WHEEL_DOWN_BUTTON;
+    default:
+        return NO_BUTTON;
+    }
+}
+
+static int toolkit_to_grace(void *event)
+{
+    XEvent *e = (XEvent *) event;
+
+    switch (e->type) {
+    case ButtonPress:
+    case ButtonRelease:
+        return toolkit_button_to_grace_button(event);
+    case KeyPress:
+    case KeyRelease:
+        return toolkit_key_to_grace_key(event);
     default:
         return KEY_NONE;
     }
@@ -183,7 +224,7 @@ static void keyHook(Widget w, XtPointer client_data, String action_name,
     if (strcmp(action_name, "action")) return;
 
     /* In case if we have the same widget */
-    if (cbdata->key != toolkit_key_to_grace_key(event)) return;
+    if (cbdata->key != toolkit_to_grace(event)) return;
     if (cbdata->modifiers != toolkit_modifiers_to_grace_modifiers(event)) return;
 
     if (w != cbdata->w) return;
@@ -226,6 +267,40 @@ void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, v
         break;
     case KEY_DOWN:
         table = concat_strings(table, "<Key>osfDown: action()");
+        break;
+    default:
+        return;
+    }
+
+    actions[0].string = "action";
+    actions[0].proc = action;
+
+    XtOverrideTranslations(w, XtParseTranslationTable(table));
+    XtAppAddActions(app_con, actions, XtNumber(actions));
+    XtAppAddActionHook(app_con, keyHook, cbdata);
+
+    xfree(table);
+}
+
+void AddWidgetButtonPressCB(Widget w, int button, Key_CBProc cbproc, void *anydata)
+{
+    char *table = NULL;
+    XtActionsRec actions[1];
+    Key_CBData *cbdata;
+
+    cbdata = (Key_CBData *) xmalloc(sizeof(Key_CBData));
+    cbdata->w = w;
+    cbdata->modifiers = NO_MODIFIER;
+    cbdata->key = button;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    switch (button) {
+    case WHEEL_UP_BUTTON:
+        table = concat_strings(table, "<Btn4Down>: action()");
+        break;
+    case WHEEL_DOWN_BUTTON:
+        table = concat_strings(table, "<Btn5Down>: action()");
         break;
     default:
         return;
@@ -1194,22 +1269,21 @@ static void spin_arrow_cb(Widget_CBData *wcbdata)
     WidgetSetFocus(spinp->text);
 }
 
-static void spin_updown(Widget parent,
-    XtPointer closure, XEvent *event, Boolean *cont)
+static void spin_up(void *anydata)
 {
-    XButtonPressedEvent *e = (XButtonPressedEvent *) event;
-    SpinStructure *spinp = (SpinStructure *) closure;
-    double value, incr;
+    SpinStructure *spinp = (SpinStructure *) anydata;
+    double value;
 
-    if (e->button == 4) {
-        incr =  spinp->incr;
-    } else
-    if (e->button == 5) {
-        incr = -spinp->incr;
-    } else {
-        return;
-    }
-    value = GetSpinChoice(spinp) + incr;
+    value = GetSpinChoice(spinp) + spinp->incr;
+    SetSpinChoice(spinp, value);
+}
+
+static void spin_down(void *anydata)
+{
+    SpinStructure *spinp = (SpinStructure *) anydata;
+    double value;
+
+    value = GetSpinChoice(spinp) - spinp->incr;
     SetSpinChoice(spinp, value);
 }
 
@@ -1241,7 +1315,8 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
     retval->text = CreateLineTextEdit(form, len);
     FormAddHChild(form, retval->text);
 
-    XtAddEventHandler(retval->text, ButtonPressMask, False, spin_updown, retval);
+    AddWidgetButtonPressCB(retval->text, WHEEL_UP_BUTTON, spin_up, retval);
+    AddWidgetButtonPressCB(retval->text, WHEEL_DOWN_BUTTON, spin_down, retval);
 
     retval->arrow_down = CreateArrowButton(form, ARROW_DOWN);
     AddWidgetCB(retval->arrow_down, "activate", spin_arrow_cb, retval);
