@@ -350,13 +350,45 @@ void AddWidgetButtonPressCB(Widget w, int button, Key_CBProc cbproc, void *anyda
     xfree(table);
 }
 
+static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
+static char *GetStringSimple(XmString xms)
+{
+    char *s;
+
+    if (XmStringGetLtoR(xms, charset, &s)) {
+        return s;
+    } else {
+        return NULL;
+    }
+}
+
 static void widgetCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget_CBData *cbdata = (Widget_CBData *) client_data;
+    char *str = NULL;
 
-    cbdata->calldata = call_data;
+    if (XmIsFileSelectionBox(w)) {
+        XmFileSelectionBoxCallbackStruct *cbs =
+            (XmFileSelectionBoxCallbackStruct *) call_data;
+
+        char *buf = GetStringSimple(cbs->value);
+
+        if (buf == NULL) {
+            errmsg("Error converting XmString to char string");
+            return;
+        }
+
+        str = copy_string(NULL, buf);
+        XtFree(buf);
+
+        cbdata->calldata = str;
+    } else {
+        cbdata->calldata = call_data;
+    }
 
     cbdata->cbproc(cbdata);
+
+    xfree(str);
 }
 
 void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata)
@@ -499,19 +531,6 @@ void CreateFileSelectionFilter(Widget parent, Widget fsb)
 }
 
 /* File selection dialog */
-static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
-
-static char *GetStringSimple(XmString xms)
-{
-    char *s;
-
-    if (XmStringGetLtoR(xms, charset, &s)) {
-        return s;
-    } else {
-        return NULL;
-    }
-}
-
 static void fsb_setcwd_cb(Widget but, void *data)
 {
     char *bufp;
@@ -613,23 +632,14 @@ typedef struct {
 
 static void fsb_int_cb_proc(Widget_CBData *wcbdata)
 {
-    char *s;
-    int ok;
-
     FSB_CBdata *cbdata = (FSB_CBdata *) wcbdata->anydata;
-    XmFileSelectionBoxCallbackStruct *cbs =
-        (XmFileSelectionBoxCallbackStruct *) wcbdata->calldata;
-
-    s = GetStringSimple(cbs->value);
-    if (s == NULL) {
-        errmsg("Error converting XmString to char string");
-        return;
-    }
+    char *s = (char *) wcbdata->calldata;
+    int ok;
 
     set_wait_cursor();
 
     ok = cbdata->cbproc(cbdata->fsb, s, cbdata->anydata);
-    XtFree(s);
+
     if (ok) {
         DialogClose(cbdata->fsb->FSB);
     }
