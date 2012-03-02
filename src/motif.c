@@ -1225,18 +1225,22 @@ static void timer_proc(XtPointer client_data, XtIntervalId *id)
     cbdata->timer_id = 0;
 }
 
+void TimerStart(unsigned long interval, Timer_CBdata *cbdata)
+{
+    /* we count elapsed time since the last event, so first remove
+           an existing timeout, if there is one */
+    if (cbdata->timer_id) {
+        XtRemoveTimeOut(cbdata->timer_id);
+    }
+
+    cbdata->timer_id = XtAppAddTimeOut(app_con, interval, timer_proc, cbdata);
+}
+
 static void sp_ev_proc(void *anydata)
 {
     Spin_CBdata *cbdata = (Spin_CBdata *) anydata;
-    Timer_CBdata *tcbdata = (Timer_CBdata *) cbdata->tcbdata;
 
-    /* we count elapsed time since the last event, so first remove
-           an existing timeout, if there is one */
-    if (tcbdata->timer_id) {
-        XtRemoveTimeOut(tcbdata->timer_id);
-    }
-    tcbdata->timer_id = XtAppAddTimeOut(app_con,
-            250 /* 0.25 second */, timer_proc, tcbdata);
+    TimerStart(250 /* 0.25 second */, cbdata->tcbdata);
 }
 
 void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
