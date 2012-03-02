@@ -877,7 +877,7 @@ void LabelSetPixmap(Widget w, int width, int height, const unsigned char *bits)
             NULL);
 }
 
-/* Text */
+/* Text edit */
 Widget CreateLineTextEdit(Widget parent, int len)
 {
     Widget w;
@@ -911,6 +911,23 @@ Widget CreateMultiLineTextEdit(Widget parent, int nrows)
     return w;
 }
 
+char *TextEditGetString(Widget w)
+{
+    char *s, *buf;
+
+    s = XmTextGetString(w);
+    buf = copy_string(NULL, s);
+    XtFree(s);
+
+    return buf;
+}
+
+void TextEditSetString(Widget w, char *s)
+{
+    XmTextSetString(w, s ? s : "");
+}
+
+/* Text */
 void TextSetLength(TextStructure *cst, int len)
 {
     XtVaSetValues(cst->text, XmNcolumns, len, NULL);
@@ -918,19 +935,13 @@ void TextSetLength(TextStructure *cst, int len)
 
 char *TextGetString(TextStructure *cst)
 {
-    char *s, *buf;
-
-    s = XmTextGetString(cst->text);
-    buf = copy_string(NULL, s);
-    XtFree(s);
-
-    return buf;
+    return TextEditGetString(cst->text);
 }
 
 void TextSetString(TextStructure *cst, char *s)
 {
     cst->locked = TRUE;
-    XmTextSetString(cst->text, s ? s : "");
+    TextEditSetString(cst->text, s);
     XmTextSetInsertionPosition(cst->text, s ? strlen(s):0);
     cst->locked = FALSE;
 }
@@ -1263,7 +1274,7 @@ void SetSpinChoice(SpinStructure *spinp, double value)
     } else {
         sprintf(buf, "%d", (int) rint(value));
     }
-    XmTextSetString(spinp->text, buf);
+    TextEditSetString(spinp->text, buf);
 }
 
 double GetSpinChoice(SpinStructure *spinp)
@@ -1271,13 +1282,13 @@ double GetSpinChoice(SpinStructure *spinp)
     double retval;
     char *s;
 
-    s = XmTextGetString(spinp->text);
+    s = TextEditGetString(spinp->text);
 
     graal_eval_expr(grace_get_graal(gapp->grace),
                     s, &retval,
                     gproject_get_top(gapp->gp));
 
-    XtFree(s);
+    xfree(s);
 
     if (retval < spinp->min) {
         errmsg("Input value below min limit in GetSpinChoice()");

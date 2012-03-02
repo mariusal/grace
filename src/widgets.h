@@ -145,10 +145,13 @@ Widget CreateLabel(Widget parent, char *s);
 void LabelSetString(Widget w, char *s);
 void LabelSetPixmap(Widget w, int width, int height, const unsigned char *bits);
 
-/* Text */
+/* Text edit */
 Widget CreateLineTextEdit(Widget parent, int len);
 Widget CreateMultiLineTextEdit(Widget parent, int nrows);
+char *TextEditGetString(Widget w);
+void TextEditSetString(Widget w, char *s);
 
+/* Text */
 typedef struct {
     Widget label;
     Widget form;
