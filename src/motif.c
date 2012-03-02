@@ -1243,22 +1243,29 @@ static void sp_ev_proc(void *anydata)
     TimerStart(250 /* 0.25 second */, cbdata->tcbdata);
 }
 
+Timer_CBdata *CreateTimer(Timer_CBProc cbproc, void *anydata)
+{
+    Timer_CBdata *cbdata;
+
+    cbdata = xmalloc(sizeof(Timer_CBdata));
+
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+    cbdata->timer_id = 0;
+
+    return cbdata;
+}
+
 void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
 {
-    Timer_CBdata *tcbdata;
     Spin_CBdata *cbdata;
 
-    tcbdata = xmalloc(sizeof(Timer_CBdata));
     cbdata = xmalloc(sizeof(Spin_CBdata));
-
-    tcbdata->cbproc = sp_timer_proc;
-    tcbdata->anydata = cbdata;
-    tcbdata->timer_id = 0;
 
     cbdata->spin = spinp;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
-    cbdata->tcbdata = tcbdata;
+    cbdata->tcbdata = CreateTimer(sp_timer_proc, cbdata);
 
     AddWidgetCB(spinp->text, "activate", sp_double_cb_proc, cbdata);
     AddWidgetCB(spinp->arrow_up, "activate", sp_double_cb_proc, cbdata);
