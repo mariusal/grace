@@ -1211,21 +1211,17 @@ static void sp_timer_proc(XtPointer client_data, XtIntervalId *id)
     cbdata->timer_id = (XtIntervalId) 0;
 }
 
-static void sp_ev_proc(Widget w,
-    XtPointer client_data, XEvent *event, Boolean *cont)
+static void sp_ev_proc(void *anydata)
 {
-    XButtonPressedEvent *e = (XButtonPressedEvent *) event;
-    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
+    Spin_CBdata *cbdata = (Spin_CBdata *) anydata;
 
-    if (e->button == 4 || e->button == 5) {
-        /* we count elapsed time since the last event, so first remove
+    /* we count elapsed time since the last event, so first remove
            an existing timeout, if there is one */
-        if (cbdata->timer_id) {
-            XtRemoveTimeOut(cbdata->timer_id);
-        }
-        cbdata->timer_id = XtAppAddTimeOut(app_con,
-            250 /* 0.25 second */, sp_timer_proc, client_data);
+    if (cbdata->timer_id) {
+        XtRemoveTimeOut(cbdata->timer_id);
     }
+    cbdata->timer_id = XtAppAddTimeOut(app_con,
+            250 /* 0.25 second */, sp_timer_proc, cbdata);
 }
 
 void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
@@ -1243,8 +1239,8 @@ void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
     AddWidgetCB(spinp->arrow_up, "activate", sp_double_cb_proc, cbdata);
     AddWidgetCB(spinp->arrow_down, "activate", sp_double_cb_proc, cbdata);
 
-    XtAddEventHandler(spinp->text,
-        ButtonPressMask, False, sp_ev_proc, (XtPointer) cbdata);
+    AddWidgetButtonPressCB(spinp->text, WHEEL_UP_BUTTON, sp_ev_proc, cbdata);
+    AddWidgetButtonPressCB(spinp->text, WHEEL_DOWN_BUTTON, sp_ev_proc, cbdata);
 }
 
 static void spin_arrow_cb(Widget_CBData *wcbdata)
