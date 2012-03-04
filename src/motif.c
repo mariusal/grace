@@ -1092,7 +1092,7 @@ void TextSetString(TextStructure *cst, char *s)
 {
     cst->locked = TRUE;
     TextEditSetString(cst->text, s);
-    XmTextSetInsertionPosition(cst->text, s ? strlen(s):0);
+    TextSetCursorPos(cst, s ? strlen(s):0);
     cst->locked = FALSE;
 }
 
