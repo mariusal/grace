@@ -211,6 +211,7 @@ static void update_fonttool_cb(OptionStructure *opt, int value, void *data)
     ui->csize = MIN2(cwidth, cheight) - 6;
 
     TableUpdate(ui->font_table);
+    WidgetSetFocus(ui->cstext->text);
 }
 
 static int EditStringCB(char **text, void *data)
