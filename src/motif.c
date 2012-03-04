@@ -362,12 +362,22 @@ static char *GetStringSimple(XmString xms)
     }
 }
 
+typedef struct {
+    char **text;
+    int allow_change;
+} TextValidate_CD;
+
 static void widgetCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget_CBData *cbdata = (Widget_CBData *) client_data;
+    TextValidate_CD *cdata;
+    XmTextVerifyCallbackStruct *tcbs;
+    XmTextBlock text;
     char *str = NULL;
+    int is_fsb = XmIsFileSelectionBox(w);
+    int is_text = XmIsText(w);
 
-    if (XmIsFileSelectionBox(w)) {
+    if (is_fsb) {
         XmFileSelectionBoxCallbackStruct *cbs =
             (XmFileSelectionBoxCallbackStruct *) call_data;
 
@@ -382,13 +392,34 @@ static void widgetCB(Widget w, XtPointer client_data, XtPointer call_data)
         XtFree(buf);
 
         cbdata->calldata = str;
+    } else if (is_text) {
+        tcbs = (XmTextVerifyCallbackStruct *) call_data;
+
+        text = tcbs->text;
+
+        cdata = (TextValidate_CD *) xmalloc(sizeof(TextValidate_CD));
+        cdata->text = &text->ptr;
+        cdata->allow_change = TRUE;
+
+        cbdata->calldata = cdata;
     } else {
         cbdata->calldata = call_data;
     }
 
     cbdata->cbproc(cbdata);
 
-    xfree(str);
+    if (is_fsb) {
+        xfree(str);
+    } else if (is_text) {
+
+        text->length = strlen(text->ptr);
+
+        if (!cdata->allow_change) {
+            tcbs->doit = False;
+        }
+
+        xfree(cdata);
+    }
 }
 
 void AddWidgetCB(Widget w, const char *callback, Widget_CBProc cbproc, void *anydata)
@@ -1073,17 +1104,13 @@ typedef struct {
 
 static void text_int_validate_cb_proc(Widget_CBData *wcbdata)
 {
-    XmTextBlock text;
     TextValidate_CBData *cbdata = (TextValidate_CBData *) wcbdata->anydata;
-    XmTextVerifyCallbackStruct *tcbs =
-            (XmTextVerifyCallbackStruct *) wcbdata->calldata;
+    TextValidate_CD *cdata = (TextValidate_CD *) wcbdata->calldata;
 
     if (cbdata->cst->locked) return;
 
-    text = tcbs->text;
-
-    if (!cbdata->cbproc(&text->ptr, &text->length, cbdata->anydata)) {
-        tcbs->doit = False;
+    if (!cbdata->cbproc(cdata->text, cbdata->anydata)) {
+        cdata->allow_change = FALSE;
     }
 }
 

@@ -61,7 +61,7 @@ typedef struct _fonttool_ui
 
 static int DrawCB(TableEvent *event);
 static int EnterCB(TableEvent *event);
-static int EditStringCB(char **value, int *length, void *data);
+static int EditStringCB(char **text, void *data);
 
 static void update_fonttool_cb(OptionStructure *opt, int value, void *data);
 static int fonttool_aac_cb(void *data);
@@ -213,21 +213,19 @@ static void update_fonttool_cb(OptionStructure *opt, int value, void *data)
     TableUpdate(ui->font_table);
 }
 
-static int EditStringCB(char **value, int *length, void *data)
+static int EditStringCB(char **text, void *data)
 {
     fonttool_ui *ui = (fonttool_ui *) data;
     unsigned char c;
     static int column = 0, row = 0;
-    char *text;
-    int len = *length;
+    char *str;
 
-    text = *value;
+    str = *text;
     
     TableDeselectCell(ui->font_table, row, column);
     
-    if (len == 1) {
-        /* */
-        c = text[0];
+    if (strlen(str) == 1) {
+        c = str[0];
         row = c/16;
         column = c % 16;
 
@@ -245,11 +243,11 @@ static int EditStringCB(char **value, int *length, void *data)
         buf = concat_strings(buf,
             project_get_font_name_by_id(gproject_get_top(gapp->gp), ui->font_id));
         buf = concat_strings(buf, "}");
-        buf = concat_strings(buf, text);
-        xfree(text);
-        text = copy_string(NULL, buf);
-        *value = text;
-        *length = strlen(buf);
+        buf = concat_strings(buf, str);
+
+        str = copy_string(str, buf);
+        *text = str;
+
         xfree(buf);
 
         ui->new_font = FALSE;

@@ -177,8 +177,7 @@ char *TextGetString(TextStructure *cst);
 void TextSetString(TextStructure *cst, char *s);
 
 typedef int (*TextValidate_CBProc)(
-        char **value,
-        int *length,
+        char **text,
         void *data
 );
 void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *anydata);
