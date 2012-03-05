@@ -1203,7 +1203,7 @@ void ScaleSetValue(Widget w, int value)
     XtVaSetValues(w, XmNvalue, value, NULL);
 }
 
-int GetScaleValue(Widget w)
+int ScaleGetValue(Widget w)
 {
     int value;
     XtVaGetValues(w, XmNvalue, &value, NULL);

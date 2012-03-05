@@ -6863,7 +6863,7 @@ void ScaleSetValue(Widget w, int value)
 //    XtVaGetValues(w, XmNvalue, &value, NULL);
 //    return value;
 //}
-int GetScaleValue(Widget w)
+int ScaleGetValue(Widget w)
 {
     QSlider *slider = (QSlider*) w;
 

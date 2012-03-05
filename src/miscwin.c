@@ -176,8 +176,8 @@ static int props_define_notify_proc(void *data)
 #endif
     set_max_path_limit(grace_get_canvas(gapp->grace), (int) GetSpinChoice(max_path_item));
     gapp->rt->safe_mode = ToggleButtonGetState(safe_mode_item);
-    gapp->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
-    gapp->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
+    gapp->rt->scrollper = (double) ScaleGetValue(scrollper_item)/100.0;
+    gapp->rt->shexper   = (double) ScaleGetValue(shexper_item)/100.0;
     
     xdrawgraph(gapp->gp);
     

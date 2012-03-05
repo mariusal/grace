@@ -210,7 +210,7 @@ void ToggleButtonSetState(Widget w, int value);
 /* Scale */
 Widget CreateScale(Widget parent, char *s, int min, int max, int delta);
 void ScaleSetValue(Widget w, int value);
-int GetScaleValue(Widget w);
+int ScaleGetValue(Widget w);
 
 /* SpinChoice */
 typedef struct {
