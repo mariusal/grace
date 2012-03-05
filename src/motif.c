@@ -1078,11 +1078,6 @@ void TextEditSetString(Widget w, char *s)
 }
 
 /* Text */
-void TextSetLength(TextStructure *cst, int len)
-{
-    XtVaSetValues(cst->text, XmNcolumns, len, NULL);
-}
-
 char *TextGetString(TextStructure *cst)
 {
     return TextEditGetString(cst->text);
@@ -1094,6 +1089,36 @@ void TextSetString(TextStructure *cst, char *s)
     TextEditSetString(cst->text, s);
     TextSetCursorPos(cst, s ? strlen(s):0);
     cst->locked = FALSE;
+}
+
+void TextInsertString(TextStructure *cst, int pos, char *s)
+{
+    XmTextInsert(cst->text, pos, s);
+}
+
+int TextGetCursorPos(TextStructure *cst)
+{
+    return XmTextGetInsertionPosition(cst->text);
+}
+
+void TextSetCursorPos(TextStructure *cst, int pos)
+{
+    XmTextSetInsertionPosition(cst->text, pos);
+}
+
+int TextGetLastPosition(TextStructure *cst)
+{
+    return XmTextGetLastPosition(cst->text);
+}
+
+void TextSetLength(TextStructure *cst, int len)
+{
+    XtVaSetValues(cst->text, XmNcolumns, len, NULL);
+}
+
+void TextSetEditable(TextStructure *cst, int onoff)
+{
+    XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
 }
 
 typedef struct {
@@ -1125,31 +1150,6 @@ void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *any
     cst->locked = FALSE;
 
     AddWidgetCB(cst->text, "modifyVerify", text_int_validate_cb_proc, cbdata);
-}
-
-int TextGetCursorPos(TextStructure *cst)
-{
-    return XmTextGetInsertionPosition(cst->text);
-}
-
-void TextSetCursorPos(TextStructure *cst, int pos)
-{
-    XmTextSetInsertionPosition(cst->text, pos);
-}
-
-int TextGetLastPosition(TextStructure *cst)
-{
-    return XmTextGetLastPosition(cst->text);
-}
-
-void TextInsertString(TextStructure *cst, int pos, char *s)
-{
-    XmTextInsert(cst->text, pos, s);
-}
-
-void TextSetEditable(TextStructure *cst, int onoff)
-{
-    XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
 }
 
 /* Button */

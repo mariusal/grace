@@ -172,20 +172,20 @@ typedef struct {
     int locked;
 } TextStructure;
 
-void TextSetLength(TextStructure *cst, int len);
 char *TextGetString(TextStructure *cst);
 void TextSetString(TextStructure *cst, char *s);
+void TextInsertString(TextStructure *cst, int pos, char *s);
+int TextGetCursorPos(TextStructure *cst);
+void TextSetCursorPos(TextStructure *cst, int pos);
+int TextGetLastPosition(TextStructure *cst);
+void TextSetLength(TextStructure *cst, int len);
+void TextSetEditable(TextStructure *cst, int onoff);
 
 typedef int (*TextValidate_CBProc)(
         char **text,
         void *data
 );
 void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *anydata);
-int TextGetCursorPos(TextStructure *cst);
-void TextSetCursorPos(TextStructure *cst, int pos);
-int TextGetLastPosition(TextStructure *cst);
-void TextInsertString(TextStructure *cst, int pos, char *s);
-void TextSetEditable(TextStructure *cst, int onoff);
 
 /* Button */
 typedef void (*Button_CBProc)(
