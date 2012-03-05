@@ -1344,14 +1344,13 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 
 void SpinChoiceSetValue(SpinStructure *spinp, double value)
 {
-    X11Stuff *xstuff = gapp->gui->xstuff;
     char buf[64];
 
     if (value < spinp->min) {
-        XBell(xstuff->disp, 50);
+        Beep();
         value = spinp->min;
     } else if (value > spinp->max) {
-        XBell(xstuff->disp, 50);
+        Beep();
         value = spinp->max;
     }
 
