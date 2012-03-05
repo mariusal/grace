@@ -411,7 +411,7 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             pr->bgcolor = GetOptionChoice(ui->bg_color);
         }
         if (!caller || caller == ui->bg_fill) {
-            pr->bgfill = GetToggleButtonState(ui->bg_fill);
+            pr->bgfill = ToggleButtonGetState(ui->bg_fill);
         }
 
         if (!caller || caller == ui->fsize_scale) {
@@ -433,7 +433,7 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             xfree(s);
         }
         if (!caller || caller == ui->two_digits_years) {
-            pr->two_digits_years = GetToggleButtonState(ui->two_digits_years);
+            pr->two_digits_years = ToggleButtonGetState(ui->two_digits_years);
         }
         if (!caller || caller == ui->wrap_year) {
             char *s = TextGetString(ui->wrap_year);

@@ -204,7 +204,7 @@ typedef void (*TB_CBProc)(
     void *               /* data the application registered */
 );
 Widget CreateToggleButton(Widget parent, char *s);
-int GetToggleButtonState(Widget w);
+int ToggleButtonGetState(Widget w);
 void SetToggleButtonState(Widget w, int value);
 
 /* Scale */

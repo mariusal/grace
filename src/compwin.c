@@ -80,7 +80,7 @@ static void *eval_get_cb(void *gui)
     pars = xmalloc(sizeof(Eval_pars));
     if (pars) {
         pars->restr_type = GetOptionChoice(ui->restr_item->r_sel);
-        pars->restr_negate = GetToggleButtonState(ui->restr_item->negate);
+        pars->restr_negate = ToggleButtonGetState(ui->restr_item->negate);
         pars->fstr = TextGetString(ui->formula_item);
     }
     
@@ -239,7 +239,7 @@ static void *interp_get_cb(void *gui)
     if (pars) {
         pars->method   = GetOptionChoice(ui->method);
         pars->sampling = GetOptionChoice(ui->sampling);
-        pars->strict   = GetToggleButtonState(ui->strict);
+        pars->strict   = ToggleButtonGetState(ui->strict);
         pars->mesh     = NULL;
         pars->meshlen  = 0;
         
@@ -402,8 +402,8 @@ static void *histo_get_cb(void *gui)
     
     pars = xmalloc(sizeof(Histo_pars));
     if (pars) {
-        pars->cumulative = GetToggleButtonState(ui->cumulative);
-        pars->normalize  = GetToggleButtonState(ui->normalize);
+        pars->cumulative = ToggleButtonGetState(ui->cumulative);
+        pars->normalize  = ToggleButtonGetState(ui->normalize);
         pars->sampling   = GetOptionChoice(ui->sampling);
         pars->bins       = NULL;
         pars->nbins      = 0;
@@ -650,18 +650,18 @@ static void *fourier_get_cb(void *gui)
 
     pars = xmalloc(sizeof(Four_pars));
     if (pars) {
-        pars->invflag      = GetToggleButtonState(ui->inverse);
+        pars->invflag      = ToggleButtonGetState(ui->inverse);
         pars->xscale       = GetOptionChoice(ui->xscale);
         pars->norm         = GetOptionChoice(ui->norm);
 
-        pars->complexin    = GetToggleButtonState(ui->complexin);
-        pars->dcdump       = GetToggleButtonState(ui->dcdump);
+        pars->complexin    = ToggleButtonGetState(ui->complexin);
+        pars->dcdump       = ToggleButtonGetState(ui->dcdump);
         pars->oversampling = GetSpinChoice(ui->oversampling);
-        pars->round2n      = GetToggleButtonState(ui->round2n);
+        pars->round2n      = ToggleButtonGetState(ui->round2n);
         pars->window       = GetOptionChoice(ui->window);
         pars->beta         = GetSpinChoice(ui->winpar);
 
-        pars->halflen      = GetToggleButtonState(ui->halflen);
+        pars->halflen      = ToggleButtonGetState(ui->halflen);
         pars->output       = GetOptionChoice(ui->output);
     }
     
@@ -961,7 +961,7 @@ static void *int_get_cb(void *gui)
     
     pars = xmalloc(sizeof(Int_pars));
     if (pars) {
-        pars->disponly = GetToggleButtonState(ui->disponly);
+        pars->disponly = ToggleButtonGetState(ui->disponly);
     }
     
     return (void *) pars;
@@ -1141,8 +1141,8 @@ static void *cross_get_cb(void *gui)
     pars = xmalloc(sizeof(Cross_pars));
     if (pars) {
         pars->maxlag  = (int) GetSpinChoice(ui->maxlag);
-        pars->autocor = GetToggleButtonState(ui->autocor);
-        pars->covar   = GetToggleButtonState(ui->covar);
+        pars->autocor = ToggleButtonGetState(ui->autocor);
+        pars->covar   = ToggleButtonGetState(ui->covar);
 
         if (!pars->autocor &&
             GetSingleStorageChoice(ui->corsel->set_sel, &pars->pcor)

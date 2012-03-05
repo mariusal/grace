@@ -489,7 +489,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             xv_evalexpr(ui->tlgap_perp, &t->tl_gap.y);
         }
         if (!caller || caller == ui->tround) {
-            t->t_round = GetToggleButtonState(ui->tround);
+            t->t_round = ToggleButtonGetState(ui->tround);
         }
         if (!caller || caller == ui->autonum) {
             t->t_autonum = GetOptionChoice(ui->autonum) + 2;
@@ -497,7 +497,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
 
 
         if (!caller || caller == ui->tgrid) {
-            t->gprops.onoff = GetToggleButtonState(ui->tgrid);
+            t->gprops.onoff = ToggleButtonGetState(ui->tgrid);
         }
         if (!caller || caller == ui->tgridpen) {
             GetPenChoice(ui->tgridpen, &t->gprops.line.pen);
@@ -510,7 +510,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
         }
 
         if (!caller || caller == ui->tmgrid) {
-            t->mgprops.onoff = GetToggleButtonState(ui->tmgrid);
+            t->mgprops.onoff = ToggleButtonGetState(ui->tmgrid);
         }
         if (!caller || caller == ui->tmgridpen) {
             GetPenChoice(ui->tmgridpen, &t->mgprops.line.pen);
@@ -649,13 +649,13 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
         }
 
         if (!caller || caller == ui->draw_bar) {
-            axis_enable_bar(q, GetToggleButtonState(ui->draw_bar));
+            axis_enable_bar(q, ToggleButtonGetState(ui->draw_bar));
         }
         if (!caller || caller == ui->draw_ticks) {
-            axis_enable_ticks(q, GetToggleButtonState(ui->draw_ticks));
+            axis_enable_ticks(q, ToggleButtonGetState(ui->draw_ticks));
         }
         if (!caller || caller == ui->draw_labels) {
-            axis_enable_labels(q, GetToggleButtonState(ui->draw_labels));
+            axis_enable_labels(q, ToggleButtonGetState(ui->draw_labels));
         }
 
         return RETURN_SUCCESS;

@@ -370,8 +370,8 @@ static int find_cb(void *data)
         }
     }
 
-    case_sensitive = GetToggleButtonState(ui->case_sensitive);
-    find_backwards = GetToggleButtonState(ui->find_backwards);
+    case_sensitive = ToggleButtonGetState(ui->case_sensitive);
+    find_backwards = ToggleButtonGetState(ui->find_backwards);
 
     /*****
     * The second arg represent regcomp flags, the default being

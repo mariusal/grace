@@ -268,7 +268,7 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
             l->charsize = GetSpinChoice(ui->legend_charsize);
         }
         if (!caller || caller == ui->toggle_legends) {
-            l->active = GetToggleButtonState(ui->toggle_legends);
+            l->active = ToggleButtonGetState(ui->toggle_legends);
         }
         if (!caller || caller == ui->legends_vgap) {
             l->vgap = GetSpinChoice(ui->legends_vgap);
@@ -280,10 +280,10 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
             l->len = GetSpinChoice(ui->legends_len);
         }
         if (!caller || caller == ui->legends_invert) {
-            l->invert = GetToggleButtonState(ui->legends_invert);
+            l->invert = ToggleButtonGetState(ui->legends_invert);
         }
         if (!caller || caller == ui->legends_singlesym) {
-            l->singlesym = GetToggleButtonState(ui->legends_singlesym);
+            l->singlesym = ToggleButtonGetState(ui->legends_singlesym);
         }
         if (!caller || caller == ui->legend_anchor_x) {
             l->anchor.x = GetSpinChoice(ui->legend_anchor_x);

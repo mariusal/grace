@@ -560,7 +560,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     int gpcount = 0;
     GProject **gplist;
     
-    if (caller && !GetToggleButtonState(ui->instantupdate)) {
+    if (caller && !ToggleButtonGetState(ui->instantupdate)) {
         return RETURN_FAILURE;
     }
     

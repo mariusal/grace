@@ -177,18 +177,18 @@ static int set_ps_setup_proc(void *data)
     PS_UI_data *ui = (PS_UI_data *) data;
     PS_data *ps = ui->ps;
 
-    ps->level2     = GetToggleButtonState(ui->level2);
+    ps->level2     = ToggleButtonGetState(ui->level2);
     ps->docdata    = GetOptionChoice(ui->docdata);
     ps->colorspace = GetOptionChoice(ui->colorspace);
     ps->fonts      = GetOptionChoice(ui->fonts);
     if (ps->format == EPS_FORMAT) {
-        ps->printable  = GetToggleButtonState(ui->printable);
+        ps->printable  = ToggleButtonGetState(ui->printable);
     }
     if (ps->format == PS_FORMAT) {
         ps->offset_x   = (int) GetSpinChoice(ui->offset_x);
         ps->offset_y   = (int) GetSpinChoice(ui->offset_y);
         ps->feed       = GetOptionChoice(ui->feed);
-        ps->hwres      = GetToggleButtonState(ui->hwres);
+        ps->hwres      = ToggleButtonGetState(ui->hwres);
     }
     
     return RETURN_SUCCESS;
@@ -352,7 +352,7 @@ static int set_hpdf_setup_proc(void *data)
     HPDF_data *hpdf = ui->hpdf;
 
     hpdf->colorspace  = GetOptionChoice(ui->colorspace);
-    hpdf->compression = GetToggleButtonState(ui->compression);
+    hpdf->compression = ToggleButtonGetState(ui->compression);
     
     return RETURN_SUCCESS;
 }
@@ -422,7 +422,7 @@ static int set_pnm_setup_proc(void *data)
     PNM_data *pnm = ui->pnm;
     
     pnm->format = GetOptionChoice(ui->format);
-    pnm->rawbits = GetToggleButtonState(ui->rawbits);
+    pnm->rawbits = ToggleButtonGetState(ui->rawbits);
     
     return RETURN_SUCCESS;
 }
@@ -512,8 +512,8 @@ static int set_png_setup_proc(void *data)
     PNG_UI_data *ui = (PNG_UI_data *) data;
     PNG_data *png = ui->png;
     
-    png->interlaced  = GetToggleButtonState(ui->interlaced);
-    png->transparent = GetToggleButtonState(ui->transparent);
+    png->interlaced  = ToggleButtonGetState(ui->interlaced);
+    png->transparent = ToggleButtonGetState(ui->transparent);
     png->compression = GetSpinChoice(ui->compression);
     
     return RETURN_SUCCESS;
@@ -602,10 +602,10 @@ static int set_jpg_setup_proc(void *data)
     JPG_UI_data *ui = (JPG_UI_data *) data;
     JPG_data *jpg = ui->jpg;
     
-    jpg->grayscale   = GetToggleButtonState(ui->grayscale);
-    jpg->baseline    = GetToggleButtonState(ui->baseline);
-    jpg->optimize    = GetToggleButtonState(ui->optimize);
-    jpg->progressive = GetToggleButtonState(ui->progressive);
+    jpg->grayscale   = ToggleButtonGetState(ui->grayscale);
+    jpg->baseline    = ToggleButtonGetState(ui->baseline);
+    jpg->optimize    = ToggleButtonGetState(ui->optimize);
+    jpg->progressive = ToggleButtonGetState(ui->progressive);
     jpg->quality     = (int) GetSpinChoice (ui->quality);
     jpg->smoothing   = (int) GetSpinChoice (ui->smoothing);
     jpg->dct         = GetOptionChoice     (ui->dct);

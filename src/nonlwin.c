@@ -337,7 +337,7 @@ static void *nonl_get_cb(void *gui)
                 return NULL;
 	    }
 
-	    nlp->constr = GetToggleButtonState(ui->constr_item[i]);
+	    nlp->constr = ToggleButtonGetState(ui->constr_item[i]);
 	    if (nlp->constr) {
 	        s = TextGetString(ui->lowb_item[i]);
 	        strcpy(buf, s);
@@ -363,7 +363,7 @@ static void *nonl_get_cb(void *gui)
 	    }
         }
 
-        pars->prefs.autoload = GetToggleButtonState(ui->autol_item);
+        pars->prefs.autoload = ToggleButtonGetState(ui->autol_item);
         pars->prefs.load     = GetOptionChoice(ui->load_item);
 
         if (pars->prefs.load == LOAD_FUNCTION) {
@@ -402,7 +402,7 @@ static void *nonl_get_cb(void *gui)
 	
         pars->weight_method = GetOptionChoice(ui->weigh_item);
         pars->restr_type    = GetOptionChoice(ui->restr_item->r_sel);
-        pars->restr_negate  = GetToggleButtonState(ui->restr_item->negate);
+        pars->restr_negate  = ToggleButtonGetState(ui->restr_item->negate);
     }
     
     return (void *) pars;

@@ -261,7 +261,7 @@ static void set_arc_odata(ArcUI *ui, DOArcData *odata, void *caller)
             odata->closure_type = GetOptionChoice(ui->closure_type);
         }
         if (!caller || caller == ui->draw_closure) {
-            odata->draw_closure = GetToggleButtonState(ui->draw_closure);
+            odata->draw_closure = ToggleButtonGetState(ui->draw_closure);
         }
     }
 }

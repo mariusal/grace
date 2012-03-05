@@ -243,7 +243,7 @@ int set_atext_data(ATextUI *ui, Quark *q, void *caller)
         }
 
         if (!caller || caller == ui->arrow_flag) {
-            at->arrow_flag   = GetToggleButtonState(ui->arrow_flag);
+            at->arrow_flag   = ToggleButtonGetState(ui->arrow_flag);
         }
         if (!caller || caller == ui->a_type) {
             at->arrow.type   = GetOptionChoice(ui->a_type);

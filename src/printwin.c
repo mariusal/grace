@@ -437,7 +437,7 @@ static int set_printer_proc(void *data)
         char *s;
 
         gapp->rt->hdevice = seldevice;
-        set_ptofile(gapp, GetToggleButtonState(ui->printto));
+        set_ptofile(gapp, ToggleButtonGetState(ui->printto));
         if (get_ptofile(gapp)) {
             s = TextGetString(ui->printfile);
             strcpy(gapp->rt->print_file, s);
@@ -465,7 +465,7 @@ static int set_printer_proc(void *data)
             return RETURN_FAILURE;
         }
 
-        dev->autocrop = GetToggleButtonState(ui->autocrop);
+        dev->autocrop = ToggleButtonGetState(ui->autocrop);
 
         page_units = GetOptionChoice(ui->page_size_unit);
 

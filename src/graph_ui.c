@@ -217,10 +217,10 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
             graph_set_type(q, GetOptionChoice(ui->graph_type));
         }
         if (!caller || caller == ui->stacked) {
-            graph_set_stacked(q, GetToggleButtonState(ui->stacked));
+            graph_set_stacked(q, ToggleButtonGetState(ui->stacked));
         }
         if (!caller || caller == ui->flip_xy) {
-            graph_set_xyflip(q, GetToggleButtonState(ui->flip_xy));
+            graph_set_xyflip(q, ToggleButtonGetState(ui->flip_xy));
         }
 
         if (!caller || caller == ui->start_x) {
@@ -263,14 +263,14 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
             graph_set_xscale(q, GetOptionChoice(ui->scale_x));
         }
         if (!caller || caller == ui->invert_x)  {
-            graph_set_xinvert(q, GetToggleButtonState(ui->invert_x));
+            graph_set_xinvert(q, ToggleButtonGetState(ui->invert_x));
         }
 
         if (!caller || caller == ui->scale_y) {
             graph_set_yscale(q, GetOptionChoice(ui->scale_y));
         }
         if (!caller || caller == ui->invert_y)  {
-            graph_set_yinvert(q, GetToggleButtonState(ui->invert_y));
+            graph_set_yinvert(q, ToggleButtonGetState(ui->invert_y));
         }
 
         if (!caller || caller == ui->bargap) {
@@ -305,7 +305,7 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
             quark_dirtystate_set(q, TRUE);
         }
         if (!caller || caller == ui->fixedp) {
-            locator->pointset = GetToggleButtonState(ui->fixedp);
+            locator->pointset = ToggleButtonGetState(ui->fixedp);
             quark_dirtystate_set(q, TRUE);
         }
         if (!caller || caller == ui->locx) {

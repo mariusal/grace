@@ -95,7 +95,7 @@ static int define_arrange_proc(void *data)
     }
     
     order = GetOptionChoice(ui->order);
-    snake = GetToggleButtonState(ui->snake);
+    snake = ToggleButtonGetState(ui->snake);
     
     toff = GetSpinChoice(ui->toff);
     loff = GetSpinChoice(ui->loff);
@@ -105,11 +105,11 @@ static int define_arrange_proc(void *data)
     hgap = GetSpinChoice(ui->hgap);
     vgap = GetSpinChoice(ui->vgap);
     
-    add  = GetToggleButtonState(ui->add);
-    kill = GetToggleButtonState(ui->kill);
+    add  = ToggleButtonGetState(ui->add);
+    kill = ToggleButtonGetState(ui->kill);
     
-    hpack = GetToggleButtonState(ui->hpack);
-    vpack = GetToggleButtonState(ui->vpack);
+    hpack = ToggleButtonGetState(ui->hpack);
+    vpack = ToggleButtonGetState(ui->vpack);
 
     if (add && nframes < nrows*ncols) {
         Quark *project = gproject_get_top(gapp->gp);

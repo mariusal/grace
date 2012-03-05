@@ -1150,7 +1150,7 @@ Widget CreateToggleButton(Widget parent, char *s)
     return (XtVaCreateManagedWidget(s, xmToggleButtonWidgetClass, parent, NULL));
 }
 
-int GetToggleButtonState(Widget w)
+int ToggleButtonGetState(Widget w)
 {
     if (!w) {
         errmsg("Internal error: GetToggleButtonState() called with NULL widget");

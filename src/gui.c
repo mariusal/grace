@@ -253,7 +253,7 @@ static void tb_int_cb_proc(Widget_CBData *wcbdata)
 
     TB_CBdata *cbdata = (TB_CBdata *) wcbdata->anydata;
 
-    onoff = GetToggleButtonState(cbdata->w);
+    onoff = ToggleButtonGetState(cbdata->w);
     cbdata->cbproc(cbdata->w, onoff, cbdata->anydata);
 }
 

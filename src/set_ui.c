@@ -632,16 +632,16 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->symfillpen, &p->sym.fillpen);
         }
         if (!caller || caller == ui->dropline) {
-            p->line.droplines = GetToggleButtonState(ui->dropline);
+            p->line.droplines = ToggleButtonGetState(ui->dropline);
         }
         if (!caller || caller == ui->baseline) {
-            p->line.baseline = GetToggleButtonState(ui->baseline);
+            p->line.baseline = ToggleButtonGetState(ui->baseline);
         }
         if (!caller || caller == ui->baselinetype) {
             p->line.baseline_type = GetOptionChoice(ui->baselinetype);
         }
         if (!caller || caller == ui->errbar_active) {
-            p->errbar.active = GetToggleButtonState(ui->errbar_active);
+            p->errbar.active = ToggleButtonGetState(ui->errbar_active);
         }
         if (!caller || caller == ui->errbar_size) {
             p->errbar.barsize = GetSpinChoice(ui->errbar_size);
@@ -662,13 +662,13 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->errbar_pen, &p->errbar.pen);
         }
         if (!caller || caller == ui->errbar_aclip) {
-            p->errbar.arrow_clip = GetToggleButtonState(ui->errbar_aclip);
+            p->errbar.arrow_clip = ToggleButtonGetState(ui->errbar_aclip);
         }
         if (!caller || caller == ui->errbar_cliplen) {
             p->errbar.cliplen = GetSpinChoice(ui->errbar_cliplen);
         }
         if (!caller || caller == ui->avalue_active) {
-            p->avalue.active = GetToggleButtonState(ui->avalue_active);
+            p->avalue.active = ToggleButtonGetState(ui->avalue_active);
         }
         if (!caller || caller == ui->avalue_charsize) {
             p->avalue.tprops.charsize = GetSpinChoice(ui->avalue_charsize);

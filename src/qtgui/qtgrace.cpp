@@ -6924,7 +6924,7 @@ Widget CreateToggleButton(Widget parent, char *s)
 //        return XmToggleButtonGetState(w);
 //    }
 //}
-int GetToggleButtonState(Widget w)
+int ToggleButtonGetState(Widget w)
 {
     if (!w) {
         errmsg("Internal error: GetToggleButtonState() called with NULL widget");
@@ -6995,7 +6995,7 @@ static void tb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
     
     TB_CBdata *cbdata = (TB_CBdata *) client_data;
 
-    onoff = GetToggleButtonState(w);
+    onoff = ToggleButtonGetState(w);
     cbdata->cbproc(cbdata->tbut, onoff, cbdata->anydata);
 }
 
