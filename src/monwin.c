@@ -168,7 +168,7 @@ static void create_monitor_frame(int force, char *msg)
     if (msg != NULL) {
         int pos;
         pos = TextGetLastPosition(ui->monText);
-        TextInsert(ui->monText, pos, msg);
+        TextInsertString(ui->monText, pos, msg);
     }
     
     if (force || ui->popup_only_on_errors == FALSE) {

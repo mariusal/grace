@@ -184,7 +184,7 @@ void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *any
 int TextGetCursorPos(TextStructure *cst);
 void TextSetCursorPos(TextStructure *cst, int pos);
 int TextGetLastPosition(TextStructure *cst);
-void TextInsert(TextStructure *cst, int pos, char *s);
+void TextInsertString(TextStructure *cst, int pos, char *s);
 void TextSetEditable(TextStructure *cst, int onoff);
 
 /* Button */

@@ -1142,7 +1142,7 @@ int TextGetLastPosition(TextStructure *cst)
     return XmTextGetLastPosition(cst->text);
 }
 
-void TextInsert(TextStructure *cst, int pos, char *s)
+void TextInsertString(TextStructure *cst, int pos, char *s)
 {
     XmTextInsert(cst->text, pos, s);
 }

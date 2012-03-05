@@ -4101,7 +4101,7 @@ int GetTextLastPosition(TextStructure *cst)
 char *Validator::text = 0;
 int Validator::pos = 0;
 
-void TextInsert(TextStructure *cst, int pos, char *s)
+void TextInsertString(TextStructure *cst, int pos, char *s)
 {
     if (QPlainTextEdit *plainText = qobject_cast<QPlainTextEdit *>(cst->text)) {
         QTextCursor textCursor = plainText->textCursor();

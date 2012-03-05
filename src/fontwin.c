@@ -167,7 +167,7 @@ static void insert_into_string(TextStructure *cstext, char *s)
     int pos;
     
     pos = TextGetCursorPos(cstext);
-    TextInsert(cstext, pos, s);
+    TextInsertString(cstext, pos, s);
 }
 
 static int EnterCB(TableEvent *event)
