@@ -79,6 +79,11 @@ void AddWidgetKeyPressCB2(Widget w, int modifiers, int key, Key_CBProc cbproc, v
 
 void AddWidgetButtonPressCB(Widget w, int button, Key_CBProc cbproc, void *anydata);
 
+typedef struct {
+    char **text;
+    int allow_change;
+} TextValidate_CD;
+
 typedef struct _Widget_CBData Widget_CBData;
 typedef void (*Widget_CBProc)(Widget_CBData *wcbdata);
 struct _Widget_CBData {
@@ -172,20 +177,12 @@ typedef struct {
     int locked;
 } TextStructure;
 
-char *TextGetString(TextStructure *cst);
-void TextSetString(TextStructure *cst, char *s);
 void TextInsertString(TextStructure *cst, int pos, char *s);
 int TextGetCursorPos(TextStructure *cst);
 void TextSetCursorPos(TextStructure *cst, int pos);
 int TextGetLastPosition(TextStructure *cst);
 void TextSetLength(TextStructure *cst, int len);
 void TextSetEditable(TextStructure *cst, int onoff);
-
-typedef int (*TextValidate_CBProc)(
-        char **text,
-        void *data
-);
-void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *anydata);
 
 /* Button */
 typedef void (*Button_CBProc)(

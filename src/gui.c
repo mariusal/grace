@@ -109,6 +109,19 @@ TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows)
     return retval;
 }
 
+char *TextGetString(TextStructure *cst)
+{
+    return TextEditGetString(cst->text);
+}
+
+void TextSetString(TextStructure *cst, char *s)
+{
+    cst->locked = TRUE;
+    TextEditSetString(cst->text, s);
+    TextSetCursorPos(cst, s ? strlen(s):0);
+    cst->locked = FALSE;
+}
+
 /*
  * xv_evalexpr - take a text field and pass it to the parser to evaluate
  */
@@ -168,6 +181,37 @@ void AddTextActivateCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     cbdata->cbproc = cbproc;
 
     AddWidgetCB(cst->text, "activate", text_int_cb_proc, cbdata);
+}
+
+typedef struct {
+    TextStructure *cst;
+    TextValidate_CBProc cbproc;
+    void *anydata;
+} TextValidate_CBData;
+
+static void text_int_validate_cb_proc(Widget_CBData *wcbdata)
+{
+    TextValidate_CBData *cbdata = (TextValidate_CBData *) wcbdata->anydata;
+    TextValidate_CD *cdata = (TextValidate_CD *) wcbdata->calldata;
+
+    if (cbdata->cst->locked) return;
+
+    if (!cbdata->cbproc(cdata->text, cbdata->anydata)) {
+        cdata->allow_change = FALSE;
+    }
+}
+
+void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *anydata)
+{
+    TextValidate_CBData *cbdata;
+
+    cbdata = (TextValidate_CBData *) xmalloc(sizeof(TextValidate_CBData));
+    cbdata->cst = cst;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+    cst->locked = FALSE;
+
+    AddWidgetCB(cst->text, "modifyVerify", text_int_validate_cb_proc, cbdata);
 }
 
 /* Button */

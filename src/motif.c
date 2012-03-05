@@ -362,11 +362,6 @@ static char *GetStringSimple(XmString xms)
     }
 }
 
-typedef struct {
-    char **text;
-    int allow_change;
-} TextValidate_CD;
-
 static void widgetCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget_CBData *cbdata = (Widget_CBData *) client_data;
@@ -1078,19 +1073,6 @@ void TextEditSetString(Widget w, char *s)
 }
 
 /* Text */
-char *TextGetString(TextStructure *cst)
-{
-    return TextEditGetString(cst->text);
-}
-
-void TextSetString(TextStructure *cst, char *s)
-{
-    cst->locked = TRUE;
-    TextEditSetString(cst->text, s);
-    TextSetCursorPos(cst, s ? strlen(s):0);
-    cst->locked = FALSE;
-}
-
 void TextInsertString(TextStructure *cst, int pos, char *s)
 {
     XmTextInsert(cst->text, pos, s);
@@ -1119,37 +1101,6 @@ void TextSetLength(TextStructure *cst, int len)
 void TextSetEditable(TextStructure *cst, int onoff)
 {
     XtVaSetValues(cst->text, XmNeditable, onoff? True:False, NULL);
-}
-
-typedef struct {
-    TextStructure *cst;
-    TextValidate_CBProc cbproc;
-    void *anydata;
-} TextValidate_CBData;
-
-static void text_int_validate_cb_proc(Widget_CBData *wcbdata)
-{
-    TextValidate_CBData *cbdata = (TextValidate_CBData *) wcbdata->anydata;
-    TextValidate_CD *cdata = (TextValidate_CD *) wcbdata->calldata;
-
-    if (cbdata->cst->locked) return;
-
-    if (!cbdata->cbproc(cdata->text, cbdata->anydata)) {
-        cdata->allow_change = FALSE;
-    }
-}
-
-void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *anydata)
-{
-    TextValidate_CBData *cbdata;
-
-    cbdata = (TextValidate_CBData *) xmalloc(sizeof(TextValidate_CBData));
-    cbdata->cst = cst;
-    cbdata->cbproc = cbproc;
-    cbdata->anydata = anydata;
-    cst->locked = FALSE;
-
-    AddWidgetCB(cst->text, "modifyVerify", text_int_validate_cb_proc, cbdata);
 }
 
 /* Button */

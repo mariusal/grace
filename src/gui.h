@@ -38,6 +38,8 @@ TextStructure *CreateText2(Widget parent, char *s, int len);
 TextStructure *CreateScrolledText(Widget parent, char *s, int nrows);
 TextStructure *CreateCSText(Widget parent, char *s);
 TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows);
+char *TextGetString(TextStructure *cst);
+void TextSetString(TextStructure *cst, char *s);
 int xv_evalexpr(TextStructure *cst, double *);
 int xv_evalexpri(TextStructure *cst, int *);
 
@@ -47,6 +49,12 @@ typedef void (*Text_CBProc)(
     void *               /* data the application registered */
 );
 void AddTextActivateCB(TextStructure *cst, Text_CBProc cbproc, void *data);
+
+typedef int (*TextValidate_CBProc)(
+        char **text,
+        void *data
+);
+void AddTextValidateCB(TextStructure *cst, TextValidate_CBProc cbproc, void *anydata);
 
 /* Button */
 void AddButtonCB(Widget w, Button_CBProc cbproc, void *data);
