@@ -145,9 +145,9 @@ void update_props_items(void)
             (double) get_max_path_limit(grace_get_canvas(gapp->grace)));
 	ToggleButtonSetState(safe_mode_item, gapp->rt->safe_mode);
 	iv = (int) rint(100*gapp->rt->scrollper);
-	SetScaleValue(scrollper_item, iv);
+	ScaleSetValue(scrollper_item, iv);
 	iv = (int) rint(100*gapp->rt->shexper);
-	SetScaleValue(shexper_item, iv);
+	ScaleSetValue(shexper_item, iv);
     }
 }
 

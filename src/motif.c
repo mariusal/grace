@@ -1198,7 +1198,7 @@ Widget CreateScale(Widget parent, char *s, int min, int max, int delta)
     return w;
 }
 
-void SetScaleValue(Widget w, int value)
+void ScaleSetValue(Widget w, int value)
 {
     XtVaSetValues(w, XmNvalue, value, NULL);
 }
