@@ -82,8 +82,8 @@ static int define_arrange_proc(void *data)
     int hpack, vpack, add, kill;
     double toff, loff, roff, boff, vgap, hgap;
 
-    nrows = (int) GetSpinChoice(ui->nrows);
-    ncols = (int) GetSpinChoice(ui->ncols);
+    nrows = (int) SpinChoiceGetValue(ui->nrows);
+    ncols = (int) SpinChoiceGetValue(ui->ncols);
     if (nrows < 1 || ncols < 1) {
 	errmsg("# of rows and columns must be > 0");
 	return RETURN_FAILURE;
@@ -97,13 +97,13 @@ static int define_arrange_proc(void *data)
     order = GetOptionChoice(ui->order);
     snake = ToggleButtonGetState(ui->snake);
     
-    toff = GetSpinChoice(ui->toff);
-    loff = GetSpinChoice(ui->loff);
-    roff = GetSpinChoice(ui->roff);
-    boff = GetSpinChoice(ui->boff);
+    toff = SpinChoiceGetValue(ui->toff);
+    loff = SpinChoiceGetValue(ui->loff);
+    roff = SpinChoiceGetValue(ui->roff);
+    boff = SpinChoiceGetValue(ui->boff);
 
-    hgap = GetSpinChoice(ui->hgap);
-    vgap = GetSpinChoice(ui->vgap);
+    hgap = SpinChoiceGetValue(ui->hgap);
+    vgap = SpinChoiceGetValue(ui->vgap);
     
     add  = ToggleButtonGetState(ui->add);
     kill = ToggleButtonGetState(ui->kill);
@@ -226,16 +226,16 @@ void create_arrange_frame(Widget but, void *data)
         
 	CreateAACDialog(ui->top, arrange_panel, define_arrange_proc, ui);
         
-        SetSpinChoice(ui->nrows, (double) 1);
-        SetSpinChoice(ui->ncols, (double) 1);
+        SpinChoiceSetValue(ui->nrows, (double) 1);
+        SpinChoiceSetValue(ui->ncols, (double) 1);
         
-        SetSpinChoice(ui->toff, GA_OFFSET_DEFAULT);
-        SetSpinChoice(ui->loff, GA_OFFSET_DEFAULT);
-        SetSpinChoice(ui->roff, GA_OFFSET_DEFAULT);
-        SetSpinChoice(ui->boff, GA_OFFSET_DEFAULT);
+        SpinChoiceSetValue(ui->toff, GA_OFFSET_DEFAULT);
+        SpinChoiceSetValue(ui->loff, GA_OFFSET_DEFAULT);
+        SpinChoiceSetValue(ui->roff, GA_OFFSET_DEFAULT);
+        SpinChoiceSetValue(ui->boff, GA_OFFSET_DEFAULT);
 
-        SetSpinChoice(ui->hgap, GA_GAP_DEFAULT);
-        SetSpinChoice(ui->vgap, GA_GAP_DEFAULT);
+        SpinChoiceSetValue(ui->hgap, GA_GAP_DEFAULT);
+        SpinChoiceSetValue(ui->vgap, GA_GAP_DEFAULT);
         
         ToggleButtonSetState(ui->add, TRUE);
     }

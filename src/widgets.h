@@ -225,8 +225,8 @@ typedef struct {
 } SpinStructure;
 SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
                         int type, double min, double max, double incr);
-double GetSpinChoice(SpinStructure *spinp);
-void SetSpinChoice(SpinStructure *spinp, double value);
+double SpinChoiceGetValue(SpinStructure *spinp);
+void SpinChoiceSetValue(SpinStructure *spinp, double value);
 
 typedef void (*Spin_CBProc)(
     SpinStructure *spinp,

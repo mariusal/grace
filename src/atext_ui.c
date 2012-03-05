@@ -159,27 +159,27 @@ void update_atext_ui(ATextUI *ui, Quark *q)
         sprintf(buf, format, at->ap.y);
         TextSetString(ui->y, buf);
         
-        SetSpinChoice(ui->offsetx, at->offset.x);
-        SetSpinChoice(ui->offsety, at->offset.y);
+        SpinChoiceSetValue(ui->offsetx, at->offset.x);
+        SpinChoiceSetValue(ui->offsety, at->offset.y);
 
         SetOptionChoice(ui->font,  at->text_props.font);
-        SetSpinChoice(ui->size,    at->text_props.charsize);
+        SpinChoiceSetValue(ui->size,    at->text_props.charsize);
         SetOptionChoice(ui->color, at->text_props.color);
         SetOptionChoice(ui->just,  at->text_props.just);
         SetAngleChoice(ui->angle,  (int) rint(at->text_props.angle));
 
         SetOptionChoice(ui->frame_decor, at->frame.decor);
-        SetSpinChoice(ui->frame_offset, at->frame.offset);
-        SetSpinChoice(ui->linew,   at->frame.line.width);
+        SpinChoiceSetValue(ui->frame_offset, at->frame.offset);
+        SpinChoiceSetValue(ui->linew,   at->frame.line.width);
         SetOptionChoice(ui->lines, at->frame.line.style);
         SetPenChoice(ui->linepen, &at->frame.line.pen);
         SetPenChoice(ui->fillpen, &at->frame.fillpen);
         
         ToggleButtonSetState(ui->arrow_flag, at->arrow_flag);
         SetOptionChoice(ui->a_type, at->arrow.type);
-        SetSpinChoice(ui->a_length, at->arrow.length);
-        SetSpinChoice(ui->a_dL_ff, at->arrow.dL_ff);
-        SetSpinChoice(ui->a_lL_ff, at->arrow.lL_ff);
+        SpinChoiceSetValue(ui->a_length, at->arrow.length);
+        SpinChoiceSetValue(ui->a_dL_ff, at->arrow.dL_ff);
+        SpinChoiceSetValue(ui->a_lL_ff, at->arrow.lL_ff);
     }
 }
 
@@ -201,17 +201,17 @@ int set_atext_data(ATextUI *ui, Quark *q, void *caller)
             xv_evalexpr(ui->y, &at->ap.y);
         }
         if (!caller || caller == ui->offsetx) {
-            at->offset.x = GetSpinChoice(ui->offsetx);
+            at->offset.x = SpinChoiceGetValue(ui->offsetx);
         }
         if (!caller || caller == ui->offsety) {
-            at->offset.y = GetSpinChoice(ui->offsety);
+            at->offset.y = SpinChoiceGetValue(ui->offsety);
         }
 
         if (!caller || caller == ui->font) {
             atext_set_font(q, GetOptionChoice(ui->font));
         }
         if (!caller || caller == ui->size) {
-            atext_set_char_size(q, GetSpinChoice(ui->size));
+            atext_set_char_size(q, SpinChoiceGetValue(ui->size));
         }
         if (!caller || caller == ui->color) {
             atext_set_color(q, GetOptionChoice(ui->color));
@@ -227,10 +227,10 @@ int set_atext_data(ATextUI *ui, Quark *q, void *caller)
             at->frame.decor = GetOptionChoice(ui->frame_decor);
         }
         if (!caller || caller == ui->frame_offset) {
-            at->frame.offset = GetSpinChoice(ui->frame_offset);
+            at->frame.offset = SpinChoiceGetValue(ui->frame_offset);
         }
         if (!caller || caller == ui->linew) {
-            at->frame.line.width = GetSpinChoice(ui->linew);
+            at->frame.line.width = SpinChoiceGetValue(ui->linew);
         }
         if (!caller || caller == ui->lines) {
             at->frame.line.style = GetOptionChoice(ui->lines);
@@ -249,13 +249,13 @@ int set_atext_data(ATextUI *ui, Quark *q, void *caller)
             at->arrow.type   = GetOptionChoice(ui->a_type);
         }
         if (!caller || caller == ui->a_length) {
-            at->arrow.length = GetSpinChoice(ui->a_length);
+            at->arrow.length = SpinChoiceGetValue(ui->a_length);
         }
         if (!caller || caller == ui->a_dL_ff) {
-            at->arrow.dL_ff  = GetSpinChoice(ui->a_dL_ff);
+            at->arrow.dL_ff  = SpinChoiceGetValue(ui->a_dL_ff);
         }
         if (!caller || caller == ui->a_lL_ff) {
-            at->arrow.lL_ff  = GetSpinChoice(ui->a_lL_ff);
+            at->arrow.lL_ff  = SpinChoiceGetValue(ui->a_lL_ff);
         }
         
         quark_dirtystate_set(q, TRUE);

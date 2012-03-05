@@ -261,7 +261,7 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         double factor;
         int format;
 
-        SetSpinChoice(ui->prec, project_get_prec(q));
+        SpinChoiceSetValue(ui->prec, project_get_prec(q));
         TextSetString(ui->description, project_get_description(q));
 
         switch (GetOptionChoice(ui->page_size_unit)) {
@@ -310,8 +310,8 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         SetOptionChoice(ui->bg_color, pr->bgcolor);
         ToggleButtonSetState(ui->bg_fill, pr->bgfill);
 
-        SetSpinChoice(ui->fsize_scale, pr->fscale);
-        SetSpinChoice(ui->lwidth_scale, pr->lscale);
+        SpinChoiceSetValue(ui->fsize_scale, pr->fscale);
+        SpinChoiceSetValue(ui->lwidth_scale, pr->lscale);
 
         jdate_to_datetime(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
         sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
@@ -334,7 +334,7 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
         double jul;
     
         if (!caller || caller == ui->prec) {
-            project_set_prec(q, GetSpinChoice(ui->prec));
+            project_set_prec(q, SpinChoiceGetValue(ui->prec));
         }
         if (!caller || caller == ui->description) {
             char *s = TextGetString(ui->description);
@@ -415,10 +415,10 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
         }
 
         if (!caller || caller == ui->fsize_scale) {
-            pr->fscale = GetSpinChoice(ui->fsize_scale);
+            pr->fscale = SpinChoiceGetValue(ui->fsize_scale);
         }
         if (!caller || caller == ui->lwidth_scale) {
-            pr->lscale = GetSpinChoice(ui->lwidth_scale);
+            pr->lscale = SpinChoiceGetValue(ui->lwidth_scale);
         }
 
         if (!caller || caller == ui->refdate) {

@@ -302,7 +302,7 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
         }
         TextSetString(ui->tmajor, buf);
  
-        SetSpinChoice(ui->nminor, t->nminor);
+        SpinChoiceSetValue(ui->nminor, t->nminor);
 
         SetOptionChoice(ui->tlfont, t->tl_tprops.font);
         SetOptionChoice(ui->tlcolor, t->tl_tprops.color);
@@ -330,7 +330,7 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
         sprintf(buf, "%.2f", t->tl_gap.y);
         TextSetString(ui->tlgap_perp, buf);
 
-        SetSpinChoice(ui->tlcharsize, t->tl_tprops.charsize);
+        SpinChoiceSetValue(ui->tlcharsize, t->tl_tprops.charsize);
         SetAngleChoice(ui->tlangle, t->tl_tprops.angle);
 
         
@@ -340,32 +340,32 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
 
         ToggleButtonSetState(ui->tgrid, t->gprops.onoff);
         SetPenChoice(ui->tgridpen, &t->gprops.line.pen);
-        SetSpinChoice(ui->tgridlinew, t->gprops.line.width);
+        SpinChoiceSetValue(ui->tgridlinew, t->gprops.line.width);
         SetOptionChoice(ui->tgridlines, t->gprops.line.style);
 
         ToggleButtonSetState(ui->tmgrid, t->mgprops.onoff);
         SetPenChoice(ui->tmgridpen, &t->mgprops.line.pen);
-        SetSpinChoice(ui->tmgridlinew, t->mgprops.line.width);
+        SpinChoiceSetValue(ui->tmgridlinew, t->mgprops.line.width);
         SetOptionChoice(ui->tmgridlines, t->mgprops.line.style);
 
         SetPenChoice(ui->barpen, &t->bar.pen);
-        SetSpinChoice(ui->barlinew, t->bar.width);
+        SpinChoiceSetValue(ui->barlinew, t->bar.width);
         SetOptionChoice(ui->barlines, t->bar.style);
 
         SetOptionChoice(ui->tinout, t->props.inout);
-        SetSpinChoice(ui->tlen, t->props.size);
+        SpinChoiceSetValue(ui->tlen, t->props.size);
         SetPenChoice(ui->tpen, &t->props.line.pen);
-        SetSpinChoice(ui->tlinew, t->props.line.width);
+        SpinChoiceSetValue(ui->tlinew, t->props.line.width);
         SetOptionChoice(ui->tlines, t->props.line.style);
         
         SetOptionChoice(ui->tminout, t->mprops.inout);
-        SetSpinChoice(ui->tmlen, t->mprops.size);
+        SpinChoiceSetValue(ui->tmlen, t->mprops.size);
         SetPenChoice(ui->tmpen, &t->mprops.line.pen);
-        SetSpinChoice(ui->tmlinew, t->mprops.line.width);
+        SpinChoiceSetValue(ui->tmlinew, t->mprops.line.width);
         SetOptionChoice(ui->tmlines, t->mprops.line.style);
 
         SetOptionChoice(ui->specticks, t->t_spec);
-        SetSpinChoice(ui->nspec, t->nticks);
+        SpinChoiceSetValue(ui->nspec, t->nticks);
         for (i = 0; i < t->nticks; i++) {
             sprintf(buf, "%.9g", t->tloc[i].wtpos);
             TextSetString(ui->specloc[i], buf);
@@ -406,7 +406,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             }
         }
         if (!caller || caller == ui->nminor) {
-            t->nminor = (int) GetSpinChoice(ui->nminor);
+            t->nminor = (int) SpinChoiceGetValue(ui->nminor);
         }
         if (!caller || caller == ui->tlform) {
             Format *format = GetFormatChoice(ui->tlform);
@@ -426,13 +426,13 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->barpen, &t->bar.pen);
         }
         if (!caller || caller == ui->barlinew) {
-            t->bar.width = GetSpinChoice(ui->barlinew);
+            t->bar.width = SpinChoiceGetValue(ui->barlinew);
         }
         if (!caller || caller == ui->barlines) {
             t->bar.style = GetOptionChoice(ui->barlines);
         }
         if (!caller || caller == ui->tlcharsize) {
-            t->tl_tprops.charsize = GetSpinChoice(ui->tlcharsize);
+            t->tl_tprops.charsize = SpinChoiceGetValue(ui->tlcharsize);
         }
         if (!caller || caller == ui->tlangle) {
             t->tl_tprops.angle = GetAngleChoice(ui->tlangle);
@@ -503,7 +503,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->tgridpen, &t->gprops.line.pen);
         }
         if (!caller || caller == ui->tgridlinew) {
-            t->gprops.line.width = GetSpinChoice(ui->tgridlinew);
+            t->gprops.line.width = SpinChoiceGetValue(ui->tgridlinew);
         }
         if (!caller || caller == ui->tgridlines) {
             t->gprops.line.style = GetOptionChoice(ui->tgridlines);
@@ -516,7 +516,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->tmgridpen, &t->mgprops.line.pen);
         }
         if (!caller || caller == ui->tmgridlinew) {
-            t->mgprops.line.width = GetSpinChoice(ui->tmgridlinew);
+            t->mgprops.line.width = SpinChoiceGetValue(ui->tmgridlinew);
         }
         if (!caller || caller == ui->tmgridlines) {
             t->mgprops.line.style = GetOptionChoice(ui->tmgridlines);
@@ -527,13 +527,13 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->props.inout = GetOptionChoice(ui->tinout);
         }
         if (!caller || caller == ui->tlen) {
-            t->props.size = GetSpinChoice(ui->tlen);
+            t->props.size = SpinChoiceGetValue(ui->tlen);
         }
         if (!caller || caller == ui->tpen) {
             GetPenChoice(ui->tpen, &t->props.line.pen);
         }
         if (!caller || caller == ui->tgridlinew) {
-            t->props.line.width = GetSpinChoice(ui->tlinew);
+            t->props.line.width = SpinChoiceGetValue(ui->tlinew);
         }
         if (!caller || caller == ui->tgridlines) {
             t->props.line.style = GetOptionChoice(ui->tlines);
@@ -542,13 +542,13 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->mprops.inout = GetOptionChoice(ui->tminout);
         }
         if (!caller || caller == ui->tmlen) {
-            t->mprops.size = GetSpinChoice(ui->tmlen);
+            t->mprops.size = SpinChoiceGetValue(ui->tmlen);
         }
         if (!caller || caller == ui->tmpen) {
             GetPenChoice(ui->tmpen, &t->mprops.line.pen);
         }
         if (!caller || caller == ui->tmgridlinew) {
-            t->mprops.line.width = GetSpinChoice(ui->tmlinew);
+            t->mprops.line.width = SpinChoiceGetValue(ui->tmlinew);
         }
         if (!caller || caller == ui->tmgridlines) {
             t->mprops.line.style = GetOptionChoice(ui->tmlines);
@@ -558,7 +558,7 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->t_spec = GetOptionChoice(ui->specticks);
             /* only read special info if special ticks used */
             if (t->t_spec != TICKS_SPEC_NONE) {
-                t->nticks = (int) GetSpinChoice(ui->nspec);
+                t->nticks = (int) SpinChoiceGetValue(ui->nspec);
                 /* ensure that enough tick positions have been specified */
                 for (i = 0; i < t->nticks; i++) {
                     if (xv_evalexpr(ui->specloc[i], &t->tloc[i].wtpos) ==
@@ -630,7 +630,7 @@ void update_axis_ui(AxisUI *ui, Quark *q)
 {
     if (ui && q && quark_fid_get(q) == QFlavorAxis) {
         SetOptionChoice(ui->position, axis_get_position(q));
-        SetSpinChoice(ui->offset, axis_get_offset(q));
+        SpinChoiceSetValue(ui->offset, axis_get_offset(q));
         
         ToggleButtonSetState(ui->draw_bar,    axis_bar_enabled(q));
         ToggleButtonSetState(ui->draw_ticks,  axis_ticks_enabled(q));
@@ -645,7 +645,7 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             axis_set_position(q, GetOptionChoice(ui->position));
         }
         if (!caller || caller == ui->offset) {
-            axis_set_offset(q, GetSpinChoice(ui->offset));
+            axis_set_offset(q, SpinChoiceGetValue(ui->offset));
         }
 
         if (!caller || caller == ui->draw_bar) {

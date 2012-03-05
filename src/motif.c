@@ -1222,14 +1222,14 @@ static void sp_double_cb_proc(Widget_CBData *wcbdata)
 {
     Spin_CBdata *cbdata = (Spin_CBdata *) wcbdata->anydata;
 
-    cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
+    cbdata->cbproc(cbdata->spin, SpinChoiceGetValue(cbdata->spin), cbdata->anydata);
 }
 
 static void sp_timer_proc(void *anydata)
 {
     Spin_CBdata *cbdata = (Spin_CBdata *) anydata;
 
-    cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
+    cbdata->cbproc(cbdata->spin, SpinChoiceGetValue(cbdata->spin), cbdata->anydata);
 }
 
 static void sp_ev_proc(void *anydata)
@@ -1264,7 +1264,7 @@ static void spin_arrow_cb(Widget_CBData *wcbdata)
     double value, incr;
 
     spinp = (SpinStructure *) wcbdata->anydata;
-    value = GetSpinChoice(spinp);
+    value = SpinChoiceGetValue(spinp);
     incr = spinp->incr;
 
     if (wcbdata->w == spinp->arrow_up) {
@@ -1276,7 +1276,7 @@ static void spin_arrow_cb(Widget_CBData *wcbdata)
         return;
     }
     value += incr;
-    SetSpinChoice(spinp, value);
+    SpinChoiceSetValue(spinp, value);
     WidgetSetFocus(spinp->text);
 }
 
@@ -1285,8 +1285,8 @@ static void spin_up(void *anydata)
     SpinStructure *spinp = (SpinStructure *) anydata;
     double value;
 
-    value = GetSpinChoice(spinp) + spinp->incr;
-    SetSpinChoice(spinp, value);
+    value = SpinChoiceGetValue(spinp) + spinp->incr;
+    SpinChoiceSetValue(spinp, value);
 }
 
 static void spin_down(void *anydata)
@@ -1294,8 +1294,8 @@ static void spin_down(void *anydata)
     SpinStructure *spinp = (SpinStructure *) anydata;
     double value;
 
-    value = GetSpinChoice(spinp) - spinp->incr;
-    SetSpinChoice(spinp, value);
+    value = SpinChoiceGetValue(spinp) - spinp->incr;
+    SpinChoiceSetValue(spinp, value);
 }
 
 SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
@@ -1342,7 +1342,7 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
     return retval;
 }
 
-void SetSpinChoice(SpinStructure *spinp, double value)
+void SpinChoiceSetValue(SpinStructure *spinp, double value)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
     char buf[64];
@@ -1363,7 +1363,7 @@ void SetSpinChoice(SpinStructure *spinp, double value)
     TextEditSetString(spinp->text, buf);
 }
 
-double GetSpinChoice(SpinStructure *spinp)
+double SpinChoiceGetValue(SpinStructure *spinp)
 {
     double retval;
     char *s;
@@ -1379,11 +1379,11 @@ double GetSpinChoice(SpinStructure *spinp)
     if (retval < spinp->min) {
         errmsg("Input value below min limit in GetSpinChoice()");
         retval = spinp->min;
-        SetSpinChoice(spinp, retval);
+        SpinChoiceSetValue(spinp, retval);
     } else if (retval > spinp->max) {
         errmsg("Input value above max limit in GetSpinChoice()");
         retval = spinp->max;
-        SetSpinChoice(spinp, retval);
+        SpinChoiceSetValue(spinp, retval);
     }
 
     if (spinp->type == SPIN_TYPE_INT) {

@@ -216,7 +216,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         
 	ui->nsteps_item = CreateSpinChoice(rc1, "Iterations:", 3,
             SPIN_TYPE_INT, 0.0, 500.0, 5.0);
-	SetSpinChoice(ui->nsteps_item, 5.0);
+	SpinChoiceSetValue(ui->nsteps_item, 5.0);
         
 	sw = XtVaCreateManagedWidget("sw",
 				     xmScrolledWindowWidgetClass, nonl_main,
@@ -323,7 +323,7 @@ static void *nonl_get_cb(void *gui)
         xfree(s);
         nlfit->parnum = GetOptionChoice(ui->nparm_item);
         
-        pars->nsteps = (int) GetSpinChoice(ui->nsteps_item);
+        pars->nsteps = (int) SpinChoiceGetValue(ui->nsteps_item);
 
         for (i = 0; i < nlfit->parnum; i++) {
             char buf[256];

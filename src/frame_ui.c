@@ -191,29 +191,29 @@ void update_frame_ui(FrameUI *ui, Quark *q)
 
         SetOptionChoice(ui->frame_framestyle_choice, f->type);
         SetPenChoice(ui->frame_pen, &f->outline.pen);
-        SetSpinChoice(ui->frame_linew_choice, f->outline.width);
+        SpinChoiceSetValue(ui->frame_linew_choice, f->outline.width);
         SetOptionChoice(ui->frame_lines_choice, f->outline.style);
         SetPenChoice(ui->frame_fillpen, &f->fillpen);
 
-        SetSpinChoice(ui->legend_charsize, l->charsize);
+        SpinChoiceSetValue(ui->legend_charsize, l->charsize);
 
         ToggleButtonSetState(ui->toggle_legends, l->active == TRUE);
 
-        SetSpinChoice(ui->legend_anchor_x, l->anchor.x);
-        SetSpinChoice(ui->legend_anchor_y, l->anchor.y);
+        SpinChoiceSetValue(ui->legend_anchor_x, l->anchor.x);
+        SpinChoiceSetValue(ui->legend_anchor_y, l->anchor.y);
         SetOptionChoice(ui->legend_just, l->just);
-        SetSpinChoice(ui->legend_dx, l->offset.x);
-        SetSpinChoice(ui->legend_dy, l->offset.y);
+        SpinChoiceSetValue(ui->legend_dx, l->offset.x);
+        SpinChoiceSetValue(ui->legend_dy, l->offset.y);
 
-        SetSpinChoice(ui->legends_vgap, l->vgap);
-        SetSpinChoice(ui->legends_hgap, l->hgap);
-        SetSpinChoice(ui->legends_len, l->len);
+        SpinChoiceSetValue(ui->legends_vgap, l->vgap);
+        SpinChoiceSetValue(ui->legends_hgap, l->hgap);
+        SpinChoiceSetValue(ui->legends_len, l->len);
         ToggleButtonSetState(ui->legends_invert, l->invert);
         ToggleButtonSetState(ui->legends_singlesym, l->singlesym);
 
         SetOptionChoice(ui->legend_font, l->font);
         SetOptionChoice(ui->legend_color, l->color);
-        SetSpinChoice(ui->legend_boxlinew, l->boxline.width);
+        SpinChoiceSetValue(ui->legend_boxlinew, l->boxline.width);
         SetOptionChoice(ui->legend_boxlines, l->boxline.style);
         SetPenChoice(ui->legend_boxpen, &l->boxline.pen);
         SetPenChoice(ui->legend_boxfillpen, &l->boxfillpen);
@@ -256,7 +256,7 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->frame_pen, &f->outline.pen);
         }
         if (!caller || caller == ui->frame_linew_choice) {
-            f->outline.width = GetSpinChoice(ui->frame_linew_choice);
+            f->outline.width = SpinChoiceGetValue(ui->frame_linew_choice);
         }
         if (!caller || caller == ui->frame_lines_choice) {
             f->outline.style = GetOptionChoice(ui->frame_lines_choice);
@@ -265,19 +265,19 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->frame_fillpen, &f->fillpen);
         }
         if (!caller || caller == ui->legend_charsize) {
-            l->charsize = GetSpinChoice(ui->legend_charsize);
+            l->charsize = SpinChoiceGetValue(ui->legend_charsize);
         }
         if (!caller || caller == ui->toggle_legends) {
             l->active = ToggleButtonGetState(ui->toggle_legends);
         }
         if (!caller || caller == ui->legends_vgap) {
-            l->vgap = GetSpinChoice(ui->legends_vgap);
+            l->vgap = SpinChoiceGetValue(ui->legends_vgap);
         }
         if (!caller || caller == ui->legends_hgap) {
-            l->hgap = GetSpinChoice(ui->legends_hgap);
+            l->hgap = SpinChoiceGetValue(ui->legends_hgap);
         } 
         if (!caller || caller == ui->legends_len) {
-            l->len = GetSpinChoice(ui->legends_len);
+            l->len = SpinChoiceGetValue(ui->legends_len);
         }
         if (!caller || caller == ui->legends_invert) {
             l->invert = ToggleButtonGetState(ui->legends_invert);
@@ -286,19 +286,19 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
             l->singlesym = ToggleButtonGetState(ui->legends_singlesym);
         }
         if (!caller || caller == ui->legend_anchor_x) {
-            l->anchor.x = GetSpinChoice(ui->legend_anchor_x);
+            l->anchor.x = SpinChoiceGetValue(ui->legend_anchor_x);
         }
         if (!caller || caller == ui->legend_anchor_y) {
-            l->anchor.y = GetSpinChoice(ui->legend_anchor_y);
+            l->anchor.y = SpinChoiceGetValue(ui->legend_anchor_y);
         }
         if (!caller || caller == ui->legend_just) {
             l->just = GetOptionChoice(ui->legend_just);
         }
         if (!caller || caller == ui->legend_dx) {
-            l->offset.x = GetSpinChoice(ui->legend_dx);
+            l->offset.x = SpinChoiceGetValue(ui->legend_dx);
         }
         if (!caller || caller == ui->legend_dy) {
-            l->offset.y = GetSpinChoice(ui->legend_dy);
+            l->offset.y = SpinChoiceGetValue(ui->legend_dy);
         }
         if (!caller || caller == ui->legend_font) {
             l->font = GetOptionChoice(ui->legend_font);
@@ -310,7 +310,7 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->legend_boxpen, &l->boxline.pen);
         }
         if (!caller || caller == ui->legend_boxlinew) {
-            l->boxline.width = GetSpinChoice(ui->legend_boxlinew);
+            l->boxline.width = SpinChoiceGetValue(ui->legend_boxlinew);
         }
         if (!caller || caller == ui->legend_boxlines) {
             l->boxline.style = GetOptionChoice(ui->legend_boxlines);

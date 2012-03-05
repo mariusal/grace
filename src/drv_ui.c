@@ -164,8 +164,8 @@ static void update_ps_setup_frame(PS_UI_data *ui)
             ToggleButtonSetState(ui->printable, ps->printable);
         }
         if (ps->format == PS_FORMAT) {
-            SetSpinChoice(ui->offset_x, (double) ps->offset_x);
-            SetSpinChoice(ui->offset_y, (double) ps->offset_y);
+            SpinChoiceSetValue(ui->offset_x, (double) ps->offset_x);
+            SpinChoiceSetValue(ui->offset_y, (double) ps->offset_y);
             SetOptionChoice(ui->feed, ps->feed);
             ToggleButtonSetState(ui->hwres, ps->hwres);
         }
@@ -185,8 +185,8 @@ static int set_ps_setup_proc(void *data)
         ps->printable  = ToggleButtonGetState(ui->printable);
     }
     if (ps->format == PS_FORMAT) {
-        ps->offset_x   = (int) GetSpinChoice(ui->offset_x);
-        ps->offset_y   = (int) GetSpinChoice(ui->offset_y);
+        ps->offset_x   = (int) SpinChoiceGetValue(ui->offset_x);
+        ps->offset_y   = (int) SpinChoiceGetValue(ui->offset_y);
         ps->feed       = GetOptionChoice(ui->feed);
         ps->hwres      = ToggleButtonGetState(ui->hwres);
     }
@@ -249,8 +249,8 @@ static void update_pdf_setup_frame(PDF_UI_data *ui)
         
         SetOptionChoice(ui->compat,     pdf->compat);
         SetOptionChoice(ui->colorspace, pdf->colorspace);
-        SetSpinChoice(ui->compression, (double) pdf->compression);
-        SetSpinChoice(ui->fpprec,      (double) pdf->fpprec);
+        SpinChoiceSetValue(ui->compression, (double) pdf->compression);
+        SpinChoiceSetValue(ui->fpprec,      (double) pdf->fpprec);
     }
 }
 
@@ -261,8 +261,8 @@ static int set_pdf_setup_proc(void *data)
 
     pdf->compat      = GetOptionChoice(ui->compat);
     pdf->colorspace  = GetOptionChoice(ui->colorspace);
-    pdf->compression = (int) GetSpinChoice(ui->compression);
-    pdf->fpprec      = (int) GetSpinChoice(ui->fpprec);
+    pdf->compression = (int) SpinChoiceGetValue(ui->compression);
+    pdf->fpprec      = (int) SpinChoiceGetValue(ui->fpprec);
     
     return RETURN_SUCCESS;
 }
@@ -503,7 +503,7 @@ static void update_png_setup_frame(PNG_UI_data *ui)
         
         ToggleButtonSetState(ui->interlaced,  png->interlaced);
         ToggleButtonSetState(ui->transparent, png->transparent);
-        SetSpinChoice(ui->compression,        png->compression);
+        SpinChoiceSetValue(ui->compression,        png->compression);
     }
 }
 
@@ -514,7 +514,7 @@ static int set_png_setup_proc(void *data)
     
     png->interlaced  = ToggleButtonGetState(ui->interlaced);
     png->transparent = ToggleButtonGetState(ui->transparent);
-    png->compression = GetSpinChoice(ui->compression);
+    png->compression = SpinChoiceGetValue(ui->compression);
     
     return RETURN_SUCCESS;
 }
@@ -591,8 +591,8 @@ static void update_jpg_setup_frame(JPG_UI_data *ui)
         ToggleButtonSetState(ui->baseline,    jpg->baseline);
         ToggleButtonSetState(ui->optimize,    jpg->optimize);
         ToggleButtonSetState(ui->progressive, jpg->progressive);
-        SetSpinChoice       (ui->quality,     jpg->quality);
-        SetSpinChoice       (ui->smoothing,   jpg->smoothing);
+        SpinChoiceSetValue       (ui->quality,     jpg->quality);
+        SpinChoiceSetValue       (ui->smoothing,   jpg->smoothing);
         SetOptionChoice     (ui->dct,         jpg->dct);
     }
 }
@@ -606,8 +606,8 @@ static int set_jpg_setup_proc(void *data)
     jpg->baseline    = ToggleButtonGetState(ui->baseline);
     jpg->optimize    = ToggleButtonGetState(ui->optimize);
     jpg->progressive = ToggleButtonGetState(ui->progressive);
-    jpg->quality     = (int) GetSpinChoice (ui->quality);
-    jpg->smoothing   = (int) GetSpinChoice (ui->smoothing);
+    jpg->quality     = (int) SpinChoiceGetValue (ui->quality);
+    jpg->smoothing   = (int) SpinChoiceGetValue (ui->smoothing);
     jpg->dct         = GetOptionChoice     (ui->dct);
     
     return RETURN_SUCCESS;

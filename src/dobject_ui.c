@@ -108,24 +108,24 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
 
 static void update_line_ui(LineUI *ui, DOLineData *odata)
 {
-    SetSpinChoice(ui->v_x, odata->vector.x);
-    SetSpinChoice(ui->v_y, odata->vector.y);
+    SpinChoiceSetValue(ui->v_x, odata->vector.x);
+    SpinChoiceSetValue(ui->v_y, odata->vector.y);
     SetOptionChoice(ui->arrow_end, odata->arrow_end);
 
     SetOptionChoice(ui->a_type, odata->arrow.type);
-    SetSpinChoice(ui->a_length, odata->arrow.length);
-    SetSpinChoice(ui->a_dL_ff, odata->arrow.dL_ff);
-    SetSpinChoice(ui->a_lL_ff, odata->arrow.lL_ff);
+    SpinChoiceSetValue(ui->a_length, odata->arrow.length);
+    SpinChoiceSetValue(ui->a_dL_ff, odata->arrow.dL_ff);
+    SpinChoiceSetValue(ui->a_lL_ff, odata->arrow.lL_ff);
 }
 
 static void set_line_odata(LineUI *ui, DOLineData *odata, void *caller)
 {
     if (ui && odata && WidgetIsManaged(ui->top)) {
         if (!caller || caller == ui->v_x) {
-            odata->vector.x = GetSpinChoice(ui->v_x);
+            odata->vector.x = SpinChoiceGetValue(ui->v_x);
         }
         if (!caller || caller == ui->v_y) {
-            odata->vector.y  = GetSpinChoice(ui->v_y);
+            odata->vector.y  = SpinChoiceGetValue(ui->v_y);
         }
         if (!caller || caller == ui->arrow_end) {
             odata->arrow_end = GetOptionChoice(ui->arrow_end);
@@ -134,13 +134,13 @@ static void set_line_odata(LineUI *ui, DOLineData *odata, void *caller)
             odata->arrow.type   = GetOptionChoice(ui->a_type);
         }
         if (!caller || caller == ui->a_length) {
-            odata->arrow.length = GetSpinChoice(ui->a_length);
+            odata->arrow.length = SpinChoiceGetValue(ui->a_length);
         }
         if (!caller || caller == ui->a_dL_ff) {
-            odata->arrow.dL_ff  = GetSpinChoice(ui->a_dL_ff);
+            odata->arrow.dL_ff  = SpinChoiceGetValue(ui->a_dL_ff);
         }
         if (!caller || caller == ui->a_lL_ff) {
-            odata->arrow.lL_ff  = GetSpinChoice(ui->a_lL_ff);
+            odata->arrow.lL_ff  = SpinChoiceGetValue(ui->a_lL_ff);
         }
     }
 }
@@ -195,18 +195,18 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
 
 static void update_box_ui(BoxUI *ui, DOBoxData *odata)
 {
-    SetSpinChoice(ui->width,  odata->width);
-    SetSpinChoice(ui->height, odata->height);
+    SpinChoiceSetValue(ui->width,  odata->width);
+    SpinChoiceSetValue(ui->height, odata->height);
 }
 
 static void set_box_odata(BoxUI *ui, DOBoxData *odata, void *caller)
 {
     if (ui && odata && WidgetIsManaged(ui->top)) {
         if (!caller || caller == ui->width) {
-            odata->width  = GetSpinChoice(ui->width);
+            odata->width  = SpinChoiceGetValue(ui->width);
         }
         if (!caller || caller == ui->height) {
-            odata->height = GetSpinChoice(ui->height);
+            odata->height = SpinChoiceGetValue(ui->height);
         }
     }
 }
@@ -232,8 +232,8 @@ static BoxUI *create_box_ui(Widget parent, ExplorerUI *eui)
 
 static void update_arc_ui(ArcUI *ui, DOArcData *odata)
 {
-    SetSpinChoice(ui->width,  odata->width);
-    SetSpinChoice(ui->height, odata->height);
+    SpinChoiceSetValue(ui->width,  odata->width);
+    SpinChoiceSetValue(ui->height, odata->height);
     
     SetAngleChoice(ui->angle1, (int) rint(odata->angle1));
     SetAngleChoice(ui->angle2, (int) rint(odata->angle2));
@@ -246,10 +246,10 @@ static void set_arc_odata(ArcUI *ui, DOArcData *odata, void *caller)
 {
     if (ui && odata && WidgetIsManaged(ui->top)) {
         if (!caller || caller == ui->width) {
-            odata->width  = GetSpinChoice(ui->width);
+            odata->width  = SpinChoiceGetValue(ui->width);
         }
         if (!caller || caller == ui->height) {
-            odata->height = GetSpinChoice(ui->height);
+            odata->height = SpinChoiceGetValue(ui->height);
         }
         if (!caller || caller == ui->angle1) {
             odata->angle1 = GetAngleChoice(ui->angle1);
@@ -317,11 +317,11 @@ void update_object_ui(ObjectUI *ui, Quark *q)
         sprintf(buf, format, o->ap.y);
         TextSetString(ui->y, buf);
         
-        SetSpinChoice(ui->offsetx, o->offset.x);
-        SetSpinChoice(ui->offsety, o->offset.y);
+        SpinChoiceSetValue(ui->offsetx, o->offset.x);
+        SpinChoiceSetValue(ui->offsety, o->offset.y);
         SetAngleChoice(ui->angle, (int) rint(o->angle));
         
-        SetSpinChoice(ui->linew, o->line.width);
+        SpinChoiceSetValue(ui->linew, o->line.width);
         SetOptionChoice(ui->lines, o->line.style);
         SetPenChoice(ui->linepen, &o->line.pen);
         SetPenChoice(ui->fillpen, &o->fillpen);
@@ -369,16 +369,16 @@ int set_object_data(ObjectUI *ui, Quark *q, void *caller)
             xv_evalexpr(ui->y, &o->ap.y);
         }
         if (!caller || caller == ui->offsetx) {
-            o->offset.x = GetSpinChoice(ui->offsetx);
+            o->offset.x = SpinChoiceGetValue(ui->offsetx);
         }
         if (!caller || caller == ui->offsety) {
-            o->offset.y = GetSpinChoice(ui->offsety);
+            o->offset.y = SpinChoiceGetValue(ui->offsety);
         }
         if (!caller || caller == ui->angle) {
             o->angle = GetAngleChoice(ui->angle);
         }
         if (!caller || caller == ui->linew) {
-            o->line.width = GetSpinChoice(ui->linew);
+            o->line.width = SpinChoiceGetValue(ui->linew);
         }
         if (!caller || caller == ui->lines) {
             o->line.style = GetOptionChoice(ui->lines);

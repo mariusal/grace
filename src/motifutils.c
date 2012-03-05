@@ -2552,7 +2552,7 @@ SpinStructure *CreateAngleChoice(Widget parent, char *s)
 
 double GetAngleChoice(SpinStructure *sp)
 {
-    return GetSpinChoice(sp);
+    return SpinChoiceGetValue(sp);
 }
 
 void SetAngleChoice(SpinStructure *sp, double angle)
@@ -2560,7 +2560,7 @@ void SetAngleChoice(SpinStructure *sp, double angle)
     if (angle < -360.0 || angle > 360.0) {
         angle = fmod(angle, 360.0);
     }
-    SetSpinChoice(sp, angle);
+    SpinChoiceSetValue(sp, angle);
 }
 
 SpinStructure *CreateCharSizeChoice(Widget parent, char *s)

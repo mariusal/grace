@@ -189,7 +189,7 @@ void update_graph_ui(GraphUI *ui, Quark *q)
         sprintf(buf, "%g", graph_get_znorm(q));
         TextSetString(ui->znorm, buf);
 
-        SetSpinChoice(ui->bargap, graph_get_bargap(q));
+        SpinChoiceSetValue(ui->bargap, graph_get_bargap(q));
 
 
         ToggleButtonSetState(ui->fixedp, locator->pointset);
@@ -274,7 +274,7 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
         }
 
         if (!caller || caller == ui->bargap) {
-            graph_set_bargap(q, GetSpinChoice(ui->bargap));
+            graph_set_bargap(q, SpinChoiceGetValue(ui->bargap));
         }
         if (!caller || caller == ui->znorm) {
             xv_evalexpr(ui->znorm, &znorm);

@@ -631,10 +631,10 @@ static void *fourier_build_cb(TransformStructure *tdialog)
         /* Default values */
         SetOptionChoice(ui->xscale, FFT_XSCALE_NU);
         SetOptionChoice(ui->norm, FFT_NORM_FORWARD);
-        SetSpinChoice(ui->winpar, 1.0);
+        SpinChoiceSetValue(ui->winpar, 1.0);
         WidgetSetSensitive(ui->winpar->rc, FALSE);
         ToggleButtonSetState(ui->halflen, TRUE);
-        SetSpinChoice(ui->oversampling, 1.0);
+        SpinChoiceSetValue(ui->oversampling, 1.0);
 #ifndef HAVE_FFTW
         ToggleButtonSetState(ui->round2n, TRUE);
 #endif
@@ -656,10 +656,10 @@ static void *fourier_get_cb(void *gui)
 
         pars->complexin    = ToggleButtonGetState(ui->complexin);
         pars->dcdump       = ToggleButtonGetState(ui->dcdump);
-        pars->oversampling = GetSpinChoice(ui->oversampling);
+        pars->oversampling = SpinChoiceGetValue(ui->oversampling);
         pars->round2n      = ToggleButtonGetState(ui->round2n);
         pars->window       = GetOptionChoice(ui->window);
-        pars->beta         = GetSpinChoice(ui->winpar);
+        pars->beta         = SpinChoiceGetValue(ui->winpar);
 
         pars->halflen      = ToggleButtonGetState(ui->halflen);
         pars->output       = GetOptionChoice(ui->output);
@@ -740,7 +740,7 @@ static void *diff_build_cb(TransformStructure *tdialog)
             (double) 1, (double) 999999, (double) 1);
         ui->xplace = CreateOptionChoice(rc2, "X placement:", 0, 3, xopitems);
         
-        SetSpinChoice(ui->period, (double) 1);
+        SpinChoiceSetValue(ui->period, (double) 1);
     }
 
     return (void *) ui;
@@ -755,7 +755,7 @@ static void *diff_get_cb(void *gui)
     if (pars) {
         pars->type   = GetOptionChoice(ui->type);
         pars->xplace = GetOptionChoice(ui->xplace);
-        pars->period = GetSpinChoice(ui->period);
+        pars->period = SpinChoiceGetValue(ui->period);
     }
     
     return (void *) pars;
@@ -871,7 +871,7 @@ static void *run_build_cb(TransformStructure *tdialog)
         ui->xplace = CreateOptionChoice(rc, "X placement:", 0, 3, xopitems);
         
         /* default settings */
-        SetSpinChoice(ui->length, 1);
+        SpinChoiceSetValue(ui->length, 1);
         SetOptionChoice(ui->xplace, RUN_XPLACE_AVERAGE);
     }
 
@@ -885,7 +885,7 @@ static void *run_get_cb(void *gui)
     
     pars = xmalloc(sizeof(Run_pars));
     if (pars) {
-        pars->length  = (int) GetSpinChoice(ui->length);
+        pars->length  = (int) SpinChoiceGetValue(ui->length);
         pars->formula = TextGetString(ui->formula);
         pars->xplace  = GetOptionChoice(ui->xplace);
     }
@@ -1119,7 +1119,7 @@ static void *cross_build_cb(TransformStructure *tdialog)
         ui->covar = CreateToggleButton(rc, "Calculate covariance");
         
         /* default settings */
-        SetSpinChoice(ui->maxlag, (double) 1);
+        SpinChoiceSetValue(ui->maxlag, (double) 1);
     }
 
     return (void *) ui;
@@ -1140,7 +1140,7 @@ static void *cross_get_cb(void *gui)
     
     pars = xmalloc(sizeof(Cross_pars));
     if (pars) {
-        pars->maxlag  = (int) GetSpinChoice(ui->maxlag);
+        pars->maxlag  = (int) SpinChoiceGetValue(ui->maxlag);
         pars->autocor = ToggleButtonGetState(ui->autocor);
         pars->covar   = ToggleButtonGetState(ui->covar);
 

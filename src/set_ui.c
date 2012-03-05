@@ -489,22 +489,22 @@ void update_set_ui(SetUI *ui, Quark *q)
         }
 
 
-        SetSpinChoice(ui->symsize, p->sym.size);
-        SetSpinChoice(ui->symskip, p->symskip);
-        SetSpinChoice(ui->symskipmindist, p->symskipmindist);
+        SpinChoiceSetValue(ui->symsize, p->sym.size);
+        SpinChoiceSetValue(ui->symskip, p->symskip);
+        SpinChoiceSetValue(ui->symskipmindist, p->symskipmindist);
         UpdateCharOptionChoice(ui->symchar, p->sym.charfont);
         SetOptionChoice(ui->symchar, p->sym.symchar);
         SetOptionChoice(ui->symbols, p->sym.type);
         
         SetPenChoice(ui->sympen, &p->sym.line.pen);
         SetPenChoice(ui->symfillpen, &p->sym.fillpen);
-        SetSpinChoice(ui->symlinew, p->sym.line.width);
+        SpinChoiceSetValue(ui->symlinew, p->sym.line.width);
         SetOptionChoice(ui->symlines, p->sym.line.style);
         
         SetOptionChoice(ui->char_font, p->sym.charfont);        
         
         SetPenChoice(ui->pen, &p->line.line.pen);
-        SetSpinChoice(ui->width, p->line.line.width);
+        SpinChoiceSetValue(ui->width, p->line.line.width);
         ToggleButtonSetState(ui->dropline, p->line.droplines);
         SetOptionChoice(ui->lines, p->line.line.style);
         SetOptionChoice(ui->linet, p->line.type);
@@ -521,15 +521,15 @@ void update_set_ui(SetUI *ui, Quark *q)
         
         SetPenChoice(ui->errbar_pen, &p->errbar.pen);
         ToggleButtonSetState(ui->errbar_aclip, p->errbar.arrow_clip);
-        SetSpinChoice(ui->errbar_cliplen, p->errbar.cliplen);
-        SetSpinChoice(ui->errbar_width, p->errbar.linew);
+        SpinChoiceSetValue(ui->errbar_cliplen, p->errbar.cliplen);
+        SpinChoiceSetValue(ui->errbar_width, p->errbar.linew);
         SetOptionChoice(ui->errbar_lines, p->errbar.lines);
-        SetSpinChoice(ui->errbar_riserlinew, p->errbar.riser_linew);
+        SpinChoiceSetValue(ui->errbar_riserlinew, p->errbar.riser_linew);
         SetOptionChoice(ui->errbar_riserlines, p->errbar.riser_lines);
-        SetSpinChoice(ui->errbar_size, p->errbar.barsize);
+        SpinChoiceSetValue(ui->errbar_size, p->errbar.barsize);
 
         ToggleButtonSetState(ui->avalue_active, p->avalue.active);
-        SetSpinChoice(ui->avalue_charsize, p->avalue.tprops.charsize);
+        SpinChoiceSetValue(ui->avalue_charsize, p->avalue.tprops.charsize);
         SetOptionChoice(ui->avalue_font, p->avalue.tprops.font);
         SetOptionChoice(ui->avalue_color, p->avalue.tprops.color);
         SetAngleChoice(ui->avalue_angle, p->avalue.tprops.angle);
@@ -546,8 +546,8 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetOptionChoice(ui->avalue_just, p->avalue.tprops.just);
 
         SetOptionChoice(ui->frame_decor, p->avalue.frame.decor);
-        SetSpinChoice(ui->frame_offset, p->avalue.frame.offset);
-        SetSpinChoice(ui->frame_linew,   p->avalue.frame.line.width);
+        SpinChoiceSetValue(ui->frame_offset, p->avalue.frame.offset);
+        SpinChoiceSetValue(ui->frame_linew,   p->avalue.frame.line.width);
         SetOptionChoice(ui->frame_lines, p->avalue.frame.line.style);
         SetPenChoice(ui->frame_linepen, &p->avalue.frame.line.pen);
         SetPenChoice(ui->frame_fillpen, &p->avalue.frame.fillpen);
@@ -576,16 +576,16 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         }
 
         if (!caller || caller == ui->symskip) {
-            p->symskip = GetSpinChoice(ui->symskip);
+            p->symskip = SpinChoiceGetValue(ui->symskip);
         }
         if (!caller || caller == ui->symskipmindist) {
-            p->symskipmindist = GetSpinChoice(ui->symskipmindist);
+            p->symskipmindist = SpinChoiceGetValue(ui->symskipmindist);
         }
         if (!caller || caller == ui->symsize) {
-            p->sym.size = GetSpinChoice(ui->symsize);
+            p->sym.size = SpinChoiceGetValue(ui->symsize);
         }
         if (!caller || caller == ui->symlinew) {
-            p->sym.line.width = GetSpinChoice(ui->symlinew);
+            p->sym.line.width = SpinChoiceGetValue(ui->symlinew);
         }
         if (!caller || caller == ui->symlines) {
             p->sym.line.style = GetOptionChoice(ui->symlines);
@@ -620,7 +620,7 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->line.line.style = GetOptionChoice(ui->lines);
         }
         if (!caller || caller == ui->width) {
-            p->line.line.width = GetSpinChoice(ui->width);
+            p->line.line.width = SpinChoiceGetValue(ui->width);
         }
         if (!caller || caller == ui->pen) {
             GetPenChoice(ui->pen, &p->line.line.pen);
@@ -644,16 +644,16 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->errbar.active = ToggleButtonGetState(ui->errbar_active);
         }
         if (!caller || caller == ui->errbar_size) {
-            p->errbar.barsize = GetSpinChoice(ui->errbar_size);
+            p->errbar.barsize = SpinChoiceGetValue(ui->errbar_size);
         }
         if (!caller || caller == ui->errbar_width) {
-            p->errbar.linew = GetSpinChoice(ui->errbar_width);
+            p->errbar.linew = SpinChoiceGetValue(ui->errbar_width);
         }
         if (!caller || caller == ui->errbar_lines) {
             p->errbar.lines = GetOptionChoice(ui->errbar_lines);
         }
         if (!caller || caller == ui->errbar_riserlinew) {
-            p->errbar.riser_linew = GetSpinChoice(ui->errbar_riserlinew);
+            p->errbar.riser_linew = SpinChoiceGetValue(ui->errbar_riserlinew);
         }
         if (!caller || caller == ui->errbar_riserlines) {
             p->errbar.riser_lines = GetOptionChoice(ui->errbar_riserlines);
@@ -665,13 +665,13 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->errbar.arrow_clip = ToggleButtonGetState(ui->errbar_aclip);
         }
         if (!caller || caller == ui->errbar_cliplen) {
-            p->errbar.cliplen = GetSpinChoice(ui->errbar_cliplen);
+            p->errbar.cliplen = SpinChoiceGetValue(ui->errbar_cliplen);
         }
         if (!caller || caller == ui->avalue_active) {
             p->avalue.active = ToggleButtonGetState(ui->avalue_active);
         }
         if (!caller || caller == ui->avalue_charsize) {
-            p->avalue.tprops.charsize = GetSpinChoice(ui->avalue_charsize);
+            p->avalue.tprops.charsize = SpinChoiceGetValue(ui->avalue_charsize);
         }
         if (!caller || caller == ui->avalue_font) {
             p->avalue.tprops.font = GetOptionChoice(ui->avalue_font);
@@ -714,10 +714,10 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->avalue.frame.decor = GetOptionChoice(ui->frame_decor);
         }
         if (!caller || caller == ui->frame_offset) {
-            p->avalue.frame.offset = GetSpinChoice(ui->frame_offset);
+            p->avalue.frame.offset = SpinChoiceGetValue(ui->frame_offset);
         }
         if (!caller || caller == ui->frame_linew) {
-            p->avalue.frame.line.width = GetSpinChoice(ui->frame_linew);
+            p->avalue.frame.line.width = SpinChoiceGetValue(ui->frame_linew);
         }
         if (!caller || caller == ui->frame_lines) {
             p->avalue.frame.line.style = GetOptionChoice(ui->frame_lines);

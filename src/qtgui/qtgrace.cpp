@@ -3205,7 +3205,7 @@ static void spin_arrow_cb(Widget w, XtPointer client_data, XtPointer call_data)
     double value, incr;
 
     spinp = (SpinStructure *) client_data;
-    value = GetSpinChoice(spinp);
+    value = SpinChoiceGetValue(spinp);
     incr = spinp->incr;
 
     if (w == spinp->arrow_up) {
@@ -3217,7 +3217,7 @@ static void spin_arrow_cb(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     }
     value += incr;
-    SetSpinChoice(spinp, value);
+    SpinChoiceSetValue(spinp, value);
 }
 
 //static void sp_double_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
@@ -3235,7 +3235,7 @@ static void sp_double_cb_proc(Widget w, XtPointer client_data, XtPointer call_da
 {
     Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
 
-    cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
+    cbdata->cbproc(cbdata->spin, SpinChoiceGetValue(cbdata->spin), cbdata->anydata);
 }
 
 //static void sp_timer_proc(XtPointer client_data, XtIntervalId *id)
@@ -3526,7 +3526,7 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 //    }
 //    XmTextSetString(spinp->text, buf);
 //}
-void SetSpinChoice(SpinStructure *spinp, double value)
+void SpinChoiceSetValue(SpinStructure *spinp, double value)
 {
     QLineEdit *spinBox = (QLineEdit*) spinp->text;
     char buf[64];
@@ -3547,7 +3547,7 @@ void SetSpinChoice(SpinStructure *spinp, double value)
     spinBox->setText(buf);
 }
 
-double GetSpinChoice(SpinStructure *spinp)
+double SpinChoiceGetValue(SpinStructure *spinp)
 {
     double retval;
 
@@ -3555,11 +3555,11 @@ double GetSpinChoice(SpinStructure *spinp)
     if (retval < spinp->min) {
         errmsg("Input value below min limit in GetSpinChoice()");
         retval = spinp->min;
-        SetSpinChoice(spinp, retval);
+        SpinChoiceSetValue(spinp, retval);
     } else if (retval > spinp->max) {
         errmsg("Input value above max limit in GetSpinChoice()");
         retval = spinp->max;
-        SetSpinChoice(spinp, retval);
+        SpinChoiceSetValue(spinp, retval);
     }
 
     if (spinp->type == SPIN_TYPE_INT) {
@@ -6882,7 +6882,7 @@ SpinStructure *CreateAngleChoice(Widget parent, char *s)
 
 double GetAngleChoice(SpinStructure *sp)
 {
-    return GetSpinChoice(sp);
+    return SpinChoiceGetValue(sp);
 }
 
 void SetAngleChoice(SpinStructure *sp, double angle)
@@ -6890,7 +6890,7 @@ void SetAngleChoice(SpinStructure *sp, double angle)
     if (angle < -360.0 || angle > 360.0) {
         angle = fmod(angle, 360.0);
     }
-    SetSpinChoice(sp, angle);
+    SpinChoiceSetValue(sp, angle);
 }
 
 SpinStructure *CreateCharSizeChoice(Widget parent, char *s)
