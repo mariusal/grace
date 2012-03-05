@@ -212,29 +212,6 @@ Widget CreateScale(Widget parent, char *s, int min, int max, int delta);
 void ScaleSetValue(Widget w, int value);
 int ScaleGetValue(Widget w);
 
-/* SpinChoice */
-typedef struct {
-    int type;
-    double min;
-    double max;
-    double incr;
-    Widget rc;
-    Widget text;
-    Widget arrow_up;
-    Widget arrow_down;
-} SpinStructure;
-SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
-                        int type, double min, double max, double incr);
-double SpinChoiceGetValue(SpinStructure *spinp);
-void SpinChoiceSetValue(SpinStructure *spinp, double value);
-
-typedef void (*Spin_CBProc)(
-    SpinStructure *spinp,
-    double,             /* value of spinner                 */
-    void *              /* data the application registered */
-);
-void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
-
 /* OptionChoice */
 typedef struct _OptionStructure OptionStructure;
 typedef struct {

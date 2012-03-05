@@ -62,4 +62,27 @@ void AddButtonCB(Widget w, Button_CBProc cbproc, void *data);
 /* ToggleButton */
 void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata);
 
+/* SpinChoice */
+typedef struct {
+    int type;
+    double min;
+    double max;
+    double incr;
+    Widget rc;
+    Widget text;
+    Widget arrow_up;
+    Widget arrow_down;
+} SpinStructure;
+SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
+                        int type, double min, double max, double incr);
+double SpinChoiceGetValue(SpinStructure *spinp);
+void SpinChoiceSetValue(SpinStructure *spinp, double value);
+
+typedef void (*Spin_CBProc)(
+    SpinStructure *spinp,
+    double,             /* value of spinner                 */
+    void *              /* data the application registered */
+);
+void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
+
 #endif /* __GUI_H_ */
