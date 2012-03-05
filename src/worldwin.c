@@ -237,7 +237,7 @@ void create_arrange_frame(Widget but, void *data)
         SetSpinChoice(ui->hgap, GA_GAP_DEFAULT);
         SetSpinChoice(ui->vgap, GA_GAP_DEFAULT);
         
-        SetToggleButtonState(ui->add, TRUE);
+        ToggleButtonSetState(ui->add, TRUE);
     }
 
     DialogRaise(ui->top);

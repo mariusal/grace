@@ -517,16 +517,16 @@ static void toggle_inverse_cb(Widget but, int onoff, void *data)
 {
     Four_ui *ui = (Four_ui *) data;
     if (onoff) {
-        SetToggleButtonState(ui->halflen, FALSE);
+        ToggleButtonSetState(ui->halflen, FALSE);
         WidgetSetSensitive(ui->halflen, FALSE);
         
-        SetToggleButtonState(ui->dcdump, FALSE);
+        ToggleButtonSetState(ui->dcdump, FALSE);
         WidgetSetSensitive(ui->dcdump, FALSE);
 
         SetOptionChoice(ui->window, FFT_WINDOW_NONE);
         WidgetSetSensitive(ui->window->menu, FALSE);
     } else {
-        SetToggleButtonState(ui->halflen, TRUE);
+        ToggleButtonSetState(ui->halflen, TRUE);
         WidgetSetSensitive(ui->halflen, TRUE);
         
         WidgetSetSensitive(ui->dcdump, TRUE);
@@ -539,10 +539,10 @@ static void toggle_complex_cb(Widget but, int onoff, void *data)
 {
     Four_ui *ui = (Four_ui *) data;
     if (onoff) {
-        SetToggleButtonState(ui->halflen, FALSE);
+        ToggleButtonSetState(ui->halflen, FALSE);
         WidgetSetSensitive(ui->halflen, FALSE);
     } else {
-        SetToggleButtonState(ui->halflen, TRUE);
+        ToggleButtonSetState(ui->halflen, TRUE);
         WidgetSetSensitive(ui->halflen, TRUE);
     }
 }
@@ -633,10 +633,10 @@ static void *fourier_build_cb(TransformStructure *tdialog)
         SetOptionChoice(ui->norm, FFT_NORM_FORWARD);
         SetSpinChoice(ui->winpar, 1.0);
         WidgetSetSensitive(ui->winpar->rc, FALSE);
-        SetToggleButtonState(ui->halflen, TRUE);
+        ToggleButtonSetState(ui->halflen, TRUE);
         SetSpinChoice(ui->oversampling, 1.0);
 #ifndef HAVE_FFTW
-        SetToggleButtonState(ui->round2n, TRUE);
+        ToggleButtonSetState(ui->round2n, TRUE);
 #endif
     }
 

@@ -661,24 +661,24 @@ void set_view_items(void)
     MainWinUI *mwui = gapp->gui->mwui;
 
     if (gapp->gui->statusbar) {
-        SetToggleButtonState(mwui->windowbarw[1], TRUE);
+        ToggleButtonSetState(mwui->windowbarw[1], TRUE);
         WidgetManage(mwui->frbot);
     } else {
-        SetToggleButtonState(mwui->windowbarw[1], FALSE);
+        ToggleButtonSetState(mwui->windowbarw[1], FALSE);
         WidgetUnmanage(mwui->frbot);
     }
     if (gapp->gui->toolbar) {
-        SetToggleButtonState(mwui->windowbarw[2], TRUE);
+        ToggleButtonSetState(mwui->windowbarw[2], TRUE);
         WidgetManage(mwui->frleft);
     } else {
-        SetToggleButtonState(mwui->windowbarw[2], FALSE);
+        ToggleButtonSetState(mwui->windowbarw[2], FALSE);
         WidgetUnmanage(mwui->frleft);
     }
     if (gapp->gui->locbar) {
-        SetToggleButtonState(mwui->windowbarw[0], TRUE);
+        ToggleButtonSetState(mwui->windowbarw[0], TRUE);
         WidgetManage(mwui->frtop);
     } else {
-        SetToggleButtonState(mwui->windowbarw[0], FALSE);
+        ToggleButtonSetState(mwui->windowbarw[0], FALSE);
         WidgetUnmanage(mwui->frtop);
     }
 }
@@ -6960,7 +6960,7 @@ int ToggleButtonGetState(Widget w)
 //    
 //    return;
 //}
-void SetToggleButtonState(Widget w, int value)
+void ToggleButtonSetState(Widget w, int value)
 {
     if (w == NULL) {
         return;

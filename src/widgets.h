@@ -205,7 +205,7 @@ typedef void (*TB_CBProc)(
 );
 Widget CreateToggleButton(Widget parent, char *s);
 int ToggleButtonGetState(Widget w);
-void SetToggleButtonState(Widget w, int value);
+void ToggleButtonSetState(Widget w, int value);
 
 /* Scale */
 Widget CreateScale(Widget parent, char *s, int min, int max, int delta);

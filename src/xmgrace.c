@@ -341,7 +341,7 @@ void set_view_items(void)
     MainWinUI *mwui = gapp->gui->mwui;
     
     if (gapp->gui->statusbar) {
-	SetToggleButtonState(mwui->windowbarw[1], TRUE);
+	ToggleButtonSetState(mwui->windowbarw[1], TRUE);
 	WidgetManage(mwui->frbot);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNbottomAttachment, XmATTACH_WIDGET,
@@ -354,7 +354,7 @@ void set_view_items(void)
 			  NULL);
 	}
     } else {
-	SetToggleButtonState(mwui->windowbarw[1], FALSE);
+	ToggleButtonSetState(mwui->windowbarw[1], FALSE);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNbottomAttachment, XmATTACH_FORM,
 		      NULL);
@@ -366,7 +366,7 @@ void set_view_items(void)
 	}
     }
     if (gapp->gui->toolbar) {
-	SetToggleButtonState(mwui->windowbarw[2], TRUE);
+	ToggleButtonSetState(mwui->windowbarw[2], TRUE);
 	WidgetManage(mwui->frleft);
 	if (gapp->gui->statusbar) {
 	    XtVaSetValues(mwui->frleft,
@@ -385,14 +385,14 @@ void set_view_items(void)
 		      XmNleftWidget, mwui->frleft,
 		      NULL);
     } else {
-	SetToggleButtonState(mwui->windowbarw[2], FALSE);
+	ToggleButtonSetState(mwui->windowbarw[2], FALSE);
 	WidgetUnmanage(mwui->frleft);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNleftAttachment, XmATTACH_FORM,
 		      NULL);
     }
     if (gapp->gui->locbar) {
-	SetToggleButtonState(mwui->windowbarw[0], TRUE);
+	ToggleButtonSetState(mwui->windowbarw[0], TRUE);
 	WidgetManage(mwui->frtop);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNtopAttachment, XmATTACH_WIDGET,
@@ -405,7 +405,7 @@ void set_view_items(void)
 			  NULL);
 	}
     } else {
-	SetToggleButtonState(mwui->windowbarw[0], FALSE);
+	ToggleButtonSetState(mwui->windowbarw[0], FALSE);
 	WidgetUnmanage(mwui->frtop);
 	XtVaSetValues(mwui->drawing_window,
 		      XmNtopAttachment, XmATTACH_FORM,

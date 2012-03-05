@@ -140,9 +140,9 @@ static void create_monitor_frame(int force, char *msg)
         CreateMenuToggle(menupane, "Popup only on errors", 'e', popup_on, ui);
         CreateMenuSeparator(menupane);
         but = CreateMenuToggle(menupane, "Auto redraw", 'r', auto_redraw_cb, ui);
-	SetToggleButtonState(but, ui->auto_redraw);
+	ToggleButtonSetState(but, ui->auto_redraw);
         but = CreateMenuToggle(menupane, "Auto update", 'p', auto_update_cb, ui);
-	SetToggleButtonState(but, ui->auto_update);
+	ToggleButtonSetState(but, ui->auto_update);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On console", 'c',

@@ -308,7 +308,7 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         }
 
         SetOptionChoice(ui->bg_color, pr->bgcolor);
-        SetToggleButtonState(ui->bg_fill, pr->bgfill);
+        ToggleButtonSetState(ui->bg_fill, pr->bgfill);
 
         SetSpinChoice(ui->fsize_scale, pr->fscale);
         SetSpinChoice(ui->lwidth_scale, pr->lscale);
@@ -317,7 +317,7 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
                 y, m, d, h, mm, sec);
         TextSetString(ui->refdate, date_string);
-        SetToggleButtonState(ui->two_digits_years, pr->two_digits_years);
+        ToggleButtonSetState(ui->two_digits_years, pr->two_digits_years);
         sprintf(wrap_year_string, "%04d", pr->wrap_year);
         TextSetString(ui->wrap_year, wrap_year_string);
         WidgetSetSensitive(ui->wrap_year->form, pr->two_digits_years ? TRUE:FALSE);

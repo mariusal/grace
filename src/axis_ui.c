@@ -336,14 +336,14 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
         
         SetOptionChoice(ui->autonum, t->t_autonum - 2);
 
-        SetToggleButtonState(ui->tround, t->t_round);
+        ToggleButtonSetState(ui->tround, t->t_round);
 
-        SetToggleButtonState(ui->tgrid, t->gprops.onoff);
+        ToggleButtonSetState(ui->tgrid, t->gprops.onoff);
         SetPenChoice(ui->tgridpen, &t->gprops.line.pen);
         SetSpinChoice(ui->tgridlinew, t->gprops.line.width);
         SetOptionChoice(ui->tgridlines, t->gprops.line.style);
 
-        SetToggleButtonState(ui->tmgrid, t->mgprops.onoff);
+        ToggleButtonSetState(ui->tmgrid, t->mgprops.onoff);
         SetPenChoice(ui->tmgridpen, &t->mgprops.line.pen);
         SetSpinChoice(ui->tmgridlinew, t->mgprops.line.width);
         SetOptionChoice(ui->tmgridlines, t->mgprops.line.style);
@@ -632,9 +632,9 @@ void update_axis_ui(AxisUI *ui, Quark *q)
         SetOptionChoice(ui->position, axis_get_position(q));
         SetSpinChoice(ui->offset, axis_get_offset(q));
         
-        SetToggleButtonState(ui->draw_bar,    axis_bar_enabled(q));
-        SetToggleButtonState(ui->draw_ticks,  axis_ticks_enabled(q));
-        SetToggleButtonState(ui->draw_labels, axis_labels_enabled(q));
+        ToggleButtonSetState(ui->draw_bar,    axis_bar_enabled(q));
+        ToggleButtonSetState(ui->draw_ticks,  axis_ticks_enabled(q));
+        ToggleButtonSetState(ui->draw_labels, axis_labels_enabled(q));
     }
 }
 

@@ -505,22 +505,22 @@ void update_set_ui(SetUI *ui, Quark *q)
         
         SetPenChoice(ui->pen, &p->line.line.pen);
         SetSpinChoice(ui->width, p->line.line.width);
-        SetToggleButtonState(ui->dropline, p->line.droplines);
+        ToggleButtonSetState(ui->dropline, p->line.droplines);
         SetOptionChoice(ui->lines, p->line.line.style);
         SetOptionChoice(ui->linet, p->line.type);
         SetOptionChoice(ui->filltype, p->line.filltype);
         SetOptionChoice(ui->fillrule, p->line.fillrule);
         SetPenChoice(ui->fillpen, &p->line.fillpen);
         
-        SetToggleButtonState(ui->baseline, p->line.baseline);
+        ToggleButtonSetState(ui->baseline, p->line.baseline);
         SetOptionChoice(ui->baselinetype, p->line.baseline_type);
 
         TextSetString(ui->legend_str, p->legstr);
         
-        SetToggleButtonState(ui->errbar_active, p->errbar.active);
+        ToggleButtonSetState(ui->errbar_active, p->errbar.active);
         
         SetPenChoice(ui->errbar_pen, &p->errbar.pen);
-        SetToggleButtonState(ui->errbar_aclip, p->errbar.arrow_clip);
+        ToggleButtonSetState(ui->errbar_aclip, p->errbar.arrow_clip);
         SetSpinChoice(ui->errbar_cliplen, p->errbar.cliplen);
         SetSpinChoice(ui->errbar_width, p->errbar.linew);
         SetOptionChoice(ui->errbar_lines, p->errbar.lines);
@@ -528,7 +528,7 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetOptionChoice(ui->errbar_riserlines, p->errbar.riser_lines);
         SetSpinChoice(ui->errbar_size, p->errbar.barsize);
 
-        SetToggleButtonState(ui->avalue_active, p->avalue.active);
+        ToggleButtonSetState(ui->avalue_active, p->avalue.active);
         SetSpinChoice(ui->avalue_charsize, p->avalue.tprops.charsize);
         SetOptionChoice(ui->avalue_font, p->avalue.tprops.font);
         SetOptionChoice(ui->avalue_color, p->avalue.tprops.color);

@@ -239,7 +239,7 @@ static void update_arc_ui(ArcUI *ui, DOArcData *odata)
     SetAngleChoice(ui->angle2, (int) rint(odata->angle2));
     
     SetOptionChoice(ui->closure_type, odata->closure_type);
-    SetToggleButtonState(ui->draw_closure, odata->draw_closure);
+    ToggleButtonSetState(ui->draw_closure, odata->draw_closure);
 }
 
 static void set_arc_odata(ArcUI *ui, DOArcData *odata, void *caller)

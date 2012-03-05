@@ -281,7 +281,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         AddOptionChoiceCB(ui->load_item, do_nonl_toggle, ui->fload_rc);
 
         /* defaults */
-        SetToggleButtonState(ui->autol_item, TRUE);
+        ToggleButtonSetState(ui->autol_item, TRUE);
         SetOptionChoice(ui->load_item, LOAD_VALUES);
         WidgetSetSensitive(ui->fload_rc, FALSE);
         WidgetSetSensitive(ui->wfunc_item->form, FALSE);
@@ -590,7 +590,7 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
             nonlparm *nlp = &nlfit->parms[i];
             sprintf(buf, "%g", nlp->value);
             TextSetString(ui->value_item[i], buf);
-            SetToggleButtonState(ui->constr_item[i], nlp->constr);
+            ToggleButtonSetState(ui->constr_item[i], nlp->constr);
             sprintf(buf, "%g", nlp->min);
             TextSetString(ui->lowb_item[i], buf);
             WidgetSetSensitive(ui->lowb_item[i]->form, nlp->constr);

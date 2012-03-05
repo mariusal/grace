@@ -125,7 +125,7 @@ void update_props_items(void)
     
     if (props_frame) {
         GUI *gui = gapp->gui;
-	SetToggleButtonState(noask_item, gui->noask);
+	ToggleButtonSetState(noask_item, gui->noask);
 
 	if (gui->focus_policy == FOCUS_SET) {
 	    itest = 1;
@@ -135,15 +135,15 @@ void update_props_items(void)
 	    itest = 2;
 	}
 	SetOptionChoice(graph_focus_choice_item, itest);
-	SetToggleButtonState(graph_drawfocus_choice_item, gui->draw_focus_flag);
+	ToggleButtonSetState(graph_drawfocus_choice_item, gui->draw_focus_flag);
 
-	SetToggleButtonState(cursor_type_item, gui->crosshair_cursor);
+	ToggleButtonSetState(cursor_type_item, gui->crosshair_cursor);
 #if defined WITH_XMHTML
-	SetToggleButtonState(force_external_viewer_item, gui->force_external_viewer);
+	ToggleButtonSetState(force_external_viewer_item, gui->force_external_viewer);
 #endif
 	SetSpinChoice(max_path_item,
             (double) get_max_path_limit(grace_get_canvas(gapp->grace)));
-	SetToggleButtonState(safe_mode_item, gapp->rt->safe_mode);
+	ToggleButtonSetState(safe_mode_item, gapp->rt->safe_mode);
 	iv = (int) rint(100*gapp->rt->scrollper);
 	SetScaleValue(scrollper_item, iv);
 	iv = (int) rint(100*gapp->rt->shexper);

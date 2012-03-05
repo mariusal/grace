@@ -169,22 +169,22 @@ void update_graph_ui(GraphUI *ui, Quark *q)
         locator = graph_get_locator(q);
 
         SetOptionChoice(ui->graph_type, graph_get_type(q));
-        SetToggleButtonState(ui->stacked, graph_is_stacked(q));
-        SetToggleButtonState(ui->flip_xy, graph_get_xyflip(q));
+        ToggleButtonSetState(ui->stacked, graph_is_stacked(q));
+        ToggleButtonSetState(ui->flip_xy, graph_get_xyflip(q));
 
         sprintf(buf, "%.9g", w.xg1);
         TextSetString(ui->start_x, buf);
         sprintf(buf, "%.9g", w.xg2);
         TextSetString(ui->stop_x, buf);
         SetOptionChoice(ui->scale_x, graph_get_xscale(q));
-        SetToggleButtonState(ui->invert_x, graph_is_xinvert(q));
+        ToggleButtonSetState(ui->invert_x, graph_is_xinvert(q));
 
         sprintf(buf, "%.9g", w.yg1);
         TextSetString(ui->start_y, buf);
         sprintf(buf, "%.9g", w.yg2);
         TextSetString(ui->stop_y, buf);
         SetOptionChoice(ui->scale_y, graph_get_yscale(q));
-        SetToggleButtonState(ui->invert_y, graph_is_yinvert(q));
+        ToggleButtonSetState(ui->invert_y, graph_is_yinvert(q));
 
         sprintf(buf, "%g", graph_get_znorm(q));
         TextSetString(ui->znorm, buf);
@@ -192,7 +192,7 @@ void update_graph_ui(GraphUI *ui, Quark *q)
         SetSpinChoice(ui->bargap, graph_get_bargap(q));
 
 
-        SetToggleButtonState(ui->fixedp, locator->pointset);
+        ToggleButtonSetState(ui->fixedp, locator->pointset);
         SetOptionChoice(ui->loc_type, locator->type);
         SetFormatChoice(ui->loc_fx, &locator->fx);
         SetFormatChoice(ui->loc_fy, &locator->fy);

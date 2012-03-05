@@ -1160,7 +1160,7 @@ int ToggleButtonGetState(Widget w)
     }
 }
 
-void SetToggleButtonState(Widget w, int value)
+void ToggleButtonSetState(Widget w, int value)
 {
     if (w == NULL) {
         return;

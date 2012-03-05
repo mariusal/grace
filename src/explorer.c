@@ -1012,7 +1012,7 @@ void raise_explorer(GUI *gui, Quark *q)
         menupane = CreateMenu(menubar, "Options", 'O', FALSE);
         eui->instantupdate = CreateMenuToggle(menupane, "Instantaneous update",
                             'u', NULL, NULL);
-        SetToggleButtonState(eui->instantupdate, gui->instant_update);
+        ToggleButtonSetState(eui->instantupdate, gui->instant_update);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On explorer", 'e',

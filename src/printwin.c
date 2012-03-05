@@ -342,7 +342,7 @@ static void update_device_setup(PrintUI *ui, int device_id)
         case DEVICE_FILE:
             WidgetManage(ui->output_frame);
             WidgetManage(ui->page_frame);
-            SetToggleButtonState(ui->printto, TRUE);
+            ToggleButtonSetState(ui->printto, TRUE);
             WidgetSetSensitive(ui->printto, FALSE);
             WidgetSetSensitive(ui->rc_printsel, FALSE);
             WidgetSetSensitive(ui->rc_filesel, TRUE);
@@ -350,7 +350,7 @@ static void update_device_setup(PrintUI *ui, int device_id)
         case DEVICE_PRINT:
             WidgetManage(ui->output_frame);
             WidgetManage(ui->page_frame);
-            SetToggleButtonState(ui->printto, get_ptofile(gapp));
+            ToggleButtonSetState(ui->printto, get_ptofile(gapp));
             WidgetSetSensitive(ui->printto, TRUE);
             if (get_ptofile(gapp) == TRUE) {
                 WidgetSetSensitive(ui->rc_filesel, TRUE);
@@ -381,10 +381,10 @@ static void update_device_setup(PrintUI *ui, int device_id)
         TextSetString(ui->dev_res, buf);
 
         if (dev->type == DEVICE_TERM || dev->type == DEVICE_PRINT) {
-            SetToggleButtonState(ui->autocrop, FALSE);
+            ToggleButtonSetState(ui->autocrop, FALSE);
             WidgetSetSensitive(ui->autocrop, FALSE);
         } else {
-            SetToggleButtonState(ui->autocrop, dev->autocrop);
+            ToggleButtonSetState(ui->autocrop, dev->autocrop);
             WidgetSetSensitive(ui->autocrop, TRUE);
         }
         

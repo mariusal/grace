@@ -155,19 +155,19 @@ static void update_ps_setup_frame(PS_UI_data *ui)
     if (ui->frame) {
         PS_data *ps = ui->ps;
         
-        SetToggleButtonState(ui->level2, ps->level2);
+        ToggleButtonSetState(ui->level2, ps->level2);
         SetOptionChoice(ui->colorspace, ps->colorspace);
         colorspace_cb(NULL, ps->level2, ui->colorspace);
         SetOptionChoice(ui->fonts, ps->fonts);
         SetOptionChoice(ui->docdata, ps->docdata);
         if (ps->format == EPS_FORMAT) {
-            SetToggleButtonState(ui->printable, ps->printable);
+            ToggleButtonSetState(ui->printable, ps->printable);
         }
         if (ps->format == PS_FORMAT) {
             SetSpinChoice(ui->offset_x, (double) ps->offset_x);
             SetSpinChoice(ui->offset_y, (double) ps->offset_y);
             SetOptionChoice(ui->feed, ps->feed);
-            SetToggleButtonState(ui->hwres, ps->hwres);
+            ToggleButtonSetState(ui->hwres, ps->hwres);
         }
     }
 }
@@ -342,7 +342,7 @@ static void update_hpdf_setup_frame(HPDF_UI_data *ui)
         HPDF_data *hpdf = ui->hpdf;
         
         SetOptionChoice(ui->colorspace, hpdf->colorspace);
-        SetToggleButtonState(ui->compression, hpdf->compression);
+        ToggleButtonSetState(ui->compression, hpdf->compression);
     }
 }
 
@@ -432,7 +432,7 @@ static void update_pnm_setup_frame(PNM_UI_data *ui)
     if (ui->frame) {
         PNM_data *pnm = ui->pnm;
         SetOptionChoice(ui->format, pnm->format);
-        SetToggleButtonState(ui->rawbits, pnm->rawbits);
+        ToggleButtonSetState(ui->rawbits, pnm->rawbits);
     }
 }
 
@@ -501,8 +501,8 @@ static void update_png_setup_frame(PNG_UI_data *ui)
     if (ui->frame) {
         PNG_data *png = ui->png;
         
-        SetToggleButtonState(ui->interlaced,  png->interlaced);
-        SetToggleButtonState(ui->transparent, png->transparent);
+        ToggleButtonSetState(ui->interlaced,  png->interlaced);
+        ToggleButtonSetState(ui->transparent, png->transparent);
         SetSpinChoice(ui->compression,        png->compression);
     }
 }
@@ -587,10 +587,10 @@ static void update_jpg_setup_frame(JPG_UI_data *ui)
     if (ui->frame) {
         JPG_data *jpg = ui->jpg;
         
-        SetToggleButtonState(ui->grayscale,   jpg->grayscale);
-        SetToggleButtonState(ui->baseline,    jpg->baseline);
-        SetToggleButtonState(ui->optimize,    jpg->optimize);
-        SetToggleButtonState(ui->progressive, jpg->progressive);
+        ToggleButtonSetState(ui->grayscale,   jpg->grayscale);
+        ToggleButtonSetState(ui->baseline,    jpg->baseline);
+        ToggleButtonSetState(ui->optimize,    jpg->optimize);
+        ToggleButtonSetState(ui->progressive, jpg->progressive);
         SetSpinChoice       (ui->quality,     jpg->quality);
         SetSpinChoice       (ui->smoothing,   jpg->smoothing);
         SetOptionChoice     (ui->dct,         jpg->dct);

@@ -175,7 +175,7 @@ void update_atext_ui(ATextUI *ui, Quark *q)
         SetPenChoice(ui->linepen, &at->frame.line.pen);
         SetPenChoice(ui->fillpen, &at->frame.fillpen);
         
-        SetToggleButtonState(ui->arrow_flag, at->arrow_flag);
+        ToggleButtonSetState(ui->arrow_flag, at->arrow_flag);
         SetOptionChoice(ui->a_type, at->arrow.type);
         SetSpinChoice(ui->a_length, at->arrow.length);
         SetSpinChoice(ui->a_dL_ff, at->arrow.dL_ff);

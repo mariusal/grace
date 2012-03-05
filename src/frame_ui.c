@@ -197,7 +197,7 @@ void update_frame_ui(FrameUI *ui, Quark *q)
 
         SetSpinChoice(ui->legend_charsize, l->charsize);
 
-        SetToggleButtonState(ui->toggle_legends, l->active == TRUE);
+        ToggleButtonSetState(ui->toggle_legends, l->active == TRUE);
 
         SetSpinChoice(ui->legend_anchor_x, l->anchor.x);
         SetSpinChoice(ui->legend_anchor_y, l->anchor.y);
@@ -208,8 +208,8 @@ void update_frame_ui(FrameUI *ui, Quark *q)
         SetSpinChoice(ui->legends_vgap, l->vgap);
         SetSpinChoice(ui->legends_hgap, l->hgap);
         SetSpinChoice(ui->legends_len, l->len);
-        SetToggleButtonState(ui->legends_invert, l->invert);
-        SetToggleButtonState(ui->legends_singlesym, l->singlesym);
+        ToggleButtonSetState(ui->legends_invert, l->invert);
+        ToggleButtonSetState(ui->legends_singlesym, l->singlesym);
 
         SetOptionChoice(ui->legend_font, l->font);
         SetOptionChoice(ui->legend_color, l->color);
