@@ -63,11 +63,6 @@
 extern Widget app_shell;        /* defined in xmgapp.c */
 
 typedef struct {
-    int value;
-    unsigned char *bitmap;
-} BitmapOptionItem;
-
-typedef struct {
     int nchoices;
     int *values;
     void *anydata;
@@ -300,9 +295,6 @@ SpinStructure *CreateCharSizeChoice(Widget parent, char *s);
 SpinStructure *CreateAngleChoice(Widget parent, char *s);
 double GetAngleChoice(SpinStructure *sp);
 void SetAngleChoice(SpinStructure *sp, double angle);
-
-OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
-                int nchoices, int width, int height, BitmapOptionItem *items);
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items);

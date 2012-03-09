@@ -101,63 +101,6 @@ void Beep(void)
     XBell(xstuff->disp, 50);
 }
 
-OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
-                int nchoices, int width, int height, BitmapOptionItem *items)
-{
-    int i;
-    XmString str;
-    OptionStructure *retval;
-
-    retval = xcalloc(1, sizeof(OptionStructure));
-    if (!retval) {
-        return NULL;
-    }
-    retval->nchoices = nchoices;
-    retval->options = xmalloc(nchoices*sizeof(OptionWidgetItem));
-    if (retval->options == NULL) {
-        errmsg("Malloc error in CreateBitmapOptionChoice()");
-        XCFREE(retval);
-        return retval;
-    }
-
-
-    retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", NULL, 0);
-    XtVaSetValues(retval->pulldown, 
-                  XmNentryAlignment, XmALIGNMENT_CENTER,
-                  NULL);
-
-    if (ncols > 0) {
-        XtVaSetValues(retval->pulldown,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNnumColumns, ncols,
-                      NULL);
-    }
-    
-    for (i = 0; i < nchoices; i++) {
-	retval->options[i].value = items[i].value;
-        if (items[i].bitmap != NULL) {
-
-            retval->options[i].widget =
-                    CreateBitmapButton(retval->pulldown, width, height, items[i].bitmap);
-        } else {
-	    retval->options[i].widget =
-	            CreateButton(retval->pulldown, "None");
-        }
-                                
-    }
-
-    retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
-    str = XmStringCreateLocalized(labelstr);
-    XtVaSetValues(retval->menu,
-		  XmNlabelString, str,
-		  XmNsubMenuId, retval->pulldown,
-		  NULL);
-    XmStringFree(str);
-    WidgetManage(retval->menu);
-    
-    return retval;
-}
-
 void UpdateCharOptionChoice(OptionStructure *opt, int font)
 {
     int *old_font;
