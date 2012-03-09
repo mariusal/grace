@@ -212,17 +212,28 @@ Widget CreateScale(Widget parent, char *s, int min, int max, int delta);
 void ScaleSetValue(Widget w, int value);
 int ScaleGetValue(Widget w);
 
+/* ComboBox */
+typedef struct {
+    Widget combobox;
+    Widget popup;
+} ComboBoxStructure;
+ComboBoxStructure *CreateComboBox(Widget parent);
+
 /* OptionChoice */
 typedef struct _OptionStructure OptionStructure;
 typedef struct {
     int value;
     char *label;
+    unsigned long background;
+    unsigned long foreground;
 } OptionItem;
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items);
 OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...);
+void SetOptionChoice(OptionStructure *opt, int value);
 int GetOptionChoice(OptionStructure *opt);
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items);
+void OptionChoiceSetColorUpdate(OptionStructure *opt, int update);
 
 typedef void (*OC_CBProc)(
     OptionStructure *opt,
@@ -246,6 +257,9 @@ struct _OptionStructure {
     int ncols;  /* preferred number of columns */
     Widget menu;
     Widget pulldown;
+    OptionItem *items;
+    int cvalue;
+    int update_colors;
     OptionWidgetItem *options;
 
     unsigned int cbnum;

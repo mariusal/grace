@@ -228,49 +228,6 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
     return retval;
 }
 
-void SetOptionChoice(OptionStructure *opt, int value)
-{
-    int i;
-    Arg a;
-    
-    if (opt->options == NULL || opt->nchoices <= 0) {
-        return;
-    }
-    
-    for (i = 0; i < opt->nchoices; i++) {
-        if (opt->options[i].value == value) {
-            XtSetArg(a, XmNmenuHistory, opt->options[i].widget);
-            XtSetValues(opt->menu, &a, 1);
-            return;
-        }
-    }
-
-    errmsg("Value not found in SetOptionChoice()");
-}
-
-int GetOptionChoice(OptionStructure *opt)
-{
-    Arg a;
-    Widget warg;
-    int i;
-
-    if (opt->options == NULL || opt->nchoices <= 0) {
-        errmsg("Internal error in GetOptionChoice()");
-        return 0;
-    }
-
-    XtSetArg(a, XmNmenuHistory, &warg);
-    XtGetValues(opt->menu, &a, 1);
-
-    for (i = 0; i < opt->nchoices; i++) {
-        if (opt->options[i].widget == warg) {
-            return(opt->options[i].value);
-        }
-    }
-    errmsg("Internal error in GetOptionChoice()");
-    return 0;
-}
-
 static char list_translation_table[] = "\
     Ctrl<Key>E: list_activate_action()\n\
     Ctrl<Key>A: list_selectall_action()\n\
@@ -2298,36 +2255,11 @@ SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
     return retval;
 }
 
-void paint_color_selector(OptionStructure *optp)
+void update_color_selectors(void)
 {
     X11Stuff *xstuff = gapp->gui->xstuff;
     unsigned int i;
     long bg, fg;
-    Project *pr = project_get_data(gproject_get_top(gapp->gp));
-    
-    if (!pr) {
-        return;
-    }
-    
-    for (i = 0; i < pr->ncolors; i++) {
-        Colordef *c = &pr->colormap[i];
-        bg = xvlibcolors[c->id];
-	if (get_rgb_intensity(&c->rgb) < 0.5) {
-	    fg = WhitePixel(xstuff->disp, xstuff->screennumber);
-	} else {
-	    fg = BlackPixel(xstuff->disp, xstuff->screennumber);
-	}
-	XtVaSetValues(optp->options[i].widget, 
-            XmNbackground, bg,
-            XmNforeground, fg,
-            NULL);
-    }
-}
-
-
-void update_color_selectors(void)
-{
-    unsigned int i;
     Project *pr = project_get_data(gproject_get_top(gapp->gp));
     
     ncolor_option_items = pr->ncolors;
@@ -2338,12 +2270,20 @@ void update_color_selectors(void)
         Colordef *c = &pr->colormap[i];
         color_option_items[i].value = c->id;
         color_option_items[i].label = c->cname;
+
+        bg = xvlibcolors[c->id];
+        if (get_rgb_intensity(&c->rgb) < 0.5) {
+            fg = WhitePixel(xstuff->disp, xstuff->screennumber);
+        } else {
+            fg = BlackPixel(xstuff->disp, xstuff->screennumber);
+        }
+        color_option_items[i].background = bg;
+        color_option_items[i].foreground = fg;
     }
     
     for (i = 0; i < ncolor_selectors; i++) {
         UpdateOptionChoice(color_selectors[i], 
                             ncolor_option_items, color_option_items);
-        paint_color_selector(color_selectors[i]);
     }
     
     update_color_choice_popup();
@@ -2363,10 +2303,9 @@ OptionStructure *CreateColorChoice(Widget parent, char *s)
     
     retvalp = CreateOptionChoice(parent, s, 4, 
                                 ncolor_option_items, color_option_items);
+    OptionChoiceSetColorUpdate(retvalp, TRUE);
 
     color_selectors[ncolor_selectors - 1] = retvalp;
-    
-    paint_color_selector(retvalp);
     
     return retvalp;
 }
@@ -3614,6 +3553,17 @@ void TableLevalInit(Widget w)
                   NULL);
 }
 
+void TableOptionChoiceInit(Widget w)
+{
+    XtVaSetValues(w,
+                  XmNgridType, XmGRID_CELL_SHADOW,
+                  XmNcellShadowType, XmSHADOW_ETCHED_OUT,
+                  XmNcellShadowThickness, 1,
+                  XmNaltRowCount, 0,
+                  XmNtraversalOn, False,
+                  NULL);
+}
+
 static int align_to_xmalign(int align)
 {
     switch(align) {
@@ -3903,10 +3853,15 @@ static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
     event.w = cbdata->w;
     event.row = cs->row;
     event.col = cs->column;
+    event.background = cs->background;
+    event.foreground = cs->foreground;
     event.anydata = cbdata->anydata;
     event.value_type = TABLE_CELL_NONE;
 
     cbdata->cbproc(&event);
+
+    cs->background = event.background;
+    cs->foreground = event.foreground;
 
     if (event.value_type == TABLE_CELL_STRING) {
         cs->type = XbaeString;

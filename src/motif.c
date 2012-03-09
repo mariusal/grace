@@ -43,6 +43,7 @@
 #include <Xm/Frame.h>
 #include <Xm/Label.h>
 #include <Xm/LabelG.h>
+#include <Xbae/Matrix.h>
 
 #if XmVersion >= 2000
 # define USE_PANEDW 1
@@ -1211,36 +1212,108 @@ int ScaleGetValue(Widget w)
 }
 
 /* OptionChoice */
-#define MAX_PULLDOWN_LENGTH 30
+static void combobox_press(Widget_CBData *wcbdata)
+{
+    Widget but = wcbdata->w;
+    Widget popup = XtParent(wcbdata->anydata);
+    Widget table = wcbdata->anydata;
+
+    Dimension wh;
+    Position wx, wy, root_x_return, root_y_return;
+
+    XtVaGetValues(but,
+            XtNx, &wx,
+            XtNy, &wy,
+            XmNheight, &wh,
+            NULL);
+
+    XtTranslateCoords(but, 0, 0, &root_x_return, &root_y_return);
+
+    XtVaSetValues(popup,
+            XtNx, root_x_return,
+            XtNy, root_y_return + wh,
+            NULL);
+
+    XtPopup(popup, XtGrabNone);
+    XtGrabPointer(table, False, ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+}
+
+static int oc_drawCB(TableEvent *event)
+{
+    OptionStructure *optp = (OptionStructure *) event->anydata;
+    int i;
+
+    i = event->row + event->col * TableGetNrows(optp->pulldown);
+
+    event->value_type = TABLE_CELL_STRING;
+    event->value = optp->items[i].label;
+
+    if (optp->update_colors) {
+        event->background = optp->items[i].background;
+        event->foreground = optp->items[i].foreground;
+    }
+
+    return TRUE;
+}
+
+static void table_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
+{
+    OptionStructure *opt = (OptionStructure *)data;
+    int row, col;
+
+    XtCallActionProc(opt->menu, "Disarm", NULL, NULL, 0);
+    XtUngrabPointer(w, CurrentTime);
+
+    if(XbaeMatrixGetEventRowColumn(w, event, &row, &col)) {
+        int i;
+        OC_CBdata *cbdata;
+
+        i = row + col * TableGetNrows(opt->pulldown);
+
+        LabelSetString(opt->menu, opt->items[i].label);
+        opt->cvalue = opt->items[i].value;
+
+        for (i = 0; i < opt->cbnum; i++) {
+            cbdata = opt->cblist[i];
+            cbdata->cbproc(opt, opt->cvalue, cbdata->anydata);
+        }
+    }
+
+    XtPopdown(XtParent(opt->pulldown));
+}
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     int ncols, int nchoices, OptionItem *items)
 {
-    Arg args[2];
-    XmString str;
     OptionStructure *retval;
+    Widget rc, popup;
 
     retval = xcalloc(1, sizeof(OptionStructure));
     if (!retval) {
         return NULL;
     }
 
-    XtSetArg(args[0], XmNpacking, XmPACK_COLUMN);
-    retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", args, 1);
+    rc = CreateHContainer(parent);
+    CreateLabel(rc, labelstr);
+
+    retval->menu = CreateButton(rc, "ComboBox");
+
+    popup = XtCreatePopupShell("popup", overrideShellWidgetClass, retval->menu, NULL, 0);
+    retval->pulldown = CreateTable("pulldownTable", popup, 1, 1, 0, 0);
+    TableOptionChoiceInit(retval->pulldown);
+    AddWidgetCB(retval->menu, "arm", combobox_press, retval->pulldown);
+    XtAddEventHandler(retval->pulldown, ButtonReleaseMask, False, table_event_proc, retval);
 
     retval->ncols = ncols;
+    retval->nchoices = 0;
+    retval->items = NULL;
+    retval->update_colors = FALSE;
 
     UpdateOptionChoice(retval, nchoices, items);
+    AddTableDrawCellCB(retval->pulldown, oc_drawCB, retval);
 
-    str = XmStringCreateLocalized(labelstr);
-    XtSetArg(args[0], XmNlabelString, str);
-    XtSetArg(args[1], XmNsubMenuId, retval->pulldown);
-
-    retval->menu = XmCreateOptionMenu(parent, "optionMenu", args, 2);
-
-    XmStringFree(str);
-
-    WidgetManage(retval->menu);
+    LabelSetString(retval->menu, retval->items[0].label);
+    retval->cvalue = retval->items[0].value;
 
     return retval;
 }
@@ -1275,42 +1348,41 @@ OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...)
     return retval;
 }
 
-static void oc_int_cb_proc(Widget_CBData *wcbdata)
+void SetOptionChoice(OptionStructure *opt, int value)
 {
-    int value;
+    int i;
 
-    OC_CBdata *cbdata = (OC_CBdata *) wcbdata->anydata;
-
-    value = GetOptionChoice(cbdata->opt);
-    cbdata->cbproc(cbdata->opt, value, cbdata->anydata);
-}
-
-void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
-{
-    OC_CBdata *cbdata;
-    unsigned int i;
-
-    cbdata = xmalloc(sizeof(OC_CBdata));
-
-    cbdata->opt = opt;
-    cbdata->cbproc = cbproc;
-    cbdata->anydata = anydata;
-
-    opt->cblist = xrealloc(opt->cblist, (opt->cbnum + 1)*sizeof(OC_CBdata *));
-    opt->cblist[opt->cbnum] = cbdata;
-    opt->cbnum++;
+    if (opt->items == NULL || opt->nchoices <= 0) {
+        return;
+    }
 
     for (i = 0; i < opt->nchoices; i++) {
-        AddWidgetCB(opt->options[i].widget, "activate", oc_int_cb_proc, cbdata);
+        if (opt->items[i].value == value) {
+            LabelSetString(opt->menu, opt->items[i].label);
+            opt->cvalue = opt->items[i].value;
+            return;
+        }
     }
+
+    errmsg("Value not found in SetOptionChoice()");
 }
 
+int GetOptionChoice(OptionStructure *opt)
+{
+    if (opt->items == NULL || opt->nchoices <= 0) {
+        errmsg("Internal error in GetOptionChoice()");
+        return 0;
+    }
+
+    return opt->cvalue;
+}
+
+#define MAX_PULLDOWN_LENGTH 30
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 {
-    int i, nold, ncols, nw;
-    Widget *wlist;
-
-    nold = optp->nchoices;
+    int i, ncols, nrows, nc, nr;
+    int delta_nc, delta_nr;
+    int width = 0;
 
     if (optp->ncols == 0) {
         ncols = 1;
@@ -1323,57 +1395,67 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
         ncols = (nchoices + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
     }
 
-    XtVaSetValues(optp->pulldown, XmNnumColumns, ncols, NULL);
+    nrows = nchoices / ncols;
 
-    nw = nold - nchoices;
-    if (nw > 0) {
-        /* Unmanage extra items before destroying to speed the things up */
-        wlist = xmalloc(nw*sizeof(Widget));
-        for (i = nchoices; i < nold; i++) {
-            wlist[i - nchoices] = optp->options[i].widget;
-        }
-        XtUnmanageChildren(wlist, nw);
-        xfree(wlist);
+    nr = TableGetNrows(optp->pulldown);
+    nc = TableGetNcols(optp->pulldown);
 
-        for (i = nchoices; i < nold; i++) {
-            XtDestroyWidget(optp->options[i].widget);
-        }
+    delta_nr = nrows - nr;
+    delta_nc = ncols - nc;
+
+    if (delta_nr > 0) {
+        TableAddRows(optp->pulldown, delta_nr);
+    } else if (delta_nr < 0) {
+        TableDeleteRows(optp->pulldown, -delta_nr);
+    }
+    if (delta_nc > 0) {
+        TableAddCols(optp->pulldown, delta_nc);
+    } else if (delta_nc < 0) {
+        TableDeleteCols(optp->pulldown, -delta_nc);
     }
 
-    optp->options = xrealloc(optp->options, nchoices*sizeof(OptionWidgetItem));
-    optp->nchoices = nchoices;
-
-    for (i = nold; i < nchoices; i++) {
-        unsigned int j;
-        optp->options[i].widget = CreateButton(optp->pulldown, "");
-        for (j = 0; j < optp->cbnum; j++) {
-            OC_CBdata *cbdata = optp->cblist[j];
-            AddWidgetCB(optp->options[i].widget, "activate", oc_int_cb_proc, cbdata);
-        }
+    for (i = 0; i < optp->nchoices; i++) {
+        xfree(optp->items[i].label);
     }
+
+    optp->items = xrealloc(optp->items, nchoices*sizeof(OptionItem));
 
     for (i = 0; i < nchoices; i++) {
-        optp->options[i].value = items[i].value;
-        if (items[i].label != NULL) {
-            XmString str, ostr;
-            XtVaGetValues(optp->options[i].widget, XmNlabelString, &ostr, NULL);
-            str = XmStringCreateLocalized(items[i].label);
-            if (XmStringCompare(str, ostr) != True) {
-                XtVaSetValues(optp->options[i].widget, XmNlabelString, str, NULL);
-            }
-            XmStringFree(str);
+        char *label;
+        optp->items[i].value = items[i].value;
+        label = items[i].label;
+        if (width < strlen(label)) {
+            width = strlen(label);
         }
+        optp->items[i].label = copy_string(NULL, label);
+        optp->items[i].background = items[i].background;
+        optp->items[i].foreground = items[i].foreground;
     }
 
-    nw = nchoices - nold;
-    if (nw > 0) {
-        wlist = xmalloc(nw*sizeof(Widget));
-        for (i = nold; i < nchoices; i++) {
-            wlist[i - nold] = optp->options[i].widget;
-        }
-        XtManageChildren(wlist, nw);
-        xfree(wlist);
-    }
+    optp->nchoices = nchoices;
+
+    TableSetDefaultColWidth(optp->pulldown, width);
+    TableUpdateVisibleRowsCols(optp->pulldown);
+}
+
+void OptionChoiceSetColorUpdate(OptionStructure *opt, int update)
+{
+    opt->update_colors = update;
+}
+
+void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
+{
+    OC_CBdata *cbdata;
+
+    cbdata = xmalloc(sizeof(OC_CBdata));
+
+    cbdata->opt = opt;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+
+    opt->cblist = xrealloc(opt->cblist, (opt->cbnum + 1)*sizeof(OC_CBdata *));
+    opt->cblist[opt->cbnum] = cbdata;
+    opt->cbnum++;
 }
 
 /* Menu */

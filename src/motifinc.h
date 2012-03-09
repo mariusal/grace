@@ -303,7 +303,6 @@ void SetAngleChoice(SpinStructure *sp, double angle);
 
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items);
-void SetOptionChoice(OptionStructure *opt, int value);
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items);
@@ -455,6 +454,7 @@ void TableSSDInit(Widget w);
 void TableFontInit(Widget w);
 void TableDataSetPropInit(Widget w);
 void TableLevalInit(Widget w);
+void TableOptionChoiceInit(Widget w);
 int TableGetNrows(Widget w);
 int TableGetNcols(Widget w);
 void TableAddRows(Widget w, int nrows);
@@ -496,6 +496,8 @@ typedef struct {
     Widget w;
     int row;
     int col;
+    unsigned long background;
+    unsigned long foreground;
     int value_type;
     char *value;
     Pixmap pixmap;
