@@ -1001,8 +1001,7 @@ void LabelSetString(Widget w, char *s)
     XmStringFree(str);
 }
 
-
-void LabelSetPixmap(Widget w, int width, int height, const unsigned char *bits)
+static Pixmap BitmapToPixmap(Widget w, int width, int height, const unsigned char *bits)
 {
     Pixmap pm;
 
@@ -1017,9 +1016,14 @@ void LabelSetPixmap(Widget w, int width, int height, const unsigned char *bits)
     pm = XCreatePixmapFromBitmapData(xstuff->disp,
             xstuff->root, (char *) bits, width, height, fg, bg, xstuff->depth);
 
+    return pm;
+}
+
+void LabelSetPixmap(Widget w, Pixmap pixmap)
+{
     XtVaSetValues(w,
             XmNlabelType, XmPIXMAP,
-            XmNlabelPixmap, pm,
+            XmNlabelPixmap, pixmap,
             NULL);
 }
 
@@ -1124,11 +1128,15 @@ Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits)
 {
     Widget button;
+    Pixmap pm;
 
     button = XtVaCreateWidget("button",
         xmPushButtonWidgetClass, parent,
         NULL);
-    LabelSetPixmap(button, width, height, bits);
+
+    pm = BitmapToPixmap(button, width, height, bits);
+
+    LabelSetPixmap(button, pm);
     WidgetManage(button);
 
     return button;

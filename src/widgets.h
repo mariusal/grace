@@ -161,7 +161,7 @@ Widget CreateSeparator(Widget parent);
 /* Label */
 Widget CreateLabel(Widget parent, char *s);
 void LabelSetString(Widget w, char *s);
-void LabelSetPixmap(Widget w, int width, int height, const unsigned char *bits);
+void LabelSetPixmap(Widget w, Pixmap pixmap);
 
 /* Text edit */
 Widget CreateLineTextEdit(Widget parent, int len);
