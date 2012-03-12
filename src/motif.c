@@ -1399,6 +1399,76 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     return retval;
 }
 
+static unsigned char dummy_bits[] = {
+   0x00, 0x00, 0x00, 0x00, 0xec, 0x2e, 0x04, 0x20, 0x00, 0x20, 0x04, 0x00,
+   0x04, 0x20, 0x04, 0x20, 0x00, 0x20, 0x04, 0x00, 0x04, 0x20, 0x04, 0x20,
+   0x00, 0x20, 0xdc, 0x1d, 0x00, 0x00, 0x00, 0x00};
+
+OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
+{
+    int i;
+    int ncols = 16, nchoices = 256;
+    XmString str;
+    OptionStructure *retval;
+    int *fontid;
+
+    retval = xcalloc(1, sizeof(OptionStructure));
+    if (retval == NULL) {
+        errmsg("Malloc error in CreateBitmapOptionChoice()");
+    }
+    retval->nchoices = nchoices;
+    retval->options = xmalloc(nchoices*sizeof(OptionWidgetItem));
+    if (retval->options == NULL) {
+        errmsg("Malloc error in CreateBitmapOptionChoice()");
+        XCFREE(retval);
+        return retval;
+    }
+
+    retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", NULL, 0);
+    XtVaSetValues(retval->pulldown,
+                  XmNentryAlignment, XmALIGNMENT_CENTER,
+                  XmNpacking, XmPACK_COLUMN,
+                  XmNorientation, XmHORIZONTAL,
+                  XmNnumColumns, ncols,
+                  NULL);
+
+    for (i = 0; i < nchoices; i++) {
+        retval->options[i].value = (char) i;
+        retval->options[i].widget = CreateBitmapButton(retval->pulldown, 16, 16, dummy_bits);
+    }
+
+    retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
+    str = XmStringCreateLocalized(s);
+    XtVaSetValues(retval->menu,
+                  XmNlabelString, str,
+                  XmNsubMenuId, retval->pulldown,
+                  NULL);
+    XmStringFree(str);
+    WidgetManage(retval->menu);
+
+    fontid = xmalloc(SIZEOF_INT);
+    *fontid = -1;
+    WidgetSetUserData(retval->menu, fontid);
+
+    return retval;
+}
+
+void UpdateCharOptionChoice(OptionStructure *opt, int font)
+{
+    int *old_font;
+    old_font = (int *) WidgetGetUserData(opt->menu);
+    if (*old_font != font) {
+        int i, csize = 24;
+        for (i = 0; i < opt->nchoices; i++) {
+            Widget w = opt->options[i].widget;
+            Pixmap ptmp = char_to_pixmap(opt->pulldown, font, (char) i, csize);
+            XtVaSetValues(w, XmNlabelPixmap, ptmp, NULL);
+            WidgetSetSensitive(w, ptmp ? TRUE:FALSE);
+        }
+        *old_font = font;
+    }
+}
+
 void SetOptionChoice(OptionStructure *opt, int value)
 {
     int i;

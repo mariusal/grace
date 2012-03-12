@@ -238,6 +238,8 @@ typedef struct {
 } BitmapOptionItem;
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items);
+OptionStructure *CreateCharOptionChoice(Widget parent, char *s);
+void UpdateCharOptionChoice(OptionStructure *opt, int font);
 void SetOptionChoice(OptionStructure *opt, int value);
 int GetOptionChoice(OptionStructure *opt);
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items);

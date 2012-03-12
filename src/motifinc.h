@@ -330,9 +330,6 @@ OptionStructure *CreateTextJustChoice(Widget parent, char *s);
 OptionStructure *CreateJustChoice(Widget parent, char *s);
 OptionStructure *CreateFrameTypeChoice(Widget parent, char *s);
 
-OptionStructure *CreateCharOptionChoice(Widget parent, char *s);
-void UpdateCharOptionChoice(OptionStructure *opt, int font);
-
 Widget CreatePenChoice(Widget parent, char *s);
 void SetPenChoice(Widget button, Pen *pen);
 int GetPenChoice(Widget pen_button, Pen *pen);
