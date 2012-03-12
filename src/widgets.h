@@ -252,11 +252,6 @@ typedef void (*OC_CBProc)(
 );
 
 typedef struct {
-    int value;
-    Widget widget;
-} OptionWidgetItem;
-
-typedef struct {
     OptionStructure *opt;
     OC_CBProc cbproc;
     void *anydata;
@@ -270,7 +265,6 @@ struct _OptionStructure {
     OptionItem *items;
     int cvalue;
     int update_colors;
-    OptionWidgetItem *options;
 
     unsigned int cbnum;
     OC_CBdata **cblist;
