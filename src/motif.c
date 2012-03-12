@@ -1253,8 +1253,13 @@ static int oc_drawCB(TableEvent *event)
 
     i = event->row + event->col * TableGetNrows(optp->pulldown);
 
-    event->value_type = TABLE_CELL_STRING;
-    event->value = optp->items[i].label;
+    if (optp->items[i].label) {
+        event->value_type = TABLE_CELL_STRING;
+        event->value = optp->items[i].label;
+    } else {
+        event->value_type = TABLE_CELL_PIXMAP;
+        event->pixmap = optp->items[i].pixmap;
+    }
 
     if (optp->update_colors) {
         event->background = optp->items[i].background;
@@ -1278,7 +1283,11 @@ static void table_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *c
 
         i = row + col * TableGetNrows(opt->pulldown);
 
-        LabelSetString(opt->menu, opt->items[i].label);
+        if (opt->items[i].label) {
+            LabelSetString(opt->menu, opt->items[i].label);
+        } else {
+            LabelSetPixmap(opt->menu, opt->items[i].pixmap);
+        }
         opt->cvalue = opt->items[i].value;
 
         for (i = 0; i < opt->cbnum; i++) {
@@ -1320,7 +1329,11 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     UpdateOptionChoice(retval, nchoices, items);
     AddTableDrawCellCB(retval->pulldown, oc_drawCB, retval);
 
-    LabelSetString(retval->menu, retval->items[0].label);
+    if (retval->items[0].label) {
+        LabelSetString(retval->menu, retval->items[0].label);
+    } else {
+        LabelSetPixmap(retval->menu, retval->items[0].pixmap);
+    }
     retval->cvalue = retval->items[0].value;
 
     return retval;
@@ -1360,55 +1373,28 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
                 int nchoices, int width, int height, BitmapOptionItem *items)
 {
     int i;
-    XmString str;
     OptionStructure *retval;
+    OptionItem *pixmap_items;
 
-    retval = xcalloc(1, sizeof(OptionStructure));
-    if (!retval) {
-        return NULL;
-    }
-    retval->nchoices = nchoices;
-    retval->options = xmalloc(nchoices*sizeof(OptionWidgetItem));
-    if (retval->options == NULL) {
+    pixmap_items = xmalloc(nchoices*sizeof(OptionItem));
+    if (pixmap_items == NULL) {
         errmsg("Malloc error in CreateBitmapOptionChoice()");
-        XCFREE(retval);
-        return retval;
-    }
-
-
-    retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", NULL, 0);
-    XtVaSetValues(retval->pulldown,
-                  XmNentryAlignment, XmALIGNMENT_CENTER,
-                  NULL);
-
-    if (ncols > 0) {
-        XtVaSetValues(retval->pulldown,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNnumColumns, ncols,
-                      NULL);
+        return NULL;
     }
 
     for (i = 0; i < nchoices; i++) {
-        retval->options[i].value = items[i].value;
-        if (items[i].bitmap != NULL) {
-
-            retval->options[i].widget =
-                    CreateBitmapButton(retval->pulldown, width, height, items[i].bitmap);
+        pixmap_items[i].value = items[i].value;
+        if (items[i].bitmap) {
+            pixmap_items[i].label = NULL;
+            pixmap_items[i].pixmap = BitmapToPixmap(parent, width, height, items[i].bitmap);
         } else {
-            retval->options[i].widget =
-                    CreateButton(retval->pulldown, "None");
+            pixmap_items[i].label = "None";
         }
-
     }
 
-    retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
-    str = XmStringCreateLocalized(labelstr);
-    XtVaSetValues(retval->menu,
-                  XmNlabelString, str,
-                  XmNsubMenuId, retval->pulldown,
-                  NULL);
-    XmStringFree(str);
-    WidgetManage(retval->menu);
+    retval = CreateOptionChoice(parent, labelstr, ncols, nchoices, pixmap_items);
+
+    xfree(pixmap_items);
 
     return retval;
 }
@@ -1423,7 +1409,11 @@ void SetOptionChoice(OptionStructure *opt, int value)
 
     for (i = 0; i < opt->nchoices; i++) {
         if (opt->items[i].value == value) {
-            LabelSetString(opt->menu, opt->items[i].label);
+            if (opt->items[i].label) {
+                LabelSetString(opt->menu, opt->items[i].label);
+            } else {
+                LabelSetPixmap(opt->menu, opt->items[i].pixmap);
+            }
             opt->cvalue = opt->items[i].value;
             return;
         }
@@ -1488,18 +1478,27 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
     for (i = 0; i < nchoices; i++) {
         char *label;
         optp->items[i].value = items[i].value;
+
         label = items[i].label;
-        if (width < strlen(label)) {
-            width = strlen(label);
+        if (label) {
+            if (width < strlen(label)) {
+                width = strlen(label);
+            }
+            optp->items[i].label = copy_string(NULL, label);
+        } else {
+            optp->items[i].label = NULL;
+            optp->items[i].pixmap = items[i].pixmap;
         }
-        optp->items[i].label = copy_string(NULL, label);
+
         optp->items[i].background = items[i].background;
         optp->items[i].foreground = items[i].foreground;
     }
 
     optp->nchoices = nchoices;
 
-    TableSetDefaultColWidth(optp->pulldown, width);
+    if (width) {
+        TableSetDefaultColWidth(optp->pulldown, width);
+    }
     TableUpdateVisibleRowsCols(optp->pulldown);
 }
 

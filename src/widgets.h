@@ -224,6 +224,7 @@ typedef struct _OptionStructure OptionStructure;
 typedef struct {
     int value;
     char *label;
+    Pixmap pixmap;
     unsigned long background;
     unsigned long foreground;
 } OptionItem;
