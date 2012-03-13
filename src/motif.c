@@ -1256,12 +1256,19 @@ static int oc_drawCB(TableEvent *event)
 
     i = event->row + event->col * TableGetNrows(optp->pulldown);
 
-    if (optp->items[i].label) {
+    switch (optp->items[i].type) {
+    case OPTION_ITEM_NONE:
+        event->value_type = TABLE_CELL_STRING;
+        event->value = "None";
+        break;
+    case OPTION_ITEM_STRING:
         event->value_type = TABLE_CELL_STRING;
         event->value = optp->items[i].label;
-    } else {
+        break;
+    case OPTION_ITEM_PIXMAP:
         event->value_type = TABLE_CELL_PIXMAP;
         event->pixmap = optp->items[i].pixmap;
+        break;
     }
 
     if (optp->update_colors) {
@@ -1270,6 +1277,23 @@ static int oc_drawCB(TableEvent *event)
     }
 
     return TRUE;
+}
+
+static void OptionChoiceSetCurrentValue(OptionStructure *opt, int index)
+{
+    switch (opt->items[index].type) {
+    case OPTION_ITEM_NONE:
+        LabelSetString(opt->menu, "None");
+        break;
+    case OPTION_ITEM_STRING:
+        LabelSetString(opt->menu, opt->items[index].label);
+        break;
+    case OPTION_ITEM_PIXMAP:
+        LabelSetPixmap(opt->menu, opt->items[index].pixmap);
+        break;
+    }
+
+    opt->cvalue = opt->items[index].value;
 }
 
 static void table_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
@@ -1286,12 +1310,7 @@ static void table_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *c
 
         i = row + col * TableGetNrows(opt->pulldown);
 
-        if (opt->items[i].label) {
-            LabelSetString(opt->menu, opt->items[i].label);
-        } else {
-            LabelSetPixmap(opt->menu, opt->items[i].pixmap);
-        }
-        opt->cvalue = opt->items[i].value;
+        OptionChoiceSetCurrentValue(opt, i);
 
         for (i = 0; i < opt->cbnum; i++) {
             cbdata = opt->cblist[i];
@@ -1332,12 +1351,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     UpdateOptionChoice(retval, nchoices, items);
     AddTableDrawCellCB(retval->pulldown, oc_drawCB, retval);
 
-    if (retval->items[0].label) {
-        LabelSetString(retval->menu, retval->items[0].label);
-    } else {
-        LabelSetPixmap(retval->menu, retval->items[0].pixmap);
-    }
-    retval->cvalue = retval->items[0].value;
+    OptionChoiceSetCurrentValue(retval, 0);
 
     return retval;
 }
@@ -1386,18 +1400,23 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
     optp->items = xrealloc(optp->items, nchoices*sizeof(OptionItem));
 
     for (i = 0; i < nchoices; i++) {
-        char *label;
         optp->items[i].value = items[i].value;
 
-        label = items[i].label;
-        if (label) {
-            if (width < strlen(label)) {
-                width = strlen(label);
+        switch (items[i].type) {
+        case OPTION_ITEM_NONE:
+            optp->items[i].type = OPTION_ITEM_NONE;
+            break;
+        case OPTION_ITEM_STRING:
+            optp->items[i].type = OPTION_ITEM_STRING;
+            if (width < strlen(items[i].label)) {
+                width = strlen(items[i].label);
             }
-            optp->items[i].label = copy_string(NULL, label);
-        } else {
-            optp->items[i].label = NULL;
+            optp->items[i].label = copy_string(NULL, items[i].label);
+            break;
+        case OPTION_ITEM_PIXMAP:
+            optp->items[i].type = OPTION_ITEM_PIXMAP;
             optp->items[i].pixmap = items[i].pixmap;
+            break;
         }
 
         optp->items[i].background = items[i].background;
@@ -1427,11 +1446,8 @@ OptionStructure *CreateLabelOptionChoice(Widget parent, char *labelstr,
 
     for (i = 0; i < nchoices; i++) {
         label_items[i].value = items[i].value;
-        if (items[i].label) {
-            label_items[i].label = copy_string(NULL, items[i].label);
-        } else {
-            label_items[i].label = copy_string(NULL, "None");
-        }
+        label_items[i].type = OPTION_ITEM_STRING;
+        label_items[i].label = copy_string(NULL, items[i].label);
         label_items[i].background = items[i].background;
         label_items[i].foreground = items[i].foreground;
     }
@@ -1462,6 +1478,7 @@ OptionStructure *CreateLabelOptionChoiceVA(Widget parent, char *labelstr, ...)
         nchoices++;
         oi = xrealloc(oi, nchoices*sizeof(OptionItem));
         oi[nchoices - 1].value = value;
+        oi[nchoices - 1].type = OPTION_ITEM_STRING;
         oi[nchoices - 1].label = copy_string(NULL, s);
     }
     va_end(var);
@@ -1518,10 +1535,10 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     for (i = 0; i < nchoices; i++) {
         pixmap_items[i].value = items[i].value;
         if (items[i].bitmap) {
-            pixmap_items[i].label = NULL;
+            pixmap_items[i].type = OPTION_ITEM_PIXMAP;
             pixmap_items[i].pixmap = BitmapToPixmap(parent, width, height, items[i].bitmap);
         } else {
-            pixmap_items[i].label = "None";
+            pixmap_items[i].type = OPTION_ITEM_NONE;
         }
     }
 
@@ -1556,7 +1573,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
     pixmap = BitmapToPixmap(parent, 16, 16, dummy_bits);
     for (i = 0; i < nchoices; i++) {
         pixmap_items[i].value = (char) i;
-        pixmap_items[i].label = NULL;
+        pixmap_items[i].type = OPTION_ITEM_PIXMAP;
         pixmap_items[i].pixmap = pixmap;
     }
 
@@ -1599,12 +1616,7 @@ void SetOptionChoice(OptionStructure *opt, int value)
 
     for (i = 0; i < opt->nchoices; i++) {
         if (opt->items[i].value == value) {
-            if (opt->items[i].label) {
-                LabelSetString(opt->menu, opt->items[i].label);
-            } else {
-                LabelSetPixmap(opt->menu, opt->items[i].pixmap);
-            }
-            opt->cvalue = opt->items[i].value;
+            OptionChoiceSetCurrentValue(opt, i);
             return;
         }
     }

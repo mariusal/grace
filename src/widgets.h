@@ -220,9 +220,13 @@ typedef struct {
 ComboBoxStructure *CreateComboBox(Widget parent);
 
 /* OptionChoice */
+#define OPTION_ITEM_NONE    0
+#define OPTION_ITEM_STRING  1
+#define OPTION_ITEM_PIXMAP  2
 typedef struct _OptionStructure OptionStructure;
 typedef struct {
     int value;
+    int type;
     char *label;
     Pixmap pixmap;
     unsigned long background;
