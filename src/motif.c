@@ -997,7 +997,10 @@ void LabelSetString(Widget w, char *s)
     if (s == NULL) return;
 
     str = XmStringCreateLocalized(s);
-    XtVaSetValues(w, XmNlabelString, str, NULL);
+    XtVaSetValues(w,
+            XmNlabelType, XmSTRING,
+            XmNlabelString, str,
+            NULL);
     XmStringFree(str);
 }
 
