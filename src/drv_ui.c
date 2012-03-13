@@ -57,16 +57,16 @@ static void colorspace_cb(Widget but, int onoff, void *data)
 {
     OptionStructure *opt = (OptionStructure *) data;
     
-    OptionItem colorspace_ops[3] = {
+    LabelOptionItem colorspace_ops[3] = {
         {PS_COLORSPACE_GRAYSCALE, "Grayscale"},
         {PS_COLORSPACE_RGB,       "RGB"      },
         {PS_COLORSPACE_CMYK,      "CMYK"     }
     };
     
     if (onoff) {
-        UpdateOptionChoice(opt, 3, colorspace_ops);
+        UpdateLabelOptionChoice(opt, 3, colorspace_ops);
     } else {
-        UpdateOptionChoice(opt, 2, colorspace_ops);
+        UpdateLabelOptionChoice(opt, 2, colorspace_ops);
     }
 }
 
@@ -80,22 +80,22 @@ static void ps_gui_setup(const Canvas *canvas, void *data)
     if (ui->frame == NULL) {
         char *title;
         Widget ps_setup_rc, fr, rc;
-        OptionItem colorspace_ops[3] = {
+        LabelOptionItem colorspace_ops[3] = {
             {PS_COLORSPACE_GRAYSCALE, "Grayscale"},
             {PS_COLORSPACE_RGB,       "RGB"      },
             {PS_COLORSPACE_CMYK,      "CMYK"     }
         };
-        OptionItem docdata_ops[3] = {
+        LabelOptionItem docdata_ops[3] = {
             {PS_DOCDATA_7BIT,   "7bit"  },
             {PS_DOCDATA_8BIT,   "8bit"  },
             {PS_DOCDATA_BINARY, "Binary"}
         };
-        OptionItem ops[3] = {
+        LabelOptionItem ops[3] = {
             {PS_MEDIA_FEED_AUTO,   "Automatic" },
             {PS_MEDIA_FEED_MATCH,  "Match size"},
             {PS_MEDIA_FEED_MANUAL, "Manual"    }
         };
-        OptionItem font_ops[4] = {
+        LabelOptionItem font_ops[4] = {
             {PS_FONT_EMBED_NONE,  "None"               },
             {PS_FONT_EMBED_BUT13, "All but 13 standard"},
             {PS_FONT_EMBED_BUT35, "All but 35 standard"},
@@ -115,13 +115,13 @@ static void ps_gui_setup(const Canvas *canvas, void *data)
         rc = CreateVContainer(fr);
 	ui->level2 = CreateToggleButton(rc, "PS Level 2");
         ui->colorspace =
-            CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_ops);
+            CreateLabelOptionChoice(rc, "Colorspace:", 1, 3, colorspace_ops);
 	AddToggleButtonCB(ui->level2,
             colorspace_cb, ui->colorspace);
 	ui->docdata =
-            CreateOptionChoice(rc, "Document data:", 1, 3, docdata_ops);
+            CreateLabelOptionChoice(rc, "Document data:", 1, 3, docdata_ops);
 	ui->fonts =
-            CreateOptionChoice(rc, "Embed fonts:", 1, 4, font_ops);
+            CreateLabelOptionChoice(rc, "Embed fonts:", 1, 4, font_ops);
 
         if (ps->format == EPS_FORMAT) {
 	    ui->printable = CreateToggleButton(rc,
@@ -138,7 +138,7 @@ static void ps_gui_setup(const Canvas *canvas, void *data)
 
 	    fr = CreateFrame(ps_setup_rc, "Hardware");
             rc = CreateVContainer(fr);
-	    ui->feed = CreateOptionChoice(rc, "Media feed:", 1, 3, ops);
+	    ui->feed = CreateLabelOptionChoice(rc, "Media feed:", 1, 3, ops);
 	    ui->hwres = CreateToggleButton(rc, "Set hardware resolution");
         }
 
@@ -275,12 +275,12 @@ void pdf_gui_setup(const Canvas *canvas, void *data)
     
     if (ui->frame == NULL) {
         Widget fr, rc;
-        OptionItem compat_ops[3] = {
+        LabelOptionItem compat_ops[3] = {
             {PDF_1_3, "PDF-1.3"},
             {PDF_1_4, "PDF-1.4"},
             {PDF_1_5, "PDF-1.5"}
         };
-        OptionItem colorspace_ops[3] = {
+        LabelOptionItem colorspace_ops[3] = {
             {PDF_COLORSPACE_GRAYSCALE, "Grayscale"},
             {PDF_COLORSPACE_RGB,       "RGB"      },
             {PDF_COLORSPACE_CMYK,      "CMYK"     }
@@ -291,9 +291,9 @@ void pdf_gui_setup(const Canvas *canvas, void *data)
 	fr = CreateFrame(ui->frame, "PDF options");
         rc = CreateVContainer(fr);
 	ui->compat =
-            CreateOptionChoice(rc, "Compatibility:", 1, 3, compat_ops);
+            CreateLabelOptionChoice(rc, "Compatibility:", 1, 3, compat_ops);
         ui->colorspace =
-            CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_ops);
+            CreateLabelOptionChoice(rc, "Colorspace:", 1, 3, colorspace_ops);
 	ui->compression = CreateSpinChoice(rc,
             "Compression:", 1, SPIN_TYPE_INT, 0.0, 9.0, 1.0);
 	ui->fpprec = CreateSpinChoice(rc,
@@ -365,7 +365,7 @@ void hpdf_gui_setup(const Canvas *canvas, void *data)
     
     if (ui->frame == NULL) {
         Widget fr, rc;
-        OptionItem colorspace_ops[3] = {
+        LabelOptionItem colorspace_ops[3] = {
             {HPDF_COLORSPACE_GRAYSCALE, "Grayscale"},
             {HPDF_COLORSPACE_RGB,       "RGB"      },
             {HPDF_COLORSPACE_CMYK,      "CMYK"     }
@@ -376,7 +376,7 @@ void hpdf_gui_setup(const Canvas *canvas, void *data)
 	fr = CreateFrame(ui->frame, "hPDF options");
         rc = CreateVContainer(fr);
         ui->colorspace =
-            CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_ops);
+            CreateLabelOptionChoice(rc, "Colorspace:", 1, 3, colorspace_ops);
 	ui->compression = CreateToggleButton(rc, "Compression");
 
 	CreateAACDialog(ui->frame, fr, set_hpdf_setup_proc, ui);
@@ -449,7 +449,7 @@ static void pnm_gui_setup(const Canvas *canvas, void *data)
 
 	fr = CreateFrame(ui->frame, "PNM options");
         rc = CreateVContainer(fr);
-	ui->format = CreateOptionChoiceVA(rc, "Format: ",
+	ui->format = CreateLabelOptionChoiceVA(rc, "Format: ",
             "1-bit mono (PBM)",      PNM_FORMAT_PBM,
             "8-bit grayscale (PGM)", PNM_FORMAT_PGM,
             "8-bit color (PPM)",     PNM_FORMAT_PPM,
@@ -639,7 +639,7 @@ static void jpg_gui_setup(const Canvas *canvas, void *data)
 	ui->smoothing = CreateSpinChoice(rc1,
             "Smoothing:", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
 	ui->baseline = CreateToggleButton(rc1, "Force baseline");
-	ui->dct = CreateOptionChoiceVA(rc, "DCT: ",
+	ui->dct = CreateLabelOptionChoiceVA(rc, "DCT: ",
             "Fast integer", JPEG_DCT_IFAST,
             "Slow integer", JPEG_DCT_ISLOW,
             "Float",        JPEG_DCT_FLOAT,

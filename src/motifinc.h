@@ -297,10 +297,10 @@ double GetAngleChoice(SpinStructure *sp);
 void SetAngleChoice(SpinStructure *sp, double angle);
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
-                                int nvisible, int nchoices, OptionItem *items);
+                                int nvisible, int nchoices, LabelOptionItem *items);
 int SelectListChoice(ListStructure *listp, int choice);
 void SelectListChoices(ListStructure *listp, int nchoices, int *choices);
-void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items);
+void UpdateListChoice(ListStructure *listp, int nchoices, LabelOptionItem *items);
 int GetListChoices(ListStructure *listp, int **values);
 int GetSingleListChoice(ListStructure *listp, int *value);
 int GetListSelectedCount(ListStructure *listp);

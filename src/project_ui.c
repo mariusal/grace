@@ -206,7 +206,7 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     AddTextActivateCB(ui->page_x, text_explorer_cb, eui);
     ui->page_y = CreateText2(rc, "x ", 7);
     AddTextActivateCB(ui->page_y, text_explorer_cb, eui);
-    ui->page_size_unit = CreateOptionChoiceVA(rc, " ",
+    ui->page_size_unit = CreateLabelOptionChoiceVA(rc, " ",
         "pp", PAGE_UNITS_PP,
         "in", PAGE_UNITS_IN,
         "cm", PAGE_UNITS_CM,

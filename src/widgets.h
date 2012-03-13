@@ -227,10 +227,10 @@ typedef struct {
     Pixmap pixmap;
     unsigned long background;
     unsigned long foreground;
-} OptionItem;
-OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
-                                                int nchoices, OptionItem *items);
-OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...);
+} LabelOptionItem;
+OptionStructure *CreateLabelOptionChoice(Widget parent, char *labelstr, int ncols,
+                                                int nchoices, LabelOptionItem *items);
+OptionStructure *CreateLabelOptionChoiceVA(Widget parent, char *labelstr, ...);
 
 typedef struct {
     int value;
@@ -242,7 +242,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s);
 void UpdateCharOptionChoice(OptionStructure *opt, int font);
 void SetOptionChoice(OptionStructure *opt, int value);
 int GetOptionChoice(OptionStructure *opt);
-void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items);
+void UpdateLabelOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *items);
 void OptionChoiceSetColorUpdate(OptionStructure *opt, int update);
 
 typedef void (*OC_CBProc)(
@@ -262,7 +262,7 @@ struct _OptionStructure {
     int ncols;  /* preferred number of columns */
     Widget menu;
     Widget pulldown;
-    OptionItem *items;
+    LabelOptionItem *items;
     int cvalue;
     int update_colors;
 

@@ -125,7 +125,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
 {
     SetUI *ui;
     Widget tab, fr, rc, rc1, rc2;
-    OptionItem blockitem = {COL_NONE, "None"};
+    LabelOptionItem blockitem = {COL_NONE, "None"};
     unsigned int i;
     Grace *grace = gapp->grace;
 
@@ -170,10 +170,10 @@ SetUI *create_set_ui(ExplorerUI *eui)
     for (i = 0; i < MAX_SET_COLS; i++) {
         char buf[32];
         sprintf(buf, "%s from column:", dataset_col_name(grace, i));
-        ui->cols[i] = CreateOptionChoice(rc, buf, 0, 1, &blockitem);
+        ui->cols[i] = CreateLabelOptionChoice(rc, buf, 0, 1, &blockitem);
         AddOptionChoiceCB(ui->cols[i], oc_explorer_cb, eui);
     }
-    ui->acol = CreateOptionChoice(rc, "Annotations from column:", 0, 1, &blockitem);
+    ui->acol = CreateLabelOptionChoice(rc, "Annotations from column:", 0, 1, &blockitem);
     AddOptionChoiceCB(ui->acol, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Legend");
@@ -196,7 +196,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
 
     rc2 = CreateHContainer(rc);
-    ui->symbols = CreateOptionChoiceVA(rc2, "Type:",
+    ui->symbols = CreateLabelOptionChoiceVA(rc2, "Type:",
         "None",           SYM_NONE,
         "Circle",         SYM_CIRCLE,
         "Square",         SYM_SQUARE,
@@ -256,7 +256,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     fr = CreateFrame(ui->line_tp, "Line properties");
     rc = CreateHContainer(fr);
-    ui->linet = CreateOptionChoiceVA(rc, "Connection:",
+    ui->linet = CreateLabelOptionChoiceVA(rc, "Connection:",
         "None",         LINE_TYPE_NONE,
         "Straight",     LINE_TYPE_STRAIGHT,
         "Left stairs",  LINE_TYPE_LEFTSTAIR,
@@ -265,7 +265,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
         "3-Segments",   LINE_TYPE_SEGMENT3,
         NULL);
     AddOptionChoiceCB(ui->linet, oc_explorer_cb, eui); 
-    ui->baselinetype = CreateOptionChoiceVA(rc, "Base:",
+    ui->baselinetype = CreateLabelOptionChoiceVA(rc, "Base:",
         "Zero",      BASELINE_TYPE_0,
         "Set min",   BASELINE_TYPE_SMIN,
         "Set max",   BASELINE_TYPE_SMAX,
@@ -291,13 +291,13 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->line_tp, "Fill properties");
     rc = CreateVContainer(fr);
     rc2 = CreateHContainer(rc);
-    ui->filltype = CreateOptionChoiceVA(rc2, "Type:",
+    ui->filltype = CreateLabelOptionChoiceVA(rc2, "Type:",
         "None",        SETFILL_NONE,
         "As polygon",  SETFILL_POLYGON,
         "To baseline", SETFILL_BASELINE,
         NULL);
     AddOptionChoiceCB(ui->filltype, oc_explorer_cb, eui); 
-    ui->fillrule = CreateOptionChoiceVA(rc2, "Rule:",
+    ui->fillrule = CreateLabelOptionChoiceVA(rc2, "Rule:",
         "Winding",  FILLRULE_WINDING,
         "Even-Odd", FILLRULE_EVENODD,
         NULL);
@@ -399,7 +399,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->avalue_tp, "Frame");
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
-    ui->frame_decor = CreateOptionChoiceVA(rc1, "Type:",
+    ui->frame_decor = CreateLabelOptionChoiceVA(rc1, "Type:",
         "None",      FRAME_DECOR_NONE,
         "Underline", FRAME_DECOR_LINE,
         "Rectangle", FRAME_DECOR_RECT,
@@ -437,7 +437,7 @@ void update_set_ui(SetUI *ui, Quark *q)
         int i;
         char val[32];
         int blocklen, blockncols;
-        OptionItem *blockitems, *sblockitems;
+        LabelOptionItem *blockitems, *sblockitems;
         unsigned int nncols;
 
         SetOptionChoice(ui->type, p->type);
@@ -445,8 +445,8 @@ void update_set_ui(SetUI *ui, Quark *q)
         blockncols  = ssd_get_ncols(ss);
         blocklen    = ssd_get_nrows(ss);
 
-        blockitems  = xmalloc((blockncols + 1)*sizeof(OptionItem));
-        sblockitems = xmalloc((blockncols + 1)*sizeof(OptionItem));
+        blockitems  = xmalloc((blockncols + 1)*sizeof(LabelOptionItem));
+        sblockitems = xmalloc((blockncols + 1)*sizeof(LabelOptionItem));
         blockitems[0].value = COL_NONE;
         blockitems[0].label = copy_string(NULL, "None");
         sblockitems[0].value = COL_NONE;
@@ -471,10 +471,10 @@ void update_set_ui(SetUI *ui, Quark *q)
             sblockitems[i + 1].label = s;
         }
         for (i = 0; i < MAX_SET_COLS; i++) {
-            UpdateOptionChoice(ui->cols[i], nncols + 1, blockitems);
+            UpdateLabelOptionChoice(ui->cols[i], nncols + 1, blockitems);
             SetOptionChoice(ui->cols[i], p->ds.cols[i]);
         }
-        UpdateOptionChoice(ui->acol, blockncols + 1, sblockitems);
+        UpdateLabelOptionChoice(ui->acol, blockncols + 1, sblockitems);
         SetOptionChoice(ui->acol, p->ds.acol);
 
         xfree(blockitems);

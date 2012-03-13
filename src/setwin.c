@@ -252,7 +252,7 @@ void create_datasetop_popup(Widget but, void *data)
             datasetopui.top, "doc/UsersGuide.html#data-set-operations");
 
         datasetopui.optype_item =
-            CreateOptionChoiceVA(dialog, "Operation type:",
+            CreateLabelOptionChoiceVA(dialog, "Operation type:",
             "Reverse",   DATASETOP_REVERSE,
             "Transpose", DATASETOP_TRANSPOSE,
             "Coalesce",  DATASETOP_COALESCE,
@@ -270,7 +270,7 @@ void create_datasetop_popup(Widget but, void *data)
 #endif
 
         /* Sort */
-        datasetopui.up_down_item = CreateOptionChoiceVA(rc, "Order:",
+        datasetopui.up_down_item = CreateLabelOptionChoiceVA(rc, "Order:",
             "Ascending", FALSE,
             "Descending", TRUE,
             NULL);

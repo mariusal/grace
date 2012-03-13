@@ -173,7 +173,7 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
     AddOptionChoiceCB(ui->arrow_end, oc_explorer_cb, eui);
 
     rc1 = CreateHContainer(rc);
-    ui->a_type = CreateOptionChoiceVA(rc1, "Type:",
+    ui->a_type = CreateLabelOptionChoiceVA(rc1, "Type:",
         "Line",   ARROW_TYPE_LINE,
         "Filled", ARROW_TYPE_FILLED,
         "Circle", ARROW_TYPE_CIRCLE,
@@ -270,7 +270,7 @@ static ArcUI *create_arc_ui(Widget parent, ExplorerUI *eui)
 {
     ArcUI *ui;
     Widget rc, rc1;
-    OptionItem opitems[] = {
+    LabelOptionItem opitems[] = {
         {ARCCLOSURE_CHORD,    "Chord"    },
         {ARCCLOSURE_PIESLICE, "Pie slice"}
     };
@@ -293,7 +293,7 @@ static ArcUI *create_arc_ui(Widget parent, ExplorerUI *eui)
     AddSpinChoiceCB(ui->angle2, sp_explorer_cb, eui);
     
     rc1 = CreateHContainer(rc);
-    ui->closure_type = CreateOptionChoice(rc1, "Closure type:", 1, 2, opitems);
+    ui->closure_type = CreateLabelOptionChoice(rc1, "Closure type:", 1, 2, opitems);
     AddOptionChoiceCB(ui->closure_type, oc_explorer_cb, eui);
     ui->draw_closure = CreateToggleButton(rc1, "Draw closure");
     AddToggleButtonCB(ui->draw_closure, tb_explorer_cb, eui);

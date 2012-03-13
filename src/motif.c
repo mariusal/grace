@@ -603,7 +603,7 @@ static void fsb_cd_cb(OptionStructure *opt, int value, void *data)
     FSBDialogSetDirectory(fsb, dir);
 }
 
-static OptionItem fsb_items[] = {
+static LabelOptionItem fsb_items[] = {
     {FSB_CWD,  "Cwd"},
     {FSB_HOME, "Home"},
     {FSB_ROOT, "/"}
@@ -612,7 +612,7 @@ static OptionItem fsb_items[] = {
 #endif
 };
 
-#define FSB_ITEMS_NUM   sizeof(fsb_items)/sizeof(OptionItem)
+#define FSB_ITEMS_NUM   sizeof(fsb_items)/sizeof(LabelOptionItem)
 
 FSBStructure *CreateFSBDialog(Widget parent, char *s)
 {
@@ -637,7 +637,7 @@ FSBStructure *CreateFSBDialog(Widget parent, char *s)
 
     form = CreateForm(fr);
 
-    opt = CreateOptionChoice(form, "Chdir to:", 1, FSB_ITEMS_NUM, fsb_items);
+    opt = CreateLabelOptionChoice(form, "Chdir to:", 1, FSB_ITEMS_NUM, fsb_items);
     AddOptionChoiceCB(opt, fsb_cd_cb, retval);
     FormAddHChild(form, opt->menu);
 
@@ -1302,8 +1302,8 @@ static void table_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *c
     XtPopdown(XtParent(opt->pulldown));
 }
 
-OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
-    int ncols, int nchoices, OptionItem *items)
+OptionStructure *CreateLabelOptionChoice(Widget parent, char *labelstr,
+    int ncols, int nchoices, LabelOptionItem *items)
 {
     OptionStructure *retval;
     Widget rc, popup;
@@ -1329,7 +1329,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     retval->items = NULL;
     retval->update_colors = FALSE;
 
-    UpdateOptionChoice(retval, nchoices, items);
+    UpdateLabelOptionChoice(retval, nchoices, items);
     AddTableDrawCellCB(retval->pulldown, oc_drawCB, retval);
 
     if (retval->items[0].label) {
@@ -1342,11 +1342,11 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     return retval;
 }
 
-OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...)
+OptionStructure *CreateLabelOptionChoiceVA(Widget parent, char *labelstr, ...)
 {
     OptionStructure *retval;
     int nchoices = 0;
-    OptionItem *oi = NULL;
+    LabelOptionItem *oi = NULL;
     va_list var;
     char *s;
     int value;
@@ -1355,13 +1355,13 @@ OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...)
     while ((s = va_arg(var, char *)) != NULL) {
         value = va_arg(var, int);
         nchoices++;
-        oi = xrealloc(oi, nchoices*sizeof(OptionItem));
+        oi = xrealloc(oi, nchoices*sizeof(LabelOptionItem));
         oi[nchoices - 1].value = value;
         oi[nchoices - 1].label = copy_string(NULL, s);
     }
     va_end(var);
 
-    retval = CreateOptionChoice(parent, labelstr, 1, nchoices, oi);
+    retval = CreateLabelOptionChoice(parent, labelstr, 1, nchoices, oi);
 
     while (nchoices) {
         nchoices--;
@@ -1377,9 +1377,9 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
 {
     int i;
     OptionStructure *retval;
-    OptionItem *pixmap_items;
+    LabelOptionItem *pixmap_items;
 
-    pixmap_items = xmalloc(nchoices*sizeof(OptionItem));
+    pixmap_items = xmalloc(nchoices*sizeof(LabelOptionItem));
     if (pixmap_items == NULL) {
         errmsg("Malloc error in CreateBitmapOptionChoice()");
         return NULL;
@@ -1395,7 +1395,7 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
         }
     }
 
-    retval = CreateOptionChoice(parent, labelstr, ncols, nchoices, pixmap_items);
+    retval = CreateLabelOptionChoice(parent, labelstr, ncols, nchoices, pixmap_items);
 
     xfree(pixmap_items);
 
@@ -1414,10 +1414,10 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
     int *fontid;
 
     OptionStructure *retval;
-    OptionItem *pixmap_items;
+    LabelOptionItem *pixmap_items;
     Pixmap pixmap;
 
-    pixmap_items = xmalloc(nchoices*sizeof(OptionItem));
+    pixmap_items = xmalloc(nchoices*sizeof(LabelOptionItem));
     if (pixmap_items == NULL) {
         errmsg("Malloc error in CreateCharOptionChoice()");
         return NULL;
@@ -1430,7 +1430,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
         pixmap_items[i].pixmap = pixmap;
     }
 
-    retval = CreateOptionChoice(parent, s, 16, nchoices, pixmap_items);
+    retval = CreateLabelOptionChoice(parent, s, 16, nchoices, pixmap_items);
 
     xfree(pixmap_items);
 
@@ -1493,7 +1493,7 @@ int GetOptionChoice(OptionStructure *opt)
 }
 
 #define MAX_PULLDOWN_LENGTH 30
-void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
+void UpdateLabelOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *items)
 {
     int i, ncols, nrows, nc, nr;
     int delta_nc, delta_nr;
@@ -1533,7 +1533,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
         xfree(optp->items[i].label);
     }
 
-    optp->items = xrealloc(optp->items, nchoices*sizeof(OptionItem));
+    optp->items = xrealloc(optp->items, nchoices*sizeof(LabelOptionItem));
 
     for (i = 0; i < nchoices; i++) {
         char *label;

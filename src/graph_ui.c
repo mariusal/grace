@@ -37,7 +37,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     GraphUI *ui;
     Widget tab, fr, rc, rc1;
 
-    OptionItem opitems[4] = {
+    LabelOptionItem opitems[4] = {
         {SCALE_NORMAL, "Linear"     },
         {SCALE_LOG,    "Logarithmic"},
         {SCALE_REC,    "Reciprocal" },
@@ -60,7 +60,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     rc1 = CreateVContainer(fr);
 
     rc = CreateHContainer(rc1);
-    ui->graph_type = CreateOptionChoiceVA(rc, "Type:",
+    ui->graph_type = CreateLabelOptionChoiceVA(rc, "Type:",
         "XY graph",          GRAPH_XY,
         "XY chart",          GRAPH_CHART,
         "Polar graph",       GRAPH_POLAR,
@@ -87,7 +87,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     AddTextActivateCB(ui->stop_x, text_explorer_cb, eui);
 
     rc = CreateHContainer(rc1);
-    ui->scale_x = CreateOptionChoice(rc, "Scale:", 0, 4, opitems);
+    ui->scale_x = CreateLabelOptionChoice(rc, "Scale:", 0, 4, opitems);
     AddOptionChoiceCB(ui->scale_x, axis_scale_cb, eui);
     AddOptionChoiceCB(ui->scale_x, oc_explorer_cb, eui);
 
@@ -104,7 +104,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     AddTextActivateCB(ui->stop_y, text_explorer_cb, eui);
 
     rc = CreateHContainer(rc1);
-    ui->scale_y = CreateOptionChoice(rc, "Scale:", 0, 4, opitems);
+    ui->scale_y = CreateLabelOptionChoice(rc, "Scale:", 0, 4, opitems);
     AddOptionChoiceCB(ui->scale_y, axis_scale_cb, eui);
     AddOptionChoiceCB(ui->scale_y, oc_explorer_cb, eui);
 
@@ -124,7 +124,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     /* ------------ Locator tab -------------- */
 
     ui->locator_tp = CreateTabPage(tab, "Locator");
-    ui->loc_type = CreateOptionChoiceVA(ui->locator_tp,
+    ui->loc_type = CreateLabelOptionChoiceVA(ui->locator_tp,
             "Locator display type:",
             "None",       GLOCATOR_TYPE_NONE,
             "[X, Y]",     GLOCATOR_TYPE_XY,

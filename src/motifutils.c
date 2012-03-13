@@ -87,7 +87,7 @@ extern XtAppContext app_con;
 static unsigned long *xvlibcolors;
 
 
-static OptionItem *color_option_items = NULL;
+static LabelOptionItem *color_option_items = NULL;
 static unsigned int ncolor_option_items = 0;
 static OptionStructure **color_selectors = NULL;
 static unsigned int ncolor_selectors = 0;
@@ -177,7 +177,7 @@ static void list_invertselection_action(Widget w, XEvent *e, String *par,
 }
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
-                                int nvisible, int nchoices, OptionItem *items)
+                                int nvisible, int nchoices, LabelOptionItem *items)
 {
     Arg args[4];
     Widget lab;
@@ -215,7 +215,7 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     return retval;
 }
 
-void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
+void UpdateListChoice(ListStructure *listp, int nchoices, LabelOptionItem *items)
 {
     int i, nsel;
     int *selvalues;
@@ -941,9 +941,9 @@ void destroy_dialog_cb(Widget but, void *data)
     DialogClose(data);
 }
 
-static OptionItem *settype_option_items;
-static OptionItem *fmt_option_items;
-static OptionItem *frametype_option_items;
+static LabelOptionItem *settype_option_items;
+static LabelOptionItem *fmt_option_items;
+static LabelOptionItem *frametype_option_items;
 static BitmapOptionItem *pattern_option_items;
 static BitmapOptionItem *lines_option_items;
 
@@ -1038,7 +1038,7 @@ int init_option_menus(void) {
         }
     }
 
-    settype_option_items = xmalloc(NUMBER_OF_SETTYPES*sizeof(OptionItem));
+    settype_option_items = xmalloc(NUMBER_OF_SETTYPES*sizeof(LabelOptionItem));
     if (settype_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
         return RETURN_FAILURE;
@@ -1049,7 +1049,7 @@ int init_option_menus(void) {
             set_type_descr(gapp->grace, i));
     }
 
-    fmt_option_items = xmalloc(NUMBER_OF_FORMATTYPES*sizeof(OptionItem));
+    fmt_option_items = xmalloc(NUMBER_OF_FORMATTYPES*sizeof(LabelOptionItem));
     if (fmt_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
         return RETURN_FAILURE;
@@ -1060,7 +1060,7 @@ int init_option_menus(void) {
             format_type_descr(gapp->grace, i));
     }
 
-    frametype_option_items = xmalloc(NUMBER_OF_FRAMETYPES*sizeof(OptionItem));
+    frametype_option_items = xmalloc(NUMBER_OF_FRAMETYPES*sizeof(LabelOptionItem));
     if (frametype_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
         return RETURN_FAILURE;
@@ -1074,7 +1074,7 @@ int init_option_menus(void) {
     return RETURN_SUCCESS;
 }
 
-static OptionItem *font_option_items = NULL;
+static LabelOptionItem *font_option_items = NULL;
 static unsigned int nfont_option_items = 0;
 static OptionStructure **font_selectors = NULL;
 static unsigned int nfont_selectors = 0;
@@ -1086,7 +1086,7 @@ void update_font_selectors(void)
     
     nfont_option_items = pr->nfonts;
     font_option_items =
-        xrealloc(font_option_items, nfont_option_items*sizeof(OptionItem));
+        xrealloc(font_option_items, nfont_option_items*sizeof(LabelOptionItem));
 
     for (i = 0; i < nfont_option_items; i++) {
         Fontdef *f = &pr->fontmap[i];
@@ -1095,7 +1095,7 @@ void update_font_selectors(void)
     }
     
     for (i = 0; i < nfont_selectors; i++) {
-        UpdateOptionChoice(font_selectors[i], 
+        UpdateLabelOptionChoice(font_selectors[i], 
                             nfont_option_items, font_option_items);
     }
 }
@@ -1112,7 +1112,7 @@ OptionStructure *CreateFontChoice(Widget parent, char *s)
         return retvalp;
     }
     
-    retvalp = CreateOptionChoice(parent, s, 0, 
+    retvalp = CreateLabelOptionChoice(parent, s, 0, 
                                 nfont_option_items, font_option_items);
 
     font_selectors[nfont_selectors - 1] = retvalp;
@@ -1134,13 +1134,13 @@ OptionStructure *CreateLineStyleChoice(Widget parent, char *s)
 
 OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
 {
-    return (CreateOptionChoice(parent,
+    return (CreateLabelOptionChoice(parent,
         s, 0, NUMBER_OF_SETTYPES, settype_option_items));
 }
 
 OptionStructure *CreateFrameTypeChoice(Widget parent, char *s)
 {
-    return (CreateOptionChoice(parent,
+    return (CreateLabelOptionChoice(parent,
         s, 0, NUMBER_OF_FRAMETYPES, frametype_option_items));
 }
 
@@ -1189,7 +1189,7 @@ RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)
 {
     RestrictionStructure *retval;
     Widget rc;
-    OptionItem restr_items[7];
+    LabelOptionItem restr_items[7];
 
     restr_items[0].value = RESTRICT_NONE;
     restr_items[0].label = "None";
@@ -1214,7 +1214,7 @@ RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)
         XmNorientation, XmHORIZONTAL,
         NULL);
 
-    retval->r_sel = CreateOptionChoice(rc,
+    retval->r_sel = CreateLabelOptionChoice(rc,
         "Restriction:", 1, 7, restr_items);
     retval->negate = CreateToggleButton(rc, "Negated");
     WidgetManage(rc);
@@ -2030,11 +2030,11 @@ ListStructure *CreateColChoice(Widget parent, char *labelstr, int type)
 void UpdateColChoice(ListStructure *sel, const Quark *ssd)
 {
     unsigned int i, ncols;
-    OptionItem *items;
+    LabelOptionItem *items;
 
     if (ssd) {
         ncols = ssd_get_ncols(ssd);
-        items = xmalloc(ncols*sizeof(OptionItem));
+        items = xmalloc(ncols*sizeof(LabelOptionItem));
         for (i = 0; i < ncols; i++) {
             char *label, *s, buf[32];
             items[i].value = i;
@@ -2138,7 +2138,7 @@ void update_color_selectors(void)
     ncolor_option_items = pr->ncolors;
 
     color_option_items = xrealloc(color_option_items,
-                                    ncolor_option_items*sizeof(OptionItem));
+                                    ncolor_option_items*sizeof(LabelOptionItem));
     for (i = 0; i < pr->ncolors; i++) {
         Colordef *c = &pr->colormap[i];
         color_option_items[i].value = c->id;
@@ -2155,7 +2155,7 @@ void update_color_selectors(void)
     }
     
     for (i = 0; i < ncolor_selectors; i++) {
-        UpdateOptionChoice(color_selectors[i], 
+        UpdateLabelOptionChoice(color_selectors[i], 
                             ncolor_option_items, color_option_items);
     }
     
@@ -2174,7 +2174,7 @@ OptionStructure *CreateColorChoice(Widget parent, char *s)
         return retvalp;
     }
     
-    retvalp = CreateOptionChoice(parent, s, 4, 
+    retvalp = CreateLabelOptionChoice(parent, s, 4, 
                                 ncolor_option_items, color_option_items);
     OptionChoiceSetColorUpdate(retvalp, TRUE);
 
@@ -2193,20 +2193,20 @@ OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, ...)
 {
     OptionStructure *retval;
     int nchoices = 0;
-    OptionItem *oi = NULL;
+    LabelOptionItem *oi = NULL;
     va_list var;
     char *s;
 
     va_start(var, labelstr);
     while ((s = va_arg(var, char *)) != NULL) {
         nchoices++;
-        oi = xrealloc(oi, nchoices*sizeof(OptionItem));
+        oi = xrealloc(oi, nchoices*sizeof(LabelOptionItem));
         oi[nchoices - 1].value = nchoices - 1;
         oi[nchoices - 1].label = copy_string(NULL, s);
     }
     va_end(var);
 
-    retval = CreateOptionChoice(parent, labelstr, 1, nchoices, oi);
+    retval = CreateLabelOptionChoice(parent, labelstr, 1, nchoices, oi);
     
     while (nchoices) {
         nchoices--;
@@ -2265,7 +2265,7 @@ FormatStructure *CreateFormatChoice(Widget parent)
     
     rc = CreateVContainer(parent);
     rc1 = CreateHContainer(rc);
-    retval->type = CreateOptionChoice(rc1, "Type:",
+    retval->type = CreateLabelOptionChoice(rc1, "Type:",
         1, NUMBER_OF_FORMATTYPES, fmt_option_items);
     AddOptionChoiceCB(retval->type, format_oc_cb, retval);
     retval->prec = CreatePrecisionChoice(rc1, "Precision:");
@@ -2304,7 +2304,7 @@ void AddFormatChoiceCB(FormatStructure *fstr, Format_CBProc cbproc, void *data)
 }
 
 
-static OptionItem as_option_items[4] = 
+static LabelOptionItem as_option_items[4] = 
 {
     {AUTOSCALE_NONE, "None"},
     {AUTOSCALE_X,    "X"},
@@ -2316,7 +2316,7 @@ OptionStructure *CreateASChoice(Widget parent, char *s)
 {
     OptionStructure *retval;
     
-    retval = CreateOptionChoice(parent, s, 1, 4, as_option_items);
+    retval = CreateLabelOptionChoice(parent, s, 1, 4, as_option_items);
     /* As init value, use this */
     SetOptionChoice(retval, gapp->rt->autoscale_onread);
     
@@ -2325,7 +2325,7 @@ OptionStructure *CreateASChoice(Widget parent, char *s)
 
 OptionStructure *CreatePrecisionChoice(Widget parent, char *s)
 {
-    return CreateOptionChoiceVA(parent, s,
+    return CreateLabelOptionChoiceVA(parent, s,
         "0", 0,
         "1", 1,
         "2", 2,
@@ -2341,7 +2341,7 @@ OptionStructure *CreatePrecisionChoice(Widget parent, char *s)
 
 OptionStructure *CreatePaperOrientationChoice(Widget parent, char *s)
 {
-    return CreateOptionChoiceVA(parent, s,
+    return CreateLabelOptionChoiceVA(parent, s,
         "Landscape", PAGE_ORIENT_LANDSCAPE,
         "Portrait",  PAGE_ORIENT_PORTRAIT,
         NULL);
@@ -2349,7 +2349,7 @@ OptionStructure *CreatePaperOrientationChoice(Widget parent, char *s)
 
 OptionStructure *CreatePaperFormatChoice(Widget parent, char *s)
 {
-    return CreateOptionChoiceVA(parent, s,
+    return CreateLabelOptionChoiceVA(parent, s,
         "Custom", PAGE_FORMAT_CUSTOM,
         "Letter", PAGE_FORMAT_USLETTER,
         "A4",     PAGE_FORMAT_A4,

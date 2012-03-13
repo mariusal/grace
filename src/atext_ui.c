@@ -93,7 +93,7 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->frame_tp, "Frame");
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
-    ui->frame_decor = CreateOptionChoiceVA(rc1, "Type:",
+    ui->frame_decor = CreateLabelOptionChoiceVA(rc1, "Type:",
         "None",      FRAME_DECOR_NONE,
         "Underline", FRAME_DECOR_LINE,
         "Rectangle", FRAME_DECOR_RECT,
@@ -120,7 +120,7 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     AddToggleButtonCB(ui->arrow_flag, tb_explorer_cb, eui);
 
     rc1 = CreateHContainer(rc);
-    ui->a_type = CreateOptionChoiceVA(rc1, "Arrow type:",
+    ui->a_type = CreateLabelOptionChoiceVA(rc1, "Arrow type:",
         "Line",   ARROW_TYPE_LINE,
         "Filled", ARROW_TYPE_FILLED,
         "Circle", ARROW_TYPE_CIRCLE,

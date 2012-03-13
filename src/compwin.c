@@ -183,7 +183,7 @@ static void *interp_build_cb(TransformStructure *tdialog)
     ui = xmalloc(sizeof(Interp_ui));
     if (ui) {
         Widget rc, rc2;
-        OptionItem opitems[3];
+        LabelOptionItem opitems[3];
         
         rc = CreateVContainer(tdialog->frame);
 
@@ -194,7 +194,7 @@ static void *interp_build_cb(TransformStructure *tdialog)
         opitems[1].label = "Cubic spline";
         opitems[2].value = INTERP_ASPLINE;
         opitems[2].label = "Akima spline";
-        ui->method = CreateOptionChoice(rc2, "Method:", 0, 3, opitems);
+        ui->method = CreateLabelOptionChoice(rc2, "Method:", 0, 3, opitems);
 
         ui->strict =
             CreateToggleButton(rc2, "Strict (within source set bounds)");
@@ -205,7 +205,7 @@ static void *interp_build_cb(TransformStructure *tdialog)
         opitems[0].label = "Linear mesh";
         opitems[1].value = SAMPLING_SET;
         opitems[1].label = "Abscissas of another set";
-        ui->sampling = CreateOptionChoice(rc, "Sampling:", 0, 2, opitems);
+        ui->sampling = CreateLabelOptionChoice(rc, "Sampling:", 0, 2, opitems);
         AddOptionChoiceCB(ui->sampling, sampling_cb, ui);
 
         ui->mrc = CreateHContainer(rc);
@@ -356,7 +356,7 @@ static void *histo_build_cb(TransformStructure *tdialog)
     ui = xmalloc(sizeof(Histo_ui));
     if (ui) {
         Widget rc, rc2;
-        OptionItem opitems[3];
+        LabelOptionItem opitems[3];
         
         rc = CreateVContainer(tdialog->frame);
 
@@ -370,7 +370,7 @@ static void *histo_build_cb(TransformStructure *tdialog)
         opitems[0].label = "Linear mesh";
         opitems[1].value = SAMPLING_SET;
         opitems[1].label = "Abscissas of another set";
-        ui->sampling = CreateOptionChoice(rc, "Bin sampling:", 0, 2, opitems);
+        ui->sampling = CreateLabelOptionChoice(rc, "Bin sampling:", 0, 2, opitems);
         AddOptionChoiceCB(ui->sampling, binsampling_cb, ui);
 
         ui->mrc = CreateHContainer(rc);
@@ -562,7 +562,7 @@ static void *fourier_build_cb(TransformStructure *tdialog)
     ui = xmalloc(sizeof(Four_ui));
     if (ui) {
         Widget rc, fr, rc1, rc2;
-        OptionItem window_opitems[] = {
+        LabelOptionItem window_opitems[] = {
             {FFT_WINDOW_NONE,       "None (Rectangular)"},
             {FFT_WINDOW_TRIANGULAR, "Triangular"        },
             {FFT_WINDOW_PARZEN,     "Parzen"            },
@@ -575,7 +575,7 @@ static void *fourier_build_cb(TransformStructure *tdialog)
             {FFT_WINDOW_KAISER,     "Kaiser"            }
 #endif
         };
-        OptionItem output_opitems[] = {
+        LabelOptionItem output_opitems[] = {
             {FFT_OUTPUT_MAGNITUDE, "Magnitude"       },
             {FFT_OUTPUT_PHASE,     "Phase"           },
             {FFT_OUTPUT_RE,        "Real part"       },
@@ -583,12 +583,12 @@ static void *fourier_build_cb(TransformStructure *tdialog)
             {FFT_OUTPUT_REIM,      "Complex"         },
             {FFT_OUTPUT_APHI,      "Complex (A, Phi)"}
         };
-        OptionItem xscale_opitems[] = {
+        LabelOptionItem xscale_opitems[] = {
             {FFT_XSCALE_INDEX, "Index"         },
             {FFT_XSCALE_NU,    "Frequency"     },
             {FFT_XSCALE_OMEGA, "Ang. frequency"}
         };
-        OptionItem norm_opitems[] = {
+        LabelOptionItem norm_opitems[] = {
             {FFT_NORM_NONE,      "None"     },
             {FFT_NORM_SYMMETRIC, "Symmetric"},
             {FFT_NORM_FORWARD,   "Forward"  },
@@ -602,8 +602,8 @@ static void *fourier_build_cb(TransformStructure *tdialog)
 	ui->inverse = CreateToggleButton(rc1, "Perform backward transform");
         AddToggleButtonCB(ui->inverse, toggle_inverse_cb, (void *) ui);
 	rc2 = CreateHContainer(rc1);
-	ui->xscale = CreateOptionChoice(rc2, "X scale:", 0, 3, xscale_opitems);
-	ui->norm = CreateOptionChoice(rc2, "Normalize:", 0, 4, norm_opitems);
+	ui->xscale = CreateLabelOptionChoice(rc2, "X scale:", 0, 3, xscale_opitems);
+	ui->norm = CreateLabelOptionChoice(rc2, "Normalize:", 0, 4, norm_opitems);
         
         fr = CreateFrame(rc, "Input");
 	rc1 = CreateVContainer(fr);
@@ -611,8 +611,8 @@ static void *fourier_build_cb(TransformStructure *tdialog)
         AddToggleButtonCB(ui->complexin, toggle_complex_cb, (void *) ui);
 	ui->dcdump = CreateToggleButton(rc1, "Dump DC component");
 	rc2 = CreateHContainer(rc1);
-	ui->window = CreateOptionChoice(rc2,
-            "Apply window:", 0, sizeof(window_opitems)/sizeof(OptionItem),
+	ui->window = CreateLabelOptionChoice(rc2,
+            "Apply window:", 0, sizeof(window_opitems)/sizeof(LabelOptionItem),
             window_opitems);
         AddOptionChoiceCB(ui->window, option_window_cb, (void *) ui);
         ui->winpar = CreateSpinChoice(rc2,
@@ -624,7 +624,7 @@ static void *fourier_build_cb(TransformStructure *tdialog)
 
         fr = CreateFrame(rc, "Output");
 	rc1 = CreateHContainer(fr);
-        ui->output = CreateOptionChoice(rc1,
+        ui->output = CreateLabelOptionChoice(rc1,
             "Load:", 0, 6, output_opitems);
 	ui->halflen = CreateToggleButton(rc1, "Half length");
         
@@ -723,22 +723,22 @@ static void *diff_build_cb(TransformStructure *tdialog)
     ui = xmalloc(sizeof(Diff_ui));
     if (ui) {
         Widget rc, rc2;
-        OptionItem topitems[] = {
+        LabelOptionItem topitems[] = {
             {DIFF_TYPE_PLAIN,      "Plain differences"},
             {DIFF_TYPE_DERIVATIVE, "Derivative"       }
         };
-        OptionItem xopitems[] = {
+        LabelOptionItem xopitems[] = {
             {DIFF_XPLACE_LEFT,   "Left"  },
             {DIFF_XPLACE_CENTER, "Center"},
             {DIFF_XPLACE_RIGHT,  "Right" }
         };
 	
         rc = CreateVContainer(tdialog->frame);
-        ui->type   = CreateOptionChoice(rc, "Type:", 0, 2, topitems);
+        ui->type   = CreateLabelOptionChoice(rc, "Type:", 0, 2, topitems);
         rc2 = CreateHContainer(rc);
         ui->period = CreateSpinChoice(rc2, "Period", 6, SPIN_TYPE_INT,
             (double) 1, (double) 999999, (double) 1);
-        ui->xplace = CreateOptionChoice(rc2, "X placement:", 0, 3, xopitems);
+        ui->xplace = CreateLabelOptionChoice(rc2, "X placement:", 0, 3, xopitems);
         
         SpinChoiceSetValue(ui->period, (double) 1);
     }
@@ -849,26 +849,26 @@ static void *run_build_cb(TransformStructure *tdialog)
     if (ui) {
         Widget rc;
         OptionStructure *type;
-        OptionItem topitems[] = {
+        LabelOptionItem topitems[] = {
             {RUN_TYPE_CUSTOM,  "Custom"   },
             {RUN_TYPE_AVERAGE, "Average"  },
             {RUN_TYPE_STDDEV,  "Std. dev."},
             {RUN_TYPE_MIN,     "Minimum"  },
             {RUN_TYPE_MAX,     "Maximum"  }
         };
-        OptionItem xopitems[] = {
+        LabelOptionItem xopitems[] = {
             {RUN_XPLACE_LEFT,    "Left"   },
             {RUN_XPLACE_AVERAGE, "Average"},
             {RUN_XPLACE_RIGHT,   "Right"  }
         };
 	
 	rc = CreateVContainer(tdialog->frame);
-        type = CreateOptionChoice(rc, "Type:", 0, 5, topitems);
+        type = CreateLabelOptionChoice(rc, "Type:", 0, 5, topitems);
         AddOptionChoiceCB(type, run_type_cb, (void *) ui);
 	ui->formula = CreateText(rc, "Formula:");
 	ui->length = CreateSpinChoice(rc, "Length of sample", 6, SPIN_TYPE_INT,
             (double) 1, (double) 999999, (double) 1);
-        ui->xplace = CreateOptionChoice(rc, "X placement:", 0, 3, xopitems);
+        ui->xplace = CreateLabelOptionChoice(rc, "X placement:", 0, 3, xopitems);
         
         /* default settings */
         SpinChoiceSetValue(ui->length, 1);
@@ -1300,31 +1300,31 @@ static void *prune_build_cb(TransformStructure *tdialog)
     ui = xmalloc(sizeof(Prune_ui));
     if (ui) {
 	Widget rc, rc2;
-        OptionItem topitems[] = {
+        LabelOptionItem topitems[] = {
             {PRUNE_TYPE_POINTS, "Points"       },
             {PRUNE_TYPE_INTERP, "Interpolation"}
         };
-        OptionItem aopitems[] = {
+        LabelOptionItem aopitems[] = {
             {PRUNE_AREA_RECTANGLE, "Rectangle"},
             {PRUNE_AREA_ELLIPSE,   "Ellipse"  }
         };
-        OptionItem dopitems[] = {
+        LabelOptionItem dopitems[] = {
             {PRUNE_DELTA_ABSOLUTE, "Absolute"},
             {PRUNE_DELTA_RELATIVE, "Relative"}
         };
         
 	rc = CreateVContainer(tdialog->frame);
 
-        ui->type = CreateOptionChoice(rc, "Prune type:", 0, 2, topitems);
-        ui->area = CreateOptionChoice(rc, "Prune area:", 0, 2, aopitems);
+        ui->type = CreateLabelOptionChoice(rc, "Prune type:", 0, 2, topitems);
+        ui->area = CreateLabelOptionChoice(rc, "Prune area:", 0, 2, aopitems);
 
 	rc2 = CreateHContainer(rc);
 	ui->dx = CreateText2(rc2, "DX:", 16);
-	ui->dxtype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
+	ui->dxtype = CreateLabelOptionChoice(rc2, "Type:", 0, 2, dopitems);
 	
 	rc2 = CreateHContainer(rc);
 	ui->dy = CreateText2(rc2, "DY:", 16);
-	ui->dytype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
+	ui->dytype = CreateLabelOptionChoice(rc2, "Type:", 0, 2, dopitems);
     }
 
     return (void *) ui;
@@ -1630,7 +1630,7 @@ void create_cumulative_frame(Widget but, void *data)
         PlaceGridChild(grid, ui->src->frame, 0, 0);
         PlaceGridChild(grid, ui->dst->frame, 1, 0);
         rc = CreateHContainer(ui->top);
-        ui->type = CreateOptionChoiceVA(rc, "Property type:",
+        ui->type = CreateLabelOptionChoiceVA(rc, "Property type:",
             "Average", RUN_AVG,
             "Std.dev", RUN_STD,
             "Minimum", RUN_MIN,

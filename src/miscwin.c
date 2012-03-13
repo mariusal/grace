@@ -83,7 +83,7 @@ void create_props_frame(Widget but, void *data)
 
 	noask_item = CreateToggleButton(rc1, "Don't ask questions");
 
-	graph_focus_choice_item = CreateOptionChoiceVA(rc1,
+	graph_focus_choice_item = CreateLabelOptionChoiceVA(rc1,
             "Graph focus switch",
 	    "Button press",  FOCUS_CLICK,
 	    "As set",        FOCUS_SET,

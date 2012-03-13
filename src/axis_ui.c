@@ -42,7 +42,7 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
 {
     AGridUI *ui;
     int i;
-    OptionItem opitems[3];
+    LabelOptionItem opitems[3];
     char buf[32];
     Widget tab, rc, rc2, rc3, fr;
 
@@ -59,7 +59,7 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     opitems[0].label = "X";
     opitems[1].value = AXIS_TYPE_Y;
     opitems[1].label = "Y";
-    ui->type = CreateOptionChoice(rc, "Type:", 0, 2, opitems);
+    ui->type = CreateLabelOptionChoice(rc, "Type:", 0, 2, opitems);
     AddOptionChoiceCB(ui->type, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Spacing");
@@ -128,7 +128,7 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     /* major tick marks */
     fr = CreateFrame(rc2, "Major ticks");
     rc = CreateVContainer(fr);
-    ui->tinout = CreateOptionChoiceVA(rc, "Pointing:",
+    ui->tinout = CreateLabelOptionChoiceVA(rc, "Pointing:",
         "In",   TICKS_IN,
         "Out",  TICKS_OUT,
         "Both", TICKS_BOTH,
@@ -146,7 +146,7 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
 
     fr = CreateFrame(rc2, "Minor ticks");
     rc = CreateVContainer(fr);
-    ui->tminout = CreateOptionChoiceVA(rc, "Pointing:",
+    ui->tminout = CreateLabelOptionChoiceVA(rc, "Pointing:",
         "In",   TICKS_IN,
         "Out",  TICKS_OUT,
         "Both", TICKS_BOTH,
@@ -239,7 +239,7 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     opitems[1].label = "Tick marks";
     opitems[2].value = TICKS_SPEC_BOTH;
     opitems[2].label = "Tick marks and labels";
-    ui->specticks = CreateOptionChoice(ui->special_tp, "Special ticks:", 0, 3, opitems);
+    ui->specticks = CreateLabelOptionChoice(ui->special_tp, "Special ticks:", 0, 3, opitems);
     AddOptionChoiceCB(ui->specticks, oc_explorer_cb, eui);
 
     ui->nspec = CreateSpinChoice(ui->special_tp, "Number of user ticks to use:",
@@ -603,7 +603,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
 
     fr = CreateFrame(ui->top, "Position");
     rc = CreateHContainer(fr);
-    ui->position = CreateOptionChoiceVA(rc, "Placement:",
+    ui->position = CreateLabelOptionChoiceVA(rc, "Placement:",
         "Normal",   AXIS_POS_NORMAL,
         "Opposite", AXIS_POS_OPPOSITE,
         "Zero",     AXIS_POS_ZERO,

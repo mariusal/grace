@@ -282,8 +282,8 @@ void create_file_popup(Widget but, void *data)
     if (rdata_dialog == NULL) {
         Widget rc, rc2, fr;
         rdataGUI *gui;
-        OptionItem option_items[3];
-        OptionItem opitems[4] = {
+        LabelOptionItem option_items[3];
+        LabelOptionItem opitems[4] = {
             {FMT_iso,      "ISO"     },
             {FMT_european, "European"},
             {FMT_us,       "US"      },
@@ -310,12 +310,12 @@ void create_file_popup(Widget but, void *data)
 	option_items[1].label = "NXY";
 	option_items[2].value = LOAD_BLOCK;
 	option_items[2].label = "Block data";
-	gui->load_item = CreateOptionChoice(rc2, "Load as:", 1, 3, option_items);
+	gui->load_item = CreateLabelOptionChoice(rc2, "Load as:", 1, 3, option_items);
         AddOptionChoiceCB(gui->load_item, set_load_proc, (void *) gui);
         gui->ftype_item = CreateSetTypeChoice(rc2, "Set type:");
 
 	rc2 = CreateHContainer(rc);
-        gui->src_item = CreateOptionChoiceVA(rc2, "Data source:",
+        gui->src_item = CreateLabelOptionChoiceVA(rc2, "Data source:",
             "Disk", SOURCE_DISK,
             "Pipe", SOURCE_PIPE,
             NULL);
@@ -323,7 +323,7 @@ void create_file_popup(Widget but, void *data)
 
 	rc2 = CreateHContainer(rc);
 	gui->auto_item = CreateASChoice(rc2, "Autoscale on read:");
-        gui->datehint = CreateOptionChoice(rc2, "Date hint:", 0, 4, opitems);
+        gui->datehint = CreateLabelOptionChoice(rc2, "Date hint:", 0, 4, opitems);
 	SetOptionChoice(gui->datehint, get_date_hint(gapp));
 
         WidgetManage(rdata_dialog->FSB);

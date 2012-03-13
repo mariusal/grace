@@ -153,7 +153,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
     if (ui) {
         int i;
         char buf[256];
-        OptionItem np_option_items[MAXPARM + 1], option_items[5];
+        LabelOptionItem np_option_items[MAXPARM + 1], option_items[5];
         Widget frame, menubar, menupane, rc;
         Widget nonl_tab, nonl_main, nonl_advanced;
         Widget sw, title_fr, fr3, rc1, rc2, rc3, lab;
@@ -208,7 +208,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
             sprintf(buf, "%d", i);
 	    np_option_items[i].label = copy_string(NULL, buf);
         }
-	ui->nparm_item = CreateOptionChoice(rc1,
+	ui->nparm_item = CreateLabelOptionChoice(rc1,
             "Parameters:", 1, MAXPARM + 1, np_option_items);
         AddOptionChoiceCB(ui->nparm_item, do_nparm_toggle, ui);
         
@@ -261,7 +261,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         option_items[3].label = "1/dY^2";
         option_items[4].value = WEIGHT_CUSTOM;
         option_items[4].label = "Custom";
-	ui->weigh_item = CreateOptionChoice(rc3, "Weights", 1, 5, option_items);
+	ui->weigh_item = CreateLabelOptionChoice(rc3, "Weights", 1, 5, option_items);
 	ui->wfunc_item = CreateText2(rc3, "Function:", 30);
 	AddOptionChoiceCB(ui->weigh_item, nonl_wf_cb, ui->wfunc_item);
 
@@ -273,7 +273,7 @@ static void *nonl_build_cb(TransformStructure *tdialog)
         option_items[1].label = "Residuals";
         option_items[2].value = LOAD_FUNCTION;
         option_items[2].label = "Function";
-	ui->load_item = CreateOptionChoice(rc3, "Load", 1, 3, option_items);
+	ui->load_item = CreateLabelOptionChoice(rc3, "Load", 1, 3, option_items);
 	ui->fload_rc = CreateHContainer(rc3);
 	ui->start_item = CreateText2(ui->fload_rc, "Start load at:", 6);
 	ui->stop_item = CreateText2(ui->fload_rc, "Stop load at:", 6);

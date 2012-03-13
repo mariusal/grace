@@ -121,7 +121,7 @@ void create_printer_setup(Widget but, void *data)
         int i, j, ndev;
         Widget rc, rc1, fr, wbut;
         Widget menubar, menupane;
-        OptionItem *options;
+        LabelOptionItem *options;
 
 	pui = xmalloc(sizeof(PrintUI));
         memset(pui, 0, sizeof(PrintUI));
@@ -152,7 +152,7 @@ void create_printer_setup(Widget but, void *data)
 	pui->pdev_rc = CreateHContainer(rc1);
 
 	ndev = number_of_devices(canvas);
-        options = xmalloc(ndev*sizeof(OptionItem));
+        options = xmalloc(ndev*sizeof(LabelOptionItem));
         for (i = 0, j = 0; i < ndev; i++) {
             if (!device_is_aux(canvas, i)) {
                 options[j].value = i;
@@ -161,7 +161,7 @@ void create_printer_setup(Widget but, void *data)
             }
         }
         pui->devices =
-            CreateOptionChoice(pui->pdev_rc, "Device: ", 1, j, options);
+            CreateLabelOptionChoice(pui->pdev_rc, "Device: ", 1, j, options);
 	AddOptionChoiceCB(pui->devices, do_device_toggle, pui);
         xfree(options);
         
@@ -175,13 +175,13 @@ void create_printer_setup(Widget but, void *data)
 
 	pui->rc_printsel = CreateHContainer(rc1);
         if (gapp->rt->use_cups) {
-            options = xmalloc(gapp->rt->num_print_dests*sizeof(OptionItem));
+            options = xmalloc(gapp->rt->num_print_dests*sizeof(LabelOptionItem));
 
             for (i = 0; i < gapp->rt->num_print_dests; i++) {
                 options[i].value = i;
                 options[i].label = gapp->rt->print_dests[i].printer;
             }
-	    pui->destination = CreateOptionChoice(pui->rc_printsel, "Destination:",
+	    pui->destination = CreateLabelOptionChoice(pui->rc_printsel, "Destination:",
                 0, gapp->rt->num_print_dests, options);
 
             xfree(options);
@@ -215,7 +215,7 @@ void create_printer_setup(Widget but, void *data)
 	rc = CreateHContainer(rc1);
         pui->page_x = CreateText2(rc, "Dimensions:", 7);
         pui->page_y = CreateText2(rc, "x ", 7);
-        options = xmalloc(3*sizeof(OptionItem));
+        options = xmalloc(3*sizeof(LabelOptionItem));
         options[0].value = 0;
         options[0].label = "pix";
         options[1].value = 1;
@@ -223,7 +223,7 @@ void create_printer_setup(Widget but, void *data)
         options[2].value = 2;
         options[2].label = "cm";
         pui->page_size_unit =
-            CreateOptionChoice(rc, " ", 1, 3, options);
+            CreateLabelOptionChoice(rc, " ", 1, 3, options);
 	AddOptionChoiceCB(pui->page_size_unit, do_units_toggle, pui);
         xfree(options);
         SetOptionChoice(pui->page_size_unit, pui->current_page_units);
@@ -235,7 +235,7 @@ void create_printer_setup(Widget but, void *data)
         fr = CreateFrame(pui->psetup_rc, "Fonts & Colors");
         rc1 = CreateVContainer(fr);
 
-        options = xmalloc(5*sizeof(OptionItem));
+        options = xmalloc(5*sizeof(LabelOptionItem));
         options[0].value = FONT_RASTER_DEVICE;
         options[0].label = "Device";
         options[1].value = FONT_RASTER_MONO;
@@ -246,11 +246,11 @@ void create_printer_setup(Widget but, void *data)
         options[3].label = "AA-high";
         options[4].value = FONT_RASTER_AA_SMART;
         options[4].label = "AA-smart";
-	pui->fontrast = CreateOptionChoice(rc1,
+	pui->fontrast = CreateLabelOptionChoice(rc1,
             "Font rastering:", 1, 5, options);
         xfree(options);
 
-        options = xmalloc(6*sizeof(OptionItem));
+        options = xmalloc(6*sizeof(LabelOptionItem));
         options[0].value = COLOR_TRANS_NONE;
         options[0].label = "None";
         options[1].value = COLOR_TRANS_GREYSCALE;
@@ -263,7 +263,7 @@ void create_printer_setup(Widget but, void *data)
         options[4].label = "Reverse";
         options[5].value = COLOR_TRANS_SRGB;
         options[5].label = "sRGB";
-	pui->color_trans = CreateOptionChoice(rc1,
+	pui->color_trans = CreateLabelOptionChoice(rc1,
             "Color transform:", 1, 6, options);
         xfree(options);
         
@@ -744,17 +744,17 @@ void create_destopts_popup(Widget but, void *data)
             for (j = 0; j < og->nopts; j++) {
                 PrintOption *po = &og->opts[j];
                 int nchoises = po->choices->size;
-                OptionItem *options;
+                LabelOptionItem *options;
 
                 sprintf(buf, "%s:", po->text);
                 CreateLabel(page, buf);
 
-                options = xmalloc(nchoises*sizeof(OptionItem));
+                options = xmalloc(nchoises*sizeof(LabelOptionItem));
                 for (k = 0; k < nchoises; k++) {
                     options[k].value = po->choices->entries[k].key;
                     options[k].label = po->choices->entries[k].descr;
                 }
-                dsui->opts[nopts] = CreateOptionChoice(page, "", 0, nchoises, options);
+                dsui->opts[nopts] = CreateLabelOptionChoice(page, "", 0, nchoises, options);
                 xfree(options);
                 
                 SetOptionChoice(dsui->opts[nopts], po->selected);

@@ -432,7 +432,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
     ui->hotlink = CreateToggleButton(rc1, "Enabled");
-    ui->hotsrc  = CreateOptionChoiceVA(rc1, "Source type:",
+    ui->hotsrc  = CreateLabelOptionChoiceVA(rc1, "Source type:",
         "Disk", SOURCE_DISK,
         "Pipe", SOURCE_PIPE,
         NULL);

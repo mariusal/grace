@@ -44,7 +44,7 @@ RegionUI *create_region_ui(ExplorerUI *eui)
 
     ui->top = form;
     
-    ui->type = CreateOptionChoiceVA(form, "Type:",
+    ui->type = CreateLabelOptionChoiceVA(form, "Type:",
         "Polygon", REGION_POLYGON,
         "Band",    REGION_BAND,
         /* "Formula", REGION_FORMULA, */
