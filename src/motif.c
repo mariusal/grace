@@ -1303,7 +1303,7 @@ static void table_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *c
 }
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
-    int ncols, int nchoices, LabelOptionItem *items)
+    int ncols, int nchoices, OptionItem *items)
 {
     OptionStructure *retval;
     Widget rc, popup;
@@ -1329,7 +1329,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     retval->items = NULL;
     retval->update_colors = FALSE;
 
-    UpdateLabelOptionChoice(retval, nchoices, items);
+    UpdateOptionChoice(retval, nchoices, items);
     AddTableDrawCellCB(retval->pulldown, oc_drawCB, retval);
 
     if (retval->items[0].label) {
@@ -1343,7 +1343,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
 }
 
 #define MAX_PULLDOWN_LENGTH 30
-void UpdateOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *items)
+void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 {
     int i, ncols, nrows, nc, nr;
     int delta_nc, delta_nr;
@@ -1383,7 +1383,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *it
         xfree(optp->items[i].label);
     }
 
-    optp->items = xrealloc(optp->items, nchoices*sizeof(LabelOptionItem));
+    optp->items = xrealloc(optp->items, nchoices*sizeof(OptionItem));
 
     for (i = 0; i < nchoices; i++) {
         char *label;
@@ -1415,14 +1415,43 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *it
 OptionStructure *CreateLabelOptionChoice(Widget parent, char *labelstr,
     int ncols, int nchoices, LabelOptionItem *items)
 {
-    return CreateOptionChoice(parent, labelstr, ncols, nchoices, items);
+    int i;
+    OptionStructure *retval;
+    OptionItem *label_items;
+
+    label_items = xmalloc(nchoices*sizeof(OptionItem));
+    if (label_items == NULL) {
+        errmsg("Malloc error in CreateLabelOptionChoice()");
+        return NULL;
+    }
+
+    for (i = 0; i < nchoices; i++) {
+        label_items[i].value = items[i].value;
+        if (items[i].label) {
+            label_items[i].label = copy_string(NULL, items[i].label);
+        } else {
+            label_items[i].label = copy_string(NULL, "None");
+        }
+        label_items[i].background = items[i].background;
+        label_items[i].foreground = items[i].foreground;
+    }
+
+    retval = CreateOptionChoice(parent, labelstr, ncols, nchoices, label_items);
+
+    for (i = 0; i < nchoices; i++) {
+        xfree(label_items[i].label);
+    }
+
+    xfree(label_items);
+
+    return retval;
 }
 
 OptionStructure *CreateLabelOptionChoiceVA(Widget parent, char *labelstr, ...)
 {
     OptionStructure *retval;
     int nchoices = 0;
-    LabelOptionItem *oi = NULL;
+    OptionItem *oi = NULL;
     va_list var;
     char *s;
     int value;
@@ -1431,13 +1460,13 @@ OptionStructure *CreateLabelOptionChoiceVA(Widget parent, char *labelstr, ...)
     while ((s = va_arg(var, char *)) != NULL) {
         value = va_arg(var, int);
         nchoices++;
-        oi = xrealloc(oi, nchoices*sizeof(LabelOptionItem));
+        oi = xrealloc(oi, nchoices*sizeof(OptionItem));
         oi[nchoices - 1].value = value;
         oi[nchoices - 1].label = copy_string(NULL, s);
     }
     va_end(var);
 
-    retval = CreateLabelOptionChoice(parent, labelstr, 1, nchoices, oi);
+    retval = CreateOptionChoice(parent, labelstr, 1, nchoices, oi);
 
     while (nchoices) {
         nchoices--;
@@ -1450,7 +1479,27 @@ OptionStructure *CreateLabelOptionChoiceVA(Widget parent, char *labelstr, ...)
 
 void UpdateLabelOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *items)
 {
-    UpdateOptionChoice(optp, nchoices, items);
+    int i;
+    OptionItem *label_items;
+
+    label_items = xmalloc(nchoices*sizeof(OptionItem));
+    if (label_items == NULL) {
+        errmsg("Malloc error in UpdateLabelOptionChoice()");
+        return;
+    }
+
+    for (i = 0; i < nchoices; i++) {
+        label_items[i].value = items[i].value;
+        if (items[i].label) {
+            label_items[i].label = copy_string(NULL, items[i].label);
+        } else {
+            label_items[i].label = "None";
+        }
+    }
+
+    UpdateOptionChoice(optp, nchoices, label_items);
+
+    xfree(label_items);
 }
 
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
@@ -1458,9 +1507,9 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
 {
     int i;
     OptionStructure *retval;
-    LabelOptionItem *pixmap_items;
+    OptionItem *pixmap_items;
 
-    pixmap_items = xmalloc(nchoices*sizeof(LabelOptionItem));
+    pixmap_items = xmalloc(nchoices*sizeof(OptionItem));
     if (pixmap_items == NULL) {
         errmsg("Malloc error in CreateBitmapOptionChoice()");
         return NULL;
@@ -1476,7 +1525,7 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
         }
     }
 
-    retval = CreateLabelOptionChoice(parent, labelstr, ncols, nchoices, pixmap_items);
+    retval = CreateOptionChoice(parent, labelstr, ncols, nchoices, pixmap_items);
 
     xfree(pixmap_items);
 
@@ -1495,10 +1544,10 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
     int *fontid;
 
     OptionStructure *retval;
-    LabelOptionItem *pixmap_items;
+    OptionItem *pixmap_items;
     Pixmap pixmap;
 
-    pixmap_items = xmalloc(nchoices*sizeof(LabelOptionItem));
+    pixmap_items = xmalloc(nchoices*sizeof(OptionItem));
     if (pixmap_items == NULL) {
         errmsg("Malloc error in CreateCharOptionChoice()");
         return NULL;
@@ -1511,7 +1560,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
         pixmap_items[i].pixmap = pixmap;
     }
 
-    retval = CreateLabelOptionChoice(parent, s, 16, nchoices, pixmap_items);
+    retval = CreateOptionChoice(parent, s, 16, nchoices, pixmap_items);
 
     xfree(pixmap_items);
 
