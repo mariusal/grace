@@ -228,9 +228,13 @@ typedef struct {
     unsigned long background;
     unsigned long foreground;
 } LabelOptionItem;
+OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
+                                                int nchoices, LabelOptionItem *items);
+void UpdateOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *items);
 OptionStructure *CreateLabelOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, LabelOptionItem *items);
 OptionStructure *CreateLabelOptionChoiceVA(Widget parent, char *labelstr, ...);
+void UpdateLabelOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *items);
 
 typedef struct {
     int value;
@@ -242,7 +246,6 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s);
 void UpdateCharOptionChoice(OptionStructure *opt, int font);
 void SetOptionChoice(OptionStructure *opt, int value);
 int GetOptionChoice(OptionStructure *opt);
-void UpdateLabelOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *items);
 void OptionChoiceSetColorUpdate(OptionStructure *opt, int update);
 
 typedef void (*OC_CBProc)(

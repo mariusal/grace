@@ -1302,7 +1302,7 @@ static void table_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *c
     XtPopdown(XtParent(opt->pulldown));
 }
 
-OptionStructure *CreateLabelOptionChoice(Widget parent, char *labelstr,
+OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
     int ncols, int nchoices, LabelOptionItem *items)
 {
     OptionStructure *retval;
@@ -1342,6 +1342,82 @@ OptionStructure *CreateLabelOptionChoice(Widget parent, char *labelstr,
     return retval;
 }
 
+#define MAX_PULLDOWN_LENGTH 30
+void UpdateOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *items)
+{
+    int i, ncols, nrows, nc, nr;
+    int delta_nc, delta_nr;
+    int width = 0;
+
+    if (optp->ncols == 0) {
+        ncols = 1;
+    } else {
+        ncols = optp->ncols;
+    }
+
+    /* Don't create too tall pulldowns */
+    if (nchoices > MAX_PULLDOWN_LENGTH*ncols) {
+        ncols = (nchoices + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
+    }
+
+    nrows = nchoices / ncols;
+
+    nr = TableGetNrows(optp->pulldown);
+    nc = TableGetNcols(optp->pulldown);
+
+    delta_nr = nrows - nr;
+    delta_nc = ncols - nc;
+
+    if (delta_nr > 0) {
+        TableAddRows(optp->pulldown, delta_nr);
+    } else if (delta_nr < 0) {
+        TableDeleteRows(optp->pulldown, -delta_nr);
+    }
+    if (delta_nc > 0) {
+        TableAddCols(optp->pulldown, delta_nc);
+    } else if (delta_nc < 0) {
+        TableDeleteCols(optp->pulldown, -delta_nc);
+    }
+
+    for (i = 0; i < optp->nchoices; i++) {
+        xfree(optp->items[i].label);
+    }
+
+    optp->items = xrealloc(optp->items, nchoices*sizeof(LabelOptionItem));
+
+    for (i = 0; i < nchoices; i++) {
+        char *label;
+        optp->items[i].value = items[i].value;
+
+        label = items[i].label;
+        if (label) {
+            if (width < strlen(label)) {
+                width = strlen(label);
+            }
+            optp->items[i].label = copy_string(NULL, label);
+        } else {
+            optp->items[i].label = NULL;
+            optp->items[i].pixmap = items[i].pixmap;
+        }
+
+        optp->items[i].background = items[i].background;
+        optp->items[i].foreground = items[i].foreground;
+    }
+
+    optp->nchoices = nchoices;
+
+    if (width) {
+        TableSetDefaultColWidth(optp->pulldown, width);
+    }
+    TableUpdateVisibleRowsCols(optp->pulldown);
+}
+
+OptionStructure *CreateLabelOptionChoice(Widget parent, char *labelstr,
+    int ncols, int nchoices, LabelOptionItem *items)
+{
+    return CreateOptionChoice(parent, labelstr, ncols, nchoices, items);
+}
+
 OptionStructure *CreateLabelOptionChoiceVA(Widget parent, char *labelstr, ...)
 {
     OptionStructure *retval;
@@ -1370,6 +1446,11 @@ OptionStructure *CreateLabelOptionChoiceVA(Widget parent, char *labelstr, ...)
     xfree(oi);
 
     return retval;
+}
+
+void UpdateLabelOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *items)
+{
+    UpdateOptionChoice(optp, nchoices, items);
 }
 
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
@@ -1490,76 +1571,6 @@ int GetOptionChoice(OptionStructure *opt)
     }
 
     return opt->cvalue;
-}
-
-#define MAX_PULLDOWN_LENGTH 30
-void UpdateLabelOptionChoice(OptionStructure *optp, int nchoices, LabelOptionItem *items)
-{
-    int i, ncols, nrows, nc, nr;
-    int delta_nc, delta_nr;
-    int width = 0;
-
-    if (optp->ncols == 0) {
-        ncols = 1;
-    } else {
-        ncols = optp->ncols;
-    }
-
-    /* Don't create too tall pulldowns */
-    if (nchoices > MAX_PULLDOWN_LENGTH*ncols) {
-        ncols = (nchoices + MAX_PULLDOWN_LENGTH - 1)/MAX_PULLDOWN_LENGTH;
-    }
-
-    nrows = nchoices / ncols;
-
-    nr = TableGetNrows(optp->pulldown);
-    nc = TableGetNcols(optp->pulldown);
-
-    delta_nr = nrows - nr;
-    delta_nc = ncols - nc;
-
-    if (delta_nr > 0) {
-        TableAddRows(optp->pulldown, delta_nr);
-    } else if (delta_nr < 0) {
-        TableDeleteRows(optp->pulldown, -delta_nr);
-    }
-    if (delta_nc > 0) {
-        TableAddCols(optp->pulldown, delta_nc);
-    } else if (delta_nc < 0) {
-        TableDeleteCols(optp->pulldown, -delta_nc);
-    }
-
-    for (i = 0; i < optp->nchoices; i++) {
-        xfree(optp->items[i].label);
-    }
-
-    optp->items = xrealloc(optp->items, nchoices*sizeof(LabelOptionItem));
-
-    for (i = 0; i < nchoices; i++) {
-        char *label;
-        optp->items[i].value = items[i].value;
-
-        label = items[i].label;
-        if (label) {
-            if (width < strlen(label)) {
-                width = strlen(label);
-            }
-            optp->items[i].label = copy_string(NULL, label);
-        } else {
-            optp->items[i].label = NULL;
-            optp->items[i].pixmap = items[i].pixmap;
-        }
-
-        optp->items[i].background = items[i].background;
-        optp->items[i].foreground = items[i].foreground;
-    }
-
-    optp->nchoices = nchoices;
-
-    if (width) {
-        TableSetDefaultColWidth(optp->pulldown, width);
-    }
-    TableUpdateVisibleRowsCols(optp->pulldown);
 }
 
 void OptionChoiceSetColorUpdate(OptionStructure *opt, int update)
