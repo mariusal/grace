@@ -205,16 +205,16 @@ void del_point(Quark *pset, int pt)
 int set_set_colors(Quark *pset, unsigned int color)
 {
     set *p = set_get_data(pset);
-    GraceApp *gapp = gapp_from_quark(pset);
-    if (!p || !gapp) {
+    Quark *pr = get_parent_project(pset);
+    if (!p || !pr) {
         return RETURN_FAILURE;
     }
     
-    if (color < number_of_colors(grace_get_canvas(gapp->grace))) {
-        p->line.line.pen.color    = color;
-        p->sym.line.pen.color = color;
-        p->sym.fillpen.color  = color;
-        p->errbar.pen.color  = color;
+    if (color < project_get_ncolors(pr)) {
+        p->line.line.pen.color = color;
+        p->sym.line.pen.color  = color;
+        p->sym.fillpen.color   = color;
+        p->errbar.pen.color    = color;
 
         quark_dirtystate_set(pset, TRUE);
         return RETURN_SUCCESS;
