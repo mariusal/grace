@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2012 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -35,10 +35,12 @@
 #include "grace/base.h"
 
 /* Min/Max useful macros */
-#define MIN2(a, b) (((a) < (b)) ? a : b)
-#define MAX2(a, b) (((a) > (b)) ? a : b)
+#define MIN2(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX2(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN3(a, b, c) (((a) < (b)) ? MIN2(a, c) : MIN2(b, c))
 #define MAX3(a, b, c) (((a) > (b)) ? MAX2(a, c) : MAX2(b, c))
+
+#define SQR(a) ((a)*(a))
 
 /* AMem stuff */
 typedef void *(*AMemMallocProc) (AMem *amem, size_t size);
