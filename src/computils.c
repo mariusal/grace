@@ -1666,7 +1666,7 @@ int do_fourier(Quark *psrc, Quark *pdest,
     if (halflen && !complexin) {
 	outlen = buflen/2 + 1;
         /* DC component */
-        buf_re[0] = buf_re[0];
+        buf_re[0] = 2*buf_re[0];
         buf_im[0] = 0.0;
         for (i = 1; i < outlen; i++) {
             /* carefully get amplitude of complex form: 
