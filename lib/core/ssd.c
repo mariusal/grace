@@ -425,6 +425,11 @@ int ssd_set_indexed(Quark *q, int onoff)
 {
     ss_data *ssd = ssd_get_data(q);
     if (ssd) {
+        ss_column *col = ssd_get_col(q, 0);
+        if (!col || col->format == FFORMAT_STRING) {
+            return RETURN_FAILURE;
+        }
+
         if (ssd->indexed != onoff) {
             ssd->indexed = onoff;
             quark_dirtystate_set(q, TRUE);
