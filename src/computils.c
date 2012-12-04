@@ -932,7 +932,7 @@ int monospaced(double *array, int len, double *space)
     }
     
     *space = array[1] - array[0];
-    eps = fabs((array[len - 1] - array[0]))*1.0e-6; /* FIXME */
+    eps = fabs((array[len - 1] - array[0]))*1.0e-3; /* FIXME */
     for (i = 2; i < len; i++) {
         if (fabs(array[i] - array[i - 1] - *space) > eps) {
             return FALSE;
