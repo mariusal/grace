@@ -45,7 +45,7 @@
 
 /* FFTW-based transforms (originally written by Marcus H. Mendenhall */
 
-#include <fftw.h>
+#include <fftw3.h>
 
 static char *wisdom_file = NULL;
 static char *initial_wisdom = NULL;
@@ -91,11 +91,10 @@ static void init_wisdom(void)
         if (wisdom_file && wisdom_file[0] ) {
             /* if a file was specified in GRACE_FFTW_WISDOM_FILE, try to read it */
             FILE *wf;
-            fftw_status fstat;
             
             wf = gapp_openr(gapp, wisdom_file, SOURCE_DISK);
             if (wf) {
-	        fstat = fftw_import_wisdom_from_file(wf);
+	        fftw_import_wisdom_from_file(wf);
 	        gapp_close(wf);
 	        initial_wisdom = fftw_export_wisdom_to_string();
             } else {
@@ -115,31 +114,31 @@ int fourier(double *jr, double *ji, int n, int iflag)
     int i;
     int plan_flags;
     fftw_plan plan;
-    FFTW_COMPLEX *cbuf;
+    fftw_complex *cbuf;
     
     init_wisdom();
 
-    plan_flags = using_wisdom ? (FFTW_USE_WISDOM | FFTW_MEASURE):FFTW_ESTIMATE;
-    plan_flags |= FFTW_IN_PLACE;
+    plan_flags = using_wisdom ? FFTW_MEASURE:FFTW_ESTIMATE;
     
-    plan = fftw_create_plan(n, iflag ? FFTW_BACKWARD:FFTW_FORWARD, plan_flags);
-    
-    cbuf = xcalloc(n, sizeof(FFTW_COMPLEX));
+    cbuf = xcalloc(n, sizeof(fftw_complex));
     if (!cbuf) {
         return RETURN_FAILURE;
     }
     for (i = 0; i < n; i++) {
-        cbuf[i].re = jr[i];
-        cbuf[i].im = ji[i];
+        cbuf[i][0] = jr[i];
+        cbuf[i][1] = ji[i];
     }
     
-    fftw_one(plan, cbuf, NULL);
+    plan = fftw_plan_dft_1d(n, cbuf, cbuf,
+        iflag ? FFTW_BACKWARD:FFTW_FORWARD, plan_flags);
+    
+    fftw_execute(plan);
     
     fftw_destroy_plan(plan);
 
     for (i = 0; i < n; i++) {
-        jr[i] = cbuf[i].re;
-        ji[i] = cbuf[i].im;
+        jr[i] = cbuf[i][0];
+        ji[i] = cbuf[i][1];
     }
 
     xfree(cbuf);
