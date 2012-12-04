@@ -2648,11 +2648,12 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
     }
 
     if (nsdest == 0) {
-        ssd_set_indexed(destssd, TRUE);
-        if (!ssd_is_indexed(destssd)) {
-            if (!ssd_add_col(destssd, FFORMAT_NUMBER)) {
-	        return RETURN_FAILURE;
-            }
+        if (!ssd_get_ncols(destssd)) {
+            ssd_add_col(destssd, FFORMAT_NUMBER);
+        }
+        
+        if (ssd_set_indexed(destssd, TRUE) != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
         }
         
         *destsets = xmalloc((*nssrc)*sizeof(Quark *));
