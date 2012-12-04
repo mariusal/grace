@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2005 Grace Development Team
+ * Copyright (c) 2005-2012 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -36,6 +36,16 @@
 
 #include "graceapp.h"
 
+#define LCONV_TYPE_SET       0
+#define LCONV_TYPE_GAUSS     1
+#define LCONV_TYPE_LORENTZ   2
+
+typedef struct {
+    int type;
+    Quark *pconv;
+    double sigma;
+} Lconv_pars;
+
 /* computils.c */
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 int apply_window(double *v, int ilen, int window, double beta);
@@ -62,7 +72,7 @@ int filter_set(Quark *pset, char *rarray);
 int do_compute(Quark *psrc, Quark *pdest,
     char *rarray, char *fstr);
 int do_linearc(Quark *psrc, Quark *pdest,
-    Quark *pconv);
+    const Lconv_pars *params);
 int do_xcor(Quark *psrc, Quark *pdest,
     Quark *pcor, int maxlag, int covar);
 int do_int(Quark *psrc, Quark *pdest,
