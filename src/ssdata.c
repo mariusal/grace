@@ -318,7 +318,7 @@ static int create_set_fromblock(Quark *ss, int type,
 
     ncols = settype_cols(type);
     if (nc > ncols) {
-        errmsg("Too many columns scanned in column string");
+        errmsg("Too many columns for this set type");
         return RETURN_FAILURE;
     }
     
@@ -372,7 +372,9 @@ int store_data(Quark *q, int load_type, int settype)
     for (j = 0; j < ncols; j++) {
         ss_column *pcol = ssd_get_col(q, j);
         if (pcol->format != FFORMAT_STRING) {
-            coli[nncols] = j;
+            if (nncols < MAX_SET_COLS) {
+                coli[nncols] = j;
+            }
             nncols++;
         } else {
             acol = j;
@@ -383,7 +385,7 @@ int store_data(Quark *q, int load_type, int settype)
     switch (load_type) {
     case LOAD_SINGLE:
         if (nscols > 1) {
-            errmsg("Can not use more than one string column per set");
+            errmsg("Cannot use more than one string column per set");
             return RETURN_FAILURE;
         }
 
@@ -392,7 +394,7 @@ int store_data(Quark *q, int load_type, int settype)
         break;
     case LOAD_NXY:
         if (nscols != 0) {
-            errmsg("Can not use strings when reading in data as NXY");
+            errmsg("Cannot use strings when reading in data as NXY");
             return RETURN_FAILURE;
         }
         
