@@ -33,6 +33,7 @@
 
 #ifdef HAVE_CUPS
 #  include <cups/cups.h>
+#  include <cups/ppd.h>
 #endif
 
 #include "defines.h"
