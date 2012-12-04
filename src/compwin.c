@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2005 Grace Development Team
+ * Copyright (c) 1996-2012 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -1004,12 +1004,24 @@ void create_int_frame(Widget but, void *data)
 /* linear convolution */
 
 typedef struct {
+    OptionStructure   *convtype;
     GraphSetStructure *convsel;
+    Widget sigmarc;
+    Widget sigma;
 } Lconv_ui;
 
-typedef struct {
-    Quark *pconv;
-} Lconv_pars;
+static void conv_type_cb(OptionStructure *opt, int value, void *data)
+{
+    Lconv_ui *ui = (Lconv_ui *) data;
+    
+    if (value == LCONV_TYPE_SET) {
+        UnmanageChild(ui->sigmarc);
+        ManageChild(ui->convsel->frame);
+    } else {
+        ManageChild(ui->sigmarc);
+        UnmanageChild(ui->convsel->frame);
+    }
+}
 
 static void *lconv_build_cb(TransformStructure *tdialog)
 {
@@ -1017,11 +1029,27 @@ static void *lconv_build_cb(TransformStructure *tdialog)
 
     ui = xmalloc(sizeof(Lconv_ui));
     if (ui) {
-	ui->convsel = CreateGraphSetSelector(tdialog->frame,
-            "Convolve with:", LIST_TYPE_SINGLE);
+	Widget rc;
+        OptionItem titems[] = {
+            {LCONV_TYPE_SET,     "Another set"},
+            {LCONV_TYPE_GAUSS,   "Gaussian"   },
+            {LCONV_TYPE_LORENTZ, "Lorentzian" }
+        };
+        rc = CreateVContainer(tdialog->frame);
+	
+        ui->convtype = CreateOptionChoice(rc, "Convolve with:", 0, 3, titems);
+	ui->convsel  = CreateGraphSetSelector(rc, NULL, LIST_TYPE_SINGLE);
+        
+        ui->sigmarc   = CreateHContainer(rc);
+        ui->sigma     = CreateTextItem(ui->sigmarc, 10, "Std. dev.:");
+        xv_setstr(ui->sigma, "1.0");
+        
+        AddOptionChoiceCB(ui->convtype, conv_type_cb, ui);
+        
+        UnmanageChild(ui->sigmarc);
     }
 
-    return (void *) ui;
+    return ui;
 }
 
 static void lconv_free_cb(void *tddata)
@@ -1039,15 +1067,27 @@ static void *lconv_get_cb(void *gui)
     
     pars = xmalloc(sizeof(Lconv_pars));
     if (pars) {
-        if (GetSingleStorageChoice(ui->convsel->set_sel, &pars->pconv)
-            != RETURN_SUCCESS) {
-            errmsg("Please select a single set to be convoluted with");
-            lconv_free_cb(pars);
-            return NULL;
+        pars->type = GetOptionChoice(ui->convtype);
+        switch (pars->type) {
+        case LCONV_TYPE_SET:
+            if (GetSingleStorageChoice(ui->convsel->set_sel, &pars->pconv)
+                != RETURN_SUCCESS) {
+                errmsg("Please select a single set to be convoluted with");
+                lconv_free_cb(pars);
+                return NULL;
+            }
+            break;
+        default:
+            if (xv_evalexpr(ui->sigma, &pars->sigma) != RETURN_SUCCESS) {
+                errmsg("Can't parse value for sigma");
+                lconv_free_cb(pars);
+                return NULL;
+            }
+            break;
         }
     }
     
-    return (void *) pars;
+    return pars;
 }
 
 static int lconv_run_cb(Quark *psrc, Quark *pdest, void *tddata)
@@ -1055,7 +1095,7 @@ static int lconv_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     int res;
     Lconv_pars *pars = (Lconv_pars *) tddata;
 
-    res = do_linearc(psrc, pdest, pars->pconv);
+    res = do_linearc(psrc, pdest, pars);
     
     return res;
 }

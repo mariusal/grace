@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2012 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -1107,21 +1107,13 @@ int do_differ(Quark *psrc, Quark *pdest,
  * linear convolution
  */
 int do_linearc(Quark *psrc, Quark *pdest,
-    Quark *pconv)
+    const Lconv_pars *params)
 {
     int srclen, convlen, destlen, i, ncols, nc;
-    double xspace1, xspace2, *xsrc, *xconv, *xdest, *yconv;
-    char buf[256];
-
-    srclen  = set_get_length(psrc);
-    convlen = set_get_length(pconv);
-    if (srclen < 2 || convlen < 2) {
-	errmsg("Set length < 2");
-	return RETURN_FAILURE;
-    }
+    double xspace1, xspace2, xconv0, *xsrc, *xdest, *yconv;
     
-    destlen = srclen + convlen - 1;
-
+    srclen = set_get_length(psrc);
+    
     xsrc  = set_get_col(psrc, DATA_X);
     if (monospaced(xsrc, srclen, &xspace1) != TRUE) {
         errmsg("Abscissas of the set are not monospaced");
@@ -1133,17 +1125,52 @@ int do_linearc(Quark *psrc, Quark *pdest,
         }
     }
 
-    xconv = set_get_col(pconv, DATA_X);
-    if (monospaced(xconv, convlen, &xspace2) != TRUE) {
-        errmsg("Abscissas of the set are not monospaced");
-        return RETURN_FAILURE;
-    } else {
-        if (fabs(xspace2/xspace1 - 1) > 0.01/(srclen + convlen)) {
-            errmsg("The source and convoluting functions are not equally sampled");
+    if (params->type == LCONV_TYPE_SET) {
+        double *xconv;
+        
+        convlen = set_get_length(params->pconv);
+        
+        xconv = set_get_col(params->pconv, DATA_X);
+        if (monospaced(xconv, convlen, &xspace2) != TRUE) {
+            errmsg("Abscissas of the set are not monospaced");
             return RETURN_FAILURE;
+        } else {
+            if (fabs(xspace2/xspace1 - 1) > 0.01/(srclen + convlen)) {
+                errmsg("The source and convoluting date are unequally sampled");
+                return RETURN_FAILURE;
+            }
+        }
+
+        xconv0 = xconv[0];
+        yconv = set_get_col(params->pconv, DATA_Y);
+    } else {
+        convlen = srclen;
+        xconv0 = -xspace1*(convlen - 1)/2;
+        yconv = xmalloc(convlen*SIZEOF_DOUBLE);
+        if (!yconv) {
+            errmsg("Memory allocation failed");
+            return RETURN_FAILURE;
+        }
+        
+        for (i = 0; i < convlen; i++) {
+            double x, y;
+            x = xconv0 + i*xspace1;
+            if (params->type == LCONV_TYPE_GAUSS) {
+                y = 1/(sqrt(2*M_PI)*params->sigma)*exp(-SQR(x/params->sigma)/2);
+            } else {
+                y = params->sigma/M_PI/(SQR(x) + SQR(params->sigma));
+            }
+            yconv[i] = y;
         }
     }
     
+    if (srclen < 2 || convlen < 2) {
+	errmsg("Set length < 2");
+	return RETURN_FAILURE;
+    }
+    
+    destlen = srclen + convlen - 1;
+
     if (set_set_length(pdest, destlen) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
@@ -1153,13 +1180,15 @@ int do_linearc(Quark *psrc, Quark *pdest,
         set_set_type(pdest, set_get_type(psrc));
     }
     
-    yconv = set_get_col(pconv, DATA_Y);
-    
     for (nc = 1; nc < ncols; nc++) {
         double *d1, *d2;
         
         d1 = set_get_col(psrc, nc);
         d2 = set_get_col(pdest, nc);
+        
+        if (!d1 || !d2) {
+            continue;
+        }
         
         linearconv(d1, srclen, yconv, convlen, d2);
         for (i = 0; i < destlen; i++) {
@@ -1169,11 +1198,17 @@ int do_linearc(Quark *psrc, Quark *pdest,
 
     xdest = set_get_col(pdest, DATA_X);
     for (i = 0; i < destlen; i++) {
-	xdest[i] = (xsrc[0] + xconv[0]) + i*xspace1;
+	xdest[i] = (xsrc[0] + xconv0) + i*xspace1;
     }
     
-    sprintf(buf, "Linear convolution of set %s with set %s",
-        QIDSTR(psrc), QIDSTR(pconv));
+    if (params->type != LCONV_TYPE_SET) {
+        xfree(yconv);
+    }
+
+    quark_dirtystate_set(pdest, TRUE);
+    
+    // sprintf(buf, "Linear convolution of set %s with set %s",
+    //     QIDSTR(psrc), QIDSTR(pconv));
     // set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
