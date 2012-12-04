@@ -884,11 +884,11 @@ dnl --------------
 AC_DEFUN(ACX_CHECK_FFTW,
 [
   AC_ARG_WITH(fftw_library,
-  [  --with-fftw-library=OBJ      use OBJ as FFTW library [[-lfftw]]],
+  [  --with-fftw-library=OBJ      use OBJ as FFTW library [[-lfftw3]]],
   fftw_library="$withval")
   if test "x$fftw_library" = "x"
   then
-    fftw_library=-lfftw
+    fftw_library=-lfftw3
   fi
 
   AC_CACHE_CHECK([for FFTW library >= $1], acx_cv_fftw,
@@ -896,7 +896,7 @@ AC_DEFUN(ACX_CHECK_FFTW,
     ACX_SAVE_STATE
     LIBS="$acx_cv_fftw_library $LIBS"
     AC_TRY_RUN([
-#include <fftw.h>
+#include <fftw3.h>
 #include <string.h>
       int main(void) {
         char *vlib = (char *) fftw_version;
