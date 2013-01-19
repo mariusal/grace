@@ -211,9 +211,8 @@ static int copy_hook(unsigned int step, void *data, void *udata)
 {
     Quark *child = (Quark *) data;
     Quark *newparent = (Quark *) udata;
-    Quark *newchild;
 
-    newchild = quark_copy2(newparent, child);
+    quark_copy2(newparent, child);
         
     return TRUE;
 }
