@@ -284,6 +284,7 @@ int insert_data_row(Quark *q, unsigned int row, char *s)
             /* invalid line */
             return RETURN_FAILURE;
         } else {
+            pcol->hotcol = i;
             if (pcol->format == FFORMAT_STRING) {
                 sp = (char **) pcol->data;
                 sp[row] = amem_strcpy(amem, sp[row], token);

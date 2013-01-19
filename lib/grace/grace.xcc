@@ -752,6 +752,12 @@ char *utf2iso(const char *s)
     <element-type name="region" ctype="Quark *">
         $$ = region_new($P);
     </element-type>
+    <element-type name="hotlink" ctype="ss_hotlink *"><![CDATA[
+        {
+        $$ = xmalloc(sizeof(ss_hotlink));
+        memset($$, 0, sizeof(ss_hotlink));
+        }
+    ]]></element-type>
     <element-type name="scolumn" ctype="ss_column *"><![CDATA[
         {
         ParserData *udata = (ParserData *) $U;
@@ -1739,9 +1745,26 @@ char *utf2iso(const char *s)
             ssd_set_indexed($$, $?);
         </attribute>
         <!-- Child elements -->
+        <child name="#EStrHotlink" minOccurs="0" maxOccurs="1"><![CDATA[
+            ssd_set_hotlink($$, $?);
+            xfree($?->src);
+            xfree($?);
+        ]]></child>
         <child name="#EStrDcolumn" minOccurs="0" maxOccurs="unbounded"/>
         <child name="#EStrScolumn" minOccurs="0" maxOccurs="unbounded"/>
         <child name="#EStrSet" minOccurs="0" maxOccurs="unbounded"/>
+    </element>
+    <element name="#EStrHotlink" type="hotlink">
+        <!-- Attributes -->
+        <attribute name="#AStrActive" type="bval">
+            $$->active = $?;
+        </attribute>
+        <attribute name="#AStrPipe" type="bval">
+            $$->is_pipe = $?;
+        </attribute>
+        <attribute name="#AStrSrc" type="sval"><![CDATA[
+            $$->src = $?;
+        ]]></attribute>
     </element>
     <element name="#EStrScolumn" type="scolumn">
         <!-- Attributes -->

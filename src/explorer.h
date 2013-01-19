@@ -74,8 +74,8 @@ typedef struct {
     TextStructure   *col_label;
 
     Widget          hotlink;
-    OptionStructure *hotsrc;
-    Widget          hotfile;
+    OptionStructure *hotpipe;
+    Widget          hotsrc;
     
     Widget          popup;
     Widget          index_btn;

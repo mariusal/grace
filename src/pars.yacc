@@ -560,11 +560,15 @@ parmset:
 
 /* Hot links */
 	| selectset LINK sourcetype CHRSTR {
-	    ssd_set_hotlink(get_parent_ssd($1), 1, $4, $3);
+	    AMem *amem = quark_get_amem($1);
+	    ss_hotlink *hotlink = ssd_get_hotlink(get_parent_ssd($1));
+            hotlink->is_pipe = ($3 == PIPE);
+            hotlink->src = amem_strdup(amem, $4);
 	    xfree($4);
 	}
 	| selectset LINK onoff {
-	    ssd_set_hotlink(get_parent_ssd($1), $3, NULL, 0);
+	    ss_hotlink *hotlink = ssd_get_hotlink(get_parent_ssd($1));
+            hotlink->active = $3;
 	}
 
 /* Objects */

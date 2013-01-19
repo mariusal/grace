@@ -806,7 +806,14 @@ typedef struct {
     int format;
     char *label;
     void *data;
+    int hotcol;
 } ss_column;
+
+typedef struct {
+    int active;
+    int is_pipe;            /* source for hot linked file (DISK|PIPE) */
+    char *src;              /* hot linked filename */
+} ss_hotlink;
 
 /* Spread-sheet data */
 typedef struct {
@@ -815,10 +822,8 @@ typedef struct {
     ss_column *cols;
     
     int indexed;
-
-    int hotlink;                /* hot linked set */
-    int hotsrc;                 /* source for hot linked file (DISK|PIPE) */
-    char *hotfile;              /* hot linked filename */
+    
+    ss_hotlink hotlink;
 } ss_data;
 
 ss_data *ssd_get_data(const Quark *q);
@@ -856,10 +861,8 @@ int ssd_is_indexed(const Quark *q);
 
 int ssd_is_numeric(const Quark *q);
 
-int ssd_set_hotlink(Quark *q, int onoroff, const char *fname, int src);
-int ssd_is_hotlinked(const Quark *q);
-char *ssd_get_hotlink_file(const Quark *q);
-int ssd_get_hotlink_src(const Quark *q);
+int ssd_set_hotlink(Quark *q, const ss_hotlink *hotlink);
+ss_hotlink *ssd_get_hotlink(const Quark *q);
 
 Quark *get_parent_ssd(const Quark *q);
 

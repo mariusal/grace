@@ -645,6 +645,7 @@ static int save_ssd(XFile *xf, Quark *q)
     Attributes *attrs;
     unsigned int i, j, ncols, nrows;
     unsigned int prec;
+    ss_hotlink *hotlink;
 
     attrs = attributes_new();
     
@@ -652,12 +653,12 @@ static int save_ssd(XFile *xf, Quark *q)
         return RETURN_FAILURE;
     }
 
-#if 0
-    if (data->hotlink) {
-        attributes_set_sval(attrs, AStrHotfile, data->hotfile);
-        /* FIXME: hotsrc */
-    }
-#endif
+    hotlink = ssd_get_hotlink(q);
+    attributes_reset(attrs);
+    attributes_set_bval(attrs, AStrActive, hotlink->active);
+    attributes_set_sval(attrs, AStrSrc,    hotlink->src);
+    attributes_set_bval(attrs, AStrPipe,   hotlink->is_pipe);
+    xfile_empty_element(xf, EStrHotlink, attrs);
 
     ncols = ssd_get_ncols(q);
     nrows = ssd_get_nrows(q);

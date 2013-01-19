@@ -59,7 +59,8 @@ static int do_hotlinkfile_proc(FSBStructure *fsb, char *filename, void *data)
 {
     SSDataUI *ui = (SSDataUI *) data;
     
-    xv_setstr(ui->hotfile, filename);
+    xv_setstr(ui->hotsrc, filename);
+    XtCallCallbacks(ui->hotsrc, XmNactivateCallback, NULL);
     
     return TRUE;
 }
@@ -402,12 +403,15 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     rc1 = CreateHContainer(rc);
     ui->hotlink = CreateToggleButton(rc1, "Enabled");
-    ui->hotsrc  = CreateOptionChoiceVA(rc1, "Source type:",
+    AddToggleButtonCB(ui->hotlink, tb_explorer_cb, eui);
+    ui->hotpipe  = CreateOptionChoiceVA(rc1, "Source type:",
         "Disk", SOURCE_DISK,
         "Pipe", SOURCE_PIPE,
         NULL);
+    AddOptionChoiceCB(ui->hotpipe, oc_explorer_cb, eui);
     rc1 = CreateHContainer(rc);
-    ui->hotfile = CreateTextItem(rc1, 20, "File name:");
+    ui->hotsrc = CreateTextItem(rc1, 20, "File name:");
+    AddTextItemCB(ui->hotsrc, titem_explorer_cb, eui);
     wbut = CreateButton(rc1, "Browse...");
     AddButtonCB(wbut, create_hotfiles_popup, ui);
 
@@ -421,6 +425,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         int delta_nc, delta_nr;
         int *maxlengths;
         char **rowlabels, **collabels;
+        ss_hotlink *hotlink;
         
         if (ui->q != q) {
             TableDeselectAllCells(ui->mw);
@@ -509,6 +514,12 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         xfree(collabels);
         
         UpdateColChoice(ui->col_sel, q);
+        
+        hotlink = ssd_get_hotlink(q);
+        SetToggleButtonState(ui->hotlink, hotlink->active);
+        SetOptionChoice(ui->hotpipe,
+            hotlink->is_pipe ? SOURCE_PIPE:SOURCE_DISK);
+        xv_setstr(ui->hotsrc, hotlink->src);
     }
 }
 
@@ -517,6 +528,9 @@ int set_ssd_data(SSDataUI *ui, Quark *q, void *caller)
     int retval = RETURN_SUCCESS;
     
     if (ui && q) {
+        AMem *amem = quark_get_amem(q);
+        ss_hotlink *hotlink = ssd_get_hotlink(q);
+        
         if (!caller) {
             /* commit the last entered cell changes */
             TableCommitEdit(ui->mw, FALSE);
@@ -532,6 +546,23 @@ int set_ssd_data(SSDataUI *ui, Quark *q, void *caller)
                 /* FIXME: this is an overkill */
                 update_ssd_ui(ui, q);
             }
+        }
+
+        if (!caller || caller == ui->hotlink) {
+            hotlink->active = GetToggleButtonState(ui->hotlink);
+            
+            quark_dirtystate_set(q, TRUE);
+        }
+        if (!caller || caller == ui->hotpipe) {
+            hotlink->is_pipe = (GetOptionChoice(ui->hotpipe) == SOURCE_PIPE);
+            
+            quark_dirtystate_set(q, TRUE);
+        }
+        if (!caller || caller == ui->hotsrc) {
+            char *s = xv_getstr(ui->hotsrc);
+            hotlink->src = amem_strcpy(amem, hotlink->src, s);
+            
+            quark_dirtystate_set(q, TRUE);
         }
     }
     

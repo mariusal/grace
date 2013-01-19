@@ -74,7 +74,7 @@ void ssd_data_free(AMem *amem, ss_data *ssd)
 
         amem_free(amem, ssd->cols);
 
-        amem_free(amem, ssd->hotfile);
+        amem_free(amem, ssd->hotlink.src);
         
         amem_free(amem, ssd);
     }
@@ -93,7 +93,8 @@ ss_data *ssd_data_copy(AMem *amem, ss_data *ssd)
     ssd_new->ncols = ssd->ncols;
     ssd_new->nrows = ssd->nrows;
     
-    ssd_new->hotfile = amem_strdup(amem, ssd->hotfile);
+    ssd_new->hotlink     = ssd->hotlink;
+    ssd_new->hotlink.src = amem_strdup(amem, ssd->hotlink.src);
     
     ssd_new->cols = amem_calloc(amem, ssd->ncols, sizeof(ss_column));
 
@@ -102,6 +103,7 @@ ss_data *ssd_data_copy(AMem *amem, ss_data *ssd)
         ss_column *col_new = &ssd_new->cols[i];
         col_new->format = col->format;
         col_new->label  = amem_strdup(amem, col->label);
+        col_new->hotcol = col->hotcol;
         if (col->format == FFORMAT_STRING) {
             col_new->data = copy_string_column(amem, col->data, ssd->nrows);
         } else {
@@ -257,6 +259,7 @@ int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats)
     
     for (i = 0; i < ncols; i++) {
         ss_column *col = &ssd->cols[i];
+        col->hotcol = -1;
         if (formats) {
             col->format = formats[i];
         } else {
@@ -354,6 +357,7 @@ ss_column *ssd_add_col(Quark *q, int format)
             col->data = p2;
             col->format = format;
             col->label = NULL;
+            col->hotcol = -1;
             ssd->ncols++;
 
             quark_dirtystate_set(q, TRUE);
@@ -536,13 +540,13 @@ Quark *get_parent_ssd(const Quark *q)
 }
 
 
-int ssd_set_hotlink(Quark *q, int onoroff, const char *fname, int src)
+int ssd_set_hotlink(Quark *q, const ss_hotlink *hotlink)
 {
     ss_data *ssd = ssd_get_data(q);
     if (ssd) {
-        ssd->hotlink = onoroff;
-        ssd->hotfile = amem_strcpy(q->amem, ssd->hotfile, fname);
-        ssd->hotsrc = src;
+        ssd->hotlink.active = hotlink->active;
+        ssd->hotlink.src = amem_strcpy(q->amem, ssd->hotlink.src, hotlink->src);
+        ssd->hotlink.is_pipe = hotlink->is_pipe;
         
         quark_dirtystate_set(q, TRUE);
     
@@ -552,32 +556,12 @@ int ssd_set_hotlink(Quark *q, int onoroff, const char *fname, int src)
     }
 }
 
-int ssd_is_hotlinked(const Quark *q)
-{
-    ss_data *ssd = ssd_get_data(q);
-    if (ssd && ssd->hotlink && ssd->hotfile) {
-        return TRUE;
-    } else { 
-        return FALSE;
-    }
-}
-
-char *ssd_get_hotlink_file(const Quark *q)
+ss_hotlink *ssd_get_hotlink(const Quark *q)
 {
     ss_data *ssd = ssd_get_data(q);
     if (ssd) {
-        return ssd->hotfile;
+        return &ssd->hotlink;
     } else {
         return NULL;
-    }
-}
-
-int ssd_get_hotlink_src(const Quark *q)
-{
-    ss_data *ssd = ssd_get_data(q);
-    if (ssd) {
-        return ssd->hotsrc;
-    } else {
-        return -1;
     }
 }
