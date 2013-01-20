@@ -649,7 +649,6 @@ Dimension rect_space;
 
 static void get_children_space(XmTabWidget wid, Dimension *width, Dimension *height, Dimension *rect_space)
 {
-XtGeometryResult geo_result;
 XtWidgetGeometry reply;
 int i;
 Widget child;
@@ -664,7 +663,7 @@ XmTabConstraintRec *tab_const;
 
 		child = wid->composite.children[i];
 
-		geo_result = XtQueryGeometry(child, NULL, &reply);
+		XtQueryGeometry(child, NULL, &reply);
 
 			if((reply.request_mode & CWWidth) 
 						&& (reply.width > *width))

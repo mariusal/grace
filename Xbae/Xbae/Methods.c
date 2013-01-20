@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Methods.c,v 1.3 2005-02-14 00:24:17 fnevgeny Exp $
+ * $Id: Methods.c,v 1.4 2013-01-20 19:31:52 fnevgeny Exp $
  */
 
 /*
@@ -2409,7 +2409,7 @@ XbaeMatrixWidget mw;
 {
     int i, j;
     int tr, br, lc, rc;
-    register Boolean do_row, once = False;
+    register Boolean once = False;
 
     mw->matrix.num_selected_cells = 0;
     /* If selected_cells is NULL, no cells have been selected yet  */
@@ -2420,7 +2420,6 @@ XbaeMatrixWidget mw;
     
     for (i = 0; i < mw->matrix.rows; i++)
     {
-	do_row = False;
 	if ((! once) && (i >= TRAILING_VERT_ORIGIN(mw)))
 	{
 	    once = True;
@@ -2440,8 +2439,6 @@ XbaeMatrixWidget mw;
 		{
 		    xbaeClearCell(mw, i, j);
 		    xbaeDrawCell(mw, i, j);
-
-		    do_row = True;
 		}
 	    }
 	}
@@ -2459,7 +2456,7 @@ XbaeMatrixWidget mw;
 {
     int i, j;
     int tr, br, lc, rc;
-    register Boolean do_row, once = False;
+    register Boolean once = False;
 
     xbaeGetVisibleCells(mw, &tr, &br, &lc, &rc);
     
@@ -2468,7 +2465,6 @@ XbaeMatrixWidget mw;
 
     for (i = 0; i < mw->matrix.rows; i++)
     {
-	do_row = False;
 	if ((! once) && (i >= TRAILING_VERT_ORIGIN(mw)))
 	{
 	    once = True;
@@ -2489,8 +2485,6 @@ XbaeMatrixWidget mw;
 		{
 		    xbaeClearCell(mw, i, j);
 		    xbaeDrawCell(mw, i, j);
-
-		    do_row = True;
 		}
 	    }
 	}

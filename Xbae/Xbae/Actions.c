@@ -21,7 +21,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Actions.c,v 1.2 2005-03-08 21:51:38 fnevgeny Exp $
+ * $Id: Actions.c,v 1.3 2013-01-20 19:31:52 fnevgeny Exp $
  */
 
 /*
@@ -519,7 +519,6 @@ Cardinal *nparams;
 {
     XbaeMatrixWidget mw;
     int x, y;
-    int eventx;
     int i;
     int row, column;
     CellType cell;
@@ -561,8 +560,6 @@ Cardinal *nparams;
     
     if (!xbaeEventToXY(mw, event, &x, &y, &cell))
 	return;
-    
-    eventx = x;
     
     if (!xbaeXYToRowCol(mw, &x, &y, &row, &column, cell))
 	return;
@@ -1792,7 +1789,6 @@ Cardinal *nparams;
     XbaeMatrixWidget mw;
     XbaeClipWidget cw;
     XMotionEvent *motionEvent;
-    XButtonEvent *buttonEvent;
     int x, y, row, column;
     CellType cell;
     Boolean inMatrix;
@@ -1817,7 +1813,6 @@ Cardinal *nparams;
 	return;
     }
     motionEvent = (XMotionEvent *)event;
-    buttonEvent = (XButtonEvent *)event;
 
     cw = (XbaeClipWidget)ClipChild(mw);
 

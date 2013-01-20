@@ -2652,8 +2652,7 @@ void update_color_choice_popup(void)
         
         /* Create new buttons, if needed */
         for (ci = nw_old; ci < nw_new; ci++) {
-            Widget cb;
-            cb = XmCreatePushButton(color_choice_popup, "cb", NULL, 0);
+            XmCreatePushButton(color_choice_popup, "cb", NULL, 0);
         }
 
         XtVaGetValues(color_choice_popup,

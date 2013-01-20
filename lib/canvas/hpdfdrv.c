@@ -620,8 +620,6 @@ void hpdf_leavegraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
     HPDF_data *pdfdata = (HPDF_data *) data;
-    view v;
-    v = cstats->bbox;
 
 #if 0
     PDF_set_value(pdfdata->pdf, "CropBox/llx", pdfdata->page_scalef*v.xv1);

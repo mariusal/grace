@@ -436,14 +436,13 @@ void update_set_ui(SetUI *ui, Quark *q)
     if (p && ui && ss) {
         int i;
         char val[32];
-        int blocklen, blockncols;
+        int blockncols;
         OptionItem *blockitems, *sblockitems;
         unsigned int nncols;
 
         SetOptionChoice(ui->type, p->type);
 
         blockncols  = ssd_get_ncols(ss);
-        blocklen    = ssd_get_nrows(ss);
 
         blockitems  = xmalloc((blockncols + 1)*sizeof(OptionItem));
         sblockitems = xmalloc((blockncols + 1)*sizeof(OptionItem));

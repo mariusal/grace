@@ -191,14 +191,9 @@ char *create_fstring(const Quark *q, const Format *form, double loc, int type)
     int m, d, y, h, mm, sec;
     int exponent;
     double mantissa;
-    int yprec;
     Project *pr = project_get_data(q);
        
-    if (pr->two_digits_years) {
-        yprec = 2;
-    } else {
-        yprec = 4;
-    }
+    /* TODO: pr->two_digits_years? */
 
     /* for locale decimal points */
     set_locale_num(TRUE);

@@ -663,11 +663,9 @@ void create_devopts_popup(Widget but, void *data)
 {
     PrintUI *ui = (PrintUI *) data;
     int device_id;
-    Device_entry *dev;
     dev_gui_setup *setup_data;
     
     device_id = GetOptionChoice(ui->devices);
-    dev = get_device_props(canvas, device_id);
 
     setup_data = (dev_gui_setup *) device_get_udata(canvas, device_id);
     

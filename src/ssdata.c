@@ -312,7 +312,7 @@ int insert_data_row(Quark *q, unsigned int row, char *s)
 static int create_set_fromblock(Quark *ss, int type,
     unsigned int nc, const unsigned int *coli, int acol)
 {
-    int i, ncols, blockncols, blocklen, column;
+    int i, ncols, blockncols, column;
     Quark *pset;
     Dataset *dsp;
     ss_data *blockdata = ssd_get_data(ss);
@@ -331,7 +331,6 @@ static int create_set_fromblock(Quark *ss, int type,
     }
 
     blockncols = ssd_get_ncols(ss);
-    blocklen = ssd_get_nrows(ss);
     
     set_set_type(pset, type);
 

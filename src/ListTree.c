@@ -1646,7 +1646,7 @@ GotoPosition(ListTreeWidget w)
 static int
 CountItem(ListTreeWidget w, ListTreeItem *item, int x, int y)
 {
-  int height, xpix, xtext;
+  int height, xtext;
   Pixinfo *pix;
 
   item->count=w->list.itemCount;
@@ -1657,7 +1657,6 @@ CountItem(ListTreeWidget w, ListTreeItem *item, int x, int y)
 
 /* Compute the height of this line */
   height = FontHeight(w->list.font);
-  xpix = x - w->list.pixWidth + pix->xoff;
   xtext = x + (int) w->list.HSpacing;
   if (pix && pix->height > height) {
     height = pix->height;
@@ -2244,14 +2243,11 @@ ListTreeOrderChildren(Widget w, ListTreeItem * item)
 ListTreeItem *
 ListTreeFindSiblingName(Widget w, ListTreeItem * item, char *name)
 {
-  ListTreeItem *first;
-
   TreeCheck(w, "in ListTreeFindSiblingName");
 /* Get first child in list; */
   if (item) {
     while (item->prevsibling)
       item = item->prevsibling;
-    first = item;
 
     while (item) {
       if (strcmp(item->text, name) == 0)

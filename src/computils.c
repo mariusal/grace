@@ -1905,7 +1905,7 @@ int do_prune(Quark *psrc, Quark *pdest,
 {
     int len, newlen, ncols, i, old_i, nc;
     char *iprune;
-    double *x, *y, old_x, old_y;
+    double *x, *y;
     char buf[256];
 
     if (dx <= 0.0) {
@@ -1949,8 +1949,6 @@ int do_prune(Quark *psrc, Quark *pdest,
     newlen = 1;
     iprune[0] = FALSE;
     old_i = 0;
-    old_x = x[0];
-    old_y = y[0];
     for (i = 1; i < len; i++) {
         int prune;
         
@@ -1968,8 +1966,6 @@ int do_prune(Quark *psrc, Quark *pdest,
             iprune[i] = FALSE;
             newlen++;
             old_i = i;
-            old_x = x[i];
-            old_y = y[i];
         }
     }
 
@@ -2143,11 +2139,11 @@ DArray *featext(Quark **sets, int nsets, const char *formula)
 int num_cumulative(DArray *src_arrays, unsigned int nsrc,
     DArray *dst_array, int type)
 {
-    int i, is, k, maxlen, maxncols, settype;
+    int i, is, k, maxlen;
     DArray *slice;
     double *y = dst_array->x;
 
-    maxlen = 0; maxncols = 0; settype = SET_XY;
+    maxlen = 0;
     for (is = 0; is < nsrc; is++) {
         unsigned int len = src_arrays[is].size;
         if (maxlen < len) {

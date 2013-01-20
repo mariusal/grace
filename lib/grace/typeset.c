@@ -257,7 +257,7 @@ int grace_csparse_proc(const Canvas *canvas, const char *s, CompositeString *cst
     int color = BAD_COLOR, new_color = color;
     TextMatrix tm = unit_tm, tm_new = tm;
     double hshift = 0.0, new_hshift = hshift;
-    double baseline = 0.0, baseline_old;
+    double baseline = 0.0;
     double vshift = baseline, new_vshift = vshift;
     int underline = FALSE, overline = FALSE;
     int new_underline = underline, new_overline = overline;
@@ -433,7 +433,6 @@ int grace_csparse_proc(const Canvas *canvas, const char *s, CompositeString *cst
                     }
                     break;
 	        case 'V':
-                    baseline_old = baseline;
                     if (j == 0) {
                         baseline = 0.0;
                     } else {

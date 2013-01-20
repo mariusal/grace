@@ -85,7 +85,6 @@ static int png_output(const Canvas *canvas, void *data,
     unsigned int w, h;
     int interlace_type;
     unsigned int i, j;
-    int bg;
     png_byte *trans;
     int num_text;
     png_text text_ptr[4];
@@ -134,8 +133,6 @@ static int png_output(const Canvas *canvas, void *data,
     if (trans == NULL) {
         return RETURN_FAILURE;
     }
-    
-    bg = getbgcolor(canvas);
     
     res_meter = (png_uint_32) rint(page_dpi(canvas)/MM_PER_INCH*1000.0);
     png_set_pHYs(png_ptr, info_ptr, res_meter, res_meter, PNG_RESOLUTION_METER);

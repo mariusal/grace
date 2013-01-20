@@ -42,7 +42,6 @@ static void drawgrid(Quark *q, plot_rt_t *plot_rt)
     Canvas *canvas = plot_rt->canvas;
     Quark *gr;
     tickmarks *t;
-    tickprops tprops;
     gridprops gprops;
     int ttype;
     world w;
@@ -86,11 +85,9 @@ static void drawgrid(Quark *q, plot_rt_t *plot_rt)
     for (ittype_loop = 0; ittype_loop < 2; ittype_loop++) {
         if (ittype_loop == 0) { /* minor ticks */
             ttype = TICK_TYPE_MINOR;
-            tprops = t->mprops;
             gprops = t->mgprops;
         } else {          /* major ticks */
             ttype = TICK_TYPE_MAJOR;
-            tprops = t->props;
             gprops = t->gprops;
         }
         if (!gprops.onoff) {
