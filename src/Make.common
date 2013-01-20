@@ -12,14 +12,14 @@ PARS_O = pars$(O)
 GRSRCS = main.c graceapp.c \
 	project_utils.c graph_utils.c set_utils.c \
 	files.c iofilters.c ssdata.c \
-	computils.c fourier.c \
+	computils.c fourier.c humlik.c \
 	utils.c bi.c
 
 
 GROBJS = main$(O) graceapp$(O) \
 	project_utils$(O) graph_utils$(O) set_utils$(O) \
 	files$(O) iofilters$(O) ssdata$(O) \
-	computils$(O) fourier$(O) \
+	computils$(O) fourier$(O) humlik$(O) \
 	$(PARS_O) \
         utils$(O) bi$(O)
 

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2012 Grace Development Team
+ * Copyright (c) 1996-2013 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -1155,11 +1155,7 @@ int do_linearc(Quark *psrc, Quark *pdest,
         for (i = 0; i < convlen; i++) {
             double x, y;
             x = xconv0 + i*xspace1;
-            if (params->type == LCONV_TYPE_GAUSS) {
-                y = 1/(sqrt(2*M_PI)*params->sigma)*exp(-SQR(x/params->sigma)/2);
-            } else {
-                y = params->sigma/M_PI/(SQR(x) + SQR(params->sigma));
-            }
+            y = voigt(params->gamma, params->sigma, x);
             yconv[i] = y;
         }
     }
@@ -2193,3 +2189,24 @@ int num_cumulative(DArray *src_arrays, unsigned int nsrc,
     
     return RETURN_SUCCESS;
 } 
+
+/* Double-precision wrapper around humlik(), as the rest of funcs in Grace */
+double voigt(double gamma, double sigma, double x)
+{
+    double v, X, Y;
+
+    if (sigma == 0.0) {
+        v = gamma/M_PI/(SQR(gamma) + SQR(x));
+    } else
+    if (gamma == 0.0) {
+        v = 1/(sqrt(2*M_PI)*sigma)*exp(-SQR(x/sigma)/2);
+    } else {
+        X = x/sigma*M_SQRT1_2;
+        Y = gamma/sigma*M_SQRT1_2;
+
+        v = humlik(X, Y);
+        v /= sigma*sqrt(2*M_PI);
+    }
+    
+    return v;
+}

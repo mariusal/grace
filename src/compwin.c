@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2012 Grace Development Team
+ * Copyright (c) 1996-2013 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -1003,11 +1003,16 @@ void create_int_frame(Widget but, void *data)
 
 /* linear convolution */
 
+#define UI_LCONV_WIDTH_STDDEV    0
+#define UI_LCONV_WIDTH_FWHM      1
+
 typedef struct {
     OptionStructure   *convtype;
     GraphSetStructure *convsel;
     Widget sigmarc;
     Widget sigma;
+    Widget gamma;
+    OptionStructure   *wtype;
 } Lconv_ui;
 
 static void conv_type_cb(OptionStructure *opt, int value, void *data)
@@ -1031,18 +1036,25 @@ static void *lconv_build_cb(TransformStructure *tdialog)
     if (ui) {
 	Widget rc;
         OptionItem titems[] = {
-            {LCONV_TYPE_SET,     "Another set"},
-            {LCONV_TYPE_GAUSS,   "Gaussian"   },
-            {LCONV_TYPE_LORENTZ, "Lorentzian" }
+            {LCONV_TYPE_SET,   "Another set"   },
+            {LCONV_TYPE_VOIGT, "Voigt function"}
+        };
+        OptionItem witems[] = {
+            {UI_LCONV_WIDTH_STDDEV, "Std. dev."},
+            {UI_LCONV_WIDTH_FWHM,   "FWHM"     }
         };
         rc = CreateVContainer(tdialog->frame);
 	
-        ui->convtype = CreateOptionChoice(rc, "Convolve with:", 0, 3, titems);
+        ui->convtype = CreateOptionChoice(rc, "Convolve with:", 0, 2, titems);
 	ui->convsel  = CreateGraphSetSelector(rc, NULL, LIST_TYPE_SINGLE);
         
-        ui->sigmarc   = CreateHContainer(rc);
-        ui->sigma     = CreateTextItem(ui->sigmarc, 10, "Std. dev.:");
+        ui->sigmarc   = CreateVContainer(rc);
+        ui->sigma     = CreateTextItem(ui->sigmarc, 10, "Gauss width:");
+        ui->gamma     = CreateTextItem(ui->sigmarc, 10, "Lorentz width:");
+        xv_setstr(ui->gamma, "0.0");
         xv_setstr(ui->sigma, "1.0");
+        ui->wtype     = CreateOptionChoice(ui->sigmarc,
+            "Parameters are:", 0, 2, witems);
         
         AddOptionChoiceCB(ui->convtype, conv_type_cb, ui);
         
@@ -1079,9 +1091,24 @@ static void *lconv_get_cb(void *gui)
             break;
         default:
             if (xv_evalexpr(ui->sigma, &pars->sigma) != RETURN_SUCCESS) {
-                errmsg("Can't parse value for sigma");
+                errmsg("Cannot parse value for sigma");
                 lconv_free_cb(pars);
                 return NULL;
+            }
+            if (xv_evalexpr(ui->gamma, &pars->gamma) != RETURN_SUCCESS) {
+                errmsg("Cannot parse value for gamma");
+                lconv_free_cb(pars);
+                return NULL;
+            }
+            if (pars->gamma < 0 || pars->sigma < 0) {
+                errmsg("Widths must be non-negative");
+                lconv_free_cb(pars);
+                return NULL;
+            }
+            
+            if (GetOptionChoice(ui->wtype) == UI_LCONV_WIDTH_FWHM) {
+                pars->gamma /= 2;
+                pars->sigma /= 2*sqrt(2*log(2.0));
             }
             break;
         }

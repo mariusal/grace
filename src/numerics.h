@@ -37,13 +37,13 @@
 #include "graceapp.h"
 
 #define LCONV_TYPE_SET       0
-#define LCONV_TYPE_GAUSS     1
-#define LCONV_TYPE_LORENTZ   2
+#define LCONV_TYPE_VOIGT     1
 
 typedef struct {
     int type;
     Quark *pconv;
     double sigma;
+    double gamma;
 } Lconv_pars;
 
 /* computils.c */
@@ -97,8 +97,13 @@ DArray *featext(Quark **sets, int nsets, const char *formula);
 int num_cumulative(DArray *src_arrays, unsigned int nsrc,
     DArray *dst_array, int type);
 
+double voigt(double gamma, double sigma, double x);
+
 /* fourier.c */
 int fourier(double *jr, double *ji, int n, int iflag);
+
+/* humlik.c */
+float humlik(const float x, const float y);
 
 /* nonlfit.c */
 void reset_nonl(NLFit *nlfit);
