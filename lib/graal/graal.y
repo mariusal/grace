@@ -577,7 +577,11 @@ vexpr:      array { $$ = $1; }
                     yyerror("zero raised to non-positive power");
                     YYABORT;
                 } else {
-                    darray_pow($$, $3);
+                    $$ = darray_copy($1);
+                    if ($$) {
+                        REGISTER_DARR($$);
+                        darray_pow($$, $3);
+                    }
                 }
             }
 	|   '-' vexpr %prec UMINUS {
