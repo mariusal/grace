@@ -664,13 +664,13 @@ object:     TOK_OBJECT {
         ;
 %%
 
-int graal_parse(Graal *g, const char *s, void *context)
+int graal_parse(Graal *g, const char *s, void *lcontext, void *rcontext)
 {
     int retval;
     YY_BUFFER_STATE buffer = yy_scan_string(s, g->scanner);
     
-    g->default_obj = context;
-    g->current_obj = context;
+    graal_set_context(g, lcontext, rcontext);
+    g->current_obj = lcontext;
 
     g->dot_context = GContextNone;
     g->RHS         = FALSE;

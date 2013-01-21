@@ -201,7 +201,8 @@ static int leaveCB(TableEvent *event)
                 break;    
             default:
                 if (graal_eval_expr(grace_get_graal(gapp->grace),
-                    event->value, &value, gproject_get_top(gapp->gp)) == RETURN_SUCCESS) {
+                    event->value, &value, gproject_get_top(gapp->gp), NULL)
+                    == RETURN_SUCCESS) {
 
                     unsigned int prec;
                     char buf[32];

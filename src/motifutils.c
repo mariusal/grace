@@ -4393,7 +4393,7 @@ int xv_evalexpr(Widget w, double *answer)
     s = XmTextGetString(w);
     
     retval = graal_eval_expr(grace_get_graal(gapp->grace),
-        s, answer, gproject_get_top(gapp->gp));
+        s, answer, gproject_get_top(gapp->gp), NULL);
     
     XtFree(s);
     

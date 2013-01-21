@@ -63,12 +63,13 @@ typedef int (*GSetPropProc)(void *obj, const char *name,
 Graal *graal_new(void);
 void graal_free(Graal *g);
 
-int graal_parse(Graal *g, const char *s, void *context);
-int graal_parse_line(Graal *g, const char *s, void *context);
+int graal_parse(Graal *g, const char *s, void *lcontext, void *rcontext);
+int graal_parse_line(Graal *g, const char *s, void *lcontext, void *rcontext);
 
-int graal_eval_expr(Graal *g, const char *formula, double *val, void *context);
-int graal_transform_arr(Graal *g,
-    const char *formula, const char *varname, DArray *da, void *context);
+int graal_eval_expr(Graal *g, const char *formula, double *val,
+    void *lcontext, void *rcontext);
+int graal_transform_arr(Graal *g, const char *formula, const char *varname,
+    DArray *da, void *lcontext, void *rcontext);
 
 GVar *graal_get_var(Graal *g, const char *name, int allocate);
 

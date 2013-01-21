@@ -50,13 +50,13 @@ void graal_free(Graal *g)
     }
 }
 
-int graal_parse_line(Graal *g, const char *s, void *context)
+int graal_parse_line(Graal *g, const char *s, void *lcontext, void *rcontext)
 {
     if (g && s) {
         int retval;
         char *buf = copy_string(NULL, s);
         buf = concat_strings(buf, ";");
-        retval = graal_parse(g, buf, context);
+        retval = graal_parse(g, buf, lcontext, rcontext);
         xfree(buf);
         return retval;
     } else {
@@ -267,8 +267,8 @@ void graal_free_darrs(Graal *g)
     XCFREE(g->darrs);
 }
 
-int graal_transform_arr(Graal *g,
-    const char *formula, const char *varname, DArray *da, void *context)
+int graal_transform_arr(Graal *g, const char *formula, const char *varname,
+    DArray *da, void *lcontext, void *rcontext)
 {
     GVar *var = graal_get_var(g, varname, TRUE);
     if (var) {
@@ -281,7 +281,7 @@ int graal_transform_arr(Graal *g,
         buf = concat_strings(buf, " = ");
         buf = concat_strings(buf, formula);
         
-        graal_parse_line(g, buf, context);
+        graal_parse_line(g, buf, lcontext, rcontext);
         
         xfree(buf);
         
@@ -298,7 +298,8 @@ int graal_transform_arr(Graal *g,
     }
 }
 
-int graal_eval_expr(Graal *g, const char *formula, double *val, void *context)
+int graal_eval_expr(Graal *g, const char *formula, double *val,
+    void *lcontext, void *rcontext)
 {
     char *buf;
     int retval;
@@ -307,7 +308,7 @@ int graal_eval_expr(Graal *g, const char *formula, double *val, void *context)
     buf = copy_string(NULL, "$d = ");
     buf = concat_strings(buf, formula);
 
-    retval = graal_parse_line(g, buf, context);
+    retval = graal_parse_line(g, buf, lcontext, rcontext);
 
     xfree(buf);
     
@@ -352,9 +353,23 @@ int graal_set_eval_proc(Graal *g, GEvalProc eval_proc)
     }
 }
 
-void graal_set_context(Graal *g, void *context)
+void graal_set_context(Graal *g, void *lcontext, void *rcontext)
 {
-    g->default_obj = context;
+    g->default_lobj = lcontext;
+    if (rcontext) {
+        g->default_robj = rcontext;
+    } else {
+        g->default_robj = lcontext;
+    }
+}
+
+void *graal_get_context(Graal *g)
+{
+    if (!g) {
+        return NULL;
+    } else {
+        return g->RHS ? g->default_robj : g->default_lobj;
+    }
 }
 
 void *graal_get_user_obj(Graal *g, void *obj, const char *name)

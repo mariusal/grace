@@ -59,7 +59,8 @@ struct _Graal {
     GContext dot_context;
     int      RHS;
     
-    void *default_obj;
+    void *default_lobj;     /* default LHS object */
+    void *default_robj;     /* default RHS object */
     void *current_obj;
     
     GEvalProc eval_proc;
@@ -84,7 +85,8 @@ GVarType graal_get_user_obj_prop(Graal *g,
 int graal_set_user_obj_prop(Graal *g,
     void *obj, const char *name, GVarType type, GVarData prop);
 
-void graal_set_context(Graal *g, void *context);
+void graal_set_context(Graal *g, void *lcontext, void *rcontext);
+void *graal_get_context(Graal *g);
 
 void graal_set_dotcontext(Graal *g, GContext dot_context);
 GContext graal_get_dotcontext(const Graal *g);

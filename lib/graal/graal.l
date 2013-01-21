@@ -67,9 +67,10 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
 
 "this"	{
             Graal *g = (Graal *) yyextra;
-            if (g->default_obj) {
-                g->current_obj = g->default_obj;
-                yylval->gobj = g->default_obj;
+            void *default_obj = graal_get_context(g);
+            if (default_obj) {
+                g->current_obj = default_obj;
+                yylval->gobj = default_obj;
                 return TOK_OBJECT;
             } else {
                 REJECT;
@@ -92,6 +93,7 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
 
 {NAME}	{
             void *uobj;
+            void *defobject;
             GVar *var;
             Graal *g = (Graal *) yyextra;
 	    
@@ -144,7 +146,8 @@ NAME    [A-Za-z$][A-Za-z0-9_]*
                 break;
             
             default:
-                uobj = graal_get_user_obj(g, g->default_obj, yytext);
+                defobject = graal_get_context(g);
+                uobj = graal_get_user_obj(g, defobject, yytext);
 	        if (uobj) {
                     yylval->gobj = uobj;
                     return TOK_OBJECT;

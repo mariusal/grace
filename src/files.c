@@ -390,7 +390,8 @@ static int process_complete_lines(GraceApp *gapp, Input_buffer *ib)
 
             if (line_corrupted ||
                 graal_parse_line(grace_get_graal(gapp->grace),
-                    begin_of_line, gproject_get_top(gapp->gp)) != RETURN_SUCCESS) {
+                    begin_of_line, gproject_get_top(gapp->gp), NULL) !=
+                    RETURN_SUCCESS) {
                 sprintf(buf, "Error at line %d", ib->lineno);
                 errmsg(buf);
                 ++(ib->errors);

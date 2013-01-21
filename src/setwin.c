@@ -597,7 +597,7 @@ static int leval_aac_cb(void *data)
         expr = concat_strings(expr, formula[i]);
         
         /* evaluate the expression */
-        res = graal_parse_line(grace_get_graal(grace), expr, NULL);
+        res = graal_parse_line(grace_get_graal(grace), expr, NULL, NULL);
         
         xfree(expr);
         
