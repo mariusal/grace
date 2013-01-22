@@ -29,6 +29,8 @@
 #include "grace/graalP.h"
 #include "parser.h"
 
+#define YY_NO_INPUT
+
 /* FIXME!!! */
 char string_buf[512];
 char *string_buf_ptr;
