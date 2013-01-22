@@ -386,7 +386,7 @@ expr:	    TOK_NUMBER { $$ = $1; }
 iexpr:	    expr {
                 int itmp = rint($1);
                 if (fabs(itmp - $1) > 1.e-6) {
-                    yyerror("Non-integer value supplied for integer");
+                    yyerror("non-integer value supplied for integer");
                     YYABORT;
                 } else {
                     $$ = itmp;
@@ -404,7 +404,7 @@ iexpr:	    expr {
 
 nexpr:	    iexpr {
                 if ($1 < 0) {
-                    yyerror("Negative value supplied for non-negative");
+                    yyerror("negative value supplied for non-negative");
                     YYABORT;
                 } else {
                     $$ = $1;
