@@ -850,6 +850,7 @@ int ssd_transpose(Quark *q);
 
 int ssd_set_value(Quark *q, int row, int column, double value);
 int ssd_set_string(Quark *q, int row, int column, const char *s);
+int ssd_set_column_value(Quark *q, int column, double value);
 
 int ssd_get_column_by_name(const Quark *q, const char *name);
 DArray *ssd_get_darray(const Quark *q, int column);
@@ -1002,6 +1003,7 @@ double set_get_ybase(Quark *pset);
 
 DArray *set_get_darray(const Quark *q, DataColumn col);
 int set_set_darray(Quark *pset, DataColumn col, const DArray *da);
+int set_set_column_value(Quark *pset, DataColumn col, double value);
 
 /* Region */
 region *region_get_data(const Quark *q);

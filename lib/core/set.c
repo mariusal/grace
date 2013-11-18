@@ -485,6 +485,17 @@ void *set_get_acol(Quark *pset, int *format)
     }
 }
 
+int set_set_column_value(Quark *pset, DataColumn col, double value)
+{
+    Quark *ss = get_parent_ssd(pset);
+    set *p = set_get_data(pset);
+    if (p && ss && col < MAX_SET_COLS) {
+        return ssd_set_column_value(ss, p->ds.cols[col], value);
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 /* assign given column to DArray without actually allocating the data */
 DArray *set_get_darray(const Quark *pset, DataColumn col)
 {
