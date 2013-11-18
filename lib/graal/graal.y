@@ -563,6 +563,18 @@ vexpr:      array { $$ = $1; }
                     }
                 }
             }
+        |   expr '/' vexpr {
+                if (darray_has_zero($3)) {
+                    yyerror("divide by zero");
+                    YYABORT;
+                }
+                $$ = darray_copy($3);
+                if ($$) {
+                    REGISTER_DARR($$);
+                    darray_pow($$, -1.0);
+                    darray_mul_val($$, $1);
+                }
+            }
         |   vexpr '/' vexpr {
                 if ($1->size != $3->size) {
 	            yyerror("vector lengths mismatch");
