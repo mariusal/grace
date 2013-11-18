@@ -52,13 +52,23 @@ typedef union {
     char   *str;
 } GVarData;
 
+typedef struct {
+    GVarType type;
+    GVarData data;
+} GArg;
+
 typedef void (*GEvalProc)(GVarType type, GVarData vardata, void *udata);
+typedef int  (*GFuncProc)(const char *fname,
+    unsigned int nargs, const GArg *args, GVarType otype, GVarData *ovar,
+    void *udata);
 
 typedef void *(*GLookupObjProc)(void *context, const char *name, void *udata);
 typedef GVarType (*GGetPropProc)(const void *obj, const char *name,
     GVarData *prop, void *udata);
 typedef int (*GSetPropProc)(void *obj, const char *name,
     GVarType type, GVarData prop, void *udata);
+
+typedef double (*GUserFunc)(double value);
 
 Graal *graal_new(void);
 void graal_free(Graal *g);
@@ -87,5 +97,9 @@ int graal_set_lookup_procs(Graal *g,
     GLookupObjProc obj_proc, GGetPropProc get_proc, GSetPropProc set_proc);
 
 int graal_set_eval_proc(Graal *g, GEvalProc eval_proc);
+int graal_set_func_proc(Graal *g, GFuncProc func_proc);
+
+int graal_eval_user_func(Graal *g, const char *fname,
+    GVarType otype, GVarData *ovar, unsigned int nargs, ...);
 
 #endif /* __GRAAL_H_ */

@@ -26,6 +26,7 @@
  */
 
 #include <string.h>
+#include <stdarg.h>
 
 #include "grace/graalP.h"
 
@@ -353,6 +354,16 @@ int graal_set_eval_proc(Graal *g, GEvalProc eval_proc)
     }
 }
 
+int graal_set_func_proc(Graal *g, GFuncProc func_proc)
+{
+    if (g && func_proc) {
+        g->func_proc = func_proc;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 void graal_set_context(Graal *g, void *lcontext, void *rcontext)
 {
     g->default_lobj = lcontext;
@@ -428,3 +439,55 @@ void graal_call_eval_proc(Graal *g, GVarType type, GVarData vardata)
     }
 }
 
+int graal_eval_user_func(Graal *g, const char *fname,
+    GVarType otype, GVarData *ovar, unsigned int nargs, ...)
+{
+    if (nargs > MAX_VARARGS) {
+        return RETURN_FAILURE;
+    }
+    
+    if (g && g->func_proc) {
+        int ok = TRUE;
+        unsigned int i;
+        GArg args[MAX_VARARGS];
+        va_list ap;
+        
+        va_start(ap, nargs);
+
+        for (i = 0; i < nargs; i++) {
+            GVarType type = va_arg(ap, GVarType);
+            args[i].type = type;
+            switch (type) {
+            case GVarNum:
+                args[i].data.num = va_arg(ap, double);
+                break;
+            case GVarBool:
+                args[i].data.bool = va_arg(ap, double);
+                break;
+            case GVarArr:
+                args[i].data.arr = va_arg(ap, DArray *);
+                break;
+            case GVarStr:
+                args[i].data.str = va_arg(ap, char *);
+                break;
+            default:
+                ok = FALSE;
+                break;
+            }
+            
+            if (ok != TRUE) {
+                break;
+            } 
+        }
+
+        va_end(ap);
+        
+        if (ok) {
+            return g->func_proc(fname, nargs, args, otype, ovar, g->udata);
+        } else {
+            return RETURN_FAILURE;
+        }
+    } else {
+        return RETURN_FAILURE;
+    }
+}

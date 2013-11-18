@@ -381,6 +381,17 @@ expr:	    TOK_NUMBER { $$ = $1; }
                 $$ = strlen($3);
                 xfree($3);
             }
+        |   TOK_NAME '(' expr ')' {
+                Graal *g = yyget_extra(scanner);
+                GVarData ovardata;
+                if (graal_eval_user_func(g, $1,
+                    GVarNum, &ovardata, 1, GVarNum, $3) == RETURN_SUCCESS) {
+                    $$ = ovardata.num;
+                } else {
+	            yyerror("failed evaluating function");
+                    YYABORT;
+                }
+            }
         ;
 
 iexpr:	    expr {
@@ -593,6 +604,18 @@ vexpr:      array { $$ = $1; }
             }
 	|   '+' vexpr %prec UMINUS { $$ = $2; }
 	|   '(' vexpr ')' { $$ = $2; }
+        |   TOK_NAME '(' vexpr ')' {
+                Graal *g = yyget_extra(scanner);
+                GVarData ovardata;
+                ovardata.arr = darray_copy($3);
+                if (graal_eval_user_func(g, $1,
+                    GVarArr, &ovardata, 1, GVarArr, $3) == RETURN_SUCCESS) {
+                    $$ = ovardata.arr;
+                } else {
+	            yyerror("failed evaluating function");
+                    YYABORT;
+                }
+            }
         ;
 
 sarray:	    TOK_STRING { $$ = $1; }

@@ -34,6 +34,8 @@
 
 #include "grace/graal.h"
 
+#define MAX_VARARGS 16
+
 typedef enum {
     GContextNone,
     GContextDot,
@@ -64,6 +66,7 @@ struct _Graal {
     void *current_obj;
     
     GEvalProc eval_proc;
+    GFuncProc func_proc;
     
     GLookupObjProc  lookup_obj_proc;
     GGetPropProc    get_prop_proc;
