@@ -121,17 +121,37 @@ static int set_proc(void *obj,
     switch (quark_fid_get(q)) {
     case QFlavorSSD:
         if ((column = ssd_get_column_by_name(q, name)) >= 0) {
-            return ssd_set_darray(q, column, prop.arr);
+            switch (type) {
+            case GVarNum:
+                return ssd_set_column_value(q, column, prop.num);
+                break;
+            case GVarArr:
+                return ssd_set_darray(q, column, prop.arr);
+                break;
+            default:
+                return RETURN_FAILURE;
+                break;
+            }
         } else {
             return RETURN_FAILURE;
         }
         break;
     case QFlavorSet:
         if ((col = get_dataset_col_by_name(grace, name)) != DATA_BAD) {
-            if (set_set_length(q, prop.arr->size) != RETURN_SUCCESS) {
+            switch (type) {
+            case GVarNum:
+                return set_set_column_value(q, col, prop.num);
+                break;
+            case GVarArr:
+                if (set_set_length(q, prop.arr->size) != RETURN_SUCCESS) {
+                    return RETURN_FAILURE;
+                } else {
+                    return set_set_darray(q, col, prop.arr);
+                }
+                break;
+            default:
                 return RETURN_FAILURE;
-            } else {
-                return set_set_darray(q, col, prop.arr);
+                break;
             }
         } else {
             return RETURN_FAILURE;
