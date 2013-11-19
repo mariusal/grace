@@ -45,7 +45,6 @@ typedef enum {
 struct _GVar {
     char *name;
     GVarType type;
-    int allocated;
     GVarData data;
 };
 
