@@ -517,7 +517,7 @@ static void cli_loop(GraceApp *gapp)
     while (ib_stdin->fd == STDIN_FILENO) {
         /* the standard input is still under monitoring */
         if (ib_stdin->lineno != previous) {
-            printf("gapp:%d> ", ib_stdin->lineno + 1);
+            printf("grace:%d> ", ib_stdin->lineno + 1);
             fflush(stdout);
             previous = ib_stdin->lineno;
         }
